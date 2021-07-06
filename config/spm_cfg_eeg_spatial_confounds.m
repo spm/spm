@@ -1,10 +1,27 @@
 function sconfounds = spm_cfg_eeg_spatial_confounds
-% configuration file for reading montage files
+% Configuration file for reading montage files
 %__________________________________________________________________________
-% Copyright (C) 2014-2016 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2014-2021 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_spatial_confounds.m 6926 2016-11-09 22:13:19Z guillaume $
+% $Id: spm_cfg_eeg_spatial_confounds.m 8119 2021-07-06 13:51:43Z guillaume $
+
+
+sconfounds          = cfg_exbranch;
+sconfounds.tag      = 'sconfounds';
+sconfounds.name     = 'Define spatial confounds';
+sconfounds.val      = @sconfounds_cfg;
+sconfounds.help     = {'Define spatial confounds for topography-based correction of artefacts.'};
+sconfounds.prog     = @eeg_sconfounds;
+sconfounds.vout     = @vout_eeg_sconfounds;
+sconfounds.modality = {'EEG'};
+
+
+%==========================================================================
+function varargout = sconfounds_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 D = cfg_files;
 D.tag = 'D';
@@ -102,15 +119,10 @@ mode.name = 'Mode';
 mode.values = {svd, spmeeg, besa, eyes, clr};
 mode.help = {'Select methods for defining spatial confounds.'};
 
-sconfounds = cfg_exbranch;
-sconfounds.tag = 'sconfounds';
-sconfounds.name = 'Define spatial confounds';
-sconfounds.val = {D, mode};
-sconfounds.help = {'Define spatial confounds for topography-based correction of artefacts.'};
-sconfounds.prog = @eeg_sconfounds;
-sconfounds.vout = @vout_eeg_sconfounds;
-sconfounds.modality = {'EEG'};
+[cfg,varargout{1}] = deal({D, mode});
 
+
+%==========================================================================
 function out = eeg_sconfounds(job)
 
 D = char(job.D{1});
@@ -140,6 +152,8 @@ end
 
 out.D = {fullfile(D)};
 
+
+%==========================================================================
 function dep = vout_eeg_sconfounds(job)
 % Output is always in field "D", no matter how job is structured
 dep = cfg_dep;
@@ -148,5 +162,3 @@ dep.sname = 'Dataset with spatial confounds';
 dep.src_output = substruct('.','D');
 % this can be entered into any evaluated input
 dep.tgt_spec   = cfg_findspec({{'filter','mat'}});
-
-

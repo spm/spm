@@ -17,9 +17,9 @@ function item = initialise(item, val, dflag)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: initialise.m 4898 2012-09-05 13:40:16Z volkmar $
+% $Id: initialise.m 8119 2021-07-06 13:51:43Z guillaume $
 
-rev = '$Rev: 4898 $'; %#ok
+rev = '$Rev: 8119 $'; %#ok
 
 if strcmp(val,'<DEFAULTS>')
     item = initialise_def(item, val, dflag);
@@ -33,6 +33,9 @@ end;
 
 function item = initialise_def(item, val, dflag)
 citem = subsref(item, substruct('.','val'));
+if isa(citem,'function_handle')
+    citem = feval(citem);
+end
 for k = 1:numel(citem)
     citem{k} = initialise(citem{k}, val, dflag);
 end;

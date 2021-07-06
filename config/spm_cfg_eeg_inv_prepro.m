@@ -1,10 +1,27 @@
 function prepro = spm_cfg_eeg_inv_prepro
 % Configuration file for configuring imaging source inversion reconstruction
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2015-2021 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_prepro.m 6444 2015-05-21 11:15:48Z guillaume $
+% $Id: spm_cfg_eeg_inv_prepro.m 8119 2021-07-06 13:51:43Z guillaume $
+
+
+prepro          = cfg_exbranch;
+prepro.tag      = 'prepro';
+prepro.name     = 'Inversion preprocessing';
+prepro.val      = @prepro_cfg;
+prepro.help     = {'Run imaging source reconstruction'};
+prepro.prog     = @run_prepro;
+prepro.vout     = @vout_prepro;
+prepro.modality = {'EEG'};
+
+
+%==========================================================================
+function varargout = prepro_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 D = cfg_files;
 D.tag = 'D';
@@ -155,16 +172,10 @@ modality.values = {
     }';
 modality.val = {{'All'}};
 
-prepro = cfg_exbranch;
-prepro.tag = 'prepro';
-prepro.name = 'Inversion preprocessing';
-prepro.val = {D, val, whatconditions, isstandard, modality};
-prepro.help = {'Run imaging source reconstruction'};
-prepro.prog = @run_prepro;
-prepro.vout = @vout_prepro;
-prepro.modality = {'EEG'};
+[cfg,varargout{1}] = deal({D, val, whatconditions, isstandard, modality});
 
 
+%==========================================================================
 function  out = run_prepro(job)
 
 D = spm_eeg_load(job.D{1});
@@ -230,6 +241,7 @@ end
 out.D = job.D;
 
 
+%==========================================================================
 function dep = vout_prepro(job)
 % Output is always in field "D", no matter how job is structured
 dep = cfg_dep;

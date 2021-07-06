@@ -1,8 +1,10 @@
 function spatial = tbx_cfg_spatial
-% MATLABBATCH Configuration file for toolbox 'Spatial Tools'
+% Configuration file for toolbox 'Spatial Tools'
+%__________________________________________________________________________
+% Copyright (C) 2021 Wellcome Centre for Human Neuroimaging
 
 % John Ashburner
-% $Id: tbx_cfg_spatial.m 8053 2021-02-08 11:51:17Z spm $
+% $Id: tbx_cfg_spatial.m 8119 2021-07-06 13:51:43Z guillaume $
 
 if ~isdeployed, addpath(fullfile(spm('dir'),'toolbox','Spatial')); end
 % -------------------------------------------------------------------------

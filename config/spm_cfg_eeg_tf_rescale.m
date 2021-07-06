@@ -1,10 +1,36 @@
 function rescale = spm_cfg_eeg_tf_rescale
 % configuration file for rescaling spectrograms
 %__________________________________________________________________________
-% Copyright (C) 2009-2013 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2009-2021 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_cfg_eeg_tf_rescale.m 6825 2016-07-04 10:03:57Z vladimir $
+% $Id: spm_cfg_eeg_tf_rescale.m 8119 2021-07-06 13:51:43Z guillaume $
+
+
+%--------------------------------------------------------------------------
+% rescale
+%--------------------------------------------------------------------------
+rescale          = cfg_exbranch;
+rescale.tag      = 'rescale';
+rescale.name     = 'Time-frequency rescale';
+rescale.val      = @rescale_cfg;
+rescale.help     = {'Rescale (avg) spectrogram with nonlinear and/or difference operator.'
+              'For ''Log'' and ''Sqrt'', these functions are applied to spectrogram.'
+              'For ''LogR'', ''Rel'' and ''Diff'' this function computes power in the baseline.'
+              'p_b and outputs:'
+              '(i) p-p_b for ''Diff'''
+              '(ii) 100*(p-p_b)/p_b for ''Rel'''
+              '(iii) log (p/p_b) for ''LogR'''}';
+rescale.prog     = @eeg_tf_rescale;
+rescale.vout     = @vout_eeg_tf_rescale;
+rescale.modality = {'EEG'};
+
+
+%==========================================================================
+function varargout = rescale_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 %--------------------------------------------------------------------------
 % D
@@ -154,23 +180,8 @@ prefix.strtype = 's';
 prefix.num     = [1 Inf];
 prefix.val     = {'r'};
 
-%--------------------------------------------------------------------------
-% rescale
-%--------------------------------------------------------------------------
-rescale          = cfg_exbranch;
-rescale.tag      = 'rescale';
-rescale.name     = 'Time-frequency rescale';
-rescale.val      = {D, method, prefix};
-rescale.help     = {'Rescale (avg) spectrogram with nonlinear and/or difference operator.'
-              'For ''Log'' and ''Sqrt'', these functions are applied to spectrogram.'
-              'For ''LogR'', ''Rel'' and ''Diff'' this function computes power in the baseline.'
-              'p_b and outputs:'
-              '(i) p-p_b for ''Diff'''
-              '(ii) 100*(p-p_b)/p_b for ''Rel'''
-              '(iii) log (p/p_b) for ''LogR'''}';
-rescale.prog     = @eeg_tf_rescale;
-rescale.vout     = @vout_eeg_tf_rescale;
-rescale.modality = {'EEG'};
+[cfg,varargout{1}] = deal({D, method, prefix});
+
 
 %==========================================================================
 function out = eeg_tf_rescale(job)
@@ -189,6 +200,7 @@ end
 
 out.D          = spm_eeg_tf_rescale(S);
 out.Dfname     = {fullfile(out.D)};
+
 
 %==========================================================================
 function dep = vout_eeg_tf_rescale(job)

@@ -1,12 +1,29 @@
 function coregshift = spm_cfg_eeg_inv_coregshift
-% configuration file for specifying the head model for source
-% reconstruction. THis is to add deterministic or random displacements to
-% simulate coregistration error. GRB
-%_______________________________________________________________________
-% Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
+% Configuration file for specifying the head model for source
+% reconstruction. This is to add deterministic or random displacements to
+% simulate coregistration error.
+%__________________________________________________________________________
+% Copyright (C) 2013-2021 Wellcome Trust Centre for Neuroimaging
 
 % Gareth Barnes
-% $Id: spm_cfg_eeg_inv_coregshift.m 5422 2013-04-16 15:35:49Z gareth $
+% $Id: spm_cfg_eeg_inv_coregshift.m 8119 2021-07-06 13:51:43Z guillaume $
+
+
+coregshift          = cfg_exbranch;
+coregshift.tag      = 'coregshift';
+coregshift.name     = 'Add head model error';
+coregshift.val      = @coregshift_cfg;
+coregshift.help     = {'To simulate the effects of coregistration error'};
+coregshift.prog     = @specify_coregshift;
+coregshift.vout     = @vout_specify_coregshift;
+coregshift.modality = {'MEG'};
+
+
+%==========================================================================
+function varargout = coregshift_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 D = cfg_files;
 D.tag = 'D';
@@ -21,8 +38,6 @@ val.name = 'Inversion index';
 val.strtype = 'n';
 val.help = {'Index of the cell in D.inv where the results will be stored.'};
 val.val = {1};
-
-
 
 meanshift = cfg_entry;
 meanshift.tag = 'meanshift';
@@ -64,17 +79,10 @@ pperror.num = [1 1];
 pperror.val = {[0]};
 pperror.help = {'The standard deviation of the error (mm) on each fiducial in each dimension'};
 
+[cfg,varargout{1}] = deal({D, val, meanshift, sdshift,meanangshift,sdangshift,pperror});
 
 
-coregshift = cfg_exbranch;
-coregshift.tag = 'coregshift';
-coregshift.name = 'Add head model error';
-coregshift.val = {D, val, meanshift, sdshift,meanangshift,sdangshift,pperror};
-coregshift.help = {'To simulate the effects of coregistration error'};
-coregshift.prog = @specify_coregshift;
-coregshift.vout = @vout_specify_coregshift;
-coregshift.modality = {'MEG'};
-
+%==========================================================================
 function  out = specify_coregshift(job)
 
 out.D = {};
@@ -101,8 +109,8 @@ for i = 1:numel(job.D)
     D.val = val;
     
     %-Meshes
-    %--------------------------------------------------------------------------
-    if ~isfield(D,'inv'),
+    %----------------------------------------------------------------------
+    if ~isfield(D,'inv')
         error('no head model set up');
     end
     
@@ -118,16 +126,16 @@ for i = 1:numel(job.D)
     startpos=meegfid.fid.pnt;
     
     rshift=abs(job.sdshift)+abs(job.sdangshift)+abs(job.pperror);
-    if rshift>0;
+    if rshift>0
         disp('changing random seed and adding coreg error');
         randn('seed',sum(100*clock));
-    end;
+    end
     
     P(1:3)= job.meanshift+randn(1,3).*job.sdshift; %%  TRanslation
     P(4:6)=(job.meanangshift+randn(1,3).*job.sdangshift).*pi/180;   %% rotation in radians
     
     [A] = spm_matrix(P); %% deterministic coreg error
-    origfid=[meegfid.fid.pnt ones(size(meegfid.fid.pnt,1),1)]
+    origfid=[meegfid.fid.pnt ones(size(meegfid.fid.pnt,1),1)];
     newfid=(A*origfid')'; %% translated and rotated
     newfid=newfid(:,1:3);
    
@@ -152,6 +160,8 @@ for i = 1:numel(job.D)
     out.D{i, 1} = fullfile(D.path, D.fname);
 end
 
+
+%==========================================================================
 function dep = vout_specify_coregshift(job)
 % Output is always in field "D", no matter how job is structured
 dep = cfg_dep;
@@ -160,4 +170,3 @@ dep.sname = 'M/EEG dataset(s) with a forward model';
 dep.src_output = substruct('.','D');
 % this can be entered into any evaluated input
 dep.tgt_spec   = cfg_findspec({{'filter','mat'}});
-

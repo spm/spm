@@ -1,12 +1,28 @@
 function out = bf_write
-% Writes out the results of beamforming analysis
-% Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
+% Write out the results of beamforming analysis
+%__________________________________________________________________________
+% Copyright (C) 2015-2021 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: bf_write.m 7703 2019-11-22 12:06:29Z guillaume $
+% $Id: bf_write.m 8119 2021-07-06 13:51:43Z guillaume $
 
-% dir Directory
-% ---------------------------------------------------------------------
+
+out          = cfg_exbranch;
+out.tag      = 'write';
+out.name     = 'Write';
+out.val      = @bf_write_cfg;
+out.help     = {'Write out results'};
+out.prog     = @bf_write_run;
+out.vout     = @bf_write_vout;
+out.modality = {'EEG'};
+
+
+%==========================================================================
+function varargout = bf_write_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
+
 BF = cfg_files;
 BF.tag = 'BF';
 BF.name = 'BF.mat file';
@@ -27,16 +43,10 @@ for i = 1:numel(write_funs)
     plugin.values{i} = feval(spm_file(write_funs{i},'basename'));
 end
 
-out = cfg_exbranch;
-out.tag = 'write';
-out.name = 'Write';
-out.val = {BF, plugin};
-out.help = {'Write out results'};
-out.prog = @bf_write_run;
-out.vout = @bf_write_vout;
-out.modality = {'EEG'};
-end
+[cfg,varargout{1}] = deal({BF, plugin});
 
+
+%==========================================================================
 function  out = bf_write_run(job)
 
 outdir = spm_file(job.BF{1}, 'fpath');
@@ -55,8 +65,9 @@ bf_save(BF);
 
 out.BF{1} = fullfile(outdir, 'BF.mat');
 out.files = BF.write.(outfield_name).files;
-end
 
+
+%==========================================================================
 function dep = bf_write_vout(job)
 % Output is always in field "D", no matter how job is structured
 dep(1) = cfg_dep;
@@ -77,5 +88,4 @@ switch plugin_name
         dep(2).tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});
     case 'gifti'
         dep(2).tgt_spec   = cfg_findspec({{'filter','mesh','strtype','e'}});
-end
 end

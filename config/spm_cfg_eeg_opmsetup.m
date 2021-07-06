@@ -1,11 +1,26 @@
 function setup = spm_cfg_eeg_opmsetup
 % Configuration file for M/EEG OPM set up
 %__________________________________________________________________________
-% Copyright (C) 2017-2018 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2017-2021 Wellcome Trust Centre for Neuroimaging
 
 % Tim Tierney, Gareth Barnes
-% $Id: spm_cfg_eeg_opmsetup.m 7429 2018-09-28 09:29:20Z spm $
+% $Id: spm_cfg_eeg_opmsetup.m 8119 2021-07-06 13:51:43Z guillaume $
 
+
+setup      = cfg_exbranch;
+setup.tag  = 'OPMsetup';
+setup.name = 'Set up OPM recording';
+setup.val  = @opmsetup_cfg;
+setup.help = {'Set up OPM data in spm format'};
+setup.prog = @opmsetup;
+setup.vout = @vout_opmsetup;
+
+
+%==========================================================================
+function varargout = opmsetup_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 R        = cfg_files;
 R.tag    = 'R';
@@ -28,8 +43,6 @@ RC.filter = 'txt';
 RC.num    = [1 1];
 RC.help   = {'Select the file which shows which OPM channels were in which scanner-cast slots'};
 
-
-
 M        = cfg_files;
 M.tag    = 'M';
 M.name   = 'Native space MRI of subject';
@@ -44,8 +57,6 @@ fid.strtype = 'r';
 fid.num     = [3 3];
 fid.help    = {'Enter approx fiducial points from native space mri in format [nas;lpa;rpa] (mm) (these will be saved in a BIDs format file for later)'};
 
-
-
 L        = cfg_files;
 L.tag    = 'lbv';
 L.name   = 'Binary file containing raw OPM data';
@@ -59,8 +70,6 @@ binind.name    = 'Binary data channel indices';
 binind.strtype = 'r';
 binind.num     = [1 Inf];
 binind.help    = {'Data channel indices in binary file'};
-
-
 
 % Trigger channels
 convert         = cfg_entry;
@@ -78,7 +87,6 @@ trigs.name    = 'Trigger channel indices';
 trigs.strtype = 'r';
 trigs.num     = [1 Inf];
 trigs.help    = {'Trigger channel indices in binary file'};
-
 
 prefix         = cfg_entry;
 prefix.tag     = 'prefix';
@@ -109,14 +117,7 @@ ncan.num     = [2 1];
 ncan.val  = { [ 1 1] };
 ncan.help    = {'Flags (0 or 1) for reference noise cancellation. [1 0] use reference derivatives; [ 0 1] use global signal; [1 1] use both'};
 
-
-setup          = cfg_exbranch;
-setup.tag      = 'OPMsetup';
-setup.name     = 'Set up OPM recording';
-setup.val      = {R, C, RC, M, fid, L, convert, trigs,band,epwin, ncan, prefix};
-setup.help     = {'Set up OPM data in spm format'};
-setup.prog     = @opmsetup;
-setup.vout     = @vout_opmsetup;
+[cfg,varargout{1}] = deal({R, C, RC, M, fid, L, convert, trigs,band,epwin, ncan, prefix});
 
 
 %==========================================================================

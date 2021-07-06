@@ -1,12 +1,27 @@
 function out = bf_copy
-% Sets up a new analysis by copying an existing one
-% Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
+% Set up a new analysis by copying an existing one
+%__________________________________________________________________________
+% Copyright (C) 2012-2021 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: bf_copy.m 7703 2019-11-22 12:06:29Z guillaume $
+% $Id: bf_copy.m 8119 2021-07-06 13:51:43Z guillaume $
 
-% dir Directory
-% ---------------------------------------------------------------------
+
+out          = cfg_exbranch;
+out.tag      = 'copy';
+out.name     = 'Copy analysis';
+out.val      = @bf_copy_cfg;
+out.help     = {'Make a copy of existing anallysis'};
+out.prog     = @bf_copy_run;
+out.vout     = @bf_copy_vout;
+out.modality = {'EEG'};
+
+
+%==========================================================================
+function varargout = bf_copy_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 BF = cfg_files;
 BF.tag = 'BF';
@@ -31,16 +46,10 @@ steps.labels = ['all'; bf_std_fields];
 steps.values = ['all'; bf_std_fields];
 steps.val = {'all'};
 
-out = cfg_exbranch;
-out.tag = 'copy';
-out.name = 'Copy analysis';
-out.val = {BF, dir, steps};
-out.help = {'Make a copy of existing anallysis'};
-out.prog = @bf_copy_run;
-out.vout = @bf_copy_vout;
-out.modality = {'EEG'};
-end
+[cfg,varargout{1}] = deal({BF, dir, steps});
 
+
+%==========================================================================
 function  out = bf_copy_run(job)
 
 BF     = job.BF{1};
@@ -53,7 +62,7 @@ cd(outdir);
 if exist(fullfile(pwd,'BF.mat'),'file')
     str = {'Current directory contains existing BF file:',...
         'Continuing will overwrite existing file!'};
-    if spm_input(str,1,'bd','stop|continue',[1,0],1,mfilename);
+    if spm_input(str,1,'bd','stop|continue',[1,0],1,mfilename)
         fprintf('%-40s: %30s\n\n',...
             'Abort...   (existing BF file)',spm('time'));
         out = []; return
@@ -75,8 +84,8 @@ end
 
 out.BF{1} = fullfile(outdir, 'BF.mat');
 
-end
 
+%==========================================================================
 function dep = bf_copy_vout(job)
 % Output is always in field "BF", no matter how job is structured
 dep = cfg_dep;
@@ -85,4 +94,3 @@ dep.sname = 'BF.mat file';
 dep.src_output = substruct('.','BF');
 % this can be entered into any evaluated input
 dep.tgt_spec   = cfg_findspec({{'filter','mat','strtype','e'}});
-end

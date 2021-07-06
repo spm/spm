@@ -1,10 +1,29 @@
 function labview = spm_cfg_opm_read_lvm
 % configuration file for reading lab view file
 %__________________________________________________________________________
-% Copyright (C) 2018 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2018-2021 Wellcome Trust Centre for Neuroimaging
 
 % Tim Tierney
-% $Id: spm_cfg_opm_read_lvm.m 7429 2018-09-28 09:29:20Z spm $
+% $Id: spm_cfg_opm_read_lvm.m 8119 2021-07-06 13:51:43Z guillaume $
+
+%--------------------------------------------------------------------------
+% Read LabView Files
+%--------------------------------------------------------------------------
+labview          = cfg_exbranch;
+labview.tag      = 'labview';
+labview.name     = 'Read LabView Files';
+labview.val      = @opm_read_lvm_cfg;
+labview.help     = {'Reading LabView data.'}';
+labview.prog     = @lbv_read;
+labview.vout     = @vout_lbv_read;
+labview.modality = {'EEG'};
+
+
+%==========================================================================
+function varargout = opm_read_lvm_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 %--------------------------------------------------------------------------
 % labview file
@@ -16,7 +35,6 @@ filename.filter = '(.lvm|.zip)';
 filename.num    = [1 1];
 filename.help   = {'Select the (zipped) lvm file.'};
 
-
 %--------------------------------------------------------------------------
 % headerlength
 %--------------------------------------------------------------------------
@@ -27,8 +45,6 @@ headerlength.help    = {'The number of lines of text containing header informati
 headerlength.strtype = 'r';
 headerlength.num     = [1,1];
 headerlength.val     = {23};
-
-
 
 %--------------------------------------------------------------------------
 % timeind
@@ -74,17 +90,7 @@ trigThresh.strtype = 'r';
 trigThresh.num     = [1,1];
 trigThresh.val     = {4};
 
-%--------------------------------------------------------------------------
-% read
-%--------------------------------------------------------------------------
-labview          = cfg_exbranch;
-labview.tag      = 'labview';
-labview.name     = 'Read LabView Files';
-labview.val      = {filename,headerlength,timeind,decimalTriggerInds,binaryTriggerInds,trigThresh};
-labview.help     = {'Reading LabView data'}';
-labview.prog     = @lbv_read;
-labview.vout     = @vout_lbv_read;
-labview.modality = {'EEG'};
+[cfg,varargout{1}] = deal({filename,headerlength,timeind,decimalTriggerInds,binaryTriggerInds,trigThresh});
 
 
 %==========================================================================

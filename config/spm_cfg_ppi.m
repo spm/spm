@@ -1,10 +1,30 @@
 function ppis = spm_cfg_ppi
 % SPM Configuration file for PPIs
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2021 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_cfg_ppi.m 5652 2013-09-25 09:36:22Z volkmar $
+% $Id: spm_cfg_ppi.m 8119 2021-07-06 13:51:43Z guillaume $
+
+
+% ---------------------------------------------------------------------
+% ppis PPI
+% ---------------------------------------------------------------------
+ppis         = cfg_exbranch;
+ppis.tag     = 'ppi';
+ppis.name    = 'Physio/Psycho-Physiologic Interaction';
+ppis.val     = @ppi_cfg;
+ppis.help    = {['Bold deconvolution to create physio- or '...
+    'psycho-physiologic interactions.']};
+ppis.prog    = @run_ppi;
+ppis.vout    = @vout_ppi;
+
+
+%==========================================================================
+function varargout = ppi_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 % ---------------------------------------------------------------------
 % spmmat Select SPM.mat
@@ -112,18 +132,8 @@ showGraphics.labels  = {'Yes' 'No'};
 showGraphics.values  = { 1     0  }; 
 showGraphics.val     = { 0 };
 
-% ---------------------------------------------------------------------
-% ppis PPI
-% ---------------------------------------------------------------------
-ppis         = cfg_exbranch;
-ppis.tag     = 'ppi';
-ppis.name    = 'Physio/Psycho-Physiologic Interaction';
-ppis.val     = {spmmat ppiflag name showGraphics};
-ppis.help    = {['Bold deconvolution to create physio- or '...
-    'psycho-physiologic interactions.']};
-ppis.prog    = @run_ppi;
-ppis.vout    = @vout_ppi;
-%-------------------------------------------------------------------------
+[cfg,varargout{1}] = deal({spmmat ppiflag name showGraphics});
+
 
 %-------------------------------------------------------------------------
 function out = run_ppi(job)

@@ -1,10 +1,27 @@
 function results = spm_cfg_results
 % SPM Configuration file for Results Report
 %__________________________________________________________________________
-% Copyright (C) 2005-2018 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2021 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_results.m 7268 2018-02-27 16:48:13Z guillaume $
+% $Id: spm_cfg_results.m 8119 2021-07-06 13:51:43Z guillaume $
 
+%--------------------------------------------------------------------------
+% results Results Report
+%--------------------------------------------------------------------------
+results      = cfg_exbranch;
+results.tag  = 'results';
+results.name = 'Results Report';
+results.val  = @results_cfg;
+results.help = {'Statistical inference.'};
+results.prog = @spm_run_results;
+results.vout = @vout_results;
+
+
+%==========================================================================
+function varargout = results_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 %--------------------------------------------------------------------------
 % spmmat Select SPM.mat
@@ -392,16 +409,7 @@ for i=1:numel(exports)
     end
 end
 
-%--------------------------------------------------------------------------
-% results Results Report
-%--------------------------------------------------------------------------
-results      = cfg_exbranch;
-results.tag  = 'results';
-results.name = 'Results Report';
-results.val  = {spmmat generic units export};
-results.help = {'Statistical inference.'};
-results.prog = @spm_run_results;
-results.vout = @vout_results;
+[cfg,varargout{1}] = deal({spmmat generic units export});
 
 
 %==========================================================================

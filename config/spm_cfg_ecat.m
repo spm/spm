@@ -1,10 +1,32 @@
 function ecat = spm_cfg_ecat
 % SPM Configuration file for ECAT Import
 %__________________________________________________________________________
-% Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2021 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_ecat.m 6952 2016-11-25 16:03:13Z guillaume $
+% $Id: spm_cfg_ecat.m 8119 2021-07-06 13:51:43Z guillaume $
 
+
+%--------------------------------------------------------------------------
+% ecat ECAT Import
+%--------------------------------------------------------------------------
+ecat         = cfg_exbranch;
+ecat.tag     = 'ecat';
+ecat.name    = 'ECAT Import';
+ecat.val     = @ecat_cfg;
+ecat.help    = {
+    'ECAT 7 Conversion.'
+    'ECAT 7 is the image data format used by the more recent CTI PET scanners.'
+    }';
+ecat.prog    = @convert_ecat;
+ecat.vout    = @vout;
+ecat.modality = {'PET'};
+
+
+%==========================================================================
+function varargout = ecat_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 %--------------------------------------------------------------------------
 % data ECAT files
@@ -40,20 +62,7 @@ opts.name    = 'Options';
 opts.val     = {ext };
 opts.help    = {'Conversion options'};
 
-%--------------------------------------------------------------------------
-% ecat ECAT Import
-%--------------------------------------------------------------------------
-ecat         = cfg_exbranch;
-ecat.tag     = 'ecat';
-ecat.name    = 'ECAT Import';
-ecat.val     = {data opts };
-ecat.help    = {
-    'ECAT 7 Conversion.'
-    'ECAT 7 is the image data format used by the more recent CTI PET scanners.'
-    }';
-ecat.prog    = @convert_ecat;
-ecat.vout    = @vout;
-ecat.modality = {'PET'};
+[cfg,varargout{1}] = deal({data opts });
 
 
 %==========================================================================

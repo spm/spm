@@ -4,25 +4,21 @@ function out = spm_slice2vol(job)
 % Copyright (C) 2021 Wellcome Centre for Human Neuroimaging
 
 % John Ashburner
-% $Id: spm_slice2vol.m 8055 2021-02-08 14:28:18Z john $
+% $Id: spm_slice2vol.m 8119 2021-07-06 13:51:43Z guillaume $
 
 % Define the output filenames
 if job.fwhm>0, prefix = 'sr'; else, prefix = 'r'; end
-rfiles = cell(numel(job.images),1);
-for i=1:numel(rfiles)
-    rfiles{i} = spm_file(job.images{i}, 'prefix',prefix);
-end
-out.rfiles   = rfiles;
+out.rfiles   = spm_file(job.images, 'prefix',prefix);
 out.rmean{1} = spm_file(job.images{1}, 'prefix','mean', 'number','');
 out.rparams  = spm_file(job.images{1}, 'prefix','rp_', 'ext','.mat');
 
 % Estimate the motion
-[Q,mu,Mmu,slice_o] = spm_slice2vol_estimate(strvcat(job.images),...
+[Q,mu,Mmu,slice_o] = spm_slice2vol_estimate(char(job.images),...
     job.slice_code, job.sd, job.sd*pi/180);
 
 % Save parameters
 sd     = job.sd;
-images = strvcat(job.images);
+images = char(job.images);
 save(out.rparams, 'Q','slice_o','sd','images');
 
 
@@ -42,7 +38,7 @@ create(nii);
 nii.dat(:,:,:)  = mu;
 
 % Reslice the images
-spm_slice2vol_reslice(strvcat(job.images),Q, job.fwhm);
+spm_slice2vol_reslice(char(job.images),Q, job.fwhm);
 %==========================================================================
 
 %==========================================================================
@@ -87,6 +83,3 @@ drawnow
 %-Print realigment parameters
 %--------------------------------------------------------------------------
 spm_print;
-
-
-

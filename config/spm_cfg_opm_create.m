@@ -1,10 +1,29 @@
 function create = spm_cfg_opm_create
 % configuration file for creating OPM objects
 %__________________________________________________________________________
-% Copyright (C) 2018 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2018-2021 Wellcome Trust Centre for Neuroimaging
 
 % Tim Tierney
-% $Id: spm_cfg_opm_create.m 7521 2019-01-30 18:16:03Z tim $
+% $Id: spm_cfg_opm_create.m 8119 2021-07-06 13:51:43Z guillaume $
+
+%--------------------------------------------------------------------------
+% Create OPM object
+%--------------------------------------------------------------------------
+create          = cfg_exbranch;
+create.tag      = 'create';
+create.name     = 'Create OPM object';
+create.val      = @opm_create_cfg;
+create.help     = {'Create/simulate OPM data. All arguments for this function are optional. It allows for either a conversion of raw data to valid MEG object or for the simulation of OPM data on a template brain or an individual brain with customisable sensor configurations.'}';
+create.prog     = @opm_create;
+create.vout     = @vout_opm_create;
+create.modality = {'EEG'};
+
+
+%==========================================================================
+function varargout = opm_create_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 %--------------------------------------------------------------------------
 % Data
@@ -189,17 +208,7 @@ source.name = 'Source level info';
 source.help = {'Input arguments necessary for performing source space analysis'};
 source.val  = {coordsystem,positions,sMRI,meshres,custom,voltype,lead};
 
-%--------------------------------------------------------------------------
-% Create branch
-%--------------------------------------------------------------------------
-create          = cfg_exbranch;
-create.tag      = 'create';
-create.name     = 'Create OPM object';
-create.val      = {sens,simulation,source};
-create.help     = {'Create/simulate OPM data. All arguments for this function are optional. It allows for either a conversion of raw data to valid MEG object or for the simulation of OPM data on a template brain or an individual brain with customisable sensor configurations.'}';
-create.prog     = @opm_create;
-create.vout     = @vout_opm_create;
-create.modality = {'EEG'};
+[cfg,varargout{1}] = deal({sens,simulation,source});
 
 
 %==========================================================================

@@ -1,12 +1,28 @@
 function out = bf_features
-% Prepares data features for filter computation
-% Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
+% Prepare data features for filter computation
+%__________________________________________________________________________
+% Copyright (C) 2015-2021 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: bf_features.m 8061 2021-02-10 15:14:57Z spm $
+% $Id: bf_features.m 8119 2021-07-06 13:51:43Z guillaume $
 
-% dir Directory
-% ---------------------------------------------------------------------
+
+out          = cfg_exbranch;
+out.tag      = 'features';
+out.name     = 'Covariance features';
+out.val      = @bf_features_cfg;
+out.help     = {'Define features for covariance computation'};
+out.prog     = @bf_features_run;
+out.vout     = @bf_features_vout;
+out.modality = {'EEG'};
+
+
+%==========================================================================
+function varargout = bf_features_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
+
 BF = cfg_files;
 BF.tag = 'BF';
 BF.name = 'BF.mat file';
@@ -63,7 +79,6 @@ modality.values = {
     }';
 modality.val = {{'MEG'}};
 
-
 fuse = cfg_menu;
 fuse.tag = 'fuse';
 fuse.name = 'Fuse modalities';
@@ -79,6 +94,7 @@ cross_terms.help = {'When fusing, set cross-terms between modalities to zero'};
 cross_terms.labels = {'MEG to EEG only' 'MEG, MEGPLANAR, EEG', 'No'};
 cross_terms.values = {'megeeg', 'all', 'no'};
 cross_terms.val = {'megeeg'};
+
 %--------------------------------------------------------------------------
 % method
 %--------------------------------------------------------------------------
@@ -91,7 +107,6 @@ feature_funs = cellstr(feature_funs );
 for i = 1:numel(feature_funs)
     plugin.values{i} = feval(spm_file(feature_funs{i},'basename'));
 end
-
 
 %--------------------------------------------------------------------------
 % regularisation/reduction
@@ -121,16 +136,10 @@ visualise.labels = {'yes', 'no'};
 visualise.values = {1, 0};
 visualise.val = {1};
 
-out = cfg_exbranch;
-out.tag = 'features';
-out.name = 'Covariance features';
-out.val = {BF, whatconditions, woi, modality, fuse, cross_terms, plugin, reg, bootstrap, visualise};
-out.help = {'Define features for covariance computation'};
-out.prog = @bf_features_run;
-out.vout = @bf_features_vout;
-out.modality = {'EEG'};
-end
+[cfg,varargout{1}] = deal({BF, whatconditions, woi, modality, fuse, cross_terms, plugin, reg, bootstrap, visualise});
 
+
+%==========================================================================
 function  out = bf_features_run(job)
 
 outdir = spm_file(job.BF{1}, 'fpath');
@@ -150,7 +159,7 @@ classchanind=[];
 try
     classchanind=find(strcmp(D.chanlabels,'Class')); % MWW 19/11/2014
 catch
-end;
+end
 
 if isempty(classchanind)
     %%%%%%%%%%%%
@@ -160,7 +169,7 @@ if isempty(classchanind)
         S.samples{i} = D.indsample(1e-3*job.woi(i, 1)):D.indsample(1e-3*job.woi(i, 2));
         if isnan(S.samples{i})
             error('Window specified not in dataset');
-        end;
+        end
     end
     %%%%%%%%%%%%
     % MWW 19/11/2014
@@ -333,8 +342,9 @@ BF.features.trials = S.trials;
 bf_save_path(BF,fullfile(outdir, 'BF.mat'));
 
 out.BF{1} = fullfile(outdir, 'BF.mat');
-end
 
+
+%==========================================================================
 function dep = bf_features_vout(job)
 % Output is always in field "D", no matter how job is structured
 dep = cfg_dep;
@@ -343,4 +353,3 @@ dep.sname = 'BF.mat file';
 dep.src_output = substruct('.','BF');
 % this can be entered into any evaluated input
 dep.tgt_spec   = cfg_findspec({{'filter','mat'}});
-end

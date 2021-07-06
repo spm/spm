@@ -1,11 +1,28 @@
 function review = spm_cfg_model_review
 % SPM Configuration file for Model Review
 %__________________________________________________________________________
-% Copyright (C) 2014-2016 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2014-2021 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_cfg_model_review.m 6952 2016-11-25 16:03:13Z guillaume $
+% $Id: spm_cfg_model_review.m 8119 2021-07-06 13:51:43Z guillaume $
 
+
+%--------------------------------------------------------------------------
+% review Model Review
+%--------------------------------------------------------------------------
+review          = cfg_exbranch;
+review.tag      = 'review';
+review.name     = 'Model review';
+review.val      = @model_review_cfg;
+review.help     = {'Review a General linear Model.'};
+review.prog     = @spm_run_model_review;
+review.modality = {'FMRI' 'PET' 'EEG'};
+
+%==========================================================================
+function varargout = model_review_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 %--------------------------------------------------------------------------
 % spmmat Select SPM.mat
@@ -125,16 +142,7 @@ for i=1:numel(pf)
 end
 print.def = @(val)spm_get_defaults('ui.print', val{:});
 
-%--------------------------------------------------------------------------
-% review Model Review
-%--------------------------------------------------------------------------
-review          = cfg_exbranch;
-review.tag      = 'review';
-review.name     = 'Model review';
-review.val      = {spmmat display print};
-review.help     = {'Review a General linear Model.'};
-review.prog     = @spm_run_model_review;
-review.modality = {'FMRI' 'PET' 'EEG'};
+[cfg,varargout{1}] = deal({spmmat display print});
 
 
 %==========================================================================

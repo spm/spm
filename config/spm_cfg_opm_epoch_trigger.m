@@ -1,10 +1,28 @@
 function epoch = spm_cfg_opm_epoch_trigger
 % configuration file for epoching OPM data
 %__________________________________________________________________________
-% Copyright (C) 2018 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2018-2021 Wellcome Trust Centre for Neuroimaging
 
 % Tim Tierney
-% $Id: spm_cfg_opm_epoch_trigger.m 7429 2018-09-28 09:29:20Z spm $
+% $Id: spm_cfg_opm_epoch_trigger.m 8119 2021-07-06 13:51:43Z guillaume $
+
+%--------------------------------------------------------------------------
+% simulation parameters
+%--------------------------------------------------------------------------
+epoch          = cfg_exbranch;
+epoch.tag      = 'epoch';
+epoch.name     = 'Epoch M/EEG object on Trigger';
+epoch.val      = @opm_epoch_trigger_cfg;
+epoch.help     = {'Epoch M/EEG data at the rise of every trigger in the dataset'}';
+epoch.prog     = @epoch_trigger;
+epoch.vout     = @vout_epoch_trigger;
+epoch.modality = {'EEG'};
+
+%==========================================================================
+function varargout = opm_epoch_trigger_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 %--------------------------------------------------------------------------
 % Output Directory
@@ -38,17 +56,7 @@ condLabels.num     = [1,100];
 condLabels.val     = {{''}};
 
 
-%--------------------------------------------------------------------------
-% simulation parameters
-%--------------------------------------------------------------------------
-epoch          = cfg_exbranch;
-epoch.tag      = 'epoch';
-epoch.name     = 'Epoch M/EEG object on Trigger';
-epoch.val      = {D,timewin,condLabels};
-epoch.help     = {'Epoch M/EEG data at the rise of every trigger in the dataset'}';
-epoch.prog     = @epoch_trigger;
-epoch.vout     = @vout_epoch_trigger;
-epoch.modality = {'EEG'};
+[cfg,varargout{1}] = deal({D,timewin,condLabels});
 
 
 %==========================================================================

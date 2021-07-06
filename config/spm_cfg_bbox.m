@@ -1,10 +1,30 @@
 function bbox = spm_cfg_bbox
 % SPM Configuration file for Get Bounding Box
 %__________________________________________________________________________
-% Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2013-2021 Wellcome Trust Centre for Neuroimaging
 
 % Ged Ridgway
-% $Id: spm_cfg_bbox.m 5301 2013-03-05 18:33:39Z ged $
+% $Id: spm_cfg_bbox.m 8119 2021-07-06 13:51:43Z guillaume $
+
+bbox            = cfg_exbranch;
+bbox.tag        = 'bbox';
+bbox.name       = 'Get Bounding Box';
+bbox.val        = @bbox_cfg;
+bbox.help       = {
+    'Determine the bounding box of an image.', ...
+   ['This is the [2 x 3] array of the minimum and maximum X, Y, and ' ...
+    'Z coordinates (in mm), '],...
+    'BB = [min_X min_Y min_Z',...
+    '      max_X max_Y max_Z]'};
+bbox.prog       = @(job) bbox_run(job);
+bbox.vout       = @(job) bbox_vout(job);
+
+
+%==========================================================================
+function varargout = bbox_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 img             = cfg_files;
 img.tag         = 'image';
@@ -42,20 +62,10 @@ bbdef.help      = {
 bbdef.values    = {fov stv};
 bbdef.val       = {fov};
 
-bbox            = cfg_exbranch;
-bbox.tag        = 'bbox';
-bbox.name       = 'Get Bounding Box';
-bbox.val        = {img bbdef};
-bbox.help       = {
-    ['Determine the bounding box of an image, i.e. the [2 x 3] array ' ...
-    'of the minimum and maximum X, Y, and Z coordinates (in mm), ']
-    'BB = [min_X min_Y min_Z'
-    '      max_X max_Y max_Z]'};
-bbox.prog       = @(job) bbox_run(job);
-bbox.vout       = @(job) bbox_vout(job);
+[cfg,varargout{1}] = deal({img bbdef});
 
 
-%--------------------------------------------------------------------------
+%==========================================================================
 function out = bbox_run(job)
 try
     thr = job.bbdef.stv.threshold;
@@ -68,7 +78,8 @@ out.bb = spm_get_bbox(char(job.image), thr);
 fprintf('\nImage:\n\t%s\n\nBounding box:\n', char(job.image));
 disp(out.bb)
 
-%--------------------------------------------------------------------------
+
+%==========================================================================
 function vout = bbox_vout(job)
 vout            = cfg_dep;
 vout.sname      = 'BB';

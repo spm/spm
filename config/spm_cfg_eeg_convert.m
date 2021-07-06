@@ -1,10 +1,27 @@
 function convert = spm_cfg_eeg_convert
 % Configuration file for M/EEG data conversion
 %__________________________________________________________________________
-% Copyright (C) 2008-2016 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2021 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_convert.m 6926 2016-11-09 22:13:19Z guillaume $
+% $Id: spm_cfg_eeg_convert.m 8119 2021-07-06 13:51:43Z guillaume $
+
+
+convert          = cfg_exbranch;
+convert.tag      = 'convert';
+convert.name     = 'Conversion';
+convert.val      = @convert_cfg;
+convert.help     = {'Convert EEG/MEG data.'};
+convert.prog     = @eeg_convert;
+convert.vout     = @vout_eeg_convert;
+convert.modality = {'EEG'};
+
+
+%==========================================================================
+function varargout = convert_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 dataset = cfg_files;
 dataset.tag = 'dataset';
@@ -148,16 +165,11 @@ inputformat.val = {'autodetect'};
 inputformat.num = [1 inf];
 inputformat.help = {'Force the reader to assume a particular data format (usually not necessary).'};
 
-convert = cfg_exbranch;
-convert.tag = 'convert';
-convert.name = 'Conversion';
-convert.val = {dataset mode spm_cfg_eeg_channel_selector outfile...
-    eventpadding blocksize checkboundary saveorigheader inputformat};
-convert.help = {'Convert EEG/MEG data.'};
-convert.prog = @eeg_convert;
-convert.vout = @vout_eeg_convert;
-convert.modality = {'EEG'};
+[cfg,varargout{1}] = deal({dataset mode spm_cfg_eeg_channel_selector outfile ...
+    eventpadding blocksize checkboundary saveorigheader inputformat});
 
+
+%==========================================================================
 function out = eeg_convert(job)
 
 S = [];
@@ -197,6 +209,8 @@ end
 out.D = spm_eeg_convert(S);
 out.Dfname = {fullfile(out.D.path, out.D.fname)};
 
+
+%==========================================================================
 function dep = vout_eeg_convert(job)
 % Output is always in field "D", no matter how job is structured
 dep = cfg_dep;
@@ -212,4 +226,3 @@ dep(2).sname = 'Converted Datafile';
 dep(2).src_output = substruct('.','Dfname');
 % this can be entered into any file selector
 dep(2).tgt_spec   = cfg_findspec({{'filter','mat'}});
-

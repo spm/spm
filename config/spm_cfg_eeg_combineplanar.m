@@ -1,10 +1,30 @@
 function combineplanar = spm_cfg_eeg_combineplanar
 % configuration file for combineplanar
 %__________________________________________________________________________
-% Copyright (C) 2009-2013 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2009-2021 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_combineplanar.m 5377 2013-04-02 17:07:57Z vladimir $
+% $Id: spm_cfg_eeg_combineplanar.m 8119 2021-07-06 13:51:43Z guillaume $
+
+
+%--------------------------------------------------------------------------
+% crop
+%--------------------------------------------------------------------------
+combineplanar          = cfg_exbranch;
+combineplanar.tag      = 'combineplanar';
+combineplanar.name     = 'Combine planar';
+combineplanar.val      = @combineplanar_cfg;
+combineplanar.help     = {'Combine planar MEG channels'}';
+combineplanar.prog     = @eeg_combineplanar;
+combineplanar.vout     = @vout_eeg_combineplanar;
+combineplanar.modality = {'EEG'};
+
+
+%==========================================================================
+function varargout = combineplanar_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 %--------------------------------------------------------------------------
 % D
@@ -38,17 +58,8 @@ prefix.strtype = 's';
 prefix.num     = [1 Inf];
 prefix.val     = {'P'};
 
-%--------------------------------------------------------------------------
-% crop
-%--------------------------------------------------------------------------
-combineplanar          = cfg_exbranch;
-combineplanar.tag      = 'combineplanar';
-combineplanar.name     = 'Combine planar';
-combineplanar.val      = {D, mode, prefix};
-combineplanar.help     = {'Combine planar MEG channels'}';
-combineplanar.prog     = @eeg_combineplanar;
-combineplanar.vout     = @vout_eeg_combineplanar;
-combineplanar.modality = {'EEG'};
+[cfg,varargout{1}] = deal({D, mode, prefix});
+
 
 %==========================================================================
 function out = eeg_combineplanar(job)

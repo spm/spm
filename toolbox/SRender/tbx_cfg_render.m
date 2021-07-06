@@ -1,12 +1,50 @@
 function render = tbx_cfg_render
 % Configuration file for toolbox 'Rendering'
 %__________________________________________________________________________
-% Copyright (C) 2008-2016 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2021 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: tbx_cfg_render.m 6960 2016-12-05 17:05:09Z guillaume $
+% $Id: tbx_cfg_render.m 8119 2021-07-06 13:51:43Z guillaume $
+
 
 if ~isdeployed, addpath(fullfile(spm('dir'),'toolbox','SRender')); end
+
+%--------------------------------------------------------------------------
+% SExtract Surface Extraction
+%--------------------------------------------------------------------------
+SExtract      = cfg_exbranch;
+SExtract.tag  = 'SExtract';
+SExtract.name = 'Surface Extraction';
+SExtract.val  = @sextract_cfg;
+SExtract.help = {'User-specified algebraic manipulations are performed on a set of images, with the result being used to generate a surface file. The user is prompted to supply images to work on and a number of expressions to evaluate, along with some thresholds. The expression should be a standard matlab expression, within which the images should be referred to as i1, i2, i3,... etc. An isosurface file is created from the results at the user-specified threshold.'};
+SExtract.prog = @spm_sextract;
+SExtract.vout = @vout_sextract;
+
+%--------------------------------------------------------------------------
+% SRender Surface Rendering
+%--------------------------------------------------------------------------
+SRender      = cfg_exbranch;
+SRender.tag  = 'SRender';
+SRender.name = 'Surface Rendering';
+SRender.val  = @srender_cfg;
+SRender.help = {'This utility is for visualising surfaces.  Surfaces first need to be extracted and saved in surf_*.gii files using the surface extraction routine.'};
+SRender.prog = @spm_srender;
+
+%--------------------------------------------------------------------------
+% render Rendering
+%--------------------------------------------------------------------------
+render        = cfg_choice;
+render.tag    = 'render';
+render.name   = 'Rendering';
+render.help   = {'This is a toolbox that provides a limited range of surface rendering options. The idea is to first extract surfaces from image data, which are saved in rend_*.mat files. These can then be loaded and displayed as surfaces. Note that OpenGL rendering is used, which can be problematic on some computers. The tools are limited - and they do what they do.'};
+render.values = {SExtract SRender};
+
+
+%==========================================================================
+function varargout = sextract_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 %--------------------------------------------------------------------------
 % images Input Images
@@ -74,16 +112,14 @@ Surfaces.help   = {'Multiple surfaces can be created from the same image data.'}
 Surfaces.values = {surface };
 Surfaces.num    = [0 Inf];
 
-%--------------------------------------------------------------------------
-% SExtract Surface Extraction
-%--------------------------------------------------------------------------
-SExtract      = cfg_exbranch;
-SExtract.tag  = 'SExtract';
-SExtract.name = 'Surface Extraction';
-SExtract.val  = {images Surfaces };
-SExtract.help = {'User-specified algebraic manipulations are performed on a set of images, with the result being used to generate a surface file. The user is prompted to supply images to work on and a number of expressions to evaluate, along with some thresholds. The expression should be a standard matlab expression, within which the images should be referred to as i1, i2, i3,... etc. An isosurface file is created from the results at the user-specified threshold.'};
-SExtract.prog = @spm_sextract;
-SExtract.vout = @vout_sextract;
+[cfg,varargout{1}] = deal({images Surfaces});
+
+
+%==========================================================================
+function varargout = srender_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 %--------------------------------------------------------------------------
 % SurfaceFile Surface File
@@ -264,30 +300,13 @@ Lights.values = {Light};
 Lights.val    = {Light};
 Lights.num    = [0 Inf];
 
-%--------------------------------------------------------------------------
-% SRender Surface Rendering
-%--------------------------------------------------------------------------
-SRender      = cfg_exbranch;
-SRender.tag  = 'SRender';
-SRender.name = 'Surface Rendering';
-SRender.val  = {Objects Lights};
-SRender.help = {'This utility is for visualising surfaces.  Surfaces first need to be extracted and saved in surf_*.gii files using the surface extraction routine.'};
-SRender.prog = @spm_srender;
-
-%--------------------------------------------------------------------------
-% render Rendering
-%--------------------------------------------------------------------------
-render        = cfg_choice;
-render.tag    = 'render';
-render.name   = 'Rendering';
-render.help   = {'This is a toolbox that provides a limited range of surface rendering options. The idea is to first extract surfaces from image data, which are saved in rend_*.mat files. These can then be loaded and displayed as surfaces. Note that OpenGL rendering is used, which can be problematic on some computers. The tools are limited - and they do what they do.'};
-render.values = {SExtract SRender};
+[cfg,varargout{1}] = deal({Objects Lights});
 
 
 %==========================================================================
 function dep = vout_sextract(job)
 dep = cfg_dep;
-for k=1:numel(job.surface),
+for k=1:numel(job.surface)
     dep(k)            = cfg_dep;
     dep(k).sname      = ['Surface File ' num2str(k)];
     dep(k).src_output = substruct('.','SurfaceFile','()',{k});

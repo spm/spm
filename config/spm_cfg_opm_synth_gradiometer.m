@@ -1,10 +1,30 @@
 function denoise = spm_cfg_opm_synth_gradiometer
 % configuration file for performing synthetic gradiometery on OPM data
 %__________________________________________________________________________
-% Copyright (C) 2018 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2018-2021 Wellcome Trust Centre for Neuroimaging
 
 % Tim Tierney
-% $Id: spm_cfg_opm_synth_gradiometer.m 7429 2018-09-28 09:29:20Z spm $
+% $Id: spm_cfg_opm_synth_gradiometer.m 8119 2021-07-06 13:51:43Z guillaume $
+
+
+%--------------------------------------------------------------------------
+% simulation parameters
+%--------------------------------------------------------------------------
+denoise          = cfg_exbranch;
+denoise.tag      = 'denoise';
+denoise.name     = 'Synthetic Gradiometery';
+denoise.val      = @opm_synth_gradiometer_cfg;
+denoise.help     = {'Denoise will regress all channels of the selected type(s) from the input dataset. Optionally the derivatives of the selected type(s) can be used as well. This funciton wil automatically regress on a trial by trial basis or accross the whole sesison based on whether or not the dataset has been epoched.'}';
+denoise.prog     = @synth_gradiometer;
+denoise.vout     = @vout_synth_gradiometer;
+denoise.modality = {'EEG'};
+
+
+%==========================================================================
+function varargout = opm_synth_gradiometer_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 %--------------------------------------------------------------------------
 % Input Dataset
@@ -37,18 +57,7 @@ derivative.labels = {'TRUE', 'FALSE'};
 derivative.values = {1, 0};
 derivative.val     = {1};
 
-
-%--------------------------------------------------------------------------
-% simulation parameters
-%--------------------------------------------------------------------------
-denoise          = cfg_exbranch;
-denoise.tag      = 'denoise';
-denoise.name     = 'Synthetic Gradiometery';
-denoise.val      = {D,confounds,derivative};
-denoise.help     = {'Denoise will regress all channels of the selected type(s) from the input dataset. Optionally the derivatives of the selected type(s) can be used as well. This funciton wil automatically regress on a trial by trial basis or accross the whole sesison based on whether or not the dataset has been epoched.'}';
-denoise.prog     = @synth_gradiometer;
-denoise.vout     = @vout_synth_gradiometer;
-denoise.modality = {'EEG'};
+[cfg,varargout{1}] = deal({D,confounds,derivative});
 
 
 %==========================================================================

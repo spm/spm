@@ -1,19 +1,36 @@
 function out = bf_output
-% Performs postprocessing based on beamforming projectors
-% Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
+% Perform postprocessing based on beamforming projectors
+%__________________________________________________________________________
+% Copyright (C) 2015-2021 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: bf_output.m 7703 2019-11-22 12:06:29Z guillaume $
+% $Id: bf_output.m 8119 2021-07-06 13:51:43Z guillaume $
+
+
+out = cfg_exbranch;
+out.tag = 'output';
+out.name = 'Output';
+out.val = @bf_output_cfg;
+out.help = {'Compute output measures'};
+out.prog = @bf_output_run;
+out.vout = @bf_output_vout;
+out.modality = {'EEG'};
+
+
+%==========================================================================
+function varargout = bf_output_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 % dir Directory
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 BF = cfg_files;
 BF.tag = 'BF';
 BF.name = 'BF.mat file';
 BF.filter = '^BF.mat$';
 BF.num = [1 1];
 BF.help = {'Select BF.mat file.'};
-
 
 %--------------------------------------------------------------------------
 % method
@@ -28,16 +45,10 @@ for i = 1:numel(output_funs)
     plugin.values{i} = feval(spm_file(output_funs{i},'basename'));
 end
 
-out = cfg_exbranch;
-out.tag = 'output';
-out.name = 'Output';
-out.val = {BF, plugin};
-out.help = {'Compute output measures'};
-out.prog = @bf_output_run;
-out.vout = @bf_output_vout;
-out.modality = {'EEG'};
-end
+[cfg,varargout{1}] = deal({BF, plugin});
 
+
+%==========================================================================
 function  out = bf_output_run(job)
 
 outdir = spm_file(job.BF{1}, 'fpath');
@@ -55,8 +66,9 @@ BF.output.(outfield_name) = feval(['bf_output_' plugin_name], BF, job.plugin.(pl
 bf_save(BF);
 
 out.BF{1} = fullfile(outdir, 'BF.mat');
-end
 
+
+%==========================================================================
 function dep = bf_output_vout(job)
 % Output is always in field "D", no matter how job is structured
 dep = cfg_dep;
@@ -65,4 +77,3 @@ dep.sname = 'BF.mat file';
 dep.src_output = substruct('.','BF');
 % this can be entered into any evaluated input
 dep.tgt_spec   = cfg_findspec({{'filter','mat'}});
-end

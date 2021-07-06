@@ -1,9 +1,27 @@
 function cfg_print = spm_cfg_print
 % SPM Configuration file for 'Print figure'
 %__________________________________________________________________________
-% Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2021 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_print.m 6924 2016-11-09 11:38:00Z guillaume $
+% $Id: spm_cfg_print.m 8119 2021-07-06 13:51:43Z guillaume $
+
+
+%--------------------------------------------------------------------------
+% cfg_print Print figure
+%--------------------------------------------------------------------------
+cfg_print         = cfg_exbranch;
+cfg_print.tag     = 'print';
+cfg_print.name    = 'Print figure';
+cfg_print.val     = @print_cfg;
+cfg_print.prog    = @spm_print;
+cfg_print.help    = {'Print figure.'};
+
+
+%==========================================================================
+function varargout = print_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 %--------------------------------------------------------------------------
 % opts Printing Format
@@ -67,12 +85,4 @@ fig.values        = {figname, fighandle};
 fig.val           = {figname};
 fig.help          = {'Figure to print'};
 
-%--------------------------------------------------------------------------
-% cfg_print Print figure
-%--------------------------------------------------------------------------
-cfg_print         = cfg_exbranch;
-cfg_print.tag     = 'print';
-cfg_print.name    = 'Print figure';
-cfg_print.val     = {fname, fig, opts};
-cfg_print.prog    = @spm_print;
-cfg_print.help    = {'Print figure.'};
+[cfg,varargout{1}] = deal({fname, fig, opts});

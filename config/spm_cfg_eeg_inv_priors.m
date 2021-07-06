@@ -1,11 +1,26 @@
 function priors = spm_cfg_eeg_inv_priors
 % Configuration file to set up priors for M/EEG source reconstruction
 %__________________________________________________________________________
-% Copyright (C) 2010-2017 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2010-2021 Wellcome Trust Centre for Neuroimaging
 
 % Gareth Barnes
-% $Id: spm_cfg_eeg_inv_priors.m 7110 2017-06-15 11:45:05Z guillaume $
+% $Id: spm_cfg_eeg_inv_priors.m 8119 2021-07-06 13:51:43Z guillaume $
 
+
+priors      = cfg_exbranch;
+priors.tag  = 'priors';
+priors.name = 'Inversion priors';
+priors.val  = @priors_cfg;
+priors.help = {'Set priors for source reconstruction'};
+priors.prog = @add_priors;
+priors.vout = @vout_priors;
+
+
+%==========================================================================
+function varargout = priors_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 D = cfg_files;
 D.tag = 'D';
@@ -224,14 +239,8 @@ priortype.val  = {randpatch};
 % postname.help = {'Prefix for posterior directory'};
 %
 
+[cfg,varargout{1}] = deal({D, val,sensorlevel,priortype,priorname,clean});
 
-priors = cfg_exbranch;
-priors.tag = 'priors';
-priors.name = 'Inversion priors';
-priors.val = {D, val,sensorlevel,priortype,priorname,clean};
-priors.help = {'Set priors for source reconstruction'};
-priors.prog = @add_priors;
-priors.vout = @vout_priors;
 
 %==========================================================================
 function  out = add_priors(job)
@@ -682,6 +691,7 @@ if CHECKSMOOTH
 end %% if CHECKSMOOTH
 
 out.D = job.D;
+
 
 %==========================================================================
 function dep = vout_priors(job)

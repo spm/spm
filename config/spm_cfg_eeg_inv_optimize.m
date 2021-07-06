@@ -1,13 +1,27 @@
 function optsetup = spm_cfg_eeg_inv_optimize
-%function optsetup = spm_cfg_eeg_inv_optimize
-% configuration file to set up optimization routines for M/EEG source
+% Configuration file to set up optimization routines for M/EEG source
 % inversion
-%_______________________________________________________________________
-% Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
+% Copyright (C) 2010-2021 Wellcome Trust Centre for Neuroimaging
 
 % Gareth Barnes
-% $Id: spm_cfg_eeg_inv_optimize.m 6499 2015-07-16 13:37:41Z gareth $
+% $Id: spm_cfg_eeg_inv_optimize.m 8119 2021-07-06 13:51:43Z guillaume $
 
+
+optsetup      = cfg_exbranch;
+optsetup.tag  = 'optsetup';
+optsetup.name = 'Inversion optimization';
+optsetup.val  = @optsetup_cfg;
+optsetup.help = {'Set optimization scheme for source reconstruction'};
+optsetup.prog = @opt_priors;
+optsetup.vout = @vout_opt_priors;
+
+
+%==========================================================================
+function varargout = optsetup_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 D = cfg_files;
 D.tag = 'D';
@@ -65,19 +79,11 @@ opttype.num  = [1 Inf];
 opttype.values  = {REMLopt,ARDopt,GSopt};
 opttype.val  = {REMLopt};
 
+[cfg,varargout{1}] = deal({D,val,priorname,opttype});
 
 
-optsetup = cfg_exbranch;
-optsetup.tag = 'optsetup';
-optsetup.name = 'Inversion optimization';
-optsetup.val = {D,val,priorname,opttype};
-optsetup.help = {'Set optimization scheme for source reconstruction'};
-optsetup.prog = @opt_priors;
-optsetup.vout = @vout_opt_priors;
-
+%==========================================================================
 function  out = opt_priors(job)
-
-
 
 D = spm_eeg_load(job.D{1});
 
@@ -269,6 +275,7 @@ out.postgiftiname=postgiftiname;
 out.D = job.D;
 
 
+%==========================================================================
 function dep = vout_opt_priors(job)
 % Output is always in field "D", no matter how job is structured
 dep = cfg_dep;

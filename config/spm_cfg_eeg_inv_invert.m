@@ -1,11 +1,27 @@
 function invert = spm_cfg_eeg_inv_invert
-% Configuration file for configuring imaging source inversion
-% reconstruction
+% Configuration file for running imaging source reconstruction
 %__________________________________________________________________________
-% Copyright (C) 2010-2016 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2010-2021 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_invert.m 7076 2017-05-19 12:47:36Z vladimir $
+% $Id: spm_cfg_eeg_inv_invert.m 8119 2021-07-06 13:51:43Z guillaume $
+
+
+invert          = cfg_exbranch;
+invert.tag      = 'invert';
+invert.name     = 'Source inversion';
+invert.val      = @invert_cfg;
+invert.help     = {'Run imaging source reconstruction'};
+invert.prog     = @run_inversion;
+invert.vout     = @vout_inversion;
+invert.modality = {'EEG'};
+
+
+%==========================================================================
+function varargout = invert_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 D = cfg_files;
 D.tag = 'D';
@@ -169,15 +185,10 @@ modality.values = {
     }';
 modality.val = {{'All'}};
 
-invert = cfg_exbranch;
-invert.tag = 'invert';
-invert.name = 'Source inversion';
-invert.val = {D, val, whatconditions, isstandard, modality};
-invert.help = {'Run imaging source reconstruction'};
-invert.prog = @run_inversion;
-invert.vout = @vout_inversion;
-invert.modality = {'EEG'};
+[cfg,varargout{1}] = deal({D, val, whatconditions, isstandard, modality});
 
+
+%==========================================================================
 function  out = run_inversion(job)
 
 D = spm_eeg_load(job.D{1});
@@ -277,6 +288,8 @@ end
 
 out.D = job.D;
 
+
+%==========================================================================
 function dep = vout_inversion(job)
 % Output is always in field "D", no matter how job is structured
 dep = cfg_dep;
@@ -285,4 +298,3 @@ dep.sname = 'M/EEG dataset(s) after imaging source reconstruction';
 dep.src_output = substruct('.','D');
 % this can be entered into any evaluated input
 dep.tgt_spec   = cfg_findspec({{'filter','mat'}});
-

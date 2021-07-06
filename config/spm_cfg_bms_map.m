@@ -1,10 +1,64 @@
 function bms = spm_cfg_bms_map
 % Configuration file for BMS interface
 %__________________________________________________________________________
-% Copyright (C) 2008-2016 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2021 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao Rosa
-% $Id: spm_cfg_bms_map.m 6952 2016-11-25 16:03:13Z guillaume $
+% $Id: spm_cfg_bms_map.m 8119 2021-07-06 13:51:43Z guillaume $
+
+%--------------------------------------------------------------------------
+% bms_map_inf BMS: Maps (Inference), output is BMS map 
+%--------------------------------------------------------------------------
+bms_map_inf      = cfg_exbranch;
+bms_map_inf.tag  = 'inference';
+bms_map_inf.name = 'BMS: Maps (Inference)';
+bms_map_inf.val  = @bms_map_inf_cfg;
+bms_map_inf.help = {'Bayesian Model Selection for Log-Evidence Maps.'...
+    ''...
+    ['Input: log-evidence maps for each model, session and '...
+    'subject. Note that there must be identical numbers of models for '...
+    'all sessions, and identical numbers of sessions for all '...
+    'subjects.']...
+    ''...
+    ['Output: For the fixed effects analysis, posterior probability maps '...
+    'are created for each model. '...
+    'For the random effects analysis, expected posterior probability '...
+    'and exceedance probability (i.e. the probability that this model '...
+    'is more likely than any other model) maps are created for each '...
+    'model. If there are multiple sessions per subject, the random '...
+    'effects analysis operates on the subject-specific sums of log '...
+    'evidences across sessions. In addition, a BMS.mat file will be save '...
+    'in the specified directory for both methods']};
+bms_map_inf.prog = @spm_run_bms_map;
+bms_map_inf.vout = @vout;
+
+%--------------------------------------------------------------------------
+% bms_map_vis BMS: Maps (Results), visualisation of BMS Maps results
+%--------------------------------------------------------------------------
+bms_map_vis      = cfg_exbranch;
+bms_map_vis.tag  = 'results';
+bms_map_vis.name = 'BMS: Maps (Results)';
+bms_map_vis.val  = @bms_map_vis_cfg;
+bms_map_vis.help = {['Bayesian Model Selection Maps (Results).'...
+                    'Show results from BMS Maps (Inference).']};
+bms_map_vis.prog = @spm_run_bms_vis;
+
+%--------------------------------------------------------------------------
+% bms Bayesian Model Selection
+%--------------------------------------------------------------------------
+bms         = cfg_choice;
+bms.tag     = 'bms_map';
+bms.name    = 'Bayesian Model Selection';
+bms.help    = {['Bayesian Model Selection for group studies (fixed '...
+               'effects and random effects analysis).']};
+bms.values  = { bms_map_inf bms_map_vis };
+
+
+%==========================================================================
+function varargout = bms_map_inf_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 %--------------------------------------------------------------------------
 % dir Directory
@@ -138,17 +192,8 @@ out_file.help    = {['Specify which output files to save (only valid for'...
                     ['Third option: PPM + EPM + Alpha = xppm.<ext> + '...
                      'epm.<ext> + alpha.<ext> (PPM, EPM and Map of Dirichlet '...
                      'Parameters) for each model.']};
-out_file.labels  = {
-                   'PPM'
-                   'PPM + EPM'
-                   'PPM + EPM + Alpha'
-                   
-}';
-out_file.values  = {
-                  0
-                  1
-                  2
-}';
+out_file.labels  = {'PPM', 'PPM + EPM', 'PPM + EPM + Alpha'};
+out_file.values  = {  0,        1,              2          };
 out_file.val     = {0};
 
 %--------------------------------------------------------------------------
@@ -185,6 +230,15 @@ nsamp.help    = {['Number of samples used to compute exceedance '...
 nsamp.strtype = 's';
 nsamp.num     = [1 Inf];
 nsamp.val     = {'1e6'};
+
+[cfg,varargout{1}] = deal({dir map name_mod method_maps out_file mask nsamp});
+
+
+%==========================================================================
+function varargout = bms_map_vis_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 %--------------------------------------------------------------------------
 % file BMS.mat
@@ -262,52 +316,7 @@ scale.values  = {
 }';
 scale.val     = {[]};
 
-%--------------------------------------------------------------------------
-% bms_map_inf BMS: Maps (Inference), output is BMS map 
-%--------------------------------------------------------------------------
-bms_map_inf      = cfg_exbranch;
-bms_map_inf.tag  = 'inference';
-bms_map_inf.name = 'BMS: Maps (Inference)';
-bms_map_inf.val  = {dir map name_mod method_maps out_file mask nsamp };
-bms_map_inf.help = {'Bayesian Model Selection for Log-Evidence Maps.'...
-    ''...
-    ['Input: log-evidence maps for each model, session and '...
-    'subject. Note that there must be identical numbers of models for '...
-    'all sessions, and identical numbers of sessions for all '...
-    'subjects.']...
-    ''...
-    ['Output: For the fixed effects analysis, posterior probability maps '...
-    'are created for each model. '...
-    'For the random effects analysis, expected posterior probability '...
-    'and exceedance probability (i.e. the probability that this model '...
-    'is more likely than any other model) maps are created for each '...
-    'model. If there are multiple sessions per subject, the random '...
-    'effects analysis operates on the subject-specific sums of log '...
-    'evidences across sessions. In addition, a BMS.mat file will be save '...
-    'in the specified directory for both methods']};
-bms_map_inf.prog = @spm_run_bms_map;
-bms_map_inf.vout = @vout;
-
-%--------------------------------------------------------------------------
-% bms_map_vis BMS: Maps (Results), visualisation of BMS Maps results
-%--------------------------------------------------------------------------
-bms_map_vis      = cfg_exbranch;
-bms_map_vis.tag  = 'results';
-bms_map_vis.name = 'BMS: Maps (Results)';
-bms_map_vis.val  = {file img thres k scale};
-bms_map_vis.help = {['Bayesian Model Selection Maps (Results).'...
-                    'Show results from BMS Maps (Inference).']};
-bms_map_vis.prog = @spm_run_bms_vis;
-
-%--------------------------------------------------------------------------
-% bms Bayesian Model Selection
-%--------------------------------------------------------------------------
-bms         = cfg_choice;
-bms.tag     = 'bms_map';
-bms.name    = 'Bayesian Model Selection';
-bms.help    = {['Bayesian Model Selection for group studies (fixed '...
-               'effects and random effects analysis).']};
-bms.values  = { bms_map_inf bms_map_vis };
+[cfg,varargout{1}] = deal({file img thres k scale});
 
 
 %==========================================================================

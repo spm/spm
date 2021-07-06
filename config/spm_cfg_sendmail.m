@@ -1,9 +1,27 @@
 function sendmail = spm_cfg_sendmail
 % SPM Configuration file for sendmail
 %_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2021 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_sendmail.m 6929 2016-11-14 13:07:31Z guillaume $
+% $Id: spm_cfg_sendmail.m 8119 2021-07-06 13:51:43Z guillaume $
+
+
+% ---------------------------------------------------------------------
+% Sendmail
+% ---------------------------------------------------------------------
+sendmail       = cfg_exbranch;
+sendmail.tag   = 'sendmail';
+sendmail.name  = 'Sendmail';
+sendmail.val   = @sendmail_cfg;
+sendmail.help  = {'Send a mail message (attachments optionals) to an address.'};
+sendmail.prog  = @spm_sendmail;
+
+
+%==========================================================================
+function varargout = sendmail_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 % ---------------------------------------------------------------------
 % Recipient
@@ -87,18 +105,11 @@ params.tag     = 'params';
 params.name    = 'Parameters';
 params.val     = { smtp email zip};
 params.help    = {'Preferences for your e-mail server (Internet SMTP server) and your e-mail address. MATLAB tries to read the SMTP mail server from your system registry. This should work flawlessly. If you encounter any error, identify the outgoing mail server for your electronic mail application, which is usually listed in the application''s preferences, or, consult your e-mail system administrator, and update the parameters. Note that this function does not support e-mail servers that require authentication.'};
-% ---------------------------------------------------------------------
-% Sendmail
-% ---------------------------------------------------------------------
-sendmail       = cfg_exbranch;
-sendmail.tag   = 'sendmail';
-sendmail.name  = 'Sendmail';
-sendmail.val   = { recipient subject message attachments params};
-sendmail.help  = {'Send a mail message (attachments optionals) to an address.'};
-sendmail.prog  = @spm_sendmail;
-%_______________________________________________________________________
 
-%_______________________________________________________________________
+[cfg,varargout{1}] = deal({recipient subject message attachments params});
+
+
+%======================================================================
 function spm_sendmail(job)
 
 try

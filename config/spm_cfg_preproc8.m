@@ -1,11 +1,37 @@
 function preproc = spm_cfg_preproc8
 % Configuration file for 'Combined Segmentation and Spatial Normalisation'
 %__________________________________________________________________________
-% Copyright (C) 2008-2016 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2021 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_cfg_preproc8.m 8048 2021-02-05 11:18:03Z john $
+% $Id: spm_cfg_preproc8.m 8119 2021-07-06 13:51:43Z guillaume $
 
+
+%--------------------------------------------------------------------------
+% preproc Segment
+%--------------------------------------------------------------------------
+preproc      = cfg_exbranch;
+preproc.tag  = 'preproc';
+preproc.name = 'Segment';
+preproc.val  = @preproc8_cfg;
+preproc.help = {
+    'Segmentation, bias correction and spatially normalisation - all in the same model.'
+    ''
+    'This procedure is an extension of the old unified segmentation algorithm (and was known as "New Segment" in SPM8). The algorithm is essentially the same as that described in the Unified Segmentation paper /* \cite{ashburner05}*/, except for (i) a slightly different treatment of the mixing proportions, (ii) the use of an improved registration model, (iii) the ability to use multi-spectral data, (iv) an extended set of tissue probability maps, which allows a different treatment of voxels outside the brain. Some of the options in the toolbox do not yet work, and it has not yet been seamlessly integrated into the SPM8 software.  Also, the extended tissue probability maps need further refinement. The current versions were crudely generated (by JA) using data that was kindly provided by Cynthia Jongen of the Imaging Sciences Institute at Utrecht, NL.'
+    ''
+    'This function segments, bias corrects and spatially normalises - all in the same model/* \cite{ashburner05}*/. Many investigators use tools within older versions of SPM for a technique that has become known as "optimised" voxel-based morphometry (VBM). VBM performs region-wise volumetric comparisons among populations of subjects. It requires the images to be spatially normalised, segmented into different tissue classes, and smoothed, prior to performing statistical tests/* \cite{wright_vbm,am_vbmreview,ashburner00b,john_should}*/. The "optimised" pre-processing strategy involved spatially normalising subjects'' brain images to a standard space, by matching grey matter in these images, to a grey matter reference.  The historical motivation behind this approach was to reduce the confounding effects of non-brain (e.g. scalp) structural variability on the registration. Tissue classification in older versions of SPM required the images to be registered with tissue probability maps. After registration, these maps represented the prior probability of different tissue classes being found at each location in an image.  Bayes rule can then be used to combine these priors with tissue type probabilities derived from voxel intensities, to provide the posterior probability.'
+    ''
+    'This procedure was inherently circular, because the registration required an initial tissue classification, and the tissue classification requires an initial registration.  This circularity is resolved here by combining both components into a single generative model. This model also includes parameters that account for image intensity non-uniformity. Estimating the model parameters (for a maximum a posteriori solution) involves alternating among classification, bias correction and registration steps. This approach provides better results than simple serial applications of each component.'
+    }';
+preproc.prog = @spm_local_preproc_run;
+preproc.vout = @vout;
+
+
+%==========================================================================
+function varargout = preproc8_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 %--------------------------------------------------------------------------
 % vols Volumes
@@ -274,7 +300,7 @@ tpm_nam = fullfile(spm('dir'),'tpm','TPM.nii');
 ngaus   = [1 1 2 3 4 2];
 % Change to: ngaus   = [2 2 2 3 4 2];
 nval    = {[1 0],[1 0],[1 0],[1 0],[1 0],[0 0]};
-for k=1:numel(ngaus),
+for k=1:numel(ngaus)
     tissue.val{1}.val = {{[tpm_nam ',' num2str(k)]}};
     tissue.val{2}.val = {ngaus(k)};
     tissue.val{3}.val = {nval{k}};
@@ -452,24 +478,7 @@ warp.help    = {
     'The main one that you could consider changing is the one for specifying whether deformation fields or inverse deformation fields should be generated.'
     }';
 
-%--------------------------------------------------------------------------
-% preproc Segment
-%--------------------------------------------------------------------------
-preproc      = cfg_exbranch;
-preproc.tag  = 'preproc';
-preproc.name = 'Segment';
-preproc.val  = {data tissues warp};
-preproc.help = {
-    'Segmentation, bias correction and spatially normalisation - all in the same model.'
-    ''
-    'This procedure is an extension of the old unified segmentation algorithm (and was known as "New Segment" in SPM8). The algorithm is essentially the same as that described in the Unified Segmentation paper /* \cite{ashburner05}*/, except for (i) a slightly different treatment of the mixing proportions, (ii) the use of an improved registration model, (iii) the ability to use multi-spectral data, (iv) an extended set of tissue probability maps, which allows a different treatment of voxels outside the brain. Some of the options in the toolbox do not yet work, and it has not yet been seamlessly integrated into the SPM8 software.  Also, the extended tissue probability maps need further refinement. The current versions were crudely generated (by JA) using data that was kindly provided by Cynthia Jongen of the Imaging Sciences Institute at Utrecht, NL.'
-    ''
-    'This function segments, bias corrects and spatially normalises - all in the same model/* \cite{ashburner05}*/. Many investigators use tools within older versions of SPM for a technique that has become known as "optimised" voxel-based morphometry (VBM). VBM performs region-wise volumetric comparisons among populations of subjects. It requires the images to be spatially normalised, segmented into different tissue classes, and smoothed, prior to performing statistical tests/* \cite{wright_vbm,am_vbmreview,ashburner00b,john_should}*/. The "optimised" pre-processing strategy involved spatially normalising subjects'' brain images to a standard space, by matching grey matter in these images, to a grey matter reference.  The historical motivation behind this approach was to reduce the confounding effects of non-brain (e.g. scalp) structural variability on the registration. Tissue classification in older versions of SPM required the images to be registered with tissue probability maps. After registration, these maps represented the prior probability of different tissue classes being found at each location in an image.  Bayes rule can then be used to combine these priors with tissue type probabilities derived from voxel intensities, to provide the posterior probability.'
-    ''
-    'This procedure was inherently circular, because the registration required an initial tissue classification, and the tissue classification requires an initial registration.  This circularity is resolved here by combining both components into a single generative model. This model also includes parameters that account for image intensity non-uniformity. Estimating the model parameters (for a maximum a posteriori solution) involves alternating among classification, bias correction and registration steps. This approach provides better results than simple serial applications of each component.'
-    }';
-preproc.prog = @spm_local_preproc_run;
-preproc.vout = @vout;
+[cfg,varargout{1}] = deal({data tissues warp});
 
 
 %==========================================================================

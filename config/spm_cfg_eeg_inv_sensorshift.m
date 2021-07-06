@@ -1,12 +1,29 @@
 function sensorshift = spm_cfg_eeg_inv_sensorshift
-% configuration file for tinkering with channel loations
-%  THis is to add deterministic or random displacements to
-% simulate coregistration error. GRB
-%_______________________________________________________________________
-% Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
+% Configuration file for tinkering with channel loations
+% This is to add deterministic or random displacements to simulate
+% coregistration error.
+%__________________________________________________________________________
+% Copyright (C) 2013-2021 Wellcome Trust Centre for Neuroimaging
 
 % Gareth Barnes
-% $Id: spm_cfg_eeg_inv_sensorshift.m 6618 2015-12-01 16:25:38Z spm $
+% $Id: spm_cfg_eeg_inv_sensorshift.m 8119 2021-07-06 13:51:43Z guillaume $
+
+
+sensorshift          = cfg_exbranch;
+sensorshift.tag      = 'sensorshift';
+sensorshift.name     = 'Add sensor error';
+sensorshift.val      = @sensorshift_cfg;
+sensorshift.help     = {'To simulate the effects of uncertainty on sensor position'};
+sensorshift.prog     = @specify_sensorshift;
+sensorshift.vout     = @vout_specify_sensorshift;
+sensorshift.modality = {'MEG'};
+
+
+%==========================================================================
+function varargout = sensorshift_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 D = cfg_files;
 D.tag = 'D';
@@ -21,7 +38,6 @@ val.name = 'Inversion index';
 val.strtype = 'n';
 val.help = {'Index of the cell in D.inv where the results will be stored.'};
 val.val = {1};
-
 
 movewhat = cfg_menu;
 movewhat.tag = 'movewhat';
@@ -78,17 +94,10 @@ outprefix.val = {'sens1'};%
 % pperror.val = {[0]};
 % pperror.help = {'The standard deviation of the error (mm) on each fiducial in each dimension'};
 
+[cfg,varargout{1}] = deal({D, val,movewhat, meanshift, sdshift,meanangshift,sdangshift,outprefix});
 
 
-sensorshift = cfg_exbranch;
-sensorshift.tag = 'sensorshift';
-sensorshift.name = 'Add sensor error';
-sensorshift.val = {D, val,movewhat, meanshift, sdshift,meanangshift,sdangshift,outprefix};
-sensorshift.help = {'To simulate the effects of uncertainty on sensor position'};
-sensorshift.prog = @specify_sensorshift;
-sensorshift.vout = @vout_specify_sensorshift;
-sensorshift.modality = {'MEG'};
-
+%==========================================================================
 function  out = specify_sensorshift(job)
 
 out.D = {};
@@ -99,9 +108,6 @@ out.D = {};
 for i = 1:numel(job.D)
     
     D0 = spm_eeg_load(job.D{i});
-    
-    
-    
     
     if ~isfield(D0,'inv')
         val   = 1;
@@ -117,25 +123,20 @@ for i = 1:numel(job.D)
     
     D0.val = val;
     
-    
     %-Meshes
-    %--------------------------------------------------------------------------
-    if ~isfield(D0,'inv'),
+    %----------------------------------------------------------------------
+    if ~isfield(D0,'inv')
         error('no head model set up');
-    end;
-    
+    end
     
     newfilename=[D0.path filesep job.outprefix D0.fname];
     D=D0.copy(newfilename);
-    if isfield(D,'inv'),
+    if isfield(D,'inv')
         disp('Removing any previous inversions');
         D=rmfield(D,'inv');
-    end;
-    
-    
+    end
     
     warning('OPERATING ON MEG SENSORS ONLY AS DEFAULT');
-    
     
     sens1=D.sensors('MEG');
     
@@ -147,27 +148,26 @@ for i = 1:numel(job.D)
     newchanori=zeros(Nchans,3);
     
     switch job.movewhat
-        case 'all',
+        case 'all'
             
             shift= job.meanshift+randn(1,3).*job.sdshift; %%  TRanslation
             rot=(job.meanangshift+randn(1,3).*job.sdangshift).*pi/180;   %% rotation in radians
             P=zeros(1,6);
             P(4:6)=rot;   %% rotation in radians
             [A] = spm_matrix(P); %% put rotation into matrix form
-            for j=1:length(chanind),
+            for j=1:length(chanind)
                 newchanpos(j,:)=sens1.chanpos(j,:)+shift; %%  TRanslation            
-                newchanori(j,:)=sens1.chanori(j,:)*A(1:3,1:3)
-            end; % for j
-        case 'independent',
-            for j=1:length(chanind),
+                newchanori(j,:)=sens1.chanori(j,:)*A(1:3,1:3);
+            end % for j
+        case 'independent'
+            for j=1:length(chanind)
                 newchanpos(j,:)=sens1.chanpos(j,:)+job.meanshift+randn(1,3).*job.sdshift; %%  TRanslation
                 P=zeros(1,6);
                 P(4:6)=(job.meanangshift+randn(1,3).*job.sdangshift).*pi/180;   %% rotation in radians
                 [A] = spm_matrix(P); %% put rotation into matrix form
-                newchanori(j,:)=sens1.chanori(j,:)*A(1:3,1:3)
-            end; % for j
-    end;
-    
+                newchanori(j,:)=sens1.chanori(j,:)*A(1:3,1:3);
+            end % for j
+    end
     
     sens1.chanori=newchanori;
     sens1.coilori=newchanori;
@@ -177,10 +177,11 @@ for i = 1:numel(job.D)
     
     D.save;
     
-    
     out.D{i, 1} = fullfile(D.path, D.fname);
 end
 
+
+%==========================================================================
 function dep = vout_specify_sensorshift(job)
 % Output is always in field "D", no matter how job is structured
 dep = cfg_dep;
@@ -189,4 +190,3 @@ dep.sname = 'M/EEG dataset(s) with a forward model';
 dep.src_output = substruct('.','D');
 % this can be entered into any evaluated input
 dep.tgt_spec   = cfg_findspec({{'filter','mat'}});
-

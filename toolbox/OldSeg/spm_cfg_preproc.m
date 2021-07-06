@@ -1,11 +1,38 @@
 function preproc = spm_cfg_preproc
 % SPM Configuration file for toolbox 'Old Segment'
 %______________________________________________________________________
-% Copyright (C) 2005-2016 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2021 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_preproc.m 6942 2016-11-21 13:17:44Z guillaume $
+% $Id: spm_cfg_preproc.m 8119 2021-07-06 13:51:43Z guillaume $
+
 
 if ~isdeployed, addpath(fullfile(spm('dir'),'toolbox','OldSeg')); end
+
+% ---------------------------------------------------------------------
+% oldseg Old Segment
+% ---------------------------------------------------------------------
+preproc         = cfg_exbranch;
+preproc.tag     = 'oldseg';
+preproc.name    = 'Old Segment';
+preproc.val     = @preproc_cfg;
+preproc.help    = {
+                   'Segment, bias correct and spatially normalise - all in the same model/* \cite{ashburner05}*/. This function can be used for bias correcting, spatially normalising or segmenting your data. Note that this module needs the images to be roughly aligned with the tissue probability maps before you begin.  If strange results are obtained, then this is usually because the images were poorly aligned beforehand.  The Display option can be used to manually reposition the images so that the AC is close to coordinate 0,0,0 (within a couple of cm) and the orientation is within a few degrees of the tissue probability map data.'
+                   ''
+                   'Many investigators use tools within older versions of SPM for a technique that has become known as "optimised" voxel-based morphometry (VBM). VBM performs region-wise volumetric comparisons among populations of subjects. It requires the images to be spatially normalised, segmented into different tissue classes, and smoothed, prior to performing statistical tests/* \cite{wright_vbm,am_vbmreview,ashburner00b,john_should}*/. The "optimised" pre-processing strategy involved spatially normalising subjects'' brain images to a standard space, by matching grey matter in these images, to a grey matter reference.  The historical motivation behind this approach was to reduce the confounding effects of non-brain (e.g. scalp) structural variability on the registration. Tissue classification in older versions of SPM required the images to be registered with tissue probability maps. After registration, these maps represented the prior probability of different tissue classes being found at each location in an image.  Bayes rule can then be used to combine these priors with tissue type probabilities derived from voxel intensities, to provide the posterior probability.'
+                   ''
+                   'This procedure was inherently circular, because the registration required an initial tissue classification, and the tissue classification requires an initial registration.  This circularity is resolved here by combining both components into a single generative model. This model also includes parameters that account for image intensity non-uniformity. Estimating the model parameters (for a maximum a posteriori solution) involves alternating among classification, bias correction and registration steps. This approach provides better results than simple serial applications of each component.'
+                   ''
+                   'Note that multi-spectral segmentation (e.g. from a registered T1 and T2 image) is not yet implemented, but is planned for a future SPM version.'
+}';
+preproc.prog = @spm_run_preproc;
+preproc.vout = @vout;
+
+
+%======================================================================
+function varargout = preproc_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 % ---------------------------------------------------------------------
 % data Data
@@ -288,27 +315,11 @@ opts.tag     = 'opts';
 opts.name    = 'Custom';
 opts.val     = {tpm ngaus regtype warpreg warpco biasreg biasfwhm samp msk };
 opts.help    = {'Various options can be adjusted in order to improve the performance of the algorithm with your data.  Knowing what works best should be a matter of empirical exploration.  For example, if your data has very little intensity non-uniformity artifact, then the bias regularisation should be increased.  This effectively tells the algorithm that there is very little bias in your data, so it does not try to model it.'};
-% ---------------------------------------------------------------------
-% oldseg Old Segment
-% ---------------------------------------------------------------------
-preproc         = cfg_exbranch;
-preproc.tag     = 'oldseg';
-preproc.name    = 'Old Segment';
-preproc.val     = {data output opts};
-preproc.help    = {
-                   'Segment, bias correct and spatially normalise - all in the same model/* \cite{ashburner05}*/. This function can be used for bias correcting, spatially normalising or segmenting your data. Note that this module needs the images to be roughly aligned with the tissue probability maps before you begin.  If strange results are obtained, then this is usually because the images were poorly aligned beforehand.  The Display option can be used to manually reposition the images so that the AC is close to coordinate 0,0,0 (within a couple of cm) and the orientation is within a few degrees of the tissue probability map data.'
-                   ''
-                   'Many investigators use tools within older versions of SPM for a technique that has become known as "optimised" voxel-based morphometry (VBM). VBM performs region-wise volumetric comparisons among populations of subjects. It requires the images to be spatially normalised, segmented into different tissue classes, and smoothed, prior to performing statistical tests/* \cite{wright_vbm,am_vbmreview,ashburner00b,john_should}*/. The "optimised" pre-processing strategy involved spatially normalising subjects'' brain images to a standard space, by matching grey matter in these images, to a grey matter reference.  The historical motivation behind this approach was to reduce the confounding effects of non-brain (e.g. scalp) structural variability on the registration. Tissue classification in older versions of SPM required the images to be registered with tissue probability maps. After registration, these maps represented the prior probability of different tissue classes being found at each location in an image.  Bayes rule can then be used to combine these priors with tissue type probabilities derived from voxel intensities, to provide the posterior probability.'
-                   ''
-                   'This procedure was inherently circular, because the registration required an initial tissue classification, and the tissue classification requires an initial registration.  This circularity is resolved here by combining both components into a single generative model. This model also includes parameters that account for image intensity non-uniformity. Estimating the model parameters (for a maximum a posteriori solution) involves alternating among classification, bias correction and registration steps. This approach provides better results than simple serial applications of each component.'
-                   ''
-                   'Note that multi-spectral segmentation (e.g. from a registered T1 and T2 image) is not yet implemented, but is planned for a future SPM version.'
-}';
-preproc.prog = @spm_run_preproc;
-preproc.vout = @vout;
-%------------------------------------------------------------------------
 
-%------------------------------------------------------------------------
+[cfg,varargout{1}] = deal({data output opts});
+
+
+%==========================================================================
 function dep = vout(job)
 opts  = job.output;
 
@@ -320,33 +331,33 @@ cdep(2)            = cfg_dep;
 cdep(2).sname      = 'Norm Params MNI->Subj';
 cdep(2).src_output = substruct('()',{1}, '.','isnfile','()',{':'});
 cdep(2).tgt_spec   = cfg_findspec({{'filter','mat','strtype','e'}});
-if opts.biascor,
+if opts.biascor
     cdep(end+1)          = cfg_dep;
     cdep(end).sname      = 'Bias Corr Images';
     cdep(end).src_output = substruct('()',{1}, '.','biascorr','()',{':'});
     cdep(end).tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});
-end;
+end
 sonames = {'GM','WM','CSF'};
-for k1=1:3,
+for k1=1:3
     if ~strcmp(opts.(sonames{k1}),'<UNDEFINED>')
-        if opts.(sonames{k1})(3),
+        if opts.(sonames{k1})(3)
             cdep(end+1)          = cfg_dep;
             cdep(end).sname      = sprintf('c%d Images',k1);
             cdep(end).src_output = substruct('()',{1}, '.',sprintf('c%d',k1),'()',{':'});
             cdep(end).tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});
-        end;
-        if opts.(sonames{k1})(2),
+        end
+        if opts.(sonames{k1})(2)
             cdep(end+1)          = cfg_dep;
             cdep(end).sname      = sprintf('wc%d Images',k1);
             cdep(end).src_output = substruct('()',{1}, '.',sprintf('wc%d',k1),'()',{':'});
             cdep(end).tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});
-        end;
-        if opts.(sonames{k1})(1),
+        end
+        if opts.(sonames{k1})(1)
             cdep(end+1)          = cfg_dep;
             cdep(end).sname      = sprintf('mwc%d Images',k1);
             cdep(end).src_output = substruct('()',{1}, '.',sprintf('mwc%d',k1),'()',{':'});
             cdep(end).tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});
-        end;
+        end
     end
-end;
+end
 dep = cdep;

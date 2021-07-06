@@ -1,12 +1,27 @@
 function filter = spm_cfg_eeg_filter
-% configuration file for EEG Filtering
+% configuration file for EEG filtering
 %_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2021 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_filter.m 5377 2013-04-02 17:07:57Z vladimir $
+% $Id: spm_cfg_eeg_filter.m 8119 2021-07-06 13:51:43Z guillaume $
 
-rev = '$Rev: 5377 $';
+
+filter          = cfg_exbranch;
+filter.tag      = 'filter';
+filter.name     = 'Filter';
+filter.val      = @filter_cfg;
+filter.help     = {'Filters EEG/MEG data.'};
+filter.prog     = @eeg_filter;
+filter.vout     = @vout_eeg_filter;
+filter.modality = {'EEG'};
+
+
+%==========================================================================
+function varargout = filter_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 D = cfg_files;
 D.tag = 'D';
@@ -62,15 +77,10 @@ prefix.strtype = 's';
 prefix.num     = [1 Inf];
 prefix.val     = {'f'};
 
-filter = cfg_exbranch;
-filter.tag = 'filter';
-filter.name = 'Filter';
-filter.val = {D type band freq dir order, prefix};
-filter.help = {'Filters EEG/MEG data.'};
-filter.prog = @eeg_filter;
-filter.vout = @vout_eeg_filter;
-filter.modality = {'EEG'};
+[cfg,varargout{1}] = deal({D type band freq dir order, prefix});
 
+
+%==========================================================================
 function out = eeg_filter(job)
 % construct the S struct
 S = job;
@@ -79,6 +89,8 @@ S.D = S.D{1};
 out.D = spm_eeg_filter(S);
 out.Dfname = {fullfile(out.D.path, out.D.fname)};
 
+
+%==========================================================================
 function dep = vout_eeg_filter(job)
 % Output is always in field "D", no matter how job is structured
 dep = cfg_dep;

@@ -1,10 +1,30 @@
 function remove = spm_cfg_eeg_remove_bad_trials
-% configuration file for copying
+% configuration file for removing bad trials
 %__________________________________________________________________________
-% Copyright (C) 2009-2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2009-2021 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_remove_bad_trials.m 5377 2013-04-02 17:07:57Z vladimir $
+% $Id: spm_cfg_eeg_remove_bad_trials.m 8119 2021-07-06 13:51:43Z guillaume $
+
+
+%--------------------------------------------------------------------------
+% remove
+%--------------------------------------------------------------------------
+remove          = cfg_exbranch;
+remove.tag      = 'remove';
+remove.name     = 'Remove bad trials';
+remove.val      = @remove_cfg;
+remove.help     = {'Removes bad trials and re-orders trials to conform to condlist'}';
+remove.prog     = @eeg_remove;
+remove.vout     = @vout_eeg_remove;
+remove.modality = {'EEG'};
+
+
+%==========================================================================
+function varargout = remove_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 %--------------------------------------------------------------------------
 % D
@@ -27,17 +47,8 @@ prefix.strtype = 's';
 prefix.num     = [1 Inf];
 prefix.val     = {'r'};
 
-%--------------------------------------------------------------------------
-% remove
-%--------------------------------------------------------------------------
-remove          = cfg_exbranch;
-remove.tag      = 'remove';
-remove.name     = 'Remove bad trials';
-remove.val      = {D, prefix};
-remove.help     = {'Removes bad trials and re-orders trials to conform to condlist'}';
-remove.prog     = @eeg_remove;
-remove.vout     = @vout_eeg_remove;
-remove.modality = {'EEG'};
+[cfg,varargout{1}] = deal({D, prefix});
+
 
 %==========================================================================
 function out = eeg_remove(job)
@@ -46,6 +57,7 @@ S           = job;
 S.D         = S.D{1};
 out.D       = spm_eeg_remove_bad_trials(S);
 out.Dfname  = {fullfile(out.D)};
+
 
 %==========================================================================
 function dep = vout_eeg_remove(job)

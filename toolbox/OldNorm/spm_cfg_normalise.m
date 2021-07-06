@@ -1,11 +1,73 @@
 function normalise = spm_cfg_normalise
 % SPM Configuration file for toolbox 'Old Normalise'
 %__________________________________________________________________________
-% Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2021 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_normalise.m 7155 2017-08-17 10:55:05Z john $
+% $Id: spm_cfg_normalise.m 8119 2021-07-06 13:51:43Z guillaume $
+
 
 if ~isdeployed, addpath(fullfile(spm('dir'),'toolbox','OldNorm')); end
+
+%--------------------------------------------------------------------------
+% est Old Normalise: Estimate
+%--------------------------------------------------------------------------
+est         = cfg_exbranch;
+est.tag     = 'est';
+est.name    = 'Old Normalise: Estimate';
+est.val     = @()[esubjs_cfg eoptions_cfg];
+est.help    = {'Computes the warp that best registers a source image (or series of source images) to match a template, saving it to a file imagename''_sn.mat''.'};
+est.prog    = @spm_run_normalise;
+est.vout    = @vout_estimate;
+
+%--------------------------------------------------------------------------
+% write Old Normalise: Write
+%--------------------------------------------------------------------------
+write         = cfg_exbranch;
+write.tag     = 'write';
+write.name    = 'Old Normalise: Write';
+write.val     = @()[wsubjs_cfg roptions_cfg];
+write.help    = {'Allows previously estimated warps (stored in imagename''_sn.mat'' files) to be applied to series of images.'};
+write.prog    = @spm_run_normalise;
+write.vout    = @vout_write;
+
+%--------------------------------------------------------------------------
+% estwrite Old Normalise: Estimate & Write
+%--------------------------------------------------------------------------
+estwrite      = cfg_exbranch;
+estwrite.tag  = 'estwrite';
+estwrite.name = 'Old Normalise: Estimate & Write';
+estwrite.val  = @()[ewsubjs_cfg eoptions_cfg roptions_cfg];
+estwrite.help = {'Computes the warp that best registers a source image (or series of source images) to match a template, saving it to the file imagename''_sn.mat''. This option also allows the contents of the imagename''_sn.mat'' files to be applied to a series of images.'};
+estwrite.prog = @spm_run_normalise;
+estwrite.vout = @vout_estwrite;
+
+%--------------------------------------------------------------------------
+% oldnorm Old Normalise
+%--------------------------------------------------------------------------
+normalise         = cfg_choice;
+normalise.tag     = 'oldnorm';
+normalise.name    = 'Old Normalise';
+normalise.help    = {
+                     'This very ancient module /* \cite{ashburner97b,ashburner99a} */ spatially (stereotactically) normalises MRI, PET or SPECT images into a standard space defined by some ideal model or template image[s].  The template images supplied with SPM conform to the space defined by the ICBM, NIH P-20 project, and approximate that of the the space described in the atlas of Talairach and Tournoux (1988). The transformation can also be applied to any other image that has been coregistered with these scans. A few researchers may wish to continue using this strategy, but (when good quality anatomical MRI scans are available) the DARTEL approach is now generally recommended instead.'
+                     ''
+                     'Generally, the algorithms work by minimising the sum of squares difference between the image which is to be normalised, and a linear combination of one or more template images.  For the least squares registration to produce an unbiased estimate of the spatial transformation, the image contrast in the templates (or linear combination of templates) should be similar to that of the image from which the spatial normalisation is derived.  The registration simply searches for an optimum solution.  If the starting estimates are not good, then the optimum it finds may not find the global optimum.'
+                     ''
+                     'The first step of the normalisation is to determine the optimum 12-parameter affine transformation.  Initially, the registration is performed by matching the whole of the head (including the scalp) to the template.  Following this, the registration proceeded by only matching the brains together, by appropriate weighting of the template voxels.  This is a completely automated procedure (that does not require ``scalp editing'') that discounts the confounding effects of skull and scalp differences.   A Bayesian framework is used, such that the registration searches for the solution that maximises the a posteriori probability of it being correct /* \cite{ashburner97b} */.  i.e., it maximises the product of the likelihood function (derived from the residual squared difference) and the prior function (which is based on the probability of obtaining a particular set of zooms and shears).'
+                     ''
+                     'The affine registration is followed by estimating nonlinear deformations, whereby the deformations are defined by a linear combination of three dimensional discrete cosine transform (DCT) basis functions /* \cite{ashburner99a} */.  The default options result in each of the deformation fields being described by 1176parameters, where these represent the coefficients of the deformations in three orthogonal directions.  The matching involved simultaneously minimising the membrane energies of the deformation fields and the residual squared difference between the images and template(s).'
+                     ''
+                     'The primarily use is for stereotactic normalisation to facilitate inter-subject averaging and precise characterisation of functional anatomy /* \cite{ashburner97bir} */.  It is not necessary to spatially normalise the data (this is only a pre-requisite  for  inter-subject averaging or reporting in the Talairach space).  If you wish to circumnavigate this step  (e.g. if you have single slice data or do not have an appropriate high resolution MRI scan) simply specify where you think the  anterior commissure  is  with  the  ORIGIN in the header of the first scan (using the ''Display'' facility) and proceed directly  to ''Smoothing''or ''Statistics''.'
+                     ''
+                     'All normalised images are written to the same subdirectory as the original images, prefixed with a ''w''.  The details of the transformations are displayed in the results window, and the parameters are saved in the "*_sn.mat" file.'
+}';
+normalise.values   = {est write estwrite};
+
+
+%==========================================================================
+function varargout = esubjs_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 %--------------------------------------------------------------------------
 % source Source Image
@@ -48,6 +110,15 @@ esubjs.name    = 'Data';
 esubjs.help    = {'List of subjects. Images of each subject should be warped differently.'};
 esubjs.values  = {subj };
 esubjs.num     = [1 Inf];
+
+[cfg,varargout{1}] = deal({esubjs});
+
+
+%==========================================================================
+function varargout = eoptions_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 %--------------------------------------------------------------------------
 % template Template Image
@@ -160,16 +231,14 @@ eoptions.name = 'Estimation Options';
 eoptions.val  = {template weight smosrc smoref regtype cutoff nits reg };
 eoptions.help = {'Various settings for estimating warps.'};
 
-%--------------------------------------------------------------------------
-% est Old Normalise: Estimate
-%--------------------------------------------------------------------------
-est         = cfg_exbranch;
-est.tag     = 'est';
-est.name    = 'Old Normalise: Estimate';
-est.val     = {esubjs eoptions };
-est.help    = {'Computes the warp that best registers a source image (or series of source images) to match a template, saving it to a file imagename''_sn.mat''.'};
-est.prog    = @spm_run_normalise;
-est.vout    = @vout_estimate;
+[cfg,varargout{1}] = deal({eoptions});
+
+
+%==========================================================================
+function varargout = wsubjs_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 %--------------------------------------------------------------------------
 % matname Parameter File
@@ -211,6 +280,15 @@ wsubjs.name    = 'Data';
 wsubjs.help    = {'List of subjects. Images of each subject should be warped differently.'};
 wsubjs.values  = {subj };
 wsubjs.num     = [1 Inf];
+
+[cfg,varargout{1}] = deal({wsubjs});
+
+
+%==========================================================================
+function varargout = roptions_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 %--------------------------------------------------------------------------
 % preserve Preserve
@@ -332,16 +410,14 @@ roptions.name = 'Writing Options';
 roptions.val  = {preserve bb vox interp wrap prefix };
 roptions.help = {'Various options for writing normalised images.'};
 
-%--------------------------------------------------------------------------
-% write Old Normalise: Write
-%--------------------------------------------------------------------------
-write         = cfg_exbranch;
-write.tag     = 'write';
-write.name    = 'Old Normalise: Write';
-write.val     = {wsubjs roptions };
-write.help    = {'Allows previously estimated warps (stored in imagename''_sn.mat'' files) to be applied to series of images.'};
-write.prog    = @spm_run_normalise;
-write.vout    = @vout_write;
+[cfg,varargout{1}] = deal({roptions});
+
+
+%==========================================================================
+function varargout = ewsubjs_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 %--------------------------------------------------------------------------
 % source Source Image
@@ -396,37 +472,8 @@ ewsubjs.help    = {'List of subjects. Images of each subject should be warped di
 ewsubjs.values  = {subj };
 ewsubjs.num     = [1 Inf];
 
-%--------------------------------------------------------------------------
-% estwrite Old Normalise: Estimate & Write
-%--------------------------------------------------------------------------
-estwrite      = cfg_exbranch;
-estwrite.tag  = 'estwrite';
-estwrite.name = 'Old Normalise: Estimate & Write';
-estwrite.val  = {ewsubjs eoptions roptions };
-estwrite.help = {'Computes the warp that best registers a source image (or series of source images) to match a template, saving it to the file imagename''_sn.mat''. This option also allows the contents of the imagename''_sn.mat'' files to be applied to a series of images.'};
-estwrite.prog = @spm_run_normalise;
-estwrite.vout = @vout_estwrite;
+[cfg,varargout{1}] = deal({ewsubjs});
 
-%--------------------------------------------------------------------------
-% oldnorm Old Normalise
-%--------------------------------------------------------------------------
-normalise         = cfg_choice;
-normalise.tag     = 'oldnorm';
-normalise.name    = 'Old Normalise';
-normalise.help    = {
-                     'This very ancient module /* \cite{ashburner97b,ashburner99a} */ spatially (stereotactically) normalises MRI, PET or SPECT images into a standard space defined by some ideal model or template image[s].  The template images supplied with SPM conform to the space defined by the ICBM, NIH P-20 project, and approximate that of the the space described in the atlas of Talairach and Tournoux (1988). The transformation can also be applied to any other image that has been coregistered with these scans. A few researchers may wish to continue using this strategy, but (when good quality anatomical MRI scans are available) the DARTEL approach is now generally recommended instead.'
-                     ''
-                     'Generally, the algorithms work by minimising the sum of squares difference between the image which is to be normalised, and a linear combination of one or more template images.  For the least squares registration to produce an unbiased estimate of the spatial transformation, the image contrast in the templates (or linear combination of templates) should be similar to that of the image from which the spatial normalisation is derived.  The registration simply searches for an optimum solution.  If the starting estimates are not good, then the optimum it finds may not find the global optimum.'
-                     ''
-                     'The first step of the normalisation is to determine the optimum 12-parameter affine transformation.  Initially, the registration is performed by matching the whole of the head (including the scalp) to the template.  Following this, the registration proceeded by only matching the brains together, by appropriate weighting of the template voxels.  This is a completely automated procedure (that does not require ``scalp editing'') that discounts the confounding effects of skull and scalp differences.   A Bayesian framework is used, such that the registration searches for the solution that maximises the a posteriori probability of it being correct /* \cite{ashburner97b} */.  i.e., it maximises the product of the likelihood function (derived from the residual squared difference) and the prior function (which is based on the probability of obtaining a particular set of zooms and shears).'
-                     ''
-                     'The affine registration is followed by estimating nonlinear deformations, whereby the deformations are defined by a linear combination of three dimensional discrete cosine transform (DCT) basis functions /* \cite{ashburner99a} */.  The default options result in each of the deformation fields being described by 1176parameters, where these represent the coefficients of the deformations in three orthogonal directions.  The matching involved simultaneously minimising the membrane energies of the deformation fields and the residual squared difference between the images and template(s).'
-                     ''
-                     'The primarily use is for stereotactic normalisation to facilitate inter-subject averaging and precise characterisation of functional anatomy /* \cite{ashburner97bir} */.  It is not necessary to spatially normalise the data (this is only a pre-requisite  for  inter-subject averaging or reporting in the Talairach space).  If you wish to circumnavigate this step  (e.g. if you have single slice data or do not have an appropriate high resolution MRI scan) simply specify where you think the  anterior commissure  is  with  the  ORIGIN in the header of the first scan (using the ''Display'' facility) and proceed directly  to ''Smoothing''or ''Statistics''.'
-                     ''
-                     'All normalised images are written to the same subdirectory as the original images, prefixed with a ''w''.  The details of the transformations are displayed in the results window, and the parameters are saved in the "*_sn.mat" file.'
-}';
-normalise.values   = {est write estwrite};
 
 %==========================================================================
 function dep = vout_estimate(job)
@@ -437,6 +484,7 @@ for k=1:numel(job.subj)
     dep(k).tgt_spec   = cfg_findspec({{'filter','mat','strtype','e'}});
 end
 
+
 %==========================================================================
 function dep = vout_write(job)
 for k=1:numel(job.subj)
@@ -445,6 +493,7 @@ for k=1:numel(job.subj)
     dep(k).src_output = substruct('()',{k},'.','files');
     dep(k).tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});
 end
+
 
 %==========================================================================
 function dep = vout_estwrite(job)

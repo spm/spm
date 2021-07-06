@@ -1,11 +1,30 @@
 function cfc = spm_cfg_eeg_cfc
 % Configuration file for M/EEG cross-frequency coupling analysis
 %__________________________________________________________________________
-% Copyright (C) 2014-2016 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2014-2021 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_cfc.m 6929 2016-11-14 13:07:31Z guillaume $
+% $Id: spm_cfg_eeg_cfc.m 8119 2021-07-06 13:51:43Z guillaume $
 
+
+%--------------------------------------------------------------------------
+% M/EEG Cross-Frequency Coupling Analysis
+%--------------------------------------------------------------------------
+cfc          = cfg_exbranch;
+cfc.tag      = 'cfc';
+cfc.name     = 'Cross-frequency coupling';
+cfc.val      = @cfc_cfg;
+cfc.help     = {'GLM-based cross-frequency coupling analysis'};
+cfc.prog     = @eeg_cfc;
+%cfc.vout    = @vout_eeg_cfc;
+cfc.modality = {'EEG'};
+
+
+%==========================================================================
+function varargout = cfc_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 %--------------------------------------------------------------------------
 % D
@@ -20,19 +39,19 @@ D.help   = {'Select the M/EEG mat file.'};
 %--------------------------------------------------------------------------
 % conditions
 %--------------------------------------------------------------------------
-condlabel = cfg_entry;
-condlabel.tag = 'conditions';
-condlabel.name = 'Condition label';
+condlabel         = cfg_entry;
+condlabel.tag     = 'conditions';
+condlabel.name    = 'Condition label';
 condlabel.strtype = 's';
-condlabel.help = {''};
+condlabel.help    = {''};
 
-conditions = cfg_repeat;
-conditions.tag = 'condrepeat';
-conditions.name = 'Conditions';
-conditions.help = {'Specify the labels of the conditions to be converted.'};
-conditions.num  = [0 Inf];
+conditions         = cfg_repeat;
+conditions.tag     = 'condrepeat';
+conditions.name    = 'Conditions';
+conditions.help    = {'Specify the labels of the conditions to be converted.'};
+conditions.num     = [0 Inf];
 conditions.values  = {condlabel};
-conditions.val = {};
+conditions.val     = {};
 
 %--------------------------------------------------------------------------
 % freqwin
@@ -98,17 +117,8 @@ prefix.strtype = 's';
 prefix.num     = [0 Inf];
 prefix.val     = {''};
 
-%--------------------------------------------------------------------------
-% M/EEG Cross-Frequency Coupling Analysis
-%--------------------------------------------------------------------------
-cfc = cfg_exbranch;
-cfc.tag = 'cfc';
-cfc.name = 'Cross-frequency coupling';
-cfc.val = {D, spm_cfg_eeg_channel_selector, conditions, freqwin, window, regressors, confounds, prefix};
-cfc.help = {'GLM-based cross-frequency coupling analysis'};
-cfc.prog = @eeg_cfc;
-%cfc.vout = @vout_eeg_cfc;
-cfc.modality = {'EEG'};
+[cfg,varargout{1}] = deal({D, spm_cfg_eeg_channel_selector, conditions, freqwin, window, regressors, confounds, prefix});
+
 
 %==========================================================================
 % function out = eeg_cfc(job)
@@ -135,5 +145,3 @@ out = [];
 % dep(2).sname      = 'MEEG GLM regressors';
 % dep(2).src_output = substruct('.','regrfile');
 % dep(2).tgt_spec   = cfg_findspec({{'filter','mat'}});
-% 
-% 

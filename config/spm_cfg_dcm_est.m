@@ -1,10 +1,32 @@
 function estimate = spm_cfg_dcm_est
 % SPM Configuration file for DCM estimation
 %__________________________________________________________________________
-% Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2021 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin & Peter Zeidman
-% $Id: spm_cfg_dcm_est.m 7479 2018-11-09 14:17:33Z peter $
+% $Id: spm_cfg_dcm_est.m 8119 2021-07-06 13:51:43Z guillaume $
+
+
+% -------------------------------------------------------------------------
+% estimate Estimate
+% -------------------------------------------------------------------------
+estimate      = cfg_exbranch;
+estimate.tag  = 'estimate';
+estimate.name = 'DCM estimation';
+estimate.val  = @dcm_est_cfg;
+estimate.help = {['Estimate the parameters and free energy (log model ' ...
+                  'evidence) of first level DCMs for fMRI. Models ' ...
+                  'are assembled into a Subjects x Models array and ' ...
+                  'saved in group GCM_*.mat file']};
+estimate.prog = @spm_run_dcm_est;
+estimate.vout = @vout_dcm;
+
+%==========================================================================
+function varargout = dcm_est_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
+
 
 % -------------------------------------------------------------------------
 % dcmmat Select DCM_*.mat
@@ -201,28 +223,8 @@ fmri.name    = 'MRI specific options';
 fmri.val     = {fmri_analysis};
 fmri.help    = {'MRI specific options'};
                  
-% -------------------------------------------------------------------------
-% estimate Estimate
-% -------------------------------------------------------------------------
-estimate      = cfg_exbranch;
-estimate.tag  = 'estimate';
-estimate.name = 'DCM estimation';
-estimate.val  = { dcms output est_type fmri };
-estimate.help = {['Estimate the parameters and free energy (log model ' ...
-                  'evidence) of first level DCMs for fMRI. Models ' ...
-                  'are assembled into a Subjects x Models array and ' ...
-                  'saved in group GCM_*.mat file']};
-estimate.prog = @spm_run_dcm_est;
-estimate.vout = @vout_dcm;
+[cfg,varargout{1}] = deal({ dcms output est_type fmri });
 
-% -------------------------------------------------------------------------
-% fmri Dynamic Causal Model for fMRI
-% -------------------------------------------------------------------------
-est         = cfg_choice; 
-est.tag     = 'est';
-est.name    = 'DCM estimation';
-est.help    = {'Estimation of Dynamic Causal Models.'};
-est.values  = { estimate };
 
 %==========================================================================
 function out = spm_run_dcm_est(job)

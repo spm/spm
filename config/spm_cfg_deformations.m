@@ -4,15 +4,25 @@ function conf = spm_cfg_deformations
 % Copyright (C) 2008-2016 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_cfg_deformations.m 7700 2019-11-21 17:09:15Z john $
+% $Id: spm_cfg_deformations.m 8119 2021-07-06 13:51:43Z guillaume $
 
-hsummary = {
-'Utility for working with deformation fields.',...
-['They can be loaded, inverted, combined etc, and the results ',...
-'either saved to disk, or applied to some image or surface file. ',...
-'This utility was intended for imaging experts and may therefore ',...
-'be a bit difficult for naive users. ',...
-'It provides a great deal of flexibility, which may be confusing to some.']};
+conf      = cfg_exbranch;
+conf.name = 'Deformations';
+conf.tag  = 'defs';
+conf.val  = @deformations_cfg;
+conf.prog = @spm_deformations;
+conf.vout = @vout;
+conf.help = {
+    'Utility for working with deformation fields.',...
+    ['They can be loaded, inverted, combined etc, and the results ',...
+    'either saved to disk, or applied to some image or surface file. ',...
+    'This utility was intended for imaging experts and may therefore ']};
+
+%==========================================================================
+function varargout = deformations_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 hinv = {[...
 'Creates the inverse of a deformation field. ',...
@@ -439,10 +449,7 @@ output.help = {[...
 'the inverse of the deformation used by the pullback.  ',...
 'Finally, the deformation may be used to warp a GIFTI surface file.']};
 
-conf         = exbranch('Deformations','defs',{comp,output});
-conf.prog    = @spm_deformations;
-conf.vout    = @vout;
-conf.help    = hsummary;
+[cfg,varargout{1}] = deal({comp,output});
 
 
 %==========================================================================
@@ -456,28 +463,28 @@ for i=1:numel(job.out)
     out = job.out{i};
     if isfield(out,'savedef') && ~savedef
         savedef = true;
-        if isempty(vo), vo = cfg_dep; else vo(end+1) = cfg_dep; end
+        if isempty(vo), vo = cfg_dep; else, vo(end+1) = cfg_dep; end
         vo(end).sname      = 'Deformation';
         vo(end).src_output = substruct('.','def');
         vo(end).tgt_spec   = cfg_findspec({{'filter','nifti'}});
     end
     if (isfield(out,'pull') || isfield(out,'push')) && ~saveimage
         saveimage = true;
-        if isempty(vo), vo = cfg_dep; else vo(end+1) = cfg_dep; end
+        if isempty(vo), vo = cfg_dep; else, vo(end+1) = cfg_dep; end
         vo(end).sname      = 'Warped Images';
         vo(end).src_output = substruct('.','warped');
         vo(end).tgt_spec   = cfg_findspec({{'filter','image'}});
     end
     if isfield(out,'surf') && ~savesurf
         savesurf = true;
-        if isempty(vo), vo = cfg_dep; else vo(end+1) = cfg_dep; end
+        if isempty(vo), vo = cfg_dep; else, vo(end+1) = cfg_dep; end
         vo(end).sname      = 'Warped Surfaces';
         vo(end).src_output = substruct('.','surf');
         vo(end).tgt_spec   = cfg_findspec({{'filter','mesh'}});
     end
     if isfield(out,'savejac') && ~savejac
         savejac = true;
-        if isempty(vo), vo = cfg_dep; else vo(end+1) = cfg_dep; end
+        if isempty(vo), vo = cfg_dep; else, vo(end+1) = cfg_dep; end
         vo(end).sname      = 'Jacobian';
         vo(end).src_output = substruct('.','jac');
         vo(end).tgt_spec   = cfg_findspec({{'filter','image'}});
@@ -506,12 +513,6 @@ branch_item.name = name;
 branch_item.tag  = tag;
 branch_item.val  = val;
 
-function exbranch_item = exbranch(name, tag, val)
-exbranch_item      = cfg_exbranch;
-exbranch_item.name = name;
-exbranch_item.tag  = tag;
-exbranch_item.val  = val;
-
 function repeat_item = repeat(name, tag, values)
 repeat_item        = cfg_repeat;
 repeat_item.name   = name;
@@ -524,4 +525,3 @@ menu_item.name   = name;
 menu_item.tag    = tag;
 menu_item.labels = labels;
 menu_item.values = values;
-

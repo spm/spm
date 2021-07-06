@@ -1,12 +1,26 @@
 function prepare = spm_cfg_eeg_prepare
 % Configuration file for the prepare tool
 %__________________________________________________________________________
-% Copyright (C) 2012-2016 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2012-2021 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_prepare.m 7169 2017-09-19 10:42:27Z vladimir $
+% $Id: spm_cfg_eeg_prepare.m 8119 2021-07-06 13:51:43Z guillaume $
 
-rev = '$Rev: 7169 $';
+prepare          = cfg_exbranch;
+prepare.tag      = 'prepare';
+prepare.name     = 'Prepare';
+prepare.val      = @prepare_cfg;
+prepare.help     = {'Prepare EEG/MEG data.'};
+prepare.prog     = @eeg_prepare;
+prepare.vout     = @vout_eeg_prepare;
+prepare.modality = {'EEG'};
+
+
+%==========================================================================
+function varargout = prepare_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 D = cfg_files;
 D.tag = 'D';
@@ -286,15 +300,10 @@ task.values = {defaulttype, bidschantype, settype, loadmegsens, headshape,...
     loadtemplate, setbadchan, bidschanstatus, avref, sortconditions, bidsevents};
 task.help = {'Select task(s).'};
 
-prepare = cfg_exbranch;
-prepare.tag = 'prepare';
-prepare.name = 'Prepare';
-prepare.val = {D, task};
-prepare.help = {'Prepare EEG/MEG data.'};
-prepare.prog = @eeg_prepare;
-prepare.vout = @vout_eeg_prepare;
-prepare.modality = {'EEG'};
+[cfg,varargout{1}] = deal({D, task});
 
+
+%==========================================================================
 function out = eeg_prepare(job)
 
 D = spm_eeg_load(job.D{1});
@@ -421,6 +430,8 @@ save(D);
 out.D = D;
 out.Dfname = {fullfile(D)};
 
+
+%==========================================================================
 function dep = vout_eeg_prepare(job)
 % Output is always in field "D", no matter how job is structured
 dep = cfg_dep;

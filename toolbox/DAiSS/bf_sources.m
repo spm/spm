@@ -1,12 +1,28 @@
 function out = bf_sources
-% Prepares source locations and lead fields for beamforming
-% Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
+% Prepare source locations and lead fields for beamforming
+%__________________________________________________________________________
+% Copyright (C) 2015-2021 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: bf_sources.m 8061 2021-02-10 15:14:57Z spm $
+% $Id: bf_sources.m 8119 2021-07-06 13:51:43Z guillaume $
 
-% dir Directory
-% ---------------------------------------------------------------------
+
+out = cfg_exbranch;
+out.tag = 'sources';
+out.name = 'Define sources';
+out.val = @bf_sources_cfg;
+out.help = {'Define source space for beamforming'};
+out.prog = @bf_source_run;
+out.vout = @bf_source_vout;
+out.modality = {'EEG'};
+
+
+%==========================================================================
+function varargout = bf_sources_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
+
 BF = cfg_files;
 BF.tag = 'BF';
 BF.name = 'BF.mat file';
@@ -59,16 +75,10 @@ visualise.labels = {'yes', 'no'};
 visualise.values = {true, false};
 visualise.val = {true};
 
-out = cfg_exbranch;
-out.tag = 'sources';
-out.name = 'Define sources';
-out.val = {BF, reduce_rank, keep3d, plugin, normalise_lf, visualise};
-out.help = {'Define source space for beamforming'};
-out.prog = @bf_source_run;
-out.vout = @bf_source_vout;
-out.modality = {'EEG'};
-end
+[cfg,varargout{1}] = deal({BF, reduce_rank, keep3d, plugin, normalise_lf, visualise});
 
+
+%==========================================================================
 function  out = bf_source_run(job)
 
 outdir = spm_file(job.BF{1}, 'fpath');
@@ -201,8 +211,9 @@ end
 bf_save_path(BF,fullfile(outdir, 'BF.mat'));
 
 out.BF{1} = fullfile(outdir, 'BF.mat');
-end
 
+
+%==========================================================================
 function dep = bf_source_vout(job)
 % Output is always in field "D", no matter how job is structured
 dep = cfg_dep;
@@ -211,4 +222,3 @@ dep.sname = 'BF.mat file';
 dep.src_output = substruct('.','BF');
 % this can be entered into any evaluated input
 dep.tgt_spec   = cfg_findspec({{'filter','mat'}});
-end

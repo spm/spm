@@ -1,11 +1,28 @@
 function extract = spm_cfg_eeg_inv_extract
-% configuration file for extracting source data from imaging source
+% Configuration file for extracting source data from imaging source
 % reconstruction
-%_______________________________________________________________________
-% Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
+% Copyright (C) 2011-2021 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_extract.m 6924 2016-11-09 11:38:00Z guillaume $
+% $Id: spm_cfg_eeg_inv_extract.m 8119 2021-07-06 13:51:43Z guillaume $
+
+
+extract          = cfg_exbranch;
+extract.tag      = 'extract';
+extract.name     = 'Source extraction';
+extract.val      = @extract_cfg;
+extract.help     = {'Extract source data from the results of inverse source reconstruction'};
+extract.prog     = @run_extract;
+extract.vout     = @vout_extract;
+extract.modality = {'EEG'};
+
+
+%==========================================================================
+function varargout = extract_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 D = cfg_files;
 D.tag = 'D';
@@ -71,15 +88,10 @@ fname.num = [0 Inf];
 fname.val = {''};
 fname.help = {'Output file name (empty for default)'};
 
-extract = cfg_exbranch;
-extract.tag = 'extract';
-extract.name = 'Source extraction';
-extract.val = {D, val, sources, rad, type, fname};
-extract.help = {'Extract source data from the results of inverse source reconstruction'};
-extract.prog = @run_extract;
-extract.vout = @vout_extract;
-extract.modality = {'EEG'};
+[cfg,varargout{1}] = deal({D, val, sources, rad, type, fname});
 
+
+%==========================================================================
 function  out = run_extract(job)
 
 source       = [];
@@ -110,6 +122,8 @@ for i = 1:numel(job.D)
     out.D{i, 1} = fullfile(Ds.path, Ds.fname);      
 end
 
+
+%==========================================================================
 function dep = vout_extract(job)
 % Output is always in field "D", no matter how job is structured
 % Output is always in field "D", no matter how job is structured

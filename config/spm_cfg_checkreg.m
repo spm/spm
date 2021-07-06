@@ -1,9 +1,9 @@
 function checkreg = spm_cfg_checkreg
 % SPM Configuration file for Check Reg
 %__________________________________________________________________________
-% Copyright (C) 2008-2016 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2021 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_checkreg.m 6952 2016-11-25 16:03:13Z guillaume $
+% $Id: spm_cfg_checkreg.m 8119 2021-07-06 13:51:43Z guillaume $
 
 
 %--------------------------------------------------------------------------

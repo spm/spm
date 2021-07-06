@@ -1,11 +1,27 @@
 function reduce = spm_cfg_eeg_reduce
-% Configuration file for M/EEG time-frequency analysis
+% Configuration file for M/EEG data reduction
 %__________________________________________________________________________
-% Copyright (C) 2010-2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2010-2021 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_reduce.m 8059 2021-02-10 12:35:02Z vladimir $
+% $Id: spm_cfg_eeg_reduce.m 8119 2021-07-06 13:51:43Z guillaume $
 
+
+reduce          = cfg_exbranch;
+reduce.tag      = 'reduce';
+reduce.name     = 'Data reduction';
+reduce.val      = @reduce_cfg;
+reduce.help     = {'Perform data reduction.'};
+reduce.prog     = @eeg_reduce;
+reduce.vout     = @vout_eeg_reduce;
+reduce.modality = {'EEG'};
+
+
+%==========================================================================
+function varargout = reduce_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 %--------------------------------------------------------------------------
 % D
@@ -67,14 +83,8 @@ prefix.strtype = 's';
 prefix.num     = [1 Inf];
 prefix.val     = {'R'};
 
-reduce = cfg_exbranch;
-reduce.tag = 'reduce';
-reduce.name = 'Data reduction';
-reduce.val = {D, timewin, spm_cfg_eeg_channel_selector, method, keeporig, keepothers, prefix};
-reduce.help = {'Perform data reduction.'};
-reduce.prog = @eeg_reduce;
-reduce.vout = @vout_eeg_reduce;
-reduce.modality = {'EEG'};
+[cfg,varargout{1}] = deal({D, timewin, spm_cfg_eeg_channel_selector, method, keeporig, keepothers, prefix});
+
 
 %==========================================================================
 % function out = eeg_reduce(job)

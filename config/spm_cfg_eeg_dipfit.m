@@ -1,11 +1,23 @@
 function dipfit = spm_cfg_eeg_dipfit
-% Configuration file for configuring imaging source inversion
-% reconstruction
+% Configuration file for Bayesian dipole fitting
 %__________________________________________________________________________
-% Copyright (C) 2010-2016 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2010-2021 Wellcome Trust Centre for Neuroimaging
 
 % Gareth Barnes
 
+
+dipfit       = cfg_exbranch;
+dipfit.tag   = 'dipfit';
+dipfit.name  = 'Bayesian Dipole fit';
+dipfit.val   = @dipfit_cfg;
+dipfit.help  = {'Run imaging source reconstruction'};
+dipfit.prog  = @run_dipfit;
+dipfit.vout  = @vout_dipfit;
+%dipfit.modality = {'MEG'};
+
+
+%==========================================================================
+function varargout = dipfit_cfg
 
 D = cfg_files;
 D.tag = 'D';
@@ -144,19 +156,11 @@ modality.values = {
     }';
 modality.val = {{'MEG'}};
 
-dipfit = cfg_exbranch;
-dipfit.tag = 'dipfit';
-dipfit.name = 'Bayesian Dipole fit';
-dipfit.val = {D, val, whatconditions,whichgenerator, woi, locs, coordlocs, locvar,moms,momvar,ampsnr, niter,modality};
-dipfit.help = {'Run imaging source reconstruction'};
-dipfit.prog = @run_dipfit;
-dipfit.vout = @vout_dipfit;
-%dipfit.modality = {'MEG'};
+[cfg,varargout{1}] = deal({D, val, whatconditions,whichgenerator, woi, locs, coordlocs, locvar,moms,momvar,ampsnr, niter,modality});
 
+
+%==========================================================================
 function  out = run_dipfit(job)
-
-
-
 
 D = {};
 
@@ -189,17 +193,17 @@ usesamples=intersect(find(D.time>=job.woi(1)./1000),find(D.time<=job.woi(2)./100
 if isfield(job.whatconditions,'all') %% all conditions
     condind=setdiff(1:D.ntrials,D.badtrials);
 else
-    condind=strmatch(job.whatconditions.condlabel,D.conditions)
-end;
+    condind=strmatch(job.whatconditions.condlabel,D.conditions);
+end
 
 
 % if length(condstr)>1,
 %     error('not implemented for more than 1 condition yet');
 % end;
 fitdata=zeros(length(megind),length(usesamples)); %% pool over conditions
-for f=1:length(condind),
+for f=1:length(condind)
     fitdata=fitdata+squeeze(D(megind,usesamples,condind(f)));
-end;
+end
 fitdata=fitdata./length(condind);
 
 labels=num2str(megind');
@@ -207,12 +211,13 @@ pos=zeros(length(megind),2);
 modstr='MEG';
 if ~strcmp(job.modality,'MEG')
     error('Only tested for MEG so far. Try gui for EEG version');
-end;
+end
 
 
-pos=coor2D(D, indchantype(D, modstr, 'GOOD'))
+pos=coor2D(D, indchantype(D, modstr, 'GOOD'));
 
-%% get transform from MNI space
+% get transform from MNI space
+%--------------------------------------------------------------------------
 val=D.val;
 M1 = D.inv{val}.datareg.fromMNI;
 [U, L, V] = svd(M1(1:3, 1:3));
@@ -222,10 +227,11 @@ orM1(1:3,1:3) =U*V'; %% this is pure rotation (from MNI to native)
 mniflag=job.coordlocs; %% work in mni coords or not
 
 ndips=size(job.locs,1); %% single dipole
-if size(job.moms,1)~=ndips || size(job.momvar,1)~=ndips || size(job.locvar,1)~=ndips,
+if size(job.moms,1)~=ndips || size(job.momvar,1)~=ndips || size(job.locvar,1)~=ndips
     error('Inputs for prior mean and uncertainty should all have same number of rows (= number dipoles)');
-end;
-%% Set up the forward model
+end
+% Set up the forward model
+%--------------------------------------------------------------------------
 %Use the most recent forward model saved in D
 P=[];
 P.y=mean(fitdata,2);                                                    %Z=avdata at each sensor at 'fitind' (timepoint identified in VB_ECD_FindPeak)
@@ -246,10 +252,10 @@ alldiag_Scov=[];
 figure;
 hold on;
 
-for d=1:ndips,
+for d=1:ndips
     
     ind=(d-1)*3+1:d*3;
-    if mniflag,
+    if mniflag
         Priors.mu_w0(ind)= orM1*job.moms(d,:)';  %% transforming out of MNI spacee
         Priors.mu_s0(ind)=D.inv{val}.datareg.fromMNI*[job.locs(d,:) 1]';
         alldiag_Wcov(ind)=orM1*job.momvar(d,:); %% rotate variances from MNI to native space
@@ -259,47 +265,42 @@ for d=1:ndips,
         Priors.mu_s0(ind)=job.locs(d,:);
         alldiag_Wcov(ind)=job.momvar(d,:);
         alldiag_Scov(ind)=job.locvar(d,:);
-    end;
+    end
     
-    
-end;
-
-
+end
 
 Priors.mu_s0=spm_vec(Priors.mu_s0);
 Priors.mu_w0=spm_vec(Priors.mu_w0);
 Priors.S_s0=diag(alldiag_Scov);
 Priors.S_w0= diag(alldiag_Wcov);
 
-
 P.priors=Priors;
 
-%% Calculate the covariance of the raw data
+% Calculate the covariance of the raw data
 
-%% Next line calculates the SNR at each sensor, for the peak you've identified
+% Next line calculates the SNR at each sensor, for the peak you've identified
 
-%% The SNRamp is the average SNR for the peak you've identified across all sensors
+% The SNRamp is the average SNR for the peak you've identified across all sensors
 SNRamp=job.ampsnr;
 
-%% So, the SNR obviously varies across the brain, and is different at each sensor. How much of the variance observed in the sensor data is due to noise, and how much is due to real signal?
+% So, the SNR obviously varies across the brain, and is different at each sensor. How much of the variance observed in the sensor data is due to noise, and how much is due to real signal?
 %P.priors.hE=log(SNRamp^2);                                             %Expected log precision of data
 P.priors.hE=log(SNRamp);  %% seemed to be closets to value arrived at in line serach                                            %Expected log precision of data
-%% run a line search over hE values
+% run a line search over hE values
 %hevals=[0.001 0.1 0.5 1 2] %  1 2 5 10]
 
 %P.priors.hE=hevals(hind); %% log(SNRamp^2);                                             %Expected log precision of data
 hcpval=-2; %; %% was -2
 P.priors.hC=exp(hcpval);                                      %varSNR; % variability of the above precision
 
-%% This is the range of possible SNR values at each sensor that we're willing to expect. If the Hcpval is small, the range will be small.
+% This is the range of possible SNR values at each sensor that we're willing to expect. If the Hcpval is small, the range will be small.
 disp('approx amp SNR range:')
 exp(P.priors.hE/2-2*sqrt(P.priors.hC))
 exp(P.priors.hE/2+2*sqrt(P.priors.hC))
 
 
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%% Start the VB-ECD iterations for the ith subject
+%-Start the VB-ECD iterations for the ith subject
+%==========================================================================
 data = spm_eeg_inv_get_vol_sens(D, val, [], 'inv', P.modality);
 P.forward.vol     = data.(P.modality(1:3)).vol;
 if ischar(P.forward.vol)
@@ -317,10 +318,10 @@ else
     P.channels = D.chanlabels(P.Ic);
 end
 P.forward.chanunits = D.units(P.Ic);
-if job.whichgenerator==0, %% if magnetic dipole override forward model
+if job.whichgenerator==0 %% if magnetic dipole override forward model
     P.forward.vol.type='infinite_magneticdipole';
     disp('using magnetic dipole !');
-end;
+end
 [P.forward.vol, P.forward.sens] =  ft_prepare_vol_sens( ...
     P.forward.vol, P.forward.sens, 'channel', P.channels);
 plot3(P.forward.sens.chanpos(:,1),P.forward.sens.chanpos(:,2),P.forward.sens.chanpos(:,3),'bo');
@@ -333,10 +334,10 @@ plot3(slot65.pos(1),slot65.pos(2),slot65.pos(3),'rx');
 phpos = slot65.pos - 0.080*slot65.tan - 0/.05*slot65.rad;
 plot3([slot65.pos(1) phpos(1)],[slot65.pos(2) phpos(2)],[slot65.pos(3) phpos(3)],'r:');
 or_real = -slot65.rad;
-sc=0.01
+sc=0.01;
 quiver3(phpos(1),phpos(2),phpos(3),slot65.rad(1).*sc,slot65.rad(2).*sc,slot65.rad(3).*sc);
 
-for j=1:job.niter;
+for j=1:job.niter
     Pout(j)        = spm_eeg_inv_vbecd(P);
     varresids(j)   = var(Pout(j).y-Pout(j).ypost);
     pov(j)         = 100*(1-varresids(j)/var(Pout(j).y));          %Percent variance explained
@@ -362,9 +363,9 @@ inverse.P=P;
 D.inv{job.val}.inverse=inverse;
 
 hf = spm_figure('FindWin','Graphics');
-if isempty(hf),
+if isempty(hf)
     hf=1;
-end;
+end
 figure(hf);
 spm_clf(hf);
 subplot(3,2,1);
@@ -443,6 +444,8 @@ end
 
 out.D = job.D;
 
+
+%==========================================================================
 function dep = vout_dipfit(job)
 % Output is always in field "D", no matter how job is structured
 dep = cfg_dep;
@@ -451,4 +454,3 @@ dep.sname = 'M/EEG dataset(s) after imaging source reconstruction';
 dep.src_output = substruct('.','D');
 % this can be entered into any evaluated input
 dep.tgt_spec   = cfg_findspec({{'filter','mat'}});
-

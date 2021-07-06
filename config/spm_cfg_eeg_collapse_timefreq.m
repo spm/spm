@@ -1,19 +1,39 @@
 function collapse = spm_cfg_eeg_collapse_timefreq
-% configuration file for within-image averaging
+% Configuration file for within-image averaging
 %__________________________________________________________________________
-% Copyright (C) 2009-2013 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2009-2021 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_collapse_timefreq.m 5652 2013-09-25 09:36:22Z volkmar $
+% $Id: spm_cfg_eeg_collapse_timefreq.m 8119 2021-07-06 13:51:43Z guillaume $
 
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
+% crop
+%--------------------------------------------------------------------------
+collapse          = cfg_exbranch;
+collapse.tag      = 'collapse';
+collapse.name     = 'Collapse time';
+collapse.val      = @collapse_cfg;
+collapse.help     = {'Compute within-peristimulus time (or frequency) averages (contrasts) of M/EEG data in voxel-space'}';
+collapse.prog     = @eeg_collapse;
+collapse.vout     = @vout_eeg_collapse;
+collapse.modality = {'EEG'};
+
+
+%==========================================================================
+function varargout = collapse_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
+
+%--------------------------------------------------------------------------
 % Images to Smooth
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 images         = cfg_files;
 images.tag     = 'images';
 images.name    = 'Images to average';
 images.help    = {'Specify the images to average time/frequency.'};
-images.filter = 'image';
+images.filter  = 'image';
 images.ufilter = '.*';
 images.num     = [0 Inf];
 
@@ -39,21 +59,12 @@ prefix.strtype = 's';
 prefix.num     = [1 Inf];
 prefix.val     = {'l'};
 
-%--------------------------------------------------------------------------
-% crop
-%--------------------------------------------------------------------------
-collapse          = cfg_exbranch;
-collapse.tag      = 'collapse';
-collapse.name     = 'Collapse time';
-collapse.val      = {images, timewin, prefix};
-collapse.help     = {'Compute within-peristimulus time (or frequency) averages (contrasts) of M/EEG data in voxel-space'}';
-collapse.prog     = @eeg_collapse;
-collapse.vout     = @vout_eeg_collapse;
-collapse.modality = {'EEG'};
+[cfg,varargout{1}] = deal({images, timewin, prefix});
+
 
 %==========================================================================
 function out = eeg_collapse(job)
-out.files   = spm_eeg_collapse_timefreq(job);
+out.files = spm_eeg_collapse_timefreq(job);
 
 %==========================================================================
 function dep = vout_eeg_collapse(job)

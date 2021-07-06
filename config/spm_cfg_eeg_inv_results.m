@@ -1,11 +1,26 @@
 function results = spm_cfg_eeg_inv_results
 % Configuration file for exporting results of source reconstruction
 %__________________________________________________________________________
-% Copyright (C) 2010-2013 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2010-2021 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_results.m 5377 2013-04-02 17:07:57Z vladimir $
+% $Id: spm_cfg_eeg_inv_results.m 8119 2021-07-06 13:51:43Z guillaume $
 
+
+results          = cfg_exbranch;
+results.tag      = 'results';
+results.name     = 'Inversion results';
+results.val      = @results_cfg;
+results.help     = {'Export results of imaging source reconstruction.'};
+results.prog     = @run_results;
+results.vout     = @vout_results;
+results.modality = {'EEG'};
+
+%==========================================================================
+function varargout = results_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 D        = cfg_files;
 D.tag    = 'D';
@@ -70,14 +85,7 @@ smoothing.strtype = 'r';
 smoothing.num     = [1 1];
 smoothing.val     = {8};
 
-results          = cfg_exbranch;
-results.tag      = 'results';
-results.name     = 'Inversion results';
-results.val      = {D, val, woi, foi, ctype, space, fmt, smoothing};
-results.help     = {'Export results of imaging source reconstruction.'};
-results.prog     = @run_results;
-results.vout     = @vout_results;
-results.modality = {'EEG'};
+[cfg,varargout{1}] = deal({D, val, woi, foi, ctype, space, fmt, smoothing});
 
 
 %==========================================================================

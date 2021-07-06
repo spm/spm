@@ -1,20 +1,40 @@
 function grandmean = spm_cfg_eeg_grandmean
-% configuration file for averaging evoked responses
+% Configuration file for averaging evoked responses
 %__________________________________________________________________________
-% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2021 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_grandmean.m 5377 2013-04-02 17:07:57Z vladimir $
+% $Id: spm_cfg_eeg_grandmean.m 8119 2021-07-06 13:51:43Z guillaume $
+
+
+%--------------------------------------------------------------------------
+% S Grandmean
+%--------------------------------------------------------------------------
+grandmean          = cfg_exbranch;
+grandmean.tag      = 'grandmean';
+grandmean.name     = 'Grandmean';
+grandmean.val      = @grandmean_cfg;
+grandmean.help     = {'Average multiple evoked responses'};
+grandmean.prog     = @eeg_grandmean;
+grandmean.vout     = @vout_eeg_grandmean;
+grandmean.modality = {'EEG'};
+
+
+%==========================================================================
+function varargout = grandmean_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 %--------------------------------------------------------------------------
 % D File Names
 %--------------------------------------------------------------------------
-D            = cfg_files;
-D.tag        = 'D';
-D.name       = 'File Names';
-D.filter     = 'mat';
-D.num        = [1 inf];
-D.help       = {'Select the M/EEG mat file.'};
+D        = cfg_files;
+D.tag    = 'D';
+D.name   = 'File Names';
+D.filter = 'mat';
+D.num    = [1 inf];
+D.help   = {'Select the M/EEG mat file.'};
 
 %--------------------------------------------------------------------------
 % Output filename
@@ -29,24 +49,15 @@ outfile.help    = {'Choose filename'};
 % -------------------------------------------------------------------------
 % weighted Weighted average
 % -------------------------------------------------------------------------
-weighted         = cfg_menu;
-weighted.tag     = 'weighted';
-weighted.name    = 'Weighted average?';
-weighted.help    = {'Average weighted by number of replications in input.'};
-weighted.labels  = {'Yes' 'No'};
-weighted.values  = {1 0};
+weighted        = cfg_menu;
+weighted.tag    = 'weighted';
+weighted.name   = 'Weighted average?';
+weighted.help   = {'Average weighted by number of replications in input.'};
+weighted.labels = {'Yes' 'No'};
+weighted.values = {1 0};
 
-%--------------------------------------------------------------------------
-% S Grandmean
-%--------------------------------------------------------------------------
-grandmean            = cfg_exbranch;
-grandmean.tag        = 'grandmean';
-grandmean.name       = 'Grandmean';
-grandmean.val        = {D outfile weighted};
-grandmean.help       = {'Average multiple evoked responses'};
-grandmean.prog       = @eeg_grandmean;
-grandmean.vout       = @vout_eeg_grandmean;
-grandmean.modality   = {'EEG'};
+[cfg,varargout{1}] = deal({D outfile weighted});
+
 
 %==========================================================================
 function out = eeg_grandmean(job)

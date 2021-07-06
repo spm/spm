@@ -1,11 +1,27 @@
 function headmodel = spm_cfg_eeg_inv_headmodel
 % Configuration file for specifying the head model for source reconstruction
 %__________________________________________________________________________
-% Copyright (C) 2010-2020 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2010-2021 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_headmodel.m 7869 2020-06-08 08:40:25Z guillaume $
+% $Id: spm_cfg_eeg_inv_headmodel.m 8119 2021-07-06 13:51:43Z guillaume $
 
+
+headmodel          = cfg_exbranch;
+headmodel.tag      = 'headmodel';
+headmodel.name     = 'Head model specification';
+headmodel.val      = @headmodel_cfg;
+headmodel.help     = {'Specify M/EEG head model for forward computation'};
+headmodel.prog     = @specify_headmodel;
+headmodel.vout     = @vout_specify_headmodel;
+headmodel.modality = {'EEG'};
+
+
+%==========================================================================
+function varargout = headmodel_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 D = cfg_files;
 D.tag = 'D';
@@ -217,15 +233,11 @@ forward.name = 'Forward model';
 forward.val = {eeg, meg};
 forward.help = {'Forward model'};
 
-headmodel = cfg_exbranch;
-headmodel.tag = 'headmodel';
-headmodel.name = 'Head model specification';
-headmodel.val = {D, val, comment, meshing, coregistration, forward};
-headmodel.help = {'Specify M/EEG head model for forward computation'};
-headmodel.prog = @specify_headmodel;
-headmodel.vout = @vout_specify_headmodel;
-headmodel.modality = {'EEG'};
 
+[cfg,varargout{1}] = deal({D, val, comment, meshing, coregistration, forward});
+
+
+%==========================================================================
 function  out = specify_headmodel(job)
 
 out.D = {};
@@ -383,6 +395,8 @@ for i = 1:numel(job.D)
     out.D{i, 1} = fullfile(D.path, D.fname);
 end
 
+
+%==========================================================================
 function dep = vout_specify_headmodel(job)
 % Output is always in field "D", no matter how job is structured
 dep = cfg_dep;

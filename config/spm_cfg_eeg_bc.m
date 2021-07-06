@@ -1,11 +1,27 @@
 function bc = spm_cfg_eeg_bc
 % configuration file for baseline correction
 %__________________________________________________________________________
-% Copyright (C) 2009-2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2009-2021 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_bc.m 5652 2013-09-25 09:36:22Z volkmar $
+% $Id: spm_cfg_eeg_bc.m 8119 2021-07-06 13:51:43Z guillaume $
 
+
+%--------------------------------------------------------------------------
+% bc
+%--------------------------------------------------------------------------
+bc          = cfg_exbranch;
+bc.tag      = 'bc';
+bc.name     = 'Baseline correction';
+bc.val      = @bc_cfg;
+bc.help     = {'Baseline correction of M/EEG time data'}';
+bc.prog     = @eeg_bc;
+bc.vout     = @vout_eeg_bc;
+bc.modality = {'EEG'};
+
+
+%==========================================================================
+function varargout = bc_cfg
 %--------------------------------------------------------------------------
 % D
 %--------------------------------------------------------------------------
@@ -37,17 +53,8 @@ prefix.strtype = 's';
 prefix.num     = [1 Inf];
 prefix.val     = {'b'};
 
-%--------------------------------------------------------------------------
-% bc
-%--------------------------------------------------------------------------
-bc          = cfg_exbranch;
-bc.tag      = 'bc';
-bc.name     = 'Baseline correction';
-bc.val      = {D, timewin, prefix};
-bc.help     = {'Baseline correction of M/EEG time data'}';
-bc.prog     = @eeg_bc;
-bc.vout     = @vout_eeg_bc;
-bc.modality = {'EEG'};
+[cfg,varargout{1}] = deal({D, timewin, prefix});
+
 
 %==========================================================================
 function out = eeg_bc(job)

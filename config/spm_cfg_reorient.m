@@ -1,11 +1,31 @@
 function reorient = spm_cfg_reorient
 % SPM Configuration file for Reorient Images
 %__________________________________________________________________________
-% Copyright (C) 2006-2015 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2006-2021 Wellcome Trust Centre for Neuroimaging
 
 % Volkmar Glauche
-% $Id: spm_cfg_reorient.m 6952 2016-11-25 16:03:13Z guillaume $
+% $Id: spm_cfg_reorient.m 8119 2021-07-06 13:51:43Z guillaume $
 
+%--------------------------------------------------------------------------
+% reorient Reorient Images
+%--------------------------------------------------------------------------
+reorient      = cfg_exbranch;
+reorient.tag  = 'reorient';
+reorient.name = 'Reorient Images';
+reorient.val  = @reorient_cfg;
+reorient.help = {
+    'Reorient images given a set of parameters.'
+    'The reorientation parameters can be given either as a 4x4 matrix or as parameters as defined for spm_matrix.m. The new image orientation will be computed by PRE-multiplying the original orientation matrix with the supplied matrix.'
+    }';
+reorient.prog = @spm_run_reorient;
+reorient.vout = @vout;
+
+
+%==========================================================================
+function varargout = reorient_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 %--------------------------------------------------------------------------
 % srcfiles Images to reorient
@@ -107,19 +127,7 @@ prefix.val     = {''};
 % %=======================================================================
 % defaults.reorient.prefix = ''; % Output filename prefix ('' == overwrite)
 
-%--------------------------------------------------------------------------
-% reorient Reorient Images
-%--------------------------------------------------------------------------
-reorient      = cfg_exbranch;
-reorient.tag  = 'reorient';
-reorient.name = 'Reorient Images';
-reorient.val  = {srcfiles transform prefix};
-reorient.help = {
-    'Reorient images given a set of parameters.'
-    'The reorientation parameters can be given either as a 4x4 matrix or as parameters as defined for spm_matrix.m. The new image orientation will be computed by PRE-multiplying the original orientation matrix with the supplied matrix.'
-    }';
-reorient.prog = @spm_run_reorient;
-reorient.vout = @vout;
+[cfg,varargout{1}] = deal({srcfiles transform prefix});
 
 
 %==========================================================================

@@ -1,10 +1,30 @@
 function copy = spm_cfg_eeg_copy
-% configuration file for copying
+% Configuration file for copying M/EEG datasets
 %__________________________________________________________________________
-% Copyright (C) 2009-2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2009-2021 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_copy.m 5377 2013-04-02 17:07:57Z vladimir $
+% $Id: spm_cfg_eeg_copy.m 8119 2021-07-06 13:51:43Z guillaume $
+
+
+%--------------------------------------------------------------------------
+% copy
+%--------------------------------------------------------------------------
+copy          = cfg_exbranch;
+copy.tag      = 'copy';
+copy.name     = 'Copy';
+copy.val      = @copy_cfg;
+copy.help     = {'Copying M/EEG datasets'}';
+copy.prog     = @eeg_copy;
+copy.vout     = @vout_eeg_copy;
+copy.modality = {'EEG'};
+
+
+%==========================================================================
+function varargout = copy_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 %--------------------------------------------------------------------------
 % D
@@ -19,24 +39,15 @@ D.help   = {'Select the M/EEG mat file.'};
 %--------------------------------------------------------------------------
 % outfile
 %--------------------------------------------------------------------------
-outfile = cfg_entry;
-outfile.tag = 'outfile';
-outfile.name = 'Output filename';
+outfile         = cfg_entry;
+outfile.tag     = 'outfile';
+outfile.name    = 'Output filename';
 outfile.strtype = 's';
-outfile.num = [0 inf];
-outfile.help = {'Choose filename.'};
+outfile.num     = [0 inf];
+outfile.help    = {'Choose filename.'};
 
-%--------------------------------------------------------------------------
-% copy
-%--------------------------------------------------------------------------
-copy          = cfg_exbranch;
-copy.tag      = 'copy';
-copy.name     = 'Copy';
-copy.val      = {D, outfile};
-copy.help     = {'Copying M/EEG datasets'}';
-copy.prog     = @eeg_copy;
-copy.vout     = @vout_eeg_copy;
-copy.modality = {'EEG'};
+[cfg,varargout{1}] = deal({D, outfile});
+
 
 %==========================================================================
 function out = eeg_copy(job)

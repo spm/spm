@@ -1,9 +1,31 @@
 function dicom = spm_cfg_dicom
 % SPM Configuration file for DICOM Import
 %__________________________________________________________________________
-% Copyright (C) 2005-2017 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2021 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_dicom.m 7355 2018-06-22 11:40:55Z john $
+% $Id: spm_cfg_dicom.m 8119 2021-07-06 13:51:43Z guillaume $
+
+
+%--------------------------------------------------------------------------
+% dicom DICOM Import
+%--------------------------------------------------------------------------
+dicom          = cfg_exbranch;
+dicom.tag      = 'dicom';
+dicom.name     = 'DICOM Import';
+dicom.val      = @dicom_cfg;
+dicom.help     = {
+    'DICOM Conversion.'
+    'Most scanners produce data in DICOM format. This routine attempts to convert DICOM files into SPM compatible image volumes, which are written into the current directory by default. Note that not all flavours of DICOM can be handled, as DICOM is a very complicated format, and some scanner manufacturers use their own fields, which are not in the official documentation at http://medical.nema.org/'
+    }';
+dicom.prog     = @spm_run_dicom;
+dicom.vout     = @vout;
+
+
+%==========================================================================
+function varargout = dicom_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 %-------------------------------------------------------------------------
 % data DICOM files
@@ -110,19 +132,7 @@ convopts.name  = 'Conversion options';
 convopts.val   = {format meta icedims};
 convopts.help  = {''};
 
-%--------------------------------------------------------------------------
-% dicom DICOM Import
-%--------------------------------------------------------------------------
-dicom          = cfg_exbranch;
-dicom.tag      = 'dicom';
-dicom.name     = 'DICOM Import';
-dicom.val      = {data root outdir protfilter convopts};
-dicom.help     = {
-    'DICOM Conversion.'
-    'Most scanners produce data in DICOM format. This routine attempts to convert DICOM files into SPM compatible image volumes, which are written into the current directory by default. Note that not all flavours of DICOM can be handled, as DICOM is a very complicated format, and some scanner manufacturers use their own fields, which are not in the official documentation at http://medical.nema.org/'
-    }';
-dicom.prog     = @spm_run_dicom;
-dicom.vout     = @vout;
+[cfg,varargout{1}] = deal({data root outdir protfilter convopts});
 
 
 %==========================================================================

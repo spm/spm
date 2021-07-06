@@ -1,11 +1,27 @@
 function simulate = spm_cfg_eeg_inv_simulate
-% Configuration file for configuring imaging source inversion
-% reconstruction
+% Configuration file for simulation of sources
 %__________________________________________________________________________
-% Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2010-2021 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_simulate.m 8004 2020-11-06 14:52:25Z gareth $
+% $Id: spm_cfg_eeg_inv_simulate.m 8119 2021-07-06 13:51:43Z guillaume $
+
+
+simulate          = cfg_exbranch;
+simulate.tag      = 'simulate';
+simulate.name     = 'Simulation of sources';
+simulate.val      = @simulate_cfg;
+simulate.help     = {'Run simulation'};
+simulate.prog     = @run_simulation;
+simulate.vout     = @vout_simulation;
+simulate.modality = {'EEG'};
+
+
+%==========================================================================
+function varargout = simulate_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 D = cfg_files;
 D.tag = 'D';
@@ -56,7 +72,6 @@ whatconditions.values = {all, conditions};
 whatconditions.val = {all};
 whatconditions.help = {'What conditions to include?'};
 
-
 woi = cfg_entry;
 woi.tag = 'woi';
 woi.name = 'Time window';
@@ -64,7 +79,6 @@ woi.strtype = 'r';
 woi.num = [1 2];
 woi.val = {[100  400]};
 woi.help = {'Time window in which to simulate data (ms)'};
-
 
 foi = cfg_entry;
 foi.tag = 'foi';
@@ -82,7 +96,6 @@ fband.num = [ 1 2];
 fband.val = {[10  40]};
 fband.help = {'Enter frequencies over which random signal exists in Hz'};
 
-
 fromfile = cfg_files;
 fromfile.tag = 'fromfile';
 fromfile.name = 'Variable s in a .mat file';
@@ -90,14 +103,12 @@ fromfile.filter = 'mat';
 fromfile.num = [1 1];
 fromfile.help = {'Select the .mat file containing the variable s'};
 
-
 isSin = cfg_choice;
 isSin.tag = 'isSin';
 isSin.name = 'How to generate signals ?';
 isSin.help = {'Choose whether to simulate a sinusoidal signal OR a random (gaussian white) filtered (and orthogonal) signals OR to load time series from a matfile (s(n,:) is nth dipole time series (all timeserie will be normalized to unit amplitude, and scaled only by dipole moment)'};
 isSin.values = {foi, fband,fromfile};
 isSin.val = {foi};
-
 
 dipmom = cfg_entry;
 dipmom.tag = 'dipmom';
@@ -115,7 +126,6 @@ whitenoise.num = [1 1];
 whitenoise.val = {[100]};
 whitenoise.help = {'White noise in the recording bandwidth (rms fT)'};
 
-
 setSNR = cfg_entry;
 setSNR.tag = 'setSNR';
 setSNR.name = 'Sensor level SNR (dBs)';
@@ -131,7 +141,6 @@ locs.strtype = 'r';
 locs.num = [Inf 3];
 locs.help = {'Input mni source locations (mm) as n x 3 matrix'};
 locs.val = {[ 53.7203  -25.7363    9.3949;  -52.8484  -25.7363    9.3949]};
-
 
 setsources = cfg_branch;
 setsources.tag = 'setsources';
@@ -152,8 +161,6 @@ isinversion.help = {'Use existing current density estimate to generate data or g
 isinversion.values = {setinversion, setsources};
 isinversion.val = {setsources};
 
-
-
 isSNR = cfg_choice;
 isSNR.tag = 'isSNR';
 isSNR.name = 'Set SNR or set white noise level';
@@ -161,39 +168,28 @@ isSNR.help = {'Choose whether to a fixed SNR or specify system noise level'};
 isSNR.values = {setSNR, whitenoise};
 isSNR.val = {setSNR};
 
+[cfg,varargout{1}] = deal({D, val, prefix, whatconditions,isinversion,isSNR});
 
-simulate = cfg_exbranch;
-simulate.tag = 'simulate';
-simulate.name = 'Simulation of sources';
-simulate.val = {D, val, prefix, whatconditions,isinversion,isSNR};
-simulate.help = {'Run simulation'};
-simulate.prog = @run_simulation;
-simulate.vout = @vout_simulation;
-simulate.modality = {'EEG'};
 
+%==========================================================================
 function  out = run_simulation(job)
 
-
 D = spm_eeg_load(job.D{1});
-
-
 
 trialind=[];
 if isfield(job.whatconditions, 'condlabel')
     trialind =D.indtrial( job.whatconditions.condlabel);
-    if isempty(trialind),
+    if isempty(trialind)
         error('No such condition found');
-    end;
+    end
 end
-if numel(job.D)>1,
+if numel(job.D)>1
     error('Simulation routine only meant to replace data for single subjects');
-end;
+end
 
-
-
-if size(modality(D),1)>1,
+if size(modality(D),1)>1
     error('only suitable for single modality data at the moment');
-end;
+end
 
 D = {};
 
@@ -214,67 +210,67 @@ for i = 1:numel(job.D) %% only set up for one subject at the moment but leaving 
         end
     end
     
-end; % for i
+end % for i
 
 
-if isfield(job.isSNR,'whitenoise'),
+if isfield(job.isSNR,'whitenoise')
     whitenoisefT=job.isSNR.whitenoise; %% internal units as femto Tesla
     SNRdB=[];
 else
     SNRdB=job.isSNR.setSNR;
     whitenoisefT=[];
-end;
+end
 
-if isfield(job.isinversion,'setsources'), %% defining individual sources
+if isfield(job.isinversion,'setsources') %% defining individual sources
     
     %%%
-    Nsources=size(job.isinversion.setsources.locs,1)
+    Nsources=size(job.isinversion.setsources.locs,1);
     
-    if (size(job.isinversion.setsources.dipmom,1)~=Nsources),
+    if (size(job.isinversion.setsources.dipmom,1)~=Nsources)
         error('Number of locations must equal number of moments specified');
-    end;
+    end
     
     mnimesh=[]; %% using mesh defined in forward model at the moment
     
     
     ormni=[]; %% dipoles will get orientations from cortical mesh
     dipmom=job.isinversion.setsources.dipmom;
-    if size(job.isinversion.setsources.dipmom,2)==3, %% dipole orientation is specified
+    if size(job.isinversion.setsources.dipmom,2)==3 %% dipole orientation is specified
         disp('Simulating dipoles without reference to cortical surface');
-        for j=1:size(dipmom,1),
+        for j=1:size(dipmom,1)
             ormni(j,:)=dipmom(j,:)./sqrt(dot(dipmom(j,:),dipmom(j,:))); %% unit orientation in MNI space
             nAmdipmom(j)=sqrt(dot(dipmom(j,:),dipmom(j,:))); % magnitude of dipole
-        end;
+        end
     else %% only one moment parameter given
         nAmdipmom=dipmom(:,1); %% total momnent in nAm
         dipfwhm=[];
-        if size(dipmom,2)==2,
+        if size(dipmom,2)==2
             dipfwhm=dipmom(:,2); %% fhwm in mm
-        end;
-    end;
+        end
+    end
     
     woi=job.isinversion.setsources.woi./1000;
     timeind = intersect(find(D{1}.time>woi(1)),find(D{1}.time<=woi(2)));
     simsignal = zeros(Nsources,length(timeind));
     
-    if isfield(job.isinversion.setsources.isSin,'fromfile'),
+    if isfield(job.isinversion.setsources.isSin,'fromfile')
         % Simulate orthogonal Gaussian signals
         filename=cell2mat(job.isinversion.setsources.isSin.fromfile);
         a=load(filename,'s');
         
-        if size(a.s,1)~=Nsources,
+        if size(a.s,1)~=Nsources
             error('size of simulated data in file does not match number of sources');
-        end;
+        end
         
-        if size(a.s,2)~=length(timeind),
+        if size(a.s,2)~=length(timeind)
             warning(sprintf('sim signal from file is not same length as time window (%d vs %d samples) truncating or padding with zeros',size(a.s,2),length(timeind)));
-        end;
+        end
         usesamples=1:min(length(timeind),size(a.s,2));
         simsignal(:,usesamples)=a.s(:,usesamples);
         
-    end; % if isfield fband
+    end % if isfield fband
     
-    if isfield(job.isinversion.setsources.isSin,'fband'),
+    if isfield(job.isinversion.setsources.isSin,'fband')
         % Simulate orthogonal Gaussian signals
         
         simsignal=randn(Nsources,length(timeind));
@@ -283,27 +279,27 @@ if isfield(job.isinversion,'setsources'), %% defining individual sources
         simsignal=ft_preproc_highpassfilter(simsignal,D{1}.fsample,job.isinversion.setsources.isSin.fband(1),2);
         [u,s,v]=svd(simsignal*simsignal');
         simsignal=u*simsignal; %% orthogonalise all signals
-    end; % if isfield fband
+    end % if isfield fband
     
     %  simsignal=simsignal.*repmat(nAmdipmom,1,size(simsignal,2)); %% now scale by moment
     
-    if isfield(job.isinversion.setsources.isSin,'foi'),
+    if isfield(job.isinversion.setsources.isSin,'foi')
         % simulate sinusoids
         sinfreq=job.isinversion.setsources.isSin.foi;
         % Create the waveform for each source
         
         for j=1:Nsources                % For each source
             simsignal(j,:)=sin((D{1}.time(timeind)- D{1}.time(min(timeind)))*sinfreq(j)*2*pi);
-        end; % for j
+        end % for j
         
         
-    end; %% if isfield foi
+    end %% if isfield foi
     
-    for j=1:size(simsignal,1),
-        if max(max(abs(simsignal(j,:))))>0, %% if everythhing zero don't rescale
+    for j=1:size(simsignal,1)
+        if max(max(abs(simsignal(j,:))))>0 %% if everythhing zero don't rescale
         simsignal(j,:)=simsignal(j,:)./std(simsignal(j,:)); %% Set sim signal to have unit variance
-        end;
-    end;
+        end
+    end
     
     %[D,meshsourceind,signal]=spm_eeg_simulate(D,job.prefix, job.isinversion.setsources.locs,simsignal,woi,whitenoisefT,SNRdB,trialind,mnimesh,SmthInit);
     figure;
@@ -314,14 +310,12 @@ if isfield(job.isinversion,'setsources'), %% defining individual sources
     [D,meshsourceind]=spm_eeg_simulate(D,job.prefix,job.isinversion.setsources.locs,simsignal,ormni,woi,whitenoisefT,SNRdB,trialind,mnimesh,dipfwhm,nAmdipmom);
     
 else %% simulate sources based on inversion
-    if ~isfield(D{i}.inv{job.val},'inverse'),
+    if ~isfield(D{i}.inv{job.val},'inverse')
         error('There is no solution defined for these data at that index');
-    end;
+    end
     
     [D]=spm_eeg_simulate_frominv(D,job.prefix,job.val,whitenoisefT,SNRdB,trialind);
-end;
-
-
+end
 
 if ~iscell(D)
     D = {D};
@@ -331,10 +325,11 @@ for i = 1:numel(D)
     save(D{i});
 end
 
-
 fullname=[D{1}.path filesep D{1}.fname];
 out.D = {fullname};
 
+
+%==========================================================================
 function dep = vout_simulation(job)
 % Output is always in field "D", no matter how job is structured
 dep = cfg_dep;
@@ -343,4 +338,3 @@ dep.sname = 'M/EEG dataset(s) after simulation';
 dep.src_output = substruct('.','D');
 % this can be entered into any evaluated input
 dep.tgt_spec   = cfg_findspec({{'filter','mat'}});
-

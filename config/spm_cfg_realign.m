@@ -1,10 +1,87 @@
 function realign = spm_cfg_realign
 % SPM Configuration file for Realign
 %__________________________________________________________________________
-% Copyright (C) 2005-2016 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2021 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_realign.m 6952 2016-11-25 16:03:13Z guillaume $
+% $Id: spm_cfg_realign.m 8119 2021-07-06 13:51:43Z guillaume $
 
+
+%--------------------------------------------------------------------------
+% estimate Realign: Estimate
+%--------------------------------------------------------------------------
+estimate      = cfg_exbranch;
+estimate.tag  = 'estimate';
+estimate.name = 'Realign: Estimate';
+estimate.val  = @estimate_cfg;
+estimate.help = {
+    'Realign a time-series of images acquired from the same subject using a least squares approach and a 6 parameter (rigid body) spatial transformation/* \cite{friston95a}*/.'
+    ''
+    'The first image in the list specified by the user is used as a reference to which all subsequent scans are realigned. The reference scan does not have to the the first chronologically and it may be wise to chose a "representative scan" in this role.'
+    ''
+    'The aim is primarily to remove movement artefact in fMRI and PET time-series (or more generally longitudinal studies). The headers are modified for each of the input images, such that. they reflect the relative orientations of the data. The details of the transformation are displayed in the results window as plots of translation and rotation. A set of realignment parameters are saved for each session, named rp_*.txt. These can be modelled as confounds within the general linear model/* \cite{friston95a}*/.'
+    }';
+estimate.prog = @spm_run_realign;
+estimate.vout = @vout_estimate;
+
+%--------------------------------------------------------------------------
+% data Images
+%--------------------------------------------------------------------------
+data         = cfg_files;
+data.tag     = 'data';
+data.name    = 'Images';
+data.help    = {'Select scans to reslice to match the first.'};
+data.filter  = 'image';
+data.ufilter = '.*';
+data.num     = [1 Inf];
+data.preview = @(f) spm_check_registration(char(f));
+
+%--------------------------------------------------------------------------
+% write Realign: Reslice
+%--------------------------------------------------------------------------
+write      = cfg_exbranch;
+write.tag  = 'write';
+write.name = 'Realign: Reslice';
+write.val  = @()[{data} write_cfg];
+write.help = {
+    'Reslice a series of registered images such that they match the first image selected voxel-for-voxel.'
+    'The resliced images are named the same as the originals, except that they are prefixed by ''r''.'
+    }';
+write.prog = @spm_run_realign;
+write.vout = @vout_reslice;
+
+%--------------------------------------------------------------------------
+% estwrite Realign: Estimate & Reslice
+%--------------------------------------------------------------------------
+estwrite      = cfg_exbranch;
+estwrite.tag  = 'estwrite';
+estwrite.name = 'Realign: Estimate & Reslice';
+estwrite.val  = @()[estimate_cfg write_cfg];
+estwrite.help = {
+    'Realign a time-series of images acquired from the same subject using a least squares approach and a 6 parameter (rigid body) spatial transformation/* \cite{friston95a}*/.'
+    ''
+    'The first image in the list specified by the user is used as a reference to which all subsequent scans are realigned. The reference scan does not have to be the first chronologically and it may be wise to chose a "representative scan" in this role.'
+    ''
+    'The aim is primarily to remove movement artefact in fMRI and PET time-series (or more generally longitudinal studies) /* \cite{ashburner97bir}*/. The headers are modified for each of the input images, such that. they reflect the relative orientations of the data. The details of the transformation are displayed in the results window as plots of translation and rotation. A set of realignment parameters are saved for each session, named rp_*.txt. After realignment, the images are resliced such that they match the first image selected voxel-for-voxel. The resliced images are named the same as the originals, except that they are prefixed by ''r''.'
+    }';
+estwrite.prog = @spm_run_realign;
+estwrite.vout = @vout_estwrite;
+
+%--------------------------------------------------------------------------
+% realign Realign
+%--------------------------------------------------------------------------
+realign        = cfg_choice;
+realign.tag    = 'realign';
+realign.name   = 'Realign';
+realign.help   = {'Within-subject registration of image time series.'};
+realign.values = {estimate write estwrite};
+%realign.num    = [1 Inf];
+
+
+%==========================================================================
+function varargout = estimate_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 %--------------------------------------------------------------------------
 % data Session
@@ -174,34 +251,14 @@ eoptions.name = 'Estimation Options';
 eoptions.val  = {quality sep fwhm rtm interp wrap weight};
 eoptions.help = {'Various registration options. If in doubt, simply keep the default values.'};
 
-%--------------------------------------------------------------------------
-% estimate Realign: Estimate
-%--------------------------------------------------------------------------
-estimate      = cfg_exbranch;
-estimate.tag  = 'estimate';
-estimate.name = 'Realign: Estimate';
-estimate.val  = {generic eoptions};
-estimate.help = {
-    'Realign a time-series of images acquired from the same subject using a least squares approach and a 6 parameter (rigid body) spatial transformation/* \cite{friston95a}*/.'
-    ''
-    'The first image in the list specified by the user is used as a reference to which all subsequent scans are realigned. The reference scan does not have to the the first chronologically and it may be wise to chose a "representative scan" in this role.'
-    ''
-    'The aim is primarily to remove movement artefact in fMRI and PET time-series (or more generally longitudinal studies). The headers are modified for each of the input images, such that. they reflect the relative orientations of the data. The details of the transformation are displayed in the results window as plots of translation and rotation. A set of realignment parameters are saved for each session, named rp_*.txt. These can be modelled as confounds within the general linear model/* \cite{friston95a}*/.'
-    }';
-estimate.prog = @spm_run_realign;
-estimate.vout = @vout_estimate;
+[cfg,varargout{1}] = deal({generic eoptions});
 
-%--------------------------------------------------------------------------
-% data Images
-%--------------------------------------------------------------------------
-data         = cfg_files;
-data.tag     = 'data';
-data.name    = 'Images';
-data.help    = {'Select scans to reslice to match the first.'};
-data.filter  = 'image';
-data.ufilter = '.*';
-data.num     = [1 Inf];
-data.preview = @(f) spm_check_registration(char(f));
+
+%==========================================================================
+function varargout = write_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 %--------------------------------------------------------------------------
 % which Resliced images
@@ -313,74 +370,7 @@ roptions.name = 'Reslice Options';
 roptions.val  = {which interp wrap mask prefix};
 roptions.help = {'Various reslicing options. If in doubt, simply keep the default values.'};
 
-%--------------------------------------------------------------------------
-% write Realign: Reslice
-%--------------------------------------------------------------------------
-write      = cfg_exbranch;
-write.tag  = 'write';
-write.name = 'Realign: Reslice';
-write.val  = {data roptions};
-write.help = {
-    'Reslice a series of registered images such that they match the first image selected voxel-for-voxel.'
-    'The resliced images are named the same as the originals, except that they are prefixed by ''r''.'
-    }';
-write.prog = @spm_run_realign;
-write.vout = @vout_reslice;
-
-%--------------------------------------------------------------------------
-% data Session
-%--------------------------------------------------------------------------
-data         = cfg_files;
-data.tag     = 'data';
-data.name    = 'Session';
-data.help    = {
-    'Select scans for this session.'
-    'In the coregistration step, the sessions are first realigned to each other, by aligning the first scan from each session to the first scan of the first session.  Then the images within each session are aligned to the first image of the session. The parameter estimation is performed this way because it is assumed (rightly or not) that there may be systematic differences in the images between sessions.'
-    }';
-data.filter  = 'image';
-data.ufilter = '.*';
-data.num     = [1 Inf];
-data.preview = @(f) spm_check_registration(char(f));
-
-%--------------------------------------------------------------------------
-% generic Data
-%--------------------------------------------------------------------------
-generic        = cfg_repeat;
-generic.tag    = 'generic';
-generic.name   = 'Data';
-generic.help   = {
-    'Add new sessions for this subject.'
-    'In the coregistration step, the sessions are first realigned to each other, by aligning the first scan from each session to the first scan of the first session.  Then the images within each session are aligned to the first image of the session. The parameter estimation is performed this way because it is assumed (rightly or not) that there may be systematic differences in the images between sessions.'
-    }';
-generic.values = {data };
-generic.num    = [1 Inf];
-
-%--------------------------------------------------------------------------
-% estwrite Realign: Estimate & Reslice
-%--------------------------------------------------------------------------
-estwrite      = cfg_exbranch;
-estwrite.tag  = 'estwrite';
-estwrite.name = 'Realign: Estimate & Reslice';
-estwrite.val  = {generic eoptions roptions };
-estwrite.help = {
-    'Realign a time-series of images acquired from the same subject using a least squares approach and a 6 parameter (rigid body) spatial transformation/* \cite{friston95a}*/.'
-    ''
-    'The first image in the list specified by the user is used as a reference to which all subsequent scans are realigned. The reference scan does not have to be the first chronologically and it may be wise to chose a "representative scan" in this role.'
-    ''
-    'The aim is primarily to remove movement artefact in fMRI and PET time-series (or more generally longitudinal studies) /* \cite{ashburner97bir}*/. The headers are modified for each of the input images, such that. they reflect the relative orientations of the data. The details of the transformation are displayed in the results window as plots of translation and rotation. A set of realignment parameters are saved for each session, named rp_*.txt. After realignment, the images are resliced such that they match the first image selected voxel-for-voxel. The resliced images are named the same as the originals, except that they are prefixed by ''r''.'
-    }';
-estwrite.prog = @spm_run_realign;
-estwrite.vout = @vout_estwrite;
-
-%--------------------------------------------------------------------------
-% realign Realign
-%--------------------------------------------------------------------------
-realign        = cfg_choice;
-realign.tag    = 'realign';
-realign.name   = 'Realign';
-realign.help   = {'Within-subject registration of image time series.'};
-realign.values = {estimate write estwrite};
-%realign.num    = [1 Inf];
+[cfg,varargout{1}] = deal({roptions});
 
 
 %==========================================================================

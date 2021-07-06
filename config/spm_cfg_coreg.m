@@ -1,10 +1,86 @@
 function coreg = spm_cfg_coreg
 % SPM Configuration file for Coregister
 %__________________________________________________________________________
-% Copyright (C) 2005-2016 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2021 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_coreg.m 7978 2020-10-08 10:20:06Z guillaume $
+% $Id: spm_cfg_coreg.m 8119 2021-07-06 13:51:43Z guillaume $
 
+
+%--------------------------------------------------------------------------
+% estimate Coreg: Estimate
+%--------------------------------------------------------------------------
+estimate         = cfg_exbranch;
+estimate.tag     = 'estimate';
+estimate.name    = 'Coregister: Estimate';
+estimate.val     = @()[estimate_cfg eoptions_cfg];
+estimate.help    = {
+    'Within-subject registration using a rigid-body model.'
+    ''
+    'The registration method used here is based on work by Collignon et al/* \cite{collignon95}*/. The original interpolation method described in this paper has been changed in order to give a smoother cost function.  The images are also smoothed slightly, as is the histogram.  This is all in order to make the cost function as smooth as possible, to give faster convergence and less chance of local minima.'
+    ''
+    'At the end of coregistration, the voxel-to-voxel affine transformation matrix is displayed, along with the histograms for the images in the original orientations, and the final orientations.  The registered images are displayed at the bottom.'
+    ''
+    'Registration parameters are stored in the headers of the "moved" and the "other" images.'
+    }';
+estimate.prog = @spm_run_coreg;
+estimate.vout = @vout_estimate;
+
+%--------------------------------------------------------------------------
+% write Coreg: Reslice
+%--------------------------------------------------------------------------
+write         = cfg_exbranch;
+write.tag     = 'write';
+write.name    = 'Coregister: Reslice';
+write.val     = @()[reslice_cfg roptions_cfg];
+write.help    = {
+    'Reslice images to match voxel-for-voxel with an image defining some space.'
+    'The resliced images are named the same as the originals except that they are prefixed by ''r''.'
+    }';
+write.prog    = @spm_run_coreg;
+write.vout    = @vout_reslice;
+
+%--------------------------------------------------------------------------
+% estwrite Coreg: Estimate & Reslice
+%--------------------------------------------------------------------------
+estwrite      = cfg_exbranch;
+estwrite.tag  = 'estwrite';
+estwrite.name = 'Coregister: Estimate & Reslice';
+estwrite.val  = @()[estimate_cfg eoptions_cfg roptions_cfg];
+estwrite.help = {
+    'Within-subject registration using a rigid-body model and image reslicing.'
+    ''
+    'The registration method used here is based on work by Collignon et al/* \cite{collignon95}*/. The original interpolation method described in this paper has been changed in order to give a smoother cost function.  The images are also smoothed slightly, as is the histogram.  This is all in order to make the cost function as smooth as possible, to give faster convergence and less chance of local minima.'
+    ''
+    'At the end of coregistration, the voxel-to-voxel affine transformation matrix is displayed, along with the histograms for the images in the original orientations, and the final orientations.  The registered images are displayed at the bottom.'
+    ''
+    'Please note that Coreg only attempts rigid alignment between the images. fMRI tend to have large distortions, which are not corrected by rigid-alignment alone. There is not yet any functionality in the SPM software that is intended to correct this type of distortion when aligning distorted fMRI with relatively undistorted anatomical scans (e.g. MPRAGE).'
+    ''
+    'Registration parameters are stored in the headers of the "moved" and the "other" images. These images are also resliced to match the fixed image voxel-for-voxel. The resliced images are named the same as the originals except that they are prefixed by ''r''.'
+    }';
+estwrite.prog = @spm_run_coreg;
+estwrite.vout = @vout_estwrite;
+
+%--------------------------------------------------------------------------
+% coreg Coreg
+%--------------------------------------------------------------------------
+coreg         = cfg_choice;
+coreg.tag     = 'coreg';
+coreg.name    = 'Coregister';
+coreg.help    = {
+    'Within-subject registration using a rigid-body model.'
+    'A rigid-body transformation (in 3D) can be parameterised by three translations and three rotations about the different axes.'
+    ''
+    'You get the options of estimating the transformation, reslicing images according to some rigid-body transformations, or estimating and applying rigid-body transformations.'
+    }';
+coreg.values  = {estimate write estwrite};
+%coreg.num     = [1 Inf];
+
+
+%==========================================================================
+function varargout = estimate_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 %--------------------------------------------------------------------------
 % ref Fixed Image
@@ -42,6 +118,15 @@ other.filter  = 'image';
 other.ufilter = '.*';
 other.num     = [0 Inf];
 other.preview = @(f) spm_check_registration(char(f));
+
+[cfg,varargout{1}] = deal({ref source other});
+
+
+%==========================================================================
+function varargout = eoptions_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 %--------------------------------------------------------------------------
 % cost_fun Objective Function
@@ -119,24 +204,14 @@ eoptions.name    = 'Estimation Options';
 eoptions.val     = {cost_fun sep tol fwhm};
 eoptions.help    = {'Various registration options, which are passed to the Powell optimisation algorithm/* \cite{press92}*/.'};
 
-%--------------------------------------------------------------------------
-% estimate Coreg: Estimate
-%--------------------------------------------------------------------------
-estimate         = cfg_exbranch;
-estimate.tag     = 'estimate';
-estimate.name    = 'Coregister: Estimate';
-estimate.val     = {ref source other eoptions};
-estimate.help    = {
-    'Within-subject registration using a rigid-body model.'
-    ''
-    'The registration method used here is based on work by Collignon et al/* \cite{collignon95}*/. The original interpolation method described in this paper has been changed in order to give a smoother cost function.  The images are also smoothed slightly, as is the histogram.  This is all in order to make the cost function as smooth as possible, to give faster convergence and less chance of local minima.'
-    ''
-    'At the end of coregistration, the voxel-to-voxel affine transformation matrix is displayed, along with the histograms for the images in the original orientations, and the final orientations.  The registered images are displayed at the bottom.'
-    ''
-    'Registration parameters are stored in the headers of the "moved" and the "other" images.'
-    }';
-estimate.prog = @spm_run_coreg;
-estimate.vout = @vout_estimate;
+[cfg,varargout{1}] = deal({eoptions});
+
+
+%==========================================================================
+function varargout = reslice_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 %--------------------------------------------------------------------------
 % ref Image Defining Space
@@ -161,6 +236,15 @@ source.filter  = 'image';
 source.ufilter = '.*';
 source.num     = [1 Inf];
 source.preview = @(f) spm_check_registration(char(f));
+
+[cfg,varargout{1}] = deal({refwrite source});
+
+
+%==========================================================================
+function varargout = roptions_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 %--------------------------------------------------------------------------
 % interp Interpolation
@@ -246,67 +330,7 @@ roptions.name    = 'Reslice Options';
 roptions.val     = {interp wrap mask prefix};
 roptions.help    = {'Various reslicing options.'};
 
-%--------------------------------------------------------------------------
-% write Coreg: Reslice
-%--------------------------------------------------------------------------
-write         = cfg_exbranch;
-write.tag     = 'write';
-write.name    = 'Coregister: Reslice';
-write.val     = {refwrite source roptions};
-write.help    = {
-    'Reslice images to match voxel-for-voxel with an image defining some space.'
-    'The resliced images are named the same as the originals except that they are prefixed by ''r''.'
-    }';
-write.prog    = @spm_run_coreg;
-write.vout    = @vout_reslice;
-
-%--------------------------------------------------------------------------
-% source Moved Image
-%--------------------------------------------------------------------------
-source         = cfg_files;
-source.tag     = 'source';
-source.name    = 'Moved Image';
-source.help    = {'This is the image that is jiggled about to best match the fixed (reference) image.'};
-source.filter  = 'image';
-source.ufilter = '.*';
-source.num     = [1 1];
-source.preview = @(f) spm_image('Display',char(f));
-
-%--------------------------------------------------------------------------
-% estwrite Coreg: Estimate & Reslice
-%--------------------------------------------------------------------------
-estwrite      = cfg_exbranch;
-estwrite.tag  = 'estwrite';
-estwrite.name = 'Coregister: Estimate & Reslice';
-estwrite.val  = {ref source other eoptions roptions};
-estwrite.help = {
-    'Within-subject registration using a rigid-body model and image reslicing.'
-    ''
-    'The registration method used here is based on work by Collignon et al/* \cite{collignon95}*/. The original interpolation method described in this paper has been changed in order to give a smoother cost function.  The images are also smoothed slightly, as is the histogram.  This is all in order to make the cost function as smooth as possible, to give faster convergence and less chance of local minima.'
-    ''
-    'At the end of coregistration, the voxel-to-voxel affine transformation matrix is displayed, along with the histograms for the images in the original orientations, and the final orientations.  The registered images are displayed at the bottom.'
-    ''
-    'Please note that Coreg only attempts rigid alignment between the images. fMRI tend to have large distortions, which are not corrected by rigid-alignment alone. There is not yet any functionality in the SPM software that is intended to correct this type of distortion when aligning distorted fMRI with relatively undistorted anatomical scans (e.g. MPRAGE).'
-    ''
-    'Registration parameters are stored in the headers of the "moved" and the "other" images. These images are also resliced to match the fixed image voxel-for-voxel. The resliced images are named the same as the originals except that they are prefixed by ''r''.'
-    }';
-estwrite.prog = @spm_run_coreg;
-estwrite.vout = @vout_estwrite;
-
-%--------------------------------------------------------------------------
-% coreg Coreg
-%--------------------------------------------------------------------------
-coreg         = cfg_choice;
-coreg.tag     = 'coreg';
-coreg.name    = 'Coregister';
-coreg.help    = {
-    'Within-subject registration using a rigid-body model.'
-    'A rigid-body transformation (in 3D) can be parameterised by three translations and three rotations about the different axes.'
-    ''
-    'You get the options of estimating the transformation, reslicing images according to some rigid-body transformations, or estimating and applying rigid-body transformations.'
-    }';
-coreg.values  = {estimate write estwrite};
-%coreg.num     = [1 Inf];
+[cfg,varargout{1}] = deal({roptions});
 
 
 %==========================================================================

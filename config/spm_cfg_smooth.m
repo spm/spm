@@ -1,10 +1,31 @@
 function smooth = spm_cfg_smooth
 % SPM Configuration file for Smooth
 %__________________________________________________________________________
-% Copyright (C) 2005-2016 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2021 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_smooth.m 6952 2016-11-25 16:03:13Z guillaume $
+% $Id: spm_cfg_smooth.m 8119 2021-07-06 13:51:43Z guillaume $
 
+
+%--------------------------------------------------------------------------
+% smooth Smooth
+%--------------------------------------------------------------------------
+smooth       = cfg_exbranch;
+smooth.tag   = 'smooth';
+smooth.name  = 'Smooth';
+smooth.val   = @smooth_cfg;
+smooth.help  = {
+    'Smooth (ie convolve) image volumes with a Gaussian kernel of a specified width.'
+    'It is used as a preprocessing step to suppress noise and effects due to residual differences in functional and gyral anatomy during inter-subject averaging.'
+    }';
+smooth.prog  = @spm_run_smooth;
+smooth.vout  = @vout;
+
+
+%==========================================================================
+function varargout = smooth_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 %--------------------------------------------------------------------------
 % data Images to Smooth
@@ -81,19 +102,7 @@ prefix.strtype = 's';
 prefix.num     = [1 Inf];
 prefix.def     = @(val)spm_get_defaults('smooth.prefix', val{:});
 
-%--------------------------------------------------------------------------
-% smooth Smooth
-%--------------------------------------------------------------------------
-smooth       = cfg_exbranch;
-smooth.tag   = 'smooth';
-smooth.name  = 'Smooth';
-smooth.val   = {data fwhm dtype im prefix};
-smooth.help  = {
-    'Smooth (ie convolve) image volumes with a Gaussian kernel of a specified width.'
-    'It is used as a preprocessing step to suppress noise and effects due to residual differences in functional and gyral anatomy during inter-subject averaging.'
-    }';
-smooth.prog  = @spm_run_smooth;
-smooth.vout  = @vout;
+[cfg,varargout{1}] = deal({data fwhm dtype im prefix});
 
 
 %==========================================================================

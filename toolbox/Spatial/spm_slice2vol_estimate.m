@@ -3,7 +3,7 @@ function [Q,mu,Mmu,slice_o] = spm_slice2vol_estimate(Nii,slice_code,mm_sd, rad_s
 % FORMAT [Q,mu] = spm_slice2vol_estimate(Nii)
 %
 % Nii - NIfTI data structure encoding volumes to align
-%       Most all have the same dimensions
+%       Must all have the same dimensions
 % Q   - A 3D array of slicewise motion parameters
 % mu  - Population average
 %
@@ -34,7 +34,7 @@ function [Q,mu,Mmu,slice_o] = spm_slice2vol_estimate(Nii,slice_code,mm_sd, rad_s
 % Copyright (C) 2021 Wellcome Centre for Human Neuroimaging
 
 % John Ashburner
-% $Id: spm_slice2vol_estimate.m 8054 2021-02-08 13:11:31Z john $
+% $Id: spm_slice2vol_estimate.m 8119 2021-07-06 13:51:43Z guillaume $
 
 % Regularisation settings
 if nargin<2, slice_code = 1;            end % Slice ordering

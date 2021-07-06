@@ -1,10 +1,49 @@
 function mfx = spm_cfg_mfx
 % SPM Configuration file for MFX
 %__________________________________________________________________________
-% Copyright (C) 2010-2014 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2010-2021 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_cfg_mfx.m 7796 2020-03-06 10:37:25Z guillaume $
+% $Id: spm_cfg_mfx.m 8119 2021-07-06 13:51:43Z guillaume $
+
+%--------------------------------------------------------------------------
+% ffx Create first-level design
+%--------------------------------------------------------------------------
+ffx       = cfg_exbranch;
+ffx.tag   = 'ffx';
+ffx.name  = 'FFX Specification';
+ffx.val   = @mfx_ffx_cfg;
+ffx.help  = {'Create FFX multi-session first-level design'};
+ffx.prog  = @spm_local_ffx;
+ffx.vout  = @vout_ffx;
+
+
+%--------------------------------------------------------------------------
+% spec MFX Specification
+%--------------------------------------------------------------------------
+spec       = cfg_exbranch;
+spec.tag   = 'spec';
+spec.name  = 'MFX Specification';
+spec.val   = @mfx_spec_cfg;
+spec.help  = {'MFX Specification'};
+spec.prog  = @spm_local_mfx;
+spec.vout  = @vout_mfx;
+
+%--------------------------------------------------------------------------
+% mfx Mixed-effects (MFX) analysis
+%--------------------------------------------------------------------------
+mfx         = cfg_choice;
+mfx.tag     = 'mfx';
+mfx.name    = 'Mixed-effects (MFX) analysis';
+mfx.help    = {'Mixed-effects (MFX) analysis'};
+mfx.values  = {ffx spec};
+
+
+%==========================================================================
+function varargout = mfx_ffx_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 %--------------------------------------------------------------------------
 % dir Directory
@@ -32,16 +71,14 @@ spmmat.filter  = 'mat';
 spmmat.ufilter = '^SPM\.mat$';
 spmmat.num     = [1 Inf];
 
-%--------------------------------------------------------------------------
-% ffx Create first-level design
-%--------------------------------------------------------------------------
-ffx       = cfg_exbranch;
-ffx.tag   = 'ffx';
-ffx.name  = 'FFX Specification';
-ffx.val   = {dir spmmat};
-ffx.help  = {'Create FFX multi-session first-level design'};
-ffx.prog  = @spm_local_ffx;
-ffx.vout  = @vout_ffx;
+[cfg,varargout{1}] = deal( {dir spmmat});
+
+
+%==========================================================================
+function varargout = mfx_spec_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 %--------------------------------------------------------------------------
 % spmmat Select SPM.mat
@@ -73,25 +110,7 @@ con.strtype = 'r';
 con.num     = [Inf Inf];
 con.val     = {[]};
 
-%--------------------------------------------------------------------------
-% spec MFX Specification
-%--------------------------------------------------------------------------
-spec       = cfg_exbranch;
-spec.tag   = 'spec';
-spec.name  = 'MFX Specification';
-spec.val   = {spmmat con};
-spec.help  = {'MFX Specification'};
-spec.prog  = @spm_local_mfx;
-spec.vout  = @vout_mfx;
-
-%--------------------------------------------------------------------------
-% mfx Mixed-effects (MFX) analysis
-%--------------------------------------------------------------------------
-mfx         = cfg_choice;
-mfx.tag     = 'mfx';
-mfx.name    = 'Mixed-effects (MFX) analysis';
-mfx.help    = {'Mixed-effects (MFX) analysis'};
-mfx.values  = {ffx spec};
+[cfg,varargout{1}] = deal({spmmat con});
 
 
 %==========================================================================

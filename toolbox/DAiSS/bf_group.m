@@ -1,9 +1,27 @@
 function out = bf_group
 % A module for applying a processing step to a group of subjects
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
+% Copyright (C) 2015-2021 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: bf_group.m 7703 2019-11-22 12:06:29Z guillaume $
+% $Id: bf_group.m 8119 2021-07-06 13:51:43Z guillaume $
+
+
+out          = cfg_exbranch;
+out.tag      = 'group';
+out.name     = 'Group analysis';
+out.val      = @bf_group_cfg;
+out.help     = {'Set up group analyses'};
+out.prog     = @bf_group_run;
+out.vout     = @bf_group_vout;
+out.modality = {'EEG'};
+
+
+%==========================================================================
+function varargout = bf_group_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 %--------------------------------------------------------------------------
 % BF
@@ -14,7 +32,6 @@ BF.name = 'BF.mat or M/EEG files';
 BF.filter = '.*.mat$';
 BF.num = [1 Inf];
 BF.help = {'Select BF.mat file.'};
-
 
 %--------------------------------------------------------------------------
 % prefix
@@ -27,7 +44,6 @@ prefix.help    = {'Specify the string to be prepended to the output directory na
 prefix.strtype = 's';
 prefix.num     = [0 Inf];
 prefix.val     = {''};
-
 
 %--------------------------------------------------------------------------
 % plugin
@@ -42,18 +58,11 @@ for i = 1:numel(group_funs)
     plugin.values{i} = feval(spm_file(group_funs{i},'basename'));
 end
 
-out = cfg_exbranch;
-out.tag = 'group';
-out.name = 'Group analysis';
-out.val = {BF, prefix, plugin};
-out.help = {'Set up group analyses'};
-out.prog = @bf_group_run;
-out.vout = @bf_group_vout;
-out.modality = {'EEG'};
-end
+[cfg,varargout{1}] = deal({BF, prefix, plugin});
 
+
+%==========================================================================
 function  out = bf_group_run(job)
-
 
 plugin_name = cell2mat(fieldnames(job.plugin));
 
@@ -69,8 +78,8 @@ end
 
 out.BF = BF(:);
 
-end
 
+%==========================================================================
 function dep = bf_group_vout(job)
 % Output is always in field "BF", no matter how job is structured
 dep = cfg_dep;
@@ -79,4 +88,3 @@ dep.sname = 'BF.mat files';
 dep.src_output = substruct('.','BF');
 % this can be entered into any evaluated input
 dep.tgt_spec   = cfg_findspec({{'filter','mat','strtype','e'}});
-end

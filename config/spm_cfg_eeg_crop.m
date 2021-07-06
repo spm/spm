@@ -1,10 +1,30 @@
 function crop = spm_cfg_eeg_crop
-% configuration file for cropping
+% configuration file for cropping M/EEG data
 %__________________________________________________________________________
-% Copyright (C) 2009-2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2009-2021 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_crop.m 5652 2013-09-25 09:36:22Z volkmar $
+% $Id: spm_cfg_eeg_crop.m 8119 2021-07-06 13:51:43Z guillaume $
+
+
+%--------------------------------------------------------------------------
+% crop
+%--------------------------------------------------------------------------
+crop          = cfg_exbranch;
+crop.tag      = 'crop';
+crop.name     = 'Crop';
+crop.val      = @crop_cfg;
+crop.help     = {'Cropping M/EEG data'}';
+crop.prog     = @eeg_crop;
+crop.vout     = @vout_eeg_crop;
+crop.modality = {'EEG'};
+
+
+%==========================================================================
+function varargout = crop_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 %--------------------------------------------------------------------------
 % D
@@ -49,17 +69,8 @@ prefix.strtype = 's';
 prefix.num     = [1 Inf];
 prefix.val     = {'p'};
 
-%--------------------------------------------------------------------------
-% crop
-%--------------------------------------------------------------------------
-crop          = cfg_exbranch;
-crop.tag      = 'crop';
-crop.name     = 'Crop';
-crop.val      = {D, timewin, freqwin, spm_cfg_eeg_channel_selector, prefix};
-crop.help     = {'Cropping M/EEG data'}';
-crop.prog     = @eeg_crop;
-crop.vout     = @vout_eeg_crop;
-crop.modality = {'EEG'};
+[cfg,varargout{1}] = deal({D, timewin, freqwin, spm_cfg_eeg_channel_selector, prefix});
+
 
 %==========================================================================
 function out = eeg_crop(job)

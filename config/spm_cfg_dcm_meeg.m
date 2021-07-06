@@ -1,10 +1,30 @@
 function dcm_meeg_spec = spm_cfg_dcm_meeg
 % Invert multiple DCMs specified in GUI.
 %__________________________________________________________________________
-% Copyright (C) 2013-2014 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2013-2021 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_dcm_meeg.m 6722 2016-02-17 15:04:11Z vladimir $
+% $Id: spm_cfg_dcm_meeg.m 8119 2021-07-06 13:51:43Z guillaume $
+
+
+%--------------------------------------------------------------------------
+% dcm_meeg_spec
+%--------------------------------------------------------------------------
+dcm_meeg_spec          = cfg_exbranch;
+dcm_meeg_spec.tag      = 'meeg';
+dcm_meeg_spec.name     = 'DCM for M/EEG';
+dcm_meeg_spec.val      = @dcm_meeg_cfg;
+dcm_meeg_spec.help     = {'Specify DCMs for multiple models and subjects'}';
+dcm_meeg_spec.prog     = @meeg_dcm;
+dcm_meeg_spec.vout     = @vout_dcm_meeg;
+dcm_meeg_spec.modality = {'EEG'};
+
+%==========================================================================
+function varargout = dcm_meeg_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
+
 
 %--------------------------------------------------------------------------
 % D
@@ -81,17 +101,8 @@ dir.filter  = 'dir';
 dir.ufilter = '.*';
 dir.num     = [1 1];
 
-%--------------------------------------------------------------------------
-% dcm_meeg_spec
-%--------------------------------------------------------------------------
-dcm_meeg_spec          = cfg_exbranch;
-dcm_meeg_spec.tag      = 'meeg';
-dcm_meeg_spec.name     = 'DCM for M/EEG';
-dcm_meeg_spec.val      = {D, DCM, pE, P, feedback, output, dir};
-dcm_meeg_spec.help     = {'Specify DCMs for multiple models and subjects'}';
-dcm_meeg_spec.prog     = @meeg_dcm;
-dcm_meeg_spec.vout     = @vout_dcm_meeg;
-dcm_meeg_spec.modality = {'EEG'};
+[cfg,varargout{1}] = deal({D, DCM, pE, P, feedback, output, dir});
+
 
 %==========================================================================
 function out = meeg_dcm(job)

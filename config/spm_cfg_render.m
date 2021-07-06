@@ -1,13 +1,49 @@
 function rendering = spm_cfg_render
 % SPM Configuration file for Render
 %__________________________________________________________________________
-% Copyright (C) 2013-2016 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2013-2021 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_render.m 6925 2016-11-09 17:23:40Z guillaume $
+% $Id: spm_cfg_render.m 8119 2021-07-06 13:51:43Z guillaume $
+
+
+%--------------------------------------------------------------------------
+% extract Extract Surface
+%--------------------------------------------------------------------------
+extract      = cfg_exbranch;
+extract.tag  = 'extract';
+extract.name = 'Extract Surface';
+extract.val  = @render_extract_cfg;
+extract.help = {'Surface extraction.'};
+extract.prog = @spm_surf;
+extract.vout = @vout_extract;
+
+%--------------------------------------------------------------------------
+% render Display Surface
+%--------------------------------------------------------------------------
+render      = cfg_exbranch;
+render.tag  = 'display';
+render.name = 'Display Surface';
+render.val  = @render_display_cfg;
+render.help = {'Surface rendering.'};
+render.prog = @run_render;
+
+%==========================================================================
+% rendering Rendering
+%==========================================================================
+rendering        = cfg_choice;
+rendering.tag    = 'render';
+rendering.name   = 'Rendering';
+rendering.help   = {'Rendering utilities.'};
+rendering.values = {extract render};
+
 
 %==========================================================================
 % Extract
 %==========================================================================
+function varargout = render_extract_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 %--------------------------------------------------------------------------
 % data Data
@@ -46,20 +82,16 @@ thresh.strtype = 'r';
 thresh.val     = {0.5};
 thresh.num     = [1 Inf];
 
-%--------------------------------------------------------------------------
-% extract Extract Surface
-%--------------------------------------------------------------------------
-extract      = cfg_exbranch;
-extract.tag  = 'extract';
-extract.name = 'Extract Surface';
-extract.val  = {data mode thresh};
-extract.help = {'Surface extraction.'};
-extract.prog = @spm_surf;
-extract.vout = @vout_extract;
+[cfg,varargout{1}] = deal({data mode thresh});
+
 
 %==========================================================================
 % Render
 %==========================================================================
+function varargout = render_display_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 %--------------------------------------------------------------------------
 % spmmat Select SPM.mat
@@ -195,24 +227,7 @@ rendfile.filter  = {'mat','mesh'};
 rendfile.ufilter = '.*';
 rendfile.num     = [1 1];
 
-%--------------------------------------------------------------------------
-% render Display Surface
-%--------------------------------------------------------------------------
-render      = cfg_exbranch;
-render.tag  = 'display';
-render.name = 'Display Surface';
-render.val  = {rendfile generic};
-render.help = {'Surface rendering.'};
-render.prog = @run_render;
-
-%==========================================================================
-% rendering Rendering
-%==========================================================================
-rendering        = cfg_choice;
-rendering.tag    = 'render';
-rendering.name   = 'Rendering';
-rendering.help   = {'Rendering utilities.'};
-rendering.values = {extract render};
+[cfg,varargout{1}] = deal({rendfile generic});
 
 
 %==========================================================================

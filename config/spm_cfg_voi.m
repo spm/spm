@@ -1,10 +1,28 @@
 function voi = spm_cfg_voi
 % SPM Configuration file for VOIs
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2021 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_cfg_voi.m 6925 2016-11-09 17:23:40Z guillaume $
+% $Id: spm_cfg_voi.m 8119 2021-07-06 13:51:43Z guillaume $
+
+
+% -------------------------------------------------------------------------
+% voi VOI
+% -------------------------------------------------------------------------
+voi         = cfg_exbranch;
+voi.tag     = 'voi';
+voi.name    = 'Volume of Interest';
+voi.val     = @voi_cfg;
+voi.help    = {' VOI time-series extraction of adjusted data (& local eigenimage analysis).'};
+voi.prog    = @spm_run_voi;
+voi.vout    = @vout_voi;
+
+%==========================================================================
+function varargout = voi_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 % -------------------------------------------------------------------------
 % spmmat Select SPM.mat
@@ -375,19 +393,10 @@ name.num     = [1 Inf];
 % dir.ufilter = '.*';
 % dir.num     = [1 1];
 
-% -------------------------------------------------------------------------
-% voi VOI
-% -------------------------------------------------------------------------
-voi         = cfg_exbranch;
-voi.tag     = 'voi';
-voi.name    = 'Volume of Interest';
-voi.val     = {spmmat adjust session name roi expression};
-voi.help    = {' VOI time-series extraction of adjusted data (& local eigenimage analysis).'};
-voi.prog    = @spm_run_voi;
-voi.vout    = @vout_voi;
-%--------------------------------------------------------------------------
+[cfg,varargout{1}] = deal({spmmat adjust session name roi expression});
 
-%--------------------------------------------------------------------------
+
+%==========================================================================
 function dep = vout_voi(varargin)
 dep(1)            = cfg_dep;
 dep(1).sname      = ' VOI mat File';

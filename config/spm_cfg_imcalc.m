@@ -3,7 +3,29 @@ function imcalc = spm_cfg_imcalc
 %__________________________________________________________________________
 % Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_imcalc.m 7216 2017-11-15 12:25:28Z guillaume $
+% $Id: spm_cfg_imcalc.m 8119 2021-07-06 13:51:43Z guillaume $
+
+
+%--------------------------------------------------------------------------
+% imcalc Image Calculator
+%--------------------------------------------------------------------------
+imcalc      = cfg_exbranch;
+imcalc.tag  = 'imcalc';
+imcalc.name = 'Image Calculator';
+imcalc.val  = @imcalc_cfg;
+imcalc.help = {
+    'The image calculator is for performing user-specified algebraic manipulations on a set of images.'
+    'The result is being written out as an image. The user is prompted to supply images to work on, a filename for the output image, and the expression to evaluate. The expression should be a standard MATLAB expression, within which the images should be referred to as i1, i2, i3,... etc.'
+    }';
+imcalc.prog = @my_spm_imcalc;
+imcalc.vout = @vout;
+
+
+%==========================================================================
+function varargout = imcalc_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 %--------------------------------------------------------------------------
 % input Input Images
@@ -189,19 +211,7 @@ options.name = 'Options';
 options.val  = {dmtx mask interp dtype };
 options.help = {'Options for image calculator'};
 
-%--------------------------------------------------------------------------
-% imcalc Image Calculator
-%--------------------------------------------------------------------------
-imcalc      = cfg_exbranch;
-imcalc.tag  = 'imcalc';
-imcalc.name = 'Image Calculator';
-imcalc.val  = {input output outdir expression generic options };
-imcalc.help = {
-    'The image calculator is for performing user-specified algebraic manipulations on a set of images.'
-    'The result is being written out as an image. The user is prompted to supply images to work on, a filename for the output image, and the expression to evaluate. The expression should be a standard MATLAB expression, within which the images should be referred to as i1, i2, i3,... etc.'
-    }';
-imcalc.prog = @my_spm_imcalc;
-imcalc.vout = @vout;
+[cfg,varargout{1}] = deal({input output outdir expression generic options });
 
 
 %==========================================================================

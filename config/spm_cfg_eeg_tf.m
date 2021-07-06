@@ -1,11 +1,30 @@
 function tf = spm_cfg_eeg_tf
 % Configuration file for M/EEG time-frequency analysis
 %__________________________________________________________________________
-% Copyright (C) 2010-2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2010-2021 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_tf.m 6929 2016-11-14 13:07:31Z guillaume $
+% $Id: spm_cfg_eeg_tf.m 8119 2021-07-06 13:51:43Z guillaume $
 
+
+%--------------------------------------------------------------------------
+% M/EEG Time-Frequency Analysis
+%--------------------------------------------------------------------------
+tf          = cfg_exbranch;
+tf.tag      = 'tf';
+tf.name     = 'Time-frequency analysis';
+tf.val      = @tf_cfg;
+tf.help     = {'Perform time-frequency analysis of epoched M/EEG data.'};
+tf.prog     = @eeg_tf;
+tf.vout     = @vout_eeg_tf;
+tf.modality = {'EEG'};
+
+
+%==========================================================================
+function varargout = tf_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 %--------------------------------------------------------------------------
 % D
@@ -76,17 +95,8 @@ prefix.strtype = 's';
 prefix.num     = [0 Inf];
 prefix.val     = {''};
 
-%--------------------------------------------------------------------------
-% M/EEG Time-Frequency Analysis
-%--------------------------------------------------------------------------
-tf = cfg_exbranch;
-tf.tag = 'tf';
-tf.name = 'Time-frequency analysis';
-tf.val = {D, spm_cfg_eeg_channel_selector, frequencies, timewin, method, phase, prefix};
-tf.help = {'Perform time-frequency analysis of epoched M/EEG data.'};
-tf.prog = @eeg_tf;
-tf.vout = @vout_eeg_tf;
-tf.modality = {'EEG'};
+[cfg,varargout{1}] = deal({D, spm_cfg_eeg_channel_selector, frequencies, timewin, method, phase, prefix});
+
 
 %==========================================================================
 % function out = eeg_tf(job)
@@ -118,6 +128,7 @@ if ~isempty(Dtph)
 else
     out.Dtphname = {''};
 end
+
 
 %==========================================================================
 % function dep = vout_eeg_tf(job)

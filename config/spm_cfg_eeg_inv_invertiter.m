@@ -1,10 +1,27 @@
 function invert = spm_cfg_eeg_inv_invertiter
-% Configuration file for configuring imaging source inversion reconstruction
+% Configuration file for running imaging source reconstruction
 %__________________________________________________________________________
-% Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2010-2021 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_invertiter.m 8030 2020-12-10 12:33:26Z gareth $
+% $Id: spm_cfg_eeg_inv_invertiter.m 8119 2021-07-06 13:51:43Z guillaume $
+
+
+invert = cfg_exbranch;
+invert.tag = 'invertiter';
+invert.name = 'Source inversion, iterative';
+invert.val = @invert_cfg;
+invert.help = {'Run imaging source reconstruction'};
+invert.prog = @run_inversion;
+invert.vout = @vout_inversion;
+invert.modality = {'EEG'};
+
+
+%==========================================================================
+function varargout = invert_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 D = cfg_files;
 D.tag = 'D';
@@ -287,15 +304,10 @@ modality.values = {
     }';
 modality.val = {{'All'}};
 
-invert = cfg_exbranch;
-invert.tag = 'invertiter';
-invert.name = 'Source inversion, iterative';
-invert.val = {D, val, whatconditions, isstandard, modality,crossval};
-invert.help = {'Run imaging source reconstruction'};
-invert.prog = @run_inversion;
-invert.vout = @vout_inversion;
-invert.modality = {'EEG'};
+[cfg,varargout{1}] = deal({D, val, whatconditions, isstandard, modality,crossval});
 
+
+%==========================================================================
 function  out = run_inversion(job)
 
 
@@ -663,6 +675,8 @@ end
 
 out.D = job.D;
 
+
+%==========================================================================
 function dep = vout_inversion(job)
 % Output is always in field "D", no matter how job is structured
 dep = cfg_dep;

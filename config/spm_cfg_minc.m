@@ -1,10 +1,31 @@
 function minc = spm_cfg_minc
 % SPM Configuration file for MINC Import
 %__________________________________________________________________________
-% Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2021 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_minc.m 6952 2016-11-25 16:03:13Z guillaume $
+% $Id: spm_cfg_minc.m 8119 2021-07-06 13:51:43Z guillaume $
 
+
+%--------------------------------------------------------------------------
+% minc MINC Import
+%--------------------------------------------------------------------------
+minc         = cfg_exbranch;
+minc.tag     = 'minc';
+minc.name    = 'MINC Import';
+minc.val     = @minc_cfg;
+minc.help    = {
+    'MINC Conversion.'
+    'MINC is the image data format used for exchanging data within the ICBM community, and the format used by the MNI software tools. It is based on NetCDF. MINC is no longer supported for reading images into SPM, so MINC files need to be converted to NIFTI format in order to use them. See http://www.bic.mni.mcgill.ca/software/ for more information.'
+    }';
+minc.prog    = @spm_run_minc;
+minc.vout    = @vout;
+
+
+%==========================================================================
+function varargout = minc_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 %--------------------------------------------------------------------------
 % data MINC files
@@ -58,19 +79,7 @@ opts.name    = 'Options';
 opts.val     = {dtype ext};
 opts.help    = {'Conversion options'};
 
-%--------------------------------------------------------------------------
-% minc MINC Import
-%--------------------------------------------------------------------------
-minc         = cfg_exbranch;
-minc.tag     = 'minc';
-minc.name    = 'MINC Import';
-minc.val     = {data opts};
-minc.help    = {
-    'MINC Conversion.'
-    'MINC is the image data format used for exchanging data within the ICBM community, and the format used by the MNI software tools. It is based on NetCDF. MINC is no longer supported for reading images into SPM, so MINC files need to be converted to NIFTI format in order to use them. See http://www.bic.mni.mcgill.ca/software/ for more information.'
-    }';
-minc.prog    = @spm_run_minc;
-minc.vout    = @vout;
+[cfg,varargout{1}] = deal({data opts});
 
 
 %==========================================================================

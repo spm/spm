@@ -1,11 +1,27 @@
 function epoch = spm_cfg_eeg_epochs
 % Configuration file for M/EEG epoching
 %__________________________________________________________________________
-% Copyright (C) 2008-2016 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2021 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_epochs.m 7095 2017-06-07 10:15:59Z vladimir $
+% $Id: spm_cfg_eeg_epochs.m 8119 2021-07-06 13:51:43Z guillaume $
 
+
+epoch          = cfg_exbranch;
+epoch.tag      = 'epoch';
+epoch.name     = 'Epoching';
+epoch.val      = @epoch_cfg;
+epoch.help     = {'Epoch continuous EEG/MEG data.'};
+epoch.prog     = @eeg_epochs;
+epoch.vout     = @vout_eeg_epochs;
+epoch.modality = {'EEG'};
+
+
+%==========================================================================
+function varargout = epoch_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 D        = cfg_files;
 D.tag    = 'D';
@@ -122,14 +138,7 @@ prefix.strtype = 's';
 prefix.num     = [1 Inf];
 prefix.val     = {'e'};
 
-epoch          = cfg_exbranch;
-epoch.tag      = 'epoch';
-epoch.name     = 'Epoching';
-epoch.val      = {D, trlchoice, bc, eventpadding, prefix};
-epoch.help     = {'Epoch continuous EEG/MEG data.'};
-epoch.prog     = @eeg_epochs;
-epoch.vout     = @vout_eeg_epochs;
-epoch.modality = {'EEG'};
+[cfg,varargout{1}] = deal({D, trlchoice, bc, eventpadding, prefix});
 
 
 %==========================================================================

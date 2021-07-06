@@ -1,11 +1,30 @@
 function artefact = spm_cfg_eeg_artefact
 % Configuration file for M/EEG artefact detection
 %__________________________________________________________________________
-% Copyright (C) 2008-2016 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2021 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_artefact.m 7085 2017-06-01 10:42:01Z vladimir $
+% $Id: spm_cfg_eeg_artefact.m 8119 2021-07-06 13:51:43Z guillaume $
 
+
+%--------------------------------------------------------------------------
+% M/EEG Artefact detection
+%--------------------------------------------------------------------------
+artefact          = cfg_exbranch;
+artefact.tag      = 'artefact';
+artefact.name     = 'Artefact detection';
+artefact.val      = @artefact_cfg;
+artefact.help     = {'Detect artefacts in epoched M/EEG data.'};
+artefact.prog     = @eeg_artefact;
+artefact.vout     = @vout_eeg_artefact;
+artefact.modality = {'EEG'};
+
+
+%==========================================================================
+function varargout = artefact_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 %--------------------------------------------------------------------------
 % D
@@ -94,17 +113,8 @@ append.val = {true};
 append.values = {true, false};
 append.help = {'Append new artefacts to already marked or overwrite.'};
 
-%--------------------------------------------------------------------------
-% M/EEG Artefact detection
-%--------------------------------------------------------------------------
-artefact          = cfg_exbranch;
-artefact.tag      = 'artefact';
-artefact.name     = 'Artefact detection';
-artefact.val      = {D, mode, badchanthresh, append, methodsrep, prefix};
-artefact.help     = {'Detect artefacts in epoched M/EEG data.'};
-artefact.prog     = @eeg_artefact;
-artefact.vout     = @vout_eeg_artefact;
-artefact.modality = {'EEG'};
+[cfg,varargout{1}] = deal({D, mode, badchanthresh, append, methodsrep, prefix});
+
 
 %==========================================================================
 % function out = eeg_artefact(job)

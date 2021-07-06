@@ -1,11 +1,27 @@
 function downsample = spm_cfg_eeg_downsample
 % Configuration file for M/EEG downsampling
 %__________________________________________________________________________
-% Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2021 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_downsample.m 6602 2015-11-20 19:04:49Z vladimir $
+% $Id: spm_cfg_eeg_downsample.m 8119 2021-07-06 13:51:43Z guillaume $
 
+
+downsample      = cfg_exbranch;
+downsample.tag  = 'downsample';
+downsample.name = 'Downsampling';
+downsample.val  = @downsample_cfg;
+downsample.help = {'Downsample EEG/MEG data.'};
+downsample.prog = @eeg_downsample;
+downsample.vout = @vout_eeg_downsample;
+downsample.modality = {'EEG'};
+
+
+%==========================================================================
+function varargout = downsample_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 D        = cfg_files;
 D.tag    = 'D';
@@ -37,14 +53,7 @@ prefix.strtype = 's';
 prefix.num     = [1 Inf];
 prefix.val     = {'d'};
 
-downsample      = cfg_exbranch;
-downsample.tag  = 'downsample';
-downsample.name = 'Downsampling';
-downsample.val  = {D fsample_new, method, prefix};
-downsample.help = {'Downsample EEG/MEG data.'};
-downsample.prog = @eeg_downsample;
-downsample.vout = @vout_eeg_downsample;
-downsample.modality = {'EEG'};
+[cfg,varargout{1}] = deal({D fsample_new, method, prefix});
 
 
 %==========================================================================

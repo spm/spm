@@ -1,11 +1,30 @@
 function eegreg = spm_cfg_eeg_regressors
-% Configuration file for M/EEG time-frequency analysis
+% Configuration file for generating regressors for GLM analysis of M/EEG data
 %__________________________________________________________________________
-% Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2014-2021 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_regressors.m 6929 2016-11-14 13:07:31Z guillaume $
+% $Id: spm_cfg_eeg_regressors.m 8119 2021-07-06 13:51:43Z guillaume $
 
+
+%--------------------------------------------------------------------------
+% M/EEG Time-Frequency Analysis
+%--------------------------------------------------------------------------
+eegreg          = cfg_exbranch;
+eegreg.tag      = 'eegreg';
+eegreg.name     = 'GLM regressors';
+eegreg.val      = @eegreg_cfg;
+eegreg.help     = {'Generate regressors for GLM analysis of M/EEG data.'};
+eegreg.prog     = @eeg_eegreg;
+eegreg.vout     = @vout_eeg_eegreg;
+eegreg.modality = {'EEG'};
+
+
+%==========================================================================
+function varargout = eegreg_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 %--------------------------------------------------------------------------
 % D
@@ -56,17 +75,8 @@ outfile.num = [0 inf];
 outfile.val = {'regressors.mat'};
 outfile.help = {'Choose file name for a mat file with regressors.'};
 
-%--------------------------------------------------------------------------
-% M/EEG Time-Frequency Analysis
-%--------------------------------------------------------------------------
-eegreg = cfg_exbranch;
-eegreg.tag = 'eegreg';
-eegreg.name = 'GLM regressors';
-eegreg.val = {D, methods, summarise, outfile};
-eegreg.help = {'Generate regressors for GLM analysis of M/EEG data.'};
-eegreg.prog = @eeg_eegreg;
-eegreg.vout = @vout_eeg_eegreg;
-eegreg.modality = {'EEG'};
+[cfg,varargout{1}] = deal({D, methods, summarise, outfile});
+
 
 %==========================================================================
 % function out = eeg_eegreg(job)
@@ -89,5 +99,3 @@ dep(2)            = cfg_dep;
 dep(2).sname      = 'MEEG GLM regressors';
 dep(2).src_output = substruct('.','regrfile');
 dep(2).tgt_spec   = cfg_findspec({{'filter','mat'}});
-
-

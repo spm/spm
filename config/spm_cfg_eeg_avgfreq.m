@@ -1,10 +1,30 @@
 function avgfreq = spm_cfg_eeg_avgfreq
-% configuration file for averaging over frequency
+% Configuration file for averaging over frequency
 %__________________________________________________________________________
-% Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2012-2021 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_avgfreq.m 5652 2013-09-25 09:36:22Z volkmar $
+% $Id: spm_cfg_eeg_avgfreq.m 8119 2021-07-06 13:51:43Z guillaume $
+
+
+%--------------------------------------------------------------------------
+% avgfreq
+%--------------------------------------------------------------------------
+avgfreq          = cfg_exbranch;
+avgfreq.tag      = 'avgfreq';
+avgfreq.name     = 'Average over frequency';
+avgfreq.val      = @avgfreq_cfg;
+avgfreq.help     = {'Average M/EEG data over frequency'}';
+avgfreq.prog     = @eeg_avgfreq;
+avgfreq.vout     = @vout_eeg_avgfreq;
+avgfreq.modality = {'EEG'};
+
+
+%==========================================================================
+function varargout = avgfreq_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 %--------------------------------------------------------------------------
 % D
@@ -38,17 +58,8 @@ prefix.strtype = 's';
 prefix.num     = [1 Inf];
 prefix.val     = {'P'};
 
-%--------------------------------------------------------------------------
-% avgfreq
-%--------------------------------------------------------------------------
-avgfreq          = cfg_exbranch;
-avgfreq.tag      = 'avgfreq';
-avgfreq.name     = 'Average over frequency';
-avgfreq.val      = {D, freqwin, prefix};
-avgfreq.help     = {'Average M/EEG data over frequency'}';
-avgfreq.prog     = @eeg_avgfreq;
-avgfreq.vout     = @vout_eeg_avgfreq;
-avgfreq.modality = {'EEG'};
+[cfg,varargout{1}] = deal({D, freqwin, prefix});
+
 
 %==========================================================================
 function out = eeg_avgfreq(job)

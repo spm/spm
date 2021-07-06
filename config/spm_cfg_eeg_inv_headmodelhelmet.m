@@ -2,11 +2,27 @@ function headmodelhelmet = spm_cfg_eeg_inv_headmodelhelmet
 % Configuration file for specifying the head model for source reconstruction
 % This is for registration using new helmet design.
 %__________________________________________________________________________
-% Copyright (C) 2012-2020 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2012-2021 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_headmodelhelmet.m 7869 2020-06-08 08:40:25Z guillaume $
+% $Id: spm_cfg_eeg_inv_headmodelhelmet.m 8119 2021-07-06 13:51:43Z guillaume $
 
+
+headmodelhelmet          = cfg_exbranch;
+headmodelhelmet.tag      = 'headmodelhelmet';
+headmodelhelmet.name     = 'MEG helmet head model specification';
+headmodelhelmet.val      = @headmodelhelmet_cfg;
+headmodelhelmet.help     = {'Specify MEG head model for forward computation using helmet'};
+headmodelhelmet.prog     = @specify_headmodel;
+headmodelhelmet.vout     = @vout_specify_headmodel;
+headmodelhelmet.modality = {'MEG'};
+
+
+%==========================================================================
+function varargout = headmodelhelmet_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 D = cfg_files;
 D.tag = 'D';
@@ -223,15 +239,10 @@ forward.name = 'Forward model';
 forward.val = {eeg, meg};
 forward.help = {'Forward model'};
 
-headmodelhelmet = cfg_exbranch;
-headmodelhelmet.tag = 'headmodelhelmet';
-headmodelhelmet.name = 'MEG helmet head model specification';
-headmodelhelmet.val = {D, val, comment, meshing, coregistration, forward};
-headmodelhelmet.help = {'Specify MEG head model for forward computation using helmet'};
-headmodelhelmet.prog = @specify_headmodel;
-headmodelhelmet.vout = @vout_specify_headmodel;
-headmodelhelmet.modality = {'MEG'};
+[cfg,varargout{1}] = deal({D, val, comment, meshing, coregistration, forward});
 
+
+%==========================================================================
 function  out = specify_headmodel(job)
 
 out.D = {};
@@ -258,7 +269,7 @@ for i = 1:numel(job.D)
     D.val = val;
     
     %-Meshes
-    %--------------------------------------------------------------------------
+    %----------------------------------------------------------------------
     if ~isfield(D,'inv')
         D.inv = {struct('mesh', [])};
     end
@@ -312,7 +323,7 @@ for i = 1:numel(job.D)
     
     
     %-Coregistration
-    %--------------------------------------------------------------------------
+    %----------------------------------------------------------------------
     
     if isfield(job.coregistration, 'coregdefault')
         % register using the Troebinger helmet system
@@ -335,15 +346,15 @@ for i = 1:numel(job.D)
             nocoilpos=H1.Dnocoils.sensors.meg.coilpos;
             nocoilfids=H1.Dnocoils.fiducials;
             nocoillabels=H1.Dnocoils.sensors.meg.label;
-        end;
+        end
         
-        if max(max(abs(D.fiducials.fid.pnt-nocoilfids.fid.pnt)))>1e-3,
+        if max(max(abs(D.fiducials.fid.pnt-nocoilfids.fid.pnt)))>1e-3
             error('Both fiducial and headcast info: reset with ''changeHeadPos -nominal'' on Acq machine'); %% NEED TO WORK ON THIS
             % changeHeadpos -nominal resets to default coil positions
             
-        end;
+        end
         
-        [c,ia,ib]=intersect(D.sensors('MEG').label,nocoillabels,'rows')
+        [c,ia,ib]=intersect(D.sensors('MEG').label,nocoillabels,'rows');
         defaultHead2currentHead=spm_eeg_inv_rigidreg(D.sensors('MEG').coilpos(ia,:)',nocoilpos(ib,:)');
         
         meegfid = D.fiducials;
@@ -366,7 +377,7 @@ for i = 1:numel(job.D)
         
         % put all transforms into one big one: current head centred coordinates to native space
         currenthead2NATIVE=dewDEFAULT2NATIVE*H1.defaultHead2MEGdewar*pinv(defaultHead2currentHead);
-        nativepts=currenthead2NATIVE*[megpts';ones(1,size(megpts,2))]
+        nativepts=currenthead2NATIVE*[megpts';ones(1,size(megpts,2))];
         
         mrilbl = meegfid.fid.label;
         mrifid.fid.pnt=nativepts(1:3,:)';
@@ -441,6 +452,8 @@ for i = 1:numel(job.D)
     out.D{i, 1} = fullfile(D.path, D.fname);
 end
 
+
+%==========================================================================
 function dep = vout_specify_headmodel(job)
 % Output is always in field "D", no matter how job is structured
 dep = cfg_dep;

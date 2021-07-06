@@ -1,10 +1,68 @@
 function bms = spm_cfg_dcm_bms
 % Configuration file for Bayesian Model Selection (DCM)
 %__________________________________________________________________________
-% Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2021 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao Rosa
-% $Id: spm_cfg_dcm_bms.m 6929 2016-11-14 13:07:31Z guillaume $
+% $Id: spm_cfg_dcm_bms.m 8119 2021-07-06 13:51:43Z guillaume $
+
+
+%--------------------------------------------------------------------------
+% inference: Model Inference
+%--------------------------------------------------------------------------
+bms_dcm      = cfg_exbranch;
+bms_dcm.tag  = 'inference';
+bms_dcm.name = 'Model Inference';
+bms_dcm.val  = @dcm_bms_inf_cfg;
+bms_dcm.help = {['Bayesian Model Selection for Dynamic Causal Modelling '...
+    '(DCM) for fMRI or MEEG.']...
+    ''...
+    ['Input: DCM files (.mat) for each model, session and subject. '...
+    'Note that there must be identical numbers of models for all each '...
+    'sessions, and identical numbers of sessions for all subjects. ']...
+    ''...
+    ['Output: For the fixed effects analysis, the log-evidence for each '...
+    'model (relative to the worst model) is plotted in the graphics '...
+    'window, as well as the posterior probability for each model. In '...
+    'addition, the corresponding values are saved in the directory '...
+    'specified (BMS.mat). For the random effects analysis, the '...
+    'expected posterior probability and exceedance probability of each '...
+    'model (i.e. the probability that this model is more likely than '...
+    'any other model) are plotted in the graphics window, and the '...
+    'corresponding values are saved in the directory specified. If '...
+    'there are multiple sessions per subject, the random effects '...
+    'analysis operates on the subject-specific sums of log evidences '...
+    'across sessions.']};
+bms_dcm.prog = @spm_run_dcm_bms;
+bms_dcm.vout = @vout;
+
+%--------------------------------------------------------------------------
+% results: Visualise BMS results
+%--------------------------------------------------------------------------
+bms_dcm_vis      = cfg_exbranch;
+bms_dcm_vis.tag  = 'results';
+bms_dcm_vis.name = 'Review results';
+bms_dcm_vis.val  = @dcm_bms_vis_cfg;
+bms_dcm_vis.help = {['Bayesian Model Selection for DCM (Results). '...
+                    'Show results from BMS for DCM.']};
+bms_dcm_vis.prog = @spm_run_dcm_bms_vis;
+
+%--------------------------------------------------------------------------
+% bms Bayesian Model Selection
+%--------------------------------------------------------------------------
+bms         = cfg_choice;
+bms.tag     = 'bms';
+bms.name    = 'Bayesian Model Selection';
+bms.help    = {['Bayesian Model Selection for group studies (fixed '...
+               'effects and random effects analysis).']};
+bms.values  = { bms_dcm bms_dcm_vis };
+
+
+%==========================================================================
+function varargout = dcm_bms_inf_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 %--------------------------------------------------------------------------
 % dir Directory
@@ -297,6 +355,15 @@ verify_id.values  = {
 }'; 
 verify_id.val     = {1};
 
+[cfg,varargout{1}] = deal({dir dcm model_sp load_f method family_level bma verify_id});
+
+
+%==========================================================================
+function varargout = dcm_bms_vis_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
+
 %--------------------------------------------------------------------------
 % bmsmat BMS.mat
 %--------------------------------------------------------------------------
@@ -311,55 +378,7 @@ bmsmat.ufilter = '^BMS\.mat$';
 bmsmat.val     = {{''}};
 bmsmat.num     = [0 1];
 
-%--------------------------------------------------------------------------
-% inference: Model Inference
-%--------------------------------------------------------------------------
-bms_dcm      = cfg_exbranch;
-bms_dcm.tag  = 'inference';
-bms_dcm.name = 'Model Inference';
-bms_dcm.val  = {dir dcm model_sp load_f method family_level bma verify_id};
-bms_dcm.help = {['Bayesian Model Selection for Dynamic Causal Modelling '...
-    '(DCM) for fMRI or MEEG.']...
-    ''...
-    ['Input: DCM files (.mat) for each model, session and subject. '...
-    'Note that there must be identical numbers of models for all each '...
-    'sessions, and identical numbers of sessions for all subjects. ']...
-    ''...
-    ['Output: For the fixed effects analysis, the log-evidence for each '...
-    'model (relative to the worst model) is plotted in the graphics '...
-    'window, as well as the posterior probability for each model. In '...
-    'addition, the corresponding values are saved in the directory '...
-    'specified (BMS.mat). For the random effects analysis, the '...
-    'expected posterior probability and exceedance probability of each '...
-    'model (i.e. the probability that this model is more likely than '...
-    'any other model) are plotted in the graphics window, and the '...
-    'corresponding values are saved in the directory specified. If '...
-    'there are multiple sessions per subject, the random effects '...
-    'analysis operates on the subject-specific sums of log evidences '...
-    'across sessions.']};
-bms_dcm.prog = @spm_run_dcm_bms;
-bms_dcm.vout = @vout;
-
-%--------------------------------------------------------------------------
-% results: Visualise BMS results
-%--------------------------------------------------------------------------
-bms_dcm_vis      = cfg_exbranch;
-bms_dcm_vis.tag  = 'results';
-bms_dcm_vis.name = 'Review results';
-bms_dcm_vis.val  = { bmsmat };
-bms_dcm_vis.help = {['Bayesian Model Selection for DCM (Results). '...
-                    'Show results from BMS for DCM.']};
-bms_dcm_vis.prog = @spm_run_dcm_bms_vis;
-
-%--------------------------------------------------------------------------
-% bms Bayesian Model Selection
-%--------------------------------------------------------------------------
-bms         = cfg_choice;
-bms.tag     = 'bms';
-bms.name    = 'Bayesian Model Selection';
-bms.help    = {['Bayesian Model Selection for group studies (fixed '...
-               'effects and random effects analysis).']};
-bms.values  = { bms_dcm bms_dcm_vis };
+[cfg,varargout{1}] = deal({bmsmat});
 
 
 %==========================================================================

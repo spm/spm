@@ -1,12 +1,28 @@
 function average = spm_cfg_eeg_average
-% Configuration file for M/EEG epoching
+% Configuration file for M/EEG epoch averaging
 %__________________________________________________________________________
-% Copyright (C) 2008-2016 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2021 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_average.m 6926 2016-11-09 22:13:19Z guillaume $
+% $Id: spm_cfg_eeg_average.m 8119 2021-07-06 13:51:43Z guillaume $
 
-rev = '$Rev: 6926 $';
+
+average      = cfg_exbranch;
+average.tag  = 'average';
+average.name = 'Averaging';
+average.val  = @average_cfg;
+average.help = {'Average epoched EEG/MEG data.'};
+average.prog = @eeg_average;
+average.vout = @vout_eeg_average;
+average.modality = {'EEG'};
+
+
+%==========================================================================
+function varargout = average_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
+
 D = cfg_files;
 D.tag = 'D';
 D.name = 'File Name';
@@ -84,15 +100,10 @@ prefix.strtype = 's';
 prefix.num     = [1 Inf];
 prefix.val     = {'m'};
 
-average = cfg_exbranch;
-average.tag = 'average';
-average.name = 'Averaging';
-average.val = {D, userobust, plv, prefix};
-average.help = {'Average epoched EEG/MEG data.'};
-average.prog = @eeg_average;
-average.vout = @vout_eeg_average;
-average.modality = {'EEG'};
+[cfg,varargout{1}] = deal({D, userobust, plv, prefix});
 
+
+%==========================================================================
 function out = eeg_average(job)
 % construct the S struct
 S.D = job.D{1};
@@ -108,6 +119,8 @@ S.prefix = job.prefix;
 out.D = spm_eeg_average(S);
 out.Dfname = {fullfile(out.D.path, out.D.fname)};
 
+
+%==========================================================================
 function dep = vout_eeg_average(job)
 % Output is always in field "D", no matter how job is structured
 dep = cfg_dep;
@@ -123,5 +136,3 @@ dep(2).sname = 'Averaged Datafile';
 dep(2).src_output = substruct('.','Dfname');
 % this can be entered into any file selector
 dep(2).tgt_spec   = cfg_findspec({{'filter','mat'}});
-
-

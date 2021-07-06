@@ -1,16 +1,61 @@
 function fieldmap = tbx_cfg_fieldmap
 % MATLABBATCH Configuration file for toolbox 'FieldMap'
 %__________________________________________________________________________
-% Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2021 Wellcome Trust Centre for Neuroimaging
 
-% $Id: tbx_cfg_fieldmap.m 7892 2020-07-10 16:39:18Z john $
+% $Id: tbx_cfg_fieldmap.m 8119 2021-07-06 13:51:43Z guillaume $
 
 
 if ~isdeployed, addpath(fullfile(spm('dir'),'toolbox','FieldMap')); end
 
+%--------------------------------------------------------------------------
+% calculatevdm calculate vdm* file
+%--------------------------------------------------------------------------
+calculatevdm      = cfg_exbranch;
+calculatevdm.tag  = 'calculatevdm';
+calculatevdm.name = 'Calculate VDM';
+calculatevdm.val  = @calculatevdm_cfg;
+calculatevdm.help = {
+    'Generate unwrapped field maps which are converted to voxel displacement maps (VDM) that can be used to unwarp geometrically distorted EPI images.'
+    'The resulting VDM files are saved with the prefix vdm and can be applied to images using Apply VDM or in combination with Realign & Unwarp to calculate and correct for the combined effects of static and movement-related susceptibility induced distortions.'
+    };
+calculatevdm.prog = @FieldMap_calculatevdm;
+calculatevdm.vout = @vout_calculatevdm;
+
+%--------------------------------------------------------------------------
+% applyvdm Apply vdm* file to EPI files
+%--------------------------------------------------------------------------
+applyvdm      = cfg_exbranch;
+applyvdm.tag  = 'applyvdm';
+applyvdm.name = 'Apply VDM ';
+applyvdm.val  = @applyvdm_cfg;
+applyvdm.help = {
+    'Apply VDM (voxel displacement map) to resample voxel values in selected image(s). This allows a VDM to be applied to any images which are assumed to be already realigned (e.g. including EPI fMRI time series and DTI data).'
+    'The VDM can be created from a field map acquisition using the FieldMap toolbox and comprises voxel shift values which describe geometric distortions occuring as a result of magnetic susceptbility artefacts. Distortions along any single dimension can be corrected therefore input data may have been acquired with phase encode directions in X, Y (most typical) and Z.'
+    'The selected images are assumed to be realigned to the first in the time series (e.g. using Realign: Estimate) but do not need to be resliced. The VDM is assumed to be in alignment with the images selected for resampling (note this can be achieved via the FieldMap toolbox). The resampled images are written to the input subdirectory with the same (prefixed) filename.'
+    'e.g. The typical processing steps for fMRI time series would be 1) Realign: Estimate, 2) FieldMap to create VDM, 3) Apply VDM.'
+    'Note that this routine is a general alternative to using the VDM in combination with Realign & Unwarp which estimates and corrects for the combined effects of static and movement-related susceptibility induced distortions. Apply VDM can be used when dynamic distortions are not (well) modelled by Realign & Unwarp (e.g. for fMRI data acquired with R->L phase-encoding direction, high field fMRI data or DTI data).'
+    }';
+applyvdm.prog = @FieldMap_applyvdm;
+applyvdm.vout = @vout_applyvdm;
+
+%--------------------------------------------------------------------------
+% fieldmap FieldMap
+%--------------------------------------------------------------------------
+fieldmap        = cfg_choice;
+fieldmap.tag    = 'fieldmap';
+fieldmap.name   = 'FieldMap';
+fieldmap.help   = {'The FieldMap toolbox generates unwrapped field maps which are converted to voxel displacement maps (VDM) that can be used to unwarp geometrically distorted EPI images. For references and an explanation of the theory behind the field map based unwarping, see FieldMap_principles.man. The resulting VDM files are saved with the prefix vdm and can be applied to images using Apply VDM or in combination with Realign & Unwarp to calculate and correct for the combined effects of static and movement-related susceptibility induced distortions.'};
+fieldmap.values = {calculatevdm applyvdm};
+
+
 %==========================================================================
 % Default values that are common to all fieldmap jobs
 %==========================================================================
+function varargout = calculatevdm_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 %--------------------------------------------------------------------------
 % et Echo times [short TE long TE]
@@ -557,23 +602,16 @@ generic.values = {subj};
 generic.val    = {subj};
 generic.num    = [1 Inf];
 
-%--------------------------------------------------------------------------
-% calculatevdm calculate vdm* file
-%--------------------------------------------------------------------------
-calculatevdm      = cfg_exbranch;
-calculatevdm.tag  = 'calculatevdm';
-calculatevdm.name = 'Calculate VDM';
-calculatevdm.val  = {generic};
-calculatevdm.help = {
-    'Generate unwrapped field maps which are converted to voxel displacement maps (VDM) that can be used to unwarp geometrically distorted EPI images.'
-    'The resulting VDM files are saved with the prefix vdm and can be applied to images using Apply VDM or in combination with Realign & Unwarp to calculate and correct for the combined effects of static and movement-related susceptibility induced distortions.'
-    };
-calculatevdm.prog = @FieldMap_calculatevdm;
-calculatevdm.vout = @vout_calculatevdm;
+[cfg,varargout{1}] = deal({generic});
+
 
 %==========================================================================
 % Apply vdm* file
 %==========================================================================
+function varargout = applyvdm_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 %--------------------------------------------------------------------------
 % scans Images
@@ -732,31 +770,7 @@ applyvdmroptions.name = 'Reslice Options';
 applyvdmroptions.val  = {pedir applyvdmwhich rinterp wrap mask prefix};
 applyvdmroptions.help = {'Apply VDM reslice options'};
 
-%--------------------------------------------------------------------------
-% applyvdm Apply vdm* file to EPI files
-%--------------------------------------------------------------------------
-applyvdm      = cfg_exbranch;
-applyvdm.tag  = 'applyvdm';
-applyvdm.name = 'Apply VDM ';
-applyvdm.val  = {generic2 applyvdmroptions};
-applyvdm.help = {
-    'Apply VDM (voxel displacement map) to resample voxel values in selected image(s). This allows a VDM to be applied to any images which are assumed to be already realigned (e.g. including EPI fMRI time series and DTI data).'
-    'The VDM can be created from a field map acquisition using the FieldMap toolbox and comprises voxel shift values which describe geometric distortions occuring as a result of magnetic susceptbility artefacts. Distortions along any single dimension can be corrected therefore input data may have been acquired with phase encode directions in X, Y (most typical) and Z.'
-    'The selected images are assumed to be realigned to the first in the time series (e.g. using Realign: Estimate) but do not need to be resliced. The VDM is assumed to be in alignment with the images selected for resampling (note this can be achieved via the FieldMap toolbox). The resampled images are written to the input subdirectory with the same (prefixed) filename.'
-    'e.g. The typical processing steps for fMRI time series would be 1) Realign: Estimate, 2) FieldMap to create VDM, 3) Apply VDM.'
-    'Note that this routine is a general alternative to using the VDM in combination with Realign & Unwarp which estimates and corrects for the combined effects of static and movement-related susceptibility induced distortions. Apply VDM can be used when dynamic distortions are not (well) modelled by Realign & Unwarp (e.g. for fMRI data acquired with R->L phase-encoding direction, high field fMRI data or DTI data).'
-    }';
-applyvdm.prog = @FieldMap_applyvdm;
-applyvdm.vout = @vout_applyvdm;
-
-%--------------------------------------------------------------------------
-% fieldmap FieldMap
-%--------------------------------------------------------------------------
-fieldmap        = cfg_choice;
-fieldmap.tag    = 'fieldmap';
-fieldmap.name   = 'FieldMap';
-fieldmap.help   = {'The FieldMap toolbox generates unwrapped field maps which are converted to voxel displacement maps (VDM) that can be used to unwarp geometrically distorted EPI images. For references and an explanation of the theory behind the field map based unwarping, see FieldMap_principles.man. The resulting VDM files are saved with the prefix vdm and can be applied to images using Apply VDM or in combination with Realign & Unwarp to calculate and correct for the combined effects of static and movement-related susceptibility induced distortions.'};
-fieldmap.values = {calculatevdm applyvdm};
+[cfg,varargout{1}] = deal({generic2 applyvdmroptions});
 
 
 %==========================================================================

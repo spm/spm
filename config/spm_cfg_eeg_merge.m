@@ -1,12 +1,28 @@
 function merge = spm_cfg_eeg_merge
-% configuration file for merging of M/EEG files
-%_______________________________________________________________________
-% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
+% Configuration file for merging M/EEG files
+%__________________________________________________________________________
+% Copyright (C) 2008-2021 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Volkmar Glauche
-% $Id: spm_cfg_eeg_merge.m 5516 2013-05-23 11:02:51Z vladimir $
+% $Id: spm_cfg_eeg_merge.m 8119 2021-07-06 13:51:43Z guillaume $
 
-rev = '$Rev: 5516 $';
+
+merge          = cfg_exbranch;
+merge.tag      = 'merge';
+merge.name     = 'Merging';
+merge.val      = @merge_cfg;
+merge.help     = {'Merge EEG/MEG data.'};
+merge.prog     = @eeg_merge;
+merge.vout     = @vout_eeg_merge;
+merge.modality = {'EEG'};
+
+
+%==========================================================================
+function varargout = merge_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
+
 D = cfg_files;
 D.tag = 'D';
 D.name = 'File Names';
@@ -62,15 +78,10 @@ prefix.strtype = 's';
 prefix.num     = [1 Inf];
 prefix.val     = {'c'};
 
-merge = cfg_exbranch;
-merge.tag = 'merge';
-merge.name = 'Merging';
-merge.val = {D, rules, prefix};
-merge.help = {'Merge EEG/MEG data.'};
-merge.prog = @eeg_merge;
-merge.vout = @vout_eeg_merge;
-merge.modality = {'EEG'};
+[cfg,varargout{1}] = deal({D, rules, prefix});
 
+
+%==========================================================================
 function out = eeg_merge(job)
 % construct the S struct
 S = job;
@@ -79,6 +90,8 @@ S.D = char(S.D);
 out.D = spm_eeg_merge(S);
 out.Dfname = {fullfile(out.D)};
 
+
+%==========================================================================
 function dep = vout_eeg_merge(job)
 % Output is always in field "D", no matter how job is structured
 dep = cfg_dep;
@@ -94,5 +107,3 @@ dep(2).sname = 'Merged Datafile';
 dep(2).src_output = substruct('.','Dfname');
 % this can be entered into any file selector
 dep(2).tgt_spec   = cfg_findspec({{'filter','mat'}});
-
-

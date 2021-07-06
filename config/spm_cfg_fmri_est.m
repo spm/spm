@@ -1,9 +1,31 @@
 function fmri_est = spm_cfg_fmri_est
 % SPM Configuration file for Model Estimation
 %__________________________________________________________________________
-% Copyright (C) 2005-2016 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2021 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_fmri_est.m 6952 2016-11-25 16:03:13Z guillaume $
+% $Id: spm_cfg_fmri_est.m 8119 2021-07-06 13:51:43Z guillaume $
+
+
+%--------------------------------------------------------------------------
+% fmri_est Model estimation
+%--------------------------------------------------------------------------
+fmri_est          = cfg_exbranch;
+fmri_est.tag      = 'fmri_est';
+fmri_est.name     = 'Model estimation';
+fmri_est.val      = @fmri_est_cfg;
+fmri_est.help     = {
+    'Estimation of model parameters using classical (ReML - Restricted Maximum Likelihood) or Bayesian algorithms.'
+    'After parameter estimation, the ''Results'' button can be used to specify contrasts that will produce Statistical Parametric Maps (SPMs) or Posterior Probability Maps (PPMs) and tables of statistics.'
+    }';
+fmri_est.prog     = @spm_run_fmri_est;
+fmri_est.vout     = @vout_stats;
+fmri_est.modality = {'FMRI' 'PET' 'EEG'};
+
+%==========================================================================
+function varargout = fmri_est_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 
 %==========================================================================
@@ -398,20 +420,7 @@ write_residuals.help   = {'Write images of residuals to disk. This is only imple
 write_residuals.labels = {'No', 'Yes'};
 write_residuals.values = {0, 1};
 
-%--------------------------------------------------------------------------
-% fmri_est Model estimation
-%--------------------------------------------------------------------------
-fmri_est          = cfg_exbranch;
-fmri_est.tag      = 'fmri_est';
-fmri_est.name     = 'Model estimation';
-fmri_est.val      = {spmmat write_residuals method};
-fmri_est.help     = {
-    'Estimation of model parameters using classical (ReML - Restricted Maximum Likelihood) or Bayesian algorithms.'
-    'After parameter estimation, the ''Results'' button can be used to specify contrasts that will produce Statistical Parametric Maps (SPMs) or Posterior Probability Maps (PPMs) and tables of statistics.'
-    }';
-fmri_est.prog     = @spm_run_fmri_est;
-fmri_est.vout     = @vout_stats;
-fmri_est.modality = {'FMRI' 'PET' 'EEG'};
+[cfg,varargout{1}] = deal({spmmat write_residuals method});
 
 
 %==========================================================================

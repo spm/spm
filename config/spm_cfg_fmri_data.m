@@ -3,8 +3,27 @@ function fmri_data = spm_cfg_fmri_data
 %__________________________________________________________________________
 % Copyright (C) 2005-2016 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_fmri_data.m 6952 2016-11-25 16:03:13Z guillaume $
+% $Id: spm_cfg_fmri_data.m 8119 2021-07-06 13:51:43Z guillaume $
 
+
+%--------------------------------------------------------------------------
+% fmri_data fMRI data specification
+%--------------------------------------------------------------------------
+fmri_data          = cfg_exbranch;
+fmri_data.tag      = 'fmri_data';
+fmri_data.name     = 'fMRI data specification';
+fmri_data.val      = @fmri_data_cfg;
+fmri_data.help     = {'Select data and optional explicit mask for a specified fMRI design'};
+fmri_data.prog     = @spm_run_fmri_data;
+fmri_data.vout     = @vout_stats;
+fmri_data.modality = {'FMRI'};
+
+
+%==========================================================================
+function varargout = fmri_data_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 %--------------------------------------------------------------------------
 % scans Scans
@@ -46,17 +65,7 @@ mask.filter  = {'image','mesh'};
 mask.ufilter = '.*';
 mask.num     = [0 1];
 
-%--------------------------------------------------------------------------
-% fmri_data fMRI data specification
-%--------------------------------------------------------------------------
-fmri_data          = cfg_exbranch;
-fmri_data.tag      = 'fmri_data';
-fmri_data.name     = 'fMRI data specification';
-fmri_data.val      = {scans spmmat mask};
-fmri_data.help     = {'Select data and optional explicit mask for a specified fMRI design'};
-fmri_data.prog     = @spm_run_fmri_data;
-fmri_data.vout     = @vout_stats;
-fmri_data.modality = {'FMRI'};
+[cfg,varargout{1}] = deal({scans spmmat mask});
 
 
 %==========================================================================

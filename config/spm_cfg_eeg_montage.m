@@ -1,10 +1,27 @@
 function S = spm_cfg_eeg_montage
-% configuration file for reading montage files
-%_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Configuration file for reading montage files
+%__________________________________________________________________________
+% Copyright (C) 2008-2021 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_montage.m 6983 2017-01-06 17:25:22Z vladimir $
+% $Id: spm_cfg_eeg_montage.m 8119 2021-07-06 13:51:43Z guillaume $
+
+
+S      = cfg_exbranch;
+S.tag  = 'montage';
+S.name = 'Montage';
+S.val  = @montage_cfg;
+S.help = {'Apply a montage (linear transformation) to EEG/MEG data.'};
+S.prog = @eeg_montage;
+S.vout = @vout_eeg_montage;
+S.modality = {'EEG'};
+
+
+%==========================================================================
+function varargout = montage_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 D = cfg_files;
 D.tag = 'D';
@@ -102,15 +119,10 @@ mode.values = {write, online, add, clr};
 mode.val = {write};
 mode.help = {'Choose between writing a new dataset or online montage operation'};
 
-S = cfg_exbranch;
-S.tag = 'montage';
-S.name = 'Montage';
-S.val = {D, mode};
-S.help = {'Apply a montage (linear transformation) to EEG/MEG data.'};
-S.prog = @eeg_montage;
-S.vout = @vout_eeg_montage;
-S.modality = {'EEG'};
+[cfg,varargout{1}] = deal({D, mode});
 
+
+%==========================================================================
 function out = eeg_montage(job)
 % construct the S struct
 S.D = job.D{1};
@@ -145,6 +157,8 @@ end
 out.D = spm_eeg_montage(S);
 out.Dfname = {fullfile(out.D.path, out.D.fname)};
 
+
+%==========================================================================
 function dep = vout_eeg_montage(job)
 % Output is always in field "D", no matter how job is structured
 dep = cfg_dep;
@@ -160,5 +174,3 @@ dep(2).sname = 'Montaged Datafile';
 dep(2).src_output = substruct('.','Dfname');
 % this can be entered into any file selector
 dep(2).tgt_spec   = cfg_findspec({{'filter','mat'}});
-
-

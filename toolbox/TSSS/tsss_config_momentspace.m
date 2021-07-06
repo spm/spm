@@ -1,10 +1,30 @@
 function momentspace = tsss_config_momentspace
-% configuration file for cropping
+% Configuration file for TSSS space conversion
 %__________________________________________________________________________
-% Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2014-2021 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: tsss_config_momentspace.m 7703 2019-11-22 12:06:29Z guillaume $
+% $Id: tsss_config_momentspace.m 8119 2021-07-06 13:51:43Z guillaume $
+
+
+%--------------------------------------------------------------------------
+% momentspace
+%--------------------------------------------------------------------------
+momentspace          = cfg_exbranch;
+momentspace.tag      = 'momentspace';
+momentspace.name     = 'TSSS space conversion';
+momentspace.val      = @tsss_momentspace_cfg;
+momentspace.help     = {'Engage the TSSS space virtual montage'}';
+momentspace.prog     = @eeg_momentspace;
+momentspace.vout     = @vout_eeg_momentspace;
+momentspace.modality = {'EEG'};
+
+
+%==========================================================================
+function varargout = tsss_momentspace_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 %--------------------------------------------------------------------------
 % D
@@ -46,17 +66,8 @@ addchannels.name = 'Extra channels to add';
 addchannels.values  = {none, spm_cfg_eeg_channel_selector};
 addchannels.val  = {none};
 
-%--------------------------------------------------------------------------
-% momentspace
-%--------------------------------------------------------------------------
-momentspace          = cfg_exbranch;
-momentspace.tag      = 'momentspace';
-momentspace.name     = 'TSSS space conversion';
-momentspace.val      = {D, condthresh, addchannels};
-momentspace.help     = {'Engage the TSSS space virtual montage'}';
-momentspace.prog     = @eeg_momentspace;
-momentspace.vout     = @vout_eeg_momentspace;
-momentspace.modality = {'EEG'};
+[cfg,varargout{1}] = deal({D, condthresh, addchannels});
+
 
 %==========================================================================
 function out = eeg_momentspace(job)

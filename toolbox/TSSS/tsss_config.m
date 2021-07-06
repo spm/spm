@@ -1,10 +1,30 @@
 function tsss = tsss_config
-% configuration file for cropping
+% Configuration file for TSSS clean-up for Neuromag data
 %__________________________________________________________________________
-% Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2014-2021 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: tsss_config.m 7703 2019-11-22 12:06:29Z guillaume $
+% $Id: tsss_config.m 8119 2021-07-06 13:51:43Z guillaume $
+
+
+%--------------------------------------------------------------------------
+% tsss
+%--------------------------------------------------------------------------
+tsss          = cfg_exbranch;
+tsss.tag      = 'tsss';
+tsss.name     = 'TSSS denoising';
+tsss.val      = @tss_config_cfg;
+tsss.help     = {'TSSS clean-up for Neuromag data'}';
+tsss.prog     = @eeg_tsss;
+tsss.vout     = @vout_eeg_tsss;
+tsss.modality = {'EEG'};
+
+
+%==========================================================================
+function varargout = tss_config_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 %--------------------------------------------------------------------------
 % D
@@ -139,17 +159,8 @@ prefix.strtype = 's';
 prefix.num     = [1 Inf];
 prefix.val     = {'tsss_'};
 
-%--------------------------------------------------------------------------
-% tsss
-%--------------------------------------------------------------------------
-tsss          = cfg_exbranch;
-tsss.tag      = 'tsss';
-tsss.name     = 'TSSS denoising';
-tsss.val      = {D, temporal, realign, timewin, corrlimit, Lin, Lout, condthresh, ospace, prefix};
-tsss.help     = {'TSSS clean-up for Neuromag data'}';
-tsss.prog     = @eeg_tsss;
-tsss.vout     = @vout_eeg_tsss;
-tsss.modality = {'EEG'};
+[cfg,varargout{1}] = deal({D, temporal, realign, timewin, corrlimit, Lin, Lout, condthresh, ospace, prefix});
+
 
 %==========================================================================
 function out = eeg_tsss(job)
@@ -168,6 +179,7 @@ S.xspace     = job.ospace;
 S.prefix     = job.prefix;
 out.D        = tsss_spm_enm(S);
 out.Dfname   = {fullfile(out.D)};
+
 
 %==========================================================================
 function dep = vout_eeg_tsss(job)

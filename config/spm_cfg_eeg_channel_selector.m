@@ -1,10 +1,11 @@
 function channels = spm_cfg_eeg_channel_selector(jobtree)
-% generic M/EEG channel selector based on label and type
+% Generic M/EEG channel selector based on label and type
 %__________________________________________________________________________
-% Copyright (C) 2010-2016 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2010-2021 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_channel_selector.m 6926 2016-11-09 22:13:19Z guillaume $
+% $Id: spm_cfg_eeg_channel_selector.m 8119 2021-07-06 13:51:43Z guillaume $
+
 
 if nargin == 0 || ischar(jobtree)
     chanall = cfg_const;

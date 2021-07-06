@@ -1,10 +1,28 @@
 function cat = spm_cfg_cat
 % SPM Configuration file for 3D to 4D volumes conversion
 %__________________________________________________________________________
-% Copyright (C) 2008-2018 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2021 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_cfg_cat.m 7290 2018-04-10 16:43:01Z guillaume $
+% $Id: spm_cfg_cat.m 8119 2021-07-06 13:51:43Z guillaume $
+
+%--------------------------------------------------------------------------
+% cat 3D to 4D File Conversion
+%--------------------------------------------------------------------------
+cat      = cfg_exbranch;
+cat.tag  = 'cat';
+cat.name = '3D to 4D File Conversion';
+cat.val  = @cat_cfg;
+cat.help = {'Concatenate a number of 3D volumes into a single 4D file.'};
+cat.prog = @(job)spm_run_cat('run',job);
+cat.vout = @(job)spm_run_cat('vout',job);
+
+
+%==========================================================================
+function varargout = cat_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 %--------------------------------------------------------------------------
 % vols 3D Volumes
@@ -58,16 +76,7 @@ RT.strtype = 'r';
 RT.num     = [1 1];
 RT.val     = {NaN};
 
-%--------------------------------------------------------------------------
-% cat 3D to 4D File Conversion
-%--------------------------------------------------------------------------
-cat      = cfg_exbranch;
-cat.tag  = 'cat';
-cat.name = '3D to 4D File Conversion';
-cat.val  = {vols name dtype RT};
-cat.help = {'Concatenate a number of 3D volumes into a single 4D file.'};
-cat.prog = @(job)spm_run_cat('run',job);
-cat.vout = @(job)spm_run_cat('vout',job);
+[cfg,varargout{1}] = deal({vols name dtype RT});
 
 
 %==========================================================================

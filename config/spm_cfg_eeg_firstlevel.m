@@ -1,11 +1,29 @@
 function convmodel = spm_cfg_eeg_firstlevel
 % SPM Configuration file for M/EEG convolution modelling
 %_______________________________________________________________________
-% Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2013-2021 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_eeg_firstlevel.m 6929 2016-11-14 13:07:31Z guillaume $
+% $Id: spm_cfg_eeg_firstlevel.m 8119 2021-07-06 13:51:43Z guillaume $
 
-rev = '$Rev: 6929 $';
+
+% ---------------------------------------------------------------------
+% convmodel M/EEG convolution modelling
+% ---------------------------------------------------------------------
+convmodel      = cfg_exbranch;
+convmodel.tag  = 'convmodel';
+convmodel.name = 'Convolution modelling';
+convmodel.val  = @convmodel_cfg;
+convmodel.help = {'M/EEG convolution modelling'};
+convmodel.prog = @eeg_run;
+convmodel.vout = @vout_eeg;
+convmodel.modality = {'EEG'};
+
+
+%======================================================================
+function varargout = convmodel_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 % ---------------------------------------------------------------------
 % units Units for design
@@ -502,25 +520,18 @@ prefix.strtype = 's';
 prefix.num     = [1 Inf];
 prefix.val     = {'C'};
 
-% ---------------------------------------------------------------------
-% convmodel M/EEG convolution modelling
-% ---------------------------------------------------------------------
-convmodel      = cfg_exbranch;
-convmodel.tag  = 'convmodel';
-convmodel.name = 'Convolution modelling';
-convmodel.val  = {spm_cfg_eeg_channel_selector timing sess bases volt, prefix};
-convmodel.help = {'M/EEG convolution modelling'};
-convmodel.prog = @eeg_run;
-convmodel.vout = @vout_eeg;
-convmodel.modality = {'EEG'};
+[cfg,varargout{1}] = deal({spm_cfg_eeg_channel_selector timing sess bases volt, prefix});
 
-%-------------------------------------------------------------------------
+
+%==========================================================================
 function out = eeg_run(job)
 S = job;
 S.channels  = spm_cfg_eeg_channel_selector(job.channels);
 out.D       = spm_eeg_firstlevel(S);
 out.Dfname  = {fullfile(out.D)};
-%-------------------------------------------------------------------------
+
+
+%==========================================================================
 function dep = vout_eeg(job)
 % return dependencies
 dep(1)            = cfg_dep;

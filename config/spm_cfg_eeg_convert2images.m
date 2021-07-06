@@ -2,10 +2,27 @@ function convert2images = spm_cfg_eeg_convert2images
 % Configuration file for writing voxel-based images from SPM M/EEG format,
 % as a time-series of 2Dimages
 %__________________________________________________________________________
-% Copyright (C) 2008-2016 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2021 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_convert2images.m 6926 2016-11-09 22:13:19Z guillaume $
+% $Id: spm_cfg_eeg_convert2images.m 8119 2021-07-06 13:51:43Z guillaume $
+
+
+convert2images          = cfg_exbranch;
+convert2images.tag      = 'convert2images';
+convert2images.name     = 'Convert2Images';
+convert2images.val      = @convert2images_cfg;
+convert2images.help     = {'Convert SPM M/EEG data to voxel-based images.'};
+convert2images.prog     = @run_convert2images;
+convert2images.vout     = @vout_convert2images;
+convert2images.modality = {'EEG'};
+
+
+%==========================================================================
+function varargout = convert2images_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 %--------------------------------------------------------------------------
 % D
@@ -85,15 +102,7 @@ prefix.strtype = 's';
 prefix.num     = [0 Inf];
 prefix.val     = {''};
 
-
-convert2images = cfg_exbranch;
-convert2images.tag = 'convert2images';
-convert2images.name = 'Convert2Images';
-convert2images.val = {D, mode, conditions, spm_cfg_eeg_channel_selector, timewin, freqwin, prefix};
-convert2images.help = {'Convert SPM M/EEG data to voxel-based images.'};
-convert2images.prog = @run_convert2images;
-convert2images.vout = @vout_convert2images;
-convert2images.modality = {'EEG'};
+[cfg,varargout{1}] = deal({D, mode, conditions, spm_cfg_eeg_channel_selector, timewin, freqwin, prefix});
 
 
 %==========================================================================

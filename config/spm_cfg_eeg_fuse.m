@@ -1,18 +1,34 @@
 function fuse = spm_cfg_eeg_fuse
 % configuration file for fusing M/EEG files
 %_______________________________________________________________________
-% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2021 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_fuse.m 5377 2013-04-02 17:07:57Z vladimir $
+% $Id: spm_cfg_eeg_fuse.m 8119 2021-07-06 13:51:43Z guillaume $
 
-rev = '$Rev: 5377 $';
-D = cfg_files;
-D.tag = 'D';
-D.name = 'File Names';
+
+fuse          = cfg_exbranch;
+fuse.tag      = 'fuse';
+fuse.name     = 'Fusion';
+fuse.val      = @fuse_cfg;
+fuse.help     = {'Fuse EEG/MEG data.'};
+fuse.prog     = @eeg_fuse;
+fuse.vout     = @vout_eeg_fuse;
+fuse.modality = {'EEG'};
+
+
+%==========================================================================
+function varargout = fuse_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
+
+D        = cfg_files;
+D.tag    = 'D';
+D.name   = 'File Names';
 D.filter = 'mat';
-D.num = [2 Inf];
-D.help = {'Select the M/EEG mat files.'};
+D.num    = [2 Inf];
+D.help   = {'Select the M/EEG mat files.'};
 
 prefix         = cfg_entry;
 prefix.tag     = 'prefix';
@@ -22,15 +38,10 @@ prefix.strtype = 's';
 prefix.num     = [1 Inf];
 prefix.val     = {'u'};
 
-fuse = cfg_exbranch;
-fuse.tag = 'fuse';
-fuse.name = 'Fusion';
-fuse.val = {D, prefix};
-fuse.help = {'Fuse EEG/MEG data.'};
-fuse.prog = @eeg_fuse;
-fuse.vout = @vout_eeg_fuse;
-fuse.modality = {'EEG'};
+[cfg,varargout{1}] = deal({D, prefix});
 
+
+%==========================================================================
 function out = eeg_fuse(job)
 % construct the S struct
 S = job;
@@ -39,6 +50,8 @@ S.D = char(S.D);
 out.D = spm_eeg_fuse(S);
 out.Dfname = {fullfile(out.D.path, out.D.fname)};
 
+
+%==========================================================================
 function dep = vout_eeg_fuse(job)
 % Output is always in field "D", no matter how job is structured
 dep = cfg_dep;
@@ -54,5 +67,3 @@ dep(2).sname = 'Fused Datafile';
 dep(2).src_output = substruct('.','Dfname');
 % this can be entered into any file selector
 dep(2).tgt_spec   = cfg_findspec({{'filter','mat'}});
-
-

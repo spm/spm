@@ -1,11 +1,29 @@
 function parrec = spm_cfg_parrec
 % SPM Configuration file for Philips PAR/REC Import
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2015-2021 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_cfg_parrec.m 6315 2015-01-23 17:09:06Z guillaume $
+% $Id: spm_cfg_parrec.m 8119 2021-07-06 13:51:43Z guillaume $
 
+
+%--------------------------------------------------------------------------
+% parrec ECAT Import
+%--------------------------------------------------------------------------
+parrec         = cfg_exbranch;
+parrec.tag     = 'parrec';
+parrec.name    = 'PAR/REC Import';
+parrec.val     = @parrec_cfg;
+parrec.help    = {'Philips PAR/REC Import.'};
+parrec.prog    = @convert_parrec;
+parrec.vout    = @vout;
+
+
+%==========================================================================
+function varargout = parrec_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 %--------------------------------------------------------------------------
 % data PAR files
@@ -52,16 +70,7 @@ opts.name    = 'Options';
 opts.val     = {outdir ext};
 opts.help    = {'Conversion options'};
 
-%--------------------------------------------------------------------------
-% parrec ECAT Import
-%--------------------------------------------------------------------------
-parrec         = cfg_exbranch;
-parrec.tag     = 'parrec';
-parrec.name    = 'PAR/REC Import';
-parrec.val     = {data opts};
-parrec.help    = {'Philips PAR/REC Import.'};
-parrec.prog    = @convert_parrec;
-parrec.vout    = @vout;
+[cfg,varargout{1}] = deal({data opts});
 
 
 %==========================================================================

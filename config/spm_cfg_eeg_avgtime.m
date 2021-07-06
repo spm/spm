@@ -1,10 +1,30 @@
 function avgtime = spm_cfg_eeg_avgtime
-% configuration file for averaging over time
+% Configuration file for averaging over time
 %__________________________________________________________________________
-% Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2012-2021 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_avgtime.m 5652 2013-09-25 09:36:22Z volkmar $
+% $Id: spm_cfg_eeg_avgtime.m 8119 2021-07-06 13:51:43Z guillaume $
+
+
+%--------------------------------------------------------------------------
+% avgfreq
+%--------------------------------------------------------------------------
+avgtime          = cfg_exbranch;
+avgtime.tag      = 'avgtime';
+avgtime.name     = 'Average over time';
+avgtime.val      = @avgtime_cfg;
+avgtime.help     = {'Average M/EEG data over time'}';
+avgtime.prog     = @eeg_avgtime;
+avgtime.vout     = @vout_eeg_avgtime;
+avgtime.modality = {'EEG'};
+
+
+%==========================================================================
+function varargout = avgtime_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 %--------------------------------------------------------------------------
 % D
@@ -38,17 +58,8 @@ prefix.strtype = 's';
 prefix.num     = [1 Inf];
 prefix.val     = {'S'};
 
-%--------------------------------------------------------------------------
-% avgfreq
-%--------------------------------------------------------------------------
-avgtime          = cfg_exbranch;
-avgtime.tag      = 'avgtime';
-avgtime.name     = 'Average over time';
-avgtime.val      = {D, timewin, prefix};
-avgtime.help     = {'Average M/EEG data over time'}';
-avgtime.prog     = @eeg_avgtime;
-avgtime.vout     = @vout_eeg_avgtime;
-avgtime.modality = {'EEG'};
+[cfg,varargout{1}] = deal({D, timewin, prefix});
+
 
 %==========================================================================
 function out = eeg_avgtime(job)

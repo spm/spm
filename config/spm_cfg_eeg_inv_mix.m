@@ -2,52 +2,60 @@ function inv_mix = spm_cfg_eeg_inv_mix
 % Configuration file for merging (using a new inversion) a number of
 % imaging source inversion reconstructions
 %__________________________________________________________________________
-% Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2010-2021 Wellcome Trust Centre for Neuroimaging
 
 % Gareth Barnes
-% $Id: spm_cfg_eeg_inv_mix.m 5924 2014-03-19 14:59:12Z gareth $
-
-D = cfg_files;
-D.tag = 'D';
-D.name = 'M/EEG datasets';
-D.filter = 'mat';
-D.num = [1 Inf];
-D.help = {'Select the M/EEG mat files or .mat files containing inverses'};
-
-val = cfg_entry;
-val.tag = 'val';
-val.name = 'Inversion index';
-val.strtype = 'n';
-val.help = {'Index of the cell in D.inv (same for all files) where the forward model can be found and the results will be stored.'};
-val.val = {1};
-
-prefix = cfg_entry;
-prefix.tag = 'prefix';
-prefix.name = 'Merged file prefix';
-prefix.strtype = 's';
-prefix.val={'merged'};
-prefix.help = {'Prefix for the new filename that will contain the merged inversion results'};
+% $Id: spm_cfg_eeg_inv_mix.m 8119 2021-07-06 13:51:43Z guillaume $
 
 
-
-
-
-inv_mix = cfg_exbranch;
-inv_mix.tag = 'inv_mix';
-inv_mix.name = 'Merge source estimates from multiple inversions';
-inv_mix.val = {D, val,prefix};
-inv_mix.help = {'To merge different source level variance estimates based on the same data'};
-inv_mix.prog = @run_inv_mix;
-inv_mix.vout = @vout_inv_mix;
+inv_mix          = cfg_exbranch;
+inv_mix.tag      = 'inv_mix';
+inv_mix.name     = 'Merge source estimates from multiple inversions';
+inv_mix.val      = @inv_mix_cfg;
+inv_mix.help     = {'To merge different source level variance estimates based on the same data'};
+inv_mix.prog     = @run_inv_mix;
+inv_mix.vout     = @vout_inv_mix;
 inv_mix.modality = {'MEG'};
 
+
+%==========================================================================
+function varargout = inv_mix_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
+
+D        = cfg_files;
+D.tag    = 'D';
+D.name   = 'M/EEG datasets';
+D.filter = 'mat';
+D.num    = [1 Inf];
+D.help   = {'Select the M/EEG mat files or .mat files containing inverses'};
+
+val         = cfg_entry;
+val.tag     = 'val';
+val.name    = 'Inversion index';
+val.strtype = 'n';
+val.help    = {'Index of the cell in D.inv (same for all files) where the forward model can be found and the results will be stored.'};
+val.val     = {1};
+
+prefix         = cfg_entry;
+prefix.tag     = 'prefix';
+prefix.name    = 'Merged file prefix';
+prefix.strtype = 's';
+prefix.val     = {'merged'};
+prefix.help    = {'Prefix for the new filename that will contain the merged inversion results'};
+
+[cfg,varargout{1}] = deal({D, val,prefix});
+
+
+%==========================================================================
 function  out = run_inv_mix(job)
 
 
 inverse = [];
-if numel(job.D)<1,
+if numel(job.D)<1
     error('Need to add a number of files to combine');
-end;
+end
 
 
 %% first compile multiple inversions
@@ -182,6 +190,8 @@ end
 
 out.D = {outfilename};
 
+
+%==========================================================================
 function dep = vout_inv_mix(job)
 % Output is always in field "D", no matter how job is structured
 dep = cfg_dep;

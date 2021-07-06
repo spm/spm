@@ -3,11 +3,33 @@ function tvol = spm_cfg_tissue_volumes
 %
 % See also: spm_run_tissue_volumes, spm_summarise
 %__________________________________________________________________________
-% Copyright (C) 2013-2016 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2013-2021 Wellcome Trust Centre for Neuroimaging
 
 % Ged Ridgway
-% $Id: spm_cfg_tissue_volumes.m 7453 2018-10-18 15:42:33Z christophe $
+% $Id: spm_cfg_tissue_volumes.m 8119 2021-07-06 13:51:43Z guillaume $
 
+
+tvol        = cfg_exbranch;
+tvol.tag    = 'tvol';
+tvol.name   = 'Tissue Volumes';
+tvol.val    = @tv_cfg;
+tvol.help   = {
+    'Compute total tissue volumes (in litres) from segmentation results.'
+    ''
+    ['Only the seg8.mat files are required, but if modulated warped ' ...
+    'segmentations (mwc*) are found they will be reused, saving time ' ...
+    '(and allowing you to use non-default values for MRF and/or ' ...
+    'clean-up options if you wish).']
+    };
+tvol.prog = @(job) spm_run_tissue_volumes('exec', job);
+tvol.vout = @(job) spm_run_tissue_volumes('vout', job);
+
+
+%==========================================================================
+function varargout = tv_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 mat         = cfg_files;
 mat.tag     = 'matfiles';
@@ -65,17 +87,4 @@ outf.help    = {
     'This can be empty; results will appear in the MATLAB command window.'
     };
 
-tvol        = cfg_exbranch;
-tvol.tag    = 'tvol';
-tvol.name   = 'Tissue Volumes';
-tvol.val    = {mat T mask outf};
-tvol.help   = {
-    'Compute total tissue volumes (in litres) from segmentation results.'
-    ''
-    ['Only the seg8.mat files are required, but if modulated warped ' ...
-    'segmentations (mwc*) are found they will be reused, saving time ' ...
-    '(and allowing you to use non-default values for MRF and/or ' ...
-    'clean-up options if you wish).']
-    };
-tvol.prog = @(job) spm_run_tissue_volumes('exec', job);
-tvol.vout = @(job) spm_run_tissue_volumes('vout', job);
+[cfg,varargout{1}] = deal({mat T mask outf});

@@ -1,11 +1,81 @@
 function normalise = spm_cfg_norm
 % SPM Configuration file for Spatial Normalisation
 %__________________________________________________________________________
-% Copyright (C) 2012-2016 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2012-2021 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_cfg_norm.m 6952 2016-11-25 16:03:13Z guillaume $
+% $Id: spm_cfg_norm.m 8119 2021-07-06 13:51:43Z guillaume $
 
+
+%--------------------------------------------------------------------------
+% est Normalise: Estimate
+%--------------------------------------------------------------------------
+est      = cfg_exbranch;
+est.tag  = 'est';
+est.name = 'Normalise: Estimate';
+est.val  = @()[esubjs_cfg eoptions_cfg];
+est.help = {
+    'Spatial normalisation performed via the segmentation routine.'
+    ''
+    'The algorithm (which was known as ``New Segment'''' in SPM8) is essentially the same as that described in the Unified Segmentation paper /* \cite{ashburner05}*/, except for (i) a slightly different treatment of the mixing proportions, (ii) the use of an improved registration model, (iii) the ability to use multi-spectral data, (iv) an extended set of tissue probability maps, which allows a different treatment of voxels outside the brain.'
+    ''
+    'If you encounter problems with spatial normalisation, it is advisable to use the Check reg button to see how well aligned the original data are with the MNI-space templates released with SPM.  If mis-alignment is greater than about 3cm and 15 degrees, you could try to manually re-position the images prior to attempting to align them.  This may be done using the Display button.'
+    }';
+est.prog = @spm_run_norm;
+est.vout = @vout_est;
+
+%--------------------------------------------------------------------------
+% write Normalise: Write
+%--------------------------------------------------------------------------
+write      = cfg_exbranch;
+write.tag  = 'write';
+write.name = 'Normalise: Write';
+write.val  = @()[wsubjs_cfg woptions_cfg];
+write.help = {
+    'Apply previously estimated warps (stored in ``y_''''imagename``_sn.mat'''' files) to series of images.'};
+write.prog = @spm_run_norm;
+write.vout = @vout_write;
+
+%--------------------------------------------------------------------------
+% estwrite Normalise: Estimate & Write
+%--------------------------------------------------------------------------
+estwrite      = cfg_exbranch;
+estwrite.tag  = 'estwrite';
+estwrite.name = 'Normalise: Estimate & Write';
+estwrite.val  = @()[ewsubjs_cfg eoptions_cfg woptions_cfg];
+estwrite.help = {
+    'Compute the warp that best aligns the template (atlas) to the individual''s image, invert it and write the result to the file `y_''imagename''.nii''.'
+    'This option also allows the contents of the `y_''imagename''.nii'' files to be applied to a series of images.'
+    ''
+    'Note that if you encounter problems with spatial normalisation, it is often advisable to use the Check reg button to see how well aligned the original data are with the MNI-space templates released with SPM.  If mis-alignment is greater than about 3cm and 15 degrees, you could try to manually re-position the images.  This may be done using the Display button.'
+    };
+estwrite.prog = @spm_run_norm;
+estwrite.vout = @vout_estwrite;
+
+%--------------------------------------------------------------------------
+% normalise Normalise
+%--------------------------------------------------------------------------
+normalise        = cfg_choice;
+normalise.tag    = 'normalise';
+normalise.name   = 'Normalise';
+normalise.help   = {...
+    'There are two components to spatial normalisation: There is the estimation part, ',...
+    'whereby a deformation is estimated by deforming template data to match an ',...
+    'individual scan; And there is the actual writing of the spatially normalised ',...
+    'images, using the previously estimated deformation.',...
+    'This is a vanilla approach to spatial normalisation.  ',...
+    'It is not generally recommended for morphometric studies, or other studies of ',...
+    'differences among populations. ',...
+    'The reason is that the atlas data will differ systematically from the data under study, ',...
+    'which is likely to lead to an inherently biased set of findings.' };
+normalise.values = {est write estwrite};
+
+
+%==========================================================================
+function varargout = eoptions_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 %--------------------------------------------------------------------------
 % biasreg Bias regularisation
@@ -206,23 +276,14 @@ eoptions.name = 'Estimation Options';
 eoptions.val  = {biasreg biasfwhm tpm affreg reg smo samp};
 eoptions.help = {'Various settings for estimating deformations.'};
 
-%--------------------------------------------------------------------------
-% preserve Preserve
-%--------------------------------------------------------------------------
-preserve        = cfg_menu;
-preserve.tag    = 'preserve';
-preserve.name   = 'Preserve';
-preserve.help   = {
-                   'Preserve Concentrations: Spatially normalised images are not "modulated". The warped images preserve the intensities of the original images.'
-                   ''
-                   'Preserve Total: Spatially normalised images are "modulated" in order to preserve the total amount of signal in the images. Areas that are expanded during warping are correspondingly reduced in intensity.'
-}';
-preserve.labels = {
-                   'Preserve Concentrations'
-                   'Preserve Amount'
-}';
-preserve.values = {0 1};
-preserve.def    = @(val)spm_get_defaults('normalise.write.preserve', val{:});
+[cfg,varargout{1}] = deal({eoptions});
+
+
+%==========================================================================
+function varargout = woptions_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 %--------------------------------------------------------------------------
 % bb Bounding box
@@ -282,31 +343,6 @@ interp.values = {0 1 2 3 4 5 6 7};
 interp.def    = @(val)spm_get_defaults('normalise.write.interp', val{:});
 
 %--------------------------------------------------------------------------
-% wrap Wrapping
-%--------------------------------------------------------------------------
-wrap         = cfg_menu;
-wrap.tag     = 'wrap';
-wrap.name    = 'Wrapping';
-wrap.help    = {
-                'These are typically:'
-                '    No wrapping: for PET or images that have already been spatially transformed. '
-                '    Wrap in  Y: for (un-resliced) MRI where phase encoding is in the Y direction (voxel space).'
-}';
-wrap.labels  = {
-               'No wrap'
-               'Wrap X'
-               'Wrap Y'
-               'Wrap X & Y'
-               'Wrap Z'
-               'Wrap X & Z'
-               'Wrap Y & Z'
-               'Wrap X, Y & Z'
-}';
-wrap.values  = {[0 0 0] [1 0 0] [0 1 0] [1 1 0] [0 0 1] [1 0 1] [0 1 1]...
-               [1 1 1]};
-wrap.def     = @(val)spm_get_defaults('normalise.write.wrap', val{:});
-
-%--------------------------------------------------------------------------
 % prefix Filename Prefix
 %--------------------------------------------------------------------------
 prefix         = cfg_entry;
@@ -326,6 +362,15 @@ woptions.name = 'Writing Options';
 woptions.val  = { bb vox interp prefix};
 woptions.help = {'Various options for writing normalised images.'};
 
+[cfg,varargout{1}] = deal({woptions});
+
+
+%==========================================================================
+function varargout = esubjs_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
+
 %--------------------------------------------------------------------------
 % vol Image to Align
 %--------------------------------------------------------------------------
@@ -340,6 +385,34 @@ vol.filter  = 'image';
 vol.ufilter = '.*';
 vol.num     = [1 1];
 vol.preview = @(f) spm_check_registration(char(f));
+
+%--------------------------------------------------------------------------
+% subj Subject
+%--------------------------------------------------------------------------
+subj         = cfg_branch;
+subj.tag     = 'subj';
+subj.name    = 'Subject';
+subj.val     = {vol};
+subj.help    = {'Data for this subject. The same parameters are used within subject.'};
+
+%--------------------------------------------------------------------------
+% esubjs Data
+%--------------------------------------------------------------------------
+esubjs        = cfg_repeat;
+esubjs.tag    = 'esubjs';
+esubjs.name   = 'Data';
+esubjs.help   = {'List of subjects. Images of each subject should be warped differently.'};
+esubjs.values = {subj};
+esubjs.num    = [1 Inf];
+
+[cfg,varargout{1}] = deal({esubjs});
+
+
+%==========================================================================
+function varargout = wsubjs_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
 
 %--------------------------------------------------------------------------
 % def Parameter File
@@ -374,25 +447,6 @@ resample.preview = @(f) spm_check_registration(char(f));
 %--------------------------------------------------------------------------
 % subj Subject
 %--------------------------------------------------------------------------
-subj         = cfg_branch;
-subj.tag     = 'subj';
-subj.name    = 'Subject';
-subj.val     = {vol};
-subj.help    = {'Data for this subject. The same parameters are used within subject.'};
-
-%--------------------------------------------------------------------------
-% esubjs Data
-%--------------------------------------------------------------------------
-esubjs        = cfg_repeat;
-esubjs.tag    = 'esubjs';
-esubjs.name   = 'Data';
-esubjs.help   = {'List of subjects. Images of each subject should be warped differently.'};
-esubjs.values = {subj};
-esubjs.num    = [1 Inf];
-
-%--------------------------------------------------------------------------
-% subj Subject
-%--------------------------------------------------------------------------
 subj      = cfg_branch;
 subj.tag  = 'subj';
 subj.name = 'Subject';
@@ -408,6 +462,45 @@ wsubjs.name   = 'Data';
 wsubjs.help   = {'List of subjects. Images of each subject should be warped differently.'};
 wsubjs.values = {subj};
 wsubjs.num    = [1 Inf];
+
+[cfg,varargout{1}] = deal({wsubjs});
+
+
+%==========================================================================
+function varargout = ewsubjs_cfg
+
+persistent cfg
+if ~isempty(cfg), varargout = {cfg}; return; end
+
+%--------------------------------------------------------------------------
+% vol Image to Align
+%--------------------------------------------------------------------------
+vol         = cfg_files;
+vol.tag     = 'vol';
+vol.name    = 'Image to Align';
+vol.help    = {
+    'The image that the template (atlas) data is warped into alignment with.'
+    'The result is a set of warps, which can be applied to this image, or any other image that is in register with it.'
+    }';
+vol.filter  = 'image';
+vol.ufilter = '.*';
+vol.num     = [1 1];
+vol.preview = @(f) spm_check_registration(char(f));
+
+%--------------------------------------------------------------------------
+% resample Images to Write
+%--------------------------------------------------------------------------
+resample         = cfg_files;
+resample.tag     = 'resample';
+resample.name    = 'Images to Write';
+resample.help    = {
+    'These are the images for warping according to the estimated parameters.'
+    'They can be any images that are in register with the image used to generate the deformation.'
+    }';
+resample.filter  = 'image';
+resample.ufilter = '.*';
+resample.num     = [1 Inf];
+resample.preview = @(f) spm_check_registration(char(f));
 
 %--------------------------------------------------------------------------
 % subj Subject
@@ -428,68 +521,7 @@ ewsubjs.help   = {'List of subjects. Images of each subject should be warped dif
 ewsubjs.values = {subj};
 ewsubjs.num    = [1 Inf];
 
-%--------------------------------------------------------------------------
-% est Segment
-%--------------------------------------------------------------------------
-est      = cfg_exbranch;
-est.tag  = 'est';
-est.name = 'Normalise: Estimate';
-est.val  = {esubjs eoptions};
-est.help = {
-    'Spatial normalisation performed via the segmentation routine.'
-    ''
-    'The algorithm (which was known as ``New Segment'''' in SPM8) is essentially the same as that described in the Unified Segmentation paper /* \cite{ashburner05}*/, except for (i) a slightly different treatment of the mixing proportions, (ii) the use of an improved registration model, (iii) the ability to use multi-spectral data, (iv) an extended set of tissue probability maps, which allows a different treatment of voxels outside the brain.'
-    ''
-    'If you encounter problems with spatial normalisation, it is advisable to use the Check reg button to see how well aligned the original data are with the MNI-space templates released with SPM.  If mis-alignment is greater than about 3cm and 15 degrees, you could try to manually re-position the images prior to attempting to align them.  This may be done using the Display button.'
-    }';
-est.prog = @spm_run_norm;
-est.vout = @vout_est;
-
-%--------------------------------------------------------------------------
-% write Normalise: Write
-%--------------------------------------------------------------------------
-write      = cfg_exbranch;
-write.tag  = 'write';
-write.name = 'Normalise: Write';
-write.val  = {wsubjs woptions};
-write.help = {
-    'Apply previously estimated warps (stored in ``y_''''imagename``_sn.mat'''' files) to series of images.'};
-write.prog = @spm_run_norm;
-write.vout = @vout_write;
-
-%--------------------------------------------------------------------------
-% estwrite Normalise: Estimate & Write
-%--------------------------------------------------------------------------
-estwrite      = cfg_exbranch;
-estwrite.tag  = 'estwrite';
-estwrite.name = 'Normalise: Estimate & Write';
-estwrite.val  = {ewsubjs eoptions woptions};
-estwrite.help = {
-    'Compute the warp that best aligns the template (atlas) to the individual''s image, invert it and write the result to the file `y_''imagename''.nii''.'
-    'This option also allows the contents of the `y_''imagename''.nii'' files to be applied to a series of images.'
-    ''
-    'Note that if you encounter problems with spatial normalisation, it is often advisable to use the Check reg button to see how well aligned the original data are with the MNI-space templates released with SPM.  If mis-alignment is greater than about 3cm and 15 degrees, you could try to manually re-position the images.  This may be done using the Display button.'
-    };
-estwrite.prog = @spm_run_norm;
-estwrite.vout = @vout_estwrite;
-
-%--------------------------------------------------------------------------
-% normalise Normalise
-%--------------------------------------------------------------------------
-normalise        = cfg_choice;
-normalise.tag    = 'normalise';
-normalise.name   = 'Normalise';
-normalise.help   = {...
-    'There are two components to spatial normalisation: There is the estimation part, ',...
-    'whereby a deformation is estimated by deforming template data to match an ',...
-    'individual scan; And there is the actual writing of the spatially normalised ',...
-    'images, using the previously estimated deformation.',...
-    'This is a vanilla approach to spatial normalisation.  ',...
-    'It is not generally recommended for morphometric studies, or other studies of ',...
-    'differences among populations. ',...
-    'The reason is that the atlas data will differ systematically from the data under study, ',...
-    'which is likely to lead to an inherently biased set of findings.' };
-normalise.values = {est write estwrite};
+[cfg,varargout{1}] = deal({ewsubjs});
 
 
 %==========================================================================
