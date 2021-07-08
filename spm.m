@@ -50,10 +50,10 @@ function varargout=spm(varargin)
 % FORMAT & help in the main body of spm.m
 %
 %_______________________________________________________________________
-% Copyright (C) 1991,1994-2019 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1991,1994-2021 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm.m 7606 2019-06-06 10:52:30Z guillaume $
+% $Id: spm.m 8120 2021-07-08 11:27:23Z guillaume $
 
 
 %=======================================================================
@@ -234,6 +234,10 @@ function varargout=spm(varargin)
 %
 % FORMAT spm('time')
 % Returns the current time and date as hh:mm dd/mm/yyyy
+%
+% FORMAT spm('Memory',['available','total'])
+% Returns memory information concerning the amount of available physical
+% memory or the total amount of physical memory.
 %
 % FORMAT spm('Pointer',Pointer)
 % Changes pointer on all SPM (HandleVisible) windows to type Pointer
@@ -1040,14 +1044,18 @@ varargout = {sprintf('%02d:%02d:%02d - %02d/%02d/%4d',...
 
 
 %=======================================================================
-case 'memory'
+case 'memory'                            %-Memory information (in bytes)
 %=======================================================================
-% m = spm('Memory')
+% m = spm('Memory',['available','total'])
 %-----------------------------------------------------------------------
-maxmemdef = 200*1024*1024; % 200 MB
-%m = spm_get_defaults('stats.maxmem');
-m = maxmemdef;
-varargout = {m};
+if numel(varargin) == 1
+    %-Backward compatibility
+    maxmemdef = 200*1024*1024; % 200 MB
+    varargout = { maxmemdef };
+else
+    %m = spm_get_defaults('stats.maxmem');
+    varargout = { spm_platform('memory',varargin{2:end}) };
+end
 
 
 %=======================================================================
@@ -1143,6 +1151,13 @@ for i=1:numel(mscript)
             assignin('base','mfilename',@(varargin) mscript{i});
             if strncmp(S,'V1MCC',5)
                 evalin('base',n); % mcc compiled script
+            elseif strncmp(S,'CRYPT',5)
+                fid = fopen(mscript{i},'rb');
+                S = fread(fid,'*int8');
+                fclose(fid);
+                evalin('base',spm_crypto('decrypt',...
+                    int8('<%%%%%KEY!%%%%%>'),... % to be changed before compilation
+                    S(7:end))); % 'CRYPT' + one byte for versioning
             else
                 evalin('base',S);
             end
@@ -1230,6 +1245,25 @@ function local_clc                                %-Clear command window
 %=======================================================================
 if ~isdeployed
     clc;
+end
+
+
+%=======================================================================
+function str = spm_crypto(action, key, str)  %-AES encryption/decryption
+%=======================================================================
+%key   = java.security.MessageDigest.getInstance('SHA-1').digest(uint8(key));
+key    = javax.crypto.spec.SecretKeySpec(key(1:16),'AES');
+cipher = javax.crypto.Cipher.getInstance('AES/ECB/PKCS5Padding');
+
+switch lower(action)
+    case 'encrypt'
+        cipher.init(javax.crypto.Cipher.ENCRYPT_MODE, key);
+        str = cipher.doFinal(uint8(str));
+    case 'decrypt'
+        cipher.init(javax.crypto.Cipher.DECRYPT_MODE, key);
+        str = char(cipher.doFinal(str))';
+    otherwise
+        error('Unknown action.');
 end
 
 
