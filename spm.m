@@ -53,7 +53,7 @@ function varargout=spm(varargin)
 % Copyright (C) 1991,1994-2021 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm.m 8120 2021-07-08 11:27:23Z guillaume $
+% $Id: spm.m 8121 2021-07-08 11:39:59Z guillaume $
 
 
 %=======================================================================
@@ -228,9 +228,6 @@ function varargout=spm(varargin)
 % FORMAT str = spm('GetUser',fmt)
 % Returns current users login name, extracted from the hosting environment
 % fmt   - format string: If USER is defined then sprintf(fmt,USER) is returned
-%
-% FORMAT spm('Beep')
-% Plays the keyboard beep!
 %
 % FORMAT spm('time')
 % Returns the current time and date as hh:mm dd/mm/yyyy
@@ -1026,7 +1023,7 @@ varargout = {str};
 
 
 %=======================================================================
-case 'beep'                                         %-Produce beep sound
+case 'beep'                            %-Produce beep sound (deprecated)
 %=======================================================================
 % spm('Beep')
 %-----------------------------------------------------------------------

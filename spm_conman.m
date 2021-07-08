@@ -234,10 +234,10 @@ function varargout=spm_conman(varargin)
 % "delete" function is provided (as yet).
 %
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1999-2021 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_conman.m 7874 2020-06-15 20:47:01Z guillaume $
+% $Id: spm_conman.m 8121 2021-07-08 11:39:59Z guillaume $
 
 
 %==========================================================================
@@ -855,7 +855,6 @@ switch lower(varargin{1})
         end
 
         if ~isempty(str)        %-error: display error dialog box
-            spm('Beep')
             msgbox(str,sprintf('%s: %s...',spm('Version'),mfilename),...
                 'error','modal')
         else                    %-OK, set Done UserData tag for handling
@@ -1341,7 +1340,6 @@ switch lower(varargin{1})
         dCon = ~isempty(DxCon);
 
         if ~(dNam && dCon)
-            spm('Beep')
             str = { 'contrast name not defined!','',...
                 'no valid contrast defined!',''};
             msgbox(str([dNam+1,dCon+3]),...

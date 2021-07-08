@@ -168,10 +168,10 @@ function varargout = spm_input(varargin)
 % See also : spm_select.m   (SPM file selector dialog)
 %          : spm_input.m (Input wrapper function - handles batch mode)
 %_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1994-2021 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_input.m 7874 2020-06-15 20:47:01Z guillaume $
+% $Id: spm_input.m 8121 2021-07-08 11:39:59Z guillaume $
 
 
 %=======================================================================
@@ -710,7 +710,6 @@ if CmdLine                                   %-Use CmdLine to get answer
         if isempty(str), str=DefStr; end
 
         while isempty(str)
-            spm('Beep')
             fprintf('! %s : enter something!\n',mfilename)
             str = input([Prompt,' : '],'s');
             if isempty(str), str=DefStr; end
@@ -728,7 +727,6 @@ if CmdLine                                   %-Use CmdLine to get answer
 
         str = input('l001 : ','s');
         while (isempty(str) || strcmp(str,'.')) && isempty(DefStr)
-            spm('Beep')
             fprintf('! %s : enter something!\n',mfilename)
             str = input('l001 : ','s');
         end
@@ -756,7 +754,7 @@ if CmdLine                                   %-Use CmdLine to get answer
         [p,msg] = sf_eEval(str,Type,n,m);
 
         while ischar(p)
-            spm('Beep'), fprintf('! %s : %s\n',mfilename,msg)
+            fprintf('! %s : %s\n',mfilename,msg)
             str = input([Prompt,' : '],'s');
             if isempty(str), str=DefStr; end
             [p,msg] = sf_eEval(str,Type,n,m);
@@ -853,7 +851,7 @@ else                                             %-Use GUI to get answer
             set(h,'Style','Text',...
                 'String',msg,'HorizontalAlignment','Center',...
                 'ForegroundColor','r')
-            spm('Beep'), pause(2)
+            pause(2)
             set(h,'Style','Edit',...
                 'String',str,...
                 'HorizontalAlignment','Left',...
@@ -1248,7 +1246,7 @@ if CmdLine
         %-Eval in Base workspace, catch errors
         [p,msg] = sf_eEval(str,Type(2),1,m);
         while ischar(p)
-            spm('Beep'), fprintf('! %s : %s\n',mfilename,msg)
+            fprintf('! %s : %s\n',mfilename,msg)
             str = input([Prompt,' : '],'s');
             if isempty(str), str=DefStr; end
             [p,msg] = sf_eEval(str,Type(2),1,m);
@@ -1370,7 +1368,6 @@ else
                 'ForegroundColor','r',...
                 'BackgroundColor',COLOUR,...
                 'Tag',Tag,'Position',RRec);
-            spm('Beep')
             pause(2), delete(h), set(H,'Visible','on')
             set(hPrmpt,'UserData','')
             waitfor(hPrmpt,'UserData')
