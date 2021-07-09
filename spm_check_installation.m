@@ -16,7 +16,7 @@ function varargout = spm_check_installation(action)
 % Copyright (C) 2009-2019 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_check_installation.m 7752 2019-12-13 12:58:59Z guillaume $
+% $Id: spm_check_installation.m 8122 2021-07-09 17:12:13Z guillaume $
 
 if isdeployed, return; end
 
@@ -255,9 +255,9 @@ fprintf('SPM version is %s (%s, %s)\n', ...
 %-Detect SPM toolboxes
 %--------------------------------------------------------------------------
 officials = {'DAiSS', 'DARTEL', 'dcm_fnirs', 'dcm_meeg', 'DEM', 'FieldMap', ...
-    'Longitudinal', 'mci', 'MEEGtools', 'mixture', 'mlm', 'Neural_Models', ...
-    'NVC', 'OldNorm', 'OldSeg', 'Shoot', 'spectral', 'SPEM_and_DCM', ...
-    'SRender', 'TSSS'};
+    'Longitudinal', 'mb', 'mci', 'MEEGtools', 'mixture', 'mlm', ...
+    'Neural_Models', 'NVC', 'OldNorm', 'OldSeg', 'Shoot', 'Spatial', ...
+    'spectral', 'SPEM_and_DCM', 'SRender', 'TSSS'};
 dd = dir(fullfile(SPMdir,'toolbox'));
 dd = {dd([dd.isdir]).name};
 dd(strncmp('.',dd,1)) = [];
@@ -389,14 +389,22 @@ fprintf('%s %40s\n','Parsing local installation...','...done');
 %-Get file details for most recent public version
 %--------------------------------------------------------------------------
 fprintf('Downloading SPM information...');
-url = sprintf('http://www.fil.ion.ucl.ac.uk/spm/software/%s/%s.xml',...
+url = sprintf('https://www.fil.ion.ucl.ac.uk/spm/software/%s/%s.xml',...
     lower(v.Release),lower(v.Release));
 try
     p = [tempname '.xml'];
     urlwrite(url,p);
 catch
-    fprintf('\nCannot access URL %s\n',url);
-    return;
+    try
+        x = webread(url,weboptions('CertificateFilename',''));
+        fid = fopen(p,'wt');
+        if fid == -1, error('Cannot write file.'); end
+        fprintf(fid,'%s',x);
+        fclose(fid);
+    catch
+        fprintf('\nCannot access URL %s\n',url);
+        return;
+    end
 end
 fprintf('%40s\n','...done');
 
