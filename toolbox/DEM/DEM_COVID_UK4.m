@@ -56,7 +56,7 @@ url = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=overview&metric=newD
 writetable(webread(url,options),'deaths.csv');
 url = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=overview&metric=covidOccupiedMVBeds&format=csv';
 writetable(webread(url,options),'critical.csv');
-url = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=overview&metric=newPillarOneTwoTestsByPublishDate&format=csv';
+url = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=nation&areaCode=E92000001&metric=newTestsByPublishDate&format=csv';
 writetable(webread(url,options),'tests.csv');
 url = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=overview&metric=newAdmissions&format=csv';
 writetable(webread(url,options),'admissions.csv');
@@ -215,11 +215,9 @@ ratio      = importdata('ratio.csv');
 
 d          = find(ismember(cases.textdata(1,1:end),'date'));
 
-
-
 % create data structure
 %--------------------------------------------------------------------------
-Y(1).type = 'Positive virus tests (ONS)'; % daily PCR positive cases (by specimen)
+Y(1).type = 'Positive virus tests (ONS)'; % daily positive cases
 Y(1).unit = 'number/day';
 Y(1).U    = 2;
 Y(1).date = datenum(cases.textdata(5:end,d),'yyyy-mm-dd');
@@ -229,11 +227,11 @@ Y(1).lag  = 1;
 Y(1).age  = 0;
 Y(1).hold = 0;
 
-Y(2).type = 'Virus tests (ONS)'; % daily PCR tests performed
+Y(2).type = 'Virus tests (ONS)'; % newVirusTests (England)
 Y(2).unit = 'number/day';
 Y(2).U    = 6;
 Y(2).date = datenum(tests.textdata(2:end,d),'yyyy-mm-dd');
-Y(2).Y    = tests.data(:,1);
+Y(2).Y    = tests.data(:,1)*6708/5655;
 Y(2).h    = 0;
 Y(2).lag  = 0;
 Y(2).age  = 0;
@@ -394,7 +392,7 @@ Y(17).type = 'Seropositive 15-35 (PHE)'; % percent antibody positive (England)
 Y(17).unit = 'percent';
 Y(17).U    = 5;
 Y(17).date = datenum(serology.textdata(2:end,1),'dd/mm/yyyy');
-Y(17).Y    = serology.data(:,j(1:2))*ons{1}*100;
+Y(17).Y    = serology.data(:,j(1:2))*ons{1};
 Y(17).h    = 2;
 Y(17).lag  = 0;
 Y(17).age  = 2;
@@ -404,7 +402,7 @@ Y(18).type = 'Seropositive 35-70 (PHE)'; % percent antibody positive (England)
 Y(18).unit = 'percent';
 Y(18).U    = 5;
 Y(18).date = datenum(serology.textdata(2:end,1),'dd/mm/yyyy');
-Y(18).Y    = serology.data(:,j(3:6))*ons{2}*100;
+Y(18).Y    = serology.data(:,j(3:6))*ons{2};
 Y(18).h    = 2;
 Y(18).lag  = 0;
 Y(18).age  = 3;
@@ -414,7 +412,7 @@ Y(19).type = 'Seropositive 15-35-70- (PHE)'; % percent antibody positive (Englan
 Y(19).unit = 'percent';
 Y(19).U    = 5;
 Y(19).date = datenum(serology.textdata(2:end,1),'dd/mm/yyyy');
-Y(19).Y    = serology.data(:,j(7:9))*ons{3}*100;
+Y(19).Y    = serology.data(:,j(7:9))*ons{3};
 Y(19).h    = 2;
 Y(19).lag  = 0;
 Y(19).age  = 4;
@@ -607,6 +605,8 @@ pE.ho   = zeros(1,2);          % coefficients for admissions
 pC.ho   = ones(1,2)/8;         % prior variance
 pE.hc   = zeros(1,2);          % coefficients for hospital cases
 pC.hc   = ones(1,2)/8;         % prior variance
+pE.sy   = zeros(1,1);          % coefficients for symptoms
+pC.sy   = ones(1,1)/8;         % prior variance
 
 % age-specific
 %--------------------------------------------------------------------------
@@ -614,8 +614,6 @@ pE.mo   = zeros(nN,2);         % coefficients for mobility
 pC.mo   = ones(nN,2)/8;        % prior variance
 pE.wo   = zeros(nN,2);         % coefficients for retail
 pC.wo   = ones(nN,2)/8;        % prior variance
-pE.sy   = zeros(nN,1);         % coefficients for symptoms
-pC.sy   = ones(nN,1)/8;        % prior variance
 
 % augment priors with fluctuations
 %--------------------------------------------------------------------------
@@ -782,7 +780,7 @@ legend({'<15yrs','15-35yrs','35-70yrs','>70yrs'})
 
 %% long-term forecasts Newton(six months from the current data)
 %==========================================================================
-spm_figure('GetWin','outcomes (4)');
+spm_figure('GetWin','outcomes (4)'); clf
 
 Ep  = DCM.Ep;
 Cp  = DCM.Cp;
@@ -798,6 +796,12 @@ spm_SARS_ci(Ep,Cp,[],20,M); hold on
 ylabel('cases per 100,000'), title('Incidence per 100,000','FontSize',14)
 plot(datenum(date)*[1,1],get(gca,'YLim'),':')
 legend({'CI per day','actual cases per day','CI per week','confirmed cases per week'})
+
+subplot(2,1,2)
+spm_SARS_ci(Ep,Cp,[],2,M); hold on
+plot(datenum(date)*[1,1],get(gca,'YLim'),':')
+legend({'CI per day','people testing positive'})
+
 
 %% switch windows
 %--------------------------------------------------------------------------
@@ -829,7 +833,7 @@ i       = find(DCM.U == 14,1); D = DCM.Y(:,i);
 %--------------------------------------------------------------------------
 u1   = datenum('10-May-2020','dd-mmm-yyyy') - t(1) + 1;
 u2   = datenum('10-Aug-2020','dd-mmm-yyyy') - t(1) + 1;
-u3   = datenum('23-Jul-2021','dd-mmm-yyyy') - t(1) + 1;
+u3   = datenum('01-Sep-2020','dd-mmm-yyyy') - t(1) + 1;
 U    = sort([0 q(u1) q(u2) q(u3)]);
 dstr = datestr(t,'dd-mmm');
 
@@ -895,7 +899,7 @@ str = sprintf('Prevalence and reproduction ratio (%s): R = %.2f (CI %.2f to %.2f
 
 % attack rate, herd immunity and herd immunity threshold
 %--------------------------------------------------------------------------
-[H,~,~,R] = spm_SARS_gen(Ep,M,[4 22 26]);
+[H,~,~,R] = spm_SARS_gen(Ep,M,[4 29 26]);
 i         = 16:32;                          % pre-pandemic period
 TRN       = [R{1}.Ptrn];                    % transmission risk
 R0        = mean(H(i,1));                   % basic reproduction ratio
@@ -933,7 +937,7 @@ spm_SARS_ci(Ep,Cp,[],26,M); hold on
 plot(t,HIT,t,VAC), hold on
 plot(t(i)*[1,1],[0,100],':k'), set(gca,'YLim',[0,100])
 ylabel('percent'),  title('Attack rate and immunity','FontSize',14)
-legend({'CI','Attack rate','CI','Population immunity','Effective immunity threshold','Vaccine coverage'})
+legend({'CI','Attack rate','CI','Population immunity','Effective immunity threshold','Vaccine antibodies'})
 legend boxoff
 leg = sprintf('%s (EIT: %.1f%s)',datestr(t(i),'dd-mmm-yy'),HIT(i),'%');
 text(t(i),8,leg,'FontSize',10), drawnow
@@ -1147,11 +1151,12 @@ spm_figure('GetWin','states'); clf;
 M.T    = datenum(date) - datenum(DCM.M.date,'dd-mm-yyyy');
 M.T    = M.T + 180;
 
-u      = 2;
-Ep.rel   = DCM.Ep.rel - 0;
+u      = 22;
+Ep.rel = DCM.Ep.rel - 0;
 
-[Z,X]  = spm_SARS_gen(Ep,M,u,[],0);
-spm_SARS_plot(Z,X,S(:,find(U == u(1))),u)
+[Z,X]  = spm_SARS_gen(Ep,M,u,[],4);
+j      = find(U == u(1));
+spm_SARS_plot(Z,X,S(:,j(3)),u)
 subplot(3,2,1), hold on
 
 

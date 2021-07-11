@@ -561,3 +561,166 @@ end
 return
 
 
+
+%% scenario modelling for relaxing restrictions on 19 July 2021
+%==========================================================================
+clear
+DCM = load('DCM_UK.mat','DCM');
+DCM = DCM.DCM;
+
+% parametric intervention (relaxation social distancing threshold)
+%==========================================================================
+period = {DCM.M.date,'01-04-2022'};          % duration of epidemic
+
+% scenario: relaxation of restrictions on 21st of June
+%--------------------------------------------------------------------------
+NPI(1).period = period;
+NPI(1).param  = {'qua'};
+NPI(1).Q      = 1;
+NPI(1).dates  = {'19-07-2021','01-10-2021',};
+
+NPI(2).period = period;
+NPI(2).param  = {'qua'};
+NPI(2).Q      = 1;
+NPI(2).dates  = {'19-08-2021','01-10-2021',};
+
+NPI(3).period = period;
+NPI(3).param  = {'qua'};
+NPI(3).Q      = 1;
+NPI(3).dates  = {'19-09-2021','01-10-2021',};
+
+% unpack model and posterior expectations
+%--------------------------------------------------------------------------
+M   = DCM.M;                                 % model (priors)
+Ep  = DCM.Ep;                                % posterior expectation
+Cp  = DCM.Cp;                                % posterior covariances
+S   = DCM.Y;                                 % smooth timeseries
+U   = DCM.U;                                 % indices of outputs
+
+% plot epidemiological trajectories and hold plots
+%==========================================================================
+spm_figure('GetWin','states'); clf;
+%--------------------------------------------------------------------------
+M.T    = datenum(period{2},'dd-mm-yyyy') - datenum(period{1},'dd-mm-yyyy');
+u      = 2;
+[Z,X]  = spm_SARS_gen(Ep,M,u);
+spm_SARS_plot(Z,X,S(:,find(U == u)),u)
+
+% the effect of intervention (NPI) on latent states
+%--------------------------------------------------------------------------
+u     = 2;
+for i = 1:numel(NPI)
+    for j = 1:2, subplot(3,2,j), hold on, end
+    for j = 5:12,subplot(6,2,j), hold on, end
+    
+    [Z,X] = spm_SARS_gen(Ep,M,u,NPI(i));
+    spm_SARS_plot(Z,X,S(:,find(U == u)),u)
+end
+
+
+%% confidence intervals: fatalities (u = 1), cases (u = 2), retail (u = 14)
+% admissions (u = 16) and Long COVID (u = 28)
+%--------------------------------------------------------------------------
+spm_figure('GetWin','outcomes'); clf;
+%--------------------------------------------------------------------------
+u  = [1 2 14 16 28];
+nu = numel(u);
+
+for j = 1:numel(NPI)
+    for i = 1:nu
+
+        subplot(nu,1,i), hold on
+        [m1,c1] = spm_SARS_ci(Ep,Cp,S(:,find(U == u(i),1)),u(i),M);
+        subplot(nu,1,i), hold on
+        [m2,c2] = spm_SARS_ci(Ep,Cp,S(:,find(U == u(i),1)),u(i),M,NPI(j));
+        
+        m1  = m1(end);
+        m2  = m2(end);
+        c1  = c1(end);
+        c2  = c2(end);
+        d   = m2 - m1;
+        
+        sprintf('1st %.0f (%.0f to %.0f)',m1,m1 - 1.64*sqrt(c1),m1 + 1.64*sqrt(c1))
+        sprintf('2nd %.0f (%.0f to %.0f)',m2,m2 - 1.64*sqrt(c2),m2 + 1.64*sqrt(c2))
+        sprintf('Dif %.0f (%.2f percent)',d, 100*d/m1)
+    end
+end
+
+return
+
+
+
+%% scenario modelling the impact of vaccinating children
+%==========================================================================
+clear
+DCM = load('DCM_UK.mat','DCM');
+DCM = DCM.DCM;
+
+% parametric intervention (relaxation social distancing threshold)
+%==========================================================================
+period = {DCM.M.date,'01-04-2023'};          % duration of epidemic
+
+% unpack model and posterior expectations
+%--------------------------------------------------------------------------
+M   = DCM.M;                                 % model (priors)
+Ep  = DCM.Ep;                                % posterior expectation
+Cp  = DCM.Cp;                                % posterior covariances
+S   = DCM.Y;                                 % smooth timeseries
+U   = DCM.U;                                 % indices of outputs
+
+% plot epidemiological trajectories and hold plots
+%==========================================================================
+spm_figure('GetWin','states'); clf;
+%--------------------------------------------------------------------------
+M.T    = datenum(period{2},'dd-mm-yyyy') - datenum(period{1},'dd-mm-yyyy');
+u      = 2;
+[Z,X]  = spm_SARS_gen(Ep,M,u);
+spm_SARS_plot(Z,X,S(:,find(U == u)),u)
+
+% suppress vaccination of children
+%--------------------------------------------------------------------------
+Ep.rol(1) = -16;
+Ep.fol(1) = -16;
+
+for j = 1:2, subplot(3,2,j), hold on, end
+for j = 5:12,subplot(6,2,j), hold on, end
+
+[Z,X] = spm_SARS_gen(Ep,M,u);
+spm_SARS_plot(Z,X,S(:,find(U == u)),u)
+
+
+%% confidence intervals: fatalities (u = 1), cases (u = 2), retail (u = 14)
+% admissions (u = 16) and Long COVID (u = 28)
+%--------------------------------------------------------------------------
+spm_figure('GetWin','outcomes'); clf;
+%--------------------------------------------------------------------------
+u  = [1 2 14 16 28];
+nu = numel(u);
+for i = 1:nu
+    
+    Ep.rol(1) = DCM.Ep.rol(1);
+    Ep.fol(1) = DCM.Ep.fol(1);
+    subplot(nu,1,i), hold on
+    [m1,c1] = spm_SARS_ci(Ep,Cp,S(:,find(U == u(i),1)),u(i),M);
+    
+    % suppress vaccination of children
+    %--------------------------------------------------------------------------
+    Ep.rol(1) = -16;
+    Ep.fol(1) = -16;
+    subplot(nu,1,i), hold on
+    [m2,c2] = spm_SARS_ci(Ep,Cp,S(:,find(U == u(i),1)),u(i),M);
+    
+    m1  = m1(end);
+    m2  = m2(end);
+    c1  = c1(end);
+    c2  = c2(end);
+    d   = m1 - m2;
+    
+    sprintf('1st %.0f (%.0f to %.0f)',m1,m1 - 1.64*sqrt(c1),m1 + 1.64*sqrt(c1))
+    sprintf('2nd %.0f (%.0f to %.0f)',m2,m2 - 1.64*sqrt(c2),m2 + 1.64*sqrt(c2))
+    sprintf('Dif %.0f (%.0f to %.0f)',d, d  - 1.64*sqrt(c1),d  + 1.64*sqrt(c1))
+    
+end
+
+return
+

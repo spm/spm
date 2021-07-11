@@ -36,8 +36,10 @@ function [y,x,z,W] = spm_SARS_gen(P,M,U,NPI,age)
 % Y(:,23) - PCR case positivity (%)
 % Y(:,24) - Lateral flow tests
 % Y(:,25) - Cumulative attack rate
-% Y(:,26) - Population immunity
+% Y(:,26) - Population immunity (total)
 % Y(:,27) - Hospital occupancy
+% Y(:,28) - Incidence of long COVID
+% Y(:,29) - Population immunity (vaccine)
 %
 % X       - (M.T x 4) marginal densities over four factors
 % location   : {'home','out','ccu','removed','isolated','hospital'};
@@ -75,7 +77,7 @@ function [y,x,z,W] = spm_SARS_gen(P,M,U,NPI,age)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_gen.m 8118 2021-07-03 10:45:45Z karl $
+% $Id: spm_SARS_gen.m 8123 2021-07-11 10:28:01Z karl $
 
 
 % The generative model:
@@ -263,7 +265,7 @@ end
     
 % outputs that depend upon population size
 %--------------------------------------------------------------------------
-uN    = [1,2,3,6,9,12,15,16,17,18,24,27];
+uN    = [1,2,3,6,9,12,15,16,17,18,24,27,28];
 
 % ensemble density tensor and solve over the specified number of days
 %--------------------------------------------------------------------------
@@ -530,16 +532,24 @@ for i = 1:M.T
         
         % cumulative number of people (first dose) vaccinated (%)
         %------------------------------------------------------------------
-        pvac(n)    = pvac(n) + (1 - pvac(n))*V.Rvac;
+        if isfield(Q{n},'pro')
+            pvac(n) = pvac(n) + (1 - Q{n}.pro - pvac(n))*V.Rvac;
+        else
+            pvac(n) = pvac(n) + (1 - pvac(n))*V.Rvac;
+        end
         Y{n}(i,22) = 100 * pvac(n);
         
-        % PCR case positivity (%)(seven day rolling average)
+        % PCR case positivity (%) (seven day rolling average)
         %------------------------------------------------------------------
         Y{n}(i,23) = 100 * (1 - (1 - p{n}{4}(3))^7)/(1 - (1 - p{n}{4}(3) - p{n}{4}(4))^7);
         
         % daily lateral flow tests (positive and negative)
         %------------------------------------------------------------------
         Y{n}(i,24) = N(n) * (p{n}{4}(5) + p{n}{4}(6));
+        
+        % incidence of long COVID (number): 8 p.c. of incidence of symptoms
+        %------------------------------------------------------------------
+        Y{n}(i,28) = N(n) * p{n}{3}(2) * (1 - exp(-1/Q{n}.Tsy)) * 8/100;
         
         
         % joint density
@@ -578,15 +588,17 @@ for n = 1:nN
     Pinf       = [W{n}.Pinf]';
     Y{n}(:,21) = 100 * (1 - Pinf.^(Q{n}.Tin + Q{n}.Tcn)).*Psev.*Pfat;
 
-    % Y{n}(:,21) = 100 * cumsum(Y{n}(:,1)/N(n))./cumsum(Y{n}(:,10)/100 + exp(-16));
-
     % cumulative attack rate (%)
     %----------------------------------------------------------------------
     Y{n}(:,25) = cumsum(Y{n}(:,10));
     
-    % population immunity (seropositive, seronegative and vaccine)(%)
+    % population immunity (seropositive, seronegative and vaccine) (%)
     %----------------------------------------------------------------------
     Y{n}(:,26) = 100 * sum(X{n,2}(:,4:6),2);
+    
+    % population immunity (vaccine) (%)
+    %----------------------------------------------------------------------
+    Y{n}(:,29) = 100 * sum(X{n,2}(:,6),2);
     
     % accommodate (3 week) delay in immunity following vaccination
     %----------------------------------------------------------------------

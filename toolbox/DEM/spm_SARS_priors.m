@@ -37,7 +37,7 @@ function [P,C,str] = spm_SARS_priors(nN)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_priors.m 8118 2021-07-03 10:45:45Z karl $
+% $Id: spm_SARS_priors.m 8123 2021-07-11 10:28:01Z karl $
 
 % sources and background
 %--------------------------------------------------------------------------
@@ -66,7 +66,7 @@ if nargin
     %----------------------------------------------------------------------
     [P,C,str] = spm_SARS_priors;
     free  = {'N','Nin','Nou','sde','mem','qua','hos','ccu','res','Tim',...
-             'sev','lat','fat','sur','tes','tts','rol'};
+             'sev','lat','fat','sur','tes','tts','rol','pro'};
 
     if nN == 1
         
@@ -150,8 +150,15 @@ if nargin
                      0.04]);
         P.lat = P.sev;
         
+        % unvaccinated proportion
+        %------------------------------------------------------------------
+        P.pro = log([0.64;
+                     0.32;
+                     0.16;
+                     0.08]);
+        
         % contact matrices: number of contacts per day
-        %----------------------------------------------------------------------
+        %------------------------------------------------------------------
         P.Nin = log([2     1     1    1;
                      1     2     1    1;
                      1     1     2    1;
@@ -242,6 +249,7 @@ names{49} = 'loss of T-cell immunity';
 names{50} = 'LFD specificity';
 names{51} = 'LFD sensitivity';
 names{52} = 'relative positivity';
+names{53} = 'unvaccinated proportion';
 
 
 
@@ -282,8 +290,10 @@ factor{5} = {' ',' '};
 % Y(:,23) - PCR case positivity (%)
 % Y(:,24) - Lateral flow tests
 % Y(:,25) - Cumulative attack rate
-% Y(:,26) - Population immunity
+% Y(:,26) - Population immunity (total)
 % Y(:,27) - Hospital cases
+% Y(:,28) - Incidence of Long Covid
+% Y(:,29) - population immunity (vaccine)
 
 str.outcome = {'Daily deaths (28 days)',...
     'Daily confirmed cases',...
@@ -311,7 +321,9 @@ str.outcome = {'Daily deaths (28 days)',...
     'Lateral flow tests',...
     'Attack rate (%)',...
     'Herd immunity (%)'...
-    'Hospital cases'};
+    'Hospital cases'...
+    'Incidence of Long Covid'...
+    'Vaccine seroconversion'};
 
 str.factors = factors;
 str.factor  = factor;
@@ -389,6 +401,8 @@ P.Tnn = 512;                  % (49) loss of T-cell immunity (days)
 P.lnr = 0.5;                  % (50) LFD sensitivity
 P.lpr = 0.001;                % (51) LFD specificity
 P.rel = .5;                   % (52) relative positivity
+P.pro = .08;                  % (53) unvaccinated proportion
+
 
 % infection fatality (for susceptible population)
 %--------------------------------------------------------------------------
@@ -472,6 +486,7 @@ C.Tnn = X;                    % (49) loss of T-cell immunity (days)
 C.lnr = W;                    % (50) LFD sensitivity
 C.lpr = W;                    % (51) LFD specificity
 C.rel = V;                    % (52) relative positivity
+C.pro = V;                    % (53) unvaccinated proportion
 
 % check prior expectations and covariances are consistent
 %--------------------------------------------------------------------------
