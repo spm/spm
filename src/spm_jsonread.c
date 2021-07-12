@@ -1,5 +1,5 @@
 /*
- * $Id: spm_jsonread.c 7863 2020-05-26 10:50:07Z guillaume $
+ * $Id: spm_jsonread.c 8124 2021-07-12 16:26:10Z guillaume $
  * Guillaume Flandin
  */
 
@@ -89,11 +89,11 @@ static int should_convert_to_array(const mxArray *pm) {
         }
         if (cat == mxSTRUCT_CLASS) {
             nfields = mxGetNumberOfFields(mxGetCell(pm, i));
-            if (nfields != mxGetNumberOfFields(mxGetCell(pm, 0))) {
+            if (nfields != (size_t)mxGetNumberOfFields(mxGetCell(pm, 0))) {
                 return 0;
             }
             for (j = 0; j < nfields; j++) {
-                if (mxGetFieldNumber(mxGetCell(pm, 0), mxGetFieldNameByNumber(mxGetCell(pm, i), j)) != j) {
+                if (mxGetFieldNumber(mxGetCell(pm, 0), mxGetFieldNameByNumber(mxGetCell(pm, i), j)) != (int)j) {
                     return 0;
                 }
             }
@@ -226,8 +226,8 @@ static char * valid_fieldname_underscore(char *field, int *need_free) {
     if ( (field[0] == '\0') || (field[0] == '_')
       || ((field[0] >= '0') && (field[0] <= '9')) ) {
         if (strlen(Prefix) == 1) {
-            field = field - 1;
-            field[0] = Prefix[0];
+            ret = field - 1;
+            ret[0] = Prefix[0];
         }
         else {
             *need_free = 1;
@@ -376,7 +376,7 @@ static int array(char *js, jsmntok_t *tok, mxArray **mx) {
                 parray[0] = *mx;
                 parray[1] = mxCreateNumericMatrix(1, d, mxDOUBLE_CLASS, mxREAL);
                 mxGetPr(parray[1])[0] = d;
-                for (i=1;i<d;i++) {
+                for (i = 1; i < (int)d; i++) {
                     mxGetPr(parray[1])[i] = i;
                 }
                 sts = mexCallMATLAB(1, mx, 2, parray, "permute");
@@ -481,7 +481,8 @@ static jsmntok_t * parse(const char *js, size_t jslen) {
 
 static char * get_data(const mxArray * mx, size_t * jslen) {
     /* should attempt to minimise copy */
-    int i, filename, sts;
+    size_t i;
+    int filename, sts;
     mxArray *ma = NULL;
     char *js = NULL;
 
@@ -519,17 +520,17 @@ static char * get_data(const mxArray * mx, size_t * jslen) {
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     char *js = NULL;
     const char *field = NULL;
-    size_t i, jslen = 0, nfields;
+    size_t i, j, jslen = 0, nfields;
     jsmntok_t *tok = NULL;
-    mxArray *mx = NULL;
+    mxArray *mx = NULL, *opts = NULL;
     char *val = NULL;
 
     /* Validate input arguments */
     if (nrhs == 0) {
         mexErrMsgTxt("Not enough input arguments.");
     }
-    else if (nrhs > 2) {
-        mexErrMsgTxt("Too many input arguments.");
+    if (nlhs > 1) {
+        mexErrMsgTxt("Too many output arguments.");
     }
     if (!mxIsChar(prhs[0])) {
         mexErrMsgTxt("Input must be a string.");
@@ -538,14 +539,32 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     Prefix[0] = 'x'; Prefix[1] = '\0';
     
     if (nrhs > 1) {
-        if (!mxIsStruct(prhs[1])){
+        if (mxIsChar(prhs[1])) {
+            if (nrhs % 2 == 0) {
+                mexErrMsgTxt("Invalid syntax.");
+            }
+            opts = mxCreateStructMatrix(1, 1, 0, NULL);
+            for (i = 1; i < (size_t)nrhs; i+=2) {
+                val = mxArrayToString(prhs[i]);
+                j = mxAddField(opts, val);
+                mxFree(val);
+                mxSetFieldByNumber(opts, 0, j, mxDuplicateArray(prhs[i+1]));
+            }
+        }
+        else if (!mxIsStruct(prhs[1])) {
             mexErrMsgTxt("Input must be a struct.");
         }
-        nfields = mxGetNumberOfFields(prhs[1]);
+        else if (nrhs > 2) {
+            mexErrMsgTxt("Too many input arguments.");
+        }
+        else {
+            opts = (mxArray *)prhs[1];
+        }
+        nfields = mxGetNumberOfFields(opts);
         for (i = 0; i < nfields; i++) {
-            field = mxGetFieldNameByNumber(prhs[1], i);
+            field = mxGetFieldNameByNumber(opts, i);
             if (!strcasecmp(field,"replacementStyle")) {
-                mx = mxGetFieldByNumber(prhs[1],0,i);
+                mx = mxGetFieldByNumber(opts,0,i);
                 if (mx != NULL) {
                     val = mxArrayToString(mx);
                     if (!strcasecmp(val,"nop")) {
@@ -567,7 +586,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
                 }
             }
             else if (!strcasecmp(field,"Prefix")) {
-                mx = mxGetFieldByNumber(prhs[1],0,i);
+                mx = mxGetFieldByNumber(opts,0,i);
                 if (mx != NULL) {
                     val = mxArrayToString(mx);
                     strncpy(Prefix,val,BUFLEN-1);
@@ -592,4 +611,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 
     mxFree(js);
     mxFree(tok);
+    
+    if ((nrhs > 1) && (mxIsChar(prhs[1]))) {
+        mxDestroyArray(opts);
+    }
 }

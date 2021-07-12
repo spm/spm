@@ -3,7 +3,7 @@ function tests = test_spm
 %__________________________________________________________________________
 % Copyright (C) 2021 Wellcome Centre for Human Neuroimaging
 
-% $Id: test_spm.m 8120 2021-07-08 11:27:23Z guillaume $
+% $Id: test_spm.m 8124 2021-07-12 16:26:10Z guillaume $
 
 tests = functiontests(localfunctions);
 
@@ -37,4 +37,3 @@ mem_avail = spm('Memory','available');
 testCase.verifyThat(mem_avail, IsOfClass('double'));
 mem_total = spm('Memory','total');
 testCase.verifyThat(mem_total, IsOfClass('double'));
-testCase.verifyThat(mem_total, IsGreaterThan(mem_avail));
