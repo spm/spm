@@ -833,7 +833,7 @@ i       = find(DCM.U == 14,1); D = DCM.Y(:,i);
 %--------------------------------------------------------------------------
 u1   = datenum('10-May-2020','dd-mmm-yyyy') - t(1) + 1;
 u2   = datenum('10-Aug-2020','dd-mmm-yyyy') - t(1) + 1;
-u3   = datenum('01-Sep-2020','dd-mmm-yyyy') - t(1) + 1;
+u3   = datenum('10-Sep-2020','dd-mmm-yyyy') - t(1) + 1;
 U    = sort([0 q(u1) q(u2) q(u3)]);
 dstr = datestr(t,'dd-mmm');
 

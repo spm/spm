@@ -77,7 +77,7 @@ function [y,x,z,W] = spm_SARS_gen(P,M,U,NPI,age)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_gen.m 8123 2021-07-11 10:28:01Z karl $
+% $Id: spm_SARS_gen.m 8125 2021-07-17 20:27:42Z karl $
 
 
 % The generative model:
@@ -336,7 +336,7 @@ for i = 1:M.T
         %------------------------------------------------------------------
         q    = p{n}{2}(2)*Q{n}.sde;               % prevalence dependent
         k1   = exp(-i/Q{n}.mem)*q;                % contact rates
-        k2   = exp(-1/Q{n}.qua);                  % relaxation
+        k2   = exp(-1/(Q{n}.qua * p{n}{2}(1)));   % relaxation
         r{n} = [(1 - k1) (1 - k2);
                      k1,      k2]*r{n};
         
@@ -547,9 +547,9 @@ for i = 1:M.T
         %------------------------------------------------------------------
         Y{n}(i,24) = N(n) * (p{n}{4}(5) + p{n}{4}(6));
         
-        % incidence of long COVID (number): 8 p.c. of incidence of symptoms
+        % incidence of long COVID (number): 3 p.c. of incidence of symptoms
         %------------------------------------------------------------------
-        Y{n}(i,28) = N(n) * p{n}{3}(2) * (1 - exp(-1/Q{n}.Tsy)) * 8/100;
+        Y{n}(i,28) = N(n) * p{n}{3}(2) * (1 - exp(-1/Q{n}.Tsy)) * 3/100;
         
         
         % joint density
