@@ -3,7 +3,7 @@ function cfg = tbx_cfg_mb
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: tbx_cfg_mb.m 8115 2021-06-30 08:55:47Z john $
+% $Id: tbx_cfg_mb.m 8126 2021-07-22 17:58:11Z john $
 
 
 if ~isdeployed, addpath(fileparts(mfilename('fullpath'))); end
@@ -330,14 +330,17 @@ mu_prov.help    = {[...
 aff             = cfg_menu;
 aff.tag         = 'aff';
 aff.name        = 'Affine';
-aff.labels      = {'None', 'Translations', 'Rigid'};
-aff.values      = {'', 'T(3)', 'SE(3)'};
+aff.labels      = {'None', 'Translations', 'Rigid', 'Affine'};
+aff.values      = {'', 'T(3)', 'SE(3)', 'Aff(3)'};
 aff.val         = {'SE(3)'};
 aff.help        = {[...
 'Type of affine transform to use in the model, which may be either ' ...
 'none, translations only (T(3)) or rigid body (SE(3)). The fitting ' ...
 'begins with affine registration, before continuing by interleaving ' ...
-'affine and diffeomorphic registrations over multiple spatial scales.'],''};
+'affine and diffeomorphic registrations over multiple spatial scales.' ...
+'Note that the ``Affine'''' option is likely to throw up lots of ' ...
+'warnings about ``QFORM0 representation has been rounded'''', which ' ...
+'can mostly be ignored.'],''};
 % ---------------------------------------------------------------------
 
 % ---------------------------------------------------------------------

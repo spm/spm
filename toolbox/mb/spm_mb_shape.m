@@ -25,7 +25,7 @@ function varargout = spm_mb_shape(varargin)
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_shape.m 8086 2021-04-01 09:13:20Z john $
+% $Id: spm_mb_shape.m 8126 2021-07-22 17:58:11Z john $
 [varargout{1:nargout}] = spm_subfun(localfunctions,varargin{:});
 %==========================================================================
 
@@ -102,6 +102,21 @@ elseif g.dim==3
         B(3,1,5) = -1;
         B(2,3,6) =  1;
         B(3,2,6) = -1;
+    case 'Aff'
+        % Aff(3) - Affine
+        B        = zeros(4,4,6);
+        B(1,1,1) =  1;
+        B(2,1,2) =  1;
+        B(3,1,3) =  1;
+        B(1,2,4) =  1;
+        B(2,2,5) =  1;
+        B(3,2,6) =  1;
+        B(1,3,7) =  1;
+        B(2,3,8) =  1;
+        B(3,3,9) =  1;
+        B(1,4,10)=  1;
+        B(2,4,11)=  1;
+        B(3,4,12)=  1;
     otherwise
         error('Unknown group.');
     end
