@@ -22,7 +22,7 @@ function [T,R] = spm_COVID_T(P,I)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_T.m 8118 2021-07-03 10:45:45Z karl $
+% $Id: spm_COVID_T.m 8127 2021-07-25 13:21:02Z karl $
 
 % setup
 %==========================================================================
@@ -54,13 +54,12 @@ Pdis = P.m*Pexp;                     % P(leaving effective population)
 % bed availability
 %--------------------------------------------------------------------------
 Phos = erf(P.hos);                   % P(hospital | ARDS)
-Pnhs = 0.03;                         % P(hospital | NHS/care worker)
 Pcap = erf(P.ccu);                   % P(transfer to CCU | ARDS)
 Piso = exp(-1/P.iso);                % period of self-isolation
 
-Ph2h = (1 - Pout)*(1 - Pdis)*(1 - Pnhs);
-Ph2w = Pout*(1 - Pdis)*(1 - Pnhs);
-Ph2r = Pdis*(1 - Pnhs);
+Ph2h = (1 - Pdis)*(1 - Pout);
+Ph2w = (1 - Pdis)*Pout;
+Ph2r = Pdis;
 
 % marginal: location {1} | asymptomatic {3}(1)
 %--------------------------------------------------------------------------
@@ -71,15 +70,15 @@ b{1} = [Ph2h       1          0          Pexp      (1 - Piso) 1;
         0          0          0          0          0         0;
         Ph2r       0          0         (1 - Pexp)  0         0;
         0          0          1          0          Piso      0;
-        Pnhs       0          0          0          0         0];
+        0          0          0          0          0         0];
 
 % marginal: location {1}  | symptoms {3}(2)
 %--------------------------------------------------------------------------
 b{2} = [0          0          0          0          0         0;
         0          0          0          0          0         0;
-        0          0          1          0          0         0;
         0          0          0          0          0         0;
-        1          1          0          1          1         0;
+        0          0          0          0          0         0;
+        1          1          1          1          1         0;
         0          0          0          0          0         1];
     
 % marginal: location {1}  | ARDS {3}(3)
@@ -112,24 +111,24 @@ B{1} = spm_permute_kron(b,dim([1,3,2,4]),[1,3,2,4]);
 
 % stop isolating if asymptomatic and PCR- : third order dependencies
 %--------------------------------------------------------------------------
-ij   = Bij({5,1:5,1,4},{1,1:5,1,4},dim);  B{1}(ij) = 1;
-ij   = Bij({5,1:5,1,4},{5,1:5,1,4},dim);  B{1}(ij) = 0;
+ij   = Bij({5,1:6,1,4},{1,1:6,1,4},dim);  B{1}(ij) = 1;
+ij   = Bij({5,1:6,1,4},{5,1:6,1,4},dim);  B{1}(ij) = 0;
 
-% isolate if positive : third order dependencies
+% isolate if asymptomatic and positive PCR/LFD+ : third order dependencies
 %--------------------------------------------------------------------------
-ij   = Bij({1,1:5,1,3},{5,1:5,1,3},dim);  B{1}(ij) = 1;
-ij   = Bij({1,1:5,1,3},{1,1:5,1,3},dim);  B{1}(ij) = 0;
-ij   = Bij({1,1:5,1,3},{2,1:5,1,3},dim);  B{1}(ij) = 0;
-ij   = Bij({1,1:5,1,3},{4,1:5,1,3},dim);  B{1}(ij) = 0;
-ij   = Bij({1,1:5,1,3},{6,1:5,1,3},dim);  B{1}(ij) = 0;
+ij   = Bij({1,1:6,1,[3 5]},{5,1:6,1,[3 5]},dim);  B{1}(ij) = 1;
+ij   = Bij({1,1:6,1,[3 5]},{1,1:6,1,[3 5]},dim);  B{1}(ij) = 0;
+ij   = Bij({1,1:6,1,[3 5]},{2,1:6,1,[3 5]},dim);  B{1}(ij) = 0;
+ij   = Bij({1,1:6,1,[3 5]},{4,1:6,1,[3 5]},dim);  B{1}(ij) = 0;
+ij   = Bij({1,1:6,1,[3 5]},{6,1:6,1,[3 5]},dim);  B{1}(ij) = 0;
 
 % isolate if infected/ious : third order dependencies : efficacy of FTTI
 %--------------------------------------------------------------------------
-ij   = Bij({1,2:3,1,1},{5,2:3,1,1},dim);  B{1}(ij) = P.ttt;
-ij   = Bij({1,2:3,1,1},{1,2:3,1,1},dim);  B{1}(ij) = (1 - Pout)*(1 - P.ttt);
-ij   = Bij({1,2:3,1,1},{2,2:3,1,1},dim);  B{1}(ij) = Pout*(1 - P.ttt);
-ij   = Bij({1,2:3,1,1},{4,2:3,1,1},dim);  B{1}(ij) = 0;
-ij   = Bij({1,2:3,1,1},{6,2:3,1,1},dim);  B{1}(ij) = 0;
+ij   = Bij({1,2:3,1,1:6},{5,2:3,1,1:6},dim);  B{1}(ij) = P.ttt;
+ij   = Bij({1,2:3,1,1:6},{1,2:3,1,1:6},dim);  B{1}(ij) = (1 - P.ttt)*(1 - Pout);
+ij   = Bij({1,2:3,1,1:6},{2,2:3,1,1:6},dim);  B{1}(ij) = (1 - P.ttt)*Pout;
+ij   = Bij({1,2:3,1,1:6},{4,2:3,1,1:6},dim);  B{1}(ij) = 0;
+ij   = Bij({1,2:3,1,1:6},{6,2:3,1,1:6},dim);  B{1}(ij) = 0;
 
 % probabilistic transitions: infection
 %==========================================================================
@@ -143,19 +142,15 @@ Ptou = P.tou;                              % P(no transmission) | work
 Pths = P.ths;                              % P(no transmission) | hospital
 
 Kimm = exp(-1/P.Tim);                      % loss of Ab+ immunity (per day)
-Kvac = exp(-1/P.vac);                      % Loss of Ab+ vaccine  (per day)
 Kinn = exp(-1/P.Tnn);                      % loss of Ab- immunity (per day)
+Kvac = exp(-1/P.vac);                      % Loss of Ab+ vaccine  (per day)
 
 Kinf = exp(-1/P.Tin);                      % infection rate
 Kcon = exp(-1/P.Tcn);                      % infectious rate
 Pres = P.res;                              % resistant proportion
 Pvef = P.vef;                              % resistance from vaccination
-
-% vaccination rollout
-%--------------------------------------------------------------------------
-Rvac = P.rol(1)*(1 + erf((P.t - P.rol(2))/P.rol(3))) + ...
-       P.fol(1)*(1 + erf((P.t - P.fol(2))/P.fol(3)));
-Pnac = 1 - Rvac;                           % 1 - P(vaccination)
+Pnac = P.nac;                              % 1 - vaccination rate
+Rvac = 1 - Pnac;
 
 % marginal: infection {2} | home {1}(1)
 %--------------------------------------------------------------------------
@@ -259,7 +254,7 @@ b{4} = b{1};
 %--------------------------------------------------------------------------
 b{5} = b{1};
 
-% marginal: clinical {3} | Vaccine+ {2}(5)
+% marginal: clinical {3} | Vaccine+ {2}(6)
 %--------------------------------------------------------------------------
 b{6} = b{1};
 
@@ -272,11 +267,10 @@ B{3} = spm_kron({b,I{4}});
 
 % location dependent fatalities (in hospital): third order dependencies
 %--------------------------------------------------------------------------
-ij   = Bij({3,1:5,3,1:4},{3,1:5,4,1:4},dim); B{3}(ij) = (1 - Ktrd)*Pfat;
-ij   = Bij({3,1:5,3,1:4},{3,1:5,1,1:4},dim); B{3}(ij) = (1 - Ktrd)*(1 - Pfat);
-ij   = Bij({6,1:5,3,1:4},{6,1:5,4,1:4},dim); B{3}(ij) = (1 - Ktrd)*Pfat;
-ij   = Bij({6,1:5,3,1:4},{6,1:5,1,1:4},dim); B{3}(ij) = (1 - Ktrd)*(1 - Pfat);
-
+ij   = Bij({3,1:6,3,1:6},{3,1:6,4,1:6},dim); B{3}(ij) = (1 - Ktrd)*Pfat;
+ij   = Bij({3,1:6,3,1:6},{3,1:6,1,1:6},dim); B{3}(ij) = (1 - Ktrd)*(1 - Pfat);
+ij   = Bij({6,1:6,3,1:6},{6,1:6,4,1:6},dim); B{3}(ij) = (1 - Ktrd)*Pfat;
+ij   = Bij({6,1:6,3,1:6},{6,1:6,1,1:6},dim); B{3}(ij) = (1 - Ktrd)*(1 - Pfat);
 
 % probabilistic transitions: testing
 %==========================================================================
@@ -362,7 +356,7 @@ b{4} = [(1 - Psen)*(1 - Plen) 0                   (1 - Kday) (1 - Kday) (1 - Kda
 %--------------------------------------------------------------------------
 b{5} = b{1};
 
-% marginal: testing {4} | Vaccine+ {2}(5)
+% marginal: testing {4} | Vaccine+ {2}(6)
 %--------------------------------------------------------------------------
 b{6} = b{1};
 
@@ -371,16 +365,6 @@ b{6} = b{1};
 b    = spm_cat(spm_diag(b));
 b    = spm_kron({b,I{1},I{3}});
 B{4} = spm_permute_kron(b,dim([4,2,1,3]),[3,2,4,1]);
-
-% location dependent PCR testing (none when removed)
-%--------------------------------------------------------------------------
-% ij   = Bij({4,1:5,1:4,1},{4,1:5,1:4,1},dim); B{4}(ij) = 1;
-% ij   = Bij({4,1:5,1:4,1},{4,1:5,1:4,2},dim); B{4}(ij) = 0;
-
-% location dependent PCR testing (always when ill in hospital)
-%--------------------------------------------------------------------------
-% ij   = Bij({6,1:5,2:3,1},{6,1:5,2:3,1},dim); B{4}(ij) = 0;
-% ij   = Bij({6,1:5,2:3,1},{6,1:5,2:3,2},dim); B{4}(ij) = 1;
 
 
 % probability transition matrix

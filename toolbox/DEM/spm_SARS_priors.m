@@ -37,7 +37,7 @@ function [P,C,str] = spm_SARS_priors(nN)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_priors.m 8123 2021-07-11 10:28:01Z karl $
+% $Id: spm_SARS_priors.m 8127 2021-07-25 13:21:02Z karl $
 
 % sources and background
 %--------------------------------------------------------------------------
@@ -58,15 +58,13 @@ function [P,C,str] = spm_SARS_priors(nN)
 
 % priors for multiple age groups
 %==========================================================================
-
-
 if nargin
     
     % priors for single group
     %----------------------------------------------------------------------
     [P,C,str] = spm_SARS_priors;
-    free  = {'N','Nin','Nou','sde','mem','qua','hos','ccu','res','Tim',...
-             'sev','lat','fat','sur','tes','tts','rol','pro'};
+    free  = {'N','Nin','Nou','sde','mem','qua','hos','ccu','res','Trd',...
+             'sev','lat','fat','sur','tes','tts','rol','pro','lnk'};
 
     if nN == 1
         
@@ -92,7 +90,7 @@ if nargin
                      0.02  (365 + 64)  32;
                      0.02  (365 + 32)  32]);
                  
-        P.sev = log([0.00002;
+        P.sev = log([0.0002;
                      0.002;
                      0.03]);
                  
@@ -123,7 +121,7 @@ if nargin
         end
         
         % Age-specific prior expectations
-        %----------------------------------------------------------------------
+        %------------------------------------------------------------------
         P.N   = P.N - log(nN);
         P.n   = P.n - log(nN);
         P.rol = log([0.0001 (365 + 0)   32;
@@ -134,7 +132,7 @@ if nargin
                      0.01   (365 + 128) 32;
                      0.02   (365 + 64 ) 32;
                      0.02   (365 + 32 ) 32]);
-                 
+
         C.rol = [0    0    0   ;
                  1/16 1/64 1/64;
                  1/16 1/64 1/64;
@@ -144,18 +142,55 @@ if nargin
                  1/16 1/64 1/64;
                  1/16 1/64 1/64];
              
-        P.sev = log([0.000005;
-                     0.0001;
-                     0.002;
-                     0.04]);
+        % probability of hospitalisation when seriously ill
+        %------------------------------------------------------------------
+        P.hos = log([2
+                     2
+                     1
+                     1/2]);
+                 
+        % probability of transfer to CCU
+        %------------------------------------------------------------------
+        P.hos = log([0.2
+                     0.1
+                     0.02
+                     0.01]);
+                 
+        % morbidity
+        %------------------------------------------------------------------
+        P.sev = log([0.001
+                     0.010
+                     0.010
+                     0.100]);
         P.lat = P.sev;
+        
+        % mortality
+        %------------------------------------------------------------------
+        P.fat = log([0.005;
+                     0.005;
+                     0.2;
+                     0.4]);
+        P.sur = P.fat;
         
         % unvaccinated proportion
         %------------------------------------------------------------------
         P.pro = log([0.64;
                      0.32;
                      0.16;
-                     0.08]);
+                     0.04]);
+                 
+        % vaccination link (pathogenicity)
+        %------------------------------------------------------------------
+        P.lnk = log([0.24;
+                     0.24;
+                     0.48;
+                     0.48]);
+                 
+        C.lnk = [0;
+                 exp(-8);
+                 exp(-8);
+                 exp(-8)];
+                 
         
         % contact matrices: number of contacts per day
         %------------------------------------------------------------------
@@ -248,7 +283,7 @@ names{49} = 'loss of T-cell immunity';
 
 names{50} = 'LFD specificity';
 names{51} = 'LFD sensitivity';
-names{52} = 'relative positivity';
+names{52} = 'PCR testing of fatalities';
 names{53} = 'unvaccinated proportion';
 
 
@@ -294,6 +329,8 @@ factor{5} = {' ',' '};
 % Y(:,27) - Hospital cases
 % Y(:,28) - Incidence of Long Covid
 % Y(:,29) - population immunity (vaccine)
+% Y(:,30) - cumulative admissions
+
 
 str.outcome = {'Daily deaths (28 days)',...
     'Daily confirmed cases',...
@@ -320,10 +357,11 @@ str.outcome = {'Daily deaths (28 days)',...
     'PCR positivity (%)',...
     'Lateral flow tests',...
     'Attack rate (%)',...
-    'Herd immunity (%)'...
+    'Population immunity (total) (%)'...
     'Hospital cases'...
     'Incidence of Long Covid'...
-    'Vaccine seroconversion'};
+    'Population immunity (vaccine) (%)'...
+    'Cumulative admissions'};
 
 str.factors = factors;
 str.factor  = factor;
@@ -361,8 +399,8 @@ P.res = 0.2;                  % (20) seronegative proportion (late)
 % clinical parameters
 %--------------------------------------------------------------------------
 P.Tic = 4;                    % (21) asymptomatic period (days)
-P.Tsy = 8;                    % (22) symptomatic period  (days)
-P.Trd = 6;                    % (23) CCU period (days)
+P.Tsy = 6;                    % (22) symptomatic period  (days)
+P.Trd = 16;                   % (23) severe symptoms     (days)
 
 P.sev = 0.04;                 % (24) P(ARDS | symptoms): winter
 P.lat = 0.04;                 % (25) P(ARDS | symptoms): summer
@@ -371,11 +409,11 @@ P.sur = 0.5;                  % (27) P(fatality | ARDS): summer
 
 % testing parameters
 %--------------------------------------------------------------------------
-P.ttt = 0.036;                % (28) FTTI efficacy
+P.ttt = 0.036;                 % (28) FTTI efficacy
 P.tes = [16 8];               % (29) bias (for infection): PCR (Pill. 1 & 2)
 P.tts = 1;                    % (30) bias (for infection): LFD
 P.del = 3;                    % (31) test delay (days)
-P.vac = 512;                  % (32) vaccination time constant (days)
+P.vac = 768;                  % (32) vaccination time constant (days)
 P.fnr = [0.2 0.1];            % (33) false-negative rate  (infected/ious]
 P.fpr = [0.002 0.02];         % (34) false-positive rate: (Sus. and Ab +ve)
 
@@ -386,21 +424,21 @@ P.ons = [100 200 300 400];    % (37) testing: onset
 P.lag = [1 1];                % (38) reporting lag
 P.inn = 1;                    % (39) seasonal phase
 P.mem = 256;                  % (40) unlocking time constant
-P.rol = [0.02 365 32 0.02];   % (41) vaccination rollout (1st)
-P.fol = [0.02 450 32 0.02];   % (42) vaccination rollout (2nd)
+P.rol = [5/100 365 32];       % (41) vaccination rollout (1st)
+P.fol = [1     512 32];       % (42) vaccination rollout (2nd)
 
-P.vef = 0.8;                  % (43) vaccine efficacy: infection
+P.vef = 0.5;                  % (43) vaccine efficacy: infection
 P.lnk = 0.1;                  % (44) vaccine efficacy: pathogenicity
 P.ves = 0.1;                  % (45) vaccine efficacy: transmission
-P.lnf = 0.1;                  % (46) vaccine efficacy: fatality
+P.lnf = 0.05;                 % (46) vaccine efficacy: fatality
 
 P.con = 0.2;                  % (47) LFD confirmation
 P.iso = 8;                    % (48) self-isolation (days)
-P.Tnn = 512;                  % (49) loss of T-cell immunity (days)
+P.Tnn = 1024;                 % (49) loss of T-cell immunity (days)
 
 P.lnr = 0.5;                  % (50) LFD sensitivity
 P.lpr = 0.001;                % (51) LFD specificity
-P.rel = .5;                   % (52) relative positivity
+P.rel = 1;                    % (52) PCR testing of fatalities
 P.pro = .08;                  % (53) unvaccinated proportion
 
 
@@ -446,13 +484,13 @@ C.res = X;                    % (20) seronegative immunity (proportion)
 
 % clinical parameters
 %--------------------------------------------------------------------------
-C.Tic = Z;                    % (21) asymptomatic period (days)
-C.Tsy = Z;                    % (22) symptomatic period  (days)
-C.Trd = X;                    % (23) CCU period (days)
+C.Tic = X;                    % (21) asymptomatic period (days)
+C.Tsy = X;                    % (22) symptomatic period  (days)
+C.Trd = W;                    % (23) CCU period (days)
 C.sev = W;                    % (24) P(ARDS | symptoms): winter
 C.lat = W;                    % (25) P(ARDS | symptoms): summer
-C.fat = X;                    % (26) P(fatality | ARDS): rate
-C.sur = X;                    % (27) P(fatality | ARDS): decay
+C.fat = W;                    % (26) P(fatality | ARDS): rate
+C.sur = W;                    % (27) P(fatality | ARDS): decay
 
 % testing parameters
 %--------------------------------------------------------------------------
@@ -474,18 +512,18 @@ C.mem = V;                    % (40) unlocking time constant
 C.rol = X;                    % (41) vaccination rollout (1st)
 C.fol = X;                    % (42) vaccination rollout (2nd)
 
-C.vef = W;                    % (43) vaccine efficacy: infection
-C.lnk = W;                    % (44) vaccine efficacy: pathogenicity
-C.ves = W;                    % (45) vaccine efficacy: transmission
-C.lnf = W;                    % (46) vaccine efficacy: fatality
+C.vef = X;                    % (43) vaccine efficacy: infection
+C.lnk = X;                    % (44) vaccine efficacy: pathogenicity
+C.ves = X;                    % (45) vaccine efficacy: transmission
+C.lnf = X;                    % (46) vaccine efficacy: fatality
 
 C.con = V;                    % (47) LFD confirmation
-C.iso = W;                    % (48) self-isolation (days)
-C.Tnn = X;                    % (49) loss of T-cell immunity (days)
+C.iso = Z;                    % (48) self-isolation (days)
+C.Tnn = Z;                    % (49) loss of T-cell immunity (days)
 
 C.lnr = W;                    % (50) LFD sensitivity
 C.lpr = W;                    % (51) LFD specificity
-C.rel = V;                    % (52) relative positivity
+C.rel = V;                    % (52) PCR testing of fatalities
 C.pro = V;                    % (53) unvaccinated proportion
 
 % check prior expectations and covariances are consistent

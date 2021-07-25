@@ -39,13 +39,14 @@ function [y,x,z,W] = spm_SARS_gen(P,M,U,NPI,age)
 % Y(:,26) - Population immunity (total)
 % Y(:,27) - Hospital occupancy
 % Y(:,28) - Incidence of long COVID
-% Y(:,29) - Population immunity (vaccine)
+% Y(:,29) - population immunity (vaccine)
+% Y(:,30) - cumulative admissions
 %
 % X       - (M.T x 4) marginal densities over four factors
 % location   : {'home','out','ccu','removed','isolated','hospital'};
-% infection  : {'susceptible','infected','infectious','immune','resistant'};
+% infection  : {'susceptible','infected','infectious','Ab +ve','Ab -ve','Vac +ve'};
 % clinical   : {'asymptomatic','symptoms','ARDS','death'};
-% diagnostic : {'untested','waiting','positive','negative'}
+% diagnostic : {'untested','waiting','PCR +ve','PCR -ve','LFD +ve','LFD -ve'}
 %
 % Z{t} - joint density over hidden states at the time t
 % W    - structure containing time varying parameters
@@ -77,7 +78,7 @@ function [y,x,z,W] = spm_SARS_gen(P,M,U,NPI,age)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_gen.m 8125 2021-07-17 20:27:42Z karl $
+% $Id: spm_SARS_gen.m 8127 2021-07-25 13:21:02Z karl $
 
 
 % The generative model:
@@ -248,6 +249,7 @@ for n = 1:nN
     P.tin = 1;    % P(no transmission | home)
     P.tou = 1;    % P(no transmission | work)
     P.ths = 1;    % P(no transmission | hospital)
+    P.nac = 1;    % P(no vaccination)
     for i = 1:8
         T    = spm_COVID_T(P,I);
         x{n} = spm_unvec(T*spm_vec(x{n}),x{n});
@@ -265,7 +267,7 @@ end
     
 % outputs that depend upon population size
 %--------------------------------------------------------------------------
-uN    = [1,2,3,6,9,12,15,16,17,18,24,27,28];
+uN    = [1,2,3,6,9,12,15,16,17,18,24,27,28,30];
 
 % ensemble density tensor and solve over the specified number of days
 %--------------------------------------------------------------------------
@@ -353,7 +355,7 @@ for i = 1:M.T
         Ptra = 1;
         if isfield(Q{n},'tra')
             for j = 1:numel(Q{n}.tra)
-                Ptra = Ptra + Q{n}.tra(j) * (1 + erf((i - j*64)/32))/64;
+                Ptra = Ptra + erf(Q{n}.tra(j)) * (1 + erf((i - j*64)/32))/16;
             end
         end
         Ptrn = Q{n}.trn + Q{n}.trm*S;            % seasonal risk
@@ -372,30 +374,36 @@ for i = 1:M.T
 
             tin = tin*(1 - Ptrn*pin(3))^Q{n}.Nin(j);
             tou = tou*(1 - Ptrn*pou(3))^Q{n}.Nou(j);
-            ths = ths*(1 - Ptrn*phs(3))^Q{n}.Nou(j);
+            ths = ths*(1 - Ptrn*phs(3))^Q{n}.Nin(j);
         end
         
         Q{n}.tin = min(tin,1);          % P(no transmission | home)
         Q{n}.tou = min(tou,1);          % P(no transmission | work)
         Q{n}.ths = min(ths,1);          % P(no transmission | hospital)
         
-        % link between pathogenicity and vaccination
+        % vaccination rollout: nac = 1 - vaccination rate
         %------------------------------------------------------------------
-        q        = p{n}{2}(6)*Q{n}.vef; % vaccinated susceptible proportion
-        q        = q/(q + p{n}{2}(1));  % susceptible proportion vaccinated
+        Rvac     = Q{n}.rol(1)*(1 + erf((i - Q{n}.rol(2))/Q{n}.rol(3))) + ...
+                   Q{n}.fol(1)*(1 + erf((i - Q{n}.fol(2))/Q{n}.fol(3)));
+        Q{n}.nac = 1 - Rvac;            
+        
+        % link between pathogenicity and vaccination: q = immune proportion
+        %------------------------------------------------------------------
+        q        = 1 - p{n}{2}(1); 
         qr       = (1 - R{n}.res)*q*(1 - Q{n}.ves);
         qp       = (1 - q) + Q{n}.lnk*q;
         qf       = (1 - q) + Q{n}.lnf*q;
-
+        
         Q{n}.sev = R{n}.sev*qp;         % vaccine efficiency: pathogenicity
         Q{n}.lat = R{n}.lat*qp;         % vaccine efficiency: pathogenicity
         Q{n}.fat = R{n}.fat*qf;         % vaccine efficiency: fatality
         Q{n}.sur = R{n}.sur*qf;         % vaccine efficiency: fatality
         Q{n}.res = R{n}.res + qr;       % vaccine efficiency: transmission
-        Q{n}.t   = i;                   % time (days)
+        
         
         % exponential decay
-        %--------------------------------------------------------------------------
+        %------------------------------------------------------------------
+        Q{n}.t   = i;                   % time (days)
         S        = exp(-i/512);
         
         Q{n}.sev = erf(Q{n}.sev*S + Q{n}.lat*(1 - S));  % P(ARDS | infected)
@@ -431,7 +439,7 @@ for i = 1:M.T
         
         % number of daily deaths (28 days)
         %------------------------------------------------------------------
-        q         = erf(Q{n}.hos);
+        q         = erf(Q{n}.rel);
         Y{n}(i,1) = N(n) * p{n}{3}(4)*(q + (1 - q)*pcr28);
  
         % number of daily (positive) tests (PCR and LFD)
@@ -466,18 +474,19 @@ for i = 1:M.T
         %------------------------------------------------------------------
         Y{n}(i,9) = N(n) * x{n}(1,2,1,1);
         
-        % prevalence of infection (%)
+        % positivity based on prevalence of infection (%)
         %------------------------------------------------------------------
-        Y{n}(i,11) = 100 * (p{n}{2}(2)*Q{n}.rel + p{n}{2}(3));
+        q          = p{n}{2}(1)*Q{n}.fpr(1) + ...
+                     p{n}{2}(2)*(1 - Q{n}.fnr(1)) + ...
+                     p{n}{2}(3)*(1 - Q{n}.fnr(2)) + ...
+                     p{n}{2}(4)*Q{n}.fpr(2) + ...
+                     p{n}{2}(5)*Q{n}.fpr(1) + ...
+                     p{n}{2}(6)*Q{n}.fpr(1);
+        Y{n}(i,11) = 100 * q;
         
-        % number of symptomatic people: (estimate of prevalence)
+        % number of symptomatic people
         %------------------------------------------------------------------
-        q          = p{n}{3}(2);
-        if isfield(Q{n},'sy')
-            Y{n}(i,12) = N(n) * Q{n}.sy*q;
-        else
-            Y{n}(i,12) = N(n) * q;
-        end
+        Y{n}(i,12) = N(n) * p{n}{3}(2);
 
         % mobility (% normal)
         %------------------------------------------------------------------
@@ -501,26 +510,17 @@ for i = 1:M.T
         %------------------------------------------------------------------
         Y{n}(i,15) = N(n) * p{n}{3}(4);
         
-        % hospital admissions (ARDS people in hospital/CCU)
-        %------------------------------------------------------------------
-        q  = squeeze(spm_sum(x{n},[2,4]));
-        q  = sum(q([1,2,4,5],3))*Q{n}.hos;
-        if isfield(Q{n},'ho')
-            Y{n}(i,16) = N(n) * q * (Q{n}.ho(1) + Q{n}.ho(2)*pcr14);
-        else
-            Y{n}(i,16) = N(n) * q;
-        end
         
         % hospital occupancy (ARDS people in hospital/CCU)
         %------------------------------------------------------------------
-        q  = squeeze(spm_sum(x{n},[2,4]));
-        q  = sum(q([3,6],3));
-        if isfield(Q{n},'hc')
-            Y{n}(i,27) = N(n) * q * (Q{n}.hc(1) + Q{n}.hc(2)*pcr14);
-        else
-            Y{n}(i,27) = N(n) * q;
-        end
+        q          = squeeze(spm_sum(x{n},[2,4]));
+        q          = sum(q([3,6],3));
+        Y{n}(i,27) = N(n) * q;
         
+        % hospital admissions (ARDS admitted to hospital/CCU)
+        %------------------------------------------------------------------
+        Y{n}(i,16) = Y{n}(i,27)/Q{n}.Trd;    
+                
         % excess deaths in hospital/CCU
         %------------------------------------------------------------------
         q          = squeeze(spm_sum(x{n},[2,4]));
@@ -547,9 +547,10 @@ for i = 1:M.T
         %------------------------------------------------------------------
         Y{n}(i,24) = N(n) * (p{n}{4}(5) + p{n}{4}(6));
         
-        % incidence of long COVID (number): 3 p.c. of incidence of symptoms
+        % incidence of long COVID (number): 1/400 symptomatic and 1/2 ARDS
         %------------------------------------------------------------------
-        Y{n}(i,28) = N(n) * p{n}{3}(2) * (1 - exp(-1/Q{n}.Tsy)) * 3/100;
+        Y{n}(i,28) = N(n) * p{n}{3}(2) * (1 - exp(-1/Q{n}.Trd)) * 1/400;
+        Y{n}(i,28) = N(n) * p{n}{3}(3) * (1 - exp(-1/Q{n}.Trd)) * 1/2 + Y{n}(i,28);
         
         
         % joint density
@@ -592,21 +593,25 @@ for n = 1:nN
     %----------------------------------------------------------------------
     Y{n}(:,25) = cumsum(Y{n}(:,10));
     
-    % population immunity (seropositive, seronegative and vaccine) (%)
+    % population immunity (seropositive, seronegative) (%)
     %----------------------------------------------------------------------
     Y{n}(:,26) = 100 * sum(X{n,2}(:,4:6),2);
     
     % population immunity (vaccine) (%)
     %----------------------------------------------------------------------
     Y{n}(:,29) = 100 * sum(X{n,2}(:,6),2);
-    
+        
     % accommodate (3 week) delay in immunity following vaccination
     %----------------------------------------------------------------------
     Y{n}(:,22) = Y{n}(:,22) + 21*gradient(Y{n}(:,22));
     
+    % cumulative admissions
+    %----------------------------------------------------------------------
+    Y{n}(:,30) = cumsum(Y{n}(:,16));
+    
     % retain specified output variables
     %----------------------------------------------------------------------
-    Y{n}   = Y{n}(:,U);
+    Y{n} = Y{n}(:,U);
     
 end
 
@@ -624,7 +629,6 @@ if numel(age) == 1 && age > 1
     % return requested population
     %----------------------------------------------------------------------
     x = X(age,:);
-    y = Z(age,:);
     
 else
     

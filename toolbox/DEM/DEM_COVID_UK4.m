@@ -68,6 +68,8 @@ url = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=nation&areaCode=E920
 writetable(webread(url,options),'positivity.csv');
 url = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=nation&areaCode=E92000001&metric=newLFDTests&format=csv';
 writetable(webread(url,options),'lateralft.csv');
+url = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=nation&areaCode=E92000001&metric=cumAntibodyTestsByPublishDate&format=csv';
+writetable(webread(url,options),'antibody.csv');
 
 % get death by age (England)
 %--------------------------------------------------------------------------
@@ -119,6 +121,24 @@ for r = 1:numel(age)
 end
 agevaccine = renamevars(agevaccine,(1:numel(age)) + 1,table2array(age));
 writetable(agevaccine,'agevaccine.csv')
+
+% get (cumulative) admissions by age (England)
+%----------------------------------------------------------------------
+url   = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=nation&areaCode=E92000001&metric=cumAdmissionsByAge&format=csv';
+tab   = webread(url,options);
+vnames = tab.Properties.VariableNames;
+aa     = find(ismember(vnames,'age'));
+ad     = find(ismember(vnames,'date'));
+an     = find(ismember(vnames,'value'));
+age   = unique(tab(:,aa));
+for r = 1:numel(age)
+    j = find(ismember(tab(:,aa),age(r,1)));
+    cumAdmiss(:,1)     = tab(j,ad);
+    cumAdmiss(:,r + 1) = tab(j,an);
+end
+cumAdmiss = renamevars(cumAdmiss,(1:numel(age)) + 1,table2array(age));
+writetable(cumAdmiss,'cumAdmiss.csv')
+
 
 % mobility and transport
 %--------------------------------------------------------------------------
@@ -182,6 +202,13 @@ for i = 1:numel(vons)
     vons{i} = vons{i}'/sum(vons{i});
 end
 
+% cumulative admissions ONS age bands: 0_to_5 18_to_64 65_to_84 6_to_17 85+
+%--------------------------------------------------------------------------
+cum     = [1 0     0     6/10 0;
+           0 15/45 0     4/10 0;
+           0 30/45 4/20  0    0;
+           0 0     16/20 0    1]';  
+
 % DCM age bands <15 15_34 35_69 >70
 %--------------------------------------------------------------------------
 N   = [sum(N(1:3)) sum(N(4:7)) sum(N(8:14)) sum(N(15:end))];
@@ -205,6 +232,9 @@ mobility21 = importdata('mobility21.csv');
 agevaccine = importdata('agevaccine.csv');
 agedeaths  = importdata('agedeaths.csv');
 agecases   = importdata('agecases.csv');
+cumAdmiss  = importdata('cumAdmiss.csv');
+antibody   = importdata('antibody.csv');
+
 
 serology   = importdata('serology.csv');
 place      = importdata('place.csv');
@@ -220,8 +250,8 @@ d          = find(ismember(cases.textdata(1,1:end),'date'));
 Y(1).type = 'Positive virus tests (ONS)'; % daily positive cases
 Y(1).unit = 'number/day';
 Y(1).U    = 2;
-Y(1).date = datenum(cases.textdata(5:end,d),'yyyy-mm-dd');
-Y(1).Y    = cases.data(4:end,1);
+Y(1).date = datenum(cases.textdata(2:end,d),'yyyy-mm-dd');
+Y(1).Y    = cases.data(:,1);
 Y(1).h    = 0;
 Y(1).lag  = 1;
 Y(1).age  = 0;
@@ -260,8 +290,8 @@ Y(4).hold = 0;
 Y(5).type = 'Daily deaths (ONS: 28-days)'; % covid-related deaths (28 days)
 Y(5).unit = 'number/day';
 Y(5).U    = 1;
-Y(5).date = datenum(deaths.textdata(5:end,d),'yyyy-mm-dd');
-Y(5).Y    = deaths.data(4:end,1);
+Y(5).date = datenum(deaths.textdata(2:end,d),'yyyy-mm-dd');
+Y(5).Y    = deaths.data(:,1);
 Y(5).h    = 2;
 Y(5).lag  = 1;
 Y(5).age  = 0;
@@ -382,7 +412,7 @@ Y(16).date = datenum(place.textdata(2:end - 8,1),'dd/mm/yyyy');
 Y(16).Y    = sum(place.data(1:end - 8,1:3),2)*EngWaleUK;
 Y(16).h    = 0;
 Y(16).lag  = 1;
-Y(16).age  = 0;
+Y(16).age  = 4;                             % in older cohort
 Y(16).hold = 0;
 
 % age-specific data
@@ -587,6 +617,51 @@ Y(34).lag  = 0;
 Y(34).age  = 4;
 Y(34).hold = 0;
 
+England    = sum(max(cumAdmiss.data));
+UK         = sum(admissions.data);
+EnglandUK  = UK/England;
+
+Y(35).type = 'Cumulative admissions <15 (ONS)';  % Cumulative admissions (England)
+Y(35).unit = 'number';
+Y(35).U    = 30;
+Y(35).date = datenum(cumAdmiss.textdata(2:end,1),'yyyy-mm-dd');
+Y(35).Y    = cumAdmiss.data*cum(:,1)*EnglandUK;
+Y(35).h    = 0;
+Y(35).lag  = 0;
+Y(35).age  = 1;
+Y(35).hold = 1;
+
+Y(36).type = 'Cumulative admissions 15-35 (ONS)'; % Cumulative admissions (England)
+Y(36).unit = 'number';
+Y(36).U    = 30;
+Y(36).date = datenum(cumAdmiss.textdata(2:end,1),'yyyy-mm-dd');
+Y(36).Y    = cumAdmiss.data*cum(:,2)*EnglandUK;
+Y(36).h    = 0;
+Y(36).lag  = 0;
+Y(36).age  = 2;
+Y(36).hold = 1;
+
+Y(37).type = 'Cumulative admissions 35-70 (ONS)'; % Cumulative admissions (England)
+Y(37).unit = 'number';
+Y(37).U    = 30;
+Y(37).date = datenum(cumAdmiss.textdata(2:end,1),'yyyy-mm-dd');
+Y(37).Y    = cumAdmiss.data*cum(:,3)*EnglandUK;
+Y(37).h    = 0;
+Y(37).lag  = 0;
+Y(37).age  = 3;
+Y(37).hold = 1;
+
+Y(38).type = 'Cumulative admissions -15-35-70- (ONS)'; % Cumulative admissions (England)
+Y(38).unit = 'number';
+Y(38).U    = 30;
+Y(38).date = datenum(cumAdmiss.textdata(2:end,1),'yyyy-mm-dd');
+Y(38).Y    = cumAdmiss.data*cum(:,4)*EnglandUK;
+Y(38).h    = 0;
+Y(38).lag  = 0;
+Y(38).age  = 4;
+Y(38).hold = 0;
+
+
 % remove NANs, smooth and sort by date
 %==========================================================================
 M.date  = '01-02-2020';
@@ -599,15 +674,6 @@ M.date  = '01-02-2020';
 pE.N    = log(N(:));
 pC.N    = spm_zeros(pE.N);
 
-% coefficients for likelihood model
-%--------------------------------------------------------------------------
-pE.ho   = zeros(1,2);          % coefficients for admissions
-pC.ho   = ones(1,2)/8;         % prior variance
-pE.hc   = zeros(1,2);          % coefficients for hospital cases
-pC.hc   = ones(1,2)/8;         % prior variance
-pE.sy   = zeros(1,1);          % coefficients for symptoms
-pC.sy   = ones(1,1)/8;         % prior variance
-
 % age-specific
 %--------------------------------------------------------------------------
 pE.mo   = zeros(nN,2);         % coefficients for mobility
@@ -617,16 +683,17 @@ pC.wo   = ones(nN,2)/8;        % prior variance
 
 % augment priors with fluctuations
 %--------------------------------------------------------------------------
-j       = ceil((datenum(date) - datenum(M.date))/48);
-k       = ceil((datenum(date) - datenum(M.date))/64);
+i       = floor((datenum(date) - datenum(M.date))/32);
+j       = floor((datenum(date) - datenum(M.date))/48);
+k       = floor((datenum(date) - datenum(M.date))/64);
 pE.tra  = zeros(1,k);          % increases in transmission strength
 pC.tra  = ones(1,k)/8;         % prior variance
 
 pE.pcr  = zeros(1,j);          % testing
 pC.pcr  = ones(1,j)/8;         % prior variance
 
-pE.mob  = zeros(1,2*k);        % mobility
-pC.mob  = ones(1,2*k)/8;       % prior variance
+pE.mob  = zeros(1,i);          % mobility
+pC.mob  = ones(1,i)/8;         % prior variance
 
 % reporting lags
 %--------------------------------------------------------------------------
@@ -654,13 +721,19 @@ M.T    = Y;                    % data structure
 U      = [Y.U];                % outputs to model
 A      = [Y.age];              % age bands
 
-% try initialisation
+% initialisation
 %--------------------------------------------------------------------------
-load DCM_UK
-if spm_length(M.pE) == spm_length(DCM.Ep)
-    M.P = DCM.Ep;
+if true
+    load DCM_UK
+    M.P   = pE;
+    field = fieldnames(DCM.Ep);
+    for i = 1:numel(field)
+        if all(size(pE.(field{i})) == size(DCM.Ep.(field{i})))
+            M.P.(field{i}) = DCM.Ep.(field{i});
+        end
+    end
+    clear DCM
 end
-clear DCM
 
 % model inversion with Variational Laplace (Gauss Newton)
 %==========================================================================
@@ -790,17 +863,22 @@ t   = (1:M.T) + datenum(M.date,'dd-mm-yyyy');
 
 % infection fatality ratios (%)
 %--------------------------------------------------------------------------
-subplot(2,1,1)
+subplot(3,1,1)
 spm_SARS_ci(Ep,Cp,[],19,M); hold on
 spm_SARS_ci(Ep,Cp,[],20,M); hold on
 ylabel('cases per 100,000'), title('Incidence per 100,000','FontSize',14)
 plot(datenum(date)*[1,1],get(gca,'YLim'),':')
 legend({'CI per day','actual cases per day','CI per week','confirmed cases per week'})
 
-subplot(2,1,2)
+subplot(3,1,2)
 spm_SARS_ci(Ep,Cp,[],2,M); hold on
 plot(datenum(date)*[1,1],get(gca,'YLim'),':')
 legend({'CI per day','people testing positive'})
+
+subplot(3,1,3)
+spm_SARS_ci(Ep,Cp,[],28,M); hold on
+plot(datenum(date)*[1,1],get(gca,'YLim'),':')
+legend({'CI per day','Incidence'})
 
 
 %% switch windows
@@ -899,15 +977,14 @@ str = sprintf('Prevalence and reproduction ratio (%s): R = %.2f (CI %.2f to %.2f
 
 % attack rate, herd immunity and herd immunity threshold
 %--------------------------------------------------------------------------
+E         = 1 - mean(exp(Ep.ves));
 [H,~,~,R] = spm_SARS_gen(Ep,M,[4 29 26]);
 i         = 16:32;                          % pre-pandemic period
 TRN       = [R{1}.Ptrn];                    % transmission risk
 R0        = mean(H(i,1));                   % basic reproduction ratio
 RT        = R0*TRN(:)/mean(TRN(i));         % effective reproduction ratio
-HIT       = 100 * (1 - 1./RT);              % herd immunity threshold
+HIT       = 100 * (1 - 1./RT)/E;            % herd immunity threshold
 VAC       = H(:,2);                         % percent of people vaccinated
-i         = find(H(:,3) > HIT,1);           % date threshold reached
-i         = min([i,M.T]);
 
 % Add R0
 %--------------------------------------------------------------------------
@@ -935,12 +1012,10 @@ spm_SARS_ci(Ep,Cp,[],25,M); hold on
 spm_SARS_ci(Ep,Cp,[],26,M); hold on
 
 plot(t,HIT,t,VAC), hold on
-plot(t(i)*[1,1],[0,100],':k'), set(gca,'YLim',[0,100])
+plot(datenum(date,'dd-mm-yyyy')*[1,1],get(gca,'YLim'),':k')
 ylabel('percent'),  title('Attack rate and immunity','FontSize',14)
 legend({'CI','Attack rate','CI','Population immunity','Effective immunity threshold','Vaccine antibodies'})
 legend boxoff
-leg = sprintf('%s (EIT: %.1f%s)',datestr(t(i),'dd-mmm-yy'),HIT(i),'%');
-text(t(i),8,leg,'FontSize',10), drawnow
 
 
 %% report vaccine efficiency
@@ -951,28 +1026,48 @@ d   = sqrt(d.vef(end))*1.64;
 qE  = 100*(1 - exp(q));
 qL  = 100*(1 - exp(q + d));
 qU  = 100*(1 - exp(q - d));
-sprintf('vaccine efficacy (sterilising) %.1f%s (CI %.1f to %.1f)',qE,'%',qL,qU)
+disp(sprintf('preventing exposure to infection: %.1f%s (CI %.1f to %.1f)',qE,'%',qL,qU))
 q   = Ep.ves(end);
 d   = spm_unvec(diag(Cp),Ep);
 d   = sqrt(d.ves(end))*1.64;
 qE  = 100*(1 - exp(q));
 qL  = 100*(1 - exp(q + d));
 qU  = 100*(1 - exp(q - d));
-sprintf('vaccine efficacy (transmission) %.1f%s (CI %.1f to %.1f)',qE,'%',qL,qU)
-q   = Ep.lnk(end);
+disp(sprintf('preventing transmission following infection %.1f%s (CI %.1f to %.1f)',qE,'%',qL,qU))
+q   = Ep.lnk(2);
 d   = spm_unvec(diag(Cp),Ep);
-d   = sqrt(d.lnk(end))*1.64;
+d   = sqrt(d.lnk(2))*1.64;
 qE  = 100*(1 - exp(q));
 qL  = 100*(1 - exp(q + d));
 qU  = 100*(1 - exp(q - d));
-sprintf('vaccine efficacy (pathogenicity) %.1f%s (CI %.1f to %.1f)',qE,'%',qL,qU)
+disp(sprintf('preventing serious illness when symptomatic (age 15-34) %.1f%s (CI %.1f to %.1f)',qE,'%',qL,qU))
+q   = Ep.lnk(3);
+d   = spm_unvec(diag(Cp),Ep);
+d   = sqrt(d.lnk(3))*1.64;
+qE  = 100*(1 - exp(q));
+qL  = 100*(1 - exp(q + d));
+qU  = 100*(1 - exp(q - d));
+disp(sprintf('preventing serious illness when symptomatic (age 35-70) %.1f%s (CI %.1f to %.1f)',qE,'%',qL,qU))
 q   = Ep.lnf(end);
 d   = spm_unvec(diag(Cp),Ep);
 d   = sqrt(d.lnf(end))*1.64;
 qE  = 100*(1 - exp(q));
 qL  = 100*(1 - exp(q + d));
 qU  = 100*(1 - exp(q - d));
-sprintf('vaccine efficacy (fatality) %.1f%s (CI %.1f to %.1f)',qE,'%',qL,qU)
+disp(sprintf('preventing fatality when seriously ill %.1f%s (CI %.1f to %.1f)',qE,'%',qL,qU))
+disp(' ')
+
+q      = (mean(exp(Ep.Tin)) + mean(exp(Ep.Tcn))*mean(exp(Ep.ves))) /...
+         (mean(exp(Ep.Tin)) + mean(exp(Ep.Tcn)));
+
+infect = mean(exp(Ep.vef));
+mild   = q*infect;
+severe = mean(exp(Ep.lnk))*mild;
+death  = mean(exp(Ep.lnf))*severe;
+disp(sprintf('relative risk of infection %.1f%s',     infect*100,'%'))
+disp(sprintf('relative risk of mild illness %.1f%s',  mild*100,'%'))
+disp(sprintf('relative risk of severe illness %.1f%s',severe*100,'%'))
+disp(sprintf('relative risk of fatality %.1f%s',      death*100,'%'))
 
 
 
@@ -1151,12 +1246,17 @@ spm_figure('GetWin','states'); clf;
 M.T    = datenum(date) - datenum(DCM.M.date,'dd-mm-yyyy');
 M.T    = M.T + 180;
 
-u      = 22;
-Ep.rel = DCM.Ep.rel - 0;
+u      = 30;
+a      = 0;
+Ep.Trd = DCM.Ep.Trd + 0;
 
-[Z,X]  = spm_SARS_gen(Ep,M,u,[],4);
+[Z,X]  = spm_SARS_gen(Ep,M,u,[],a);
 j      = find(U == u(1));
-spm_SARS_plot(Z,X,S(:,j(3)),u)
+try
+spm_SARS_plot(Z,X,S(:,j(1)),u)
+catch
+    spm_SARS_plot(Z,X,[],u)
+end
 subplot(3,2,1), hold on
 
 

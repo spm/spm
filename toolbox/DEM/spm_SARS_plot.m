@@ -14,7 +14,7 @@ function spm_SARS_plot(Y,X,Z,U)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_plot.m 8118 2021-07-03 10:45:45Z karl $
+% $Id: spm_SARS_plot.m 8127 2021-07-25 13:21:02Z karl $
 
 % Plot outcomes
 %==========================================================================
@@ -44,7 +44,7 @@ if nargin < 2
     
     % number of age groups if not specified
     %----------------------------------------------------------------------
-    nN      = 4;
+    nN      = 1;
     pE      = spm_SARS_priors(nN);
     M.T     = 15*32;
     [Y,X,Z] = spm_SARS_gen(pE,M,U);

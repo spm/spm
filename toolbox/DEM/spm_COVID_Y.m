@@ -77,8 +77,18 @@ nY    = zeros(1,numel(Y));
 for i = 1:numel(Y)
     nY(i)  = numel(Y(i).Y);
     Y(i).n = nY(i);
+    
+    % daily timeseries
+    %----------------------------------------------------------------------
     if mean(diff(Y(i).date)) < 2
-        Y(i).Y = spm_hist_smooth(Y(i).Y,days);
+        
+        % cumulative versus rates
+        %----------------------------------------------------------------------
+        if min(diff(Y(i).Y)) >= 0
+            Y(i).Y = cumsum(spm_hist_smooth(gradient(Y(i).Y),days));
+        else
+            Y(i).Y = spm_hist_smooth(Y(i).Y,days);
+        end
     end
 end
 
