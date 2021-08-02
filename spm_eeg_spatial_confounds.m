@@ -13,10 +13,10 @@ function D = spm_eeg_spatial_confounds(S)
 % Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_spatial_confounds.m 7962 2020-09-25 12:06:47Z vladimir $
+% $Id: spm_eeg_spatial_confounds.m 8128 2021-08-02 15:53:03Z vladimir $
 
 
-SVNrev = '$Rev: 7962 $';
+SVNrev = '$Rev: 8128 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -147,7 +147,9 @@ switch upper(S.mode)
         Ds = spm_eeg_load(S.conffile);
         sconf = getfield(Ds, 'sconfounds');        
     case 'CLEAR'
-        D = rmfield(D, 'sconfounds');
+        if isfield(D, 'sconfounds')
+            D = rmfield(D, 'sconfounds');
+        end
 end
 
 if ~isempty(sconf)
