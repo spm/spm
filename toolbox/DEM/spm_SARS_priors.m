@@ -37,7 +37,7 @@ function [P,C,str] = spm_SARS_priors(nN)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_priors.m 8127 2021-07-25 13:21:02Z karl $
+% $Id: spm_SARS_priors.m 8129 2021-08-02 18:08:36Z karl $
 
 % sources and background
 %--------------------------------------------------------------------------
@@ -151,7 +151,7 @@ if nargin
                  
         % probability of transfer to CCU
         %------------------------------------------------------------------
-        P.hos = log([0.2
+        P.ccu = log([0.2
                      0.1
                      0.02
                      0.01]);
@@ -285,8 +285,7 @@ names{50} = 'LFD specificity';
 names{51} = 'LFD sensitivity';
 names{52} = 'PCR testing of fatalities';
 names{53} = 'unvaccinated proportion';
-
-
+names{54} = 'survival risk in other';
 
 % latent or hidden factors
 %--------------------------------------------------------------------------
@@ -409,13 +408,13 @@ P.sur = 0.5;                  % (27) P(fatality | ARDS): summer
 
 % testing parameters
 %--------------------------------------------------------------------------
-P.ttt = 0.036;                 % (28) FTTI efficacy
+P.ttt = 0.036;                % (28) FTTI efficacy
 P.tes = [16 8];               % (29) bias (for infection): PCR (Pill. 1 & 2)
 P.tts = 1;                    % (30) bias (for infection): LFD
 P.del = 3;                    % (31) test delay (days)
 P.vac = 768;                  % (32) vaccination time constant (days)
-P.fnr = [0.2 0.1];            % (33) false-negative rate  (infected/ious]
-P.fpr = [0.002 0.02];         % (34) false-positive rate: (Sus. and Ab +ve)
+P.fnr = [0.08 0.06];          % (33) false-negative rate  (infected/ious]
+P.fpr = [0.0003 0.004];       % (34) false-positive rate: (Sus. and Ab +ve)
 
 P.lim = [1   2   2   2]/1000; % (35) testing: capacity (P1, P2, & LFD)
 P.rat = [8   24  8   4];      % (36) testing: dispersion
@@ -424,22 +423,23 @@ P.ons = [100 200 300 400];    % (37) testing: onset
 P.lag = [1 1];                % (38) reporting lag
 P.inn = 1;                    % (39) seasonal phase
 P.mem = 256;                  % (40) unlocking time constant
-P.rol = [5/100 365 32];       % (41) vaccination rollout (1st)
-P.fol = [1     512 32];       % (42) vaccination rollout (2nd)
+P.rol = [exp(-16) 365 32];       % (41) vaccination rollout (1st)
+P.fol = [exp(-16) 512 32];       % (42) vaccination rollout (2nd)
 
-P.vef = 0.5;                  % (43) vaccine efficacy: infection
+P.vef = 0.4;                  % (43) vaccine efficacy: infection
 P.lnk = 0.1;                  % (44) vaccine efficacy: pathogenicity
 P.ves = 0.1;                  % (45) vaccine efficacy: transmission
-P.lnf = 0.05;                 % (46) vaccine efficacy: fatality
+P.lnf = 0.04;                 % (46) vaccine efficacy: fatality
 
 P.con = 0.2;                  % (47) LFD confirmation
 P.iso = 8;                    % (48) self-isolation (days)
 P.Tnn = 1024;                 % (49) loss of T-cell immunity (days)
 
-P.lnr = 0.5;                  % (50) LFD sensitivity
-P.lpr = 0.001;                % (51) LFD specificity
+P.lnr = 0.46;                 % (50) LFD sensitivity
+P.lpr = 0.0002;               % (51) LFD specificity
 P.rel = 1;                    % (52) PCR testing of fatalities
 P.pro = .08;                  % (53) unvaccinated proportion
+P.oth = 0.1;                  % (54) survival probability in other
 
 
 % infection fatality (for susceptible population)
@@ -499,8 +499,8 @@ C.tes = V;                    % (29) testing: bias (early)
 C.tts = V;                    % (30) testing: bias (late)
 C.del = X;                    % (31) test delay (days)
 C.vac = X;                    % (32) vaccination time constant (days)
-C.fnr = W;                    % (33) false-negative rate
-C.fpr = W;                    % (34) false-positive rate
+C.fnr = X;                    % (33) false-negative rate
+C.fpr = X;                    % (34) false-positive rate
 
 C.lim = V;                    % (35) testing: capacity
 C.rat = X;                    % (36) testing: constant (days)
@@ -521,10 +521,11 @@ C.con = V;                    % (47) LFD confirmation
 C.iso = Z;                    % (48) self-isolation (days)
 C.Tnn = Z;                    % (49) loss of T-cell immunity (days)
 
-C.lnr = W;                    % (50) LFD sensitivity
-C.lpr = W;                    % (51) LFD specificity
-C.rel = V;                    % (52) PCR testing of fatalities
-C.pro = V;                    % (53) unvaccinated proportion
+C.lnr = X;                    % (50) LFD sensitivity
+C.lpr = X;                    % (51) LFD specificity
+C.rel = W;                    % (52) PCR testing of fatalities
+C.pro = W;                    % (53) unvaccinated proportion
+C.oth = W;                    % (54) survival probability in other
 
 % check prior expectations and covariances are consistent
 %--------------------------------------------------------------------------

@@ -22,7 +22,7 @@ function [T,R] = spm_COVID_T(P,I)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_T.m 8127 2021-07-25 13:21:02Z karl $
+% $Id: spm_COVID_T.m 8129 2021-08-02 18:08:36Z karl $
 
 % setup
 %==========================================================================
@@ -221,7 +221,7 @@ B{2} = spm_permute_kron(b,dim([2,1,3,4]),[2,1,3,4]);
 %--------------------------------------------------------------------------
 b    = cell(1,dim(2));
 Psev = P.sev;                                % P(ARDS | infected)
-Pfat = P.fat;                                % P(fatality | ARDS, CCU)
+Pfat = 1 - (1 - P.fat)*P.oth;                % P(fatality | ARDS, Other)
 Ktic = exp(-1/P.Tic);                        % asymptomatic rate
 Ksym = exp(-1/P.Tsy);                        % symptomatic rate
 Ktrd = exp(-1/P.Trd);                        % ARDS rate
@@ -230,17 +230,17 @@ Ktrd = exp(-1/P.Trd);                        % ARDS rate
 %--------------------------------------------------------------------------
 %  asymptomatic    symptomatic           ARDS        deceased
 %--------------------------------------------------------------------------
-b{1} = [1          (1 - Ksym)*(1 - Psev) 0         (1 - Kday);
-        0           Ksym                 0                  0;
-        0          (1 - Ksym)*Psev       Ktrd               0;
-        0           0                   (1 - Ktrd)      Kday];
+b{1} = [1          (1 - Ksym)*(1 - Psev) (1 - Ktrd)*(1 - Pfat) (1 - Kday);
+        0           Ksym                  0                     0;
+        0          (1 - Ksym)*Psev        Ktrd                  0;
+        0           0                    (1 - Ktrd)*Pfat        Kday];
     
 % marginal: clinical {3} | infected {2}(2)
 %--------------------------------------------------------------------------
-b{2} = [Ktic       (1 - Ksym)*(1 - Psev) 0         (1 - Kday);
-       (1 - Ktic)   Ksym                 0                 0;
-        0          (1 - Ksym)*Psev       Ktrd              0;
-        0           0                   (1 - Ktrd)      Kday];
+b{2} = [Ktic       (1 - Ksym)*(1 - Psev) (1 - Ktrd)*(1 - Pfat) (1 - Kday);
+       (1 - Ktic)   Ksym                 0                      0;
+        0          (1 - Ksym)*Psev       Ktrd                   0;
+        0           0                   (1 - Ktrd)*Pfat         Kday];
     
 % marginal: clinical {3} | infectious {2}(3)
 %--------------------------------------------------------------------------
@@ -265,12 +265,13 @@ b    = spm_kron({b,I{1}});
 b    = spm_permute_kron(b,dim([3,2,1]),[3,2,1]);
 B{3} = spm_kron({b,I{4}});
 
-% location dependent fatalities (in hospital): third order dependencies
+% location dependent fatalities (in hospital or CCU): third order dependencies
 %--------------------------------------------------------------------------
-ij   = Bij({3,1:6,3,1:6},{3,1:6,4,1:6},dim); B{3}(ij) = (1 - Ktrd)*Pfat;
-ij   = Bij({3,1:6,3,1:6},{3,1:6,1,1:6},dim); B{3}(ij) = (1 - Ktrd)*(1 - Pfat);
-ij   = Bij({6,1:6,3,1:6},{6,1:6,4,1:6},dim); B{3}(ij) = (1 - Ktrd)*Pfat;
-ij   = Bij({6,1:6,3,1:6},{6,1:6,1,1:6},dim); B{3}(ij) = (1 - Ktrd)*(1 - Pfat);
+Pfat = P.fat;
+ij   = Bij({[3 6],1:6,3,1:6},{[3 6],1:6,4,1:6},dim); B{3}(ij) = (1 - Ktrd)*Pfat;
+ij   = Bij({[3 6],1:6,3,1:6},{[3 6],1:6,1,1:6},dim); B{3}(ij) = (1 - Ktrd)*(1 - Pfat);
+ij   = Bij({[3 6],1:6,3,1:6},{[3 6],1:6,4,1:6},dim); B{3}(ij) = (1 - Ktrd)*Pfat;
+ij   = Bij({[3 6],1:6,3,1:6},{[3 6],1:6,1,1:6},dim); B{3}(ij) = (1 - Ktrd)*(1 - Pfat);
 
 % probabilistic transitions: testing
 %==========================================================================
@@ -284,10 +285,10 @@ b    = cell(1,dim(2));
 Ppcr = 0;
 if isfield(P,'pcr')
     for i = 1:numel(P.pcr)
-        Ppcr = Ppcr + log(P.pcr(i)) * exp(-(P.t - i*48)^2/((48/2)^2));
+        Ppcr = Ppcr + log(P.pcr(i)) * exp(-(P.t - i*48).^2./((48/2)^2));
     end
 end
-Ppcr = exp(Ppcr);
+Ppcr = exp(erf(Ppcr)/4);
 
 % (pillar 1, 2 and LFD) phases of testing
 %--------------------------------------------------------------------------
@@ -362,9 +363,16 @@ b{6} = b{1};
 
 % kroneckor form
 %--------------------------------------------------------------------------
+if min(spm_vec(b)) < 0; keyboard, end
+
 b    = spm_cat(spm_diag(b));
 b    = spm_kron({b,I{1},I{3}});
 B{4} = spm_permute_kron(b,dim([4,2,1,3]),[3,2,4,1]);
+
+% location dependent PCR testing (always when in hospital)
+%--------------------------------------------------------------------------
+ij   = Bij({6,1:6,1:4,1},{6,1:6,1:4,1},dim); b = B{4}(ij); B{4}(ij) = 0;
+ij   = Bij({6,1:6,1:4,1},{6,1:6,1:4,2},dim); B{4}(ij) = B{4}(ij) + b;
 
 
 % probability transition matrix

@@ -36,7 +36,7 @@ function data = DATA_COVID_JHU(n)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DATA_COVID_JHU.m 8001 2020-11-03 19:05:40Z karl $
+% $Id: DATA_COVID_JHU.m 8129 2021-08-02 18:08:36Z karl $
 
 % get data
 %--------------------------------------------------------------------------
@@ -84,6 +84,8 @@ i          = logical(ismember(Country,{'Bolivia (Plurinational State of)'}));
 Country{i} = 'Bolivia';
 i          = logical(ismember(Country,{'Iran (Islamic Republic of)'}));
 Country{i} = 'Iran';
+i          = logical(ismember(Country,{'Myanmar'}));
+Country{i} = 'Burma';
 
 % i = find(ismember(State,'Spain'));
 
@@ -110,30 +112,34 @@ for i = 1:numel(State)
         %------------------------------------------------------------------
         d   = find(cumsum(CY) > 1,1);
         l   = find(ismember(C.textdata(2:end,2),State{i}),1);
-
-        Data(k).country = State{i};
-        Data(k).pop     = Npop(j)*1e3;
-        Data(k).lat     = C.data(l,1);
-        Data(k).long    = C.data(l,2);
-        Data(k).date    = date{d};
-        Data(k).cases   = spm_hist_smooth(gradient([zeros(8,1); CY(d:end)]),s);
-        Data(k).death   = spm_hist_smooth(gradient([zeros(8,1); DY(d:end)]),s);
-        Data(k).days    = numel(Data(k).cases);
-        Data(k).cum     = sum(Data(k).death);
         
-        % check
-        %------------------------------------------------------------------
-        if ismember(State(i),'United Kingdom')
-            % keyboard;
+        if d
+            
+            Data(k).country = State{i};
+            Data(k).pop     = Npop(j)*1e3;
+            Data(k).lat     = C.data(l,1);
+            Data(k).long    = C.data(l,2);
+            Data(k).date    = date{d};
+            Data(k).cases   = spm_hist_smooth(gradient([zeros(8,1); CY(d:end)]),s);
+            Data(k).death   = spm_hist_smooth(gradient([zeros(8,1); DY(d:end)]),s);
+            Data(k).days    = numel(Data(k).cases);
+            Data(k).cum     = sum(Data(k).death);
+            
+            % check
+            %------------------------------------------------------------------
+            if ismember(State(i),'United Kingdom')
+                % keyboard;
+            end
+            
+            % population of Wuhan
+            %------------------------------------------------------------------
+            if ismember(State(i),'China')
+                Data(k).pop     = 11.08e6;
+            end
+            
+            k = k + 1;
+            
         end
-        
-        % population of Wuhan
-        %------------------------------------------------------------------
-        if ismember(State(i),'China')
-            Data(k).pop     = 11.08e6;
-        end
-        
-        k = k + 1;
         
     end
 end
@@ -170,7 +176,7 @@ N   = spm_cat({Data.cum});
 % rank the number of cumulative cases
 %--------------------------------------------------------------------------
 [N,i] = sort(N,'descend');
-i     = i(1:n);
+i     = i(1:min(n,end));
 data  = Data(i);
 t     = min(T(i));
 for i = 1:numel(data)

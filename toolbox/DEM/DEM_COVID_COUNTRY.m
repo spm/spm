@@ -16,7 +16,7 @@ function DCM = DEM_COVID_COUNTRY(country)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_COUNTRY.m 8100 2021-05-08 15:00:05Z karl $
+% $Id: DEM_COVID_COUNTRY.m 8129 2021-08-02 18:08:36Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -25,26 +25,42 @@ if nargin < 1, country = 'United Kingdom'; end
 % get figure and data
 %--------------------------------------------------------------------------
 Fsi     = spm_figure('GetWin','SI'); clf;
-data    = DATA_COVID_JHU(168);
-i       = find(ismember({data.country},country));
+data    = DATA_COVID_JHU(256);
+c       = find(ismember({data.country},country));
 
 % get and set priors
 %--------------------------------------------------------------------------
 [pE,pC] = spm_SARS_priors;
-pE.N    = log(data(i).pop/1e6);
+pE.N    = log(data(c).pop/1e6);
 pC.N    = 0;
+
+% augment priors with fluctuations
+%--------------------------------------------------------------------------
+onset   = datenum(data(c).date,'m/dd/yy');
+M.date  = datestr(onset - 8,'dd-mm-yyyy');
+i       = floor((datenum(date) - onset)/32);
+j       = floor((datenum(date) - onset)/48);
+k       = floor((datenum(date) - onset)/64);
+pE.tra  = zeros(1,k);          % increases in transmission strength
+pC.tra  = ones(1,k)/8;         % prior variance
+
+% pE.pcr  = zeros(1,j);          % testing
+% pC.pcr  = ones(1,j)/8;         % prior variance
+% 
+% pE.mob  = zeros(1,i);          % mobility
+% pC.mob  = ones(1,i)/8;         % prior variance
 
 % data for this country (here, and positive test rates)
 %--------------------------------------------------------------------------
-set(Fsi,'name',data(i).country)
-Y       = [data(i).death, data(i).cases];
+set(Fsi,'name',data(c).country)
+Y       = [data(c).death, data(c).cases];
 h       = log(sum(Y));
 h       = mean(h) - h;
 h(1)    = h(1) + 2;
 
 % model specification
 %==========================================================================
-M.date  = datestr(datenum(data(i).date,'m/dd/yy') - 8,'dd-mm-yyyy');
+M.Nmax  = 256;                  % maximum number of iterations
 M.G     = @spm_SARS_gen;        % generative function
 M.FS    = @(Y)real(sqrt(Y));    % feature selection  (link function)
 M.pE    = pE;                   % prior expectations (parameters)
@@ -66,20 +82,24 @@ DCM.Y      = Y;
 % posterior predictions
 %==========================================================================
 spm_figure('GetWin',country); clf;
-M.T     = datenum(date) + 64 - datenum(M.date,'dd-mm-yyyy');
-[Z,X]   = spm_SARS_gen(DCM.Ep,M,[1 2 3]);
-spm_SARS_plot(Z,X,DCM.Y)
+M.T     = datenum(date) + 256 - datenum(M.date,'dd-mm-yyyy');
+[Z,X]   = spm_SARS_gen(DCM.Ep,M,[1 2 15]);
+spm_SARS_plot(Z,X,DCM.Y,[1 2 15])
 
 spm_figure('GetWin','confidence intervals'); clf;
 % death rates
 %--------------------------------------------------------------------------
 subplot(3,1,1)
-spm_SARS_ci(Ep,Cp,Y,1,M);
+spm_SARS_ci(Ep,Cp,Y,1,M);hold on
 
-% CCU admissions
+% certified deaths
+%--------------------------------------------------------------------------
+spm_SARS_ci(Ep,Cp,[],15,M);
+
+% notification rates
 %--------------------------------------------------------------------------
 subplot(3,1,2)
-spm_SARS_ci(Ep,Cp,[],3,M);
+spm_SARS_ci(Ep,Cp,[],2,M);
 
 % reproduction ratio
 %--------------------------------------------------------------------------
@@ -108,8 +128,8 @@ return
 %==========================================================================
 subplot(3,1,1); hold on
 M.FTT = 1/4;
-for i = [0 4]*7
-    M.TTT = datenum(date) - datenum(M.date,'dd-mm-yyyy') + i;
+for c = [0 4]*7
+    M.TTT = datenum(date) - datenum(M.date,'dd-mm-yyyy') + c;
     spm_SARS_ci(Ep,Cp,Y,1,M);
 end
 

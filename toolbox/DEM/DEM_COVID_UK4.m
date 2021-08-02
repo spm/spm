@@ -30,6 +30,7 @@ function DCM = DEM_COVID_UK4
 
 % set up and get data
 %==========================================================================
+clear all
 close all
 clc
 spm_figure('GetWin','SI'); clf;
@@ -912,7 +913,7 @@ i       = find(DCM.U == 14,1); D = DCM.Y(:,i);
 u1   = datenum('10-May-2020','dd-mmm-yyyy') - t(1) + 1;
 u2   = datenum('10-Aug-2020','dd-mmm-yyyy') - t(1) + 1;
 u3   = datenum('10-Sep-2020','dd-mmm-yyyy') - t(1) + 1;
-U    = sort([0 q(u1) q(u2) q(u3)]);
+U    = sort([0 q(u1) q(u2) q(u3)]); U(end) = 95;
 dstr = datestr(t,'dd-mmm');
 
 % loop over levels
@@ -955,8 +956,16 @@ for i = 1:numel(U)
     
 end
 
+% UEFA EURO 2020/Dates
+%--------------------------------------------------------------------------
+d1 = datenum('11-Jun-2021','dd-mmm-yyyy');
+d2 = datenum('11-Jul-2021','dd-mmm-yyyy');
+plot([d1,d2],[120,120],'k','Linewidth',8)
+text(d1 - 84,120,'EURO 2020','FontSize',10)
+
+
 ylabel('percent'),  title('Mobility and lockdown','FontSize',14)
-legend({'credible interval','mobility (%)'}), legend boxoff
+legend({'credible interval','mobility (%)','Google workplace'}), legend boxoff
 drawnow
 
 
@@ -979,7 +988,7 @@ str = sprintf('Prevalence and reproduction ratio (%s): R = %.2f (CI %.2f to %.2f
 %--------------------------------------------------------------------------
 E         = 1 - mean(exp(Ep.ves));
 [H,~,~,R] = spm_SARS_gen(Ep,M,[4 29 26]);
-i         = 16:32;                          % pre-pandemic period
+i         = 8:32;                           % pre-pandemic period
 TRN       = [R{1}.Ptrn];                    % transmission risk
 R0        = mean(H(i,1));                   % basic reproduction ratio
 RT        = R0*TRN(:)/mean(TRN(i));         % effective reproduction ratio
@@ -1011,10 +1020,19 @@ subplot(2,1,2)
 spm_SARS_ci(Ep,Cp,[],25,M); hold on
 spm_SARS_ci(Ep,Cp,[],26,M); hold on
 
-plot(t,HIT,t,VAC), hold on
-plot(datenum(date,'dd-mm-yyyy')*[1,1],get(gca,'YLim'),':k')
+
+
+% effective immunity threshold at 80% contact rates
+%--------------------------------------------------------------------------
+plot(t,HIT,'r',t,VAC), hold on
+hit  = 100 * (1 - 1./(RT * .8))/E;            
+plot(t,hit,'r-.',get(gca,'XLim'),[100 100],':k'), hold on
+plot(datenum(date,'dd-mm-yyyy')*[1,1],[100 100],':k')
 ylabel('percent'),  title('Attack rate and immunity','FontSize',14)
-legend({'CI','Attack rate','CI','Population immunity','Effective immunity threshold','Vaccine antibodies'})
+legend({'CI','Attack rate','CI','Population immunity',...
+       'Effective immunity threshold',...
+       'Vaccine antibodies',...
+       'EIT at 80% contact rate'},'location','west')
 legend boxoff
 
 
@@ -1069,6 +1087,12 @@ disp(sprintf('relative risk of mild illness %.1f%s',  mild*100,'%'))
 disp(sprintf('relative risk of severe illness %.1f%s',severe*100,'%'))
 disp(sprintf('relative risk of fatality %.1f%s',      death*100,'%'))
 
+%% report transmissibility and basic reproduction number
+%--------------------------------------------------------------------------
+disp('relative transmissibility');
+disp(100*TRN(j)/mean(TRN(1:j)))
+disp('basic reproduction number');
+disp(RT(j))
 
 
 %% save figures
@@ -1101,11 +1125,6 @@ Tab = spm_COVID_table(Ep,Cp,M)
 save('DCM_UK.mat','DCM')
 cd('C:\Users\karl\Dropbox\Coronavirus')
 save('DCM_UK.mat','DCM')
-
-disp('relative transmissibility');
-disp(100*TRN(j)/mean(TRN(1:j)))
-disp('basic reproduction number');
-disp(RT(j))
 
 return
 
