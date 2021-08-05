@@ -17,7 +17,7 @@ function D = spm_eeg_prep(S)
 % Copyright (C) 2008-2019 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep.m 7586 2019-05-03 14:57:34Z guillaume $
+% $Id: spm_eeg_prep.m 8130 2021-08-05 13:15:12Z vladimir $
 
 D = spm_eeg_load(S.D);
 
@@ -40,22 +40,7 @@ switch lower(S.task)
             ind = 1:D.nchannels;
         end
         
-        dictionary = {
-            'eog',           'EOG';
-            'eeg',           'EEG';
-            'ecg',           'ECG';
-            'lfp',           'LFP';
-            'emg',           'EMG';
-            'meg',           'MEG';
-            'ref',           'REF';
-            'megref'         'REF';
-            'megmag',        'MEGMAG';
-            'megplanar',     'MEGPLANAR';
-            'meggrad',       'MEGGRAD';
-            'refmag',        'REFMAG';
-            'refgrad',       'REFGRAD'
-            'refplanar'      'REFPLANAR'
-            };
+        dictionary = spm_eeg_spmft_chan_dictionary;
         
         D = chantype(D, ind, 'Other');
         

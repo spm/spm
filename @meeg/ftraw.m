@@ -5,7 +5,7 @@ function raw = ftraw(this, chanind, timeind, trialind)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: ftraw.m 6158 2014-09-09 12:23:49Z vladimir $
+% $Id: ftraw.m 8130 2021-08-05 13:15:12Z vladimir $
 
 if ~islinked(this)
     error('There is no data linked to the object');
@@ -60,14 +60,31 @@ if ~isempty(sensors(this, 'EEG'))
     raw.elec = sensors(this, 'EEG');
 end
 
-if isfield(this.other, 'origheader')
-    raw.hdr = this.other.origheader;
-end
-
 onsets = trialonset(this, trialind);
 
 if all(onsets>0)
     onsets = round(onsets(:)*fsample(this));
     raw.sampleinfo = [onsets+timeind(1) onsets+timeind(end)]-1;
 end
+
+hdr = [];
+hdr.Fs          = fsample(this);
+hdr.nChans      = length(chanind);
+hdr.nSamples    = length(timeind);
+hdr.nSamplesPre = sum(time(this, timeind)<0);
+hdr.nTrials     = length(trialind);
+hdr.label       = raw.label;
+hdr.chanunit    = units(this, chanind);
+
+spmtype      = chantype(this, chanind);
+dictionary   = spm_eeg_spmft_chan_dictionary;
+[sel1, sel2] = spm_match_str(spmtype, dictionary(:, 2));
+        
+hdr.chantype = dictionary(sel2, 1)';
+
+if isfield(this.other, 'origheader')
+    hdr.orig = this.other.origheader;
+end
+
+raw.hdr = hdr;
 

@@ -9,7 +9,7 @@ function timelock = fttimelock(this, chanind, timeind, trialind, freqind)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: fttimelock.m 6158 2014-09-09 12:23:49Z vladimir $
+% $Id: fttimelock.m 8130 2021-08-05 13:15:12Z vladimir $
 
 if ~islinked(this)
     error('There is no data linked to the object');
@@ -97,3 +97,24 @@ end
 if ~isempty(sensors(this, 'EEG'))
     timelock.elec = sensors(this, 'EEG');
 end
+
+hdr = [];
+hdr.Fs          = fsample(this);
+hdr.nChans      = length(chanind);
+hdr.nSamples    = length(timeind);
+hdr.nSamplesPre = sum(time(this, timeind)<0);
+hdr.nTrials     = length(trialind);
+hdr.label       = timelock.label;
+hdr.chanunit    = units(this, chanind);
+
+spmtype      = chantype(this, chanind);
+dictionary   = spm_eeg_spmft_chan_dictionary;
+[sel1, sel2] = spm_match_str(spmtype, dictionary(:, 2));
+        
+hdr.chantype = dictionary(sel2, 1)';
+
+if isfield(this.other, 'origheader')
+    hdr.orig = this.other.origheader;
+end
+
+timelock.hdr = hdr;
