@@ -44,7 +44,7 @@ function [y,x,z,W] = spm_SARS_gen(P,M,U,NPI,age)
 %
 % X       - (M.T x 4) marginal densities over four factors
 % location   : {'home','out','ccu','removed','isolated','hospital'};
-% infection  : {'susceptible','infected','infectious','Ab +ve','Ab -ve','Vac +ve'};
+% infection  : {'susceptible','infected','infectious','Ab +ve','Ab -ve','Vac +ve','Vac Inf'};
 % clinical   : {'asymptomatic','symptoms','ARDS','death'};
 % diagnostic : {'untested','waiting','PCR +ve','PCR -ve','LFD +ve','LFD -ve'}
 %
@@ -78,7 +78,7 @@ function [y,x,z,W] = spm_SARS_gen(P,M,U,NPI,age)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_gen.m 8127 2021-07-25 13:21:02Z karl $
+% $Id: spm_SARS_gen.m 8131 2021-08-06 10:18:56Z karl $
 
 
 % The generative model:
@@ -170,7 +170,11 @@ if isstruct(M.T)        % predictions from multiple data types are required
     D   = M.T;
     d   = spm_vec(D.date);
     if isfield(M,'date')
-        d0 = datenum(M.date,'dd-mm-yyyy');
+        try
+            d0 = datenum(M.date,'dd-mm-yyyy');
+        catch
+            d0 = M.date;
+        end
     else
         d0 = min(d);
     end
@@ -206,7 +210,7 @@ for n = 1:nN
     % unpack and exponentiate parameters
     %----------------------------------------------------------------------
     Q{n}  = spm_vecfun(R{n},@exp);
-    R{n}  = Q{n};
+    R{n}  = Q{n};                 % baseline parameters
     
     
     % initial marginals (Dirichlet parameters)
@@ -220,7 +224,7 @@ for n = 1:nN
     s    = 1 - c - r;             % proportion of susceptible cases
 
     p{n}{1} = [h w 0 m 0 0]';     % location
-    p{n}{2} = [s c 0 0 r 0]';     % infection
+    p{n}{2} = [s c 0 0 r 0 0 0]'; % infection
     p{n}{3} = [1 0 0 0]';         % clinical
     p{n}{4} = [1 0 0 0 0 0]';     % testing
     
@@ -336,9 +340,9 @@ for i = 1:M.T
         
         % probability of lockdown (a function of prevalence)
         %------------------------------------------------------------------
-        q    = p{n}{2}(2)*Q{n}.sde;               % prevalence dependent
+        q    = p{n}{2}(3)*Q{n}.sde;               % prevalence dependent
         k1   = exp(-i/Q{n}.mem)*q;                % contact rates
-        k2   = exp(-1/(Q{n}.qua * p{n}{2}(1)));   % relaxation
+        k2   = exp(-1/Q{n}.qua);                  % relaxation
         r{n} = [(1 - k1) (1 - k2);
                      k1,      k2]*r{n};
         
@@ -367,14 +371,18 @@ for i = 1:M.T
         tou  = 1;
         ths  = 1;
         for j = 1:nN
-            q   = spm_sum(x{j},[3 4 5]);
+            q   = spm_sum(x{j},[3 4]);
             pin = q(1,:)/sum(q(1,:) + eps);      % P(infection | home)
             pou = q(2,:)/sum(q(2,:) + eps);      % P(infection | work)
             phs = q(6,:)/sum(q(6,:) + eps);      % P(infection | hospital)
+            
+            pin = pin(3) + pin(8);               % P(infectious | home)
+            pou = pou(3) + pou(8);               % P(infectious | work)
+            phs = phs(3) + phs(8);               % P(infectious | hospital)
 
-            tin = tin*(1 - Ptrn*pin(3))^Q{n}.Nin(j);
-            tou = tou*(1 - Ptrn*pou(3))^Q{n}.Nou(j);
-            ths = ths*(1 - Ptrn*phs(3))^Q{n}.Nin(j);
+            tin = tin*(1 - Ptrn*pin)^Q{n}.Nin(j);
+            tou = tou*(1 - Ptrn*pou)^Q{n}.Nou(j);
+            ths = ths*(1 - Ptrn*phs)^Q{n}.Nin(j);
         end
         
         Q{n}.tin = min(tin,1);          % P(no transmission | home)
@@ -385,29 +393,15 @@ for i = 1:M.T
         %------------------------------------------------------------------
         Rvac     = Q{n}.rol(1)*(1 + erf((i - Q{n}.rol(2))/Q{n}.rol(3))) + ...
                    Q{n}.fol(1)*(1 + erf((i - Q{n}.fol(2))/Q{n}.fol(3)));
-        Q{n}.nac = 1 - Rvac;            
+        Q{n}.nac = 1 - Rvac;     
         
-        % link between pathogenicity and vaccination: q = immune proportion
-        %------------------------------------------------------------------
-        q        = 1 - p{n}{2}(1); 
-        qr       = (1 - R{n}.res)*q*(1 - Q{n}.ves);
-        qp       = (1 - q) + Q{n}.lnk*q;
-        qf       = (1 - q) + Q{n}.lnf*q;
-        
-        Q{n}.sev = R{n}.sev*qp;         % vaccine efficiency: pathogenicity
-        Q{n}.lat = R{n}.lat*qp;         % vaccine efficiency: pathogenicity
-        Q{n}.fat = R{n}.fat*qf;         % vaccine efficiency: fatality
-        Q{n}.sur = R{n}.sur*qf;         % vaccine efficiency: fatality
-        Q{n}.res = R{n}.res + qr;       % vaccine efficiency: transmission
-        
-        
-        % exponential decay
+        % exponential decay and time-dependent clinical susceptibility
         %------------------------------------------------------------------
         Q{n}.t   = i;                   % time (days)
         S        = exp(-i/512);
+        Q{n}.sev = erf(R{n}.sev*S + R{n}.lat*(1 - S));  % P(ARDS | infected)
+        Q{n}.fat = erf(R{n}.fat*S + R{n}.sur*(1 - S));  % P(fatality | ARDS, CCU)
         
-        Q{n}.sev = erf(Q{n}.sev*S + Q{n}.lat*(1 - S));  % P(ARDS | infected)
-        Q{n}.fat = erf(Q{n}.fat*S + Q{n}.sur*(1 - S));  % P(fatality | ARDS, CCU)
         
         % update ensemble density (x)
         %==================================================================
@@ -452,11 +446,11 @@ for i = 1:M.T
         
         % effective reproduction ratio (R) (based on infection prevalence)
         %------------------------------------------------------------------
-        Y{n}(i,4) = p{n}{2}(2);
+        Y{n}(i,4) = p{n}{2}(3) + p{n}{2}(8);
         
         % seropositive immunity (%) Ab+ and Vaccine+
         %------------------------------------------------------------------
-        Y{n}(i,5) = 100 * (p{n}{2}(4) + p{n}{2}(6));
+        Y{n}(i,5) = 100 * sum(p{n}{2}([4 6 7 8]));
         
         % total number of daily virus tests (PCR and LFD)
         %------------------------------------------------------------------
@@ -468,7 +462,7 @@ for i = 1:M.T
         
         % prevalence of (contagious) infection (%)
         %------------------------------------------------------------------
-        Y{n}(i,8) = 100 * p{n}{2}(3);
+        Y{n}(i,8) = 100 * (p{n}{2}(3) + p{n}{2}(8));
         
         % number of people at home, asymptomatic, untested but infected
         %------------------------------------------------------------------
@@ -481,7 +475,10 @@ for i = 1:M.T
                      p{n}{2}(3)*(1 - Q{n}.fnr(2)) + ...
                      p{n}{2}(4)*Q{n}.fpr(2) + ...
                      p{n}{2}(5)*Q{n}.fpr(1) + ...
-                     p{n}{2}(6)*Q{n}.fpr(1);
+                     p{n}{2}(6)*Q{n}.fpr(1) + ...
+                     p{n}{2}(7)*(1 - Q{n}.fnr(1)) + ...
+                     p{n}{2}(8)*(1 - Q{n}.fnr(2));
+                 
         Y{n}(i,11) = 100 * q;
         
         % number of symptomatic people
@@ -509,7 +506,6 @@ for i = 1:M.T
         % certified deaths per day
         %------------------------------------------------------------------
         Y{n}(i,15) = N(n) * p{n}{3}(4);
-        
         
         % hospital occupancy (ARDS people in hospital/CCU)
         %------------------------------------------------------------------
@@ -571,7 +567,7 @@ for n = 1:nN
     % incidence of new infections (%)
     %----------------------------------------------------------------------
     Kinf       = 1 - exp(-1/Q{n}.Tin);
-    prev       = X{n,2}(:,2);
+    prev       = X{n,2}(:,2) + X{n,2}(:,7);
     Y{n}(:,10) = 100 * (gradient(prev) + Kinf*prev);
     
     % Y(:,19) - Daily incidence (per hundred thousand)
@@ -595,11 +591,11 @@ for n = 1:nN
     
     % population immunity (seropositive, seronegative) (%)
     %----------------------------------------------------------------------
-    Y{n}(:,26) = 100 * sum(X{n,2}(:,4:6),2);
+    Y{n}(:,26) = 100 * sum(X{n,2}(:,4:8),2);
     
     % population immunity (vaccine) (%)
     %----------------------------------------------------------------------
-    Y{n}(:,29) = 100 * sum(X{n,2}(:,6),2);
+    Y{n}(:,29) = 100 * sum(X{n,2}(:,6:8),2);
         
     % accommodate (3 week) delay in immunity following vaccination
     %----------------------------------------------------------------------

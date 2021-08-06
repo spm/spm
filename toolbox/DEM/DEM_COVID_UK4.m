@@ -1024,15 +1024,15 @@ spm_SARS_ci(Ep,Cp,[],26,M); hold on
 
 % effective immunity threshold at 80% contact rates
 %--------------------------------------------------------------------------
-plot(t,HIT,'r',t,VAC), hold on
-hit  = 100 * (1 - 1./(RT * .8))/E;            
-plot(t,hit,'r-.',get(gca,'XLim'),[100 100],':k'), hold on
+plot(t,HIT,t,VAC), hold on
+% hit  = 100 * (1 - 1./(RT * .8))/E;            
+% plot(t,hit,'r-.',get(gca,'XLim'),[100 100],':k'), hold on
+
 plot(datenum(date,'dd-mm-yyyy')*[1,1],[100 100],':k')
 ylabel('percent'),  title('Attack rate and immunity','FontSize',14)
 legend({'CI','Attack rate','CI','Population immunity',...
        'Effective immunity threshold',...
-       'Vaccine antibodies',...
-       'EIT at 80% contact rate'},'location','west')
+       'Vaccine antibodies'},'location','west')
 legend boxoff
 
 
@@ -1265,7 +1265,7 @@ spm_figure('GetWin','states'); clf;
 M.T    = datenum(date) - datenum(DCM.M.date,'dd-mm-yyyy');
 M.T    = M.T + 180;
 
-u      = 30;
+u      = 1;
 a      = 0;
 Ep.Trd = DCM.Ep.Trd + 0;
 

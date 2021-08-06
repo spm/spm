@@ -37,7 +37,7 @@ function [P,C,str] = spm_SARS_priors(nN)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_priors.m 8129 2021-08-02 18:08:36Z karl $
+% $Id: spm_SARS_priors.m 8131 2021-08-06 10:18:56Z karl $
 
 % sources and background
 %--------------------------------------------------------------------------
@@ -83,16 +83,16 @@ if nargin
         %------------------------------------------------------------------
         P.N   = P.N - log(nN);
         P.n   = P.n - log(nN);
-        P.rol = log([0.01  (365 + 0)   32;
-                     0.02  (365 + 0)   32;
-                     0.04  (365 + 0)   32]);
+        P.rol = log([0.001  (365 + 0)   32;
+                     0.01  (365 + 0)   32;
+                     0.01  (365 + 0)   32]);
         P.fol = log([0.02  (365 + 128) 32;
                      0.02  (365 + 64)  32;
                      0.02  (365 + 32)  32]);
                  
-        P.sev = log([0.0002;
-                     0.002;
-                     0.03]);
+        P.sev = log([0.0010;
+                     0.0100;
+                     0.1000]);
                  
         P.lat = P.sev;
         
@@ -129,7 +129,7 @@ if nargin
                      0.01   (365 + 0)   32;
                      0.02   (365 + 0)   32]);
         P.fol = log([0.01   (365 + 512) 32;
-                     0.01   (365 + 128) 32;
+                     0.02   (365 + 128) 32;
                      0.02   (365 + 64 ) 32;
                      0.02   (365 + 32 ) 32]);
 
@@ -147,27 +147,27 @@ if nargin
         P.hos = log([2
                      2
                      1
-                     1/2]);
+                     0.4]);
                  
         % probability of transfer to CCU
         %------------------------------------------------------------------
         P.ccu = log([0.2
-                     0.1
+                     0.04
                      0.02
-                     0.01]);
+                     0.005]);
                  
         % morbidity
         %------------------------------------------------------------------
-        P.sev = log([0.001
-                     0.010
-                     0.010
-                     0.100]);
+        P.sev = log([0.0004
+                     0.0040
+                     0.0100
+                     0.1000]);
         P.lat = P.sev;
         
         % mortality
         %------------------------------------------------------------------
         P.fat = log([0.005;
-                     0.005;
+                     0.01;
                      0.2;
                      0.4]);
         P.sur = P.fat;
@@ -199,8 +199,8 @@ if nargin
                      1     1     2    1;
                      1     1     1    2]/2);
         
-        P.Nou = log([24    4     2    1;
-                     4     32    4    2;
+        P.Nou = log([32    4     2    1;
+                     4     24    4    2;
                      2     4     16   4;
                      1     2     4    16]);
         
@@ -292,7 +292,7 @@ names{54} = 'survival risk in other';
 factors   = {'Location','Infection','Symptoms','Testing'};
 
 factor{1} = {'lo-risk','hi-risk','ICU','no-risk','isolated','hospital'};
-factor{2} = {'susceptible','infected','infectious','Ab +ve','Ab -ve','Vac +ve'};
+factor{2} = {'susceptible','infected','infectious','Ab +ve','Ab -ve','Vac +ve','infected (vac)','infectious (vac)'};
 factor{3} = {'none','symptoms','severe','deceased'};
 factor{4} = {'untested','waiting','PCR +ve','PCR -ve','LFD +ve','LFD -ve'};
 factor{5} = {' ',' '};
@@ -381,7 +381,7 @@ P.sde = 4;                    % (07) time constant of lockdown
 P.qua = 64;                   % (08) time constant of unlocking
 P.exp = 0.02;                 % (09) viral spreading (rate)
 P.hos = 1;                    % (10) admission rate (hospital) [erf]
-P.ccu = 0.2;                  % (11) admission rate (CCU)
+P.ccu = 0.01;                 % (11) admission rate (CCU)
 P.s   = 2;                    % (12) exponent of contact rates
 
 % infection (transmission) parameters
@@ -391,20 +391,20 @@ P.Nou = 24;                   % (14) effective number of contacts: work
 P.trn = 0.2;                  % (15) transmission strength (secondary attack rate)
 P.trm = 0.04;                 % (16) seasonality
 P.Tin = 3;                    % (17) infected period (days)
-P.Tcn = 4;                    % (18) infectious period (days)
+P.Tcn = 4.5;                  % (18) infectious period (days)
 P.Tim = 128;                  % (19) seropositive immunity (days)
 P.res = 0.2;                  % (20) seronegative proportion (late)
 
 % clinical parameters
 %--------------------------------------------------------------------------
-P.Tic = 4;                    % (21) asymptomatic period (days)
-P.Tsy = 6;                    % (22) symptomatic period  (days)
+P.Tic = 3;                    % (21) asymptomatic period (days)
+P.Tsy = 5;                    % (22) symptomatic period  (days)
 P.Trd = 16;                   % (23) severe symptoms     (days)
 
-P.sev = 0.04;                 % (24) P(ARDS | symptoms): winter
-P.lat = 0.04;                 % (25) P(ARDS | symptoms): summer
-P.fat = 0.5;                  % (26) P(fatality | ARDS): winter
-P.sur = 0.5;                  % (27) P(fatality | ARDS): summer
+P.sev = 0.001;                % (24) P(ARDS | symptoms): winter
+P.lat = 0.001;                % (25) P(ARDS | symptoms): summer
+P.fat = 0.2;                  % (26) P(fatality | ARDS): winter
+P.sur = 0.2;                  % (27) P(fatality | ARDS): summer
 
 % testing parameters
 %--------------------------------------------------------------------------
@@ -412,11 +412,11 @@ P.ttt = 0.036;                % (28) FTTI efficacy
 P.tes = [16 8];               % (29) bias (for infection): PCR (Pill. 1 & 2)
 P.tts = 1;                    % (30) bias (for infection): LFD
 P.del = 3;                    % (31) test delay (days)
-P.vac = 768;                  % (32) vaccination time constant (days)
+P.vac = 1024;                 % (32) vaccination time constant (days)
 P.fnr = [0.08 0.06];          % (33) false-negative rate  (infected/ious]
-P.fpr = [0.0003 0.004];       % (34) false-positive rate: (Sus. and Ab +ve)
+P.fpr = [0.0002 0.003];       % (34) false-positive rate: (Sus. and Ab +ve)
 
-P.lim = [1   2   2   2]/1000; % (35) testing: capacity (P1, P2, & LFD)
+P.lim = [1/2 1   2   2]/1000; % (35) testing: capacity (P1, P2, & LFD)
 P.rat = [8   24  8   4];      % (36) testing: dispersion
 P.ons = [100 200 300 400];    % (37) testing: onset
 
@@ -427,7 +427,7 @@ P.rol = [exp(-16) 365 32];       % (41) vaccination rollout (1st)
 P.fol = [exp(-16) 512 32];       % (42) vaccination rollout (2nd)
 
 P.vef = 0.4;                  % (43) vaccine efficacy: infection
-P.lnk = 0.1;                  % (44) vaccine efficacy: pathogenicity
+P.lnk = 0.2;                  % (44) vaccine efficacy: pathogenicity
 P.ves = 0.1;                  % (45) vaccine efficacy: transmission
 P.lnf = 0.04;                 % (46) vaccine efficacy: fatality
 
@@ -437,8 +437,8 @@ P.Tnn = 1024;                 % (49) loss of T-cell immunity (days)
 
 P.lnr = 0.46;                 % (50) LFD sensitivity
 P.lpr = 0.0002;               % (51) LFD specificity
-P.rel = 1;                    % (52) PCR testing of fatalities
-P.pro = .08;                  % (53) unvaccinated proportion
+P.rel = 0.9;                  % (52) PCR testing of fatalities
+P.pro = .2;                   % (53) unvaccinated proportion
 P.oth = 0.1;                  % (54) survival probability in other
 
 

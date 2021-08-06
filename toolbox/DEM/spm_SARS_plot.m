@@ -14,7 +14,7 @@ function spm_SARS_plot(Y,X,Z,U)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_plot.m 8129 2021-08-02 18:08:36Z karl $
+% $Id: spm_SARS_plot.m 8131 2021-08-06 10:18:56Z karl $
 
 % Plot outcomes
 %==========================================================================
@@ -125,7 +125,7 @@ for i = 1:numel(X)
         j(end) = [];
     end
     
-    if i < 4
+    if i == 1 || i == 3
         
         plot(t,X{i}(:,j(1:2))*100)
         ylabel('percent')
@@ -140,7 +140,22 @@ for i = 1:numel(X)
         title(str.factors{i},'FontSize',12), set(gca,'XLim',[0, t(end)])
         box off, legend(str.factor{i}(j)), legend('boxoff'), box off
         
-    else
+    elseif i == 2
+        
+        plot(t,X{i}(:,j(1:4))*100)
+        ylabel('percent')
+        title(str.factors{i},'FontSize',12), set(gca,'XLim',[0, t(end)])
+        box off, legend(str.factor{i}(j(1:4))), legend('boxoff'), box off
+        
+        k = k + 1;
+        subplot(6,2,k), set(gca,'ColorOrderIndex',1);
+        j(1:4) = [];
+        plot(t,X{i}(:,j)*100)
+        ylabel('percent')
+        title(str.factors{i},'FontSize',12), set(gca,'XLim',[0, t(end)])
+        box off, legend(str.factor{i}(j)), legend('boxoff'), box off
+        
+    else  
         
         plot(t,X{i}(:,j)*100)
         ylabel('percent')
