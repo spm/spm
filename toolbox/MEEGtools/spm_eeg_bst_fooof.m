@@ -1,0 +1,154 @@
+function D = spm_eeg_bst_fooof(S)
+% Remove the aperiodic component from the spectrum using the FOOOF algorithm
+% Donoghue et al. (2020). Nature Neuroscience, 23, 1655-1665.
+%
+% This uses the Brainstorm implementation by Luc Wilson
+%
+% FORMAT  D = spm_eeg_bst_fooof(S)
+%
+% S         - struct (optional)
+% (optional) fields of S:
+% S.D - meeg object, filename or a list of filenames of SPM EEG files
+% S.freq_range        - frequency range for fitting
+% S.peak_width_limits - how wide the peaks can be
+% S.max_peaks         - maximal number of peaks
+% S.min_peak_height   - minimal peak height
+% S.aperiodic_mode    - shape of the aperiodic component fixed|knee%
+% S.peak_threshold    - threshold for detecting a peak
+% S.peak_type         - Shape of the peak fit best|gaussian|cauchy
+% S.line_noise_freq   - Line noise frequency 50|60Hz
+% S.line_noise_width  - range around line noise peaks to interpolate
+% S.guess_weight      - Parameter to weigh initial estimates during
+%                       optimization none|weak|strong
+% S.proximity_threshold  -  threshold to remove the smallest of two peaks
+%                           if too close
+%
+% Output:
+% D         - MEEG data struct with FOOOF-corrected spectra
+%
+% Disclaimer: this code is provided as an example and is not guaranteed to work
+% with data on which it was not tested. If it does not work for you, feel
+% free to improve it and contribute your improvements to the MEEGtools toolbox
+% in SPM (http://www.fil.ion.ucl.ac.uk/spm)
+%
+% _______________________________________________________________________
+% Copyright (C) 2021 Wellcome Centre for Human Neuroimaging, UCL
+
+% Vladimir Litvak
+% $Id: spm_eeg_bst_fooof.m 8132 2021-08-10 14:54:27Z vladimir $
+
+[Finter,Fgraph,CmdLine] = spm('FnUIsetup','FOOOF spectral correction',0);
+
+if nargin == 0
+    S = [];
+end
+
+try
+    D = S.D;
+catch
+    D = spm_select([1 inf], '\.mat$', 'Select M/EEG mat file(s)');
+    S.D = D;
+end
+
+D = spm_eeg_load(D);
+
+if ~(isequal(D.transformtype, 'TF') && isequal(D.type, 'evoked') && size(D, 3)==1)
+    error('The input should be an averaged spectrum');
+end
+
+if ~isfield(S, 'freq_range')
+    S.freq_range = spm_input('Frequency range','+1', 'r', '[5 45]', 2)';
+end
+
+if ~isfield(S, 'peak_width_limits')
+    S.peak_width_limits = spm_input('Peak width limits','+1', 'r', '[4 10]', 2)';
+end
+
+if ~isfield(S, 'max_peaks')
+    S.max_peaks = spm_input('Max num of peaks', '+1', 'n', '10', 1);
+end
+
+if ~isfield(S, 'min_peak_height')
+    S.min_peak_height = spm_input('Min peak height', '+1', 'r', '0', 1);
+end
+
+if ~isfield(S, 'aperiodic_mode')
+    S.aperiodic_mode = spm_input('Aperiodic mode?','+1','fixed|knee', char('fixed', 'knee'));
+end
+
+if ~isfield(S, 'peak_threshold')
+    S.peak_threshold = spm_input('Peak threshold', '+1', 'r', '2', 1);
+end
+
+if ~isfield(S, 'peak_type')
+    S.peak_type = spm_input('Peak type?','+1','best|gaussian|cauchy', char('best', 'gaussian', 'cauchy'));
+end
+
+if ~isfield(S, 'line_noise_freq')
+    S.line_noise_freq = spm_input('Line noise frequency', '+1', '50Hz|60Hz', [50, 60]);
+end
+
+if ~isfield(S, 'line_noise_width')
+    S.line_noise_width = spm_input('Line noise frequency', '+1', 'r', '5', 1);
+end
+
+if ~isfield(S, 'guess_weight')
+    S.guess_weight = spm_input('Guess weight?','+1','none|weak|strong', char('none', 'weak', 'strong'));
+end
+
+if ~isfield(S, 'proximity_threshold')
+    S.proximity_threshold = spm_input('Proximity threshold', '+1', 'r', '2', 1);
+end
+
+S.thresh_after = true;
+S.verbose = true;
+
+hOT = exist('fmincon');
+
+freq = D.frequencies;
+
+ln   = S.line_noise_freq:S.line_noise_freq:max(freq);
+
+noln = all(abs(repmat(freq(:), 1, length(ln))-repmat(ln, size(freq, 1), 1))>S.line_noise_width, 2)';
+
+
+toplot = max(D.nchannels, D.ntrials)<=8;
+if toplot
+    Fgraph   = spm_figure('GetWin','Graphics'); figure(Fgraph); clf
+end
+k = 1;
+for c = 1:D.nchannels
+    for i = 1:D.ntrials
+        
+        pow = squeeze(D(c, :, :, i));
+        
+        pow = interp1(freq(noln), pow(noln), freq);
+        
+        [fs, fg] = process_fooof('FOOOF_matlab', shiftdim(pow, -1), freq, S, hOT);
+        
+        if i==1 && c==1
+            Dout = clone(D, ['F' D.fname], [D.nchannels length(fs) 1 D.ntrials], 0, 1);
+            Dout = Dout.frequencies(':', fs);
+        end
+        
+        Dout(c, :, 1, i) = log10(fg.orig_spectrum)-log10(fg.ap_fit);
+                
+        if toplot
+            subplot(D.nchannels, D.ntrials, k)
+            plot(fs, log10(fg.fooofed_spectrum), 'r', 'LineWidth', 2.5);
+            hold on
+            plot(fs, log10(fg.ap_fit), 'b--', 'LineWidth', 2.5);
+            plot(fs, log10(fg.orig_spectrum), 'k', 'LineWidth', 2.5);
+        end
+        
+        k = k+1;
+    end
+end
+
+
+
+
+
+
+
+

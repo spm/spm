@@ -4,7 +4,7 @@ function spm_MEEGtools
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_MEEGtools.m 6029 2014-05-30 18:52:03Z vladimir $
+% $Id: spm_MEEGtools.m 8132 2021-08-10 14:54:27Z vladimir $
 
 
 funlist = {
@@ -29,6 +29,7 @@ funlist = {
     'Correct TMS artefact', 'spm_eeg_tms_correct'
     'Plot scalp maps from M/EEG image', 'spm_eeg_img2maps'
     'Continuous data power', 'spm_eeg_cont_power'
+    'Brainstorm FOOOF spectral correction', 'spm_eeg_bst_fooof'
     };
 
 str = sprintf('%s|', funlist{:, 1});
