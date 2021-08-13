@@ -3,7 +3,7 @@ function res = bf_features_tdcov(BF, S)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % George O'Neill
-% $Id: bf_features_tdcov.m 7865 2020-05-29 10:06:53Z george $
+% $Id: bf_features_tdcov.m 8135 2021-08-13 13:06:18Z george $
 
 %--------------------------------------------------------------------------
 if nargin == 0
@@ -147,6 +147,7 @@ if ntrials > 100, Ibar = floor(linspace(1, ntrials,100));
 else Ibar = 1:ntrials; end
 
 YY    = 0;
+UY    = 0;
 Tband = dctT(:,allfreqind); % filter to this band
 for i = 1:ntrials
     for j = 1:nwoi
@@ -159,11 +160,14 @@ for i = 1:ntrials
         dctY = (Y*Tband)*V; %% time-frequency representation
         
         YY = YY+(dctY*dctY');
+        UY = UY + dctY; % Pooled signal for trial average 'evoked response'
     end
     if ismember(i, Ibar)
         spm_progress_bar('Set', i); drawnow;
     end
 end
+
+
 
 spm_progress_bar('Clear');
 
@@ -171,8 +175,12 @@ N = ntrials*nsamples*nwoi;
 
 C = YY./N;
 
-features.C = C;
-features.V = V;
-features.N = N;
+features.C = C;     % Covariance 
+features.N = N;     % Nsamples
+% features.V = V;     % Temporal projector
+% features.W = W;     % Window
+% features.T = Tband; % Frequency filter
+features.VE = VE;   % Variance explained
+features.UY = UY;   % Trial summed 'evoked response' 
 
 res = features;
