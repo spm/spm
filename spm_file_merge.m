@@ -1,12 +1,12 @@
 function V4 = spm_file_merge(V,fname,dt,RT)
 % Concatenate 3D volumes into a single 4D volume
-% FUNCTION V4 = spm_file_merge(V,fname,dt)
+% FORMAT V4 = spm_file_merge(V,fname,dt,RT)
 % V      - images to concatenate (char array or spm_vol struct)
-% fname  - filename for output 4D volume [defaults: '4D.nii']
+% fname  - filename for output 4D volume [default: '4D.nii']
 %          Unless explicit, output folder is the one containing first image
-% dt     - datatype (see spm_type) [defaults: 0]
+% dt     - datatype (see spm_type) [default: 0]
 %          0 means same datatype than first input volume
-% RT     - Interscan interval {seconds} [defaults: NaN]
+% RT     - Interscan interval {seconds} [default: NaN]
 %
 % V4     - spm_vol struct of the 4D volume
 %__________________________________________________________________________
@@ -15,10 +15,10 @@ function V4 = spm_file_merge(V,fname,dt,RT)
 % the range of admissible values. This may lead to quantization error
 % differences between the input and output images values.
 %__________________________________________________________________________
-% Copyright (C) 2009-2018 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2009-2021 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_file_merge.m 7354 2018-06-22 10:44:22Z guillaume $
+% $Id: spm_file_merge.m 8138 2021-08-23 14:55:47Z guillaume $
 
 %-Input: V
 %--------------------------------------------------------------------------
