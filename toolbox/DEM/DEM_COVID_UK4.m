@@ -668,6 +668,7 @@ Y(38).hold = 0;
 M.date  = '01-02-2020';
 [Y,S]   = spm_COVID_Y(Y,M.date,16);
 
+% for i = 1:38; plot(Y(i).date,Y(i).Y); pause, end
 
 % get and set priors
 %==========================================================================
@@ -961,7 +962,7 @@ end
 d1 = datenum('11-Jun-2021','dd-mmm-yyyy');
 d2 = datenum('11-Jul-2021','dd-mmm-yyyy');
 plot([d1,d2],[120,120],'k','Linewidth',8)
-text(d1 - 84,120,'EURO 2020','FontSize',10)
+text(d1 - 86,120,'EURO 2020','FontSize',10)
 
 
 ylabel('percent'),  title('Mobility and lockdown','FontSize',14)
@@ -1027,8 +1028,8 @@ spm_SARS_ci(Ep,Cp,[],26,M); hold on
 plot(t,HIT,t,VAC), hold on
 % hit  = 100 * (1 - 1./(RT * .8))/E;            
 % plot(t,hit,'r-.',get(gca,'XLim'),[100 100],':k'), hold on
-
-plot(datenum(date,'dd-mm-yyyy')*[1,1],[100 100],':k')
+plot(get(gca,'XLim'),[100 100],':k')
+plot(datenum(date,'dd-mm-yyyy')*[1,1],[0 100],':k')
 ylabel('percent'),  title('Attack rate and immunity','FontSize',14)
 legend({'CI','Attack rate','CI','Population immunity',...
        'Effective immunity threshold',...
@@ -1044,7 +1045,7 @@ d   = sqrt(d.vef(end))*1.64;
 qE  = 100*(1 - exp(q));
 qL  = 100*(1 - exp(q + d));
 qU  = 100*(1 - exp(q - d));
-disp(sprintf('preventing exposure to infection: %.1f%s (CI %.1f to %.1f)',qE,'%',qL,qU))
+disp(sprintf('preventing infection: %.1f%s (CI %.1f to %.1f)',qE,'%',qL,qU))
 q   = Ep.ves(end);
 d   = spm_unvec(diag(Cp),Ep);
 d   = sqrt(d.ves(end))*1.64;
@@ -1086,8 +1087,9 @@ disp(sprintf('relative risk of infection %.1f%s',     infect*100,'%'))
 disp(sprintf('relative risk of mild illness %.1f%s',  mild*100,'%'))
 disp(sprintf('relative risk of severe illness %.1f%s',severe*100,'%'))
 disp(sprintf('relative risk of fatality %.1f%s',      death*100,'%'))
+disp(' ')
 
-%% report transmissibility and basic reproduction number
+% report transmissibility and basic reproduction number
 %--------------------------------------------------------------------------
 disp('relative transmissibility');
 disp(100*TRN(j)/mean(TRN(1:j)))

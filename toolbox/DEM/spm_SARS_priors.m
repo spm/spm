@@ -37,7 +37,7 @@ function [P,C,str] = spm_SARS_priors(nN)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_priors.m 8131 2021-08-06 10:18:56Z karl $
+% $Id: spm_SARS_priors.m 8137 2021-08-23 11:29:22Z karl $
 
 % sources and background
 %--------------------------------------------------------------------------
@@ -167,7 +167,7 @@ if nargin
         % mortality
         %------------------------------------------------------------------
         P.fat = log([0.005;
-                     0.01;
+                     0.005;
                      0.2;
                      0.4]);
         P.sur = P.fat;
@@ -381,7 +381,7 @@ P.sde = 4;                    % (07) time constant of lockdown
 P.qua = 64;                   % (08) time constant of unlocking
 P.exp = 0.02;                 % (09) viral spreading (rate)
 P.hos = 1;                    % (10) admission rate (hospital) [erf]
-P.ccu = 0.01;                 % (11) admission rate (CCU)
+P.ccu = 0.1;                  % (11) admission rate (CCU)
 P.s   = 2;                    % (12) exponent of contact rates
 
 % infection (transmission) parameters
@@ -401,10 +401,10 @@ P.Tic = 3;                    % (21) asymptomatic period (days)
 P.Tsy = 5;                    % (22) symptomatic period  (days)
 P.Trd = 16;                   % (23) severe symptoms     (days)
 
-P.sev = 0.001;                % (24) P(ARDS | symptoms): winter
-P.lat = 0.001;                % (25) P(ARDS | symptoms): summer
-P.fat = 0.2;                  % (26) P(fatality | ARDS): winter
-P.sur = 0.2;                  % (27) P(fatality | ARDS): summer
+P.sev = 0.01;                 % (24) P(ARDS | symptoms): winter
+P.lat = 0.01;                 % (25) P(ARDS | symptoms): summer
+P.fat = 0.5;                  % (26) P(fatality | ARDS): winter
+P.sur = 0.5;                  % (27) P(fatality | ARDS): summer
 
 % testing parameters
 %--------------------------------------------------------------------------
@@ -412,7 +412,7 @@ P.ttt = 0.036;                % (28) FTTI efficacy
 P.tes = [16 8];               % (29) bias (for infection): PCR (Pill. 1 & 2)
 P.tts = 1;                    % (30) bias (for infection): LFD
 P.del = 3;                    % (31) test delay (days)
-P.vac = 1024;                 % (32) vaccination time constant (days)
+P.vac = 768;                  % (32) vaccination time constant (days)
 P.fnr = [0.08 0.06];          % (33) false-negative rate  (infected/ious]
 P.fpr = [0.0002 0.003];       % (34) false-positive rate: (Sus. and Ab +ve)
 
@@ -423,13 +423,13 @@ P.ons = [100 200 300 400];    % (37) testing: onset
 P.lag = [1 1];                % (38) reporting lag
 P.inn = 1;                    % (39) seasonal phase
 P.mem = 256;                  % (40) unlocking time constant
-P.rol = [exp(-16) 365 32];       % (41) vaccination rollout (1st)
-P.fol = [exp(-16) 512 32];       % (42) vaccination rollout (2nd)
+P.rol = [exp(-16) 365 32];    % (41) vaccination rollout (1st)
+P.fol = [exp(-16) 512 32];    % (42) vaccination rollout (2nd)
 
-P.vef = 0.4;                  % (43) vaccine efficacy: infection
-P.lnk = 0.2;                  % (44) vaccine efficacy: pathogenicity
-P.ves = 0.1;                  % (45) vaccine efficacy: transmission
-P.lnf = 0.04;                 % (46) vaccine efficacy: fatality
+P.vef = 0.4;                  % (43) 1 - vaccine efficacy: infection
+P.lnk = 0.18;                 % (44) 1 - vaccine efficacy: pathogenicity
+P.ves = 0.1;                  % (45) 1 - vaccine efficacy: transmission
+P.lnf = 0.09;                 % (46) 1 - vaccine efficacy: fatality
 
 P.con = 0.2;                  % (47) LFD confirmation
 P.iso = 8;                    % (48) self-isolation (days)
