@@ -7,7 +7,7 @@ function [d,M] = fil_subvol(Nii,bb)
 % Copyright (C) 2021 Wellcome Centre for Human Neuroimaging
 
 % John Ashburner
-% $Id$
+% $Id: fil_subvol.m 8139 2021-08-24 19:38:01Z guillaume $
 
 if ~isa(Nii,'nifti')
     Nii = nifti(Nii);

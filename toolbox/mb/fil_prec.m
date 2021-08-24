@@ -13,7 +13,7 @@ function model = fil_prec(model,sett,p)
 % Copyright (C) 2019-2021 Wellcome Centre for Human Neuroimaging
 
 % John Ashburner
-% $Id$
+% $Id: fil_prec.m 8139 2021-08-24 19:38:01Z guillaume $
 
 model(1).P11 = [];
 model(1).P12 = [];

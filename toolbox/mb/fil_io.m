@@ -28,7 +28,7 @@ function varargout = fil_io(varargin)
 % Copyright (C) 2020-2021 Wellcome Centre for Human Neuroimaging
 
 % John Ashburner
-% $Id$
+% $Id: fil_io.m 8139 2021-08-24 19:38:01Z guillaume $
 
 [varargout{1:nargout}] = spm_subfun(localfunctions,varargin{:});
 

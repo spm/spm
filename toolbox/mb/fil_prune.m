@@ -10,7 +10,7 @@ function model = fil_prune(model,sett,p)
 % Copyright (C) 2019-2021 Wellcome Centre for Human Neuroimaging
 
 % John Ashburner
-% $Id$
+% $Id: fil_prune.m 8139 2021-08-24 19:38:01Z guillaume $
 
 if nargin<2, error('Need settings.'); end
 if nargin<3, error('Need weights.'); end

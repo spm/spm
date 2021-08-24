@@ -20,7 +20,7 @@ function model = fil_train(data,sett,model)
 % Copyright (C) 2019-2021 Wellcome Centre for Human Neuroimaging
 
 % John Ashburner
-% $Id$
+% $Id: fil_train.m 8139 2021-08-24 19:38:01Z guillaume $
 
 io   = fil_io;                      % Handles to I/O functions
 dat  = io.init(data{:});            % Set up data for I/O

@@ -14,7 +14,7 @@ function [mod,Z,V] = fil_fit(F,J,sett,ind,p,varargin)
 % Copyright (C) 2019-2021 Wellcome Centre for Human Neuroimaging
 
 % John Ashburner & Yu Yan
-% $Id$
+% $Id: fil_fit.m 8139 2021-08-24 19:38:01Z guillaume $
 
 if nargin<3, error('Incorrect usage.'); end
 if nargin<4 || isempty(ind), ind = true(size(F{1},3), numel(F)); end

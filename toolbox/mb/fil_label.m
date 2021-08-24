@@ -22,7 +22,7 @@ function files = fil_label(fil,mbsett,mbdat,iterations,vsett_scale,odir,df,Mf)
 % Copyright (C) 2019-2021 Wellcome Centre for Human Neuroimaging
 
 % John Ashburner
-% $Id$
+% $Id: fil_label.m 8139 2021-08-24 19:38:01Z guillaume $
 
 if nargin<4, iterations  = [6 10 10]; end
 if nargin<5, vsett_scale = 1/4; end
