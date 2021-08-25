@@ -206,7 +206,7 @@ Ndata = numel(varargin);
 for indx=1:Ndata
   
   % open a new figure, or add it to the existing one
-  open_figure(keepfields(cfg, {'figure', 'clearfigure', 'position', 'visible', 'renderer', 'figurename', 'title'}));
+  open_figure(keepfields(cfg, {'figure', 'position', 'visible', 'renderer', 'figurename', 'title'}));
   
   if iscell(cfg.dataname)
     dataname = cfg.dataname{indx};
@@ -270,6 +270,7 @@ for indx=1:Ndata
       if ~isfield(cfg,  'xparam')
         cfg.xlim = [1 1];
         xparam   = '';
+        yparam   = '';
       end
   end
   
@@ -391,18 +392,20 @@ for indx=1:Ndata
   end
   
   % Get physical min/max range of x
-  if strcmp(cfg.xlim, 'maxmin')
-    xmin = min(data.(xparam));
-    xmax = max(data.(xparam));
-  else
-    xmin = cfg.xlim(1);
-    xmax = cfg.xlim(2);
+  if ~isempty(xparam)
+    if strcmp(cfg.xlim, 'maxmin')
+      xmin = min(data.(xparam));
+      xmax = max(data.(xparam));
+    else
+      xmin = cfg.xlim(1);
+      xmax = cfg.xlim(2);
+    end
+    xminindx = nearest(data.(xparam), xmin);
+    xmaxindx = nearest(data.(xparam), xmax);
+    xmin = data.(xparam)(xminindx);
+    xmax = data.(xparam)(xmaxindx);
+    selx = xminindx:xmaxindx;
   end
-  xminindx = nearest(data.(xparam), xmin);
-  xmaxindx = nearest(data.(xparam), xmax);
-  xmin = data.(xparam)(xminindx);
-  xmax = data.(xparam)(xmaxindx);
-  selx = xminindx:xmaxindx;
   
   % Get physical min/max range of y
   if ~isempty(yparam)
@@ -723,11 +726,6 @@ for indx=1:Ndata
       c = colorbar('location', cfg.colorbar);
       ylabel(c, cfg.colorbartext);
     end
-  end
-  
-  % Set renderer if specified
-  if ~isempty(cfg.renderer)
-    set(gcf, 'renderer', cfg.renderer)
   end
   
   % set the figure window title, but only if the user has not changed it
