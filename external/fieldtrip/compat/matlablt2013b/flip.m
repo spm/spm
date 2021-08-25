@@ -1,10 +1,7 @@
-function [varargout] = pad(varargin)
+function [varargout] = flip(varargin)
 
-% PAD adds leading or trailing characters, such as spaces, to the left or
-% right of an existing string.
-%
-% This is a compatibility function that should only be added to the path on
-% MATLAB versions prior to R2016b.
+% FLIP is a drop-in replacement for the same function that was
+% introduced in MATLAB R2013b.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % try to automatically remove incorrect compat folders from the path, see https://github.com/fieldtrip/fieldtrip/issues/899
@@ -43,64 +40,40 @@ end % automatic cleanup of compat directories
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % this is where the actual replacement code starts
-% function s = pad(s, n, side, c)
+% function x = flip(x, dim)
 
 % deal with the input arguments
 if nargin==1
-  [s            ] = deal(varargin{1:1});
+  [x     ] = deal(varargin{1:1});
 elseif nargin==2
-  [s, n         ] = deal(varargin{1:2});
-elseif nargin==3
-  [s, n, side   ] = deal(varargin{1:3});
-elseif nargin==4
-  [s, n, side, c] = deal(varargin{1:4});
+  [x, dim] = deal(varargin{1:2});
 else
   error('incorrect number of input arguments')
 end
 
-if nargin<4 || isempty(c)
-  c = ' ';
+if nargin<2 || isempty(dim)
+  dim = 1;
 end
 
-if nargin<3 || isempty(side)
-  side = 'right';
-end
+n = size(x, dim);
+f = n:-1:1;
 
-if nargin<2 || isempty(n)
-  if iscell(s)
-    n = max(cellfun(@length, s(:)));
-  else
-    n = length(s);
-  end
-end
-
-if iscell(s)
-  % use recursion to deal with cell-arrays
-  for i=1:numel(s)
-    s{i} = pad(s{i}, n, side, c);
-  end
-
-else
-  % this is where the actual work happens
-  assert(size(s,1)<2);
-  assert(ischar(s));
-  assert(numel(c)==1);
-  assert(ischar(c));
-
-  if length(s)<n
-    c = repmat(c, 1, n-length(s));
-    switch (side)
-      case 'left'
-        s = [c s];
-      case 'right'
-        s = [s c];
-      otherwise
-        error('unsupported side')
-    end % switch
-  end
+switch dim
+case 1
+  x = x(f, :, :, :, :);
+case 2
+  x = x(:, f, :, :, :);
+case 3
+  x = x(:, :, f, :, :);
+case 4
+  x = x(:, :, :, f, :);
+case 5
+  x = x(:, :, :, :, f);
+otherwise
+  error('unsupported dim')
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % deal with the output arguments
 
-varargout = {s};
+varargout = {x};
