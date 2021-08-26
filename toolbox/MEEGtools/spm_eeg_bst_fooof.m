@@ -35,7 +35,7 @@ function D = spm_eeg_bst_fooof(S)
 % Copyright (C) 2021 Wellcome Centre for Human Neuroimaging, UCL
 
 % Vladimir Litvak
-% $Id: spm_eeg_bst_fooof.m 8132 2021-08-10 14:54:27Z vladimir $
+% $Id: spm_eeg_bst_fooof.m 8143 2021-08-26 12:00:26Z vladimir $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','FOOOF spectral correction',0);
 
@@ -84,12 +84,8 @@ if ~isfield(S, 'peak_type')
     S.peak_type = spm_input('Peak type?','+1','best|gaussian|cauchy', char('best', 'gaussian', 'cauchy'));
 end
 
-if ~isfield(S, 'line_noise_freq')
-    S.line_noise_freq = spm_input('Line noise frequency', '+1', '50Hz|60Hz', [50, 60]);
-end
-
-if ~isfield(S, 'line_noise_width')
-    S.line_noise_width = spm_input('Line noise frequency', '+1', 'r', '5', 1);
+if ~isfield(S, 'power_line')
+    S.power_line = spm_input('Line noise frequency', '+1', '50Hz|60Hz', [50, 60]);
 end
 
 if ~isfield(S, 'guess_weight')
@@ -102,15 +98,11 @@ end
 
 S.thresh_after = true;
 S.verbose = true;
+S.return_spectrum = true;
 
 hOT = exist('fmincon');
 
 freq = D.frequencies;
-
-ln   = S.line_noise_freq:S.line_noise_freq:max(freq);
-
-noln = all(abs(repmat(freq(:), 1, length(ln))-repmat(ln, size(freq, 1), 1))>S.line_noise_width, 2)';
-
 
 toplot = max(D.nchannels, D.ntrials)<=8;
 if toplot
@@ -121,9 +113,7 @@ for c = 1:D.nchannels
     for i = 1:D.ntrials
         
         pow = squeeze(D(c, :, :, i));
-        
-        pow = interp1(freq(noln), pow(noln), freq);
-        
+                 
         [fs, fg] = process_fooof('FOOOF_matlab', shiftdim(pow, -1), freq, S, hOT);
         
         if i==1 && c==1
@@ -131,14 +121,14 @@ for c = 1:D.nchannels
             Dout = Dout.frequencies(':', fs);
         end
         
-        Dout(c, :, 1, i) = log10(fg.orig_spectrum)-log10(fg.ap_fit);
+        Dout(c, :, 1, i) = fg.power_spectrum-log10(fg.ap_fit);
                 
         if toplot
             subplot(D.nchannels, D.ntrials, k)
             plot(fs, log10(fg.fooofed_spectrum), 'r', 'LineWidth', 2.5);
             hold on
             plot(fs, log10(fg.ap_fit), 'b--', 'LineWidth', 2.5);
-            plot(fs, log10(fg.orig_spectrum), 'k', 'LineWidth', 2.5);
+            plot(fs, fg.power_spectrum, 'k', 'LineWidth', 2.5);
         end
         
         k = k+1;
