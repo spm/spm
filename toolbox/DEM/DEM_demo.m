@@ -55,20 +55,16 @@ function DEM_demo_OpeningFcn(hObject, eventdata, handles, varargin)
 % Choose default command line output for DEM_demo
 handles.output = hObject;
 
-% default paper
+% Default paper
 handles.web    = 'The free-energy principle A unified brain theory';
 
 % Display PDF image
-axes5_CreateFcn(hObject, eventdata, handles);
+ax = handles.axes5;
+imagesc(imread(fullfile(fileparts(mfilename('fullpath')),'PDF.jpg')),'Parent',ax);
+axis(ax,'off');
 
 % Update handles structure
 guidata(hObject, handles);
-
-
-% --- Executes during object creation, after setting all properties.
-function axes5_CreateFcn(hObject, eventdata, handles)
-ax = handles.axes5;
-imagesc(imread('PDF.jpg'),'Parent',ax), axis(ax,'off');
 
 
 % --- Outputs from this function are returned to the command line.
@@ -82,6 +78,7 @@ function varargout = DEM_demo_OutputFcn(hObject, eventdata, handles)
 varargout{1} = handles.output;
 
 
+% --- Executes on button presses.
 function run_demo_Callback(hObject, handles, file)
 if isdeployed
     h = sprintf('%s: MATLAB code and help are not available in SPM Standalone.',file);
@@ -94,12 +91,13 @@ str{3} = ' ';
 str{4} = h;
 set(handles.help,'String',str);
 handles.file = file;
+set(handles.pushbutton51,'String','run demo')
 guidata(hObject, handles);
 
 
 % --- Executes on button press in pushbutton131.
 function pushbutton131_Callback(hObject, eventdata, handles)
-try, 
+try
     url = strcat('http://www.fil.ion.ucl.ac.uk/~karl/',handles.web);
     web(url,'-browser','-notoolbar'); 
 end
@@ -109,17 +107,14 @@ end
 function pushbutton51_Callback(hObject, eventdata, handles)
 
 set(handles.pushbutton51,'String','please wait')
-drawnow
-try
-    guidata(1,handles);
-catch
+if isempty(spm_figure('FindWin',1))
     spm_figure('GetWin','DEM');
-    guidata(1,handles);
 end
-eval(handles.file)
-handles = set(0,'UserData');
-handles = guidata(1);
+
+feval(handles.file)
+
 set(handles.pushbutton51,'String','run demo')
+
 
 % --- Executes on button press in pushbutton93.
 function pushbutton93_Callback(hObject, eventdata, handles)
@@ -131,7 +126,6 @@ try
         edit(handles.file);
     end
 end
-
 
 
 % --- Executes on button press in pushbutton1.
