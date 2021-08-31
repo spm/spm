@@ -3,16 +3,17 @@ function F = spm_Welcome
 % FORMAT F = spm_Welcome
 % F        - welcome figure handle
 %__________________________________________________________________________
-% Copyright (C) 2014-2019 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2014-2021 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_Welcome.m 7571 2019-04-10 15:23:16Z guillaume $
+% $Id: spm_Welcome.m 8145 2021-08-31 14:26:54Z guillaume $
 
 
 %-Open startup window, set window defaults
 %--------------------------------------------------------------------------
 RectW = spm('WinSize','W',1); % 500x280 figure
 Rect0 = spm('WinSize','0',1);
+if all(ismember(Rect0(:),[0 1])), F = []; return; end
 Pos   = [Rect0(1)+(Rect0(3)-RectW(3))/2,...
          Rect0(2)+(Rect0(4)-RectW(4))/2,...
          RectW(3),...

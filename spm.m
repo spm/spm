@@ -53,7 +53,7 @@ function varargout=spm(varargin)
 % Copyright (C) 1991,1994-2021 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm.m 8121 2021-07-08 11:39:59Z guillaume $
+% $Id: spm.m 8145 2021-08-31 14:26:54Z guillaume $
 
 
 %=======================================================================
@@ -297,7 +297,10 @@ end
 
 %-Open welcome splash screen
 %-----------------------------------------------------------------------
-spm_Welcome;
+F = spm_Welcome;
+if isempty(F)
+    spm_standalone('--help');
+end
 
 
 %=======================================================================
@@ -654,7 +657,9 @@ elseif Win(1)=='0'
         Rect = get(0, 'MonitorPositions');
     end
     if all(ismember(Rect(:),[0 1]))
-        warning('SPM:noDisplay','Unable to open display.');
+        sw = warning('off','backtrace');
+        warning('SPM:noDisplay','Cannot open display.');
+        warning(sw);
     end
     if size(Rect,1) > 1 % Multiple Monitors
         %-The MonitorPositions property depends on the architecture
