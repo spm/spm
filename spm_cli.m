@@ -1,10 +1,10 @@
 function spm_cli(varargin)
 % Command line interface for SPM
 %__________________________________________________________________________
-% Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2016-2021 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_cli.m 6964 2016-12-07 16:50:41Z guillaume $ 
+% $Id: spm_cli.m 8146 2021-09-01 20:00:28Z guillaume $ 
 
 
 %-Input arguments
@@ -233,6 +233,7 @@ end
 %==========================================================================
 function [flags, h1s, ms] = get_items(c0)
 flags = {}; h1s = {}; ms = [];
+if isa(c0.val,'function_handle'), c0.val = feval(c0.val); end
 for i=1:numel(c0.val) % go recursive instead
     flag = {}; h1 = {}; m = [];
     if isa(c0.val{i},'cfg_repeat')
