@@ -91,7 +91,7 @@ function [PEB,P]   = spm_dcm_peb(P,M,field)
 % Copyright (C) 2015-2016 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_peb.m 8024 2020-11-28 12:09:53Z karl $
+% $Id: spm_dcm_peb.m 8148 2021-09-06 13:55:10Z peter $
  
 
 % get filenames and set up
@@ -647,7 +647,7 @@ PEB.Pind   = q;
 PEB.Xnames = Xnames;
 
 if is_peb_of_pebs
-    PEB.Pind0 = repmat(DCM.Pind0, Nx, 1);
+    PEB.Pind0 = repmat(DCM.Pind0, size(DCM.M.X,2), 1);
 else
     PEB.Pind0 = PEB.Pind;
 end

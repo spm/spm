@@ -98,12 +98,21 @@ function [BMA,BMR] = spm_dcm_peb_bmc(PEB,models,varargin)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_peb_bmc.m 7958 2020-09-23 19:53:36Z peter $
+% $Id: spm_dcm_peb_bmc.m 8148 2021-09-06 13:55:10Z peter $
 
 % checks
 %--------------------------------------------------------------------------
 if nargin < 1 || isempty(PEB) || length(PEB) > 1
     error('Please provide a single PEB model');
+end
+
+% Unpack PEB
+Pind  = PEB.Pind;              % Indices of parameters from level below
+
+try
+    Pind0 = PEB.Pind0;         % Mapping to parameters in the DCM
+catch
+    Pind0 = PEB.Pind;
 end
 
 % (greedy) search over all combinations of second level parameters
@@ -192,15 +201,7 @@ if ischar(models)
 elseif iscell(models)
     
     % model space is defined by an array of exemplar models
-    %----------------------------------------------------------------------
-    Pind  = PEB.Pind;              % Indices of parameters from level below
-        
-    try
-        Pind0 = PEB.Pind0;         % Mapping to parameters in the DCM
-    catch
-        Pind0 = PEB.Pind;
-    end
-    
+    %----------------------------------------------------------------------    
     Nm    = length(models);
     Np    = length(Pind);
     K     = ones(Nm,Np);
