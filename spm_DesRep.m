@@ -115,10 +115,10 @@ function varargout = spm_DesRep(varargin)
 % Double clicking on a contrast depiction extracts the contrast weights
 % into the base workspace.
 %__________________________________________________________________________
-% Copyright (C) 1999-2015 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1999-2021 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_DesRep.m 6351 2015-02-26 16:37:18Z guillaume $
+% $Id: spm_DesRep.m 8149 2021-09-06 15:03:51Z guillaume $
 
 
 %==========================================================================
@@ -251,7 +251,7 @@ function varargout = spm_DesRep(varargin)
 %__________________________________________________________________________
 
 
-SVNid = '$Rev: 6351 $'; 
+SVNid = '$Rev: 8149 $'; 
 
 %-Format arguments
 %--------------------------------------------------------------------------
@@ -578,7 +578,7 @@ line('Parent',hTax,...
 hCovMtx(1) = axes('Position',[.07 .4 .6 .4]);
 hCovMtxSc  = [];
 if isfield(varargin{2},'V')
-  clim = full([-max(varargin{2}.V(:))/2 max(varargin{2}.V(:))]); % scale 0 to gray
+  clim = full([-max(varargin{2}.V(:))/2 max(varargin{2}.V(:))]); % scale 0 to grey
   hCovMtxIm(1) = imagesc(varargin{2}.V, clim);
   hCovMtxSc = colorbar;
   set(hCovMtxSc,'Ylim',[0 clim(2)]); % cut colorbar at 0
@@ -789,7 +789,7 @@ if desmtx
         'Box','on','TickDir','in','XGrid','on','GridLineStyle','-');
     xlabel('parameter estimability')
     text((nPar+0.5 + nPar/30),1,...
-        '(gray \rightarrow \beta not uniquely specified)',...
+        '(grey \rightarrow \beta not uniquely specified)',...
         'Interpreter','TeX','FontSize',FS(8))
     set(hParEstIm,'UserData',struct('est',est,'Xnames',{Xnames}))
     set(hParEstIm,'ButtonDownFcn','spm_DesRep(''SurfEstIm_CB'')')
@@ -843,7 +843,7 @@ else
                  'columns of design matrix'],...
             'Scale',    {{  'black - colinear (cos=+1/-1)';...
                     'white - orthogonal (cos=0)';...
-                    'gray  - not orthogonal or colinear'}});
+                    'grey  - not orthogonal or colinear'}});
 end
 
 if ~isempty(xs)
