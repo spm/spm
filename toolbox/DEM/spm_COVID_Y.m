@@ -28,7 +28,9 @@ function [Y,S,dates] = spm_COVID_Y(Y,date0,days)
 if nargin < 2, date0 = '01-02-2020'; end
 if nargin < 3, days  = 7;            end
 
-d0     = datenum(date0,'dd-mm-yyyy');
+if ischar(date0)
+    date0 = datenum(date0,'dd-mm-yyyy');
+end
 
 % check for missing fields
 %--------------------------------------------------------------------------
@@ -60,7 +62,7 @@ for i = 1:numel(Y)
     
     % remove data prior to initial date
     %----------------------------------------------------------------------
-    j         = Y(i).date >= d0;
+    j         = Y(i).date >= date0;
     Y(i).date = Y(i).date(j);
     Y(i).Y    = Y(i).Y(j,:);
     
@@ -111,7 +113,7 @@ end
 
 % dates to generate
 %--------------------------------------------------------------------------
-dates  = datenum(date0,'dd-mm-yyyy'):max(spm_vec(Y.date));
+dates  = date0:max(spm_vec(Y.date));
 
 % data matrix (smooth): NaN indicates missing data
 %--------------------------------------------------------------------------

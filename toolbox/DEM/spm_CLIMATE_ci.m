@@ -1,0 +1,67 @@
+function [Y,C] = spm_CLIMATE_ci(Ep,Cp,Z,U,M,NPI)
+% Graphics for coronavirus simulations - with confidence intervals
+% FORMAT [Y,C] = spm_CLIMATE_ci(Ep,Cp,Z,U,M,NPI)
+% Ep     - posterior expectations
+% Cp     - posterior covariances
+% Z      - optional empirical data
+% U      - outcome
+% M      - model
+% NPI    - intervention array
+%
+% Y      - posterior expectation of outcomes
+% C      - posterior covariances of outcomes
+%
+% This routine evaluates a trajectory of outcome variables from a SARS
+% model and plots the expected trajectory and accompanying Bayesian
+% credible intervals (of 90%). If empirical data are supplied, these will
+% be overlaid on the confidence intervals. By default, 128 days
+% are evaluated. In addition, posterior and prior expectations are provided
+% in a panel.
+%
+% A single panel is plotted if one output in U is specified
+%
+% Although the covid model is non-linear in the parameters, one can use a
+% first-order Taylor expansion to evaluate the confidence intervals in
+% terms of how the outcomes change with parameters. This, in combination
+% with the well-known overconfidence of variational inference, usually
+% requires a slight inflation of uncertainty. Here, the posterior
+% covariance is multiplied by a factor of four.
+%__________________________________________________________________________
+% Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
+
+% Karl Friston
+% $Id: spm_CLIMATE_ci.m 8151 2021-09-13 09:12:37Z karl $
+
+% default: number of outcomes to evaluate
+%--------------------------------------------------------------------------
+if nargin < 6, NPI = [];   end
+
+% priors and names for plotting
+%--------------------------------------------------------------------------
+[~,~,str] = spm_CLIMATE_priors;
+
+% compensate for (variational) overconfidence
+%--------------------------------------------------------------------------
+Cp = Cp*4;
+
+% evaluate confidence intervals (using a Taylor expansion)
+%==========================================================================
+
+% partial derivatives
+%----------------------------------------------------------------------
+[Y,~,T] = spm_CLIMATE_gen(Ep,M,U,NPI);
+dYdP    = spm_diff(@(P,M,U,NPI)spm_CLIMATE_gen(P,M,U,NPI),Ep,M,U,NPI,1);
+
+% conditional covariances
+%----------------------------------------------------------------------
+C        = dYdP*Cp*dYdP';
+
+% graphics
+%==========================================================================
+spm_plot_ci(Y',C,T), hold on
+try, plot(Z(U).date,Z(U).Y,'.k'), end
+datetick('x','yyyy','keeplimits','keepticks')
+ylabel('outcome')
+title(str.outcome(U),'FontSize',14)
+box off, spm_axis tight
+drawnow
