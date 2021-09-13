@@ -234,8 +234,6 @@ agevaccine = importdata('agevaccine.csv');
 agedeaths  = importdata('agedeaths.csv');
 agecases   = importdata('agecases.csv');
 cumAdmiss  = importdata('cumAdmiss.csv');
-antibody   = importdata('antibody.csv');
-
 
 serology   = importdata('serology.csv');
 place      = importdata('place.csv');
@@ -293,7 +291,7 @@ Y(5).unit = 'number/day';
 Y(5).U    = 1;
 Y(5).date = datenum(deaths.textdata(2:end,d),'yyyy-mm-dd');
 Y(5).Y    = deaths.data(:,1);
-Y(5).h    = 2;
+Y(5).h    = 4;
 Y(5).lag  = 1;
 Y(5).age  = 0;
 Y(5).hold = 0;
@@ -695,7 +693,7 @@ pE.pcr  = zeros(1,j);          % testing
 pC.pcr  = ones(1,j)/8;         % prior variance
 
 pE.mob  = zeros(1,i);          % mobility
-pC.mob  = ones(1,i)/8;         % prior variance
+pC.mob  = ones(1,i)/512;       % prior variance
 
 % reporting lags
 %--------------------------------------------------------------------------
@@ -1269,12 +1267,12 @@ M.T    = M.T + 180;
 
 u      = 1;
 a      = 0;
-Ep.Trd = DCM.Ep.Trd + 0;
+Ep.n = DCM.Ep.n - 8;
 
 [Z,X]  = spm_SARS_gen(Ep,M,u,[],a);
 j      = find(U == u(1));
 try
-spm_SARS_plot(Z,X,S(:,j(1)),u)
+    spm_SARS_plot(Z,X,S(:,j(1)),u)
 catch
     spm_SARS_plot(Z,X,[],u)
 end

@@ -21,7 +21,7 @@ function FEP_lorenz_surprise
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: FEP_lorenz_surprise.m 8102 2021-05-08 15:02:30Z karl $
+% $Id: FEP_lorenz_surprise.m 8152 2021-09-13 09:17:36Z karl $
 
 
 %% dynamics and parameters of a Lorentz system (with Jacobian)
@@ -868,19 +868,24 @@ disp(latex(m)),    disp(' ')
 %     end
 % end
 %--------------------------------------------------------------------------
+J    = [diff(F(:),x1) diff(F(:),x2) diff(F(:),x3) diff(F(:),x4) diff(F(:),x5) diff(F(:),x6)];
+
 disp(reshape(cat(1,Q{:}),n,n))
 disp(L')
 disp(H)
+disp(J)
 disp('L = ')
 disp(latex(L')), disp(' ')
 disp('H = ')
 disp(latex(H)), disp(' ')
+disp('J = ')
+disp(latex(J)), disp(' ')
 
 i     = 4;                              % internal state
 q     = 0;
 for j = 1:n
     if j ~= i
-    q = q + Q{i,j}*D{j};
+        q = q + Q{i,j}*D{j};
     end
 end
 disp('flow of internal state')

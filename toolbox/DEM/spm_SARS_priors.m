@@ -37,7 +37,7 @@ function [P,C,str] = spm_SARS_priors(nN)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_priors.m 8137 2021-08-23 11:29:22Z karl $
+% $Id: spm_SARS_priors.m 8152 2021-09-13 09:17:36Z karl $
 
 % sources and background
 %--------------------------------------------------------------------------
@@ -439,7 +439,7 @@ P.lnr = 0.46;                 % (50) LFD sensitivity
 P.lpr = 0.0002;               % (51) LFD specificity
 P.rel = 0.9;                  % (52) PCR testing of fatalities
 P.pro = .2;                   % (53) unvaccinated proportion
-P.oth = 0.1;                  % (54) survival probability in other
+P.oth = 0.1;                  % (54) relative survival outside hospital
 
 
 % infection fatality (for susceptible population)
@@ -464,8 +464,8 @@ C.m   = W;                    % (05) relative eflux
 % location (exposure) parameters
 %--------------------------------------------------------------------------
 C.out = X;                    % (06) P(leaving home)
-C.sde = W;                    % (07) sensitivity to susceptibility
-C.qua = W;                    % (08) sensitivity to seroprevalence
+C.sde = W;                    % (07) time constant of lockdown
+C.qua = W;                    % (08) time constant of unlocking
 C.exp = W;                    % (09) viral spreading (rate)
 C.hos = W;                    % (10) admission rate (hospital)
 C.ccu = W;                    % (11) admission rate (CCU)
@@ -508,7 +508,7 @@ C.ons = U;                    % (37) testing: onset (days)
 
 C.lag = V;                    % (38) reporting lag
 C.inn = V;                    % (39) seasonal phase
-C.mem = V;                    % (40) unlocking time constant
+C.mem = 0;                    % (40) unlocking time constant
 C.rol = X;                    % (41) vaccination rollout (1st)
 C.fol = X;                    % (42) vaccination rollout (2nd)
 
@@ -525,7 +525,7 @@ C.lnr = X;                    % (50) LFD sensitivity
 C.lpr = X;                    % (51) LFD specificity
 C.rel = W;                    % (52) PCR testing of fatalities
 C.pro = W;                    % (53) unvaccinated proportion
-C.oth = W;                    % (54) survival probability in other
+C.oth = W;                    % (54) relative survival outside hospital
 
 % check prior expectations and covariances are consistent
 %--------------------------------------------------------------------------

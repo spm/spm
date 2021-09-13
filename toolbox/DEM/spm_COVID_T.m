@@ -22,7 +22,7 @@ function [T,R] = spm_COVID_T(P,I)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_T.m 8131 2021-08-06 10:18:56Z karl $
+% $Id: spm_COVID_T.m 8152 2021-09-13 09:17:36Z karl $
 
 % setup
 %==========================================================================
@@ -156,8 +156,8 @@ Rvac = 1 - Pnac;                           % vaccination rate
 
 % marginal: infection {2} | home {1}(1)
 %--------------------------------------------------------------------------------------------------------------------------------------------------
-%    susceptible     infected            infectious      Ab+             Ab-            Vaccine+            Infected                Infectious
-%-------------------------------------------------------------------------------------------------------------------------------------------------
+%    susceptible     infected            infectious      Ab+            Ab-            Vaccine+            Infected (vac)       Infectious  (vac)
+%--------------------------------------------------------------------------------------------------------------------------------------------------
 Pinv = (1 - Ptin)*Pvef;
 b{1} = [Ptin*Pnac        0                     0          0              (1 - Kinn)*Pnac  0                     0                     0; 
         (1 - Ptin)*Pnac  Kinf                  0          0               0               0                     0                     0;
@@ -346,9 +346,9 @@ Kdel = exp(-1/P.del);                          % exp(-1/waiting period) PCR
 Pcon = erf(P.con);                             % LFD PCR Confirmation
 
 % marginal: testing {4} | susceptible {2}(1)
-%--------------------------------------------------------------------------
-%    not tested            waiting                PCR+       PCR-       LFD+      LFD-
-%--------------------------------------------------------------------------
+%-------------------------------------------------------------------------------------------------------
+%    not tested            waiting                PCR+       PCR-       LFD+                  LFD-
+%-------------------------------------------------------------------------------------------------------
 b{1} = [(1 - Psen)*(1 - Plen) 0                   (1 - Kday) (1 - Kday) (1 - Kday)*(1 - Pcon) (1 - Kday);
         Psen*(1 - Plen)       Kdel                 0          0         (1 - Kday)*Pcon        0;
         0                    (1 - Spec)*(1 - Kdel) Kday       0          0                     0;

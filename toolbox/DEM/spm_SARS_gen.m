@@ -78,7 +78,7 @@ function [y,x,z,W] = spm_SARS_gen(P,M,U,NPI,age)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_gen.m 8131 2021-08-06 10:18:56Z karl $
+% $Id: spm_SARS_gen.m 8152 2021-09-13 09:17:36Z karl $
 
 
 % The generative model:
@@ -310,7 +310,11 @@ for i = 1:M.T
                         if isnumeric(NPI(j).Q)
                             Q{n}.(NPI(j).param{k})(1) = NPI(j).Q(k);
                         else
-                            Q{n}.(NPI(j).param{k})(1) = NPI(j).Q{n}(k);
+                            if size(NPI(j).Q{k},1) > 1 && numel(NPI(j).param) == numel(NPI(j).Q)
+                                Q{n}.(NPI(j).param{k}) = NPI(j).Q{k}(n,:);
+                            else
+                                Q{n}.(NPI(j).param{k})(1) = NPI(j).Q{n}(k);
+                            end
                         end
                     end
                 end
@@ -341,7 +345,7 @@ for i = 1:M.T
         % probability of lockdown (a function of prevalence)
         %------------------------------------------------------------------
         q    = p{n}{2}(3)*Q{n}.sde;               % prevalence dependent
-        k1   = exp(-i/Q{n}.mem)*q;                % contact rates
+        k1   = p{n}{2}(1)*q;                      % contact rates
         k2   = exp(-1/Q{n}.qua);                  % relaxation
         r{n} = [(1 - k1) (1 - k2);
                      k1,      k2]*r{n};
@@ -529,10 +533,11 @@ for i = 1:M.T
         % cumulative number of people (first dose) vaccinated (%)
         %------------------------------------------------------------------
         if isfield(Q{n},'pro')
-            pvac(n) = pvac(n) + (1 - Q{n}.pro - pvac(n))*V.Rvac;
+            pvac(n) = pvac(n) + (1 - erf(Q{n}.pro) - pvac(n))*V.Rvac;
         else
             pvac(n) = pvac(n) + (1 - pvac(n))*V.Rvac;
         end
+        if pvac(n) < 0, keyboard, end
         Y{n}(i,22) = 100 * pvac(n);
         
         % PCR case positivity (%) (seven day rolling average)

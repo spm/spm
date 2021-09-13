@@ -1,6 +1,6 @@
-function Data = DATA_WID_data
+function D = DATA_WID_data
 % Data retrieval function for COVID modelling
-% FORMAT data = DATA_WID_data
+% FORMAT D = DATA_WID_data
 %
 % n   - number of countries to retain [default: n]
 %
@@ -52,7 +52,14 @@ Data  = struct([]);
 for k = 1:numel(State)
     j = find(ismember(D{1:end,3},State{k}));
     
-    % check
+    % extract demographic data
+    %----------------------------------------------------------------------
+    for i = 1:numel(demo)
+        Data(k).(demo{i}) = D{j(1),ismember(vname,demo{i})};
+    end
+    
+    
+    % extract timeseries
     %----------------------------------------------------------------------
     Data(k).country  = State{k};
     Data(k).date     = D{j,ismember(vname,'date')};
@@ -62,14 +69,85 @@ for k = 1:numel(State)
     Data(k).vaccine  = D{j,ismember(vname,'people_vaccinated')};
     Data(k).positive = D{j,ismember(vname,'positive_rate')};
     Data(k).ratio    = D{j,ismember(vname,'reproduction_rate')};
-
-    % check
-    %----------------------------------------------------------------------
-    for i = 1:numel(demo)
-        Data(k).(demo{i}) = D{j(1),ismember(vname,demo{i})};
-    end
+    
+    Data(k).vrate    = max(Data(k).vaccine)/Data(k).population;
 
 end
+
+% triage data
+%--------------------------------------------------------------------------
+i      = zeros(1,numel(Data));
+series = {'date','cases','death','vaccine'};
+stats  = {'population','aged_70_older'};
+for r = 1:numel(Data)
+    
+    % ensure timeseries are present
+    %----------------------------------------------------------------------
+    for j = 1:numel(series)
+        if sum(isfinite(Data(r).(series{j}))) < 8
+            i(r) = 1;
+        end
+    end
+    
+    % ensure demographic statistics are present
+    %----------------------------------------------------------------------
+    for j = 1:numel(stats)
+        if isnan(Data(r).(stats{j}))
+            i(r) = 1;
+        end
+    end
+end
+D     = Data(find(~i));
+
+% remove world
+%--------------------------------------------------------------------------
+i    = find(ismember({D.country},'World'));
+D(i) = [];
+
+if numel(D) ~= 167
+    warning('data have changed')
+end
+
+return
+
+
+
+%% order countries using their similarity in terms of new cases and deaths
+%==========================================================================
+for r = 1:numel(D)
+    
+    fprintf('%d out of %d\n',r,numel(D));
+    disp(D(r).country)
+    try, clear Y; end
+    
+    % create data structure
+    %----------------------------------------------------------------------
+    Y(1).type = 'New cases';
+    Y(1).unit = 'number/day';
+    Y(1).U    = 2;
+    Y(1).date = datenum(D(r).date);
+    Y(1).Y    = D(r).cases;
+    Y(1).h    = 0;
+    
+    Y(2).type = 'Daily deaths';
+    Y(2).unit = 'number/day';
+    Y(2).U    = 1;
+    Y(2).date = datenum(D(r).date);
+    Y(2).Y    = D(r).death;
+    Y(2).h    = 2;   
+    
+    % remove NANs, smooth and sort by date
+    %----------------------------------------------------------------------
+    [Y,S] = spm_COVID_Y(Y,'01-02-2020',16);
+    S(isnan(S)) = 0;
+    % S       = S/D(r).population;
+    
+    YY(:,r) = spm_vec(S);
+end
+
+[u,s,v] = spm_svd(YY);
+[d,i]   = sort(v(:,1));
+D       = D(i);
 
 return
 
