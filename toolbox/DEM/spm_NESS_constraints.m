@@ -17,7 +17,7 @@ function [ks,kq,kg,kh] = spm_NESS_constraints(o,A,K,L)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ness_hd.m 8085 2021-03-21 12:27:26Z karl $
+% $Id: spm_NESS_constraints.m 8153 2021-09-17 17:10:56Z spm $
 
 % constraints on potential parameters due to dissipative flow
 %--------------------------------------------------------------------------

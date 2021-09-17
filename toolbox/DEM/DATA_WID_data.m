@@ -9,7 +9,7 @@ function D = DATA_WID_data
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DATA_COVID_JHU.m 8129 2021-08-02 18:08:36Z karl $
+% $Id: DATA_WID_data.m 8153 2021-09-17 17:10:56Z spm $
 
 
 % web options

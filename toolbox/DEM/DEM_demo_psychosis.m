@@ -32,7 +32,7 @@ function DEM_demo_psychosis
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_ontology.m 6511 2015-08-02 15:05:41Z karl $
+% $Id: DEM_demo_psychosis.m 8153 2021-09-17 17:10:56Z spm $
  
  
 %% Set up the generative model

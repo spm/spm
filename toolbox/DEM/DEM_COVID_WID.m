@@ -16,7 +16,7 @@ function DCM = DEM_COVID_WID(country)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_COUNTRY.m 8129 2021-08-02 18:08:36Z karl $
+% $Id: DEM_COVID_WID.m 8153 2021-09-17 17:10:56Z spm $
 
 % set up and preliminaries
 %==========================================================================

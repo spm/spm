@@ -20,7 +20,7 @@ function T = spm_COVID_T(x,P)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_T.m 8015 2020-11-24 10:47:41Z karl $
+% $Id: spm_COVID_TS.m 8153 2021-09-17 17:10:56Z spm $
 
 % setup
 %==========================================================================

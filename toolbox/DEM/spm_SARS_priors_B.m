@@ -37,7 +37,7 @@ function [P,C,str] = spm_SARS_priors_B(nN)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_priors.m 8108 2021-06-01 14:20:26Z karl $
+% $Id: spm_SARS_priors_B.m 8153 2021-09-17 17:10:56Z spm $
 
 % sources and background
 %--------------------------------------------------------------------------

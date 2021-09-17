@@ -14,7 +14,7 @@ function DCM = DEM_COVID_UK4
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_UK.m 8112 2021-06-16 20:06:47Z karl $
+% $Id: DEM_COVID_UK4.m 8153 2021-09-17 17:10:56Z spm $
 
 % set up and preliminaries
 %==========================================================================
