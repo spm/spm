@@ -20,7 +20,7 @@ function [Y,S,dates] = spm_COVID_Y(Y,date0,days)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_Y.m 8153 2021-09-17 17:10:56Z spm $
+% $Id: spm_COVID_Y.m 8154 2021-09-24 11:25:10Z karl $
 
 
 % set up
@@ -65,6 +65,13 @@ for i = 1:numel(Y)
     j         = Y(i).date >= date0;
     Y(i).date = Y(i).date(j);
     Y(i).Y    = Y(i).Y(j,:);
+    
+    % remove outliers
+    %----------------------------------------------------------------------
+    j         = abs(Y(i).Y - mean(Y(i).Y)) < 4*std(Y(i).Y);
+    Y(i).date = Y(i).date(j);
+    Y(i).Y    = Y(i).Y(j,:);
+    
     
     % order data by date
     %----------------------------------------------------------------------

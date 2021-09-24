@@ -13,7 +13,7 @@ function spm_plot_ci(E,C,x,j,s)
 % Copyright (C) 2008-2021 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_plot_ci.m 8073 2021-03-02 19:55:30Z guillaume $
+% $Id: spm_plot_ci.m 8154 2021-09-24 11:25:10Z karl $
 
 
 % get axis
@@ -130,6 +130,7 @@ if N >= 8
     
     % time-series plot
     %======================================================================
+    x  = x(:)';
     if strcmpi(s,'exp')
         fill([x fliplr(x)],exp([full(E + c) fliplr(full(E - c))]),...
             colf,'EdgeColor','none','Parent',ax,'FaceAlpha', 0.4);

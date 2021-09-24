@@ -12,7 +12,7 @@ function [varargout] = spm_unvec(vX,varargin)
 % Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_unvec.m 6238 2014-10-13 09:38:23Z karl $
+% $Id: spm_unvec.m 8154 2021-09-24 11:25:10Z karl $
 
 
 %error('spm_unvec.c not compiled - see Makefile')
@@ -31,7 +31,7 @@ end
 
 % check vX is numeric
 %--------------------------------------------------------------------------
-if ~(isnumeric(vX) || islogical(vX))
+if ~(isnumeric(vX) || islogical(vX) || isa(vX,'sym') )
     vX = spm_vec(vX);
 end
 
@@ -41,6 +41,8 @@ end
 if isnumeric(X) || islogical(X)
     if ndims(X) > 2
         X(:)  = full(vX);
+    elseif isa(vX,'sym')
+        X     = reshape(vX,size(X));
     else
         X(:)  = vX;
     end

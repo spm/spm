@@ -9,8 +9,9 @@ function [DCM,BMR,BMA] = spm_dcm_bmr_all(DCM,field,OPT)
 %  DCM.Ep    - posterior expectation
 %  DCM.Cp    - posterior covariances
 %  DCM.beta  - prior expectation of reduced parameters (default: 0)
+%              NB: beta  = 'full' uses full prior expectations
 %  DCM.gamma - prior variance    of reduced parameters (default: 0)
-%              NB: beta = 'char' uses full priors
+%              NB: gamma = 'full' uses full prior variances
 %
 % field      - parameter fields in DCM{i}.Ep to optimise [default: {'A','B'}]
 %             'All' will invoke all fields (i.e. random effects)
@@ -56,7 +57,9 @@ function [DCM,BMR,BMA] = spm_dcm_bmr_all(DCM,field,OPT)
 % parameters are retained or there are no more parameters to consider. 
 % Finally, BMA is performed on the models from the last iteration.
 % 
-% NB: The full model should be estimated prior to running this function. 
+% NB: The full model should be estimated prior to running this function. A
+% summary of the reduced model is plotted when the number of output
+% arguments is greater than one.
 %
 % See also: spm_dcm_post_hoc - this routine is essentially a simplified
 % version of spm_dcm_post_hoc
@@ -64,7 +67,7 @@ function [DCM,BMR,BMA] = spm_dcm_bmr_all(DCM,field,OPT)
 % Copyright (C) 2010-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: spm_dcm_bmr_all.m 8045 2021-02-02 18:46:28Z karl $
+% $Id: spm_dcm_bmr_all.m 8154 2021-09-24 11:25:10Z karl $
 
 
 %-specification of null prior covariance
@@ -158,8 +161,12 @@ while GS
 
             % Create reduced prior covariance matrix
             %--------------------------------------------------------------
-            R   = U'*diag(r + s*gamma)*U;
-            rC  = R*pC*R;
+            if isnumeric(gamma)
+                R   = U'*diag(r + s*gamma)*U;
+                rC  = R*pC*R;
+            else
+                rC  = pC;
+            end
             
             % Create reduced prior means
             %--------------------------------------------------------------
@@ -217,8 +224,12 @@ while GS
             
             % Create reduced prior covariance matrix
             %--------------------------------------------------------------
-            R    = U'*diag(r + s*gamma)*U;
-            rC   = R*pC*R;
+            if isnumeric(gamma)
+                R   = U'*diag(r + s*gamma)*U;
+                rC  = R*pC*R;
+            else
+                rC  = pC;
+            end
             
             % Create reduced prior means
             %--------------------------------------------------------------
@@ -328,13 +339,17 @@ for i = 1:length(K)
         r            = C;
         r(k(K(i,:))) = 0;
         s            = 1 - r;
-        R            = diag(r + s*gamma);
-        rC           = R*pC*R;
-        S            = diag(r);
-        if isnumeric(beta)
-            rE       = S*spm_vec(pE) + s*beta;
+        if isnumeric(gamma)
+            R  = diag(r + s*gamma);
+            rC = R*pC*R;
         else
-            rE       = pE;
+            rC = pC;
+        end
+        S      = diag(r);
+        if isnumeric(beta)
+            rE = S*spm_vec(pE) + s*beta;
+        else
+            rE = pE;
         end
         
         % BMR

@@ -22,7 +22,7 @@ function varargout = DEM_demo(varargin)
 
 % Edit the above text to modify the response to help DEM_demo
 
-% Last Modified by GUIDE v2.5 02-Feb-2021 19:00:41
+% Last Modified by GUIDE v2.5 22-Sep-2021 20:21:31
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -772,3 +772,7 @@ run_demo_Callback(hObject, handles, 'FEP_lorenz_surprise')
 function pushbutton261_Callback(hObject, eventdata, handles)
 handles.web = 'Computational Nosology';
 run_demo_Callback(hObject, handles, 'DEM_demo_psychosis')
+
+% --- Executes on button press in pushbutton262.
+function pushbutton262_Callback(hObject, eventdata, handles)
+run_demo_Callback(hObject, handles, 'DEM_CLIMATE_India')

@@ -1,40 +1,41 @@
 function [Y,C] = spm_CLIMATE_ci(Ep,Cp,Z,U,M,NPI)
-% Graphics for coronavirus simulations - with confidence intervals
+% Graphics for climate simulations - with confidence intervals
 % FORMAT [Y,C] = spm_CLIMATE_ci(Ep,Cp,Z,U,M,NPI)
 % Ep     - posterior expectations
 % Cp     - posterior covariances
 % Z      - optional empirical data
-% U      - outcome
+% U      - indices of outcome
 % M      - model
 % NPI    - intervention array
 %
 % Y      - posterior expectation of outcomes
 % C      - posterior covariances of outcomes
 %
-% This routine evaluates a trajectory of outcome variables from a SARS
-% model and plots the expected trajectory and accompanying Bayesian
+% This routine evaluates a trajectory of outcome variables from a dynamic
+% causal model and plots the expected trajectory and accompanying Bayesian
 % credible intervals (of 90%). If empirical data are supplied, these will
-% be overlaid on the confidence intervals. By default, 128 days
-% are evaluated. In addition, posterior and prior expectations are provided
-% in a panel.
+% be overlaid on the confidence intervals.
 %
-% A single panel is plotted if one output in U is specified
-%
-% Although the covid model is non-linear in the parameters, one can use a
+% Although the DCM is non-linear in the parameters, one can use a
 % first-order Taylor expansion to evaluate the confidence intervals in
 % terms of how the outcomes change with parameters. This, in combination
 % with the well-known overconfidence of variational inference, usually
 % requires a slight inflation of uncertainty. Here, the posterior
 % covariance is multiplied by a factor of four.
+%
+% For computational expediency, the confidence intervals are usually
+% evaluated as a proportion of the expected value. To evaluate the
+% confidence intervals properly, set the global variable CIPLOT to 'true'
 %__________________________________________________________________________
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_CLIMATE_ci.m 8151 2021-09-13 09:12:37Z karl $
+% $Id: spm_CLIMATE_ci.m 8154 2021-09-24 11:25:10Z karl $
 
-% default: number of outcomes to evaluate
+% preliminaries
 %--------------------------------------------------------------------------
-if nargin < 6, NPI = [];   end
+global CIPLOT, if isempty(CIPLOT); CIPLOT = false; end
+if nargin < 6, NPI = []; end
 
 % priors and names for plotting
 %--------------------------------------------------------------------------
@@ -50,18 +51,37 @@ Cp = Cp*4;
 % partial derivatives
 %----------------------------------------------------------------------
 [Y,~,T] = spm_CLIMATE_gen(Ep,M,U,NPI);
-dYdP    = spm_diff(@(P,M,U,NPI)spm_CLIMATE_gen(P,M,U,NPI),Ep,M,U,NPI,1);
 
 % conditional covariances
 %----------------------------------------------------------------------
-C        = dYdP*Cp*dYdP';
+if CIPLOT
+    dYdP = spm_diff(@(P,M,U,NPI)spm_CLIMATE_gen(P,M,U,NPI),Ep,M,U,NPI,1);
+    C    = dYdP*Cp*dYdP';
+else
+    C    = diag(abs(Y)/4098);
+end
 
 % graphics
 %==========================================================================
-spm_plot_ci(Y',C,T), hold on
-try, plot(Z(U).date,Z(U).Y,'.k'), end
+if numel(Z)
+    eplot = min(Z(U).Y) >= 0;
+else
+    eplot = 1;
+end
+if eplot
+    spm_plot_ci(Y',C,T,[],'exp'), hold on
+    if numel(Z)
+        plot(Z(U).date,exp(Z(U).Y),'.k')
+    end
+else
+    spm_plot_ci(Y',C,T), hold on
+    if numel(Z)
+        plot(Z(U).date,Z(U).Y,'.k')
+    end
+end
+
 datetick('x','yyyy','keeplimits','keepticks')
-ylabel('outcome')
+ylabel('outcome'), xlabel('year')
 title(str.outcome(U),'FontSize',14)
 box off, spm_axis tight
 drawnow

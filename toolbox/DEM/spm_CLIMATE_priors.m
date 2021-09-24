@@ -1,173 +1,228 @@
 function [P,C,str] = spm_CLIMATE_priors
-% Generate prior expectation and covariance log parameters
+% Prior expectation and covariance of parameters for a climate model
 % FORMAT [P,C,str] = spm_CLIMATE_priors
-% 
+%
 % pE          - prior expectation (structure)
 % pC          - prior covariances (structure)
 % str.outcome - names
 % str.states  - names
+%
+% This routine generates the prior density over model parameters in terms
+% of a prior expectation and covariance structure. Crucially, there are
+% three kinds of parameters. The first sets the initial values of the
+% latent states. The second comprises the parameters of the equations of
+% motion or flow of latent states correspond to the dynamic part of the
+% model. The third kind of parameters map from the latent states to
+% observable outcomes.
+% 
+% pE.x    - initial states 
+% pE.P    - flow parameters
+% pE.Y    - outcome parameters
+%
+% Because the flow parameters are (almost universally) rate or time
+% constants, they are scale parameters. In other words, they are always
+% greater than zero. This means that during estimation we will deal with
+% log scale parameters that can take any value between plus and minus
+% infinity. This allows one to place gaussian priors over nonnegative
+% (scale) parameters. Practically, this means that this routine returns the
+% logarithm of the flow parameters used to generate dynamics.
 %__________________________________________________________________________
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_CLIMATE_priors.m 8151 2021-09-13 09:12:37Z karl $
+% $Id: spm_CLIMATE_priors.m 8154 2021-09-24 11:25:10Z karl $
 
-% names
+% names of outcome and latent states saved in a structure for potting
 %==========================================================================
-
 str.outcome = {...
-    'Average_temperature'                        ;
-    'normalisedDrought_area_underSPEI_1_6'       ;
-    'normalisedDrought_area_underSPEI_2'         ;
-    'rainfall_mm'                                ;
-    'yield_z_scores'                             ;
-    'crop_production_ktons'                      ;
-    'Irrigated_total_area'                       ;
-    'Fertiliser_Consumption_tons'                ;
-    'Milk__000T_'                                ;
-    'Egg_millions_'                              ;
-    'Meat__000T_'                                ;
-    'price_z_scores'                             ;
-    'PRIMARYSECTORCONSTANTPRICES_MillionsInRs_'  ;
-    'TOTALCONSTANTPRICES_MillionsInRs_'          ;
-    'PRIMARYSECTORCONSTANTSHARES_Percent_'       ;
-    'STATEMALEAVERAGEFIELDLABOUR_RsPerDay_'      ;
-    'growth_failure_5_14yo_dalys_per_100k'       ;
-    'child_materNaNl_malnutrition_dalys_per_100k';
-    'food_subsidy_million_R'                     };
-
+    'Average temperature';
+    'Extreme drought';
+    'Exceptional drought';
+    'Rainfall';
+    'Crop production';
+    'Irrigation';
+    'Fertiliser use';
+    'Milk production';
+    'Food prices';
+    'Income in exposed sector';
+    'Childhood malnutrition';
+    'Crop yield'};
+   
 str.states = {...
     'Meteorological (1)'                         ;
     'Meteorological (2)'                         ;
     'Meteorological (3)'                         ;
     'Anthropological activity'                   ;
     'Primary sector activity'                    ;
-    'Precipitation'                              ;
-    'crop production'                            ;
+    'Yeild'                                      ;
+    'Crop production'                            ;
     'Irrigation'                                 ;
     'Fertilisation'                              ;
     'Food production'                            ;
     'Food price'                                 ;
     'Malnutrition'                               };
 
-str.parameters = {...
-    'Meteorological (1)'                         ;
-    'Meteorological (2)'                         ;
-    'Meteorological (3)'                         };
 
-
-
-% initial conditions
+% initial conditions (i.e., latent states at the start date): P.x
 %==========================================================================
-P.x(1)  = 8;               % 'Meteorological (1)'                         ;
-P.x(2)  = 8;               % 'Meteorological (2)'                         ;
-P.x(3)  = 24;              % 'Meteorological (3)'                         ;
+P.x(1)  = 0;               % 'Meteorological (fast)'                      ;
+P.x(2)  = 1;               % 'Meteorological (first)'                     ;
+P.x(3)  = 0;               % 'Meteorological (slow)'                      ;
+
 P.x(4)  = 1;               % 'Anthropological activity'                   ;
 P.x(5)  = 1;               % 'Primary sector activity'                    ;
-P.x(6)  = 0;               % 'Precipitation'                              ;
-P.x(7)  = 0;               % 'Crop production'                            ;
+P.x(6)  = 6;               % 'Yield'                                      ;
+P.x(7)  = 1;               % 'Crop production'                            ;
 P.x(8)  = 0;               % 'Irrigation'                                 ;
-P.x(9)  = 0;               % 'Fertilisation'                              ;
+P.x(9)  = 1;               % 'Fertilisation'                              ;
 P.x(10) = 0;               % 'Food production'                            ;
 P.x(11) = 0;               % 'Food price'                                 ;
 P.x(12) = 0;               % 'Malnutrition'                               ;
 
-% Latent states
+% flow parameters for updating latent states: P.P
 %==========================================================================
 
 % Meteorological
 %--------------------------------------------------------------------------
-P.L(1)  = 10;              % Lorenz parameters [sig, beta, rho]
-P.L(2)  = 8/3;             % Lorenz parameters [sig, beta, rho]
-P.L(3)  = 24;              % Lorenz parameters [sig, beta, rho]
-P.L(4)  = 17;              % Lorenz parameters (time)
+P.P.L(1)  = 1/1700;          % (1) sensitivity to anthropomorphic activity
+P.P.L(2)  = 1/6;             % (2) equilibrium point of slow state
+P.P.L(3)  = 1/4098;          % (3) decay of slow state
 
 % Anthropological activity
 %--------------------------------------------------------------------------
-P.R(1)  = 1/(12*72);       % P(dying)
-P.R(2)  = (1.5)/(12*72);   % P(reproducing)
-P.R(3)  = (1/32)/(12*72);   % Malnutrition
-P.R(4)  = (1/4)/(12*72);     % Malnutrition (Primary)
+P.P.R(1)  = 1/(12*72);       % (4)  P(dying)
+P.P.R(2)  = (1.4)/(12*72);   % (5)  P(reproduction)
+P.P.R(3)  = (1/8)/(12*72);   % (6)  sensitivity to food prices
+P.P.R(4)  = (1/32)/(12*72);  % (7)  sensitivity to malnutrition
 
-P.LR    = 8;               % coupling
-
-% Precipitation
+% Precipitation (yield)
 %--------------------------------------------------------------------------
-P.P(1)  = 32;              % bias
-P.P(2)  = 1/128;           % sensitivity
-P.P(3)  = 1/8;             % decay
+P.P.P(1)  = 8;               % (8)  bias
+P.P.P(2)  = 8;               % (9)  sensitivity
+P.P.P(3)  = 1/8;             % (10) decay
 
 % Irrigation
 %--------------------------------------------------------------------------
-P.I(1)  = 1/2;             % bias
-P.I(2)  = 1/32;            % sensitivity
-P.I(3)  = 1/8;             % decay
+P.P.I(1)  = 4;               % (11) bias
+P.P.I(2)  = 2;               % (12) sensitivity
+P.P.I(3)  = 1/4;             % (13) decay
 
 % Food production
 %--------------------------------------------------------------------------
-P.F(1)  = 1/2;             % sensitivity (anthropomorphic)
-P.F(2)  = 1/16;            % decay
-P.F(3)  = 1/512;           % sensitivity (climate)
-
-P.FL(1) = 32;              % bias
-P.FL(2) = 1/128;           % sensitivity
+P.P.F(1)  = 8;               % (14) sensitivity (demand)
+P.P.F(2)  = 1/2;             % (15) decay
 
 % Crop production
 %--------------------------------------------------------------------------
-P.C(1)  = 1/2;             % Precipitation
-P.C(2)  = 1/2;             % Irrigation
-P.C(3)  = 1;               % Fertilisation
-P.C(4)  = 1/8;             % decay
+P.P.C(1)  = 8;               % (16) threshold
+P.P.C(2)  = 1;               % (17) precision 
+P.P.C(3)  = 8;               % (18) sensitivity to precipitation
+P.P.C(4)  = 1/128;           % (19) sensitivity to irrigation
+P.P.C(5)  = 1/2;             % (20) decay
 
-% Fertilisation
+% Resources (fertilsation)
 %--------------------------------------------------------------------------
-P.E(1)  = 1;               % demand
-P.E(2)  = 1/16;            % decay
+P.P.E(1)  = 1/4;             % (21) sensitivity to demand
+P.P.E(2)  = 1/64;            % (22) decay
 
 % Food price
 %--------------------------------------------------------------------------
-P.Z(1)  = 1/16;            % Crop production
-P.Z(2)  = 1/16;            % Fertilisation
-P.Z(3)  = 1/16;            % Food production
-P.Z(4)  = 1/4;             % decay
+P.P.Z(1)  = 1/8;             % (23) sensitivity (fertilisation)
+P.P.Z(2)  = 1/32;            % (24) sensitivity (food production)
+P.P.Z(3)  = 1/8;             % (25) decay
 
 % Malnutrition
 %--------------------------------------------------------------------------
-P.M(1)  = 1/32;            % sensitivityFood price
-P.M(4)  = 1/16;            % decay
+P.P.M(1)  = 1/32;            % (26) sensitivity to food price
+P.P.M(2)  = 1;               % (27) sensitivity to food production
+P.P.M(3)  = 1/8;             % (28) decay
 
-% outputs
+
+% outcome parameters: prior expectations: P.Y
 %==========================================================================
-P.y(1,1)  = 298;
-P.y(2,1)  = 0;
-P.y(3,1)  = 0;
-P.y(4,1)  = 1;
 
-P.y(5,1)  = -1/2;
-P.y(6,1)  = 1;
-P.y(7,1)  = 4;
-P.y(8,1)  = -2/3;
+% temperature (U = 1)
+%--------------------------------------------------------------------------
+P.Y.t(1)  = 0;               % constant
+P.Y.t(2)  = 1/128;           % coefficients
+P.Y.t(3)  = 0;               % coefficients
+P.Y.t(4)  = 0;               % coefficients
+
+% Drought (U = 2,3)
+%--------------------------------------------------------------------------
+P.Y.d(1)  = 2;               % constant
+P.Y.d(2)  = 1/2;             % coefficient (extreme)
+P.Y.d(3)  = 3;               % constant
+P.Y.d(4)  = 2/3;             % coefficient (exceptional)
+
+% Rainfall (U = 4)
+%--------------------------------------------------------------------------
+P.Y.r(1)  = 0;               % constant
+P.Y.r(2)  = 1;               % coefficient
+P.Y.r(3)  = 0;               % coefficient
+P.Y.r(4)  = 0;               % coefficient
+
+% Crop production (U = 5)
+%------------------------------------------------------------------
+P.Y.c(1)  = 5;               % constant
+P.Y.c(2)  = 4;               % coefficient
+
+% Irrigation (U = 6)
+%------------------------------------------------------------------
+P.Y.i(1)  = 7;               % constant
+P.Y.i(2)  = 1/2;             % coefficient
+
+% Fertiliser use (U = 7)
+%------------------------------------------------------------------
+P.Y.u(1)  = 5;               % constant
+P.Y.u(2)  = 1/4;             % coefficient
+
+% Milk production (U = 8)
+%------------------------------------------------------------------
+P.Y.m(1)  = 6;               % constant
+P.Y.m(2)  = 1;               % coefficient (crop production)
+P.Y.m(3)  = 4;               % coefficient (food production)
+
+% Food prices (U = 9)
+%------------------------------------------------------------------
+P.Y.f(1)  = -1/2;            % constant
+P.Y.f(2)  = 1/4;             % coefficient
+
+% Income in exposed sector (U = 10)
+%------------------------------------------------------------------
+P.Y.e(1)  = -2;              % constant
+P.Y.e(2)  = 2;               % coefficient (crop production)
+P.Y.e(3)  = 12;              % coefficient (food production)
+
+% Childhood malnutrition (U = 11)
+%------------------------------------------------------------------
+P.Y.p(1)  = 12;              % constant
+P.Y.p(2)  = 4;               % coefficient
+
+% yield (U = 12)
+%------------------------------------------------------------------
+P.Y.y(1)  = -3;              % constant
+P.Y.y(2)  = 1/2;             % coefficient
 
 
-
-
-
-% Variances (mildly informative priors)
+% Prior variances; specified as a structure 
 %==========================================================================
-C   = spm_vecfun(P,@(x)spm_zeros(x) + 1/16);
-
+C.x   = spm_vecfun(P.x,@(x)spm_zeros(x) + 0);     % very informative priors
+C.P   = spm_vecfun(P.P,@(x)spm_zeros(x) + 1/64);  % mild shrinkage priors
+C.Y   = spm_vecfun(P.Y,@(x)spm_zeros(x) + 1/64);  % uninformative priors
 
 % fixed parameters
 %--------------------------------------------------------------------------
-C.L(1:2) = 0;                 % parameters [sig, beta]
-
-% log transform
+% log transform flow parameters
 %==========================================================================
-Q   = P;
-Q   = spm_vecfun(P,@log);
-Q.x = P.x;
-Q.y = P.y;
-P   = Q;
+P.P   = spm_vecfun(P.P,@log);
+
+% The shrinkage priors on the flow parameters have a particular
+% quantitative meaning because we are dealing with log parameters. This
+% means that the prior variance controls the range of relative values that
+% are plausibly expected. For example, if we think parameters can vary by
+% less than an order of magnitude, then we would set their prior variance
+% to about 1/16.
 
 
 return
