@@ -37,7 +37,7 @@ function [P,C,str] = spm_SARS_priors(nN)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_priors.m 8152 2021-09-13 09:17:36Z karl $
+% $Id: spm_SARS_priors.m 8156 2021-09-27 09:05:29Z karl $
 
 % sources and background
 %--------------------------------------------------------------------------
@@ -329,6 +329,8 @@ factor{5} = {' ',' '};
 % Y(:,28) - Incidence of Long Covid
 % Y(:,29) - population immunity (vaccine)
 % Y(:,30) - cumulative admissions
+% Y(:,31) - unused
+% Y(:,32) - Gross domestic product
 
 
 str.outcome = {'Daily deaths (28 days)',...
@@ -360,7 +362,9 @@ str.outcome = {'Daily deaths (28 days)',...
     'Hospital cases'...
     'Incidence of Long Covid'...
     'Population immunity (vaccine) (%)'...
-    'Cumulative admissions'};
+    'Cumulative admissions'...
+    ' '...
+    'Gross domestic product'};
 
 str.factors = factors;
 str.factor  = factor;

@@ -5,7 +5,7 @@ function [DCM] = DEM_COVID_AGE
 % Demonstration of COVID-19 modelling
 %__________________________________________________________________________
 %
-% This demonstration routine fixed multiple regional death by date and new
+% This demonstration routine fits multiple regional death by date and new
 % cases data and compiles estimates of latent states for local
 % authorities.
 %
@@ -15,7 +15,7 @@ function [DCM] = DEM_COVID_AGE
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_AGE.m 8153 2021-09-17 17:10:56Z spm $
+% $Id: DEM_COVID_AGE.m 8156 2021-09-27 09:05:29Z karl $
 
 %% age demographics
 %--------------------------------------------------------------------------

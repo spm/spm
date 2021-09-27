@@ -78,7 +78,7 @@ function [y,x,z,W] = spm_SARS_gen(P,M,U,NPI,age)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_gen.m 8152 2021-09-13 09:17:36Z karl $
+% $Id: spm_SARS_gen.m 8156 2021-09-27 09:05:29Z karl $
 
 
 % The generative model:
@@ -491,21 +491,27 @@ for i = 1:M.T
 
         % mobility (% normal)
         %------------------------------------------------------------------
+        q = Q{n}.out/W{n}(1).Pout;
         if isfield(Q{n},'mo')
-            q = 1 + Q{n}.mo(1)*Pout^Q{n}.mo(2) - Q{n}.mo(1);
-        else
-            q = Pout;
+            q = q^Q{n}.mo;
         end
         Y{n}(i,13) = 100 * q;
         
         % work (% normal)
         %------------------------------------------------------------------
+        q = Q{n}.out/W{n}(1).Pout;
         if isfield(Q{n},'wo')
-            q = 1 + Q{n}.wo(1)*Pout^Q{n}.wo(2) - Q{n}.wo(1);
-        else
-            q = Pout;
+            q = q^Q{n}.wo;
         end
         Y{n}(i,14) = 100 * q;
+        
+        % gross domestic product (% 2018)
+        %------------------------------------------------------------------
+        q = q^Q{n}.mo;
+        if isfield(Q{n},'gd')
+            q = q^Q{n}.gd;
+        end
+        Y{n}(i,32) = 100 * q;
         
         % certified deaths per day
         %------------------------------------------------------------------

@@ -14,7 +14,7 @@ function DCM = DEM_COVID_UK4
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_UK4.m 8153 2021-09-17 17:10:56Z spm $
+% $Id: DEM_COVID_UK4.m 8156 2021-09-27 09:05:29Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -25,8 +25,6 @@ function DCM = DEM_COVID_UK4
 % https://www.gov.uk/guidance/the-r-number-in-the-uk#history
 % https://www.gov.uk/government/statistics/transport-use-during-the-coronavirus-covid-19-pandemic
 % https://www.google.com/covid19/mobility/
-
-% F = -2.5929e+04
 
 % set up and get data
 %==========================================================================
@@ -241,6 +239,7 @@ survey     = importdata('survey.csv');
 surveyage  = importdata('surveyage.csv');
 symptoms   = importdata('symptoms.csv');
 ratio      = importdata('ratio.csv');
+gdp        = importdata('gdp.csv');
 
 d          = find(ismember(cases.textdata(1,1:end),'date'));
 
@@ -660,6 +659,17 @@ Y(38).lag  = 0;
 Y(38).age  = 4;
 Y(38).hold = 0;
 
+Y(39).type = 'GDP (Statistica)'; % Gross domestic product
+Y(39).unit = 'percent';
+Y(39).U    = 32;
+Y(39).date = datenum(gdp.textdata(2:end,1),'dd/mm/yyyy');
+Y(39).Y    = gdp.data;
+Y(39).h    = 4;
+Y(39).lag  = 0;
+Y(39).age  = 0;
+Y(39).hold = 0;
+
+
 
 % remove NANs, smooth and sort by date
 %==========================================================================
@@ -676,10 +686,12 @@ pC.N    = spm_zeros(pE.N);
 
 % age-specific
 %--------------------------------------------------------------------------
-pE.mo   = zeros(nN,2);         % coefficients for mobility
-pC.mo   = ones(nN,2)/8;        % prior variance
-pE.wo   = zeros(nN,2);         % coefficients for retail
-pC.wo   = ones(nN,2)/8;        % prior variance
+pE.mo   = zeros(nN,1);         % coefficients for mobility
+pC.mo   = ones(nN,1);          % prior variance
+pE.wo   = zeros(nN,1);         % coefficients for retail activity
+pC.wo   = ones(nN,1);          % prior variance
+pE.gd   = zeros(nN,1);         % coefficients for gross domestic product
+pC.gd   = ones(nN,1);          % prior variance
 
 % augment priors with fluctuations
 %--------------------------------------------------------------------------

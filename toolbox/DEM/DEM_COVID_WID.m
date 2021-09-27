@@ -16,7 +16,7 @@ function DCM = DEM_COVID_WID(country)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_WID.m 8153 2021-09-17 17:10:56Z spm $
+% $Id: DEM_COVID_WID.m 8156 2021-09-27 09:05:29Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -245,11 +245,7 @@ for r = 1:numel(DCM)
     i(r) = numel(DCM(r).F);
 end
 r     = find(i);
-
 DCM   = DCM(r);
-D     = DATA_WID_data;
-D     = D(r);
-
 
 %% check accuracy
 %==========================================================================
@@ -265,7 +261,7 @@ for r = 1:numel(DCM)
     Y   = DCM(r).M.T;
     
     M.T  = size(S,1);
-    Z    = spm_SARS_gen(DCM(r).Ep,M,DCM(r).U);
+    Z    = real(spm_SARS_gen(DCM(r).Ep,M,DCM(r).U));
     i    = isfinite(S(:,2));
     c    = corrcoef(S(i,2),Z(i,2));
     A(r) = c(1,2)^2;
@@ -275,12 +271,15 @@ end
 subplot(2,2,1), bar(A)
 subplot(2,2,2), histogram(A,8)
 
+r     = find(A > 1/2);
+DCM   = DCM(r);
+A     = A(r);
+
 % data fits
 %----------------------------------------------------------------------
 [d,r] = max(A)
-spm_figure('GetWin',[D(r).country ' best data fit']); clf;
-[d,r] = max(A)
-for i = 1:numel(U)
+spm_figure('GetWin',[DCM(r).D.country ' best data fit']); clf;
+for i = 1:numel(DCM(r).U)
     subplot(4,2,i)
     spm_SARS_ci(DCM(r).Ep,DCM(r).Cp,DCM(r).S(:,i),DCM(r).U(i),M);
     title(DCM(r).M.T(i).type,'FontSize',14), ylabel(Y(i).unit)
@@ -289,8 +288,8 @@ end
 % data fits
 %----------------------------------------------------------------------
 [d,r] = min(A)
-spm_figure('GetWin',[D(r).country ' worst data fit']); clf;
-for i = 1:numel(U)
+spm_figure('GetWin',[DCM(r).D.country ' worst data fit']); clf;
+for i = 1:numel(DCM(r).U)
     subplot(4,2,i)
     spm_SARS_ci(DCM(r).Ep,DCM(r).Cp,DCM(r).S(:,i),DCM(r).U(i),M);
     title(DCM(r).M.T(i).type,'FontSize',14), ylabel(Y(i).unit)
@@ -303,15 +302,16 @@ end
 spm_figure('GetWin','vaccination rates'); clf;
 
 d      = datenum(date) - datenum(DCM(1).M.date,'dd-mm-yyyy') % duration of epidemi
-pE.fol = log([0.0001   (d + 512) 32;
-    0.001 (d + 128) 32;
-    0.01 (d + 64 ) 32;
-    0.01  (d + 32 ) 32]);
+pE.fol = log([0.0001 (d + 512) 32;
+              0.001  (d + 128) 32;
+              0.01   (d + 64 ) 32;
+              0.01   (d + 32 ) 32]);
 
-I     = find(ismember({D.country},'United Kingdom'));
 Z     = 0;
 E     = 0;
 for r = 1:numel(DCM)
+    
+    DCM(r).color = spm_softmax(randn(3,1))';
     
     % unpack model and posterior expectations
     %----------------------------------------------------------------------
@@ -326,14 +326,14 @@ for r = 1:numel(DCM)
     z   = spm_SARS_gen(Ep,M,22);
     
     if min(z) < 0, keyboard, end
-    Z   = Z + z*D(r).population/100;
+    Z   = Z + z*DCM(r).D.population/100;
  
     % with equable rollout
     %----------------------------------------------------------------------
     Ep.fol = pE.fol;
     
     e   = spm_SARS_gen(Ep,M,22);
-    E   = E + e*D(r).population/100;
+    E   = E + e*DCM(r).D.population/100;
     
     
     % graphics
@@ -343,16 +343,20 @@ for r = 1:numel(DCM)
     title('Cumulative first doses (global)','FontSize',14)
     legend({'current','equable'})
     
-    subplot(3,1,2), plot(1:M.T,z,'k'), hold on
+    subplot(2,1,2)
+    col = DCM(r).color ;
+    plot(1:M.T,z,'Color',col), hold on
     title('Current rollout (country-specific)','FontSize',14)
     xlabel('days'), ylabel('cumulative first doses')
     i  = find(ismember(U,22));
-    plot(S(:,i),'.k')
     
-    subplot(3,1,3), plot(1:M.T,e,'k'), hold on
+    plot(S(:,i),'.','Color',col)
+    text(64,120 - r*4,DCM(r).D.country,'Color',col,'FontSize',8)
+    
+    plot(1:M.T,e,'-.','Color',col), hold on
     title('Equable rollout (country-specific)','FontSize',14)
     xlabel('days'), ylabel('cumulative first doses')
-    drawnow
+    set(gca,'YLim',[0 100]), drawnow
 
 end
 
@@ -375,14 +379,13 @@ for r = 1:numel(DCM)
         
     % certified deaths and 28 day death rates
     %----------------------------------------------------------------------
-    subplot(3,1,1), set(gca,'ColorOrderIndex',1)
+    subplot(4,1,1), set(gca,'ColorOrderIndex',1)
     
     % certified and 28 day deaths
     %----------------------------------------------------------------------
     [~,~,y] = spm_SARS_ci(Ep,Cp,[],   15,M); hold on
-              spm_SARS_ci(Ep,Cp,S(:,2),1,M);
     Z = Z + y;
-    title('Certified and 28 day deaths','FontSize',14)
+    title('Certified deaths','FontSize',14)
     
     % with equable rollout
     %----------------------------------------------------------------------
@@ -390,21 +393,34 @@ for r = 1:numel(DCM)
     
     % certified deaths
     %----------------------------------------------------------------------
-    subplot(3,1,2), set(gca,'ColorOrderIndex',1)
-    [~,~,y] = spm_SARS_ci(Ep,Cp,[],15,M);
+    subplot(4,1,2), set(gca,'ColorOrderIndex',1)
+    [~,~,e] = spm_SARS_ci(Ep,Cp,[],15,M);
     title('Certified deaths with equable rollout','FontSize',14)
 
-    E  = E + y;
+    E  = E + e;
     
-    % lives saved
+    % lives saved (per country)
     %----------------------------------------------------------------------
-    subplot(3,1,3)
+    subplot(4,1,3), hold on
+    plot(1:M.T,y - e,'Color',DCM(r).color)
+    xlabel('days'), ylabel('cumulative deaths')
+    title('Daily lives saved (per country)','FontSize',14)
+    spm_axis tight, box off
+    
+    % lives saved (globally)
+    %----------------------------------------------------------------------
+    subplot(4,1,4)
     plot(1:M.T,cumsum(Z),1:M.T,cumsum(E))
     xlabel('days'), ylabel('cumulative deaths')
-    title('Total deaths (global)','FontSize',14)
+    title('Cumulative deaths (global)','FontSize',14)
     legend({'current','equable'})
+    spm_axis tight, box off
     
 end
+
+disp('total deaths'), disp(sum(Z));
+disp('lives saved'), disp(sum(Z) - sum(E));
+
 
 
 %% scenario modelling - cases
@@ -426,7 +442,7 @@ for r = 1:numel(DCM)
         
     % new cases
     %----------------------------------------------------------------------
-    subplot(3,1,1), set(gca,'ColorOrderIndex',1)
+    subplot(4,1,1), set(gca,'ColorOrderIndex',1)
     
     % certified and 28 day deaths
     %----------------------------------------------------------------------
@@ -439,26 +455,38 @@ for r = 1:numel(DCM)
     
     % new cases
     %----------------------------------------------------------------------
-    subplot(3,1,2), set(gca,'ColorOrderIndex',1)
-    [~,~,y] = spm_SARS_ci(Ep,Cp,[],2,M);
+    subplot(4,1,2), set(gca,'ColorOrderIndex',1)
+    [~,~,e] = spm_SARS_ci(Ep,Cp,[],2,M); hold on
     title('with equable rollout','FontSize',14)
 
-    E  = E + y;
-    
-    % cases avoided
+    E  = E + e;
+   
+    % cases avoided (per country)
     %----------------------------------------------------------------------
-    subplot(3,1,3)
+    subplot(4,1,3), hold on
+    plot(1:M.T,y - e,'Color',DCM(r).color)
+    xlabel('days'), ylabel('cumulative cases')
+    title('Cases avoided (per country)','FontSize',14)
+    spm_axis tight, box off
+    
+    % lives saved (globally)
+    %----------------------------------------------------------------------
+    subplot(4,1,4)
     plot(1:M.T,cumsum(Z),1:M.T,cumsum(E))
     xlabel('days'), ylabel('cumulative cases')
-    title('cumulative cases (global)','FontSize',14)
+    title('Cumulative cases (global)','FontSize',14)
     legend({'current','equable'})
+    spm_axis tight, box off
     
 end
+
+disp('total cases'), disp(sum(Z));
+disp('cases avoided'), disp(sum(Z) - sum(E));
 
 
 %% scenario modelling - economy
 %==========================================================================
-spm_figure('GetWin','new deaths'); clf;
+spm_figure('GetWin','economy'); clf;
 Z     = 0;
 E     = 0;
 for r = 1:numel(DCM)
@@ -475,12 +503,11 @@ for r = 1:numel(DCM)
         
     % certified deaths and 28 day death rates
     %----------------------------------------------------------------------
-    subplot(3,1,1), set(gca,'ColorOrderIndex',1)
+    subplot(4,1,1), set(gca,'ColorOrderIndex',1)
     
     % mobility (transport)
     %----------------------------------------------------------------------
     [~,~,y] = spm_SARS_ci(Ep,Cp,[],14,M); hold on
-    Z = Z + y;
     title('Economic activity','FontSize',14)
     
     % with equable rollout
@@ -489,20 +516,43 @@ for r = 1:numel(DCM)
     
     % mobility
     %----------------------------------------------------------------------
-    subplot(3,1,2), set(gca,'ColorOrderIndex',1)
-    [~,~,y] = spm_SARS_ci(Ep,Cp,[],15,M);
+    subplot(4,1,2), set(gca,'ColorOrderIndex',1)
+    [~,~,e] = spm_SARS_ci(Ep,Cp,[],14,M); hold on
     title('with equable rollout','FontSize',14)
-    E  = E + y;
     
-    % lives saved
+    y = (100 - y)*DCM(r).D.gdp_per_capita*DCM(r).D.population/365/100/4;
+    e = (100 - e)*DCM(r).D.gdp_per_capita*DCM(r).D.population/365/100/4;
+    y = y*1e-12;
+    e = e*1e-12;
+
+    if all(isfinite(y)) && all(isfinite(y))
+        Z = Z + y;
+        E = E + e;
+    end
+    
+    % loss to the economy (per country)
     %----------------------------------------------------------------------
-    subplot(3,1,3)
+    subplot(4,1,3), hold on
+    plot(1:M.T,y,'Color',DCM(r).color)
+    plot(1:M.T,e,'-.','Color',DCM(r).color)
+
+    xlabel('days'), ylabel('Trillion USD p.a.')
+    title('loss of GDP p.a. (per country)','FontSize',14)
+    spm_axis tight, box off
+    
+    % loss to the economy (globally)
+    %----------------------------------------------------------------------
+    subplot(4,1,4)
     plot(1:M.T,cumsum(Z),1:M.T,cumsum(E))
-    xlabel('days'), ylabel('Cumulative economic cost')
-    title('Total economic cost','FontSize',14)
+    xlabel('days'), ylabel('Trillion USD p.a.')
+    title('Cumulative loss (global)','FontSize',14)
     legend({'current','equable'})
+    spm_axis tight, box off
     
 end
+
+disp('total cost (trillion USD)'), disp(sum(Z));
+disp('savings with vaccination (billion USD)'), disp(1e3*(sum(Z) - sum(E)));
 
 return
 
