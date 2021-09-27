@@ -9,7 +9,7 @@ function D = DATA_WID_data
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DATA_WID_data.m 8153 2021-09-17 17:10:56Z spm $
+% $Id: DATA_WID_data.m 8157 2021-09-27 09:14:34Z karl $
 
 
 % web options
@@ -74,6 +74,8 @@ for k = 1:numel(State)
 
 end
 
+
+
 % triage data
 %--------------------------------------------------------------------------
 i      = zeros(1,numel(Data));
@@ -84,7 +86,9 @@ for r = 1:numel(Data)
     % ensure timeseries are present
     %----------------------------------------------------------------------
     for j = 1:numel(series)
-        if sum(isfinite(Data(r).(series{j}))) < 8
+        d = Data(r).(series{j});
+        k = datenum(Data(r).date) < datenum('2021-09-01','yyyy-mm-dd');
+        if sum(isfinite(d(k))) < 8
             i(r) = 1;
         end
     end
@@ -110,7 +114,18 @@ end
 
 return
 
-
+% Percentage of population currently analysed
+%--------------------------------------------------------------------------
+load DCM_OWID
+pop   = 0;
+for r = 1:numel(DCM)
+    try, pop = pop + DCM(r).D.population; end
+end
+i    = find(ismember({Data.country},'World'));
+N    = Data(i).population
+disp('Perecent popuation')
+disp(100 * pop/N)
+    
 
 %% order countries using their similarity in terms of new cases and deaths
 %==========================================================================
