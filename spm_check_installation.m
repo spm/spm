@@ -13,10 +13,10 @@ function varargout = spm_check_installation(action)
 % Build signature of SPM distribution as used by 'full' option.
 % (for developers)
 %__________________________________________________________________________
-% Copyright (C) 2009-2019 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2009-2021 Wellcome Centre for Human Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_check_installation.m 8122 2021-07-09 17:12:13Z guillaume $
+% $Id: spm_check_installation.m 8161 2021-10-01 10:30:03Z guillaume $
 
 if isdeployed, return; end
 
@@ -229,6 +229,12 @@ else
     fprintf('SPM is installed in: %s\n',fileparts(SPMdir{1}));
 end
 SPMdir = fileparts(SPMdir{1});
+
+if strcmp(fileparts(SPMdir),fullfile(matlabroot,'toolbox'))
+    fprintf(['SPM seems to be installed in the "toolbox" directory\n'...
+        'of the MATLAB software, which is not recommended.\n'...
+        'Please run "rehash toolboxcache" if you encounter issues.\n']);
+end
 
 %-Detect SPM version and revision number
 %--------------------------------------------------------------------------
