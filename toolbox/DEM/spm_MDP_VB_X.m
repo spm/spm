@@ -28,6 +28,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % MDP.u(F,T - 1)        - vector of actions     - for each hidden factor
 %
 % MDP.alpha             - precision - action selection [512]
+% MDP.lambda            - precision - action selection (likelihood) [512]
 % MDP.beta              - precision over precision (Gamma hyperprior - [1])
 % MDP.chi               - Occams window for deep updates
 % MDP.tau               - time constant for gradient descent [4]
@@ -133,7 +134,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_X.m 8089 2021-04-04 12:12:06Z karl $
+% $Id: spm_MDP_VB_X.m 8162 2021-10-02 14:30:02Z thomas $
 
 
 % deal with a sequence of trials
@@ -216,13 +217,14 @@ end
 
 % defaults
 %--------------------------------------------------------------------------
-try, alpha = MDP(1).alpha; catch, alpha = 512;  end % action precision
-try, beta  = MDP(1).beta;  catch, beta  = 1;    end % policy precision
-try, zeta  = MDP(1).zeta;  catch, zeta  = 3;    end % Occam window policies
-try, eta   = MDP(1).eta;   catch, eta   = 1;    end % learning rate
-try, tau   = MDP(1).tau;   catch, tau   = 4;    end % update time constant
-try, chi   = MDP(1).chi;   catch, chi   = 1/64; end % Occam window updates
-try, erp   = MDP(1).erp;   catch, erp   = 4;    end % update reset
+try, alpha  = MDP(1).alpha;  catch, alpha  = 512;  end % action precision
+try, beta   = MDP(1).beta;   catch, beta   = 1;    end % policy precision
+try, zeta   = MDP(1).zeta;   catch, zeta   = 3;    end % Occam window policies
+try, eta    = MDP(1).eta;    catch, eta    = 1;    end % learning rate
+try, tau    = MDP(1).tau;    catch, tau    = 4;    end % update time constant
+try, chi    = MDP(1).chi;    catch, chi    = 1/64; end % Occam window updates
+try, erp    = MDP(1).erp;    catch, erp    = 4;    end % update reset
+try, lambda = MDP(1).lambda; catch, lambda = 512;  end % action precision (sampled from likelihood)
 
 % preclude precision updates for moving policies
 %--------------------------------------------------------------------------
@@ -498,7 +500,7 @@ for t = 1:T
                             % maximises accuracy)
                             %----------------------------------------------
                             F             = spm_dot(spm_log(A{m,g}),xqq(m,:));
-                            po            = spm_softmax(F*512);
+                            po            = spm_softmax(F*lambda);
                             MDP(m).o(g,t) = find(rand < cumsum(po),1);
                             
                         else
