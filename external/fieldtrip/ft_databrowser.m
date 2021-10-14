@@ -49,6 +49,7 @@ function [cfg] = ft_databrowser(cfg, data)
 %   cfg.visible                 = string, 'on' or 'off' whether figure will be visible (default = 'on')
 %   cfg.position                = location and size of the figure, specified as a vector of the form [left bottom width height]
 %   cfg.renderer                = string, 'opengl', 'zbuffer', 'painters', see MATLAB Figure Properties. If this function crashes, you should try 'painters'.
+%   cfg.colormap                = string, or Nx3 matrix, see FT_COLORMAP
 %
 % The following options for the scaling of the EEG, EOG, ECG, EMG, MEG and NIRS channels
 % is optional and can be used to bring the absolute numbers of the different
@@ -205,6 +206,7 @@ cfg.chanscale           = ft_getopt(cfg, 'chanscale');
 cfg.mychanscale         = ft_getopt(cfg, 'mychanscale');
 cfg.mychan              = ft_getopt(cfg, 'mychan');
 cfg.layout              = ft_getopt(cfg, 'layout');
+cfg.colormap            = ft_getopt(cfg, 'colormap', 'default');
 cfg.plotlabels          = ft_getopt(cfg, 'plotlabels', 'some');
 cfg.event               = ft_getopt(cfg, 'event');                       % this only exists for backward compatibility and should not be documented
 cfg.continuous          = ft_getopt(cfg, 'continuous');                  % the default is set further down in the code, conditional on the input data
@@ -248,6 +250,11 @@ headeropt  = ft_setopt(headeropt, 'coordsys',       ft_getopt(cfg, 'coordsys', '
 headeropt  = ft_setopt(headeropt, 'coilaccuracy',   ft_getopt(cfg, 'coilaccuracy'));        % is passed to low-level function
 headeropt  = ft_setopt(headeropt, 'checkmaxfilter', ft_getopt(cfg, 'checkmaxfilter'));      % this allows to read non-maxfiltered neuromag data recorded with internal active shielding
 headeropt  = ft_setopt(headeropt, 'chantype',       ft_getopt(cfg, 'chantype', {}));        % 2017.10.10 AB required for NeuroOmega files
+
+% construct the low-level options as key-value pairs, these are passed to FT_READ_EVENT
+eventopt = {};
+eventopt  = ft_setopt(eventopt, 'eventformat',   ft_getopt(cfg, 'eventformat'));        % is passed to low-level function, empty implies autodetection
+eventopt  = ft_setopt(eventopt, 'readbids',      ft_getopt(cfg, 'readbids'));           % is passed to low-level function
 
 if isempty(ft_getopt(cfg, 'viewmode'))
   % can be 'butterfly', 'vertical', or 'component'
@@ -337,6 +344,10 @@ if hasdata
     % don't use the events in case the data has been resampled
     ft_warning('the data has been resampled, not showing the events');
     event = [];
+  elseif istimelock
+    % don't use the events in case the data has been averaged
+    ft_warning('the data has been averaged, not showing the events');
+    event = [];
   elseif ~isempty(cfg.event)
     % use the events that the user passed in the configuration
     event = cfg.event;
@@ -386,7 +397,7 @@ else
     event = cfg.event;
   else
     % read the events from file
-    event = ft_read_event(cfg.dataset);
+    event = ft_read_event(cfg.dataset, eventopt{:});
   end
   
   cfg.channel = ft_channelselection(cfg.channel, hdr.label);
@@ -589,11 +600,13 @@ elseif isempty(cfg.selfun) && isempty(cfg.selcfg)
   % topoplotER
   cfg.selcfg{3} = [];
   cfg.selcfg{3}.linecolor = linecolor;
-  cfg.selcfg{3}.layout = cfg.layout;
+  cfg.selcfg{3}.layout    = cfg.layout;
+  cfg.selcfg{3}.colormap  = cfg.colormap;
   cfg.selfun{3} = 'topoplotER';
   % topoplotVAR
   cfg.selcfg{4} = [];
-  cfg.selcfg{4}.layout = cfg.layout;
+  cfg.selcfg{4}.layout   = cfg.layout;
+  cfg.selcfg{4}.colormap = cfg.colormap;
   cfg.selfun{4} = 'topoplotVAR';
   % movieplotER
   cfg.selcfg{5} = [];
@@ -657,6 +670,18 @@ end
 
 % open a new figure with the specified settings
 h = open_figure(keepfields(cfg, {'figure', 'position', 'visible', 'renderer'}));
+
+% check if the colormap is in proper format and set it
+if ~isempty(cfg.colormap)
+  if ischar(cfg.colormap)
+    cfg.colormap = ft_colormap(cfg.colormap);
+  elseif iscell(cfg.colormap)
+    cfg.colormap = ft_colormap(cfg.colormap{:});
+  elseif isnumeric(cfg.colormap) && size(cfg.colormap,2)~=3
+    ft_error('cfg.colormap must be Nx3');
+  end
+  set(h, 'colormap', cfg.colormap);
+end
 
 % put appdata in figure
 setappdata(h, 'opt', opt);
@@ -1658,7 +1683,20 @@ if ~isempty(cfg.precision)
 end
 
 % apply preprocessing and determine the time axis
-[dat, lab, tim] = preproc(dat, opt.hdr.label(chanindx), offset2time(offset, opt.fsample, size(dat,2)), cfg.preproc);
+tim = offset2time(offset, opt.fsample, size(dat,2));
+finitevals = isfinite(sum(dat));
+if all(~finitevals)
+  lab = opt.hdr.label(chanindx);
+elseif any(~finitevals)
+  % loop across the chunks to avoid nan-related warnings from preproc and potential loss of data
+  begsmp = find( ~[0 finitevals] & [finitevals 0] );
+  endsmp = find( ~[finitevals 0] & [0 finitevals] ) - 1;
+  for k = 1:numel(begsmp)
+    [dat(:,begsmp(k):endsmp(k)), lab] = preproc(dat(:,begsmp(k):endsmp(k)), opt.hdr.label(chanindx), tim(begsmp(k):endsmp(k)), cfg.preproc);
+  end
+else
+  [dat, lab, tim] = preproc(dat, opt.hdr.label(chanindx), tim, cfg.preproc);
+end
 
 % add NaNs to data for plotting purposes. NaNs will be added when requested horizontal scaling is longer than the data.
 nsamplepad = opt.nanpaddata(opt.trlop);
@@ -1715,6 +1753,9 @@ end
 % determine the position of the channel/component labels relative to the real axes
 % FIXME needs a shift to the left for components
 labelx = opt.laytime.pos(:,1) - opt.laytime.width/2 - 0.01;
+if strcmp(cfg.viewmode, 'component')
+  labelx = labelx - opt.laytime.height - 0.025;
+end
 labely = opt.laytime.pos(:,2);
 
 % determine the total extent of all virtual axes relative to the real axes
@@ -1834,6 +1875,7 @@ if strcmp(cfg.plotevents, 'yes')
     eventtype     = event(i).type;
     eventvalue    = event(i).value;
     eventduration = event(i).duration;
+    eventoffset   = event(i).offset;
     
     % construct the text label that will be shown with the event
     switch cfg.ploteventlabels
@@ -1862,7 +1904,7 @@ if strcmp(cfg.plotevents, 'yes')
       eventcol = opt.eventcolors(strcmp(opt.eventtypes, eventtype),:);
     end
     
-    % compute the time of the event
+    % compute the time that the event starts
     eventtime(i) = (event(i).sample-begsample)/opt.fsample + opt.hlim(1);
     xpos = [eventtime(i) eventtime(i)+eventduration/opt.fsample];
     
@@ -1873,6 +1915,11 @@ if strcmp(cfg.plotevents, 'yes')
       % plot it as a box when it has a duration, pad it on either side with half a sample
       xpos = xpos + [-.5 +.5]./opt.fsample;
       lh = ft_plot_box([xpos -1 1], 'tag', 'event', 'hpos', opt.hpos, 'vpos', opt.vpos, 'width', opt.width, 'height', opt.height, 'hlim', opt.hlim, 'vlim', [-1 1], 'edgecolor', eventcol, 'facecolor', eventcol, 'facealpha', cfg.eventalpha);
+      if eventoffset<0 && eventoffset>-eventduration
+        % add a vertical line, but only if it falls inside the box
+        xpos = [eventtime(i) eventtime(i)] - eventoffset/opt.fsample;
+        ft_plot_line(xpos, [-1 1], 'tag', 'event', 'hpos', opt.hpos, 'vpos', opt.vpos, 'width', opt.width, 'height', opt.height, 'hlim', opt.hlim, 'vlim', [-1 1], 'color', eventcol);
+      end
     end
     
     % store this data in the line object so that it can be displayed with cb_datacursortext
@@ -2062,7 +2109,7 @@ if strcmp(cfg.viewmode, 'component')
   
   % determine the position of each of the topographies
   laytopo.pos(:,1)  = opt.laytime.pos(:,1) - opt.laytime.width/2 - opt.laytime.height;
-  laytopo.pos(:,2)  = opt.laytime.pos(:,2) + opt.laytime.height/2;
+  laytopo.pos(:,2)  = opt.laytime.pos(:,2); %- opt.laytime.height/2;
   laytopo.width     = opt.laytime.height;
   laytopo.height    = opt.laytime.height;
   laytopo.label     = opt.laytime.label;
@@ -2112,6 +2159,10 @@ if strcmp(cfg.viewmode, 'component')
       % plot the topography of this component
       laysel = match_str(opt.laytime.label, opt.hdr.label(chanindx(i)));
       chanz = opt.orgdata.topo(sel1,chanindx(i));
+      if all(chanz==0)
+        % this is most likely a channel that is not a component, and has been added later on
+        continue;
+      end
       
       if strcmp(cfg.compscale, 'local')
         % compute scaling factors for each individual component
@@ -2166,7 +2217,7 @@ if strcmp(cfg.viewmode, 'component')
   
   set(gca, 'yTick', [])
   
-  ax(1) = min(laytopo.pos(:,1) - laytopo.width);
+  ax(1) = min(laytopo.pos(:,1) - 3*laytopo.width);
   ax(2) = max(opt.laytime.pos(:,1) + opt.laytime.width/2);
   ax(3) = min(opt.laytime.pos(:,2) - opt.laytime.height/2);
   ax(4) = max(opt.laytime.pos(:,2) + opt.laytime.height/2);
