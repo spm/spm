@@ -1,4 +1,4 @@
-\chapter{DCM for EEG -- Demo \label{Chap:DCM_ERP}}
+\chapter{DCM for Evoked Responses\label{Chap:DCM_ERP}}
 
 This chapter demonstrates an example of Dynamic Causal Modelling for
 Evoked Responses, based on the analyses as detailed by Tyrer, \emph{et
@@ -51,29 +51,27 @@ to the log-model evidence, which one can use to compare alternative
 models of the same data and make statistical inferences about which
 model best represents the data, i.e. has the highest model evidence.
 
-\section{\texorpdfstring{\textbf{1.1 Data}}{1.1 Data}}\label{data}
+\section{Data}
 
 For this example we will use the pre-processed (band-pass filtered,
-epoched, artefact-corrected) EEG dataset saved in the files:
+epoched, artefact-corrected) EEG dataset\footnote{DCM for ERP dataset: \url{https://www.fil.ion.ucl.ac.uk/spm/data/dcm-erp/}} saved in the files:
 
-\begin{quote}
-mfaeffspmeeg\_examplecontrolsubject.mat\\
-mfaeffspmeeg\_examplecontrolsubject.dat
-\end{quote}
+\begin{verbatim}
+mfaeffspmeeg_examplecontrolsubject.mat
+mfaeffspmeeg_examplecontrolsubject.dat
+\end{verbatim}
 
 Three-dimensional source reconstruction and coregistration are also
 necessary for DCM for ERPs, so these steps should be performed in
 advance of DCM model specification.
 
-\section{\texorpdfstring{\textbf{1.2 Starting SPM for
-EEG}}{1.2 Starting SPM for EEG}}\label{starting-spm-for-eeg}
+\section{Starting SPM for EEG}
 
-First, ensure that the main SPM directory is in your MATLAB path. Start
-SPM 12 and select the M/EEG button, or type spm eeg in the command line.
+First, ensure that the main SPM directory is in your \matlab\ path. Start
+SPM 12 and select the M/EEG button, or type \texttt{spm eeg} in the command line.
 This opens the SPM graphical user interface (GUI).
 
-\section{\texorpdfstring{\textbf{1.3 Constructing Your
-DCM}}{1.3 Constructing Your DCM}}\label{constructing-your-dcm}
+\section{Constructing Your DCM}
 
 Once you have opened the SPM-GUI, you will see that the window is split
 into four main sections (from top to bottom): `\emph{Temporal
@@ -82,7 +80,7 @@ specification, review and estimation}', and `\emph{Inference}'. The
 button which opens the DCM GUI can be found on the right side of the
 `\emph{Spatio-temporal modelling}' section, which is second from the top
 in the SPM window. This opens a new graphics window, containing all the
-options required for you to specify your DCM (\textbf{Figure 1.1}).
+options required for you to specify your DCM (Figure~\ref{dcm-erp:fig:1}).
 
 The DCM GUI consists of five sections: section one allows you to load
 and save existing DCM files, and also select which type of model you
@@ -103,16 +101,18 @@ sections by clicking the forward (\textbf{\textgreater{}}) and backward
 (\textbf{\textless{}}) arrows respectively, and options within each
 section can be specified in any order.
 
-\includegraphics[width=6.26806in,height=4.76458in]{DCM_user_interface.png}
-
-Figure 1.1: DCM user interface, configured for model inversion of the
+\begin{figure}
+\begin{center}
+\includegraphics[width=6.26806in,height=4.76458in]{dcm_erp/figures/DCM_user_interface.png}
+\caption{\em DCM user interface, configured for model inversion of the
 six-source model with full B effect matrix for modulatory connections on
 all connections in the model. To specify and invert your model, you must
 specify each component in the correct order, from `\emph{Data and
-Design'}, to `\emph{Electromagnetic Model'}, to `\emph{Neuronal Model'}.
+Design'}, to `\emph{Electromagnetic Model'}, to `\emph{Neuronal Model'}.\label{dcm-erp:fig:1}}
+\end{center}
+\end{figure}
 
-\subsection{\texorpdfstring{\textbf{1.3.1 Load, Save and Model
-Selection}}{1.3.1 Load, Save and Model Selection}}\label{load-save-and-model-selection}
+\subsection{Load, Save and Model Selection}
 
 Starting with the first section in the DCM window, you can load a
 pre-existing DCM into the GUI by clicking `load', or save a DCM you are
@@ -146,8 +146,7 @@ data and select the data file mfaeffspmeeg\_examplecontrolsubject.mat.
 Data files will generally contain epoched data with multiple trials per
 condition. All data must be in SPM format to be used in DCM inversion.
 
-\subsection{\texorpdfstring{\textbf{1.3.2 Data and
-Design}}{1.3.2 Data and Design}}\label{data-and-design}
+\subsection{Data and Design}
 
 In the next section below, `Data and Design', you can define the
 peristimulus time window that the DCM will cover. In this example, by
@@ -162,17 +161,19 @@ data file you have selected. For the two conditions in this task, enter
 respectively. To see which index is assigned to which trial condition,
 type into the command line:
 
-\begin{quote}
-D = spm\_eeg\_load(`mfaeffspmeeg\_examplecontrolsubject.mat');\\
+\begin{verbatim}
+D = spm_eeg_load(`mfaeffspmeeg_examplecontrolsubject.mat');
 D.condlist
-\end{quote}
+\end{verbatim}
 
 This will display the list of condition labels and their associated
 indices. SPM should therefore display the following:
 
+\begin{verbatim}
 ans =
 
 `novel' `repeated'
+\end{verbatim}
 
 indicating that index 1 corresponds to the presentation of novel images
 and index 2 corresponds to the presentation of repeated images. The
@@ -201,7 +202,7 @@ and for this example you can leave the number of modes as 8.
 By clicking the 'Display' button on the top right, you can visualise the
 different observed responses for the novel condition (top row) and for
 the repeated condition (bottom row) in a separate graphics window
-(\textbf{Figure 1.2}). This displays the evoked responses for the two
+(Figure~\ref{dcm-erp:fig:2}). This displays the evoked responses for the two
 conditions you specified: each line in the left-hand plots represents
 the activity of a single channel. Visualising the data in this way is
 useful for determining your choice of time window and your selected
@@ -211,14 +212,16 @@ move onto the next section in the GUI, click on the forward arrow
 (\textgreater{}) on the right and this allows you to specify the
 electromagnetic model.
 
-\includegraphics[width=4.54639in,height=6.02062in]{evoked_responses.png}
-
-Figure 1.2: Evoked responses for the novel (top) and repeated (bottom)
+\begin{figure}
+\begin{center}
+\includegraphics[width=4.54639in,height=6.02062in]{dcm_erp/figures/evoked_responses.png}
+\caption{\em Evoked responses for the novel (top) and repeated (bottom)
 conditions, following specification of the `\emph{Data and Design}'
-section.
+section.\label{dcm-erp:fig:2}}
+\end{center}
+\end{figure}
 
-\subsection{\texorpdfstring{\textbf{1.3.3 Electromagnetic
-Model}}{1.3.3 Electromagnetic Model}}\label{electromagnetic-model}
+\subsection{Electromagnetic Model}
 
 In this section, you can specify the spatial model of the evoked
 responses. With DCM for ERPs, there are four different options for how
@@ -236,23 +239,25 @@ coordinates in the large box on the right.
 
 In the left large text box, enter:
 
-L. OCG\\
-R. OCP\\
-L. ITG\\
-R. ITG\\
-L. IFG\\
+\begin{verbatim}
+L. OCG
+R. OCP
+L. ITG
+R. ITG
+L. IFG
 R. IFG
+\end{verbatim}
 
-\begin{quote}
 In the right large text box, enter:
-\end{quote}
 
--30 -96 -4\\
-28 -96 -8\\
--46 -6 -34\\
-46 -4 -30\\
--46 40 2\\
+\begin{verbatim}
+-30 -96 -4
+28 -96 -8
+-46 -6 -34
+46 -4 -30
+-46 40 2
 42 38 0
+\end{verbatim}
 
 These sources correspond to the left Occipital Gyrus, right Occipital
 Pole, left Inferior Temporal Gyrus, right Inferior Temporal Gyrus, left
@@ -296,8 +301,7 @@ In the main DCM GUI, click the forward (\textgreater{}) arrow once again
 to move onto the next section, in which you can define the neuronal
 model.
 
-\section{\texorpdfstring{\textbf{1.4 Neuronal
-Model}}{1.4 Neuronal Model}}\label{neuronal-model}
+\section{Neuronal Model}
 
 In this section, there are five matrices which enable you to define the
 connectivity within your model. The first four matrices (on the top row)
@@ -347,20 +351,28 @@ Here, we do not specify any lateral connections for this dataset. In the
 input vector, add subcortical input for L. OCG and R. OCP. In the B
 effect matrix, specify modulatory connections on the same forward and
 backward connections defined above, with the addition of
-self-connections on all sources. See \textbf{Figures 1.3 and 1.4} for
-the connectivity map and buttons selected in the GUI for this model.
+self-connections on all sources. See Figures~\ref{dcm-erp:fig:3} and
+\ref{dcm-erp:fig:4} for the connectivity map and buttons selected in
+the GUI for this model.
 
-\includegraphics[width=1.94167in,height=2.39288in]{A_C_matrices.png}
+\begin{figure}
+\begin{center}
+\includegraphics[width=1.94167in,height=2.39288in]{dcm_erp/figures/A_C_matrices.png}
+\caption{\em Forward, backward connections and subcortical input, defined
+in the A and C matrices in the neuronal model.\label{dcm-erp:fig:3}}
+\end{center}
+\end{figure}
 
-Figure 1.3: Forward, backward connections and subcortical input, defined
-in the A and C matrices in the neuronal model.
 
-\includegraphics[width=4.73175in,height=3.15694in]{B_matrix.png}
-
-Figure 1.4: Left: Model 1 with full B effect matrix, with modulatory
+\begin{figure}
+\begin{center}
+\includegraphics[width=4.73175in,height=3.15694in]{dcm_erp/figures/B_matrix.png}
+\caption{\em Left: Model 1 with full B effect matrix, with modulatory
 connections on both forward and backward connections, plus
 self-connections. Right: Model 2 with reduced B effect matrix, with
-modulatory connections only on forward connections.
+modulatory connections only on forward connections.\label{dcm-erp:fig:4}}
+\end{center}
+\end{figure}
 
 At the bottom of this section there are some additional options for the
 model. The first option is 'dipolar symmetry constraints'; these can be
@@ -374,8 +386,7 @@ variance priors on your specified source locations. The third option,
 coupling gains to be the same, and the final option, 'trial-specific
 inputs', imposes trial-specific C parameter estimation.
 
-\section{\texorpdfstring{\textbf{1.5 Estimation and
-Results}}{1.5 Estimation and Results}}\label{estimation-and-results}
+\section{Estimation and Results}
 
 Once you have completed the specification of your model, click `Invert'.
 Starting the DCM model inversion opens a second graphics window. At the
@@ -397,7 +408,7 @@ left the conditional model parameters of the hidden states are shown,
 and on the right the conditional model parameters of the forward model
 (or observation model) are plotted.
 
-During estimation, the main MATLAB command window shows the number of
+During estimation, the main \matlab\ command window shows the number of
 expectation-maximisation iterations that the model runs through
 throughout the inversion. It also displays the predicted change and
 actual change of free energy (\emph{F}) following each iteration step.
@@ -407,8 +418,7 @@ the original EEG data file specified for the model. At the bottom left
 of the DCM window there is a drop-down menu, which contains different
 options through which to view your results.
 
-\subsection{\texorpdfstring{\textbf{1.5.1 ERP
-(modes)}}{1.5.1 ERP (modes)}}\label{erp-modes}
+\subsection{ERP (modes)}
 
 By selecting 'ERP modes', you can see the eight different modes, i.e.
 the essential principal components that are represented in the data. In
@@ -419,8 +429,7 @@ been captured within the first six or seven modes, so as an exercise,
 one could define and invert a similar model for the same data using
 fewer modes.
 
-\subsection{\texorpdfstring{\textbf{1.5.2 ERP
-(sources)}}{1.5.2 ERP (sources)}}\label{erp-sources}
+\subsection{ERP (sources)}
 
 There is also the option to look at ERPs in source space. By selecting
 this option, the graphics window shows one plot for each of the six
@@ -431,8 +440,7 @@ stellates, population two being inhibitory interneurons, and population
 three are excitatory pyramidal cells. As above, different coloured lines
 are used to indicate the different task conditions.
 
-\subsection{\texorpdfstring{\textbf{1.5.3 Coupling
-(A)}}{1.5.3 Coupling (A)}}\label{coupling-a}
+\subsection{Coupling (A)}
 
 To look at the estimated values for the coupling between sources, click
 `Coupling (A)'. This shows the conditional means of the estimates of the
@@ -441,36 +449,31 @@ we defined the forward, backward and lateral connections within the
 model. This also shows the posterior probabilities, i.e. how likely
 these estimates are given the observed data.
 
-\subsection{\texorpdfstring{\textbf{1.5.4 Coupling
-(B)}}{1.5.4 Coupling (B)}}\label{coupling-b}
+\subsection{Coupling (B)}
 
 Similar to the above, by clicking `Coupling (B)' you can observe the
 estimated values and posterior probabilities for between-source coupling
 with the effect of task modulation, as defined earlier when setting up
 the B effect matrix(es) for the model.
 
-\subsection{\texorpdfstring{\textbf{1.5.5 Coupling
-(C)}}{1.5.5 Coupling (C)}}\label{coupling-c}
+\subsection{Coupling (C)}
 
 Similar to `Coupling (A)' and `Coupling (B)', but in this case you can
 view the estimated values and posterior probabilities for inputs into
 the sources specified in the input vector to receive subcortical input.
 
-\subsection{\texorpdfstring{\textbf{1.5.6 Trial-specific
-Effects}}{1.5.6 Trial-specific Effects}}\label{trial-specific-effects}
+\subsection{Trial-specific Effects}
 
 This option displays bar plots representing the estimated connection
 strengths (\%) and direction of modulating effects for each connection
 specified in the neuronal model, for each trial condition.
 
-\subsection{\texorpdfstring{\textbf{1.5.7
-Input}}{1.5.7 Input}}\label{input}
+\subsection{Input}
 
 By clicking `Input', you can see the estimated input function: this is a
 gamma function with the addition of low-frequency terms.
 
-\subsection{\texorpdfstring{\textbf{1.5.8 Response, and Response
-(image)}}{1.5.8 Response, and Response (image)}}\label{response-and-response-image}
+\subsection{Response, and Response (image)}
 
 The `Response' option plots the data selected by the spatial modes
 defined in the model, back-projected into sensor space. Here you can
@@ -480,16 +483,14 @@ the task conditions.
 In the Response (image) option, you can see the same as with `Response',
 but represented as a grey-scale image.
 
-\subsection{\texorpdfstring{\textbf{1.5.9 Scalp
-Maps}}{1.5.9 Scalp Maps}}\label{scalp-maps}
+\subsection{Scalp Maps}
 
 This displays the EEG scalp maps at different intervals across the time
 window as specified in the `\emph{Data and Design}' part of the model
 specification. Scalp maps are displayed for each task condition, for
 both observed data and model predictions.
 
-\subsection{\texorpdfstring{\textbf{1.5.10
-Dipoles}}{1.5.10 Dipoles}}\label{dipoles}
+\subsection{Dipoles}
 
 By clicking `Dipoles', you can view the locations of each source
 specified in the `\emph{Electromagnetic Model}' section of model
@@ -497,8 +498,7 @@ specification. This option is only useful if you have selected ECD for
 the spatial model, therefore this option is not available for this
 example using IMG.
 
-\section{\texorpdfstring{\textbf{1.6 Bayesian Model
-Comparison}}{1.6 Bayesian Model Comparison}}\label{bayesian-model-comparison}
+\section{Bayesian Model Comparison}
 
 Now that you have successfully inverted your DCM, you can compare this
 with an alternative model of the same data. You must ensure that the
@@ -507,8 +507,8 @@ click the `Save' button to rename the DCM file to make sure you don't
 overwrite the file with the alternative model. To create an alternative
 model for this example, return to the `\emph{Neuronal Model'} section in
 the DCM window and edit the B effect matrix so that modulatory
-connections are only present on the forward connections (\textbf{Figure
-1.4}). To invert the new model, click `Estimated', ensuring that you do
+connections are only present on the forward connections (\ref{dcm-erp:fig:4}).
+To invert the new model, click `Estimated', ensuring that you do
 not use the previous posterior or prior estimates. Once the alternative
 model has been inverted, you can conduct Bayesian Model Comparison.
 
@@ -531,7 +531,7 @@ analysing and select the DCMs for that subject.
 Select `Inference Method' and click Fixed Effects (FFX), as in this
 example there are data and models for only one subject. Finally, click
 the green `Run' arrow at the top to run the model comparison. The
-graphics window now displays two bar plots (\textbf{Figure 1.5}). The
+graphics window now displays two bar plots (\ref{dcm-erp:fig:5}). The
 top plot shows the log-model evidence of the two models you have
 compared. The bottom plot shows the posterior probability for each
 model, given the data. A model is generally judged to be the best model
@@ -539,15 +539,18 @@ for a given dataset compared with other models if its log-model evidence
 is greater than the log-model evidences of competing models by at least
 3.
 
-\includegraphics[width=3.36083in,height=6.93814in]{BMC.png}
-
-Figure 1.5: Bayesian Model Comparison of the two models: the full B
+\begin{figure}
+\begin{center}
+\includegraphics[width=3.36083in,height=6.93814in]{dcm_erp/figures/BMC.png}
+\caption{\em Bayesian Model Comparison of the two models: the full B
 matrix model (model 1) and the partial B matrix model (model 2). The
 log-model evidence of model 2 is significantly higher than that of model
 1 (log-model evidence is higher by more than 3), therefore model 2 is
-the best model for this dataset.
+the best model for this dataset.\label{dcm-erp:fig:5}}
+\end{center}
+\end{figure}
 
-\section{\texorpdfstring{\textbf{References}}{References}}\label{references}
+\section{References}
 
 Moran RJ, Stephan KE, Dolan RJ, Friston KJ. Consistent spectral
 predictors for dynamic causal models of steady-state responses.
