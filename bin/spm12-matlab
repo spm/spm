@@ -1,12 +1,12 @@
-#!/bin/sh
+#!/usr/bin/env bash
 #
 # Command Line Interface for SPM
-# SPM: http://www.fil.ion.ucl.ac.uk/spm/
+# SPM: https://www.fil.ion.ucl.ac.uk/spm/
 #
-# Copyright (C) 2017 Wellcome Trust Centre for Neuroimaging
+# Copyright (C) 2017-2021 Wellcome Centre for Human Neuroimaging
 #
 # Guillaume Flandin
-# $Id: spm12-matlab 7014 2017-02-13 12:31:33Z guillaume $ 
+# $Id: spm12-matlab 8167 2021-10-15 16:56:11Z guillaume $ 
 
 PLATFORM=$(uname)
 
