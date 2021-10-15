@@ -1,10 +1,10 @@
 function spm_make_manual(c)
 % Convert a job configuration tree into a series of LaTeX documents
 %__________________________________________________________________________
-% Copyright (C) 2005-2017 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2021 Wellcome Centre for Human Neuroimaging
 
 % John Ashburner
-% $Id: spm_make_manual.m 7964 2020-09-28 09:27:08Z john $
+% $Id: spm_make_manual.m 8166 2021-10-15 16:45:08Z guillaume $
 
 
 if ~nargin, c = spm_cfg; end
@@ -100,6 +100,7 @@ write_help(c,fp);
 
 switch class(c)
     case {'cfg_branch','cfg_exbranch'}
+        if isa(c.val,'function_handle'), c.val = feval(c.val); end
         for i=1:numel(c.val)
             section(c.val{i},fp);
         end
@@ -122,6 +123,7 @@ if lev<=length(sec)
     write_help(c,fp);
     switch class(c)
         case {'cfg_branch','cfg_exbranch'}
+            if isa(c.val,'function_handle'), c.val = feval(c.val); end
             for i=1:numel(c.val)
                 if strcmp(c.name,'Inverse') && strcmp(c.val{i}.name,'Composition')
                     % Remove recursion in Util > Deformations
