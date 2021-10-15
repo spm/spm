@@ -5,7 +5,7 @@ function res = spm_mb_output(cfg)
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_output.m 8065 2021-02-15 12:42:04Z john $
+% $Id: spm_mb_output.m 8164 2021-10-15 16:05:27Z john $
 
 res  = cfg.result;
 if iscell(res), res = res{1}; end
@@ -95,8 +95,8 @@ zn = single(P)/255;
 function resn = ProcessSubject(datn,resn,mu,sett,opt)
 
 % Parse function settings
-dmu         = sett.mu.d;
-Mmu         = sett.mu.Mmu;
+dmu         = sett.ms.d;
+Mmu         = sett.ms.Mmu;
 if isempty(opt.odir)
     dir_res = sett.odir;
 else
