@@ -8,9 +8,9 @@ function out = spm_run_fmri_spec(job)
 % Output:
 % out    - computation results, usually a struct variable.
 %__________________________________________________________________________
-% Copyright (C) 2005-2019 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2021 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_fmri_spec.m 7739 2019-12-02 14:00:18Z guillaume $
+% $Id: spm_run_fmri_spec.m 8169 2021-10-19 12:56:56Z guillaume $
 
 
 %-Check presence of previous analysis
@@ -169,7 +169,7 @@ for i = 1:numel(job.sess)
                 error('MultiCond file: sess %d cond %d has no onset.',i,j);
             end
             cond.duration = multicond.durations{j};
-            if isempty(cond.onset)
+            if isempty(cond.duration)
                 error('MultiCond file: sess %d cond %d has no duration.',i,j);
             end
             
