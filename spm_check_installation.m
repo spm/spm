@@ -16,7 +16,7 @@ function varargout = spm_check_installation(action)
 % Copyright (C) 2009-2021 Wellcome Centre for Human Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_check_installation.m 8161 2021-10-01 10:30:03Z guillaume $
+% $Id: spm_check_installation.m 8170 2021-10-21 10:25:01Z guillaume $
 
 if isdeployed, return; end
 
@@ -230,9 +230,9 @@ else
 end
 SPMdir = fileparts(SPMdir{1});
 
-if strcmp(fileparts(SPMdir),fullfile(matlabroot,'toolbox'))
-    fprintf(['SPM seems to be installed in the "toolbox" directory\n'...
-        'of the MATLAB software, which is not recommended.\n'...
+if ~isempty(strmatch(matlabroot,fileparts(SPMdir)))
+    fprintf(['SPM seems to be installed in the MATLAB directory.\n'...
+        'This is not recommended.\n'...
         'Please run "rehash toolboxcache" if you encounter issues.\n']);
 end
 
