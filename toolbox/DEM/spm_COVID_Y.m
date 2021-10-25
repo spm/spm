@@ -6,7 +6,7 @@ function [Y,S,dates] = spm_COVID_Y(Y,date0,days)
 % days  - number of days over which to average (smooth)
 %
 % Y     - structure array (time ordered, withough NaNs and smoothed)
-% S     - data matrix
+% S     - corresponding data matrix
 % dates - date numbers from 'dd-mm-yyyy' to last data point
 %
 %    Y(i).type = datatype (string)
@@ -20,7 +20,7 @@ function [Y,S,dates] = spm_COVID_Y(Y,date0,days)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_Y.m 8154 2021-09-24 11:25:10Z karl $
+% $Id: spm_COVID_Y.m 8173 2021-10-25 10:31:35Z karl $
 
 
 % set up
@@ -122,7 +122,7 @@ end
 %--------------------------------------------------------------------------
 dates  = date0:max(spm_vec(Y.date));
 
-% data matrix (smooth): NaN indicates missing data
+% data matrix: NaN indicates missing data
 %--------------------------------------------------------------------------
 S  = NaN(numel(dates),numel(Y));
 for i = 1:numel(Y)

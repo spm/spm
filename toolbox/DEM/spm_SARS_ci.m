@@ -1,6 +1,6 @@
-function [S,CS,Y,C] = spm_SARS_ci(Ep,Cp,Z,U,M,NPI,age)
+function [S,CS,Y,C,t] = spm_SARS_ci(Ep,Cp,Z,U,M,NPI,age)
 % Graphics for coronavirus simulations - with confidence intervals
-% FORMAT [S,CS,Y,C] = spm_SARS_ci(Ep,Cp,Z,U,M,NPI,age)
+% FORMAT [S,CS,Y,C,t] = spm_SARS_ci(Ep,Cp,Z,U,M,NPI,age)
 % Ep     - posterior expectations
 % Cp     - posterior covariances
 % Z      - optional empirical data
@@ -13,6 +13,7 @@ function [S,CS,Y,C] = spm_SARS_ci(Ep,Cp,Z,U,M,NPI,age)
 % CS     - posterior covariances of cumulative outcomes
 % Y      - posterior expectation of outcomes
 % C      - posterior covariances of outcomes
+% t      - dates (days)
 %
 % This routine evaluates a trajectory of outcome variables from a SARS
 % model and plots the expected trajectory and accompanying Bayesian
@@ -33,7 +34,7 @@ function [S,CS,Y,C] = spm_SARS_ci(Ep,Cp,Z,U,M,NPI,age)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_ci.m 8118 2021-07-03 10:45:45Z karl $
+% $Id: spm_SARS_ci.m 8173 2021-10-25 10:31:35Z karl $
 
 % default: number of outcomes to evaluate
 %--------------------------------------------------------------------------

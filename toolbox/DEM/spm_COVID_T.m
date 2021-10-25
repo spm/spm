@@ -22,7 +22,7 @@ function [T,R] = spm_COVID_T(P,I)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_T.m 8152 2021-09-13 09:17:36Z karl $
+% $Id: spm_COVID_T.m 8173 2021-10-25 10:31:35Z karl $
 
 % setup
 %==========================================================================
@@ -59,7 +59,6 @@ Piso = exp(-1/P.iso);                % period of self-isolation
 
 Ph2h = (1 - Pdis)*(1 - Pout);
 Ph2w = (1 - Pdis)*Pout;
-Ph2r = Pdis;
 
 % marginal: location {1} | asymptomatic {3}(1)
 %--------------------------------------------------------------------------
@@ -68,7 +67,7 @@ Ph2r = Pdis;
 b{1} = [Ph2h       1          0          Pexp      (1 - Piso) 1;
         Ph2w       0          0          0          0         0;
         0          0          0          0          0         0;
-        Ph2r       0          0         (1 - Pexp)  0         0;
+        Pdis       0          0         (1 - Pexp)  0         0;
         0          0          1          0          Piso      0;
         0          0          0          0          0         0];
 
@@ -420,6 +419,10 @@ for i = 1:4
     T = T*B{i};
 end
 
+% if min(spm_vec(T)) < 0; keyboard, end
+% if max(spm_vec(T)) < 0; keyboard, end
+
+
 % time-dependent parameters
 %--------------------------------------------------------------------------
 R.Pout = Pout;
@@ -429,6 +432,7 @@ R.Pfat = Pfat;
 R.Psen = Psen;
 R.Ptes = Ptes;
 R.Rvac = Rvac;
+R.Tin  = P.Tin;
 
 return
 
@@ -448,6 +452,4 @@ z  = zeros(dim); z(i{1},i{2},i{3},i{4}) = 1; i = find(z);
 ij = i + (j-1)*prod(dim);
 
 return
-
-         
 

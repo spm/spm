@@ -12,16 +12,16 @@ function [y,x,z,W] = spm_SARS_gen(P,M,U,NPI,age)
 % age  - indices of age band (0 for average)
 %
 % Y(:,1)  - Daily deaths (28 days)
-% Y(:,2)  - Daily confirmed cases (PCR and LFD)
+% Y(:,2)  - Daily confirmed cases
 % Y(:,3)  - Mechanical ventilation
 % Y(:,4)  - Reproduction ratio (R)
-% Y(:,5)  - Seropositive immunity (%)
+% Y(:,5)  - Seroprevalence {%}
 % Y(:,6)  - PCR testing rate
-% Y(:,7)  - Contagion risk (%)
-% Y(:,8)  - Prevalence: infectious {%}
+% Y(:,7)  - Risk of infection (%)
+% Y(:,8)  - Prevalence (true) {%}
 % Y(:,9)  - Daily contacts
 % Y(:,10) - Daily incidence (%)
-% Y(:,11) - Prevalence: infection (%)
+% Y(:,11) - Prevalence (positivity){%}
 % Y(:,12) - Number symptomatic
 % Y(:,13) - Mobility (%)
 % Y(:,14) - Workplace (%)
@@ -32,15 +32,17 @@ function [y,x,z,W] = spm_SARS_gen(P,M,U,NPI,age)
 % Y(:,19) - Daily incidence (per hundred thousand)
 % Y(:,20) - Weekly confirmed cases (per hundred thousand)
 % Y(:,21) - Infection fatality ratio (%)
-% Y(:,22) - Percent vaccinated (%)
+% Y(:,22) - Cumulative first dose
 % Y(:,23) - PCR case positivity (%)
 % Y(:,24) - Lateral flow tests
 % Y(:,25) - Cumulative attack rate
 % Y(:,26) - Population immunity (total)
-% Y(:,27) - Hospital occupancy
-% Y(:,28) - Incidence of long COVID
-% Y(:,29) - population immunity (vaccine)
-% Y(:,30) - cumulative admissions
+% Y(:,27) - Hospital cases
+% Y(:,28) - Incidence of Long Covid
+% Y(:,29) - Proportion vaccinated
+% Y(:,30) - Cumulative admissions
+% Y(:,31) - Vaccine effectiveness (prevalence)
+% Y(:,32) - Gross domestic product
 %
 % X       - (M.T x 4) marginal densities over four factors
 % location   : {'home','out','ccu','removed','isolated','hospital'};
@@ -78,7 +80,7 @@ function [y,x,z,W] = spm_SARS_gen(P,M,U,NPI,age)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_gen.m 8156 2021-09-27 09:05:29Z karl $
+% $Id: spm_SARS_gen.m 8173 2021-10-25 10:31:35Z karl $
 
 
 % The generative model:
@@ -191,6 +193,13 @@ param = fieldnames(P);
 nN    = numel(P.N);
 N     = zeros(nN,1);
 
+% impose symmetry constraints on contact matrices
+%--------------------------------------------------------------------------
+P.Nin = (P.Nin + P.Nin')/2;
+P.Nou = (P.Nou + P.Nou')/2;
+
+% Create group specific cell arrays of parameters
+%--------------------------------------------------------------------------
 Q     = cell(nN,1);
 R     = cell(nN,1);
 x     = cell(nN,1);
@@ -222,7 +231,7 @@ for n = 1:nN
     w    = Q{n}.o*1/4;            % proportion at work
     m    = 1 - Q{n}.o;            % proportion of unexposed cases
     s    = 1 - c - r;             % proportion of susceptible cases
-
+    
     p{n}{1} = [h w 0 m 0 0]';     % location
     p{n}{2} = [s c 0 0 r 0 0 0]'; % infection
     p{n}{3} = [1 0 0 0]';         % clinical
@@ -268,7 +277,7 @@ for n = 1:nN
     end
 end
 
-    
+
 % outputs that depend upon population size
 %--------------------------------------------------------------------------
 uN    = [1,2,3,6,9,12,15,16,17,18,24,27,28,30];
@@ -280,13 +289,16 @@ X     = cell(nN,1);                    % time series of marginal densities
 Z     = cell(nN,1);                    % joint densities at each time point
 W     = cell(nN,1);                    % time-dependent parameters
 r     = cell(nN,1);                    % probability of lockdown levels
-pvac  = zeros(n,1);
 for n = 1:nN
     r{n} = [1;0];
 end
 for i = 1:M.T
+    
+    
+    % group-specific updates
+    %----------------------------------------------------------------------
     for n = 1:nN
-        
+
         % time-dependent parameters
         %==================================================================
         
@@ -329,7 +341,7 @@ for i = 1:M.T
             end
         end
         
-
+        
         % coupling between groups (contact rates)
         %==================================================================
         
@@ -344,8 +356,17 @@ for i = 1:M.T
         
         % probability of lockdown (a function of prevalence)
         %------------------------------------------------------------------
-        q    = p{n}{2}(3)*Q{n}.sde;               % prevalence dependent
-        k1   = p{n}{2}(1)*q;                      % contact rates
+        qp   = 0;
+        qs   = 0;
+        for j = 1:nN
+            qp   = qp + (p{j}{2}(3) + p{j}{2}(8))*N(j);
+            qs   = qs +  p{j}{2}(1)*N(j);
+            
+        end
+        qp   = qp/sum(N);                         % prevalence
+        qs   = qs/sum(N);                         % susceptible
+        
+        k1   = Q{n}.sde*qp*(qs^Q{n}.pro);         % contact rates
         k2   = exp(-1/Q{n}.qua);                  % relaxation
         r{n} = [(1 - k1) (1 - k2);
                      k1,      k2]*r{n};
@@ -353,12 +374,12 @@ for i = 1:M.T
         Pout     = r{n}(1)^Q{n}.s;                % P(going out)
         Pout     = Pout*exp(Rout);                % add fluctuations
         Q{n}.out = Pout*R{n}.out;                 % scale by baseline
-       
+        
         % seasonal variation in transmission risk
         %------------------------------------------------------------------
         S    = (1 + cos(2*pi*(i - log(Q{n}.inn)*8)/365))/2;
         
-        % and fluctuations in transmissibility: cumulative error functions 
+        % and fluctuations in transmissibility: cumulative error functions
         %------------------------------------------------------------------
         Ptra = 1;
         if isfield(Q{n},'tra')
@@ -368,6 +389,10 @@ for i = 1:M.T
         end
         Ptrn = Q{n}.trn + Q{n}.trm*S;            % seasonal risk
         Ptrn = erf(Ptrn*Ptra);                   % fluctuating risk
+        
+        % link between transmissibility and period of infection
+        %------------------------------------------------------------------
+        % Q{n}.Tin = R{n}.Tin/(1 + R{n}.pro*Ptrn);
         
         % contact rates
         %------------------------------------------------------------------
@@ -383,7 +408,7 @@ for i = 1:M.T
             pin = pin(3) + pin(8);               % P(infectious | home)
             pou = pou(3) + pou(8);               % P(infectious | work)
             phs = phs(3) + phs(8);               % P(infectious | hospital)
-
+            
             tin = tin*(1 - Ptrn*pin)^Q{n}.Nin(j);
             tou = tou*(1 - Ptrn*pou)^Q{n}.Nou(j);
             ths = ths*(1 - Ptrn*phs)^Q{n}.Nin(j);
@@ -396,8 +421,9 @@ for i = 1:M.T
         % vaccination rollout: nac = 1 - vaccination rate
         %------------------------------------------------------------------
         Rvac     = Q{n}.rol(1)*(1 + erf((i - Q{n}.rol(2))/Q{n}.rol(3))) + ...
-                   Q{n}.fol(1)*(1 + erf((i - Q{n}.fol(2))/Q{n}.fol(3)));
-        Q{n}.nac = 1 - Rvac;     
+            Q{n}.fol(1)*(1 + erf((i - Q{n}.fol(2))/Q{n}.fol(3)));
+        
+        Q{n}.nac = 1 - Rvac;
         
         % exponential decay and time-dependent clinical susceptibility
         %------------------------------------------------------------------
@@ -439,7 +465,7 @@ for i = 1:M.T
         %------------------------------------------------------------------
         q         = erf(Q{n}.rel);
         Y{n}(i,1) = N(n) * p{n}{3}(4)*(q + (1 - q)*pcr28);
- 
+        
         % number of daily (positive) tests (PCR and LFD)
         %------------------------------------------------------------------
         Y{n}(i,2) = N(n) * (p{n}{4}(3) + p{n}{4}(5));
@@ -448,13 +474,13 @@ for i = 1:M.T
         %------------------------------------------------------------------
         Y{n}(i,3) = N(n) * p{n}{1}(3);
         
-        % effective reproduction ratio (R) (based on infection prevalence)
+        % effective reproduction ratio (R) (based on prevalence)
         %------------------------------------------------------------------
-        Y{n}(i,4) = p{n}{2}(3) + p{n}{2}(8);
+        Y{n}(i,4) = sum(p{n}{2}([2,3,7,8]));
         
         % seropositive immunity (%) Ab+ and Vaccine+
         %------------------------------------------------------------------
-        Y{n}(i,5) = 100 * sum(p{n}{2}([4 6 7 8]));
+        Y{n}(i,5) = 100 * sum(p{n}{2}([4,6,7,8]));
         
         % total number of daily virus tests (PCR and LFD)
         %------------------------------------------------------------------
@@ -462,11 +488,11 @@ for i = 1:M.T
         
         % probability of contracting virus (in a class of 15)
         %------------------------------------------------------------------
-        Y{n}(i,7) = (1 - (1 - Q{n}.trn*p{n}{2}(3))^15) * 100;
+        Y{n}(i,7) = (1 - (1 - Q{n}.trn*sum(p{n}{2}([3,8])))^15) * 100;
         
-        % prevalence of (contagious) infection (%)
+        % prevalence of infection (%)
         %------------------------------------------------------------------
-        Y{n}(i,8) = 100 * (p{n}{2}(3) + p{n}{2}(8));
+        Y{n}(i,8) = 100 * sum(p{n}{2}([2,3,7,8]));
         
         % number of people at home, asymptomatic, untested but infected
         %------------------------------------------------------------------
@@ -474,21 +500,21 @@ for i = 1:M.T
         
         % positivity based on prevalence of infection (%)
         %------------------------------------------------------------------
-        q          = p{n}{2}(1)*Q{n}.fpr(1) + ...
-                     p{n}{2}(2)*(1 - Q{n}.fnr(1)) + ...
-                     p{n}{2}(3)*(1 - Q{n}.fnr(2)) + ...
-                     p{n}{2}(4)*Q{n}.fpr(2) + ...
-                     p{n}{2}(5)*Q{n}.fpr(1) + ...
-                     p{n}{2}(6)*Q{n}.fpr(1) + ...
-                     p{n}{2}(7)*(1 - Q{n}.fnr(1)) + ...
-                     p{n}{2}(8)*(1 - Q{n}.fnr(2));
-                 
+        q = p{n}{2}(1)*Q{n}.fpr(1) + ...
+            p{n}{2}(2)*(1 - Q{n}.fnr(1)) + ...
+            p{n}{2}(3)*(1 - Q{n}.fnr(2)) + ...
+            p{n}{2}(4)*Q{n}.fpr(2) + ...
+            p{n}{2}(5)*Q{n}.fpr(1) + ...
+            p{n}{2}(6)*Q{n}.fpr(1) + ...
+            p{n}{2}(7)*(1 - Q{n}.fnr(1)) + ...
+            p{n}{2}(8)*(1 - Q{n}.fnr(2));
+        
         Y{n}(i,11) = 100 * q;
         
         % number of symptomatic people
         %------------------------------------------------------------------
         Y{n}(i,12) = N(n) * p{n}{3}(2);
-
+        
         % mobility (% normal)
         %------------------------------------------------------------------
         q = Q{n}.out/W{n}(1).Pout;
@@ -507,9 +533,9 @@ for i = 1:M.T
         
         % gross domestic product (% 2018)
         %------------------------------------------------------------------
-        q = q^Q{n}.mo;
+        q = Q{n}.out/W{n}(1).Pout;
         if isfield(Q{n},'gd')
-            q = q^Q{n}.gd;
+           q = 1 + Q{n}.gd(1)*(exp(-Q{n}.gd(2)) - exp(-Q{n}.gd(2)*q));
         end
         Y{n}(i,32) = 100 * q;
         
@@ -525,8 +551,8 @@ for i = 1:M.T
         
         % hospital admissions (ARDS admitted to hospital/CCU)
         %------------------------------------------------------------------
-        Y{n}(i,16) = Y{n}(i,27)/Q{n}.Trd;    
-                
+        Y{n}(i,16) = Y{n}(i,27)/Q{n}.Trd;
+        
         % excess deaths in hospital/CCU
         %------------------------------------------------------------------
         q          = squeeze(spm_sum(x{n},[2,4]));
@@ -538,13 +564,7 @@ for i = 1:M.T
         
         % cumulative number of people (first dose) vaccinated (%)
         %------------------------------------------------------------------
-        if isfield(Q{n},'pro')
-            pvac(n) = pvac(n) + (1 - erf(Q{n}.pro) - pvac(n))*V.Rvac;
-        else
-            pvac(n) = pvac(n) + (1 - pvac(n))*V.Rvac;
-        end
-        if pvac(n) < 0, keyboard, end
-        Y{n}(i,22) = 100 * pvac(n);
+        Y{n}(i,22) = 100 * sum(p{n}{2}(6:8));
         
         % PCR case positivity (%) (seven day rolling average)
         %------------------------------------------------------------------
@@ -559,27 +579,35 @@ for i = 1:M.T
         Y{n}(i,28) = N(n) * p{n}{3}(2) * (1 - exp(-1/Q{n}.Trd)) * 1/400;
         Y{n}(i,28) = N(n) * p{n}{3}(3) * (1 - exp(-1/Q{n}.Trd)) * 1/2 + Y{n}(i,28);
         
+        % vaccine effectiveness based upon relative prevalence of infection
+        %------------------------------------------------------------------
+        q          = sum(p{n}{2}([2,3]))/sum(p{n}{2}(1:3));
+        v          = sum(p{n}{2}([7,8]))/sum(p{n}{2}(6:8));
+        Y{n}(i,31) = 100 * (q - v)/q;
         
         % joint density
         %------------------------------------------------------------------
         Z{n,i} = x{n};
         
     end
-
+    
 end
 
 for n = 1:nN
     
-    % effective reproduction ratio: exp(K*Q.Tcn): K = dln(N)/dt
+    % effective reproduction ratio: exp(K*<T>): K = dln(N)/dt
     %----------------------------------------------------------------------
     K          = gradient(log(Y{n}(:,4)));
-    Y{n}(:,4)  = 1 + K*(Q{n}.Tin + Q{n}.Tcn) + (K.^2)*Q{n}.Tin*Q{n}.Tcn;
+    Tin        = [W{n}.Tin]';
+    Tcn        = Q{n}.Tcn*(1 - Q{n}.res);
+    Y{n}(:,4)  = 1 + K.*(Tin + Tcn) + (K.^2).*Tin*Tcn;
     
     % incidence of new infections (%)
     %----------------------------------------------------------------------
-    Kinf       = 1 - exp(-1/Q{n}.Tin);
+    Tin        = [W{n}.Tin]';
+    Kinf       = 1 - exp(-1./Tin);
     prev       = X{n,2}(:,2) + X{n,2}(:,7);
-    Y{n}(:,10) = 100 * (gradient(prev) + Kinf*prev);
+    Y{n}(:,10) = 100 * (gradient(prev) + Kinf.*prev);
     
     % Y(:,19) - Daily incidence (per hundred thousand)
     %----------------------------------------------------------------------
@@ -595,22 +623,22 @@ for n = 1:nN
     Pfat       = [W{n}.Pfat]';
     Pinf       = [W{n}.Pinf]';
     Y{n}(:,21) = 100 * (1 - Pinf.^(Q{n}.Tin + Q{n}.Tcn)).*Psev.*Pfat;
-
+    
     % cumulative attack rate (%)
     %----------------------------------------------------------------------
-    Y{n}(:,25) = cumsum(Y{n}(:,10));
+    Y{n}(:,25) = 100 * erf(cumsum(Y{n}(:,10)/100));
     
     % population immunity (seropositive, seronegative) (%)
     %----------------------------------------------------------------------
     Y{n}(:,26) = 100 * sum(X{n,2}(:,4:8),2);
     
-    % population immunity (vaccine) (%)
+    % proportion vaccinated (%)
     %----------------------------------------------------------------------
     Y{n}(:,29) = 100 * sum(X{n,2}(:,6:8),2);
-        
+    
     % accommodate (3 week) delay in immunity following vaccination
     %----------------------------------------------------------------------
-    Y{n}(:,22) = Y{n}(:,22) + 21*gradient(Y{n}(:,22));
+    Y{n}(:,22) = Y{n}(:,22) + Q{n}.mem*gradient(Y{n}(:,22));
     
     % cumulative admissions
     %----------------------------------------------------------------------
@@ -666,7 +694,7 @@ for u = 1:Nu
         % age-specific outcomes
         %------------------------------------------------------------------
         y(:,u) = Y{age(u)}(:,u);
-
+        
         
     else % pool over groups
         

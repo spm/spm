@@ -37,7 +37,7 @@ function [P,C,str] = spm_SARS_priors(nN)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_priors.m 8156 2021-09-27 09:05:29Z karl $
+% $Id: spm_SARS_priors.m 8173 2021-10-25 10:31:35Z karl $
 
 % sources and background
 %--------------------------------------------------------------------------
@@ -63,8 +63,8 @@ if nargin
     % priors for single group
     %----------------------------------------------------------------------
     [P,C,str] = spm_SARS_priors;
-    free  = {'N','Nin','Nou','sde','mem','qua','hos','ccu','res','Trd',...
-             'sev','lat','fat','sur','tes','tts','rol','pro','lnk'};
+    free  = {'N','Nin','Nou','mem','qua','hos','ccu','res','Trd',...
+             'sev','lat','fat','sur','tes','tts','rol','lnk'};
 
     if nN == 1
         
@@ -128,7 +128,7 @@ if nargin
                      0.001  (365 + 0)   32;
                      0.01   (365 + 0)   32;
                      0.02   (365 + 0)   32]);
-        P.fol = log([0.01   (365 + 512) 32;
+        P.fol = log([0.0001 (365 + 512) 32;
                      0.02   (365 + 128) 32;
                      0.02   (365 + 64 ) 32;
                      0.02   (365 + 32 ) 32]);
@@ -172,13 +172,6 @@ if nargin
                      0.4]);
         P.sur = P.fat;
         
-        % unvaccinated proportion
-        %------------------------------------------------------------------
-        P.pro = log([0.64;
-                     0.32;
-                     0.16;
-                     0.04]);
-                 
         % vaccination link (pathogenicity)
         %------------------------------------------------------------------
         P.lnk = log([0.24;
@@ -239,8 +232,8 @@ names{15} = 'transmission strength';
 names{16} = 'seasonal transmission';
 names{17} = 'infected period   (days)';
 names{18} = 'infectious period (days)';
-names{19} = 'loss of immunity  (days)';
-names{20} = 'resistance (late)';
+names{19} = 'loss of natural immunity  (days)';
+names{20} = 'resistance';
 
 % clinical parameters
 %--------------------------------------------------------------------------
@@ -258,7 +251,7 @@ names{28} = 'FTTI efficacy';
 names{29} = 'testing: bias (PCR)';
 names{30} = 'testing: bias (LFD)';
 names{31} = 'test delay (days)';
-names{32} = 'vaccine constant (days)';
+names{32} = 'loss of vaccine immunity (days)';
 names{33} = 'false-negative rate';
 names{34} = 'false-positive rate';
 
@@ -284,8 +277,8 @@ names{49} = 'loss of T-cell immunity';
 names{50} = 'LFD specificity';
 names{51} = 'LFD sensitivity';
 names{52} = 'PCR testing of fatalities';
-names{53} = 'unvaccinated proportion';
-names{54} = 'survival risk in other';
+names{53} = 'contact rate exponent';
+names{54} = 'survival risk in care homes';
 
 % latent or hidden factors
 %--------------------------------------------------------------------------
@@ -305,11 +298,11 @@ factor{5} = {' ',' '};
 % Y(:,4)  - Reproduction ratio (R)
 % Y(:,5)  - Seroprevalence {%}
 % Y(:,6)  - PCR testing rate
-% Y(:,7)  - Contagion risk (%)
-% Y(:,8)  - Contagious {%}
+% Y(:,7)  - Risk of infection (%)
+% Y(:,8)  - Prevalence (true) {%}
 % Y(:,9)  - Daily contacts
 % Y(:,10) - Daily incidence (%)
-% Y(:,11) - Prevalence {%}
+% Y(:,11) - Prevalence (positivity){%}
 % Y(:,12) - Number symptomatic
 % Y(:,13) - Mobility (%)
 % Y(:,14) - Workplace (%)
@@ -327,9 +320,9 @@ factor{5} = {' ',' '};
 % Y(:,26) - Population immunity (total)
 % Y(:,27) - Hospital cases
 % Y(:,28) - Incidence of Long Covid
-% Y(:,29) - population immunity (vaccine)
-% Y(:,30) - cumulative admissions
-% Y(:,31) - unused
+% Y(:,29) - Proportion vaccinated
+% Y(:,30) - Cumulative admissions
+% Y(:,31) - Vaccine effectiveness (prevalence)
 % Y(:,32) - Gross domestic product
 
 
@@ -339,11 +332,11 @@ str.outcome = {'Daily deaths (28 days)',...
     'Reproduction ratio',...
     'Seroprevalence {%}',...
     'PCR testing rate',...
-    'Contagion risk (%)',...
-    'Contagious {%}',...
+    'Risk of infection (%)',...
+    'Prevalence (true) {%}',...
     'Daily contacts',...
     'Daily incidence (%)',...
-    'Prevalence (%)'...
+    'Prevalence (positivity) (%)'...
     'Number symptomatic'...
     'Mobility (%)'...
     'Workplace (%)'...
@@ -361,9 +354,9 @@ str.outcome = {'Daily deaths (28 days)',...
     'Population immunity (total) (%)'...
     'Hospital cases'...
     'Incidence of Long Covid'...
-    'Population immunity (vaccine) (%)'...
+    'Proportion vaccinated (%)'...
     'Cumulative admissions'...
-    ' '...
+    'Vaccine effectiveness (prevalence) '...
     'Gross domestic product'};
 
 str.factors = factors;
@@ -396,7 +389,7 @@ P.trn = 0.2;                  % (15) transmission strength (secondary attack rat
 P.trm = 0.04;                 % (16) seasonality
 P.Tin = 3;                    % (17) infected period (days)
 P.Tcn = 4.5;                  % (18) infectious period (days)
-P.Tim = 128;                  % (19) seropositive immunity (days)
+P.Tim = 128;                  % (19) seropositive immunity: lateral (days)
 P.res = 0.2;                  % (20) seronegative proportion (late)
 
 % clinical parameters
@@ -416,7 +409,7 @@ P.ttt = 0.036;                % (28) FTTI efficacy
 P.tes = [16 8];               % (29) bias (for infection): PCR (Pill. 1 & 2)
 P.tts = 1;                    % (30) bias (for infection): LFD
 P.del = 3;                    % (31) test delay (days)
-P.vac = 768;                  % (32) vaccination time constant (days)
+P.vac = 512;                  % (32) seropositive immunity: vaccine (days)
 P.fnr = [0.08 0.06];          % (33) false-negative rate  (infected/ious]
 P.fpr = [0.0002 0.003];       % (34) false-positive rate: (Sus. and Ab +ve)
 
@@ -426,7 +419,7 @@ P.ons = [100 200 300 400];    % (37) testing: onset
 
 P.lag = [1 1];                % (38) reporting lag
 P.inn = 1;                    % (39) seasonal phase
-P.mem = 256;                  % (40) unlocking time constant
+P.mem = 32;                   % (40) unlocking time constant
 P.rol = [exp(-16) 365 32];    % (41) vaccination rollout (1st)
 P.fol = [exp(-16) 512 32];    % (42) vaccination rollout (2nd)
 
@@ -435,14 +428,19 @@ P.lnk = 0.18;                 % (44) 1 - vaccine efficacy: pathogenicity
 P.ves = 0.1;                  % (45) 1 - vaccine efficacy: transmission
 P.lnf = 0.09;                 % (46) 1 - vaccine efficacy: fatality
 
+% P.vef = 0.536;                % (43) 1 - vaccine efficacy: infection
+% P.lnk = 0.143;                % (44) 1 - vaccine efficacy: pathogenicity
+% P.ves = 0.388;                % (45) 1 - vaccine efficacy: transmission
+% P.lnf = 0.039;                % (46) 1 - vaccine efficacy: fatality
+
 P.con = 0.2;                  % (47) LFD confirmation
-P.iso = 8;                    % (48) self-isolation (days)
-P.Tnn = 1024;                 % (49) loss of T-cell immunity (days)
+P.iso = 8.0;                  % (48) self-isolation (days)
+P.Tnn = 512;                  % (49) loss of T-cell immunity (days)
 
 P.lnr = 0.46;                 % (50) LFD sensitivity
 P.lpr = 0.0002;               % (51) LFD specificity
 P.rel = 0.9;                  % (52) PCR testing of fatalities
-P.pro = .2;                   % (53) unvaccinated proportion
+P.pro = 1;                    % (53) contact rate exponent
 P.oth = 0.1;                  % (54) relative survival outside hospital
 
 
@@ -512,7 +510,7 @@ C.ons = U;                    % (37) testing: onset (days)
 
 C.lag = V;                    % (38) reporting lag
 C.inn = V;                    % (39) seasonal phase
-C.mem = 0;                    % (40) unlocking time constant
+C.mem = W;                    % (40) unlocking time constant
 C.rol = X;                    % (41) vaccination rollout (1st)
 C.fol = X;                    % (42) vaccination rollout (2nd)
 
@@ -528,7 +526,7 @@ C.Tnn = Z;                    % (49) loss of T-cell immunity (days)
 C.lnr = X;                    % (50) LFD sensitivity
 C.lpr = X;                    % (51) LFD specificity
 C.rel = W;                    % (52) PCR testing of fatalities
-C.pro = W;                    % (53) unvaccinated proportion
+C.pro = W;                    % (53) contact rate exponent
 C.oth = W;                    % (54) relative survival outside hospital
 
 % check prior expectations and covariances are consistent
