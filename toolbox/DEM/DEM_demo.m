@@ -780,4 +780,4 @@ run_demo_Callback(hObject, handles, 'DEM_CLIMATE_India')
 % --- Executes on button press in pushbutton263.
 function pushbutton263_Callback(hObject, eventdata, handles)
 handles.web = 'Active Inference A Process Theory';
-run_demo_Callback(hObject, handles, 'DEM_demo_MDP_XX')
+run_demo_Callback(hObject, handles, 'DEM_surveillance')

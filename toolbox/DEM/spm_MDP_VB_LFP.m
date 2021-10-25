@@ -23,7 +23,7 @@ function [u,v] = spm_MDP_VB_LFP(MDP,UNITS,f,SPECTRAL)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_VB_LFP.m 7775 2020-01-25 18:10:41Z karl $
+% $Id: spm_MDP_VB_LFP.m 8172 2021-10-25 10:20:42Z karl $
  
  
 % defaults
@@ -53,6 +53,10 @@ for i = 1:Ne
     for j = 1:Nx
         ALL(:,end + 1) = [j;i];
     end
+end
+i     = size(ALL,2);
+if  i > 512
+    ALL = ALL(:,round(linspace(1,i,512)));
 end
 if isempty(UNITS)
     UNITS = ALL;
@@ -109,7 +113,7 @@ w   = Hz*(dt*n);                         % cycles per window
  
 % simulated firing rates and local field potential
 %--------------------------------------------------------------------------
-if Nt == 1, subplot(3,2,1), else subplot(4,1,1),end
+if Nt == 1, subplot(3,2,1), else, subplot(4,1,1),end
 image(t,1:(Nx*Ne),64*(1 - spm_cat(z)'))
 title(MDP(1).label.factor{f},'FontSize',16)
 xlabel('time (sec)','FontSize',12)
@@ -138,7 +142,7 @@ plot(t,lfp,'w:',t,phi,'w'), hold off
 grid on, set(gca,'XTick',(1:(Ne*Nt))*Nb*dt)
 
 title('Time-frequency response','FontSize',16)
-xlabel('time (sec)','FontSize',12), ylabel('frequency (Hz)','FontSize',12)
+xlabel('time (sec)'), ylabel('frequency (Hz)')
 if Nt == 1, axis square, end
 
 % spectral responses
@@ -146,17 +150,17 @@ if Nt == 1, axis square, end
 if SPECTRAL
     
     % spectral responses (for each unit)
-    %--------------------------------------------------------------------------
+    %----------------------------------------------------------------------
     if Nt == 1, subplot(3,2,1), else, subplot(4,2,1),end
     csd = squeeze(sum(abs(wft),2));
     plot(Hz,log(squeeze(csd)))
     title('Spectral response','FontSize',16)
-    xlabel('frequency (Hz)','FontSize',12),
-    ylabel('log power','FontSize',12)
+    xlabel('frequency (Hz)'),
+    ylabel('log power')
     spm_axis tight, box off, axis square
     
     % amplitude-to-amplitude coupling (average over units)
-    %--------------------------------------------------------------------------
+    %----------------------------------------------------------------------
     if Nt == 1, subplot(3,2,2), else, subplot(4,2,2),end
     cfc   = 0;
     for i = 1:size(wft,3)
@@ -164,15 +168,15 @@ if SPECTRAL
     end
     imagesc(Hz,Hz,cfc)
     title('Cross-frequency coupling','FontSize',16)
-    xlabel('frequency (Hz)','FontSize',12),
-    ylabel('frequency (Hz)','FontSize',12)
+    xlabel('frequency (Hz)'),
+    ylabel('frequency (Hz)')
     box off, axis square
 
 end
  
 % local field potentials
 %==========================================================================
-if Nt == 1, subplot(3,2,4), else subplot(4,1,3),end
+if Nt == 1, subplot(3,2,4), else, subplot(4,1,3),end
 plot(t,spm_cat(u)),     hold off, spm_axis tight, a = axis;
 plot(t,spm_cat(x),':'), hold on
 plot(t,spm_cat(u)),     hold off, axis(a)
@@ -182,8 +186,8 @@ for i = 2:2:Nt
     set(h,'LineStyle',':','FaceColor',[1 1 1] - 1/32);
 end
 title('Local field potentials','FontSize',16)
-xlabel('time (sec)','FontSize',12)
-ylabel('response','FontSize',12)
+xlabel('time (sec)')
+ylabel('response')
 if Nt == 1, axis square, end, box off
 
 % firing rates
@@ -195,8 +199,8 @@ if Nt == 1, subplot(3,2,2)
     plot(t,qx,':'), hold off
     grid on, set(gca,'XTick',(1:(Ne*Nt))*Nb*dt), axis(a)
     title('Firing rates','FontSize',16)
-    xlabel('time (sec)','FontSize',12)
-    ylabel('response','FontSize',12)
+    xlabel('time (sec)')
+    ylabel('response')
     axis square
 end
 
@@ -207,15 +211,15 @@ dn    = spm_vec(dn);
 dn    = dn.*(dn > 0);
 dn    = dn + (dn + 1/16).*rand(size(dn))/8;
 bar(dn,1,'k'), title('Dopamine responses','FontSize',16)
-xlabel('time (updates)','FontSize',12)
-ylabel('change in precision','FontSize',12), spm_axis tight, box off
+xlabel('time (updates)')
+ylabel('change in precision'), spm_axis tight, box off
 YLim = get(gca,'YLim'); YLim(1) = 0; set(gca,'YLim',YLim);
 if Nt == 1, axis square, end
 
 % simulated rasters
 %==========================================================================
 Nr    = 16;
-if Nt == 1 && size(z{1},2) < 128
+if Nt == 1 && size(z{1},2) < 129
     subplot(3,2,5)
     
     R  = kron(spm_cat(z)',ones(Nr,Nr));

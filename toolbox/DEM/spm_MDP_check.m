@@ -30,7 +30,7 @@ function [MDP] = spm_MDP_check(MDP)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_check.m 7766 2020-01-05 21:37:39Z karl $
+% $Id: spm_MDP_check.m 8172 2021-10-25 10:20:42Z karl $
 
 
 % deal with a sequence of trials
@@ -76,7 +76,9 @@ for f = 1:Nf
 end
 for g = 1:Ng
     No(g)    = size(MDP.A{g},1);    % number of outcomes
-    MDP.A{g} = double(MDP.A{g});
+    if ~issparse(MDP.A{g})
+        MDP.A{g} = double(MDP.A{g});
+    end
 end
 
 % check policy specification (create default moving policy U, if necessary)
@@ -146,6 +148,9 @@ if ~isfield(MDP,'D')
 end
 if Nf  ~= numel(MDP.D)
     error('please ensure V(:,:,1:Nf) is consistent with MDP.D{1:Nf}')
+end
+for f = 1:Nf
+    MDP.D{f} = MDP.D{f}(:);
 end
 
 
@@ -222,7 +227,7 @@ if isfield(MDP,'link')
     
     % check the size of link
     %----------------------------------------------------------------------
-    if ~all(size(MDP.link) == [nf,Ng]);
+    if ~all(size(MDP.link) == [nf,Ng])
         error('please check the size of link {%i,%i}',nf,Ng)
     end
     

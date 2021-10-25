@@ -21,7 +21,7 @@ function spm_MDP_VB_trial(MDP,gf,gg)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_trial.m 7760 2019-12-29 17:45:58Z karl $
+% $Id: spm_MDP_VB_trial.m 8172 2021-10-25 10:20:42Z karl $
 
 % graphics
 %==========================================================================
@@ -58,10 +58,13 @@ ng    = numel(gg);
 for f = 1:nf
     subplot(3*nf,2,(f - 1)*2 + 1)
     image(64*(1 - X{gf(f)})), hold on
+    a = axis;
     if size(X{gf(f)},1) > 128
+        
         spm_spy(X{gf(f)},16,1)
+        ;
     end
-    plot(MDP.s(gf(f),:),'.c','MarkerSize',16), hold off
+    plot(MDP.s(gf(f),:),'.c','MarkerSize',16), axis(a), hold off
     if f < 2
         title(sprintf('Hidden states - %s',MDP.label.factor{gf(f)}));
     else
@@ -69,9 +72,17 @@ for f = 1:nf
     end
     
     set(gca,'XTickLabel',{});
-    set(gca,'XTick',1:size(X{1},2));
-    set(gca,'YTick',1:numel(MDP.label.name{gf(f)}));
-    set(gca,'YTickLabel',MDP.label.name{gf(f)});
+    set(gca,'XTick',1:size(X{1},2)); 
+    
+    YTickLabel = MDP.label.name{gf(f)};
+    if numel(YTickLabel) > 8
+        i = linspace(1,numel(YTickLabel),8);
+        YTickLabel = YTickLabel(round(i));
+    else
+        i = 1:numel(YTickLabel);
+    end
+    set(gca,'YTick',i);
+    set(gca,'YTickLabel',YTickLabel);
 end
 
 % posterior beliefs about control states
@@ -84,7 +95,7 @@ for f  = 1:Np
     if Nf > 1
         ind     = 1:Nf;
         for dim = 1:Nf
-            if dim ~= ind(Nu(f));
+            if dim ~= ind(Nu(f))
                 P = sum(P,dim);
             end
         end
@@ -102,8 +113,16 @@ for f  = 1:Np
     end
     set(gca,'XTickLabel',{});
     set(gca,'XTick',1:size(X{1},2));
-    set(gca,'YTick',1:numel(MDP.label.action{Nu(f)}));
-    set(gca,'YTickLabel',MDP.label.action{Nu(f)});
+    
+    YTickLabel = MDP.label.action{Nu(f)};
+    if numel(YTickLabel) > 8
+        i = round(linspace(1,numel(YTickLabel),8));
+        YTickLabel = YTickLabel(i);
+    else
+        i = 1:numel(YTickLabel);
+    end
+    set(gca,'YTick',i);
+    set(gca,'YTickLabel',YTickLabel);
     
     % policies
     %----------------------------------------------------------------------
@@ -155,8 +174,17 @@ for g  = 1:ng
         set(gca,'XTickLabel',{});
     end
     set(gca,'XTick',1:size(X{1},2))
-    set(gca,'YTick',1:numel(MDP.label.outcome{gg(g)}));
-    set(gca,'YTickLabel',MDP.label.outcome{gg(g)});
+
+    YTickLabel = MDP.label.outcome{gg(g)};
+    if numel(YTickLabel) > 8
+        i = round(linspace(1,numel(YTickLabel),8));
+        YTickLabel = YTickLabel(i);
+    else
+        i = 1:numel(YTickLabel);
+    end
+    set(gca,'YTick',i);
+    set(gca,'YTickLabel',YTickLabel);
+    
 end
 
 % expected precision

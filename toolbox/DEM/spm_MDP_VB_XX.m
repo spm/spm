@@ -7,12 +7,12 @@ function [MDP] = spm_MDP_VB_XX(MDP,OPTIONS)
 % MDP.T                 - number of outcomes
 %
 % MDP.A{G}(O,N1,...,NF) - likelihood of O outcomes given hidden states
-% MDP.B{F}(NF,NF,PF)     - transitions among states under PF control states
-% MDP.C{G}(O,T)         - (log) prior preferences for outcomes (modality G)
-% MDP.D{F}(NF,1)        - prior probabilities over initial states
-% MDP.E(P,1)            - prior probabilities over policies
+% MDP.B{F}(NF,NF,PF)    - transitions among states under PF control states
+% MDP.C{G}(O,T)         - prior probabilities over final outcomes (log preferences)
+% MDP.D{F}(NF,1)        - prior probabilities over initial states (Dirichlet counts) 
+% MDP.E(P,1)            - prior probabilities over policies (Dirichlet counts)
 %
-% MDP.a{G}              - concentration parameters for A
+% MDP.a{G}              - concentration parameters for A 
 % MDP.b{F}              - concentration parameters for B
 % MDP.c{G}              - concentration parameters for C
 % MDP.d{F}              - concentration parameters for D
@@ -119,7 +119,7 @@ function [MDP] = spm_MDP_VB_XX(MDP,OPTIONS)
 % Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_XX.m 7775 2020-01-25 18:10:41Z karl $
+% $Id: spm_MDP_VB_XX.m 8172 2021-10-25 10:20:42Z karl $
 
 
 % deal with a sequence of trials
@@ -262,8 +262,8 @@ for m = 1:size(MDP,1)
         
         % and ambiguity (H) (for computation of expected free energy: G)
         %------------------------------------------------------------------
-        H{m,g}      = sum(A{m,g}.*spm_log(A{m,g}),1);
-        H{m,g}      = spm_vec(shiftdim(H{m,g},1));
+        fA          = full(A{m,g}(:,:));
+        H{m,g}      = spm_vec(sum(fA.*spm_log(fA),1));
  
     end
     
@@ -280,9 +280,9 @@ for m = 1:size(MDP,1)
             % parameters (concentration parameters): b
             %--------------------------------------------------------------
             if isfield(MDP,'b')
-                fB{m,f}(:,:,j) = spm_norm(MDP(m).b{f}(:,:,j) );
+                fB{m,f}(:,:,j) = spm_norm(MDP(m).b{f}(:,:,j));
             else
-                fB{m,f}(:,:,j) = spm_norm(MDP(m).B{f}(:,:,j) );
+                fB{m,f}(:,:,j) = spm_norm(MDP(m).B{f}(:,:,j));
             end
             
         end
@@ -303,7 +303,8 @@ for m = 1:size(MDP,1)
         %------------------------------------------------------------------
         B{m,k} = 1;
         for f = 1:Nf(m)
-            B{m,k} = spm_kron(fB{m,f}(:,:,U{m}(k,f)),B{m,k});
+            fb     = fB{m,f}(:,:,U{m}(k,f));
+            B{m,k} = spm_kron(sparse(fb),B{m,k});
         end
     end
     
@@ -483,7 +484,7 @@ for t = 1:T
                     % or sample from likelihood given hidden state
                     %------------------------------------------------------
                     ind           = num2cell(MDP(m).s(:,t));
-                    po            = MDP(m).A{g}(:,ind{:});
+                    po            = double(MDP(m).A{g}(:,ind{:}));
                     MDP(m).o(g,t) = find(rand < cumsum(po),1);
                     
                 end
@@ -719,6 +720,7 @@ for t = 1:T
             Q{m,t} = B{m,K(m,t - 1)}*Q{m,t - 1};
             
         else
+            
             % use empirical priors over initial states
             %--------------------------------------------------------------
             Q{m,t} = spm_kron(D(m,:));
@@ -1093,12 +1095,12 @@ for k = 1:size(B,2)                       % search over actions
         
         % predictive posterior and prior over outcomes
         %--------------------------------------------------------------
-        qo   = A{g}(:,:)*Q{k};
-        po   = C{g}(:,t);
+        qo   = full(A{g}(:,:)*Q{k});
+        po   = full(C{g}(:,t));
         
-        if 0
+        if false
             
-            % Bayesian risk only
+            % Bayesian risk only (expected utility)
             %--------------------------------------------------------------
             G(k) = G(k) + qo'*po;
             
@@ -1123,17 +1125,18 @@ if t < N
     % probability over action (terminating search at a suitable threshold)
     %----------------------------------------------------------------------
     u     = spm_softmax(G);
-    k     = u <= 1/16;
+    k     = u <= max(u)/16;
     u(k)  = 0;
     G(k)  = - 64;
     for k = 1:size(B,2)                      % search over actions
-        if u(k) > 1/16                       % evaluating plausible paths
+        if u(k)                              % evaluating plausible paths
             
-            %  evaluate  expected free energy for plausible hidden states
+            %  evaluate expected free energy for plausible hidden states
             %--------------------------------------------------------------
-            j     = find(Q{k} > 1/16);
-            if isempty(j)
-                j = find(Q{k} > 1/numel(Q{k}));
+            j     = find(Q{k} > max(Q{k})/16);
+            if length(j) > 16
+                [q,j] = sort(Q{k},'descend');
+                j     = j(1:16);
             end
             for i = j(:)'
                 
@@ -1200,12 +1203,12 @@ p     = 1;
 for j = (t + 1):T
     
     % belief propagation over hidden states
-    %------------------------------------------------------------------
+    %----------------------------------------------------------------------
     p    = B{u(j - 1)}*p;
     
+    % and accumulate likelihood
+    %----------------------------------------------------------------------
     for i = 1:numel(L)
-        % and accumulate likelihood
-        %------------------------------------------------------------------
         for g = 1:numel(A)
             L(i) = L(i).*(O{g,j}'*A{g}(:,:)*p(:,i));
         end
@@ -1221,8 +1224,8 @@ L     = spm_norm(L(:));
 function A  = spm_log(A)
 % log of numeric array plus a small constant
 %--------------------------------------------------------------------------
-A  = log(A + 1e-16);
-
+A           = log(A);
+A(isinf(A)) = -32;
 
 function A  = spm_norm(A)
 % normalisation of a probability transition matrix (columns)
