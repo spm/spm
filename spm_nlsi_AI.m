@@ -84,7 +84,7 @@ function [Ep] = spm_nlsi_AI(M,Y,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_AI.m 7679 2019-10-24 15:54:07Z spm $
+% $Id: spm_nlsi_AI.m 8171 2021-10-25 10:14:50Z karl $
  
 
 % setup and initialise
@@ -334,7 +334,7 @@ function G  = spm_G(p,n)
 % Copyright (C) 2013-2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_nlsi_AI.m 7679 2019-10-24 15:54:07Z spm $
+% $Id: spm_nlsi_AI.m 8171 2021-10-25 10:14:50Z karl $
 %--------------------------------------------------------------------------
 G{1}  = 1;
 for i = 2:n
@@ -356,7 +356,7 @@ function H  = spm_H(p,B)
 % Copyright (C) 2013-2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_nlsi_AI.m 7679 2019-10-24 15:54:07Z spm $
+% $Id: spm_nlsi_AI.m 8171 2021-10-25 10:14:50Z karl $
 %--------------------------------------------------------------------------
 H     = B{3};
 x     = {p};
@@ -381,7 +381,7 @@ function K  = spm_sigma(n)
 % Copyright (C) 2013-2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_nlsi_AI.m 7679 2019-10-24 15:54:07Z spm $
+% $Id: spm_nlsi_AI.m 8171 2021-10-25 10:14:50Z karl $
 %--------------------------------------------------------------------------
 k     = [0 1 -1];
 K     = k;
@@ -736,6 +736,11 @@ for ip = 1:M.Nmax
                     dFdhh(j,i) =   dFdhh(i,j);
                 end
             end
+
+            % add second order terms; noting dP/dh(i)h(i) = dP/dh(i)
+            %------------------------------------------------------------------
+            dFdhh = dFdhh + diag(dFdh);
+
  
             % add hyperpriors
             %--------------------------------------------------------------

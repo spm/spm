@@ -96,7 +96,7 @@ function [Ep,Cp,Eh,F,L,dFdp,dFdpp] = spm_nlsi_GN(M,U,Y)
 % Copyright (C) 2001-2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_nlsi_GN.m 8045 2021-02-02 18:46:28Z karl $
+% $Id: spm_nlsi_GN.m 8171 2021-10-25 10:14:50Z karl $
 
 % options
 %--------------------------------------------------------------------------
@@ -429,6 +429,10 @@ for k = 1:M.Nmax
                 dFdhh(j,i) =   dFdhh(i,j);
             end
         end
+        
+        % add second order terms; noting diS/dh(i)h(i) = diS/dh(i) = P{i}
+        %------------------------------------------------------------------
+        dFdhh = dFdhh + diag(dFdh);
         
         % add hyperpriors
         %------------------------------------------------------------------

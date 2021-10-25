@@ -58,7 +58,7 @@ function [C,P,F] = spm_PEB(y,P,HP,OPT)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_PEB.m 7654 2019-08-25 20:09:35Z karl $
+% $Id: spm_PEB.m 8171 2021-10-25 10:14:50Z karl $
 
 % set defaults
 %--------------------------------------------------------------------------
@@ -283,6 +283,12 @@ for k = 1:M
 
             end
         end
+    end
+
+    % add second order terms; noting dP/dh(i)h(i) = dP/dh(i)
+    %------------------------------------------------------------------
+    if HP
+        dFdhh = dFdhh + diag(dFdh);
     end
 
     % add hyperpriors

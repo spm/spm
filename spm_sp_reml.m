@@ -34,7 +34,7 @@ function [C,h,Ph,F,Fa,Fc] = spm_sp_reml(YY,X,Q,N,hE)
 % Copyright (C) 2006-2017 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_sp_reml.m 7192 2017-10-18 14:59:01Z guillaume $
+% $Id: spm_sp_reml.m 8171 2021-10-25 10:14:50Z karl $
  
 % assume a single sample if not specified
 %--------------------------------------------------------------------------
@@ -84,7 +84,7 @@ end
 for i = 1:m
     if isstruct(Q{i})
         try
-            if ~isfield(Q{i},'v');
+            if ~isfield(Q{i},'v')
                 Q{i}.v = ones(size(Q{i}.q,2),1);
             end
         catch
@@ -133,7 +133,6 @@ end
  
 % ReML (EM/VB)
 %--------------------------------------------------------------------------
-dF    = Inf;
 as    = 1:m;
 for k = 1:K
  

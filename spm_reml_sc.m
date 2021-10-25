@@ -44,7 +44,7 @@ function [C,h,Ph,F,Fa,Fc,Eh,Ch,hE,hC,Q] = spm_reml_sc(YY,X,Q,N,hE,hC,V)
 % Copyright (C) 2007-2017 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_reml_sc.m 7305 2018-05-07 13:35:06Z karl $
+% $Id: spm_reml_sc.m 8171 2021-10-25 10:14:50Z karl $
 
  
 % assume a single sample if not specified
@@ -163,7 +163,7 @@ for k = 1:32
         end
     end
  
-    % modulate
+    % derivatives w.r.t log hyperparamters
     %----------------------------------------------------------------------
     dFdh  = dFdh.*exp(h);
     dFdhh = dFdhh.*(exp(h)*exp(h)');

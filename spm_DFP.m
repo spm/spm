@@ -77,7 +77,7 @@ function [DEM] = spm_DFP(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DFP.m 6540 2015-09-05 10:06:42Z karl $
+% $Id: spm_DFP.m 8171 2021-10-25 10:14:50Z karl $
 
 
 % Check model, data, priros and confounds and unpack
@@ -593,6 +593,11 @@ for iN = 1:nN
                 dFdhh(i,j) = -trace(dPdh{i}*S*dPdh{j}*S*nY)/2;
             end
         end
+        
+        % add second order terms; noting dP/dh(i)h(i) = dP/dh(i)
+        %------------------------------------------------------------------
+        dFdhh = dFdhh + diag(dFdh);
+        
         
         % hyperpriors
         %------------------------------------------------------------------

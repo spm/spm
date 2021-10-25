@@ -89,7 +89,7 @@ function [DEM] = spm_LAP(DEM)
 % Copyright (C) 2010-2013 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_LAP.m 6508 2015-07-25 15:23:25Z karl $
+% $Id: spm_LAP.m 8171 2021-10-25 10:14:50Z karl $
  
  
 % find or create a DEM figure
@@ -459,6 +459,7 @@ for iN = 1:nN
             %--------------------------------------------------------------
             dSdhh = spm_cat({dedhh  [] ;
                              [] dedgg});
+                         
                  
             
             % errors (from prior expectations) (NB pp.p = 0)

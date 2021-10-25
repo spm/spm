@@ -82,7 +82,7 @@ function [CVA] = spm_cva_ui(action,varargin)
 % Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_cva_ui.m 7081 2017-05-27 19:36:09Z karl $
+% $Id: spm_cva_ui.m 8171 2021-10-25 10:14:50Z karl $
 
 
 %-Get figure handles
@@ -214,6 +214,7 @@ switch lower(action)
         
         
     case 'results'
+        
         %==================================================================
         %                      C V A  :  R E S U L T S
         %==================================================================
@@ -235,18 +236,40 @@ switch lower(action)
         %-Show results
         %------------------------------------------------------------------
         spm_figure('GetWin','CVA');
+
+        i = find(CVA.p < 0.05);
+        if isempty(i)
+                i   = 1;
+        end
         
         %-Unpack
         %------------------------------------------------------------------
-        VOX      = CVA.VOX;
-        XYZ      = CVA.XYZ;
-        
-        %-Maximum intensity projection (first canonical image)
-        %------------------------------------------------------------------
-        subplot(2,2,1)
-        spm_mip(CVA.V(:,1).*(CVA.V(:,1) > 0),XYZ(1:3,:),diag(VOX));
-        axis image
-        title({'(Principal) canonical image',[CVA.name ':' CVA.contrast]})
+        if isfield(CVA,'VOX')
+            
+            VOX      = CVA.VOX;
+            XYZ      = CVA.XYZ;
+            
+            %-Maximum intensity projection (first canonical image)
+            %--------------------------------------------------------------
+            subplot(2,2,1)
+            spm_mip(CVA.V(:,1).*(CVA.V(:,1) > 0),XYZ(1:3,:),diag(VOX));
+            axis image
+            title({'(Principal) canonical image',[CVA.name ':' CVA.contrast]})
+            
+        else
+            
+            %-graphics
+            %--------------------------------------------------------------
+            if numel(i) < 2
+                str = 'First canonical vector';
+            else
+                str = 'Significant canonical vectors';
+            end
+            subplot(2,2,1)
+            plot(CVA.V(:,i)), axis square
+            ylabel('response')
+            
+        end
         
         %-Inference and canonical variates
         %------------------------------------------------------------------
@@ -263,7 +286,7 @@ switch lower(action)
         title({'Test of dimensionality';sprintf('minimum p = %.2e',min(CVA.p))})
         
         subplot(2,2,3)
-        plot(CVA.w,CVA.v,'.')
+        plot(CVA.w(:,i),CVA.v(:,i),'.')
         xlabel('prediction')
         ylabel('response')
         axis square
@@ -271,11 +294,10 @@ switch lower(action)
         
         %-Canonical contrast
         %------------------------------------------------------------------
-        i       = find(CVA.p < 0.05);
-        str     = 'Significant canonical contrasts';
-        if isempty(i)
-            i   = 1;
-            str = 'first canonical contrast';
+        if numel(i) < 2
+            str = 'First canonical contrast';
+        else
+            str = 'Significant canonical contrasts';
         end
         subplot(2,2,4)
         bar(CVA.C(:,i))

@@ -107,7 +107,7 @@ function [DEM] = spm_GDEM(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_GDEM.m 5219 2013-01-29 17:07:07Z spm $
+% $Id: spm_GDEM.m 8171 2021-10-25 10:14:50Z karl $
  
 % check model, data, priors and confounds and unpack
 %--------------------------------------------------------------------------
@@ -523,6 +523,10 @@ for iN = 1:nN
                 dFdhh(i,j) = -trace(dPdh{i}*S*dPdh{j}*S*nY)/2;
             end
         end
+
+        % add second order terms; noting dP/dh(i)h(i) = dP/dh(i)
+        %------------------------------------------------------------------
+        dFdhh = dFdhh + diag(dFdh);
  
         % hyperpriors
         %------------------------------------------------------------------

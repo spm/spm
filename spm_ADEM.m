@@ -134,7 +134,7 @@ function [DEM] = spm_ADEM(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_ADEM.m 7679 2019-10-24 15:54:07Z spm $
+% $Id: spm_ADEM.m 8171 2021-10-25 10:14:50Z karl $
  
 % check model, data, priors and unpack
 %--------------------------------------------------------------------------
@@ -683,6 +683,10 @@ for iE = 1:nE
             end
         end
  
+        % add second order terms; noting dP/dh(i)h(i) = dP/dh(i)
+        %------------------------------------------------------------------
+        dFdhh = dFdhh + diag(dFdh);
+
         % hyperpriors
         %------------------------------------------------------------------
         qh.e  = qh.h  - ph.h;
