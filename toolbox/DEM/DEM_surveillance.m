@@ -21,9 +21,9 @@ function MDP = DEM_surveillance
 % In what follows, we build a generative model, starting from state
 % transitions that entail natural laws. Position refers to radial
 % coordinates in egocentric space, implying a distinction between angular
-% and radial (depth) states – and likewise for motion. This allows us to
+% and radial (depth) states - and likewise for motion. This allows us to
 % incorporate head orientation; in the form of head movements that
-% reorientate the direction of gaze – that also depends upon the deployment
+% reorientate the direction of gaze - that also depends upon the deployment
 % of saccades in a head-centred frame of reference. Head movements are
 % implemented, in the generative model, as moving objects in the egocentric
 % frame of reference. This means that head movement is implemented via
@@ -49,7 +49,7 @@ function MDP = DEM_surveillance
 % variable over discrete epochs of time. Note that the kind of scene
 % construction and representation is implemented in egocentric and head
 % centric frames of reference throughout. There is no part of the
-% generative model that requires an allocentric representation – and yet,
+% generative model that requires an allocentric representation - and yet,
 % the agent can skilfully navigate a relatively complicated moving
 % environment. in the example here, there are two inanimate objects (that
 % play the role of landmarks) and an inanimate object (namely, a person who
@@ -64,7 +64,7 @@ function MDP = DEM_surveillance
 % scene construction. This inversion uses a sophisticated active inference
 % scheme based upon a recursive estimation of expected free energy. This
 % finesses the numerics because it uses belief propagation into the future
-% – as opposed to marginal (variational) message passing. The numerical
+% - as opposed to marginal (variational) message passing. The numerical
 % complexity of these models is a nontrivial issue: this is because most of
 % the heavy lifting in the generative model is in the connectivity encoding
 % dependencies that corresponds to high-dimensional tensors. In these
@@ -75,7 +75,7 @@ function MDP = DEM_surveillance
 % Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_demo_MDP_XX.m 7766 2020-01-05 21:37:39Z karl $
+% $Id: DEM_surveillance.m 8175 2021-11-01 15:46:35Z guillaume $
 
 
 rng('default')
@@ -109,7 +109,7 @@ N     = [ ...
 % factor and the accompanying latent states. These are further equipped
 % with a number of actions that require a probability transition matrix for
 % each allowable action. Here, the actions correspond to turning the head
-% in one direction or another – or maintaining head position (the action
+% in one direction or another - or maintaining head position (the action
 % 'stay')
 %--------------------------------------------------------------------------
 for i = 1:size(N,1)
@@ -130,10 +130,10 @@ label.action = [label.action {{'right','centre','left'}}];
 %--------------------------------------------------------------------------
 label.modality = {...
     'what',...
-    'contrast–left',...
+    'contrast-left',...
     'contrast-centre',...
     'contrast-right',...
-    'motion–left',...
+    'motion-left',...
     'motion-centre',...
     'motion-right'};
 
@@ -219,19 +219,19 @@ for f = 1:size(N,1)
         % transitions between movement that depend upon depth
         %------------------------------------------------------------------
         b      = cell(3,3);
-        b{1,1} = [...     % when near…
+        b{1,1} = [...     % when near...
             1 0 0 1 1;    % when near and standing tend to move or withdraw
             4 1 0 0 0;    % when near continue moving or withdraw
             4 0 1 0 0;    % when near continue moving or withdraw
             1 1 1 0 0;    % when near and withdrawing stand still
             0 0 0 0 0];   % when near and approaching stand still
-        b{2,2} = [...     % when far…
+        b{2,2} = [...     % when far...
             1 0 0 1 1;    % when Far and standing tend to move or approach
-            4 4 0 0 0;    % …
+            4 4 0 0 0;    % ...
             4 0 4 0 0;
             1 0 0 0 0;
             4 1 1 0 0]; 
-        b{3,3} = [...     % when distant…
+        b{3,3} = [...     % when distant...
             1 1 1 1 1;
             0 4 0 0 0;
             0 0 4 0 0;
@@ -368,7 +368,7 @@ for o1 = 1:Nf(1)
                 A{1}(o,o1,o2,o3,u) = 1;
                 
                 
-                % {'contrast–left'}:
+                % {'contrast-left'}:
                 %----------------------------------------------------------
                 % near...1
                 % far... 2

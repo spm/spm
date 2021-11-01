@@ -12,7 +12,7 @@ function Markov_blankets_and_NESS
 % follows are a series of notes illustrating the conditions under which
 % conditional independence between internal and external states under a
 % Markov blanket partition emerges, either asymptotically as the system
-% becomes more dissipative – or under a particular constraints on the
+% becomes more dissipative - or under a particular constraints on the
 % Jacobian. When invoked symbolic maths is used to illustrate an analytic
 % solution for a simple the canonical Markov blanket, using a single
 % dimensional state for each subset of a Markovian position. Numerical
@@ -24,7 +24,7 @@ function Markov_blankets_and_NESS
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: Markov_blankets_and_NESS.m 8000 2020-11-03 19:04:17Z karl $
+% $Id: Markov_blankets_and_NESS.m 8175 2021-11-01 15:46:35Z guillaume $
 
 % backwards compatibility for symbolic maths
 %--------------------------------------------------------------------------

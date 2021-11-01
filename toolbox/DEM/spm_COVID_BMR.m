@@ -1,10 +1,10 @@
 function spm_COVID_BMR(DCM)
 % state dependent probability transition matrices
 % FORMAT spm_COVID_BMR(DCM)
-% DCM – dynamic causal model for covid outbreak
+% DCM - dynamic causal model for covid outbreak
 %
 % This subroutine applies Bayesian model reduction to a DCM for the corona
-% virus outbreak, asking whether any parameters can be removed – or can be
+% virus outbreak, asking whether any parameters can be removed - or can be
 % treated as fixed parameters by reducing their prior covariance to 0.
 % Finally, the optimum priors are identified by applying discrete levels of
 % shrinkage priors to each parameter.
@@ -12,7 +12,7 @@ function spm_COVID_BMR(DCM)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_BMR.m 8001 2020-11-03 19:05:40Z karl $
+% $Id: spm_COVID_BMR.m 8175 2021-11-01 15:46:35Z guillaume $
 
 % setup
 %==========================================================================
