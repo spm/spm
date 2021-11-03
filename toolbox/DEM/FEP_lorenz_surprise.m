@@ -1,4 +1,5 @@
 function FEP_lorenz_surprise
+%__________________________________________________________________________
 % This demo provides an elementary characterisation of stochastic chaos
 % using the Lorenz system. Effectively, it uses iterated least-squares to
 % solve the Helmholtz decomposition of nonequilibrium steady-state flow
@@ -21,7 +22,7 @@ function FEP_lorenz_surprise
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: FEP_lorenz_surprise.m 8152 2021-09-13 09:17:36Z karl $
+% $Id: FEP_lorenz_surprise.m 8179 2021-11-03 19:31:30Z karl $
 
 
 %% dynamics and parameters of a Lorentz system (with Jacobian)
@@ -674,7 +675,7 @@ title('log |Hessian|','Fontsize',12)
 % get conditional marginals over external and internal states
 %--------------------------------------------------------------------------
 t     = u;                                     % use stochastic realisation
-b     = 1;                                     % blanket state
+b     = 1;                                     % blanket (sensory) state
 E     = zeros(n - 1,T);
 V     = zeros(n - 1,T);
 for i = 1:T
@@ -1359,7 +1360,7 @@ Ep    = NESS.Ep;
 Ep.G  = inv(M.W)/2;
 dt    = 1/8;
 for t = 1:25
-    dS = spm_NESS_ds(Sp,Ep,x);
+    dS = spm_NESS_ds(Sp,Ep);
     Sp = Sp - dS*dt;
     
     p0 = spm_softmax(b*Sp);
@@ -1380,7 +1381,7 @@ for T = 1:8
     P0    = 0;
     for t = 1:16
         
-        dS = spm_NESS_ds(Sp,Ep,x);
+        dS = spm_NESS_ds(Sp,Ep);
         Sp = Sp + dS*dt;
         
         p0 = spm_softmax(b*Sp);
@@ -1425,7 +1426,7 @@ Ep.Sp = s;
 Ep.Qp = q;
 Ep.G  = diag(G);
 
-[dS,ds] = spm_NESS_ds(Sp,Ep,{x1,x2,x3});
+dS    = spm_NESS_ds(Sp,Ep);
 
 return
 

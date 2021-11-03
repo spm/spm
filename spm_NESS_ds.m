@@ -1,14 +1,13 @@
-function [dS,ds,G,Q,L] = spm_NESS_ds(Sp,P,x)
+function [dS,G,Q,L] = spm_NESS_ds(Sp,P)
 % generates changes in self-information (x)
-% FORMAT [dS,ds,G,Q,L] = spm_NESS_ds(Sp,P,x)
+% FORMAT [dS,G,Q,L] = spm_NESS_ds(Sp,P)
 %--------------------------------------------------------------------------
-% Sp      - polynomial coefficients of potential
+% Sp      - polynomial coefficients of initial potential
 % P.Qp    - polynomial coefficients of solenoidal operator
 % P.Sp    - polynomial coefficients of final potential
-% x       - range of state space
+% P.G     - amplitude of random fluctuations
 %
 % dS      - time derivative of polynomial coefficients of potential
-% ds      - time derivative of potential
 % G       - dissipation operator
 % Q       - solenoidal operator
 % L       - correction term for derivatives of solenoidal flow
@@ -22,14 +21,20 @@ function [dS,ds,G,Q,L] = spm_NESS_ds(Sp,P,x)
 
 %% get basis or expansion from x
 %==========================================================================
+n    = size(P.G,1);
+N    = 3;
+for i = 1:n
+    x{i} = linspace(-1,1,N);
+end
+
 [b,D,H] = spm_polymtx(x,3);
 [nX,nb] = size(b);
 n       = numel(x);
 
 % derivatives of flow operator Q
 %--------------------------------------------------------------------------
-Q     = zeros(nX,n,n,'like',b);
-Qp    = zeros(nb,n,n,'like',b);
+Q     = zeros(nX,n,n,'like',P.Qp);
+Qp    = zeros(nb,n,n,'like',P.Qp);
 k     = 0;
 for i = 1:n
     for j = i:n
@@ -48,18 +53,10 @@ for i = 1:n
     end
 end
 
-% flow operator G
-%--------------------------------------------------------------------------
-G     = zeros(nX,n,n,'like',b);
-for i = 1:n
-    for j = i:n
-        G(:,i,j) = P.G(i,j);
-    end
-end
 
 % correction term L
 %--------------------------------------------------------------------------
-L     = zeros(nX,n,'like',b);
+L     = zeros(nX,n,'like',P.Qp);
 for i = 1:n
     for j = 1:n
         L(:,i) = L(:,i) - D{j}*Qp(:,i,j);
@@ -68,25 +65,26 @@ end
 
 % dS potential difference
 %--------------------------------------------------------------------------
+G     = P.G;
 ds    = zeros(nX,1,'like',b);
 for i = 1:n
     
     % correction term
     %----------------------------------------------------------------------
-    ds = ds + D{i}*(P.Sp - Sp).*L(:,i);
+    ds = ds - L(:,i).*D{i}*(P.Sp - Sp);
     
     % curvature term
     %----------------------------------------------------------------------
-    ds = ds + G(:,i,i).*H{i,i}*(P.Sp - Sp);
+    ds = ds + G(i,i)*H{i,i}*(P.Sp - Sp);
     
     % curvature term
     %----------------------------------------------------------------------
-    ds = ds - G(:,i,i).*D{i}*Sp.*D{i}*(P.Sp - Sp);
+    ds = ds - G(i,i)*(D{i}*Sp).*(D{i}*(P.Sp - Sp));
     
     % solenoidal term
     %----------------------------------------------------------------------
     for j = 1:n
-        ds = ds + D{i}*Sp.*Q(:,i,j).*D{j}*Sp;
+        ds = ds + (D{i}*P.Sp).*Q(:,i,j).*(D{j}*Sp);
     end
 end
 

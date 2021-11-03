@@ -10,7 +10,7 @@ function [b,D,H,o] = spm_polymtx(x,K,FUN)
 %__________________________________________________________________________
 %
 % spm_polymtx creates a matrix for a polynomial expansion of order K - 1.
-% With a second output argument,spm_polymtx produces the derivatives.
+% With a second output argument, spm_polymtx produces the derivatives.
 %
 % b is a large prod(numel(x{i}) x K^N matrix corresponding to the Kroneckor
 % tensor product of each N-dimensional domain. This is useful for dealing

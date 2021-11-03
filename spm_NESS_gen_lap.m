@@ -43,7 +43,7 @@ if ~isstruct(x)
     if ~iscell(x)
         x = num2cell(x(:)'); 
     end
-    U   = spm_ness_U(M,x,'NOF');
+    U   = spm_ness_U(M,x);
 else
     U = x;
 end

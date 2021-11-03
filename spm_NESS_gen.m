@@ -75,7 +75,10 @@ end
 %% get basis or expansion from M.X (or M.x)
 %--------------------------------------------------------------------------
 if nargin < 3 || ~isstruct(U)
-    U    = spm_ness_U(M);
+    if isfield(M,'f')
+        M = rmfield(M,'f');
+    end
+    U     = spm_ness_U(M);
 end
 
 % dimensions and correction terms to flow operator

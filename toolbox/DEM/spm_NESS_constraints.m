@@ -17,14 +17,14 @@ function [ks,kq,kg,kh] = spm_NESS_constraints(o,A,K,L)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_NESS_constraints.m 8153 2021-09-17 17:10:56Z spm $
+% $Id: spm_NESS_constraints.m 8179 2021-11-03 19:31:30Z karl $
 
 % constraints on potential parameters due to dissipative flow
 %--------------------------------------------------------------------------
 [n,nb] = size(o);                            % number of basis functions
 
 ks    = sum(o) > K;                          % polynomial order constraints
-ks    = ks | ~sum(o);                         % suppress constant
+ks    = ks | ~sum(o);                        % suppress constant
 for i = 1:n
     for j = 1:n
         if ~A(i,j)

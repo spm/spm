@@ -1,23 +1,22 @@
-function U = spm_ness_U(M,x,NOF)
+function U = spm_ness_U(M,x)
 % nonequilibrium steady-state under a Helmholtz decomposition
-% FORMAT U = spm_ness_U(M,x,[NOF])
+% FORMAT U = spm_ness_U(M,x)
 %--------------------------------------------------------------------------
 % M   - model specification structure
 % Required fields:
-%    M.f   - dx/dt   = f(x,u,P)  {function string or m-file}
-%    M.pE  - P       = parameters of equation of motion
+%   [M.f   - dx/dt   = f(x,u,P)  {function string or m-file}]
+%   [M.pE  - P       = parameters of equation of motion]
 %    M.x   - (n x 1) = x(0) = expansion point
 %    M.W   - (n x n) - precision matrix of random fluctuations
 %    M.X   - sample points
 %    M.K   - order of polynomial expansion
 %
 % x       - sample points
-% NOF     - optional flag to omit evaluation of function and Jacobian
 %
 % U.x     - domain
 % U.X     - sample points
-% U.f     - expected flow at sample points
-% U.J     - Jacobian at sample points
+% [U.f    - expected flow at sample points]
+% [U.J    - Jacobian at sample points]
 % U.b     - polynomial basis
 % U.D     - derivative operator
 % U.G     - amplitude of random fluctuations
@@ -35,11 +34,9 @@ function U = spm_ness_U(M,x,NOF)
 
 % event space: get or create X - coordinates of evaluation grid
 %--------------------------------------------------------------------------
-if nargin > 2,       NOF = true;  else, NOF = false;  end
 if isfield(M,'FUN'), FUN = M.FUN; else, FUN = 'POLY'; end
-K   = 3;
-if isfield(M,'K'),   K   = M.K;        end
-if isfield(M,'L'),   K   = max(K,M.L); end
+if isfield(M,'K'),   K   = M.K;   else, K = 3;        end
+if isfield(M,'L'),   K   = max(K,M.L);                end
 
 if nargin < 2
     
@@ -73,6 +70,7 @@ else
     [X,x]     = spm_ndgrid(x);
     [b,D,H,o] = spm_polymtx(x,K,FUN);
     [nX,n]    = size(X);
+    
 end
 
 % size of subspace (nx)
@@ -107,7 +105,7 @@ end
 X     = full(X);
 f     = zeros(n,nX,'like',X);
 J     = zeros(n,n,nX,'like',X);
-if ~NOF
+if isfield(M,'f')
     for i = 1:nX
         
         % Jacobian at this point in state space
@@ -122,6 +120,9 @@ if ~NOF
         f(:,i)   = full(F);
 
     end
+else
+    f = [];
+    J = [];
 end
 
 % orders of polynomial expansion

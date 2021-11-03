@@ -27,7 +27,7 @@ function NESS = spm_ness_hd(M,x)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ness_hd.m 8099 2021-05-04 10:43:50Z karl $
+% $Id: spm_ness_hd.m 8179 2021-11-03 19:31:30Z karl $
 
 
 % event space: get or create X - coordinates of evaluation grid
@@ -96,7 +96,7 @@ if ~isfield(M,'L'),    M.L   = 3; end
 if ~isfield(M,'DIS'),  M.DIS = 1; end
 if ~isfield(M,'HES'),  M.HES = 0; end
 
-% get indices of constraintsfor this polynomial expansion
+% get indices of constraints for this polynomial expansion
 %--------------------------------------------------------------------------
 [ks,kq,kg,kh] = spm_NESS_constraints(o,any(J,3),M.K,M.L);
 

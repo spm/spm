@@ -26,7 +26,7 @@ function DEM_FEP_Lorenz
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_FEP_Lorenz.m 7679 2019-10-24 15:54:07Z spm $
+% $Id: DEM_FEP_Lorenz.m 8179 2021-11-03 19:31:30Z karl $
 
 % generative model
 %==========================================================================                       % switch for demo
@@ -43,7 +43,7 @@ dt    = 1/64;                         % time step
 T     = 512;                          % length of trajectory
 N     = 2^13;                         % number of paths 
 P     = [10; -8/3; 28];               % Rayleigh parameter (28 or 8)
-g     = exp(0);                      % random fluctuations
+g     = exp(-4);                      % random fluctuations
 
 % initial states
 %--------------------------------------------------------------------------
@@ -118,7 +118,7 @@ for t = 1:4
     
     % plot
     %----------------------------------------------------------------------
-    subplot(3,4,t),imagesc(b1,b2,1- spm_conv(p',2,2))
+    subplot(3,4,t),imagesc(b1,b2,1 - spm_conv(p',2,2))
     axis square, axis xy
     title('Predictive density')
     xlabel('active state'),ylabel('external state'),drawnow
