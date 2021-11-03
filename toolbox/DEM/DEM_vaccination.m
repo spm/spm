@@ -13,7 +13,7 @@ function Tab = DEM_vaccination
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_vaccination.m 8153 2021-09-17 17:10:56Z spm $
+% $Id: DEM_vaccination.m 8178 2021-11-03 19:27:23Z karl $
 
 
 % sent plotting colours for overlay (with without interventions)
@@ -723,4 +723,93 @@ for i = 1:nu
 end
 
 return
+
+%% scenario modelling for relaxing restrictions on 1 november 2021
+%==========================================================================
+clear
+DCM = load('DCM_UK.mat','DCM');
+DCM = DCM.DCM;
+
+% parametric intervention (relaxation social distancing threshold)
+%==========================================================================
+period = {DCM.M.date,'01-08-2022'};          % duration of epidemic
+
+% scenario: relaxation of restrictions on 21st of June
+%--------------------------------------------------------------------------
+NPI(1).period = period;
+NPI(1).param  = {'sde'};
+NPI(1).Q      = exp(DCM.Ep.sde + 2);
+NPI(1).dates  = {'01-11-2021','01-12-2021',};
+
+% unpack model and posterior expectations
+%--------------------------------------------------------------------------
+M   = DCM.M;                                 % model (priors)
+Ep  = DCM.Ep;                                % posterior expectation
+Cp  = DCM.Cp;                                % posterior covariances
+S   = DCM.Y;                                 % smooth timeseries
+U   = DCM.U;                                 % indices of outputs
+
+% plot epidemiological trajectories and hold plots
+%==========================================================================
+spm_figure('GetWin','states'); clf;
+%--------------------------------------------------------------------------
+M.T    = datenum(period{2},'dd-mm-yyyy') - datenum(period{1},'dd-mm-yyyy');
+u      = 2;
+[Z,X]  = spm_SARS_gen(Ep,M,u);
+spm_SARS_plot(Z,X,S(:,find(U == u)),u)
+
+% the effect of intervention (NPI) on latent states
+%--------------------------------------------------------------------------
+u     = 2;
+for i = 1:numel(NPI)
+    for j = 1:2, subplot(3,2,j), hold on, end
+    for j = 5:12,subplot(6,2,j), hold on, end
+    
+    [Z,X] = spm_SARS_gen(Ep,M,u,NPI(i));
+    spm_SARS_plot(Z,X,S(:,find(U == u)),u)
+end
+
+
+%% confidence intervals: fatalities (u = 1), cases (u = 2), retail (u = 14)
+% admissions (u = 16) and Long COVID (u = 28)
+%--------------------------------------------------------------------------
+spm_figure('GetWin','outcomes'); clf;
+%--------------------------------------------------------------------------
+u  = [1 2 14 16 28 32];
+nu = numel(u);
+
+for j = 1:numel(NPI)
+    for i = 1:nu
+
+        subplot(nu,1,i), hold on
+        [m1,c1] = spm_SARS_ci(Ep,Cp,S(:,find(U == u(i),1)),u(i),M);
+        subplot(nu,1,i), hold on
+        [m2,c2] = spm_SARS_ci(Ep,Cp,S(:,find(U == u(i),1)),u(i),M,NPI(j));
+        
+        plot([1 1]*datenum(NPI(j).dates{1},'dd-mm-yyyy'),get(gca,'YLim'),':k')
+        plot([1 1]*datenum(NPI(j).dates{2},'dd-mm-yyyy'),get(gca,'YLim'),':k')
+
+        k      = datenum(NPI(j).dates{1},'dd-mm-yyyy') - datenum(period{1},'dd-mm-yyyy');
+        e1     = m1(end) - m1(k);
+        e2     = m2(end) - m2(k);
+        d(i,j) = e2 - e1;
+         
+        xlabel(sprintf('Date [difference: %.0f (%.2f%s)]',-d(i,j), -100*d(i,j)/e1, '%'))
+    end
+end
+
+% hospital admissions
+%--------------------------------------------------------------------------
+clc
+dif = -d(4,1);
+sprintf('hospital admissions: %.0f x £50,000 = £%.2fM',dif, dif*50000/1e6)
+
+% Gross domestic product
+%--------------------------------------------------------------------------
+dif = -d(6,1)/(M.T - k);   % percent GDP loss per day for this quarter
+sprintf('Quarterly GDP: %.2f%s x £500B = £%.2fB',dif, '%', 500*dif/100)
+
+
+return
+
 

@@ -14,7 +14,7 @@ function DCM = DEM_COVID_WID
 % containment, resistance to infection and so on. The remaining model
 % parameters are assumed to be conserved over countries and are based on
 % posterior estimates derived from comprehensive timeseries data from the
-% United Kingdom. The between countryanalyses are based upon available
+% United Kingdom. The between country analyses are based upon available
 % timeseries from Our World in Data
 %
 % The predictive validity of this modelling is established in terms of the
@@ -35,7 +35,7 @@ function DCM = DEM_COVID_WID
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_WID.m 8173 2021-10-25 10:31:35Z karl $
+% $Id: DEM_COVID_WID.m 8178 2021-11-03 19:27:23Z karl $
 
 % set up and preliminaries
 %==========================================================================

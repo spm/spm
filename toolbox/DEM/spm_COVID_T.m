@@ -22,7 +22,7 @@ function [T,R] = spm_COVID_T(P,I)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_T.m 8173 2021-10-25 10:31:35Z karl $
+% $Id: spm_COVID_T.m 8178 2021-11-03 19:27:23Z karl $
 
 % setup
 %==========================================================================
@@ -138,7 +138,6 @@ b    = cell(1,dim(2));
 
 Ptin = P.tin;                              % P(no transmission) | home
 Ptou = P.tou;                              % P(no transmission) | work
-Pths = P.ths;                              % P(no transmission) | hospital
 
 Kimm = exp(-1/P.Tim);                      % loss of Ab+ immunity (per day)
 Kinn = exp(-1/P.Tnn);                      % loss of Ab- immunity (per day)
@@ -147,7 +146,7 @@ Kvac = exp(-1/P.vac);                      % Loss of Ab+ vaccine  (per day)
 Kinf = exp(-1/P.Tin);                      % infection rate
 Kcon = exp(-1/P.Tcn);                      % infectious rate
 Pres = 1 - P.res;                          % non-resistant proportion
-Pvef = P.vef;                              % vaccination: Infection risk 
+Pvef = erf(P.vef);                         % vaccination: Infection risk 
 Prev = P.ves*Pres;                         % vaccination: Infectious risk
 
 Pnac = P.nac;                              % 1 - vaccination rate
@@ -195,24 +194,15 @@ b{3} = [Ptin*Pnac        0                     0          0              (1 - Ki
 
 % marginal: infection {2} | removed {1}(4)
 %--------------------------------------------------------------------------
-b{4}      = b{3};
+b{4} = b{3};
 
 % marginal: infection {2} | isolated {1}(5)
 %--------------------------------------------------------------------------
-b{5}      = b{3};
+b{5} = b{3};
 
 % marginal: infection {2} | hospital {1}(6)
 %--------------------------------------------------------------------------
-Ptin = Pths;
-Pinv = (1 - Ptin)*Pvef;
-b{6} = [Ptin*Pnac        0                     0          0              (1 - Kinn)*Pnac  0                     0                     0; 
-        (1 - Ptin)*Pnac  Kinf                  0          0               0               0                     0                     0;
-        0               (1 - Kinf)*Pres        Kcon       0               0               0                     0                     0;
-        0                0                    (1 - Kcon)  Kimm*Pnac       0               0                     0                     0;
-        0               (1 - Kinf)*(1 - Pres)  0         (1 - Kimm)*Pnac  Kinn*Pnac      (1 - Pinv)*(1 - Kvac)  0                     0;
-        Rvac             0                     0          Rvac            Rvac           (1 - Pinv)*Kvac       (1 - Kinf)*(1 - Prev) (1 - Kcon);
-        0                0                     0          0               0               Pinv                  Kinf                  0
-        0                0                     0          0               0               0                    (1 - Kinf)*Prev        Kcon];
+b{6} = b{3};
     
 % kroneckor form
 %--------------------------------------------------------------------------

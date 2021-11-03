@@ -80,7 +80,7 @@ function [y,x,z,W] = spm_SARS_gen(P,M,U,NPI,age)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_gen.m 8173 2021-10-25 10:31:35Z karl $
+% $Id: spm_SARS_gen.m 8178 2021-11-03 19:27:23Z karl $
 
 
 % The generative model:
@@ -193,10 +193,10 @@ param = fieldnames(P);
 nN    = numel(P.N);
 N     = zeros(nN,1);
 
-% impose symmetry constraints on contact matrices
-%--------------------------------------------------------------------------
-P.Nin = (P.Nin + P.Nin')/2;
-P.Nou = (P.Nou + P.Nou')/2;
+% % impose symmetry constraints on contact matrices
+% %------------------------------------------------------------------------
+% P.Nin = (P.Nin + P.Nin')/2;
+% P.Nou = (P.Nou + P.Nou')/2;
 
 % Create group specific cell arrays of parameters
 %--------------------------------------------------------------------------
@@ -357,23 +357,18 @@ for i = 1:M.T
         % probability of lockdown (a function of prevalence)
         %------------------------------------------------------------------
         qp   = 0;
-        qs   = 0;
         for j = 1:nN
-            qp   = qp + (p{j}{2}(3) + p{j}{2}(8))*N(j);
-            qs   = qs +  p{j}{2}(1)*N(j);
-            
+            qp = qp + (p{j}{2}(3) + p{j}{2}(8))*N(j);
         end
-        qp   = qp/sum(N);                         % prevalence
-        qs   = qs/sum(N);                         % susceptible
-        
-        k1   = Q{n}.sde*qp*(qs^Q{n}.pro);         % contact rates
-        k2   = exp(-1/Q{n}.qua);                  % relaxation
+        qp   = Q{n}.sde*qp/sum(N);                % prevalence
+        k1   = exp(-i/(Q{n}.pro))*qp;             % contact rates
+        k2   = exp(-1/(Q{n}.qua));                % relaxation
         r{n} = [(1 - k1) (1 - k2);
                      k1,      k2]*r{n};
         
         Pout     = r{n}(1)^Q{n}.s;                % P(going out)
         Pout     = Pout*exp(Rout);                % add fluctuations
-        Q{n}.out = Pout*R{n}.out;                 % scale by baseline
+        Q{n}.out = erf(Pout*R{n}.out);            % scale by baseline
         
         % seasonal variation in transmission risk
         %------------------------------------------------------------------
@@ -398,30 +393,26 @@ for i = 1:M.T
         %------------------------------------------------------------------
         tin  = 1;
         tou  = 1;
-        ths  = 1;
         for j = 1:nN
             q   = spm_sum(x{j},[3 4]);
+            
             pin = q(1,:)/sum(q(1,:) + eps);      % P(infection | home)
             pou = q(2,:)/sum(q(2,:) + eps);      % P(infection | work)
-            phs = q(6,:)/sum(q(6,:) + eps);      % P(infection | hospital)
             
             pin = pin(3) + pin(8);               % P(infectious | home)
             pou = pou(3) + pou(8);               % P(infectious | work)
-            phs = phs(3) + phs(8);               % P(infectious | hospital)
             
             tin = tin*(1 - Ptrn*pin)^Q{n}.Nin(j);
             tou = tou*(1 - Ptrn*pou)^Q{n}.Nou(j);
-            ths = ths*(1 - Ptrn*phs)^Q{n}.Nin(j);
         end
         
         Q{n}.tin = min(tin,1);          % P(no transmission | home)
         Q{n}.tou = min(tou,1);          % P(no transmission | work)
-        Q{n}.ths = min(ths,1);          % P(no transmission | hospital)
         
         % vaccination rollout: nac = 1 - vaccination rate
         %------------------------------------------------------------------
         Rvac     = Q{n}.rol(1)*(1 + erf((i - Q{n}.rol(2))/Q{n}.rol(3))) + ...
-            Q{n}.fol(1)*(1 + erf((i - Q{n}.fol(2))/Q{n}.fol(3)));
+                   Q{n}.fol(1)*(1 + erf((i - Q{n}.fol(2))/Q{n}.fol(3)));
         
         Q{n}.nac = 1 - Rvac;
         
@@ -515,29 +506,29 @@ for i = 1:M.T
         %------------------------------------------------------------------
         Y{n}(i,12) = N(n) * p{n}{3}(2);
         
+        
         % mobility (% normal)
         %------------------------------------------------------------------
-        q = Q{n}.out/W{n}(1).Pout;
+        q     = 1 - Q{n}.out/W{n}(1).Pout;
         if isfield(Q{n},'mo')
-            q = q^Q{n}.mo;
+            g = Q{n}.mo(1)*q^(Q{n}.mo(2));
         end
-        Y{n}(i,13) = 100 * q;
+        Y{n}(i,13) = 100 * (1 - real(g));
         
         % work (% normal)
         %------------------------------------------------------------------
-        q = Q{n}.out/W{n}(1).Pout;
         if isfield(Q{n},'wo')
-            q = q^Q{n}.wo;
+            g = Q{n}.wo(1)*q^(Q{n}.wo(2));
         end
-        Y{n}(i,14) = 100 * q;
+        Y{n}(i,14) = 100 * (1 - real(g));
         
         % gross domestic product (% 2018)
         %------------------------------------------------------------------
-        q = Q{n}.out/W{n}(1).Pout;
         if isfield(Q{n},'gd')
-           q = 1 + Q{n}.gd(1)*(exp(-Q{n}.gd(2)) - exp(-Q{n}.gd(2)*q));
+            g = Q{n}.gd(1)*q^(Q{n}.gd(2));
         end
-        Y{n}(i,32) = 100 * q;
+        Y{n}(i,32) = 100 * (1 - real(g));
+        
         
         % certified deaths per day
         %------------------------------------------------------------------

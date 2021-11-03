@@ -37,7 +37,7 @@ function [P,C,str] = spm_SARS_priors(nN)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_priors.m 8173 2021-10-25 10:31:35Z karl $
+% $Id: spm_SARS_priors.m 8178 2021-11-03 19:27:23Z karl $
 
 % sources and background
 %--------------------------------------------------------------------------
@@ -55,6 +55,8 @@ function [P,C,str] = spm_SARS_priors(nN)
 % https://royalsociety.org/-/media/policy/projects/set-c/set-covid-19-R-estimates.pdf
 % https://arxiv.org/abs/2006.01283
 %--------------------------------------------------------------------------
+% https://pubmed.ncbi.nlm.nih.gov/33948610/
+%--------------------------------------------------------------------------
 
 % priors for multiple age groups
 %==========================================================================
@@ -63,7 +65,7 @@ if nargin
     % priors for single group
     %----------------------------------------------------------------------
     [P,C,str] = spm_SARS_priors;
-    free  = {'N','Nin','Nou','mem','qua','hos','ccu','res','Trd',...
+    free  = {'N','Nin','Nou','mem','qua','hos','ccu',...
              'sev','lat','fat','sur','tes','tts','rol','lnk'};
 
     if nN == 1
@@ -200,6 +202,22 @@ if nargin
         C.Nin = (exp(P.Nin) > 0)*C.Nin(1);
         C.Nou = (exp(P.Nou) > 0)*C.Nou(1);
         
+%         % contact matrices: number of contacts per day
+%         % https://www.researchgate.net/figure/Social-contact-matrices-Values-and-colours-show-the-mean-number-of-contacts-per-day_fig4_221698133
+%         %------------------------------------------------------------------
+%         P.Nin = log([1.9    1.4   3.7   0.1;
+%                      0.5    4.7   3.3   0.4;
+%                      0.4    0.8   3.3   0.5;
+%                      0.1    0.2   1.6   0.7]'/2);
+%         
+%         P.Nou = log([6.5    1.8   7.0   0.1;
+%                      1.0   11.6  11.7   0.6;
+%                      1.3    2.3  15.0   1.1;
+%                      0.1    0.4   5.7   1.4]');
+%         
+%         C.Nin = (exp(P.Nin) > 0)*exp(-6);
+%         C.Nou = (exp(P.Nou) > 0)*exp(-6);
+        
         return
     end
     
@@ -261,7 +279,7 @@ names{37} = 'testing: onset';
 
 names{38} = 'reporting lag';
 names{39} = 'seasonal phase';
-names{40} = 'unlocking time constant';
+names{40} = 'vaccination delay (days)';
 names{41} = 'vaccination rollout (1st)';
 names{42} = 'vaccination rollout (2nd)';
 
@@ -277,7 +295,7 @@ names{49} = 'loss of T-cell immunity';
 names{50} = 'LFD specificity';
 names{51} = 'LFD sensitivity';
 names{52} = 'PCR testing of fatalities';
-names{53} = 'contact rate exponent';
+names{53} = 'contact rate decay (days)';
 names{54} = 'survival risk in care homes';
 
 % latent or hidden factors
@@ -379,7 +397,7 @@ P.qua = 64;                   % (08) time constant of unlocking
 P.exp = 0.02;                 % (09) viral spreading (rate)
 P.hos = 1;                    % (10) admission rate (hospital) [erf]
 P.ccu = 0.1;                  % (11) admission rate (CCU)
-P.s   = 2;                    % (12) exponent of contact rates
+P.s   = 1;                    % (12) exponent of contact rates
 
 % infection (transmission) parameters
 %--------------------------------------------------------------------------
@@ -389,7 +407,7 @@ P.trn = 0.2;                  % (15) transmission strength (secondary attack rat
 P.trm = 0.04;                 % (16) seasonality
 P.Tin = 3;                    % (17) infected period (days)
 P.Tcn = 4.5;                  % (18) infectious period (days)
-P.Tim = 128;                  % (19) seropositive immunity: lateral (days)
+P.Tim = 128;                  % (19) seropositive immunity: natural (days)
 P.res = 0.2;                  % (20) seronegative proportion (late)
 
 % clinical parameters
@@ -419,28 +437,23 @@ P.ons = [100 200 300 400];    % (37) testing: onset
 
 P.lag = [1 1];                % (38) reporting lag
 P.inn = 1;                    % (39) seasonal phase
-P.mem = 32;                   % (40) unlocking time constant
+P.mem = 32;                   % (40) vaccination delay (days)
 P.rol = [exp(-16) 365 32];    % (41) vaccination rollout (1st)
 P.fol = [exp(-16) 512 32];    % (42) vaccination rollout (2nd)
 
 P.vef = 0.4;                  % (43) 1 - vaccine efficacy: infection
-P.lnk = 0.18;                 % (44) 1 - vaccine efficacy: pathogenicity
+P.lnk = 0.2;                  % (44) 1 - vaccine efficacy: pathogenicity
 P.ves = 0.1;                  % (45) 1 - vaccine efficacy: transmission
-P.lnf = 0.09;                 % (46) 1 - vaccine efficacy: fatality
-
-% P.vef = 0.536;                % (43) 1 - vaccine efficacy: infection
-% P.lnk = 0.143;                % (44) 1 - vaccine efficacy: pathogenicity
-% P.ves = 0.388;                % (45) 1 - vaccine efficacy: transmission
-% P.lnf = 0.039;                % (46) 1 - vaccine efficacy: fatality
+P.lnf = 0.05;                 % (46) 1 - vaccine efficacy: fatality
 
 P.con = 0.2;                  % (47) LFD confirmation
 P.iso = 8.0;                  % (48) self-isolation (days)
-P.Tnn = 512;                  % (49) loss of T-cell immunity (days)
+P.Tnn = 256;                  % (49) loss of T-cell immunity (days)
 
 P.lnr = 0.46;                 % (50) LFD sensitivity
 P.lpr = 0.0002;               % (51) LFD specificity
 P.rel = 0.9;                  % (52) PCR testing of fatalities
-P.pro = 1;                    % (53) contact rate exponent
+P.pro = 128;                  % (53) contact rate decay (days)
 P.oth = 0.1;                  % (54) relative survival outside hospital
 
 
@@ -471,7 +484,7 @@ C.qua = W;                    % (08) time constant of unlocking
 C.exp = W;                    % (09) viral spreading (rate)
 C.hos = W;                    % (10) admission rate (hospital)
 C.ccu = W;                    % (11) admission rate (CCU)
-C.s   = W;                    % (12) decay of social distancing
+C.s   = 0;                    % (12) decay of social distancing
 
 % infection (transmission) parameters
 %--------------------------------------------------------------------------
@@ -481,7 +494,7 @@ C.trn = X;                    % (16) transmission strength
 C.trm = W;                    % (15) seasonality
 C.Tin = Z;                    % (17) infected period (days)
 C.Tcn = Z;                    % (18) infectious period (days)
-C.Tim = X;                    % (19) seropositive immunity (months)
+C.Tim = X;                    % (19) seropositive immunity (days)
 C.res = X;                    % (20) seronegative immunity (proportion)
 
 % clinical parameters
@@ -510,7 +523,7 @@ C.ons = U;                    % (37) testing: onset (days)
 
 C.lag = V;                    % (38) reporting lag
 C.inn = V;                    % (39) seasonal phase
-C.mem = W;                    % (40) unlocking time constant
+C.mem = W;                    % (40) vaccination delay (days)
 C.rol = X;                    % (41) vaccination rollout (1st)
 C.fol = X;                    % (42) vaccination rollout (2nd)
 
@@ -526,7 +539,7 @@ C.Tnn = Z;                    % (49) loss of T-cell immunity (days)
 C.lnr = X;                    % (50) LFD sensitivity
 C.lpr = X;                    % (51) LFD specificity
 C.rel = W;                    % (52) PCR testing of fatalities
-C.pro = W;                    % (53) contact rate exponent
+C.pro = W;                    % (53) contact rate decay (days)
 C.oth = W;                    % (54) relative survival outside hospital
 
 % check prior expectations and covariances are consistent

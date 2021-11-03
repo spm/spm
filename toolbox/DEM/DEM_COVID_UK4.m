@@ -14,7 +14,7 @@ function DCM = DEM_COVID_UK4
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_UK4.m 8173 2021-10-25 10:31:35Z karl $
+% $Id: DEM_COVID_UK4.m 8178 2021-11-03 19:27:23Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -32,8 +32,6 @@ close all
 clc
 spm_figure('GetWin','SI'); clf;
 cd('C:\Users\karl\Dropbox\Coronavirus\Dashboard')
-
-UK4 = false;
 
 % Files to be updated by hand
 %--------------------------------------------------------------------------
@@ -125,7 +123,7 @@ writetable(agevaccine,'agevaccine.csv')
 % get (cumulative) admissions by age (England)
 %----------------------------------------------------------------------
 url   = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=nation&areaCode=E92000001&metric=cumAdmissionsByAge&format=csv';
-tab   = webread(url,options);
+tab   = webread(url);
 vnames = tab.Properties.VariableNames;
 aa     = find(ismember(vnames,'age'));
 ad     = find(ismember(vnames,'date'));
@@ -377,7 +375,7 @@ Y(13).Y    = transport.data(:,1)*100;
 Y(13).date = datenum(transport.textdata(2:end,1),'dd-mmm-yyyy');
 Y(13).h    = 0;
 Y(13).lag  = 0;
-Y(13).age  = 0;
+Y(13).age  = 3;
 Y(13).hold = 1;
 
 Y(14).type = 'Mobility (GOV/Google)'; % retail and recreation (percent)
@@ -388,7 +386,7 @@ Y(14).date = [datenum(mobility20.textdata(2:end,1),'yyyy-mm-dd') ;
 Y(14).Y    = [mobility20.data(:,1); mobility21.data(:,1)] + 100;
 Y(14).h    = 0;
 Y(14).lag  = 0;
-Y(14).age  = 0;
+Y(14).age  = 2;
 Y(14).hold = 0;
 
 % scaling for data from England and Wales 
@@ -584,7 +582,7 @@ Y(31).unit = 'percent';
 Y(31).U    = 11;
 Y(31).date = datenum(surveyage.textdata(2:end,1),'dd/mm/yyyy');
 Y(31).Y    = surveyage.data(:,j(1:2))*phe{1};
-Y(31).h    = 4;
+Y(31).h    = 2;
 Y(31).lag  = 0;
 Y(31).age  = 1;
 Y(31).hold = 1;
@@ -594,7 +592,7 @@ Y(32).unit = 'percent';
 Y(32).U    = 11;
 Y(32).date = datenum(surveyage.textdata(2:end,1),'dd/mm/yyyy');
 Y(32).Y    = surveyage.data(:,j(3:4))*phe{2};
-Y(32).h    = 4;
+Y(32).h    = 2;
 Y(32).lag  = 0;
 Y(32).age  = 2;
 Y(32).hold = 1;
@@ -604,7 +602,7 @@ Y(33).unit = 'percent';
 Y(33).U    = 11;
 Y(33).date = datenum(surveyage.textdata(2:end,1),'dd/mm/yyyy');
 Y(33).Y    = surveyage.data(:,j(5:6))*phe{3};
-Y(33).h    = 4;
+Y(33).h    = 2;
 Y(33).lag  = 0;
 Y(33).age  = 3;
 Y(33).hold = 1;
@@ -614,7 +612,7 @@ Y(34).unit = 'percent';
 Y(34).U    = 11;
 Y(34).date = datenum(surveyage.textdata(2:end,1),'dd/mm/yyyy');
 Y(34).Y    = surveyage.data(:,j(7))*phe{4};
-Y(34).h    = 4;
+Y(34).h    = 2;
 Y(34).lag  = 0;
 Y(34).age  = 4;
 Y(34).hold = 0;
@@ -668,9 +666,9 @@ Y(39).unit = 'percent';
 Y(39).U    = 32;
 Y(39).date = datenum(gdp.textdata(2:end,1),'dd/mm/yyyy');
 Y(39).Y    = gdp.data;
-Y(39).h    = -2;
+Y(39).h    = 0;
 Y(39).lag  = 0;
-Y(39).age  = 0;
+Y(39).age  = 3;
 Y(39).hold = 0;
 
 
@@ -690,12 +688,12 @@ pC.N    = spm_zeros(pE.N);
 
 % age-specific
 %--------------------------------------------------------------------------
-pE.mo   = 0;                   % exponent for mobility
-pC.mo   = 8;                   % prior variance
-pE.wo   = 0;                   % exponent for retail activity
-pC.wo   = 8;                   % prior variance
-pE.gd   = [0 2];               % exponent for gross domestic product
-pC.gd   = [8 8];               % prior variance
+pE.mo   = [ 0 1];              % coefficients for transport
+pC.mo   = ones(1,2);           % prior variance
+pE.wo   = [ 0 0];              % coefficients for workplace
+pC.wo   = ones(1,2);           % prior variance
+pE.gd   = [-1 1];              % coefficients gross domestic product
+pC.gd   = ones(1,2);           % prior variance
 
 % augment priors with fluctuations
 %--------------------------------------------------------------------------
@@ -704,22 +702,10 @@ j       = ceil((datenum(date) - datenum(M.date))/48);
 k       = ceil((datenum(date) - datenum(M.date))/64);
 pE.tra  = zeros(1,k);          % increases in transmission strength
 pC.tra  = ones(1,k)/8;         % prior variance
-
 pE.pcr  = zeros(1,j);          % testing
 pC.pcr  = ones(1,j)/8;         % prior variance
-
-if UK4
-    pE.mob  = zeros(nN,i);     % mobility
-    pC.mob  = ones(nN,i)/64;   % prior variance
-    
-    pE.sde  = pE.sde(1);
-    pE.qua  = pE.qua(1);
-    pC.sde  = pC.sde(1);
-    pC.qua  = pC.qua(1);
-else
-    pE.mob  = zeros(1,i);      % mobility
-    pC.mob  = ones(1,i)/64;    % prior variance
-end
+pE.mob  = zeros(1,i);          % mobility
+pC.mob  = ones(1,i)/32;        % prior variance
 
 % reporting lags
 %--------------------------------------------------------------------------
@@ -944,7 +930,7 @@ i       = find(DCM.U == 14,1); D = DCM.Y(:,i);
 u1   = datenum('10-May-2020','dd-mmm-yyyy') - t(1) + 1;
 u2   = datenum('10-Aug-2020','dd-mmm-yyyy') - t(1) + 1;
 u3   = datenum('10-Sep-2020','dd-mmm-yyyy') - t(1) + 1;
-U    = sort([0 q(u1) q(u2) q(u3)]); U(end) = 95;
+U    = sort([0 q(u1) q(u2) q(u3)]); U(end) = 90;
 dstr = datestr(t,'dd-mmm');
 
 % loop over levels
@@ -1017,13 +1003,12 @@ str = sprintf('Prevalence and reproduction ratio (%s): R = %.2f (CI %.2f to %.2f
 
 % attack rate, herd immunity and herd immunity threshold
 %--------------------------------------------------------------------------
-E         = 1 - mean(exp(Ep.ves));
 [H,~,~,R] = spm_SARS_gen(Ep,M,[4 29 26]);
 i         = 8:32;                           % pre-pandemic period
 TRN       = [R{1}.Ptrn];                    % transmission risk
-R0        = mean(H(i,1));                   % basic reproduction ratio
+R0        = max(H(i,1));                    % basic reproduction ratio
 RT        = R0*TRN(:)/mean(TRN(i));         % effective reproduction ratio
-HIT       = 100 * (1 - 1./RT)/E;            % herd immunity threshold
+HIT       = 100 * (1 - 1./RT);            % herd immunity threshold
 VAC       = H(:,2);                         % percent of people vaccinated
 
 % Add R0
@@ -1051,13 +1036,9 @@ subplot(2,1,2)
 spm_SARS_ci(Ep,Cp,[],25,M); hold on
 spm_SARS_ci(Ep,Cp,[],26,M); hold on
 
-
-
 % effective immunity threshold at 80% contact rates
 %--------------------------------------------------------------------------
 plot(t,HIT,t,VAC), hold on
-% hit  = 100 * (1 - 1./(RT * .8))/E;            
-% plot(t,hit,'r-.',get(gca,'XLim'),[100 100],':k'), hold on
 plot(get(gca,'XLim'),[100 100],':k')
 plot(datenum(date,'dd-mm-yyyy')*[1,1],[0 100],':k')
 ylabel('percent'),  title('Attack rate and immunity','FontSize',14)
@@ -1072,9 +1053,9 @@ legend boxoff
 q   = Ep.vef(end);
 d   = spm_unvec(diag(Cp),Ep);
 d   = sqrt(d.vef(end))*1.64;
-qE  = 100*(1 - exp(q));
-qL  = 100*(1 - exp(q + d));
-qU  = 100*(1 - exp(q - d));
+qE  = 100*(1 - erf(exp(q)));
+qL  = 100*(1 - erf(exp(q + d)));
+qU  = 100*(1 - erf(exp(q - d)));
 fprintf('preventing infection: %.1f%s (CI %.1f to %.1f)\n',qE,'%',qL,qU)
 q   = Ep.ves(end);
 d   = spm_unvec(diag(Cp),Ep);
@@ -1109,7 +1090,7 @@ disp(' ')
 q      = (mean(exp(Ep.Tin)) + mean(exp(Ep.Tcn))*mean(exp(Ep.ves))) /...
          (mean(exp(Ep.Tin)) + mean(exp(Ep.Tcn)));
 
-infect = mean(exp(Ep.vef));
+infect = mean(erf(exp(Ep.vef)));
 mild   = q*infect;
 severe = mean(exp(Ep.lnk))*mild;
 death  = mean(exp(Ep.lnf))*severe;
@@ -1159,15 +1140,10 @@ savefig(gcf,'Fig7')
 %--------------------------------------------------------------------------
 Tab = spm_COVID_table(Ep,Cp,M)
 
-if UK4
-    save('DCM_UK4.mat','DCM')
-    cd('C:\Users\karl\Dropbox\Coronavirus')
-    save('DCM_UK4.mat','DCM')
-else
-    save('DCM_UK.mat','DCM')
-    cd('C:\Users\karl\Dropbox\Coronavirus')
-    save('DCM_UK.mat','DCM')
-end
+save('DCM_UK.mat','DCM')
+cd('C:\Users\karl\Dropbox\Coronavirus')
+save('DCM_UK.mat','DCM')
+
 
 return
 
@@ -1335,6 +1311,7 @@ Ep  = DCM.Ep;                                % posterior expectation
 Cp  = DCM.Cp;                                % posterior covariances
 S   = DCM.Y;                                 % smooth timeseries
 U   = DCM.U;                                 % indices of outputs
+A   = DCM.A;                                 % age cohort
 
 % plot epidemiological trajectories and hold plots
 %==========================================================================
@@ -1342,15 +1319,17 @@ spm_figure('GetWin','states'); clf;
 %--------------------------------------------------------------------------
 M.T    = datenum(date) - datenum(DCM.M.date,'dd-mm-yyyy');
 M.T    = M.T + 180;                 % forecast dates
-u      = 29;                        % empirical outcome
-a      = 2;                         % age cohort (0 for everyone)
-Ep.vac = DCM.Ep.vac - 0;            % adjusted (log) parameter
+u      = 32;                        % empirical outcome
+a      = 3;                         % age cohort (0 for everyone)
+Ep.Tim = DCM.Ep.Tim + 0;            % adjusted (log) parameter
+Ep.vac = DCM.Ep.vac + 0;            % adjusted (log) parameter
+
 [Z,X]  = spm_SARS_gen(Ep,M,u,[],a); % posterior prediction
 
 % and plot
 %--------------------------------------------------------------------------
 try
-    j      = find(U == u(1));
+    j      = find(U == u & A == a);   
     spm_SARS_plot(Z,X,S(:,j(1)),u)
 catch
     spm_SARS_plot(Z,X,[],u)
