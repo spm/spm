@@ -35,7 +35,7 @@ function DCM = DEM_COVID_WID
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_WID.m 8178 2021-11-03 19:27:23Z karl $
+% $Id: DEM_COVID_WID.m 8180 2021-11-03 19:35:52Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -157,12 +157,11 @@ for r = ri
     
     % population
     %----------------------------------------------------------------------
-    N(4)    = 1e6* D(r).aged_70_older/D(r).population;
+    N(4)    = D(r).aged_70_older/100;
     s       = (1 - N(4) - 1/2)/(70 - D(r).median_age);
-    N(2)    = (70 - 15)*s;
-    N(3)    = N(2)*35/(35 + 20);
-    N(2)    = N(2) - N(3);
-    N(1)    = 1 - N(4) - N(3) - N(2);
+    N(3)    = (70 - 35)*s;
+    N(2)    = (1 - N(4) - N(3))*(35 - 15)/35;
+    N(1)    = (1 - N(4) - N(3))*(15 - 0)/35;
     pE.N    = log(N(:)*D(r).population/1e6);
     
     % initial seeding
@@ -197,16 +196,18 @@ for r = ri
     try, load DCM_OWID DCM, end
     clear M
     M.P   = pE;
-    try
-        % use previous inversion
-        %------------------------------------------------------------------
-        field = fieldnames(DCM(r).Ep);
-        for i = 1:numel(field)
-            if all(size(pE.(field{i})) == size(DCM(r).Ep.(field{i})))
-                M.P.(field{i}) = DCM(r).Ep.(field{i});
+    if r < 75
+        try
+            % use previous inversion
+            %--------------------------------------------------------------
+            field = fieldnames(DCM(r).Ep);
+            for i = 1:numel(field)
+                if all(size(pE.(field{i})) == size(DCM(r).Ep.(field{i})))
+                    M.P.(field{i}) = DCM(r).Ep.(field{i});
+                end
             end
+            disp('initialising with previous posteriors')
         end
-        disp('initialising with previous posteriors')
     end
     
     % model specification
