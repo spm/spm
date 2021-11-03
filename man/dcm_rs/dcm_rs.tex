@@ -123,7 +123,7 @@ Once you have specified and estimated the GLM, here is now a step-by-step exampl
  \item Select 'Region of Interest' $>$ Mask Image
  \item Image file: select \texttt{mask.nii} (in \texttt{GLM} folder)
  \item Expression: \texttt{i1\&i2}
- \item Now you should be able to press the green arrow button. This would extract the WM time series and save this as  \texttt{VOI\_CSF\_1.mat} in the working directory.
+ \item Now you should be able to press the green arrow button. This would extract the PCC time series and save this as  \texttt{VOI\_PCC\_1.mat} in the working directory.
 \end{enumerate}
 SPM now computes the first principal component of the time series from all voxels included in the sphere. The result is stored (together with the original time series) in a file named \texttt{VOI\_PCC\_1.mat} in the working directory (the ``1'' refers to session 1). Do the same for the rest of the VOIs: mPFC (\texttt{[3 54 -2]}), LIPC ({[-50 -63 32]}) and RIPC (\texttt{[48 -69 35]}).
 
