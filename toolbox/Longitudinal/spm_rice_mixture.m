@@ -21,7 +21,7 @@ function [mg,nu,sig,info] = spm_rice_mixture(h,x,K)
 % Copyright (C) 2012-2019 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_rice_mixture.m 7595 2019-05-23 13:48:53Z mikael $
+% $Id: spm_rice_mixture.m 8181 2021-11-04 12:21:26Z john $
 
 mg  = ones(K,1)/K;
 nu  = (0:(K-1))'*max(x)/(K+1);
@@ -33,28 +33,19 @@ m1 = zeros(K,1);
 m2 = zeros(K,1);
 ll = -Inf;
 for iter=1:10000
-    p  = zeros(numel(x),K);
+    lp = zeros(numel(x),K);
     for k=1:K
-        % Product Rule
         % p(class=k, x | mg, nu, sig) = p(class=k|mg) p(x | nu, sig, class=k)
-        p(:,k) = mg(k)*ricepdf(x(:),nu(k),sig(k)^2) + eps;
+        lp(:,k) = log(mg(k))+ricelpdf(x(:),nu(k),sig(k)^2);
     end
-
-    % Sum Rule
-    % p(x | mg, nu, sig) = \sum_k p(class=k, x | mg, nu, sig)
-    sp  = sum(p,2);
-    oll = ll;
-    ll  = sum(log(sp).*h(:)); % Log-likelihood
+    [p,lse] = softmax(lp);
+    oll     = ll;
+    ll      = sum(lse.*h(:)); % Log-likelihood
     if ll-oll<1e-8*sum(h), break; end
 
     %fprintf('%g\n',ll);
     %md = mean(diff(x));
-    %plot(x(:),p,'--',x(:),h/sum(h)/md,'b.',x(:),sp,'r'); drawnow
-
-    % Bayes Rule
-    % p(class=k | x, mg, nu, sig) = p(class=k, x | mg, nu, sig) / p(x | mg, nu, sig)
-    p = bsxfun(@rdivide,p,sp);
-
+    %plot(x(:),p,'--',x(:),h/sum(h)/md,'b.',x(:),exp(lse),'r'); drawnow
 
     % Compute moments from the histograms, weighted by the responsibilities (p).
     for k=1:K
@@ -65,7 +56,7 @@ for iter=1:10000
 
     mg = m0/sum(m0); % Mixing proportions
     for k=1:K
-        mu1 = m1(k)./m0(k);                                % Mean 
+        mu1 = m1(k)./m0(k);                                    % Mean
         mu2 = (m2(k)-m1(k)*m1(k)/m0(k)+lam*1e-3)/(m0(k)+1e-3); % Variance
 
         % Compute nu & sig from mean and variance
@@ -76,12 +67,12 @@ end
 
 if nargout >= 4
     % This info can be used for plotting the fit
-    info    = struct;
-    info.x  = x;    
-    info.h  = h;
-    info.p  = p;
-    info.sp = sp;
-    info.md = mean(diff(x));
+    info     = struct;
+    info.x   = x;
+    info.h   = h;
+    info.p   = p;
+    info.lse = lse;
+    info.md  = mean(diff(x));
 end
 %__________________________________________________________________________
 
@@ -100,8 +91,11 @@ r     = mu1/sqrt(mu2);
 theta = sqrt(pi/(4-pi));
 if r>theta
     for i=1:256
-        xi    = 2+theta^2-pi/8*exp(-theta^2/2)*((2+theta^2)*besseli(0,theta^2/4)+theta^2*besseli(1,theta^2/4))^2;
-        g     = sqrt(xi*(1+r^2)-2);
+       %xi     = 2 + theta^2-pi/8*exp(-theta^2/2)*((2+theta^2)*besseli(0,theta^2/4)+theta^2*besseli(1,theta^2/4))^2;
+        theta2 = theta.^2;
+        xi     = 2 + theta2 - (pi*((theta2 + 2)*besseli(0, theta2/4,1) ...
+                                       + theta2*besseli(1, theta2/4,1))^2)/8;
+        g      = sqrt(xi*(1+r^2)-2);
         if abs(theta-g)<1e-6, break; end
         theta = g;
     end
@@ -115,12 +109,25 @@ end
 %__________________________________________________________________________
 
 %__________________________________________________________________________
-function p = ricepdf(x,nu,sig2)
-% Rician PDF
-% p = ricepdf(x,nu,sig2)
+function lp = ricelpdf(x,nu,sig2)
+% Log of Rician PDF
+% lp = ricelpdf(x,nu,sig2)
 % https://en.wikipedia.org/wiki/Rice_distribution#Characterization
-p       = zeros(size(x));
-tmp     = -(x.^2+nu.^2)./(2*sig2);
-msk     = (tmp > -95) & (x*(nu/sig2) < 85) ; % Identify where Rice probability can be computed
-p(msk)  = (x(msk)./sig2).*exp(tmp(msk)).*besseli(0,x(msk)*(nu/sig2)); % Use Rician distribution
-p(~msk) = (1./sqrt(2*pi*sig2))*exp((-0.5/sig2)*(x(~msk)-nu).^2);      % Use Gaussian distribution
+x  = max(x,realmin(class(x)));
+lp = log(x) - log(sig2) - (x.^2+nu.^2)./(2*sig2) + besseliln(0,x*(nu/sig2));
+%__________________________________________________________________________
+
+%__________________________________________________________________________
+function lf = besseliln(k,z)
+% log of besseli function
+lf = log(besseli(0,z,1))+abs(z);
+%__________________________________________________________________________
+
+%__________________________________________________________________________
+function [p,lse] = softmax(lp)
+mx  = max(lp,[],2);
+p   = exp(lp-mx);
+sp  = sum(p,2);
+p   = bsxfun(@rdivide,p,sp); % softmax
+lse = log(sp)+mx;            % log-sum-exp
+
