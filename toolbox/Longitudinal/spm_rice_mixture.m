@@ -21,7 +21,7 @@ function [mg,nu,sig,info] = spm_rice_mixture(h,x,K)
 % Copyright (C) 2012-2019 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_rice_mixture.m 8181 2021-11-04 12:21:26Z john $
+% $Id: spm_rice_mixture.m 8182 2021-11-04 12:23:33Z john $
 
 mg  = ones(K,1)/K;
 nu  = (0:(K-1))'*max(x)/(K+1);
@@ -120,7 +120,7 @@ lp = log(x) - log(sig2) - (x.^2+nu.^2)./(2*sig2) + besseliln(0,x*(nu/sig2));
 %__________________________________________________________________________
 function lf = besseliln(k,z)
 % log of besseli function
-lf = log(besseli(0,z,1))+abs(z);
+lf = log(besseli(k,z,1))+abs(z);
 %__________________________________________________________________________
 
 %__________________________________________________________________________
