@@ -38,7 +38,7 @@ function [U] = spm_get_ons(SPM,s)
 % Copyright (C) 1999-2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_get_ons.m 4855 2012-08-22 15:50:22Z guillaume $
+% $Id: spm_get_ons.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
 %-Time units
@@ -140,7 +140,7 @@ for i = 1:numel(U)
     sf        = cumsum(sf);                         % integrate
     sf        = sf(1:(k*T + 32),:);                 % stimulus
 
-    %-Place in ouputs structure U
+    %-Place in outputs structure U
     %----------------------------------------------------------------------
     U(i).name = Uname;      % - input names
     U(i).dt   = dt;         % - time bin {seconds}

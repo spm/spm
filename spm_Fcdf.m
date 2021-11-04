@@ -62,7 +62,7 @@ function F = spm_Fcdf(x,v,w)
 % Copyright (C) 1992-2013 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_Fcdf.m 5602 2013-08-12 13:35:52Z guillaume $
+% $Id: spm_Fcdf.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
 %-Format arguments, note & check sizes
@@ -81,7 +81,7 @@ if nargin<3
         w  = reshape(v(nv/2+1:nv),vs(1:end-1));
         v  = reshape(v(1:nv/2)   ,vs(1:end-1));
     else
-        error('Can''t unpack both df components from single argument')
+        error('Cannot unpack both df components from single argument')
     end
 end
 

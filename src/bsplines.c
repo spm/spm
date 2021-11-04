@@ -1,5 +1,5 @@
 /*
- * $Id: bsplines.c 7686 2019-11-06 13:18:06Z guillaume $
+ * $Id: bsplines.c 8183 2021-11-04 15:25:19Z guillaume $
  * John Ashburner
  */
  
@@ -686,9 +686,9 @@ static void dweights(int d, double x, int *i, double w[])
 
 /***************************************************************************************
 Work out what to do with positions outside the FOV
-    i   - Co-ordinate (0<=i<m)
+    i   - Coordinate (0<=i<m)
     m   - dimension
-    returns reflected co-ordinate
+    returns reflected coordinate
 */
 int mirror(int i, int m)
 {
@@ -703,9 +703,9 @@ int mirror(int i, int m)
 
 /***************************************************************************************
 Work out what to do with positions outside the FOV
-        i       - Co-ordinate (0<=i<m)
+        i       - Coordinate (0<=i<m)
         m       - dimension
-        returns wrapped co-ordinate
+        returns wrapped coordinate
 
         For MRI, it may be better to wrap the boundaries
         - especially in the read and phase encode directions.
@@ -720,7 +720,7 @@ int wrap(int i, int m)
 Resample a point
     c   - Volume of B-spline coefficients
     m0,m1,m2    - dimensions of c
-    x0,x1,x2    - co-ordinate to sample
+    x0,x1,x2    - coordinate to sample
     d   - degrees of splines used
     returns value of sampled point
 */
@@ -731,11 +731,11 @@ IMAGE_DTYPE sample3(IMAGE_DTYPE c[], int m0, int m1, int m2,
     double w0[32], w1[32], w2[32]; /* B-spline weights */
     int    o0[32], o1[32], o2[32]; /* Offsets */
     int    i0,     i1,     i2;     /* Initial offsets */
-    double d0,     d1,     d2;     /* Used by seperable convolution */
+    double d0,     d1,     d2;     /* Used by separable convolution */
     int k;
     IMAGE_DTYPE *cp;
 
-    /* Generate seperable B-spline basis functions */
+    /* Generate separable B-spline basis functions */
     weights(d[0], x0, &i0, w0);
     weights(d[1], x1, &i1, w1);
     weights(d[2], x2, &i2, w2);
@@ -768,7 +768,7 @@ IMAGE_DTYPE sample3(IMAGE_DTYPE c[], int m0, int m1, int m2,
 Resample a point and its gradients
     c   - Volume of B-spline coefficients
     m0,m1,m2    - dimensions of c
-    x0,x1,x2    - co-ordinate to sample
+    x0,x1,x2    - coordinate to sample
     d   - degrees of splines used
     pg0,pg1,pg2 - gradients
     returns value of sampled point
@@ -782,12 +782,12 @@ IMAGE_DTYPE dsample3(IMAGE_DTYPE c[], int m0, int m1, int m2,
     double dw0[32], dw1[32], dw2[32]; /* B-spline derivatives */
     int     o0[32],  o1[32],  o2[32]; /* Offsets */
     int     i0,      i1,      i2;     /* Initial offsets */
-    double  d0,      d1,      d2;     /* Used by seperable convolution */
+    double  d0,      d1,      d2;     /* Used by separable convolution */
     double g00, g10,g11, g20,g21,g22; /* Used for generating gradients */
     int k;
     IMAGE_DTYPE *cp;
 
-    /* Generate seperable B-spline basis functions */
+    /* Generate separable B-spline basis functions */
     weights(d[0], x0, &i0, w0);
     weights(d[1], x1, &i1, w1);
     weights(d[2], x2, &i2, w2);

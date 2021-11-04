@@ -47,13 +47,13 @@ function PPI = spm_peb_ppi(varargin)
 % Copyright (C) 2002-2014 Wellcome Trust Centre for Neuroimaging
 
 % Darren Gitelman
-% $Id: spm_peb_ppi.m 6556 2015-09-15 15:42:04Z guillaume $
+% $Id: spm_peb_ppi.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
 % SETTING UP A PPI THAT ACCOUNTS FOR THE HRF
 % =========================================================================
 % PPI's were initially conceived as a means of identifying regions whose
-% reponses can be explained in terms of an interaction between activity in
+% responses can be explained in terms of an interaction between activity in
 % a specified source (the physiological factor) and some experimental
 % effect (the psychological factor). However, a problem in setting up PPI's
 % is that in order to derive a proper estimate of the interaction between
@@ -347,7 +347,7 @@ for i = 1:size(xY,2)
 end
 
 
-% Remove confounds and save Y in ouput structure
+% Remove confounds and save Y in output structure
 %--------------------------------------------------------------------------
 Yc    = Y - X0*inv(X0'*X0)*X0'*Y;
 PPI.Y = Yc(:,1);

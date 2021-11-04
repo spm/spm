@@ -13,13 +13,13 @@ function [DCM]   = spm_dem2dcm(DEM,DCM)
 %     DCM.Cp   - posterior covariance
 %     DCM.F   - free energy
 %
-% For hierarchical models (DEM.M) the first level with non-zero prorior
-% varaince on the paramters will be extracted.
+% For hierarchical models (DEM.M) the first level with non-zero prior
+% variance on the parameters will be extracted.
 %__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dem2dcm.m 6508 2015-07-25 15:23:25Z karl $
+% $Id: spm_dem2dcm.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
 % check for arrays

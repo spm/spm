@@ -79,7 +79,7 @@ function varargout = spm_XYZreg(varargin)
 %        If specified, overrides use of registry held in hReg
 %        [Default getfield(get(hReg,'UserData'),'Reg')]
 % xyz  - (Output) Desired coordinates are rounded to nearest voxel if hC
-%        is not specified, or is zero. Otherwise, caller is assummed to
+%        is not specified, or is zero. Otherwise, caller is assumed to
 %        have checked verity of desired xyz coordinates. Output xyz
 %        returns coordinates actually set.
 % d    - Euclidean distance between desired and set coordinates.
@@ -167,7 +167,7 @@ function varargout = spm_XYZreg(varargin)
 % Copyright (C) 1999-2018 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes, Chloe Hutton
-% $Id: spm_XYZreg.m 7388 2018-08-06 12:04:26Z guillaume $
+% $Id: spm_XYZreg.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
 
@@ -208,7 +208,7 @@ function varargout = spm_XYZreg(varargin)
 % If an object and it's handling function are entered in the registry, then
 % the object is said to be "forward registered", because the registry will
 % now forward all location updates to that object, via it's handling
-% function. The assummed syntax is: feval(Fcn,'SetCoords',xyz,h,hReg),
+% function. The assumed syntax is: feval(Fcn,'SetCoords',xyz,h,hReg),
 % where Fcn is the handling function for the GUI control identified by
 % handle h, xyz are the new coordinates, and hReg is the handle of the
 % registry.
@@ -232,7 +232,7 @@ function varargout = spm_XYZreg(varargin)
 % handle hReg), and call the registry's 'SetCoords' facility when
 % necessary. This can be done in many ways, but a simple structure is
 % provided, mirroring that of the registry's operation. This framework
-% assummes that the GUI controls identification object's 'UserData' is a
+% assumes that the GUI controls identification object's 'UserData' is a
 % structure with a field named 'hReg', which stores the handle of the
 % registry (if back registered), or is empty (if not back registered, i.e.
 % standalone). spm_XYZreg provides utility functions for setting/unsetting
@@ -626,7 +626,7 @@ hReg     = varargin{2};
 RD       = get(hReg,'UserData');
 Reg      = RD.Reg;
 
-%-Find registry entires to delete
+%-Find registry entries to delete
 %--------------------------------------------------------------------------
 [c,i,e]  = intersect([Reg{:,1}],hD);
 hD(e)    = [];
@@ -662,7 +662,7 @@ hReg     = varargin{2};
 RD       = get(hReg,'UserData');
 Reg      = RD.Reg;
 
-%-Find registry entires to delete
+%-Find registry entries to delete
 %--------------------------------------------------------------------------
 [c,i,e]  = intersect([Reg{:,1}],hD);
 Reg(i,:) = [];

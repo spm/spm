@@ -75,7 +75,7 @@ function [Ep,qC,qh,F] = spm_nlsi_LS(M,U,Y)
 % Variational free energy and the Laplace approximation.
 % NeuroImage. 2007 Jan 1;34(1):220-34.
 %
-% This scheme handels complex data along the lines originally described in:
+% This scheme handles complex data along the lines originally described in:
 %
 % Sehpard RJ, Lordan BP, and Grant EH.
 % Least squares analysis of complex data with applications to permittivity
@@ -86,7 +86,7 @@ function [Ep,qC,qh,F] = spm_nlsi_LS(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_nlsi_LS.m 5219 2013-01-29 17:07:07Z spm $
+% $Id: spm_nlsi_LS.m 8183 2021-11-04 15:25:19Z guillaume $
 
 % figure (unless disabled)
 %--------------------------------------------------------------------------

@@ -11,12 +11,12 @@ function spm_orientations(P)
 % Inferior->superior.
 %
 % One thing to watch out for is the image orientation. The
-% proper Analyze format uses a left-handed co-ordinate system,
+% proper Analyze format uses a left-handed coordinate system,
 % whereas Talairach uses a right-handed one. In SPM99, images
 % were flipped at the spatial normalisation stage (from one
-% co-ordinate system to the other). In SPM2, a different
+% coordinate system to the other). In SPM2, a different
 % approach is used, so that either a left- or right-handed
-% co-ordinate system is used throughout. The SPM2 program is
+% coordinate system is used throughout. The SPM2 program is
 % told about the handedness that the images are stored with by
 % the spm_flip_analyze_images.m function and the
 % defaults.analyze.flip parameter that is specified in the
@@ -48,7 +48,7 @@ function spm_orientations(P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_orientations.m 4678 2012-03-05 18:01:33Z john $
+% $Id: spm_orientations.m 8183 2021-11-04 15:25:19Z guillaume $
 
 if nargin<1,
     P = spm_select(Inf,'image','Select the images...');

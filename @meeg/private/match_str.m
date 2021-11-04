@@ -1,37 +1,40 @@
-function [sel1, sel2] = match_str(a, b)
+function [sel1, sel2] = match_str(a, b, fullout)
 
-% MATCH_STR looks for matching labels in two listst of strings
+% MATCH_STR looks for matching labels in two lists of strings
 % and returns the indices into both the 1st and 2nd list of the matches.
 % They will be ordered according to the first input argument.
-%  
-% [sel1, sel2] = match_str(strlist1, strlist2)
+%
+% Use as
+%   [sel1, sel2] = match_str(strlist1, strlist2)
 %
 % The strings can be stored as a char matrix or as an vertical array of
 % cells, the matching is done for each row.
+%
+% When including a 1 as the third input argument, the output lists of
+% indices will be expanded to the size of the largest input argument.
+% Entries that occur only in one of the two inputs will correspond to a 0
+% in the output, in this case. This can be convenient in rare cases if the
+% size of the input lists is meaningful.
 
-% Copyright (C) 2000, Robert Oostenveld
+% Copyright (C) 2000-2021, Robert Oostenveld
 %
-% $Log: match_str.m,v $
-% Revision 1.6  2006/11/06 21:11:45  roboos
-% also deal with empty [] input
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
+% for the documentation and details.
 %
-% Revision 1.5  2004/11/10 17:11:40  roboos
-% reverted to original implementation and reimplemented the speed up
-% from scratch. The previous two revisions both were incompatible
-% with the original implementation.
+%    FieldTrip is free software: you can redistribute it and/or modify
+%    it under the terms of the GNU General Public License as published by
+%    the Free Software Foundation, either version 3 of the License, or
+%    (at your option) any later version.
 %
-% Revision 1.4  2004/11/09 15:28:57  roboos
-% fixed incompatibility that was introduced by previous speed increase:
-% the original version gave back double occurences, and other fieldtrip
-% functions (sourceanalysis) rely on this. The previously commited
-% version only gave back one occurence of each hit, this is fixed by jansch
-% in this version
+%    FieldTrip is distributed in the hope that it will be useful,
+%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%    GNU General Public License for more details.
 %
-% Revision 1.3  2004/10/22 15:59:41  roboos
-% large speed increase by replacing 2 nested for loops by a standard matlab function (intersect)
+%    You should have received a copy of the GNU General Public License
+%    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% Revision 1.2  2003/03/17 10:37:28  roberto
-% improved general help comments and added copyrights
+% $Id: match_str.m 8183 2021-11-04 15:25:19Z guillaume $
 
 % ensure that both are cell-arrays
 if isempty(a)
@@ -45,32 +48,69 @@ elseif ~iscell(b)
   b = cellstr(b);
 end
 
-% ensure that both are column vectors
-a = a(:);
-b = b(:);
-
 % regardless of what optimizations are implemented, the code should remain
-% functionally compatible to the original, which is 
+% functionally compatible to the original, which is
+% sel1 = [];
+% sel2 = [];
 % for i=1:length(a)
 %   for j=1:length(b)
 %     if strcmp(a(i),b(j))
-%       sel1 = [sel1; i];
-%       sel2 = [sel2; j];
-%     end
-%   end
+%        sel1 = [sel1; i];
+%        sel2 = [sel2; j];
+%      end
+%    end
 % end
+
+% ensure that both are column vectors
+a = a(:);
+b = b(:);
+Na = numel(a);
+Nb = numel(b);
+
+% this is a very common use pattern that can be dealt with quickly
+if isequal(a, b)
+  % the returned vectors must be columns
+  sel1 = (1:Na)';
+  sel2 = (1:Nb)';
+  return
+end
+
+% According to the original implementation empty numeric elements are
+% allowed, but are not returned as match. This is different to empty string
+% elements, which are returned as match.
+% See also http://bugzilla.fieldtriptoolbox.org/show_bug.cgi?id=1808
+empty_a = cellfun(@isnumeric, a) & cellfun(@isempty, a);
+empty_b = cellfun(@isnumeric, b) & cellfun(@isempty, b);
+% the following allows the unique function to operate normally
+a(empty_a) = {''};
+b(empty_b) = {''};
 
 % replace all unique strings by a unique number and use the fact that
 % numeric comparisons are much faster than string comparisons
 [dum1, dum2, c] = unique([a; b]);
-a = c(1:length(a));
-b = c((length(a)+1):end);
+a = c(1:Na);
+b = c((Na+1):end);
 
-sel1 = [];
-sel2 = [];
-for i=1:length(a)
-  % s = find(strcmp(a(i), b));  % for string comparison
-  s = find(a(i)==b);            % for numeric comparison
-  sel1 = [sel1; repmat(i, size(s))];
-  sel2 = [sel2; s];
+% empty numeric elements should never be returned as a match
+a(empty_a) = nan;
+b(empty_b) = nan;
+
+if nargin < 3 || ~fullout
+  sel1 = [];
+  sel2 = [];
+  for i=1:length(a)
+    % s = find(strcmp(a(i), b));  % for string comparison
+    s = find(a(i)==b);            % for numeric comparison
+    sel2 = [sel2; s];
+    s(:) = i;
+    sel1 = [sel1; s];
+  end
+else
+  sel1 = zeros(max(Na,Nb),1);
+  sel2 = zeros(max(Na,Nb),1);
+  for i=1:length(a)
+    s = find(a(i)==b);
+    sel2(s) = s;
+    sel1(s) = i;
+  end
 end

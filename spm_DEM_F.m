@@ -7,15 +7,15 @@ function [F,p] = spm_DEM_F(DEM,ip)
 % F(i) - free-energy at <q(P(ip))> = p(i)
 %
 % where p(i) is the ip-th free-parameter. This is a bound on 
-% the log-likehood (log-evidence) conditioned on the expeceted parameters
+% the log-likehood (log-evidence) conditioned on the expected parameters
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM_F.m 4146 2010-12-23 21:01:39Z karl $
+% $Id: spm_DEM_F.m 8183 2021-11-04 15:25:19Z guillaume $
  
  
-% Find paramter ranges (using prior covariance)
+% Find parameter ranges (using prior covariance)
 %--------------------------------------------------------------------------
 pE   = spm_vec(DEM.M(1).pE);
 p    = linspace(-6,6,16);
@@ -29,13 +29,13 @@ DEM.M(1).E.nN = 1;
 
 for i = 1:length(p)
     
-    % adjust paramter (through prio expecatation)
+    % adjust parameter (through prio expectation)
     %----------------------------------------------------------------------
     P          = pE;
     P(ip)      = p(i);
     DEM.M(1).P = spm_unvec(P,DEM.M(1).pE);
     
-    % comute free-energy
+    % compute free-energy
     %----------------------------------------------------------------------
     DEM  = spm_DEM(DEM);
     F(i) = DEM.F(end);
@@ -63,7 +63,7 @@ F    = F - max(F);
 subplot(2,1,1)
 plot(p,F,p,FP,':'), hold on
 plot(pE(ip)*[1 1],[min(F) 0],':'),  hold on
-xlabel('Parameter expecatation','FontSize',12)
+xlabel('Parameter expectation','FontSize',12)
 ylabel('Free-energy','FontSize',12)
 title('Free-energy profile','FontSize',16)
 axis square, box off

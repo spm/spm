@@ -16,7 +16,7 @@ function [u,Ps,Ts] = spm_uc_FDR(q,df,STAT,n,Vs,Vm)
 %         Vector of sorted p-values, p1<p2<... (saves i/o w/ repeated calls)
 % Vm    - Mask in 1 of 3 forms
 %           o Scalar, indicating implicit mask value in statistic image(s)
-%           o Vector of indicies of elements within mask
+%           o Vector of indices of elements within mask
 %           o Mapped mask image
 %         (Ignored if Vs is a vector.)
 %
@@ -48,20 +48,20 @@ function [u,Ps,Ts] = spm_uc_FDR(q,df,STAT,n,Vs,Vm)
 % than threshold.  In this terminology, the FDR is the proportion of
 % rejected tests where the null hypothesis is actually true.
 %
-% A FDR proceedure produces a threshold that controls the expected FDR
+% A FDR procedure produces a threshold that controls the expected FDR
 % at or below q.  The FDR adjusted p-value for a voxel is the smallest q
 % such that the voxel would be suprathreshold.
 %
-% In comparison, a traditional multiple comparisons proceedure
+% In comparison, a traditional multiple comparisons procedure
 % (e.g. Bonferroni or random field methods) controls Familywise Error
 % rate (FWER) at or below alpha.  FWER is the *chance* of one or more
 % false positives anywhere (whereas FDR is a *proportion* of false
 % positives).  A FWER adjusted p-value for a voxel is the smallest alpha
 % such that the voxel would be suprathreshold.
 %
-% If there is truely no signal in the image anywhere, then a FDR
-% proceedure controls FWER, just as Bonferroni and random field methods
-% do. (Precisely, controlling E(FDR) yeilds weak control of FWE).  If
+% If there is truly no signal in the image anywhere, then a FDR
+% procedure controls FWER, just as Bonferroni and random field methods
+% do. (Precisely, controlling E(FDR) yields weak control of FWE).  If
 % there *is* some signal in the image, a FDR method should be more powerful
 % than a traditional method.
 %
@@ -79,7 +79,7 @@ function [u,Ps,Ts] = spm_uc_FDR(q,df,STAT,n,Vs,Vm)
 % Copyright (C) 2002-2015 Wellcome Trust Centre for Neuroimaging
 
 % Thomas Nichols
-% $Id: spm_uc_FDR.m 6643 2015-12-11 16:57:25Z guillaume $
+% $Id: spm_uc_FDR.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
 if (nargin<6), Vm = []; end

@@ -4,7 +4,7 @@ function denoise = spm_cfg_opm_synth_gradiometer
 % Copyright (C) 2018-2021 Wellcome Trust Centre for Neuroimaging
 
 % Tim Tierney
-% $Id: spm_cfg_opm_synth_gradiometer.m 8119 2021-07-06 13:51:43Z guillaume $
+% $Id: spm_cfg_opm_synth_gradiometer.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
 %--------------------------------------------------------------------------
@@ -14,7 +14,7 @@ denoise          = cfg_exbranch;
 denoise.tag      = 'denoise';
 denoise.name     = 'Synthetic Gradiometery';
 denoise.val      = @opm_synth_gradiometer_cfg;
-denoise.help     = {'Denoise will regress all channels of the selected type(s) from the input dataset. Optionally the derivatives of the selected type(s) can be used as well. This funciton wil automatically regress on a trial by trial basis or accross the whole sesison based on whether or not the dataset has been epoched.'}';
+denoise.help     = {'Denoise will regress all channels of the selected type(s) from the input dataset. Optionally the derivatives of the selected type(s) can be used as well. This function wil automatically regress on a trial by trial basis or accross the whole sesison based on whether or not the dataset has been epoched.'}';
 denoise.prog     = @synth_gradiometer;
 denoise.vout     = @vout_synth_gradiometer;
 denoise.modality = {'EEG'};
@@ -64,7 +64,7 @@ derivative.val     = {1};
 function out = synth_gradiometer(job)
 % construct the S struct
 
-% datset parameters
+% dataset parameters
 S=[];
 S.D= spm_eeg_load(job.D{1});
 S.confounds= job.confounds;

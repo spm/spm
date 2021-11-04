@@ -11,7 +11,7 @@ function spm_eeg_review(D,flag,inv)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review.m 7221 2017-11-16 14:25:37Z vladimir $
+% $Id: spm_eeg_review.m 8183 2021-11-04 15:25:19Z guillaume $
 
 if nargin == 0
     [D, sts] = spm_select(1, 'mat$', 'Select M/EEG mat file');
@@ -97,7 +97,7 @@ try
             spm_eeg_review_callbacks('visu','main','source')
     end
 catch
-    % Initilize display on 'info'
+    % Initialize display on 'info'
     spm_eeg_review_callbacks('visu','main','info')
 end
 

@@ -18,7 +18,7 @@ function V4 = spm_file_merge(V,fname,dt,RT)
 % Copyright (C) 2009-2021 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_file_merge.m 8138 2021-08-23 14:55:47Z guillaume $
+% $Id: spm_file_merge.m 8183 2021-11-04 15:25:19Z guillaume $
 
 %-Input: V
 %--------------------------------------------------------------------------
@@ -112,7 +112,7 @@ else
             off    = 0;
         end
     
-    %-floating precison: no scaling
+    %-floating precision: no scaling
     %----------------------------------------------------------------------
     else
         sf         = 1;

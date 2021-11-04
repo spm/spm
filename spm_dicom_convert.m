@@ -36,7 +36,7 @@ function out = spm_dicom_convert(Headers,opts,RootDirectory,format,OutputDirecto
 % Copyright (C) 2002-2019 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dicom_convert.m 7806 2020-03-30 09:31:23Z guillaume $
+% $Id: spm_dicom_convert.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
 %-Input parameters
@@ -114,7 +114,7 @@ for i=1:length(Headers)
     % Apparently, this is not the right way of doing it.
     %np = ReadAcquisitionMatrixText(Headers{i});
     %if rem(nc, np(1)) || rem(nr, np(2)),
-    %   warning('spm:dicom','%s: %dx%d wont fit into %dx%d.',Headers{i}.Filename,...
+    %   warning('spm:dicom','%s: %dx%d won''t fit into %dx%d.',Headers{i}.Filename,...
     %       np(1), np(2), nc,nr);
     %   return;
     %end;
@@ -137,17 +137,17 @@ for i=1:length(Headers)
 
     % Orientation information
     %----------------------------------------------------------------------
-    % Axial Analyze voxel co-ordinate system:
+    % Axial Analyze voxel coordinate system:
     % x increases     right to left
     % y increases posterior to anterior
     % z increases  inferior to superior
 
-    % DICOM patient co-ordinate system:
+    % DICOM patient coordinate system:
     % x increases     right to left
     % y increases  anterior to posterior
     % z increases  inferior to superior
 
-    % T&T co-ordinate system:
+    % T&T coordinate system:
     % x increases      left to right
     % y increases posterior to anterior
     % z increases  inferior to superior
@@ -546,17 +546,17 @@ dt     = DetermineDatatype(Headers{1});
 
 % Orientation information
 %--------------------------------------------------------------------------
-% Axial Analyze voxel co-ordinate system:
+% Axial Analyze voxel coordinate system:
 % x increases     right to left
 % y increases posterior to anterior
 % z increases  inferior to superior
 
-% DICOM patient co-ordinate system:
+% DICOM patient coordinate system:
 % x increases     right to left
 % y increases  anterior to posterior
 % z increases  inferior to superior
 
-% T&T co-ordinate system:
+% T&T coordinate system:
 % x increases      left to right
 % y increases posterior to anterior
 % z increases  inferior to superior
@@ -798,17 +798,17 @@ dt     = spm_type('float32'); % Fixed datatype
 
 % Orientation information
 %--------------------------------------------------------------------------
-% Axial Analyze voxel co-ordinate system:
+% Axial Analyze voxel coordinate system:
 % x increases     right to left
 % y increases posterior to anterior
 % z increases  inferior to superior
 
-% DICOM patient co-ordinate system:
+% DICOM patient coordinate system:
 % x increases     right to left
 % y increases  anterior to posterior
 % z increases  inferior to superior
 
-% T&T co-ordinate system:
+% T&T coordinate system:
 % x increases      left to right
 % y increases posterior to anterior
 % z increases  inferior to superior
@@ -1101,7 +1101,7 @@ function img = ReadImageData(Header)
 img = [];
 
 if Header.SamplesPerPixel ~= 1
-    warning('spm:dicom','%s: SamplesPerPixel = %d - cant be an MRI.', Header.Filename, Header.SamplesPerPixel);
+    warning('spm:dicom','%s: SamplesPerPixel = %d - cannot be an MRI.', Header.Filename, Header.SamplesPerPixel);
     return;
 end
 
@@ -1113,7 +1113,7 @@ else
     fp = fopen(Header.Filename,'r','ieee-le');
 end
 if fp==-1
-    warning('spm:dicom','%s: Cant open file.', Header.Filename);
+    warning('spm:dicom','%s: Cannot open file.', Header.Filename);
     return;
 end
 
@@ -1157,7 +1157,7 @@ if isfield(Header,'TransferSyntaxUID')
           '1.2.840.10008.1.2.4.100','1.2.840.10008.1.2.4.101',... % MPEG2 MP@ML & MPEG2 MP@HL
           '1.2.840.10008.1.2.4.102',                          ... % MPEG-4 AVC/H.264 High Profile and BD-compatible
          }
-         warning('spm:dicom',[Header.Filename ': cant deal with JPIP/MPEG data (' Header.TransferSyntaxUID ')']);
+         warning('spm:dicom',[Header.Filename ': cannot deal with JPIP/MPEG data (' Header.TransferSyntaxUID ')']);
     otherwise
         fseek(fp,Header.StartOfPixelData,'bof');
         img = fread(fp,Header.Rows*Header.Columns*NFrames,prec);
@@ -1168,7 +1168,7 @@ else
 end
 fclose(fp);
 if numel(img)~=Header.Rows*Header.Columns*NFrames
-    error([Header.Filename ': cant read whole image']);
+    error([Header.Filename ': cannot read whole image']);
 end
 
 if Header.PixelRepresentation
@@ -1572,17 +1572,17 @@ for n=1:size(ord,2)
 
     % Orientation information
     %----------------------------------------------------------------------
-    % Axial Analyze voxel co-ordinate system:
+    % Axial Analyze voxel coordinate system:
     % x increases     right to left
     % y increases posterior to anterior
     % z increases  inferior to superior
 
-    % DICOM patient co-ordinate system:
+    % DICOM patient coordinate system:
     % x increases     right to left
     % y increases  anterior to posterior
     % z increases  inferior to superior
 
-    % T&T co-ordinate system:
+    % T&T coordinate system:
     % x increases      left to right
     % y increases posterior to anterior
     % z increases  inferior to superior

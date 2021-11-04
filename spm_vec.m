@@ -1,7 +1,7 @@
 function [vX] = spm_vec(X,varargin)
 % Vectorise a numeric, cell or structure array - a compiled routine
 % FORMAT [vX] = spm_vec(X)
-% X  - numeric, cell or stucture array[s]
+% X  - numeric, cell or structure array[s]
 % vX - vec(X)
 %
 % See spm_unvec
@@ -13,7 +13,7 @@ function [vX] = spm_vec(X,varargin)
 % Copyright (C) 2005-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_vec.m 6110 2014-07-21 09:36:13Z karl $
+% $Id: spm_vec.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
 %error('spm_vec.c not compiled - see Makefile')

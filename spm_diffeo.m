@@ -131,9 +131,9 @@ function varargout = spm_diffeo(varargin)
 %
 % iy - inverted deformation field of size d(1)*d(2)*d(3)*3.
 % y  - original deformation field.
-% M1 - An affine mapping from mm to voxels in the co-ordinate
+% M1 - An affine mapping from mm to voxels in the coordinate
 %      system of the inverse deformation field.
-% M2 - An affine mapping from voxels to mm in the co-ordinate
+% M2 - An affine mapping from voxels to mm in the coordinate
 %      system of the forward deformation field.
 %
 % Inversion of a deformation field.
@@ -167,7 +167,7 @@ function varargout = spm_diffeo(varargin)
 % 
 % Note that nearest neighbour interpolation is used instead of 0th
 % degree B-splines, and the derivatives of trilinear interpolation are
-% returned insted of those of 1st degree B-splines.  The difference is
+% returned instead of those of 1st degree B-splines.  The difference is
 % extremely subtle.
 %
 % c, f and y are single precision floating point.
@@ -444,7 +444,7 @@ function varargout = spm_diffeo(varargin)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_diffeo.m 7593 2019-05-20 18:58:16Z john $
+% $Id: spm_diffeo.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
 %-This is merely the help file for the compiled routine

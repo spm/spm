@@ -30,7 +30,7 @@ function [y,lfp,csd,w] = spm_gen_fmri(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_gen_fmri.m 6922 2016-11-02 17:28:23Z karl $
+% $Id: spm_gen_fmri.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
 % persistent variables to speed integration schemes
@@ -44,7 +44,7 @@ catch
 end
 pP      = P.N;
 
-% integrate neural system - when imput changes
+% integrate neural system - when input changes
 %==========================================================================
 if INT || nargout > 1
     

@@ -125,7 +125,7 @@ function [MB] = spm_mb_ui(action,varargin)
 % Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_mb_ui.m 7975 2020-10-06 14:46:56Z spm $
+% $Id: spm_mb_ui.m 8183 2021-11-04 15:25:19Z guillaume $
 
 OPT.d    = 32;                         % maximum connection length (mm)
 OPT.np   = 1024;                       % number of parcels (particles)
@@ -544,7 +544,7 @@ switch lower(action)
                     
                 end
                 
-                % assymetry
+                % asymmetry
                 %----------------------------------------------------------
                 D     = [];
                 E     = [];

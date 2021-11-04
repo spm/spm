@@ -25,7 +25,7 @@ function varargout = spm_results_ui(varargin)
 % The cursors in the MIP can be moved (dragged) to select a particular
 % voxel. The three mouse buttons give different drag and drop behaviour:
 % Button 1 - point & drop; Button 2 - "dynamic" drag & drop with
-% co-ordinate & SPM value updating; Button 3 - "magnetic" drag & drop,
+% coordinate & SPM value updating; Button 3 - "magnetic" drag & drop,
 % where the cursor jumps to the nearest suprathreshold voxel in the MIP,
 % and shows the value there.
 % See spm_mip_ui.m, the MIP GUI handling function for further details.
@@ -97,10 +97,10 @@ function varargout = spm_results_ui(varargin)
 % (iii) save     - Write out thresholded SPM as image
 %                                            - see spm_write_filtered.m
 %
-% The current cursor location can be set by editing the co-ordinate widgets
+% The current cursor location can be set by editing the coordinate widgets
 % at the bottom of the Interactive window. (Note that many of the results
-% section facilities are "linked" and can update co-ordinates. E.g.
-% clicking on the co-ordinates in a p-value listing jumps to that location.)
+% section facilities are "linked" and can update coordinates. E.g.
+% clicking on the coordinates in a p-value listing jumps to that location.)
 %
 % Graphics appear in the bottom half of the Graphics window, additional
 % controls and questions appearing in the Interactive window.
@@ -124,7 +124,7 @@ function varargout = spm_results_ui(varargin)
 % Copyright (C) 1996-2018 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston & Andrew Holmes
-% $Id: spm_results_ui.m 7388 2018-08-06 12:04:26Z guillaume $
+% $Id: spm_results_ui.m 8183 2021-11-04 15:25:19Z guillaume $
  
  
 %==========================================================================
@@ -134,7 +134,7 @@ function varargout = spm_results_ui(varargin)
 %( string, specifying the particular action function to take.          )
 %
 % spm_results_ui sets up and handles the SPM results graphical user
-% interface, initialising an XYZ registry (see spm_XYZreg.m) to co-ordinate
+% interface, initialising an XYZ registry (see spm_XYZreg.m) to coordinate
 % locations between various location controls.
 %
 %__________________________________________________________________________
@@ -149,7 +149,7 @@ function varargout = spm_results_ui(varargin)
 %
 % FORMAT hReg = spm_results_ui('SetupGUI',M,DIM,xSPM,Finter)
 % Setup results GUI in Interactive window
-% M       - 4x4 transformation matrix relating voxel to "real" co-ordinates
+% M       - 4x4 transformation matrix relating voxel to "real" coordinates
 % DIM     - 3 vector of image X, Y & Z dimensions
 % xSPM    - structure containing xSPM. Required fields are:
 % .Z      - minimum of n Statistics {filtered on u and k}
@@ -167,7 +167,7 @@ function varargout = spm_results_ui(varargin)
 %
 % FORMAT hFxyz = spm_results_ui('DrawXYZgui',M,DIM,xSPM,xyz,hReg)
 % Setup editable XYZ control widgets at foot of Interactive window
-% M      - 4x4 transformation matrix relating voxel to "real" co-ordinates
+% M      - 4x4 transformation matrix relating voxel to "real" coordinates
 % DIM    - 3 vector of image X, Y & Z dimensions
 % xSPM   - structure containing SPM; Required fields are:
 % .Z     - minimum of n Statistics {filtered on u and k}
@@ -186,21 +186,21 @@ function varargout = spm_results_ui(varargin)
 % UD    - XYZ data structure (UserData of hFxyz).
 %
 % FORMAT xyz = spm_results_ui('GetCoords',hFxyz)
-% Get current co-ordinates from editable XYZ control
+% Get current coordinates from editable XYZ control
 % hFxyz - handle of frame enclosing widgets - the Tag object for this control
-% xyz   - current co-ordinates {mm}
+% xyz   - current coordinates {mm}
 % NB: When using the results section, should use XYZregistry to get/set location
 %
 % FORMAT [xyz,d] = spm_results_ui('SetCoords',xyz,hFxyz,hC)
-% Set co-ordinates to XYZ widget
-% xyz   - (Input) desired co-ordinates {mm}
+% Set coordinates to XYZ widget
+% xyz   - (Input) desired coordinates {mm}
 % hFxyz - handle of XYZ control - the frame containing the edit widgets
 % hC    - handle of calling object, if used as a callback. [Default 0]
-% xyz   - (Output) Desired co-ordinates are rounded to nearest voxel if hC
+% xyz   - (Output) Desired coordinates are rounded to nearest voxel if hC
 %         is not specified, or is zero. Otherwise, caller is assumed to
-%         have checked verity of desired xyz co-ordinates. Output xyz returns
-%         co-ordinates actually set {mm}.
-% d     - Euclidean distance between desired and set co-ordinates.
+%         have checked verity of desired xyz coordinates. Output xyz returns
+%         coordinates actually set {mm}.
+% d     - Euclidean distance between desired and set coordinates.
 % NB: When using the results section, should use XYZregistry to get/set location
 %
 % FORMAT hFxyz = spm_results_ui('FindXYZframe',h)
@@ -236,7 +236,7 @@ function varargout = spm_results_ui(varargin)
 % warning statements from MATLAB.
 %__________________________________________________________________________
  
-SVNid = '$Rev: 7388 $'; 
+SVNid = '$Rev: 8183 $'; 
 
 %-Condition arguments
 %--------------------------------------------------------------------------
@@ -862,7 +862,7 @@ switch lower(Action), case 'setup'                         %-Set up results
  
         %-Create XYZ control objects
         %------------------------------------------------------------------
-        hFxyz = uipanel('Parent',hReg,'Title','co-ordinates','Units','Pixels',...
+        hFxyz = uipanel('Parent',hReg,'Title','coordinates','Units','Pixels',...
             'Position',[005 005 265 040].*WS,...
             'BorderType','Beveledout',...
             'ShadowColor',[0.5 0.5 0.5],...
@@ -987,7 +987,7 @@ switch lower(Action), case 'setup'                         %-Set up results
  
  
     %======================================================================
-    case 'getcoords'             % Get current co-ordinates from XYZ widget
+    case 'getcoords'             % Get current coordinates from XYZ widget
     %======================================================================
         % xyz = spm_results_ui('GetCoords',hFxyz)
         if nargin<2, hFxyz='Interactive'; else hFxyz=varargin{2}; end
@@ -996,7 +996,7 @@ switch lower(Action), case 'setup'                         %-Set up results
  
  
     %======================================================================
-    case 'setcoords'                       % Set co-ordinates to XYZ widget
+    case 'setcoords'                       % Set coordinates to XYZ widget
     %======================================================================
         % [xyz,d] = spm_results_ui('SetCoords',xyz,hFxyz,hC)
         if nargin<4, hC=NaN; else hC=varargin{4}; end

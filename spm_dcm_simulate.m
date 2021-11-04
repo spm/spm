@@ -30,7 +30,7 @@ function [GCM,gen] = spm_dcm_simulate(GCM, mode, noise, gen_idx)
 % Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
 
 % Peter Zeidman, Vladimir Litvak
-% $Id: spm_dcm_simulate.m 7069 2017-04-24 10:15:20Z peter $
+% $Id: spm_dcm_simulate.m 8183 2021-11-04 15:25:19Z guillaume $
 
 % Check parameters and load specified DCM
 %--------------------------------------------------------------------------
@@ -53,7 +53,7 @@ end
 end
 %--------------------------------------------------------------------------
 function [GCM, gen] = simulate_fmri(GCM, mode, noise, gen_idx)
-% Simulate determinstic DCM for fMRI (task-based)
+% Simulate deterministic DCM for fMRI (task-based)
 
 [ns, nm] = size(GCM);
 
@@ -116,7 +116,7 @@ end
 
 %--------------------------------------------------------------------------
 function [GCM, gen] = simulate_erp(GCM, mode, noise, gen_idx)
-% Simulate determinstic DCM for ERP
+% Simulate deterministic DCM for ERP
 
 [ns, nm] = size(GCM);
 

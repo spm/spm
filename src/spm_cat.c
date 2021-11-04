@@ -1,5 +1,5 @@
 /*
- * $Id: spm_cat.c 7532 2019-02-14 12:03:24Z guillaume $
+ * $Id: spm_cat.c 8183 2021-11-04 15:25:19Z guillaume $
  * Copyright 2012 Eduardo Aponte <aponteeduardo@gmail.com>
  */
 
@@ -143,7 +143,7 @@ void e_s_m( struct s_m *ism )
     ism->nc   = 0;
     ism->nr   = 0;
     ism->nz   = 0;
-    /* These fields are alway allocated to prevent free empty structures */
+    /* These fields are always allocated to prevent free empty structures */
     ism->jc = mxCalloc(1,sizeof(mwSize));
     ism->ir = mxCalloc(1,sizeof(mwSize));
     ism->pr = mxCalloc(1,sizeof(double));
@@ -295,7 +295,7 @@ void full2sparse( const mxArray *ia, struct s_m *osm )
                     nzmax = (mwSize)ceil( (double)ds[0]*(double)ds[1]
                             *percent_sparse);
                     
-                    /*make sure nzmax increases atleast by 1*/
+                    /*make sure nzmax increases at least by 1*/
                     if (oldnzmax == nzmax){
                         nzmax++;
                     }
@@ -475,7 +475,7 @@ int concatenate( const mxArray *ia, struct s_m *osm )
 
     nz = forwardPass(ia,tcia,dc,dr);
 
-    /* Initilize the output */
+    /* Initialize the output */
     osm->nz = nz;
             
     osm->nc = cumsum(dc,ds[0]+1);

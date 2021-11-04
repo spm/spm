@@ -4,7 +4,7 @@ function [P,F] = spm_MH(L,B,y,M)
 %
 % L   - likelihood function: inline(P,y,M)
 % B   - free parameter [structure]
-% Y   - response  [stucture]
+% Y   - response  [structure]
 % M   - model [structure]
 %
 % P   - Sample from posterior p(P|y,M)
@@ -18,7 +18,7 @@ function [P,F] = spm_MH(L,B,y,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MH.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_MH.m 8183 2021-11-04 15:25:19Z guillaume $
 
 % initialise parameters
 %--------------------------------------------------------------------------

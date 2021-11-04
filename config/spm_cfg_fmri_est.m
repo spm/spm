@@ -3,7 +3,7 @@ function fmri_est = spm_cfg_fmri_est
 %__________________________________________________________________________
 % Copyright (C) 2005-2021 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_fmri_est.m 8119 2021-07-06 13:51:43Z guillaume $
+% $Id: spm_cfg_fmri_est.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
 %--------------------------------------------------------------------------
@@ -174,7 +174,7 @@ signal.help    = {
                   ''
                   '[GMRF] Gaussian Markov Random Field. This is equivalent to a normalized UGL. '
                   ''
-                  '[LORETA] Low resolution Tomography Prior. This is equivalent to UGL squared. It is a standatd choice for EEG source localisation algorithms. '
+                  '[LORETA] Low resolution Tomography Prior. This is equivalent to UGL squared. It is a standard choice for EEG source localisation algorithms. '
                   ''
                   '[WGL] Weighted Graph Laplacian. This is a generalization of the UGL, where weights can be used to preserve "edges" of functional responses.'
                   ''
@@ -233,7 +233,7 @@ GMRF        = cfg_const;
 GMRF.tag    = 'GMRF';
 GMRF.name   = 'GMRF';
 GMRF.val    = {1};
-GMRF.help   = {'[GMRF] Gaussian Markov Random Field. See comments on GMRF priors for regresion coefficients. '};
+GMRF.help   = {'[GMRF] Gaussian Markov Random Field. See comments on GMRF priors for regression coefficients. '};
 
 %--------------------------------------------------------------------------
 % LORETA LORETA
@@ -242,7 +242,7 @@ LORETA      = cfg_const;
 LORETA.tag  = 'LORETA';
 LORETA.name = 'LORETA';
 LORETA.val  = {1};
-LORETA.help = {'[LORETA] Low resolution Tomography Prior. See comments on LORETA priors for regresion coefficients.'};
+LORETA.help = {'[LORETA] Low resolution Tomography Prior. See comments on LORETA priors for regression coefficients.'};
 
 %--------------------------------------------------------------------------
 % tissue_type Tissue-type
@@ -310,7 +310,7 @@ second.help    = {
                   ''
                   'To use this option you must have already specified your factorial design during the model specification stage. '
                   ''
-                  'If you wish to use these contrast images for a second-level analysis then you will need to spatially smooth them to take into account between-subject differences in functional anatomy ie. the fact that one persons V5 may be in a different position than anothers. '
+                  'If you wish to use these contrast images for a second-level analysis then you will need to spatially smooth them to take into account between-subject differences in functional anatomy ie. the fact that one persons V5 may be in a different position than another''s.'
 }';
 second.labels = {'No', 'Yes'};
 second.values = {'No', 'Yes'};
@@ -366,7 +366,7 @@ generic.help    = {
                    ''
                    'When using the Bayesian estimation option it is computationally more efficient to compute the contrasts when the parameters are estimated. This is because estimated parameter vectors have potentially different posterior covariance matrices at different voxels and these matrices are not stored. If you compute contrasts post-hoc these matrices must be recomputed (an approximate reconstruction based on a Taylor series expansion is used). It is therefore recommended to specify as many contrasts as possible prior to parameter estimation.'
                    ''
-                   'If you wish to use these contrast images for a second-level analysis then you will need to spatially smooth them to take into account between-subject differences in functional anatomy ie. the fact that one persons V5 may be in a different position than anothers. '
+                   'If you wish to use these contrast images for a second-level analysis then you will need to spatially smooth them to take into account between-subject differences in functional anatomy ie. the fact that one persons V5 may be in a different position than another''s.'
 }';
 generic.values  = {gcon };
 generic.num     = [0 Inf];
@@ -454,6 +454,6 @@ if isfield(job.method, 'Classical')
         dep(4).src_output = substruct('.','res');
         dep(4).tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});
     end
-    % can't check whether auto-generated contrasts are generated this is
+    % cannot check whether auto-generated contrasts are generated this is
     % specified in input SPM.mat, not this job
 end

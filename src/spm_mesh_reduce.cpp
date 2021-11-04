@@ -1,5 +1,5 @@
 /*
- * $Id: spm_mesh_reduce.cpp 7421 2018-09-20 10:58:01Z guillaume $
+ * $Id: spm_mesh_reduce.cpp 8183 2021-11-04 15:25:19Z guillaume $
  * Guillaume Flandin
  */
 
@@ -13,7 +13,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     void *f = NULL, *v = NULL;
     double *out = NULL;
     unsigned int i;
-    double agressiveness = 7.0;
+    double aggressiveness = 7.0;
     int target = 0;
     mwSize nv, nf;
     bool isVdouble = true, isFdouble = true;
@@ -28,7 +28,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     
     if (nrhs > 1) target = (int)mxGetScalar(prhs[1]);
     
-    if (nrhs > 2) agressiveness = mxGetScalar(prhs[2]);
+    if (nrhs > 2) aggressiveness = mxGetScalar(prhs[2]);
     
     array = mxGetField(prhs[0], 0, "vertices");
     if (array == NULL)
@@ -82,7 +82,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
     if (target == 0) target = (int) (Simplify::triangles.size() / 2);
     
-    Simplify::simplify_mesh(target, agressiveness, false);
+    Simplify::simplify_mesh(target, aggressiveness, false);
     
     plhs[0] = mxCreateStructMatrix(1, 1, 2, fnames);
     array = mxCreateNumericMatrix(Simplify::vertices.size(), 3, mxDOUBLE_CLASS, mxREAL);

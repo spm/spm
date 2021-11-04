@@ -4,7 +4,7 @@ function [varargout] = spm_eeg_review_callbacks(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_callbacks.m 7269 2018-02-28 15:53:43Z vladimir $
+% $Id: spm_eeg_review_callbacks.m 8183 2021-11-04 15:25:19Z guillaume $
 
 spm('pointer','watch');
 drawnow expose
@@ -760,7 +760,7 @@ switch varargin{1}
                 uicontrol(Finter,...
                     'style','pushbutton','string','OK',...
                     'callback','spm_eeg_review_callbacks(''get'',''prep'')',...
-                    'tooltipstring','Update data informations in ''SPM Graphics'' window',...
+                    'tooltipstring','Update data information in ''SPM Graphics'' window',...
                     'BusyAction','cancel',...
                     'Interruptible','off',...
                     'Tag','EEGprepUI');
@@ -1455,7 +1455,7 @@ end
 
 %% Define menu event
 function [] = psd_defineMenuEvent(re,sc)
-% This funcion defines the uicontextmenu associated to the selected events.
+% This function defines the uicontextmenu associated to the selected events.
 % All the actions which are accessible using the right mouse click on the
 % selected events are a priori defined here.
 

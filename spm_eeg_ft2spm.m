@@ -5,7 +5,7 @@ function D = spm_eeg_ft2spm(ftdata, filename)
 % Copyright (C) 2008-2013 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_ft2spm.m 7059 2017-04-18 10:59:54Z vladimir $
+% $Id: spm_eeg_ft2spm.m 8183 2021-11-04 15:25:19Z guillaume $
 
 isTF = 0;
 
@@ -189,9 +189,9 @@ function [tok] = tokenize(str, sep, rep)
 % to cut it into pieces.
 %
 % Using the optional boolean flag rep you can specify whether repeated
-% seperator characters should be squeezed together (e.g. multiple
+% separator characters should be squeezed together (e.g. multiple
 % spaces between two words). The default is rep=1, i.e. repeated
-% seperators are treated as one.
+% separators are treated as one.
 
 % Copyright (C) 2003-2006, Robert Oostenveld
 

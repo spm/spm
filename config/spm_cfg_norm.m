@@ -4,7 +4,7 @@ function normalise = spm_cfg_norm
 % Copyright (C) 2012-2021 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_cfg_norm.m 8119 2021-07-06 13:51:43Z guillaume $
+% $Id: spm_cfg_norm.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
 %--------------------------------------------------------------------------
@@ -19,7 +19,7 @@ est.help = {
     ''
     'The algorithm (which was known as ``New Segment'''' in SPM8) is essentially the same as that described in the Unified Segmentation paper /* \cite{ashburner05}*/, except for (i) a slightly different treatment of the mixing proportions, (ii) the use of an improved registration model, (iii) the ability to use multi-spectral data, (iv) an extended set of tissue probability maps, which allows a different treatment of voxels outside the brain.'
     ''
-    'If you encounter problems with spatial normalisation, it is advisable to use the Check reg button to see how well aligned the original data are with the MNI-space templates released with SPM.  If mis-alignment is greater than about 3cm and 15 degrees, you could try to manually re-position the images prior to attempting to align them.  This may be done using the Display button.'
+    'If you encounter problems with spatial normalisation, it is advisable to use the Check reg button to see how well aligned the original data are with the MNI-space templates released with SPM.  If misalignment is greater than about 3cm and 15 degrees, you could try to manually re-position the images prior to attempting to align them.  This may be done using the Display button.'
     }';
 est.prog = @spm_run_norm;
 est.vout = @vout_est;
@@ -47,7 +47,7 @@ estwrite.help = {
     'Compute the warp that best aligns the template (atlas) to the individual''s image, invert it and write the result to the file `y_''imagename''.nii''.'
     'This option also allows the contents of the `y_''imagename''.nii'' files to be applied to a series of images.'
     ''
-    'Note that if you encounter problems with spatial normalisation, it is often advisable to use the Check reg button to see how well aligned the original data are with the MNI-space templates released with SPM.  If mis-alignment is greater than about 3cm and 15 degrees, you could try to manually re-position the images.  This may be done using the Display button.'
+    'Note that if you encounter problems with spatial normalisation, it is often advisable to use the Check reg button to see how well aligned the original data are with the MNI-space templates released with SPM.  If misalignment is greater than about 3cm and 15 degrees, you could try to manually re-position the images.  This may be done using the Display button.'
     };
 estwrite.prog = @spm_run_norm;
 estwrite.vout = @vout_estwrite;

@@ -23,7 +23,7 @@ function M1 = spm_eeg_inv_datareg(S)
 %
 %
 % Output:
-% M1 = homogenous transformation matrix
+% M1 = homogeneous transformation matrix
 %
 % If a template is used, the sensor locations are transformed using an
 % affine (rigid body) mapping.  If headshape locations are supplied
@@ -33,7 +33,7 @@ function M1 = spm_eeg_inv_datareg(S)
 % Copyright (C) 2005-2020 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_datareg.m 7974 2020-10-05 17:15:15Z guillaume $
+% $Id: spm_eeg_inv_datareg.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
 if ~isfield(S, 'targetfid')
@@ -115,7 +115,7 @@ if ~isempty(sourcefid.pnt) && S.useheadshape
         scalpvert = scalpvert';
     end
 
-    % intialise plot
+    % initialise plot
     %----------------------------------------------------------------------
     if ~spm('CmdLine')
         h    = spm_figure('GetWin','Graphics');

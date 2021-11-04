@@ -3,7 +3,7 @@ function tests = test_spm_cfg_dcm_est
 %__________________________________________________________________________
 % Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
 
-% $Id: test_spm_cfg_dcm_est.m 7479 2018-11-09 14:17:33Z peter $
+% $Id: test_spm_cfg_dcm_est.m 8183 2021-11-04 15:25:19Z guillaume $
 
 tests = functiontests(localfunctions);
 
@@ -128,7 +128,7 @@ assert_gcms_match(actual,gcm_file,testCase);
 
 % -------------------------------------------------------------------------
 function test_separate_dcm_output(testCase)
-% Test that outputing separate DCMs gives the correct results
+% Test that outputting separate DCMs gives the correct results
 
 % Prepare paths
 [input_path, path] = prepare_paths();

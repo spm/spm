@@ -67,7 +67,7 @@ function [DEM] = spm_LAPS(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_LAPS.m 6018 2014-05-25 09:24:14Z karl $
+% $Id: spm_LAPS.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
 % find or create a DEM figure
@@ -267,7 +267,7 @@ dHdp   = sparse(np,  1);
 dHdx   = sparse(nx*n,1);
 dHdv   = sparse(nv*d,1);
 
-% preclude unnecessary iterations and set switchs
+% preclude unnecessary iterations and set switches
 %--------------------------------------------------------------------------
 if ~np && ~nh && ~ng, nN = 1; end
 mnx = nx*~~method.x;

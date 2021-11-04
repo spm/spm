@@ -15,7 +15,7 @@ function [Y,XYZmm] = spm_read_vols(V,mask)
 % Copyright (C) 1999-2016 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_read_vols.m 6918 2016-11-02 14:33:11Z guillaume $
+% $Id: spm_read_vols.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
 %-Argument checks
@@ -49,7 +49,7 @@ end
 %--------------------------------------------------------------------------
 if n==1, Y=Y(:,:,:,1); end
 
-%-Compute XYZmm co-ordinates (if required)
+%-Compute XYZmm coordinates (if required)
 %--------------------------------------------------------------------------
 if nargout > 1
     [R,C,P] = ndgrid(1:V(1).dim(1),1:V(1).dim(2),1:V(1).dim(3));

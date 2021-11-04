@@ -16,7 +16,7 @@ function [strout,R2] = spm_str_manip(strin,options)
 %   'h'              - remove trailing pathname component
 %   'H'              - always remove trailing pathname component
 %                      (returns '.' for straight filenames like 'test.img')
-%                       (wheras 'h' option mimics csh & returns 'test.img' )
+%                       (whereas 'h' option mimics csh & returns 'test.img' )
 %   't'              - remove leading pathname component
 %   ['f' num2str(n)] - remove all except first n characters
 %   ['l' num2str(n)] - remove all except last n characters
@@ -48,7 +48,7 @@ function [strout,R2] = spm_str_manip(strin,options)
 % Copyright (C) 1996-2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_str_manip.m 4444 2011-08-26 16:47:14Z guillaume $
+% $Id: spm_str_manip.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
 % persistent runonce

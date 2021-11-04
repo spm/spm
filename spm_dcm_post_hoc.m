@@ -75,7 +75,7 @@ function DCM = spm_dcm_post_hoc(P,fun,field,write_all)
 % Copyright (C) 2010-2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: spm_dcm_post_hoc.m 6724 2016-02-19 19:13:07Z karl $
+% $Id: spm_dcm_post_hoc.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
 %-Number of parameters to consider before invoking greedy search
@@ -100,7 +100,7 @@ if nargin < 2 || isempty(fun)
     fun = [];
 end
 
-%-Check fields of parameter stucture
+%-Check fields of parameter structure
 %--------------------------------------------------------------------------
 if nargin < 3 || isempty(field)
     field = {'A','B','C'};

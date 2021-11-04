@@ -4,7 +4,7 @@ function fmri = spm_cfg_dcm_fmri
 % Copyright (C) 2008-2016 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin & Peter Zeidman
-% $Id: spm_cfg_dcm_fmri.m 7479 2018-11-09 14:17:33Z peter $
+% $Id: spm_cfg_dcm_fmri.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
 % -------------------------------------------------------------------------
@@ -183,7 +183,7 @@ output         = cfg_branch;
 output.tag     = 'output';
 output.name    = 'Output';
 output.val     = {dir name};
-output.help    = {['Select where the group DCM (GCM) file containg all ' ...
+output.help    = {['Select where the group DCM (GCM) file containing all ' ...
                     'the DCMs'' filenames will be stored.']};
 
 % -------------------------------------------------------------------------

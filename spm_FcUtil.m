@@ -10,7 +10,7 @@ function varargout = spm_FcUtil(varargin)
 % 
 % The use of spm_FcUtil should help with robustness issues and
 % maintainability of SPM.  % Note that when space structures are passed
-% as arguments is is assummed that their basic fields are filled in.
+% as arguments is is assumed that their basic fields are filled in.
 % See spm_sp for details of (design) space structures and their
 % manipulation.
 %
@@ -29,7 +29,7 @@ function varargout = spm_FcUtil(varargin)
 %- c (in the contrast space), X1o (the space actually tested) and
 %- X0 (the space left untested), such that space([X1o X0]) == sX.
 %- STAT is either 'F' or 'T';
-%- name is a string descibing the contrast.
+%- name is a string describing the contrast.
 %
 %- There are three ways to set a contrast :
 %- set_action is 'c','c+'   : value can then be zeros.
@@ -103,7 +103,7 @@ function varargout = spm_FcUtil(varargin)
 % case 'in'    %-  Fc1 is in list of  contrasts Fc2
 % [iFc2 iFc1] = spm_FcUtil('In', Fc1, sX, Fc2)
 %
-%- Tests wether a (list of) contrast Fc1 is in a list of contrast Fc2.
+%- Tests whether a (list of) contrast Fc1 is in a list of contrast Fc2.
 %- returns the indices iFc2 where element of Fc1 have been found
 %- in Fc2 and the indices iFc1 of the element of Fc1 found in Fc2.
 %- These indices are not necessarily unique.
@@ -127,7 +127,7 @@ function varargout = spm_FcUtil(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean-Baptiste Poline
-% $Id: spm_FcUtil.m 5219 2013-01-29 17:07:07Z spm $
+% $Id: spm_FcUtil.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
 %-Format arguments
@@ -155,7 +155,7 @@ case {'set','v1set'}                %- Create an F contrast
 % resp. for a contrast, the null hyp. space or the indices of which.
 % STAT can be 'T' or 'F'.
 %
-% If not set by iX0 (in which case field .iX0 containes the indices),
+% If not set by iX0 (in which case field .iX0 contains the indices),
 % field .iX0 is set as a string containing the set_action: {'X0','c','c+','ukX0'}
 %
 % if STAT is T, then set_action should be 'c' or 'c+' 
@@ -552,7 +552,7 @@ case 'in'     %-  Fc1 is in list of  contrasts Fc2
 % NB : If T- stat, the routine checks whether Fc.c is of
 % size one. This is ensure if contrast is set 
 % or manipulated (ortho ..) with spm_FcUtil
-% note that the algorithmn works \emph{only because} Fc2(?).c 
+% note that the algorithm works \emph{only because} Fc2(?).c 
 % and Fc1.c are in space(X')
 
 if nargin < 4, error('Insufficient arguments'), end
@@ -906,7 +906,7 @@ for j=1:L1
          boul = spm_sp('==',sc1,spm_sp('oPp',sX,Fc2(i).c));
 
          %- if they are the same space and T stat (same direction),
-         %- then check wether they are in the same ORIENTATION
+         %- then check whether they are in the same ORIENTATION
          %- works because size(X1o,2) == 1, else .* with (Fc1(j).c'*Fc2(i).c)
          if boul && S == 'T'
             atmp = sf_X1o(Fc1(j),sX);

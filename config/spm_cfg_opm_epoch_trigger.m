@@ -4,7 +4,7 @@ function epoch = spm_cfg_opm_epoch_trigger
 % Copyright (C) 2018-2021 Wellcome Trust Centre for Neuroimaging
 
 % Tim Tierney
-% $Id: spm_cfg_opm_epoch_trigger.m 8119 2021-07-06 13:51:43Z guillaume $
+% $Id: spm_cfg_opm_epoch_trigger.m 8183 2021-11-04 15:25:19Z guillaume $
 
 %--------------------------------------------------------------------------
 % simulation parameters
@@ -50,7 +50,7 @@ timewin.num     = [Inf,2];
 condLabels         = cfg_entry;
 condLabels.tag     = 'condLabels';
 condLabels.name    = 'Condition Labels';
-condLabels.help    = {'Labels of conditions. Enter each label on a new line. If left empty the default behaviout is to label conditions accrding to number(e.g. Cond1,Cond2,...)'};
+condLabels.help    = {'Labels of conditions. Enter each label on a new line. If left empty the default behaviour is to label conditions according to number(e.g. Cond1,Cond2,...)'};
 condLabels.strtype = 's+';
 condLabels.num     = [1,100];
 condLabels.val     = {{''}};
@@ -63,7 +63,7 @@ condLabels.val     = {{''}};
 function out = epoch_trigger(job)
 % construct the S struct
 
-% datset parameters
+% dataset parameters
 S=[];
 S.D= spm_eeg_load(job.D{1});
 S.timewin= job.timewin;

@@ -141,7 +141,7 @@ function varargout = spm_spm_ui(varargin)
 % =============================================
 %
 % You may now be prompted to specify how many studies, subjects and
-% conditions you have, and then will be promted to select the scans.
+% conditions you have, and then will be prompted to select the scans.
 %
 % The data should all have the same orientation and image and voxel size.
 %
@@ -212,7 +212,7 @@ function varargout = spm_spm_ui(varargin)
 %
 % * Method of global flow calculation
 %       - SPM96:Compare-groups: 1 scan per subject
-%       - None (assumming no other options requiring the global value chosen)
+%       - None (assuming no other options requiring the global value chosen)
 %       - User defined (enter your own vector of global values)
 %       - SPM standard: mean voxel value (within per image fullmean/8 mask)
 %
@@ -221,20 +221,20 @@ function varargout = spm_spm_ui(varargin)
 % global values is the value specified. For qualitative data, this puts
 % the data into an intuitively accessible scale without altering the
 % statistics. When proportional scaling global normalisation is used
-% (see below), each image is seperately scaled such that it's global
+% (see below), each image is separately scaled such that it's global
 % value is that specified (in which case the grand mean is also
 % implicitly scaled to that value). When using AnCova or no global
 % normalisation, with data from different subjects or sessions, an
 % intermediate situation may be appropriate, and you may be given the
-% option to scale group, session or subject grand means seperately. The
+% option to scale group, session or subject grand means separately. The
 % full list of possible options is:
 %       - scaling of overall grand mean
-%       - caling of replication grand means
-%       - caling of condition grand means (across group)
-%       - caling of subject grand means (across group)
-%       - caling of group grand means
-%       - caling of condition (within group) grand means
-%       - caling of subject (within group) grand means
+%       - scaling of replication grand means
+%       - scaling of condition grand means (across group)
+%       - scaling of subject grand means (across group)
+%       - scaling of group grand means
+%       - scaling of condition (within group) grand means
+%       - scaling of subject (within group) grand means
 %       - implicit in PropSca global normalisation)
 %       - no grand Mean scaling>'
 %
@@ -254,7 +254,7 @@ function varargout = spm_spm_ui(varargin)
 % to have the same relationship between global and local measurements,
 % a subject-specific AnCova ("AnCova by subject"), fitting a different
 % slope and intercept for each subject, would be preferred to the
-% single common slope of a straight AnCova. (Assumming there's enough
+% single common slope of a straight AnCova. (Assuming there's enough
 % scans per subject to estimate such an effect.) This is basically an
 % interaction of the global covariate with the subject factor. You may
 % be offered various AnCova options, corresponding to interactions with
@@ -360,7 +360,7 @@ function varargout = spm_spm_ui(varargin)
 % be violated if the levels of a factor do not have the same error variance.
 % For example, in a 2nd-level analysis of variance, one contrast may be scaled
 % differently from another.  Another example would be the comparison of
-% qualitatively different dependant variables (e.g. normals vs. patients).  If
+% qualitatively different dependent variables (e.g. normals vs. patients).  If
 % You say no to identity assumptions, you will be asked whether the error
 % variance is the same over levels of each factor.  Different variances
 % (heteroscedasticy) induce different error covariance components that
@@ -399,7 +399,7 @@ function varargout = spm_spm_ui(varargin)
 %
 % ----------------------------------------------------------------------
 %
-% Variables saved in the SPM stucture
+% Variables saved in the SPM structure
 %
 % xY.VY         - nScan x 1 struct array of memory mapped images
 %                 (see spm_vol for definition of the map structure)
@@ -413,7 +413,7 @@ function varargout = spm_spm_ui(varargin)
 % xX.X          - design matrix
 % xX.xVi        - correlation constraints for non-spericity correction
 % xX.iH         - vector of H partition (condition effects) indices,
-%                 identifying columns of X correspoding to H
+%                 identifying columns of X corresponding to H
 % xX.iC         - vector of C partition (covariates of interest) indices
 % xX.iB         - vector of B partition (block effects) indices
 % xX.iG         - vector of G partition (nuisance variables) indices
@@ -482,12 +482,12 @@ function varargout = spm_spm_ui(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_spm_ui.m 4419 2011-08-03 18:42:35Z guillaume $
+% $Id: spm_spm_ui.m 8183 2021-11-04 15:25:19Z guillaume $
 
-SCCSid  = '$Rev: 4419 $';
+SCCSid  = '$Rev: 8183 $';
 
 %=======================================================================
-% - FORMAT specifications for programers
+% - FORMAT specifications for programmers
 %=======================================================================
 %( This is a multi function function, the first argument is an action  )
 %( string, specifying the particular action function to take.          )
@@ -521,7 +521,7 @@ SCCSid  = '$Rev: 4419 $';
 % D      - struct array of design definitions (see definition below)
 
 %=======================================================================
-% Design definitions specification for programers & power users
+% Design definitions specification for programmers & power users
 %=======================================================================
 % Within spm_spm_ui.m, a definition structure, D, determines the
 % various options, defaults and specifications appropriate for a
@@ -554,7 +554,7 @@ SCCSid  = '$Rev: 4419 $';
 %
 % D.Desname  - a string naming the design
 %
-% In general, spm_spm_ui.m accomodates four factors. Usually these are
+% In general, spm_spm_ui.m accommodates four factors. Usually these are
 % 'group', 'subject', 'condition' & 'replication', but to allow for a
 % flexible interface these are dynamically named for different designs,
 % and are referred to as Factor4, Factor3, Factor2, and Factor1
@@ -639,7 +639,7 @@ SCCSid  = '$Rev: 4419 $';
 %              design. Interactions are only offered with a factor if
 %              it has multiple levels. The options are defined in the
 %              body of spm_spm_ui.m, in variables sCFI & CFIforms. Use
-%              negative indicies to indicate a default.
+%              negative indices to indicate a default.
 %
 % The next part defines global options:
 %
@@ -655,7 +655,7 @@ SCCSid  = '$Rev: 4419 $';
 %
 % D.iGMsca   - a vector of possible grand mean scaling options, as
 %              described in the body of spm_spm_ui.m in variable
-%              sGMsca. (Note that grand mean scaling is redundent when
+%              sGMsca. (Note that grand mean scaling is redundant when
 %              using proportional scaling global flow normalisation.)
 %
 % D.iGC      - a vector of possible global covariate centering
@@ -797,7 +797,7 @@ case 'cfg'
             'scaling of sF3 (within sF4) grand means';...       %-7
             '(implicit in PropSca global normalisation)';...    %-8
             '<no grand Mean scaling>'   };          %-9
-    %-NB: Grand mean scaling by subject is redundent for proportional scaling
+    %-NB: Grand mean scaling by subject is redundant for proportional scaling
     
     
     %-Global calculation options                                       (GXcalc)
@@ -830,7 +830,7 @@ case 'cfg'
     sGloNorm = sf_estrrep(sGloNorm,[sF',D.sF']);
     sGMsca   = sf_estrrep(sGMsca,[sF',D.sF']);
     
-    %-Get filenames & factor indicies
+    %-Get filenames & factor indices
     %-------------------------------------------------------------------
     [P,I]    = spm_spm_ui('Files&Indices',D.sF,D.n,D.b.aTime);
     nScan    = size(I,1);                       %-#obs
@@ -839,7 +839,7 @@ case 'cfg'
     %-------------------------------------------------------------------
     bL       = any(diff(I,1),1);    %-Multiple factor levels?
     % NB: bL(2) might be thrown by user specified f1 levels
-    %     (D.b.aTime & D.n(2)>1) - assumme user is consistent?
+    %     (D.b.aTime & D.n(2)>1) - assume user is consistent?
     bFI      = [bL(1),bL(2:3)&~bL(4),bL(4),bL([2,3])&bL(4)];
     %-Allowable interactions for covariates
     %-Only offer interactions with multi-level factors, and
@@ -1043,7 +1043,7 @@ case 'cfg'
     %-Specify the centering option for the global covariate for AnCova
     %-Basically, if 'GMsca'ling then should centre to GM (iGC=11). Otherwise,
     % should centre in similar fashion to AnCova (i.e. by the same factor(s)),
-    % such that models are seperable (iGC=10). This is particularly important
+    % such that models are separable (iGC=10). This is particularly important
     % for subject specific condition effects if then passed on to a second-level
     % model. (See also spm_adjmean_ui.m) SPM96 (& earlier) used to just centre
     % GX around its (overall) mean (iGC=1).
@@ -1066,7 +1066,7 @@ case 'cfg'
         
         %-Constuct vector of allowable iGC
         %---------------------------------------------------------------
-        %-Weed out redundent factor combinations from pre-set allowable options
+        %-Weed out redundant factor combinations from pre-set allowable options
         iGC = intersect(abs(D.iGC),find([1,bFI,1,1,1,1]));
         %-Omit 'GM' option if didn't GMsca (iGMsca~=8 'cos doing AnCova)
         if any(iGMsca==[8,9]), iGC = setdiff(iGC,11); end
@@ -1272,7 +1272,7 @@ case 'cfg'
     VY    = spm_vol(char(P));
     
     
-    %-Check compatability of images (Bombs for single image)
+    %-Check compatibility of images (Bombs for single image)
     %-------------------------------------------------------------------
     spm_check_orientations(VY);
     

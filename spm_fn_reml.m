@@ -7,7 +7,7 @@ function [C,h,Ph,F] = spm_fn_reml(YY,X,Q,N,hE,K);
 % Q   - inline function or script C = Q(h,m)
 % N   - number of samples
 %
-% hE  - prior expectation (& starting esitmate for Q(h,m))
+% hE  - prior expectation (& starting estimate for Q(h,m))
 % K   - maxmium number of iterations
 %
 % C   - (m x m) estimated errors: C = Q(h)
@@ -22,7 +22,7 @@ function [C,h,Ph,F] = spm_fn_reml(YY,X,Q,N,hE,K);
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner & Karl Friston
-% $Id: spm_fn_reml.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_fn_reml.m 8183 2021-11-04 15:25:19Z guillaume $
 
 % assume a single sample if not specified
 %--------------------------------------------------------------------------

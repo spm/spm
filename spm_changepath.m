@@ -1,5 +1,5 @@
 function varargout = spm_changepath(Sf, oldp, newp, verbose)
-% Recursively replace all occurences of a text pattern in a MATLAB variable.
+% Recursively replace all occurrences of a text pattern in a MATLAB variable.
 % FORMAT S = spm_changepath(Sf, oldp, newp)
 %
 % Sf       - MATLAB variable to fix, or char array of MAT filenames,
@@ -9,7 +9,7 @@ function varargout = spm_changepath(Sf, oldp, newp, verbose)
 %
 % S        - updated MATLAB variable (only if Sf is one)
 %
-% If the pattern is found in a string, any occurence of an invalid file
+% If the pattern is found in a string, any occurrence of an invalid file
 % separator is replaced to match that of the current system.
 %
 % If MAT filenames are specified, they will be overwritten with the new
@@ -18,7 +18,7 @@ function varargout = spm_changepath(Sf, oldp, newp, verbose)
 % Copyright (C) 2009-2016 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_changepath.m 6948 2016-11-24 10:34:01Z guillaume $
+% $Id: spm_changepath.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
 %-Input arguments

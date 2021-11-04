@@ -12,7 +12,7 @@ function spm_bms_partition(BMS)
 % Copyright (C) 2009-2011 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao Rosa
-% $Id: spm_bms_partition.m 4492 2011-09-16 12:11:09Z guillaume $
+% $Id: spm_bms_partition.m 8183 2021-11-04 15:25:19Z guillaume $
 
 % Contrast vector
 % -------------------------------------------------------------------------
@@ -149,7 +149,7 @@ for p = 1:Vo(j).dim(3),
     try
         eval(['Yp = ' f ';']);
     catch
-        error(['Can''t evaluate "',f,'".']);
+        error(['Cannot evaluate "',f,'".']);
     end
     if prod(Vo(j).dim(1:2)) ~= numel(Yp),
        error(['"',f,'" produced incompatible image.']); end

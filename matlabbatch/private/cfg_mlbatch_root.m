@@ -10,9 +10,9 @@ function c0 = cfg_mlbatch_root
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_mlbatch_root.m 2308 2008-10-06 16:05:26Z volkmar $
+% $Id: cfg_mlbatch_root.m 8183 2021-11-04 15:25:19Z guillaume $
 
-rev = '$Rev: 2308 $'; %#ok
+rev = '$Rev: 8183 $'; %#ok
 c0      = cfg_repeat;
 c0.name = 'MATLAB Batch System';
 c0.tag  = 'matlabbatch';
@@ -61,7 +61,7 @@ c0.help = {
                 '"Edit Value" opens a selection dialog showing allowed menu options.'
                 '/*\item[Choice]*/'
                 '%* Choice'
-                '"Edit Value" opens a selection dialog showing allowed menu options. Depending on the choosen option the module configuration may change.'
+                '"Edit Value" opens a selection dialog showing allowed menu options. Depending on the chosen option the module configuration may change.'
                 '/*\item[Repeat]*/'
                 '%* Repeat'
                 '"Add Item", "Replicate Item", "Delete Item" allow to add new repeated items, to replicate or to delete items from the list. If more than one item or item type exists, a dialog popup will appear listing the available options. Multiple selections are allowed.'

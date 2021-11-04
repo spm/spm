@@ -1,5 +1,5 @@
 /*
- * $Id: spm_add.c 7602 2019-06-05 14:34:18Z guillaume $
+ * $Id: spm_add.c 8183 2021-11-04 15:25:19Z guillaume $
  */
  
 /*
@@ -61,7 +61,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
             if (mxGetString(prhs[2],buf,buflen))
             {
                 mxFree(buf);
-                mexErrMsgTxt("Cant get flags.");
+                mexErrMsgTxt("Can't get flags.");
             }
             for (i=0; i<buflen; i++)
             {

@@ -7,7 +7,7 @@ function [C,P,F] = spm_PEB(y,P,HP,OPT)
 % MODEL SPECIFICATION
 %
 % P{i}.X  - (n x m)     ith level design matrix i.e: constraints on <Eb{i - 1}>
-% P{i}.C  - {q}(n x n)  ith level contraints on Cov{e{i}} = Cov{b{i - 1}}
+% P{i}.C  - {q}(n x n)  ith level constraints on Cov{e{i}} = Cov{b{i - 1}}
 %
 % hP      - enforces positively constraints on the covariance hyperparameters
 %           by adopting a log-normal hyperprior, with precision hP
@@ -50,7 +50,7 @@ function [C,P,F] = spm_PEB(y,P,HP,OPT)
 %
 % e{n} ~ N{0,Ce{n}}
 %
-% using Parametic Emprical Bayes (PEB)
+% using Parametric Emprical Bayes (PEB)
 %
 % Ref: Dempster A.P., Rubin D.B. and Tsutakawa R.K. (1981) Estimation in
 % covariance component models.  J. Am. Stat. Assoc. 76;341-353
@@ -58,7 +58,7 @@ function [C,P,F] = spm_PEB(y,P,HP,OPT)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_PEB.m 8171 2021-10-25 10:14:50Z karl $
+% $Id: spm_PEB.m 8183 2021-11-04 15:25:19Z guillaume $
 
 % set defaults
 %--------------------------------------------------------------------------
@@ -142,7 +142,7 @@ end
 %==========================================================================
 if ~isfield(P{1},'Q')
 
-    % covariance contraints Q on Cov{e{i}} = Cov{b{i - 1}}
+    % covariance constraints Q on Cov{e{i}} = Cov{b{i - 1}}
     %----------------------------------------------------------------------
     Q     = {};
     for i = 1:p

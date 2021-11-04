@@ -15,7 +15,7 @@ function [Ep,Cp,K1,K2] = spm_hdm_ui(xSPM,SPM,hReg)
 % Copyright (C) 2005-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_hdm_ui.m 6314 2015-01-23 17:00:51Z guillaume $
+% $Id: spm_hdm_ui.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
 % get figure handles
@@ -82,7 +82,7 @@ xY     = struct(    'Ic'        ,0,...
                     'name'      ,'HDM',...
                     'Sess'      ,s);
 
-% get region stucture
+% get region structure
 %--------------------------------------------------------------------------
 xY     = struct('name', 'HDM', 'Sess', s);
 [y,xY] = spm_regions(xSPM,SPM,hReg,xY);
@@ -100,7 +100,7 @@ spm('Pointer','Watch')
 spm('FigName','Estimation in progress');
 
 
-% Model specification: m input; 4 states; 1 outout; m + 6 parameters
+% Model specification: m input; 4 states; 1 output; m + 6 parameters
 %--------------------------------------------------------------------------
 % u(m) - mth stimulus function     (u)
 %

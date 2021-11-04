@@ -742,7 +742,7 @@ When it has run, press ``Results'' from the SPM Menu window an select the \textt
 \end{center}
 \end{figure}
 
-You can also look at the results of the MSP inversion by selecting the \texttt{SPM.mat} file in the \texttt{MEEG/IndMSPStats} directory. This will not reveal any face-related activations that survive \(p<.05\) FWE-corrected. The likely reason for this is that the sparse solutions for each individual subject are less likely to overlap at the group level (than the ``smoother'' minimum-norm solution). If you change the threshold to \(p<.001\) uncorrected, you will see some activation in posterior right fusiform. However, we can improve the MSP recontructions by pooling across subjects when actually inverting the data -- so-called ``group inversion'' that we consider next.
+You can also look at the results of the MSP inversion by selecting the \texttt{SPM.mat} file in the \texttt{MEEG/IndMSPStats} directory. This will not reveal any face-related activations that survive \(p<.05\) FWE-corrected. The likely reason for this is that the sparse solutions for each individual subject are less likely to overlap at the group level (than the ``smoother'' minimum-norm solution). If you change the threshold to \(p<.001\) uncorrected, you will see some activation in posterior right fusiform. However, we can improve the MSP reconstructions by pooling across subjects when actually inverting the data -- so-called ``group inversion'' that we consider next.
 
 \section{Group Source Reconstruction}
 

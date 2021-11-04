@@ -48,7 +48,7 @@ function [HMM,csd] = spm_dcm_HMM(GCM,N,b)
 % Copyright (C) 2015-2016 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_HMM.m 7679 2019-10-24 15:54:07Z spm $
+% $Id: spm_dcm_HMM.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
 %  get windowed cross spectra if necessary
@@ -70,9 +70,9 @@ for k = 1:numel(b)
     % initialise this model
     % ---------------------------------------------------------------------
     clear F L M O MDP
-    b0      = b{k};                % prior contraints on transitions
+    b0      = b{k};                % prior constraints on transitions
     s       = size(b0,1);          % number of hidden states
-    D       = sparse(1,1,1,s,1);   % intial state
+    D       = sparse(1,1,1,s,1);   % initial state
     
     % initialise succession of hidden states (assume an orbit)
     % ---------------------------------------------------------------------
@@ -111,7 +111,7 @@ for k = 1:numel(b)
         MDP.O{1} = spm_softmax(F);
         mdp      = spm_MDP_VB_X(MDP);
         
-        % update transition probabilities and inital states
+        % update transition probabilities and initial states
         %==================================================================
         MDP.B    = mdp.b;
         X        = mdp.X{1};

@@ -6,7 +6,7 @@ function [C] = spm_morlet(s,k,wnum)
 % k      - Frequencies (cycles per time bin)
 % wnum   - Wavelet number: default = 6
 %
-% C      - coefficents (complex)
+% C      - coefficients (complex)
 %__________________________________________________________________________
 %
 % This routine returns a Morlet-like wavelet transform but uses a Hanning
@@ -15,7 +15,7 @@ function [C] = spm_morlet(s,k,wnum)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_morlet.m 6122 2014-07-25 13:48:47Z karl $
+% $Id: spm_morlet.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
 % setup and defaults

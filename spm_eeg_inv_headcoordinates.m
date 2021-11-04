@@ -1,5 +1,5 @@
 function M1 = spm_eeg_inv_headcoordinates(nas, lpa, rpa)
-% Returns the homogenous coordinate transformation matrix
+% Returns the homogeneous coordinate transformation matrix
 % that converts the specified fiducials in any coordinate system (e.g. MRI)
 % into the rotated and translated headccordinate system.
 %
@@ -14,7 +14,7 @@ function M1 = spm_eeg_inv_headcoordinates(nas, lpa, rpa)
 % Copyright (C) 2003 Robert Oostenveld
 
 % Robert Oostenveld
-% $Id: spm_eeg_inv_headcoordinates.m 3589 2009-11-20 17:17:41Z guillaume $
+% $Id: spm_eeg_inv_headcoordinates.m 8183 2021-11-04 15:25:19Z guillaume $
 
 % ensure that they are row vectors
 lpa = lpa(:)';
@@ -37,5 +37,5 @@ rot(1:3,1:3) = inv(eye(3) / [dirx; diry; dirz]);
 % compute the translation matrix
 tra = eye(4);
 tra(1:4,4)   = [-origin(:); 1];
-% compute the full homogenous transformation matrix from these two
+% compute the full homogeneous transformation matrix from these two
 M1 = rot * tra;

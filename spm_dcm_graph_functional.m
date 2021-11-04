@@ -11,7 +11,7 @@ function spm_dcm_graph_functional(A,V)
 % Copyright (C) 2013-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_graph_functional.m 5823 2014-01-02 14:01:10Z guillaume $
+% $Id: spm_dcm_graph_functional.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
 % colours and number of nodes
@@ -58,10 +58,10 @@ if nargin == 1
 end
 
 
-% get wieghted (semi-defintie positive) adjacency matrix W from A
+% get weighted (semi-defintie positive) adjacency matrix W from A
 %==========================================================================
 
-% check for cell array connecions (EEG)
+% check for cell array connections (EEG)
 %--------------------------------------------------------------------------
 if iscell(A)
     W = 0;

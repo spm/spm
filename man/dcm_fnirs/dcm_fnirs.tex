@@ -8,7 +8,7 @@ As compared to fMRI, fNIRS provides a more direct measure of changes in oxygenat
 
 DCM for fNIRS allows for making inference about changes in directed connectivity at the neuronal level from the measurement of optical density changes \cite{tak2015dynamic}. DCM is a framework for fitting differential equation models of neuronal activity to brain imaging data using Bayesian inference \cite{dcm, karl_vb_laplace, dcm_families}. Because the Bayesian estimation is the same as the one used for DCMs for other imaging modalities \cite{karl_vb_laplace, dcm_families}, the main differences are a generative model describing how observed fNIRS data are caused by the interactions among hidden neuronal states. \\
 
-In particular, the neurodynamic and hemodynamic models used for DCM-fMRI analysis \cite{dcm} are extended to addtionally include the following components:
+In particular, the neurodynamic and hemodynamic models used for DCM-fMRI analysis \cite{dcm} are extended to additionally include the following components:
 \begin{itemize} 
 \item In the hemodynamic model, \emph{the rate of HbT changes} $\dot{p}_j$, \cite{cui10}, is modeled as:
 \begin{eqnarray} 

@@ -13,7 +13,7 @@ function spm_run_bms_vis(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao Rosa
-% $Id: spm_run_bms_vis.m 7577 2019-04-24 08:59:56Z guillaume $
+% $Id: spm_run_bms_vis.m 8183 2021-11-04 15:25:19Z guillaume $
 
 % Input
 % -------------------------------------------------------------------------
@@ -193,7 +193,7 @@ if ~isempty(z_above)
     xSPM.k            = k;
     xSPM.df           = [];
     xSPM.u            = threshold;
-    xSPM.FWHM         = 10;                    % arbritary value
+    xSPM.FWHM         = 10;                    % arbitrary value
     xSPM.STAT         = '';
     xSPM.VOX          = vox;        
     xSPM.thres        = threshold;

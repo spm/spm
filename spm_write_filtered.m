@@ -15,7 +15,7 @@ function Vo = spm_write_filtered(Z,XYZ,DIM,M,descrip,F)
 %__________________________________________________________________________
 %
 % spm_write_filtered takes a pointlist image (parallel matrices of
-% co-ordinates and voxel intensities), and writes it out into an image
+% coordinates and voxel intensities), and writes it out into an image
 % file.
 %
 % It is intended for writing out filtered SPM's from the results section
@@ -24,7 +24,7 @@ function Vo = spm_write_filtered(Z,XYZ,DIM,M,descrip,F)
 % Copyright (C) 1996-2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_write_filtered.m 6337 2015-02-11 18:46:30Z guillaume $
+% $Id: spm_write_filtered.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
 %-Parse arguments

@@ -63,7 +63,7 @@ function varargout = spm_DesRep(varargin)
 %     
 %     The design orthogonality matrix is "surfable": Clicking (and
 %     holding or dragging) the cursor around the design orthogonality
-%     image reports the orthogonality of the correponding pair of
+%     image reports the orthogonality of the corresponding pair of
 %     columns. Double clicking on the orthogonality matrix extracts
 %     the contrast orthogonality matrix into the base MATLAB
 %     workspace.
@@ -80,7 +80,7 @@ function varargout = spm_DesRep(varargin)
 %     "Files and factors" & "Covariates".
 %
 % * Explore: Files and factors - Multi-page listing of filenames, 
-%                                factor indicies and covariates.
+%                                factor indices and covariates.
 %
 %     The covariates printed are the raw covariates as entered into
 %     SPM, with the exception of the global value, which is printed
@@ -118,7 +118,7 @@ function varargout = spm_DesRep(varargin)
 % Copyright (C) 1999-2021 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_DesRep.m 8149 2021-09-06 15:03:51Z guillaume $
+% $Id: spm_DesRep.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
 %==========================================================================
@@ -166,7 +166,7 @@ function varargout = spm_DesRep(varargin)
 % Produces a one-page graphical summary of the design orthogonality
 % xX      - Structure containing design matrix information
 %         - the first of {xX.nX, xX.xKXs.X, xX.X} is used for display
-% .nX     - Desgin matrix already scaled for display
+% .nX     - Design matrix already scaled for display
 % .xKXs.X - temporally filtered design matrix (within space structure)
 % .X      - "raw" design matrix (as setup by spm_fmri_spm_ui)
 % .name   - [optional] px1 CellStr of parameter names
@@ -192,7 +192,7 @@ function varargout = spm_DesRep(varargin)
 %
 % FORMAT s = spm_DesRep('ScanTick',nScan,lim)
 % Pares down 1:nScan to at most lim items, showing every 2nd/3rd/... as
-% necessary to pair  down to <lim items. Always ends with nScan so
+% necessary to pair down to <lim items. Always ends with nScan so
 % #images is indicated.
 % nScan  - number of scans
 % lim    - limit to number of elements of s
@@ -251,7 +251,7 @@ function varargout = spm_DesRep(varargin)
 %__________________________________________________________________________
 
 
-SVNid = '$Rev: 8149 $'; 
+SVNid = '$Rev: 8183 $'; 
 
 %-Format arguments
 %--------------------------------------------------------------------------
@@ -297,7 +297,7 @@ if ~isfield(SPM,'cfg')
     if     isfield(SPM.xX,'V'),  cfg = 'SPMest';
     elseif isfield(SPM.xY,'VY'), cfg = 'SPMdata';
     elseif isfield(SPM,'Sess'),  cfg = 'SPMcfg';
-    else   error('Can''t fathom origin!')
+    else   error('Cannot fathom origin!')
     end
     SPM.cfg = cfg;
 end
@@ -667,7 +667,7 @@ elseif isfield(varargin{2},'X') && ~isempty(varargin{2}.X)
     iX = 0;
     [nScan,nPar] = size(varargin{2}.X);
 else
-    error('Can''t find DesMtx in this structure!')
+    error('Cannot find DesMtx in this structure!')
 end
 
 if isfield(varargin{2},'nKX') && ~isempty(varargin{2}.nKX)
@@ -1201,7 +1201,7 @@ switch get(gcbf,'SelectionType')
         try,    assignin('base','ans',subsref(get(gco,'UserData'),...
                 struct('type',{'.'},'subs',{'X'})))
             evalin('base','ans')
-        catch,  fprintf('%s GUI: can''t find design matrix\n',mfilename)
+        catch,  fprintf('%s GUI: cannot find design matrix\n',mfilename)
         end
         return
 end
@@ -1259,7 +1259,7 @@ case 'open'
             subsref(get(gco,'UserData'),...
                 struct('type',{'.'},'subs',{'est'})))
         evalin('base','ans')
-    catch,  fprintf('%s GUI: can''t find design orthogonality\n',mfilename)
+    catch,  fprintf('%s GUI: cannot find design orthogonality\n',mfilename)
     end
     return
 end
@@ -1327,7 +1327,7 @@ case 'open'
     try,    UD = get(gco,'UserData');
         assignin('base','ans',UD.O)
         evalin('base','ans')
-    catch,  fprintf('%s GUI: can''t find design orthogonality\n',mfilename)
+    catch,  fprintf('%s GUI: cannot find design orthogonality\n',mfilename)
     end
     return
 end
@@ -1392,7 +1392,7 @@ case {'alt','extend'}
 case 'open'
     try,    assignin('base','ans',cUD.xCon.c')
         evalin('base','ans')
-    catch,  fprintf('%s GUI: can''t find contrast\n',mfilename)
+    catch,  fprintf('%s GUI: cannot find contrast\n',mfilename)
     end
     return
 end
@@ -1466,7 +1466,7 @@ case 'open'
             struct('type',{'.'},'subs',{'V'})));
         evalin('base','ans');
     catch
-        fprintf('%s GUI: can''t find covariance matrix\n',mfilename)
+        fprintf('%s GUI: cannot find covariance matrix\n',mfilename)
     end
     return
 end
@@ -1521,7 +1521,7 @@ case 'open'
               assignin('base','ans',...
                       get(gco,'UserData'));
               evalin('base','ans')
-      catch,  fprintf('%s GUI: can''t find hyperparameter estimates\n',mfilename)
+      catch,  fprintf('%s GUI: cannot find hyperparameter estimates\n',mfilename)
       end
       return
 end

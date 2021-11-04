@@ -16,7 +16,7 @@ function tree = xml_parser(xmlstr)
 % Copyright (C) 2002-2019  https://www.artefact.tk/
 
 % Guillaume Flandin
-% $Id: xml_parser.m 7781 2020-02-07 12:26:25Z guillaume $
+% $Id: xml_parser.m 8183 2021-11-04 15:25:19Z guillaume $
 
 % XML Processor for GNU Octave and MATLAB (The Mathworks, Inc.)
 % Copyright (C) 2002-2019 Guillaume Flandin <Guillaume@artefact.tk>
@@ -74,7 +74,7 @@ function tree = xml_parser(xmlstr)
 %       |_ parent: uid of the parent
 %       |_ uid:    double
 %
-%    cdata (a litteral string <![CDATA[value]]>)
+%    cdata (a literal string <![CDATA[value]]>)
 %       |_ type:   'cdata'
 %       |_ value:  string
 %       |_ parent: uid of the parent
@@ -183,7 +183,7 @@ function frag = compile(frag)
                     frag = tag_comment(frag);
                 else
                     if length(xmlstring)-frag.str>9 && strcmp(xmlstring(frag.str+1:frag.str+8),'![CDATA[')
-                        %- Litteral data
+                        %- Literal data
                         frag = tag_cdata(frag);
                     else
                         %- A tag element (empty (<.../>) or not)
@@ -306,7 +306,7 @@ function frag = tag_cdata(frag)
 
 %--------------------------------------------------------------------------
 function all = attribution(str)
-    %- Initialize attributs
+    %- Initialize attributes
     nbattr = 0;
     all = cell(nbattr);
     %- Look for 'key="value"' substrings

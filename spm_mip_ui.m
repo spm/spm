@@ -18,7 +18,7 @@ function varargout = spm_mip_ui(varargin)
 % h       - Handle of MIP axes, or figure containing MIP axis [default gcf]
 % hC      - Handle of calling object, if used as a callback. [Default 0]
 % xyz     - (Output) {3 x 1} vector of voxel centre nearest desired xyz co-ords
-% d       - Euclidian distance from desired co-ords & nearest voxel
+% d       - Euclidean distance from desired co-ords & nearest voxel
 %__________________________________________________________________________
 %
 % spm_mip_ui displays a maximum intensity projection (using spm_mip)
@@ -39,7 +39,7 @@ function varargout = spm_mip_ui(varargin)
 %     a cursor and drag it about. The cursor follows the mouse, jumping to
 %     the voxel centre nearest the pointer. A dynamically updating
 %     information line appears above the MIP and gives the current
-%     co-ordinates. If the current voxel centre is in the XYZ pointlist,
+%     coordinates. If the current voxel centre is in the XYZ pointlist,
 %     then the corresponding image value is also printed.
 %
 % (3) Magnetic drag & drop: As with "Dynamic drag & drop", except the cursors
@@ -69,7 +69,7 @@ function varargout = spm_mip_ui(varargin)
 % Copyright (C) 1996-2018 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_mip_ui.m 7388 2018-08-06 12:04:26Z guillaume $
+% $Id: spm_mip_ui.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
 %==========================================================================
@@ -102,7 +102,7 @@ function varargout = spm_mip_ui(varargin)
 % h       - Handle of MIP axes [defaults to spm_mip_ui('FindMIPax')]
 % hC      - Handle of calling object, if used as a callback. [Default 0]
 % xyz     - (Output) {3 x 1} vector of voxel centre nearest desired xyz co-ords
-% d       - Euclidian distance from desired co-ords & nearest voxel
+% d       - Euclidean distance from desired co-ords & nearest voxel
 %
 % FORMAT spm_mip_ui('PosnMarkerPoints',xyz,h)
 % Utility routine: Positions cursor markers
@@ -116,8 +116,8 @@ function varargout = spm_mip_ui(varargin)
 %                                 'nrvox' - nearest suprathreshold voxel
 %                                 'nrmax' - nearest local maximum
 %                                 'glmax' - global maximum
-% xyz     - co-ordinates of voxel centre jumped to {3 x 1} vector
-% d       - (square) Euclidian distance jumped
+% xyz     - coordinates of voxel centre jumped to {3 x 1} vector
+% d       - (square) Euclidean distance jumped
 %
 % FORMAT hMIPax = spm_mip_ui('FindMIPax',h)
 % Looks for / checks MIP axes 'Tag'ged 'hMIPax'... errors if no valid MIP axes
@@ -618,7 +618,7 @@ switch lower(varargin{1}), case 'display'
         elseif strcmp(sMarker,'hX3r')
             xyz = [d(1) - Po(4); pxyz(2); Po(3) - d(2)];
         else
-            error('Can''t work out which marker point')
+            error('Cannot work out which marker point')
         end
         xyz = inv(MS.Ms*MS.Md) * [xyz(:);1]; xyz = xyz(1:3);
         
@@ -648,7 +648,7 @@ switch lower(varargin{1}), case 'display'
         set(MS.hX(3),'Position',[ Po(4) + xyz2(1), Po(3) - xyz2(3), 0])
 
 
-        %-Update dynamic co-ordinate strings (if appropriate DragType)
+        %-Update dynamic coordinate strings (if appropriate DragType)
         %------------------------------------------------------------------
         if DragType==0
             spm_mip_ui('MoveEnd')

@@ -34,7 +34,7 @@ function [Ep,Cp,F] = spm_nlsi_Newton(M,U,Y)
 % (numerical) curvature to implement a gradient ascent on variational free
 % energy using Newton's method. An example of its application is provided at
 % the end of this routine using a simple general linear model. This example
-% eschews the mean field approximation aassociated with standard
+% eschews the mean field approximation associated with standard
 % inversions.
 %
 % For generic aspects of the scheme see:
@@ -46,7 +46,7 @@ function [Ep,Cp,F] = spm_nlsi_Newton(M,U,Y)
 % Copyright (C) 2001-2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_nlsi_Newton.m 7809 2020-03-31 11:55:09Z karl $
+% $Id: spm_nlsi_Newton.m 8183 2021-11-04 15:25:19Z guillaume $
 
 % options
 %--------------------------------------------------------------------------
@@ -66,7 +66,7 @@ catch
     M.P = M.pE;
 end
 
-% prior moments (assume uninformative priors if not specifed)
+% prior moments (assume uninformative priors if not specified)
 %--------------------------------------------------------------------------
 pE     = M.pE;
 try

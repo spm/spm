@@ -4,7 +4,7 @@ function factorial_design = spm_cfg_factorial_design
 % Copyright (C) 2005-2021 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_cfg_factorial_design.m 8119 2021-07-06 13:51:43Z guillaume $
+% $Id: spm_cfg_factorial_design.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
 %==========================================================================
@@ -447,7 +447,7 @@ fd.tag     = 'fd';
 fd.name    = 'Full factorial';
 fd.val     = {generic generic1 con};
 fd.help    = {
-              'This option is best used when you wish to test for all main effects and interactions in one-way, two-way or three-way ANOVAs. Design specification proceeds in 2 stages. Firstly, by creating new factors and specifying the number of levels and name for each. Nonsphericity, ANOVA-by-factor and scaling options can also be specified at this stage. Secondly, scans are assigned separately to each cell. This accomodates unbalanced designs.'
+              'This option is best used when you wish to test for all main effects and interactions in one-way, two-way or three-way ANOVAs. Design specification proceeds in 2 stages. Firstly, by creating new factors and specifying the number of levels and name for each. Nonsphericity, ANOVA-by-factor and scaling options can also be specified at this stage. Secondly, scans are assigned separately to each cell. This accommodates unbalanced designs.'
               ''
               'For example, if you wish to test for a main effect in the population from which your subjects are drawn and have modelled that effect at the first level using K basis functions (eg. K=3 informed basis functions) you can use a one-way ANOVA with K-levels. Create a single factor with K levels and then assign the data to each cell eg. canonical, temporal derivative and dispersion derivative cells, where each cell is assigned scans from multiple subjects.'
               ''
@@ -970,7 +970,7 @@ globalc.val     = {g_omit};
 globalc.help    = {
                    'This option is for PET or VBM data (not second level fMRI).'
                    ''
-                   'There are three methods for estimating global effects (1) Omit (assumming no other options requiring the global value chosen) (2) User defined (enter your own vector of global values) (3) Mean: SPM standard mean voxel value (within per image fullmean/8 mask) '
+                   'There are three methods for estimating global effects (1) Omit (assuming no other options requiring the global value chosen) (2) User defined (enter your own vector of global values) (3) Mean: SPM standard mean voxel value (within per image fullmean/8 mask) '
 }';
 globalc.values  = {g_omit g_user g_mean};
 

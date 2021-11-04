@@ -19,10 +19,10 @@ function [f] = spm_lotka_volterra(x,v,P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_lotka_volterra.m 6353 2015-03-01 11:52:49Z karl $
+% $Id: spm_lotka_volterra.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
-% intialise
+% initialise
 %==========================================================================
 try, v; catch, v = 1; end
 

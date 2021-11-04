@@ -13,7 +13,7 @@ function Mo = spm_mesh_calc(Mi,Mo,f,varargin)
 % Copyright (C) 2015-2019 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_calc.m 7577 2019-04-24 08:59:56Z guillaume $
+% $Id: spm_mesh_calc.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
 %-Check input arguments
@@ -69,7 +69,7 @@ if ischar(f)
         eval(['S = ' f ';']);
     catch
         l = lasterror;
-        error('%s\nCan''t evaluate "%s".',l.message,f);
+        error('%s\nCannot evaluate "%s".',l.message,f);
     end
 elseif isa(f,'function_handle')
     try
@@ -81,7 +81,7 @@ elseif isa(f,'function_handle')
         end
     catch
         l = lasterror;
-        error('%s\nCan''t evaluate "%s".',l.message,func2str(f));
+        error('%s\nCannot evaluate "%s".',l.message,func2str(f));
     end
 else
     error('Unknown function input.');

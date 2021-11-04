@@ -40,7 +40,7 @@ function DCM = spm_dcm_fmri_csd_DEM(DCM)
 % Copyright (C) 2013-2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_fmri_csd_DEM.m 6656 2015-12-24 16:49:52Z guillaume $
+% $Id: spm_dcm_fmri_csd_DEM.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
 % get DCM
@@ -147,7 +147,7 @@ DCM.M.n  = length(spm_vec(x));
 DCM.M.m  = size(DCM.U.u,2);
 DCM.M.l  = n;
 
-% specify M.u - endogenous input (fluctuations) and intial states
+% specify M.u - endogenous input (fluctuations) and initial states
 %--------------------------------------------------------------------------
 DCM.M.u  = sparse(n,1);
 

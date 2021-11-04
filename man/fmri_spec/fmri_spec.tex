@@ -131,7 +131,7 @@ Enter the values that the regressor takes. This could also be, for example, the 
 
 \subsubsection{Multiple regressors}
 
-If you have mutliple regressors eg. realignment parameters, then entering the details a regressor at a time is very inefficient. This option can be used to load all the required information in one go. 
+If you have multiple regressors eg. realignment parameters, then entering the details a regressor at a time is very inefficient. This option can be used to load all the required information in one go. 
 
 You will first need to create a \verb!*.mat! file containing a matrix R. Each column of R will contain a different regressor. When SPM creates the design matrix the regressors will be named R1, R2, R3, ..etc.
 
@@ -206,7 +206,7 @@ For first order expansions the causes are simply convolved (e.g. stick functions
 
 Interactions or response modulations can enter at two levels.  Firstly the stick function itself can be modulated by some parametric variate. This can be time or some trial-specific variate like reaction time modeling the interaction between the trial and the variate. Secondly interactions among the trials themselves can be modeled using a Volterra series formulation that accommodates interactions over time (and therefore within and between trial types). 
 
-This last option is useful for accommodating nonlinearities in the hemodynamic response. For example, if two events occur within a second or so of each other then the hemodynamic response to the pair may be less than the sum of the responses to each event when occuring in isolation. This type of `sub-linear' response can be modelled using Volterra kernels. See \cite{balloon} for further details.
+This last option is useful for accommodating nonlinearities in the hemodynamic response. For example, if two events occur within a second or so of each other then the hemodynamic response to the pair may be less than the sum of the responses to each event when occurring in isolation. This type of `sub-linear' response can be modelled using Volterra kernels. See \cite{balloon} for further details.
 
 \section{Directory}
 

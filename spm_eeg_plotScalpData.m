@@ -6,7 +6,7 @@ function [ZI,f] = spm_eeg_plotScalpData(Z,pos,ChanLabel,in)
 %   Z          - the data matrix at the sensors
 %   pos        - the positions of the sensors
 %   ChanLabel  - the names of the sensors
-%   in         - a structure containing some informations related to the 
+%   in         - a structure containing some information related to the 
 %                main PRESELECTDATA window. This entry is not necessary
 % OUTPUT:
 %   ZI         - an image of interpolated data onto the scalp
@@ -20,7 +20,7 @@ function [ZI,f] = spm_eeg_plotScalpData(Z,pos,ChanLabel,in)
 % Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_plotScalpData.m 7221 2017-11-16 14:25:37Z vladimir $
+% $Id: spm_eeg_plotScalpData.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
 ChanLabel  = char(ChanLabel);
@@ -381,7 +381,7 @@ function [C,R,out] = fitSphere(x,y,z)
 %       [C,R,out] = fitSphere(x,y,z) returns the center and radius
 %       sphere to data points in vectors (x,y,z) using Taubin's method.
 % IN:
-%   - x/y/z: 3D carthesian ccordinates
+%   - x/y/z: 3D cartesian coordinates
 % OUT:
 %   - C: the center of sphere coordinates
 %   - R: the radius of the sphere

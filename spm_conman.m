@@ -144,10 +144,10 @@ function varargout=spm_conman(varargin)
 % * For F-contrasts, a "columns for reduced design" edit widget appears:
 %   - Here you can specify SPM{F}s by specifying the reduced design as
 %     a sub-partition of the current design matrix.
-%   - Enter the indicies of the design matrix columns you wish to retain
+%   - Enter the indices of the design matrix columns you wish to retain
 %     in the reduced design.
 %   - Pressing <return> or moving the focus (by clicking on another GUI
-%     element, such as the "Submit" button) will enter the column indicies
+%     element, such as the "Submit" button) will enter the column indices
 %     for parsing.
 %   - An F-contrast weights matrix is constructed from the specified
 %     partitioning. (The corresponding F-contrast weights are imaged
@@ -160,7 +160,7 @@ function varargout=spm_conman(varargin)
 %   - (Note that the F-contrast weights matrix produced may not be the
 %     simplest F-contrast possible for this test, and that the F-contrast
 %     weights matrix may not be full rank (e.g. may have two rows where
-%     one would do). Nontheless, the F-test is equivalent for the
+%     one would do). Nonetheless, the F-test is equivalent for the
 %     specified partitioning.
 %
 % * "Submit" button:
@@ -171,7 +171,7 @@ function varargout=spm_conman(varargin)
 %   - Once the contrast weights matrix has been entered in the GUI, the
 %     inout is parsed.
 %   - First, each line is evaluated.
-%   - Then, the results for each line are checked to ensure thay define
+%   - Then, the results for each line are checked to ensure they define
 %     valid contrasts, with trailing zeros added as necessary so the
 %     contrast length matches the number of parameters.
 %   - Errors encountered during parsing, and invalid contrast weights,
@@ -180,7 +180,7 @@ function varargout=spm_conman(varargin)
 %   - Information messages regarding contrast parsing appear in the lower
 %     "contrast parsing info" pane in green text.
 %   - When defining an F-contrast via "columns for reduced design", the
-%     string defining the indicies is similarly parsed, with errors and
+%     string defining the indices is similarly parsed, with errors and
 %     information messages appearing in the two panes.
 %
 % * Contrast weights plot/image:
@@ -237,7 +237,7 @@ function varargout=spm_conman(varargin)
 % Copyright (C) 1999-2021 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_conman.m 8121 2021-07-08 11:39:59Z guillaume $
+% $Id: spm_conman.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
 %==========================================================================
@@ -313,7 +313,7 @@ function varargout=spm_conman(varargin)
 % Utility function to display design matrix image & setup "surfing"
 % xX         - Design Matrix structure
 %            - the first of {xX.nX, xX.xKXs.X} is used for display
-% .nX        - Desgin matrix already scaled for display
+% .nX        - Design matrix already scaled for display
 % .xKXs.X    - temporally filtered design matrix (within space structure)
 % .name    - px1 CellStr of parameter names
 %
@@ -329,12 +329,12 @@ function varargout=spm_conman(varargin)
 % hConList   - handle of GUI ListBox object
 % xCon       - current contrast definitions structure array
 % STAT       - STAT character: 'T' or 'F' of empty (show all)
-% I          - indicies of currently selected contrasts
+% I          - indices of currently selected contrasts
 %
 % FORMAT spm_conman('GraphCons',xCon,I,F)
 % Utility function to display contrast image/bar-graph & setup "surfing"
 % xCon       - contrast definitions structure array
-% I          - indicies of contrasts to display
+% I          - indices of contrasts to display
 % F          - handle of 'ConMan' figure
 %
 % FORMAT spm_conman('StatusLine',F,str,col)
@@ -410,7 +410,7 @@ function varargout=spm_conman(varargin)
 % CallBack handler for "cancel" button on contrast definition interface
 %
 % FORMAT spm_conman('D_OK_CB')
-% CallBack handler for "OK" button on contrast definiton interface
+% CallBack handler for "OK" button on contrast definition interface
 %
 % FORMAT spm_conman('D_Status',F)
 % Set status line of contrast definition interface
@@ -723,7 +723,7 @@ switch lower(varargin{1})
         if nargin<3, I=[1:length(xCon)]; else I=varargin{3}; end
         if nargin<4, F=[]; else F=varargin{4}; end
         if isempty(F), F=spm_figure('FindWin','ConMan'); end
-        if isempty(F), error('can''t find ConMan win'), end
+        if isempty(F), error('Cannot find ConMan win'), end
 
         cF = get(0,'CurrentFigure');        %-Save current figure
         set(0,'CurrentFigure',F);           %-Make F current
@@ -917,7 +917,7 @@ switch lower(varargin{1})
             b_set = 0;
         end
 
-        %-Check STATmode & STAT, set temporary STATmode & STAT indicies
+        %-Check STATmode & STAT, set temporary STATmode & STAT indices
         %------------------------------------------------------------------
         STATinfo = struct(...                         %-STAT info structure
             'mode',     { 'T',  'F',  'T|F',    'T&F'},...
@@ -1038,7 +1038,7 @@ switch lower(varargin{1})
             return
         end
 
-        %-Get contrast structure array and indicies of current contrast
+        %-Get contrast structure array and indices of current contrast
         %------------------------------------------------------------------
         SPM      = get(F,'UserData');
         xCon     = SPM.xCon;
@@ -1169,7 +1169,7 @@ switch lower(varargin{1})
             return
         end
 
-        %-Construct list of valid indicies
+        %-Construct list of valid indices
         %------------------------------------------------------------------
         ok  = ismember(I(:)', 1:mx);
         iX0 = I(ok);
@@ -1270,7 +1270,7 @@ switch lower(varargin{1})
                 DxCon = [];
             end
 
-        elseif fcn==2          %-Process column indicies from X1cols widget
+        elseif fcn==2          %-Process column indices from X1cols widget
         %------------------------------------------------------------------
             set(hD_ConMtx,'String','')
 
@@ -1738,7 +1738,7 @@ switch lower(varargin{1})
         H = [H,h];
         h = uicontrol(F,'Style','Edit','Tag','D_X1cols',...
             'ToolTipString',...
-            'enter column indicies of reduced design matrix X0',...
+            'enter column indices of reduced design matrix X0',...
             'HorizontalAlignment','Left',...
             'BackgroundColor',COLOUR,...
             'CallBack','spm_conman(''D_X1cols_CB'')',...

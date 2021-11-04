@@ -22,7 +22,7 @@ function ima = spm_erode(varargin)
 % imerode from the MATLAB Image processing toolbox. It doesn't (yet)
 % have a support function such as strel to help the user to define
 % kernels (you have to do it yourself if you want anything above
-% 6-connectivty) and it doesnt do the clever structuring element
+% 6-connectivty) and it doesn't do the clever structuring element
 % decomposition that strel does (and imdilate uses). That should
 % in principle mean that spm_erode is slower than imerode, but
 % at least for small (typical) kernels it is actually more than
@@ -33,7 +33,7 @@ function ima = spm_erode(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson
-% $Id: spm_erode.m 4310 2011-04-18 16:07:35Z guillaume $
+% $Id: spm_erode.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
 if exist('spm_dilate_erode','file')~=3 

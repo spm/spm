@@ -4,12 +4,12 @@ function [C] = spm_wft(s,k,n)
 % s      - (t X n) time-series
 % k      - Frequencies (cycles per window)
 % n      - window length
-% C      - (w X t X n) coefficents (complex)
+% C      - (w X t X n) coefficients (complex)
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_wft.m 7527 2019-02-06 19:12:56Z karl $
+% $Id: spm_wft.m 8183 2021-11-04 15:25:19Z guillaume $
 
 % window function (Hanning)
 %--------------------------------------------------------------------------

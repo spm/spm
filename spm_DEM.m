@@ -72,7 +72,7 @@ function [DEM] = spm_DEM(DEM)
 % sequential observation.  The dynamical model is transformed into a static
 % model using temporal derivatives at each time point.  Continuity of the
 % conditional trajectories q(u,t) is assured by a continuous ascent of F(t)
-% in generalised co-ordinates.  This means DEM can deconvolve online and
+% in generalised coordinates.  This means DEM can deconvolve online and
 % can represents an alternative to Kalman filtering or alternative Bayesian
 % update procedures.
 %
@@ -90,7 +90,7 @@ function [DEM] = spm_DEM(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM.m 8171 2021-10-25 10:14:50Z karl $
+% $Id: spm_DEM.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
 % check model, data, priors and confounds and unpack
@@ -334,10 +334,10 @@ for iE = 1:nE
     
     % [re-]set accumulators for E-Step
     %----------------------------------------------------------------------
-    dFdh  = sparse(nh,1);                 % gradient   (hyperparamteres)
-    dFdhh = sparse(nh,nh);                % curvatiure (hyperparamteres)
-    dFdp  = sparse(nf,1);                 % gradient   (paramteres)
-    dFdpp = sparse(nf,nf);                % curvatiure (paramteres)
+    dFdh  = sparse(nh,1);                 % gradient   (hyperparameters)
+    dFdhh = sparse(nh,nh);                % curvatiure (hyperparameters)
+    dFdp  = sparse(nf,1);                 % gradient   (parameters)
+    dFdpp = sparse(nf,nf);                % curvatiure (parameters)
     qp.ic = sparse(0);                    % conditional precision (p)
     iqu.c = sparse(0);                    % conditional information (p)
     EE    = sparse(0);

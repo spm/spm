@@ -80,7 +80,7 @@ Enter the block type, i.e. ``Slices'' or ``Subvolumes''.
 
 \item \textbf{[GMRF] Gaussian Markov Random Field.} This is equivalent to a normalized UGL.
 
-\item \textbf{[LORETA] Low resolution Tomography Prior.} This is equivalent to UGL squared. It is a standatd choice for EEG source localisation algorithms.
+\item \textbf{[LORETA] Low resolution Tomography Prior.} This is equivalent to UGL squared. It is a standard choice for EEG source localisation algorithms.
 
 \item \textbf{[WGL] Weighted Graph Laplacian.} This is a generalization of the UGL, where weights can be used to preserve ``edges'' of functional responses.
 
@@ -107,11 +107,11 @@ There are five noise prior options here (1) UGL, (2) GMRF, (3) LORETA, (4) Tissu
 
 \paragraph{GMRF}
 
-[GMRF] Gaussian Markov Random Field. See comments on GMRF priors for regresion coefficients.
+[GMRF] Gaussian Markov Random Field. See comments on GMRF priors for regression coefficients.
 
 \paragraph{LORETA}
 
-[LORETA] Low resolution Tomography Prior. See comments on LORETA priors for regresion coefficients.
+[LORETA] Low resolution Tomography Prior. See comments on LORETA priors for regression coefficients.
 
 \paragraph{Tissue-type}
 
@@ -145,7 +145,7 @@ With the Bayesian estimation option it is recommended that contrasts are compute
 
 To use this option you must have already specified your factorial design during the model specification stage. 
 
-If you wish to use these contrast images for a second-level analysis then you will need to spatially smooth them to take into account between-subject differences in functional anatomy ie. the fact that one persons V5 may be in a different position than anothers.
+If you wish to use these contrast images for a second-level analysis then you will need to spatially smooth them to take into account between-subject differences in functional anatomy ie. the fact that one persons V5 may be in a different position than another's.
 
 \subsubsection{Simple contrasts}
 
@@ -155,7 +155,7 @@ If you have a factoral design then the contrasts needed to generate the contrast
 
 When using the Bayesian estimation option it is computationally more efficient to compute the contrasts when the parameters are estimated. This is because estimated parameter vectors have potentially different posterior covariance matrices at different voxels and these matrices are not stored. If you compute contrasts post-hoc these matrices must be recomputed (an approximate reconstruction based on a Taylor series expansion is used). It is therefore recommended to specify as many contrasts as possible prior to parameter estimation.
 
-If you wish to use these contrast images for a second-level analysis then you will need to spatially smooth them to take into account between-subject differences in functional anatomy ie. the fact that one persons V5 may be in a different position than anothers. 
+If you wish to use these contrast images for a second-level analysis then you will need to spatially smooth them to take into account between-subject differences in functional anatomy ie. the fact that one persons V5 may be in a different position than another's.
 
 \paragraph{Simple contrast}
 

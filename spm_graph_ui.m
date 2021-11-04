@@ -57,7 +57,7 @@ function varargout = spm_graph_ui(action, varargin)
 % collinearity among the design matrix subpartitions.
 %
 % Selecting contrasts used for PPMs will automatically give plots
-% based on conditonal estimates.
+% based on conditional estimates.
 %
 % The structure     contrast.contrast      = cbeta;
 %                   contrast.standarderror = SE;
@@ -68,7 +68,7 @@ function varargout = spm_graph_ui(action, varargin)
 % Copyright (C) 1996-2021 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Guillaume Flandin
-% $Id: spm_graph_ui.m 8040 2021-01-04 13:40:46Z guillaume $
+% $Id: spm_graph_ui.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
 if nargin && ~ischar(action)

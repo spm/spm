@@ -285,7 +285,7 @@ SNRamp=job.ampsnr;
 
 % So, the SNR obviously varies across the brain, and is different at each sensor. How much of the variance observed in the sensor data is due to noise, and how much is due to real signal?
 %P.priors.hE=log(SNRamp^2);                                             %Expected log precision of data
-P.priors.hE=log(SNRamp);  %% seemed to be closets to value arrived at in line serach                                            %Expected log precision of data
+P.priors.hE=log(SNRamp);  %% seemed to be closest to value arrived at in line search                                            %Expected log precision of data
 % run a line search over hE values
 %hevals=[0.001 0.1 0.5 1 2] %  1 2 5 10]
 

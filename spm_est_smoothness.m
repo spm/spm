@@ -53,7 +53,7 @@ function [FWHM,VRpv,R] = spm_est_smoothness(V,VM,ndf)
 % Copyright (C) 2002-2015 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Tom Nichols
-% $Id: spm_est_smoothness.m 6894 2016-09-30 16:48:46Z spm $
+% $Id: spm_est_smoothness.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
 %-Assign input arguments
@@ -151,7 +151,7 @@ spm_progress_bar('Clear')
 %
 % but both of these expressions assume that the RSS or RMS correspond to
 % the full set of residuals considered.  However, spm_spm only considers
-% upto MAXRES residual images.  To adapt, re-write the above as a scaled
+% up to MAXRES residual images.  To adapt, re-write the above as a scaled
 % average over n scans
 %
 %  \hat\Lambda = (n/DF) * ( (1/n) * grad(e/sqrt(RMS))' * grad(e/sqrt(RMS)) )

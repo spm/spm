@@ -2,14 +2,14 @@ function [B,Wf] = spm_eeg_robust_averaget(data,ks)
 % Apply robust averaging routine to data sets 
 % FORMAT [B,Wf] = spm_eeg_robust_averaget(data,ks)
 % data   - data matrix to be averaged
-% ks     - offest of the weighting function (default: 3)
+% ks     - offset of the weighting function (default: 3)
 %
 % Wf     - estimated weights
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % James Kilner
-% $Id: spm_eeg_robust_averaget.m 5219 2013-01-29 17:07:07Z spm $
+% $Id: spm_eeg_robust_averaget.m 8183 2021-11-04 15:25:19Z guillaume $
 
 if nargin==1
     ks = 3;

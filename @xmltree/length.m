@@ -13,7 +13,7 @@ function l = length(tree,r)
 % Copyright (C) 2002-2011  http://www.artefact.tk/
 
 % Guillaume Flandin
-% $Id: length.m 4460 2011-09-05 14:52:16Z guillaume $
+% $Id: length.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
 %error(nargchk(1,2,nargin));
@@ -21,7 +21,7 @@ function l = length(tree,r)
 % Return the full number of nodes once allocated
 l = length(tree.tree);
 
-% Substract the number of deleted nodes to the previous length
+% Subtract the number of deleted nodes to the previous length
 if nargin == 2
     if strcmp(r,'real')
         ll = 0;

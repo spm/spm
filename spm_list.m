@@ -55,8 +55,8 @@ function varargout = spm_list(varargin)
 %                           ----------------
 %
 % FORMAT spm_list('SetCoords',xyz,hAx,hReg)
-% Highlighting of table co-ordinates (used by results section registry)
-% xyz    - 3-vector of new co-ordinate
+% Highlighting of table coordinates (used by results section registry)
+% xyz    - 3-vector of new coordinate
 % hAx    - table axis (the registry object for tables)
 % hReg   - Handle of caller (not used)
 %__________________________________________________________________________
@@ -104,7 +104,7 @@ function varargout = spm_list(varargin)
 % Z score equivalent of the statistic. Volumes are expressed in voxels.
 %
 % Clicking on values in the table returns the value to the MATLAB
-% workspace. In addition, clicking on the co-ordinates jumps the
+% workspace. In addition, clicking on the coordinates jumps the
 % results section cursor to that location. The table has a context menu
 % (obtained by right-clicking in the background of the table),
 % providing options to print the current table as a text table, or to
@@ -114,7 +114,7 @@ function varargout = spm_list(varargin)
 % Copyright (C) 1999-2019 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Andrew Holmes, Guillaume Flandin
-% $Id: spm_list.m 7725 2019-11-28 11:28:44Z guillaume $
+% $Id: spm_list.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
 %==========================================================================

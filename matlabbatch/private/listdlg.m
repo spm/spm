@@ -42,7 +42,7 @@ function [selection,value] = listdlg(varargin)
 %    MSGBOX, QUESTDLG, WARNDLG.
 
 %   Copyright 1984-2005 The MathWorks, Inc.
-%   $Revision: 6641 $  $Date: 2005/10/28 15:54:55 $
+%   $Revision: 8183 $  $Date: 2005/10/28 15:54:55 $
 
 %   'uh'            uicontrol button height, in pixels; default = 22.
 %   'fus'           frame/uicontrol spacing, in pixels; default = 8.
@@ -253,7 +253,7 @@ set(listbox,'value',1:length(get(listbox,'string')));
 
 %% Listbox callback
 function doListboxClick(listbox, evd, selectall_btn) %#ok
-% if this is a doubleclick, doOK
+% if this is a double-click, doOK
 if strcmp(get(gcbf,'SelectionType'),'open')
     doOK([],[],listbox);
 elseif nargin == 3

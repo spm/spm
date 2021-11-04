@@ -16,7 +16,7 @@ function [d] = spm_KL_dir(q,p)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_KL_dir.m 7382 2018-07-25 13:58:04Z karl $
+% $Id: spm_KL_dir.m 8183 2021-11-04 15:25:19Z guillaume $
 
 %  KL divergence based on log beta functions
 %--------------------------------------------------------------------------
@@ -25,7 +25,7 @@ d = sum(d(:));
 
 return
 
-% check on KL of Diriclet ditributions
+% check on KL of Dirichlet distributions
 %==========================================================================
 p  = rand(6,1) + 1;
 q  = rand(6,1) + p;

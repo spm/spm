@@ -10,7 +10,7 @@ function spm_DEM_qP(qP,pP)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DEM_qP.m 7322 2018-05-31 09:47:15Z karl $
+% $Id: spm_DEM_qP.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
 % unpack conditional covariances
@@ -28,7 +28,7 @@ for i = 1:g
     %----------------------------------------------------------------------
     if isempty(qP.P{i}), break, end
 
-    % get lablels
+    % get labels
     %----------------------------------------------------------------------
     label = {};
     if isstruct(qP.P{i})

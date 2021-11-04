@@ -9,7 +9,7 @@ function N = spm_ecat2nifti(fname,opts)
 % Copyright (C) 2005-2015 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner & Roger Gunn
-% $Id: spm_ecat2nifti.m 6315 2015-01-23 17:09:06Z guillaume $
+% $Id: spm_ecat2nifti.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
 if nargin==1
@@ -20,7 +20,7 @@ end
 
 fp = fopen(fname,'r','ieee-be');
 if fp == -1,
-    error(['Can''t open "' fname '".']);
+    error(['Cannot open "' fname '".']);
 end
 
 mh = ECAT7_mheader(fp);

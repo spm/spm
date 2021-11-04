@@ -78,7 +78,7 @@ function [D] = spm_eeg_invert_classic(D,val)
 % A general Bayesian treatment for MEG source reconstruction incorporating lead field uncertainty.
 % Neuroimage 60(2), 1194-1204 doi:10.1016/j.neuroimage.2012.01.077.
 
-% $Id: spm_eeg_invert_classic.m 6815 2016-06-20 09:08:18Z gareth $
+% $Id: spm_eeg_invert_classic.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
 
@@ -128,7 +128,7 @@ try, QE    = inverse.QE;     catch,  QE=1;          end         %  empty room no
 try, Qe0   = inverse.Qe0;     catch, Qe0   = exp(-5);       end  %% set noise floor at 1/100th signal power i.e. assume amplitude SNR of 10
 try, inverse.A;     catch, inverse.A   = [];       end %% orthogonal channel modes
 
-try, SHUFFLELEADS=inverse.SHUFFLELEADS;catch, SHUFFLELEADS=0;end; %% ONLY FOR TESTING - destroyes correspondence between geometry and data
+try, SHUFFLELEADS=inverse.SHUFFLELEADS;catch, SHUFFLELEADS=0;end; %% ONLY FOR TESTING - destroys correspondence between geometry and data
 
 
 % defaults

@@ -4,7 +4,7 @@ function [i,pC,pE,Np] = spm_find_pC(varargin)
 % FORMAT [i,pC,pE,Np] = spm_find_pC(DCM,fields)
 % FORMAT [i,pC,pE,Np] = spm_find_pC(DCM)
 % 
-% pC     - covariance matrix or variance stucture
+% pC     - covariance matrix or variance structure
 % pE     - parameter structure
 % fields - desired fields of pE
 %
@@ -20,7 +20,7 @@ function [i,pC,pE,Np] = spm_find_pC(varargin)
 % Copyright (C) 2015-2019 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_find_pC.m 8024 2020-11-28 12:09:53Z karl $
+% $Id: spm_find_pC.m 8183 2021-11-04 15:25:19Z guillaume $
 
 %-parse input arguments
 %--------------------------------------------------------------------------

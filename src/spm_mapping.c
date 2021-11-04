@@ -1,5 +1,5 @@
 /*
- * $Id: spm_mapping.c 7932 2020-08-18 11:05:19Z john $
+ * $Id: spm_mapping.c 8183 2021-11-04 15:25:19Z guillaume $
  * John Ashburner
  */
 
@@ -82,7 +82,7 @@ static void get_map_dat(int i, const mxArray *ptr, MAPTYPE *maps)
     if (tmp == (mxArray *)0)
     {
         free_maps(maps,i);
-        mexErrMsgTxt("Cant find dat.");
+        mexErrMsgTxt("Can't find dat.");
     }
     if      (mxIsDouble (tmp)) dtype = SPM_DOUBLE;
     else if (mxIsSingle (tmp)) dtype = SPM_FLOAT;
@@ -239,7 +239,7 @@ static void get_map_file(int i, const mxArray *ptr, MAPTYPE *maps)
     if (tmp == (mxArray *)0)
     {
         free_maps(maps,i);
-        mexErrMsgTxt("Cant find dim.");
+        mexErrMsgTxt("Can't find dim.");
     }
     if (mxGetM(tmp)*mxGetN(tmp) != 3)
     {
@@ -258,7 +258,7 @@ static void get_map_file(int i, const mxArray *ptr, MAPTYPE *maps)
     if (tmp == (mxArray *)0)
     {
         free_maps(maps,i+1);
-        mexErrMsgTxt("Cant find dt.");
+        mexErrMsgTxt("Can't find dt.");
     }
     if (mxGetM(tmp)*mxGetN(tmp) != 2)
     {
@@ -299,7 +299,7 @@ static void get_map_file(int i, const mxArray *ptr, MAPTYPE *maps)
     if (tmp == (mxArray *)0)
     {
         free_maps(maps,i+1);
-        mexErrMsgTxt("Cant find fname.");
+        mexErrMsgTxt("Can't find fname.");
     }
     if (mxIsChar(tmp))
     {
@@ -313,20 +313,20 @@ static void get_map_file(int i, const mxArray *ptr, MAPTYPE *maps)
         {
             mxFree(buf);
             free_maps(maps,i+1);
-            mexErrMsgTxt("Cant get filename.");
+            mexErrMsgTxt("Can't get filename.");
         }
         if ((fd = open(buf, O_RDONLY)) == -1)
         {
             mxFree(buf);
             free_maps(maps,i+1);
-            mexErrMsgTxt("Cant open image file.");
+            mexErrMsgTxt("Can't open image file.");
         }
         if (fstat(fd, &stbuf) == -1)
         {
             (void)close(fd);
             mxFree(buf);
             free_maps(maps,i+1);
-            mexErrMsgTxt("Cant get file size.");
+            mexErrMsgTxt("Can't get file size.");
         }
         maps[i].len = stbuf.st_size;
 #ifdef SPM_WIN32
@@ -340,21 +340,21 @@ static void get_map_file(int i, const mxArray *ptr, MAPTYPE *maps)
         hFile = CreateFile(buf, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_RANDOM_ACCESS, NULL);
         mxFree(buf);
         if (hFile == NULL)
-            mexErrMsgTxt("Cant open file.  It may be locked by another program.");
+            mexErrMsgTxt("Can't open file.  It may be locked by another program.");
 
         /* http://msdn.microsoft.com/library/default.asp?
                url=/library/en-us/fileio/base/createfilemapping.asp */
         hMapping = CreateFileMapping(hFile, NULL, PAGE_READONLY, 0, 0, NULL);
         (void)CloseHandle(hFile);
         if (hMapping == NULL)
-            mexErrMsgTxt("Cant create file mapping.  It may be locked by another program.");
+            mexErrMsgTxt("Can't create file mapping.  It may be locked by another program.");
 
         /* http://msdn.microsoft.com/library/default.asp?
                url=/library/en-us/fileio/base/mapviewoffile.asp */
         maps[i].addr    = (caddr_t)MapViewOfFileEx(hMapping, FILE_MAP_READ, 0, 0, maps[i].len, 0);
         (void)CloseHandle(hMapping);
         if (maps[i].addr == NULL)
-            mexErrMsgTxt("Cant map view of file.  It may be locked by another program.");
+            mexErrMsgTxt("Can't map view of file.  It may be locked by another program.");
 
 #else
         maps[i].addr = mmap((caddr_t)0, maps[i].len,
@@ -365,7 +365,7 @@ static void get_map_file(int i, const mxArray *ptr, MAPTYPE *maps)
             (void)perror("Memory Map");
             mxFree(buf);
             free_maps(maps,i+1);
-            mexErrMsgTxt("Cant map image file.");
+            mexErrMsgTxt("Can't map image file.");
         }
         mxFree(buf);
 #endif
@@ -591,7 +591,7 @@ int get_dtype(const mxArray *ptr)
     tmp=mxGetField(ptr,0,"dt");
     if (tmp == (mxArray *)0)
     {
-        mexErrMsgTxt("Cant find dt.");
+        mexErrMsgTxt("Can't find dt.");
     }
     if (mxGetM(tmp)*mxGetN(tmp) != 2)
     {

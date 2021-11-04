@@ -64,11 +64,11 @@ function varargout = spm_orthviews(action,varargin)
 % Clear the orthogonal views
 %
 % FORMAT spm_orthviews('Pos')
-% Return the co-ordinate of the crosshairs in millimetres in the standard
+% Return the coordinate of the crosshairs in millimetres in the standard
 % space.
 %
 % FORMAT spm_orthviews('Pos', i)
-% Return the voxel co-ordinate of the crosshairs in the image in the ith
+% Return the voxel coordinate of the crosshairs in the image in the ith
 % orthogonal section.
 %
 % FORMAT spm_orthviews('Xhairs','off') OR spm_orthviews('Xhairs')
@@ -151,7 +151,7 @@ function varargout = spm_orthviews(action,varargin)
 % Copyright (C) 1996-2017 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner et al
-% $Id: spm_orthviews.m 7376 2018-07-20 10:30:59Z guillaume $
+% $Id: spm_orthviews.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
 % The basic fields of st are:

@@ -5,7 +5,7 @@ function headmodelhelmet = spm_cfg_eeg_inv_headmodelhelmet
 % Copyright (C) 2012-2021 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_headmodelhelmet.m 8119 2021-07-06 13:51:43Z guillaume $
+% $Id: spm_cfg_eeg_inv_headmodelhelmet.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
 headmodelhelmet          = cfg_exbranch;
@@ -194,7 +194,7 @@ coregspecify.help = {''};
 
 coregdefault = cfg_files;
 coregdefault.tag = 'coregdefault';
-coregdefault.name = 'Custom native to dewar transfrom for subject''s coregdefault';
+coregdefault.name = 'Custom native to dewar transform for subject''s coregdefault';
 coregdefault.filter = 'helmet';
 coregdefault.ufilter = '.*';
 coregdefault.num     = [0 1];

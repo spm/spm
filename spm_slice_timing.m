@@ -7,7 +7,7 @@ function spm_slice_timing(P, sliceorder, refslice, timing, prefix)
 %               integer referring the slice number in the image file
 %               (1=first), and the order of integers representing their
 %               temporal acquisition order
-%               OR vector containig the acquisition time for each slice
+%               OR vector containing the acquisition time for each slice
 %               in milliseconds
 % refslice    - slice for time 0
 %               OR time in milliseconds for the reference slice
@@ -28,7 +28,7 @@ function spm_slice_timing(P, sliceorder, refslice, timing, prefix)
 %   those slices were acquired.
 %
 %   To check the order of slices within an image file, use the SPM Display
-%   option and move the crosshairs to a voxel co-ordinate of z=1.  This
+%   option and move the crosshairs to a voxel coordinate of z=1.  This
 %   corresponds to a point in the first slice of the volume.
 %
 %   The function corrects differences in slice acquisition times.
@@ -64,7 +64,7 @@ function spm_slice_timing(P, sliceorder, refslice, timing, prefix)
 %   response) that occurs simultaneously on two adjacent slices. Values
 %   from slice "A" are acquired starting at time zero, simultaneous to
 %   the neural event, while values from slice "B" are acquired one
-%   second later. Without corection, the "B" values will describe a
+%   second later. Without correction, the "B" values will describe a
 %   hemodynamic response that will appear to have began one second
 %   EARLIER on the "B" slice than on slice "A". To correct for this,
 %   the "B" values need to be shifted towards the Right, i.e., towards
@@ -89,10 +89,10 @@ function spm_slice_timing(P, sliceorder, refslice, timing, prefix)
 % Copyright (C) 1998-2014 Wellcome Trust Centre for Neuroimaging
 
 % Darren Gitelman et al.
-% $Id: spm_slice_timing.m 6130 2014-08-01 17:41:18Z guillaume $
+% $Id: spm_slice_timing.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
-SVNid = '$Rev: 6130 $';
+SVNid = '$Rev: 8183 $';
 
 %-Say hello
 %--------------------------------------------------------------------------
@@ -218,7 +218,7 @@ for subj = 1:nsubjects
             % Extract columns from slices
             stack(1:nimgo,:) = reshape(slices(:,i,:),[Vout(1).dim(1) nimgo])';
             
-            % Fill in continous function to avoid edge effects
+            % Fill in continuous function to avoid edge effects
             for g=1:size(stack,2)
                 stack(nimgo+1:end,g) = linspace(stack(nimgo,g),...
                     stack(1,g),nimg-nimgo)';

@@ -7,8 +7,8 @@ function spm_image(action,varargin)
 % spm_image is an interactive facility that allows orthogonal sections from
 % an image volume to be displayed.  Clicking the cursor on either of the
 % three images moves the point around which the orthogonal sections are
-% viewed.  The co-ordinates of the cursor are shown both in voxel
-% co-ordinates and millimeters within some fixed framework. The intensity
+% viewed.  The coordinates of the cursor are shown both in voxel
+% coordinates and millimeters within some fixed framework. The intensity
 % at that point in the image (sampled using the current interpolation
 % scheme) is also given. The position of the crosshairs can also be moved
 % by specifying the coordinates in millimeters to which they should be
@@ -48,10 +48,10 @@ function spm_image(action,varargin)
 % Copyright (C) 1994-2019 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_image.m 7573 2019-04-15 08:49:56Z guillaume $
+% $Id: spm_image.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
-SVNid = '$Rev: 7573 $';
+SVNid = '$Rev: 8183 $';
 
 global st
 
@@ -572,7 +572,7 @@ uicontrol('Parent',u2,'Style','Popupmenu', 'Position',[5 45 125 20].*WS,...
 c = 'if get(gcbo,''Value'')==1, spm_orthviews(''Space''), else, spm_orthviews(''Space'', 1);end;spm_image(''zoom'')';
 uicontrol('Parent',u2,'Style','Popupmenu', 'Position',[5 25 125 20].*WS,...
     'String',char('World Space','Voxel Space'),...
-    'Callback',c,'ToolTipString','Display in aquired/world orientation');
+    'Callback',c,'ToolTipString','Display in acquired/world orientation');
 uicontrol('Parent',u2,'Style','Popupmenu', 'Position',[5  5 125 20].*WS,...
     'String',char('Auto Window','Manual Window', 'Percentiles Window'), 'Tag','spm_image:window',...
     'Callback','spm_image(''window'');','ToolTipString','Range of voxel intensities displayed');

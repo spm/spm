@@ -5,7 +5,7 @@ function p = spm_Q_perm(Q)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % John Ashburner & Karl Friston
-% $Id: spm_Q_perm.m 3657 2009-12-23 20:22:10Z karl $
+% $Id: spm_Q_perm.m 8183 2021-11-04 15:25:19Z guillaume $
  
  
 % add cell arrays of components
@@ -19,7 +19,7 @@ else
     A = ~~Q;
 end
  
-% find parition
+% find partition
 %--------------------------------------------------------------------------
 A = A + A';
 p = {};

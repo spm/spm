@@ -14,7 +14,7 @@ function new = clone(this, fnamedat, dim, reset, forcefloat)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Vladimir Litvak
-% $Id: clone.m 7449 2018-10-16 13:52:04Z vladimir $
+% $Id: clone.m 8183 2021-11-04 15:25:19Z guillaume $
 
 if nargin < 5
     forcefloat = 0;
@@ -87,7 +87,7 @@ elseif length(dim) == 4
     end        
     
     % This assumes that the frequency axis will be set correctly after
-    % cloning and is neccesary to avoid an inconsistent state
+    % cloning and is necessary to avoid an inconsistent state
     new.transform.frequencies =  1:dim(2);    
 else
    error('Dimensions different from 3 or 4 are not supported.');

@@ -1,5 +1,5 @@
 /*
- * $Id: spm_get_lm.c 6534 2015-08-24 16:02:56Z guillaume $
+ * $Id: spm_get_lm.c 8183 2021-11-04 15:25:19Z guillaume $
  * Jesper Andersson
  */
 
@@ -116,7 +116,7 @@ unsigned int get_maxima(double        *vol,
    {
       /* 
       ** Casting of double to int isn't properly defined in C
-      ** (i.e. wether it results in truncation or rounding), 
+      ** (i.e. whether it results in truncation or rounding), 
       ** hence I add a small offset (0.1) to make sure it
       ** works either way.
       */

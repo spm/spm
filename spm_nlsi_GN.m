@@ -96,7 +96,7 @@ function [Ep,Cp,Eh,F,L,dFdp,dFdpp] = spm_nlsi_GN(M,U,Y)
 % Copyright (C) 2001-2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_nlsi_GN.m 8171 2021-10-25 10:14:50Z karl $
+% $Id: spm_nlsi_GN.m 8183 2021-11-04 15:25:19Z guillaume $
 
 % options
 %--------------------------------------------------------------------------
@@ -243,7 +243,7 @@ nh    = length(Q);                  % number of precision components
 nq    = ny/length(Q{1});            % for compact Kronecker form of M-step
 
 
-% prior moments (assume uninformative priors if not specifed)
+% prior moments (assume uninformative priors if not specified)
 %--------------------------------------------------------------------------
 pE       = M.pE;
 try

@@ -22,13 +22,13 @@ function [Q,J] = spm_dcm_delay(P,M,J,N)
 %                                 = Q(d)*f(x(t))
 % J     - Jacobian  = df/dt = (where delayed Jacobian = Q*J)
 %
-% If the delay matrix is not specifed it is computed from its parameters in
+% If the delay matrix is not specified it is computed from its parameters in
 % P.D (and M.pF.D if specified).
 %__________________________________________________________________________
 % Copyright (C) 2011-2017 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_delay.m 7279 2018-03-10 21:22:44Z karl $
+% $Id: spm_dcm_delay.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
 % order of Taylor approximation

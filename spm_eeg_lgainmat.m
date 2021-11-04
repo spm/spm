@@ -9,9 +9,9 @@ function [L,D] = spm_eeg_lgainmat(D,Is,channels)
 % Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_lgainmat.m 7757 2019-12-16 15:36:06Z spm $
+% $Id: spm_eeg_lgainmat.m 8183 2021-11-04 15:25:19Z guillaume $
 
-SVNrev = '$Rev: 7757 $';
+SVNrev = '$Rev: 8183 $';
 
 %-Get gain or lead-field matrix
 %--------------------------------------------------------------------------
@@ -61,7 +61,7 @@ catch
         %-Create a new lead-field matrix
         %==================================================================
         
-        %-Head Geometry (create tesselation file)
+        %-Head Geometry (create tessellation file)
         %------------------------------------------------------------------
         vert = forward(ind).mesh.vert;
         face = forward(ind).mesh.face;

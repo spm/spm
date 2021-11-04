@@ -15,7 +15,7 @@ function varargout = spm_sp(varargin)
 % To get this space (a basis of it or a projector on it) use spm_sp on X'.
 %
 % The only restriction on the use of the space structure is when X is
-% so big that you can't fit X and its svd in memory at the same time.
+% so big that you cannot fit X and its svd in memory at the same time.
 % Otherwise, the use of spm_sp will generally speed up computations and
 % optimise memory use.
 %
@@ -34,7 +34,7 @@ function varargout = spm_sp(varargin)
 %       'rk',   [],...      % rank
 %       'oP',   [],...      % orthogonal projector on X
 %       'oPp',  [],...      % orthogonal projector on X'
-%       'ups',  [],...      % space in which this one is embeded
+%       'ups',  [],...      % space in which this one is embedded
 %       'sus',  []);        % subspace
 %
 % The basic required fields are X, tol, ds, u, v, rk.
@@ -179,7 +179,7 @@ function varargout = spm_sp(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean-Baptiste Poline
-% $Id: spm_sp.m 5219 2013-01-29 17:07:07Z spm $
+% $Id: spm_sp.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
 if nargin==0
@@ -194,7 +194,7 @@ switch lower(action),
 case {'create','set','issetspc','isspc'}
     %- do nothing
 otherwise,
-    if nargin==1, error('No space : can''t do much!'), end
+    if nargin==1, error('No space: cannot do much!'), end
     [ok,str] = spm_sp('issetspc',varargin{2}); 
     if ~ok, error(str), else, sX = varargin{2}; end;
 end;
@@ -212,7 +212,7 @@ case 'set'          %-Set singular values, space basis, rank & tolerance
 %=======================================================================
 % x = spm_sp('Set',X)
 
-if nargin==1, error('No design matrix : can''t do much!'), 
+if nargin==1, error('No design matrix: cannot do much!'), 
 else X = varargin{2}; end
 if isempty(X), varargout = {sf_create}; return, end
 
@@ -239,7 +239,7 @@ end % switch nargin
 case {'op', 'op:'}   %-Orthogonal projectors on space of X
 %=======================================================================
 % r = spm_sp('oP', sX[,Y])   
-% r = spm_sp('oP:', sX[,Y])   %- set to 0 less than tolerence values
+% r = spm_sp('oP:', sX[,Y])   %- set to 0 less than tolerance values
 %
 % if isempty(Y) returns as if Y not given
 %-----------------------------------------------------------------------
@@ -273,7 +273,7 @@ end % switch nargin
 case {'opp', 'opp:'}   %-Orthogonal projectors on space of X'
 %=======================================================================
 % r = spm_sp('oPp',sX[,Y])   
-% r = spm_sp('oPp:',sX[,Y])   %- set to 0 less than tolerence values
+% r = spm_sp('oPp:',sX[,Y])   %- set to 0 less than tolerance values
 %
 % if isempty(Y) returns as if Y not given
 %-----------------------------------------------------------------------
@@ -488,7 +488,7 @@ case {'uk','uk:'}                                    %- Returns u(:,1:r)
 % Notice the difference with 'ox' : 'ox' always returns a basis of the
 % proper siwe while this returns empty if rank is null
 
-warning('can''t you use ox ?');
+warning('Can''t you use ox?');
 
 switch nargin
 
@@ -923,7 +923,7 @@ case {'isinsp', 'isinspp'}    %- is in space or is in dual space
 %-Check arguments
 %-----------------------------------------------------------------------
 if nargin<3, error('insufficient arguments - action,x,c required'), end
-c = varargin{3}; %- if isempty(c), dim wont match exept for empty sp.
+c = varargin{3}; %- if isempty(c), dim won't match except for empty sp.
 if nargin<4, tol=sX.tol; else, tol = varargin{4}; end
 
 %-Compute according to case
@@ -959,7 +959,7 @@ case {'eachinsp', 'eachinspp'}  %- each column of c in space or in dual space
 %-Check arguments
 %-----------------------------------------------------------------------
 if nargin<3, error('insufficient arguments - action,x,c required'), end
-c = varargin{3}; %- if isempty(c), dim wont match exept for empty sp.
+c = varargin{3}; %- if isempty(c), dim won't match except for empty sp.
 if nargin<4, tol=sX.tol; else, tol = varargin{4}; end
 
 %-Compute according to case
@@ -987,7 +987,7 @@ end
 
 
 
-case '=='       % test wether two spaces are the same
+case '=='       % test whether two spaces are the same
 %=======================================================================
 % b = spm_sp('==',x1,X2)
 if nargin~=3, error('too few/many input arguments - need 3');
@@ -1020,7 +1020,7 @@ if nargin~=2, error('too few/many input arguments - need 2'), end
 %-Check we've been passed a structure
 if ~isstruct(varargin{2}), varargout={0}; return, end
 
-%-Go through required field names checking their existance
+%-Go through required field names checking their existence
 % (Get fieldnames once and compare: isfield doesn't work for multiple )
 % (fields, and repeated calls to isfield would result in unnecessary  )
 % (replicate calls to fieldnames(varargin{2}).                        )
@@ -1104,7 +1104,7 @@ x = struct(...
     'rk',   [],...         % rank
     'oP',   [],...      % orthogonal projector on X
     'oPp',  [],...      % orthogonal projector on X'
-    'ups',  [],...      % space in which this one is embeded
+    'ups',  [],...      % space in which this one is embedded
     'sus',  []);           % subspace 
 
 

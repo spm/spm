@@ -28,7 +28,7 @@ function [xVi] = spm_non_sphericity(xVi)
 % be violated if the levels of a factor do not have the same error variance.
 % For example, in a 2nd-level analysis of variance, one contrast may be scaled
 % differently from another.  Another example would be the comparison of
-% qualitatively different dependant variables (e.g. normals vs. patients).  If
+% qualitatively different dependent variables (e.g. normals vs. patients).  If
 % You say no to identity assumptions, you will be asked whether the error
 % variance is the same over levels of each factor.  Different variances
 % (heteroscedasticy) induce different error covariance components that
@@ -56,7 +56,7 @@ function [xVi] = spm_non_sphericity(xVi)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_non_sphericity.m 5219 2013-01-29 17:07:07Z spm $
+% $Id: spm_non_sphericity.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
 % create covariance components Q{:}

@@ -156,7 +156,7 @@
 % Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny, Nelson Trujillo-Barreto and Lee Harrison
-% $Id: spm_spm_vb.m 7739 2019-12-02 14:00:18Z guillaume $
+% $Id: spm_spm_vb.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
 %-Get SPM.mat if necessary
@@ -266,7 +266,7 @@ end
 %=======================================================================
 fprintf('%-40s: %30s','Output images','...initialising');               %-#
 
-%-Initialise XYZ matrix of in-mask voxel co-ordinates (real space)
+%-Initialise XYZ matrix of in-mask voxel coordinates (real space)
 %-----------------------------------------------------------------------
 XYZ   = zeros(3,xdim*ydim*zdim);
 labels = zeros(1,xdim*ydim*zdim);
@@ -398,7 +398,7 @@ for ic = 1:ncon
 end
 
 % Set up masking details
-%-If xM is not a structure then assumme it's a vector of thresholds
+%-If xM is not a structure then assume it's a vector of thresholds
 %-----------------------------------------------------------------------
 try
     xM = SPM.xM;

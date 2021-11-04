@@ -10,7 +10,7 @@ function out = spm_run_fmri_est(job)
 %__________________________________________________________________________
 % Copyright (C) 2005-2017 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_fmri_est.m 7354 2018-06-22 10:44:22Z guillaume $
+% $Id: spm_run_fmri_est.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
 %-Load SPM.mat file
@@ -93,7 +93,7 @@ if isfield(job.method,'Classical')
             end
         end
         
-        %-Estimate constrasts
+        %-Estimate contrasts
         %------------------------------------------------------------------
         if ~isempty(Ic)
             spm('FnBanner','spm_contrasts.m');

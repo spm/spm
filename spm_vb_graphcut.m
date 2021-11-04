@@ -3,7 +3,7 @@ function labels = spm_vb_graphcut(labels,index,I,W,depth,grnd_type,CUTOFF,DIM)
 % 
 % FORMAT labels = spm_vb_graphcut(labels,index,I,W,depth,grnd_type,CUTOFF,DIM)
 %
-% labels     each voxel is lableled depending on whihc segment is belongs
+% labels     each voxel is lableled depending on which segment is belongs
 % index      index of current node set in labels vector
 % I          InMask XYZ voxel (node set) indices
 % W          weight matrix i.e. adjacency matrix containing edge weights 
@@ -25,7 +25,7 @@ function labels = spm_vb_graphcut(labels,index,I,W,depth,grnd_type,CUTOFF,DIM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Lee Harrison
-% $Id: spm_vb_graphcut.m 2923 2009-03-23 18:34:51Z guillaume $
+% $Id: spm_vb_graphcut.m 8183 2021-11-04 15:25:19Z guillaume $
 
 try, grnd_type; catch, grnd_type = 'random'; end
 
@@ -107,7 +107,7 @@ function parts = bipartition(W,CUTOFF,ground,method)
 % ground    ground node index
 % method    used to solve L0*x0=d0. Options are 'direct' or 'cg', which 
 %           x0 = L0\d0 or preconditioned conjugate gradients (see Matlab 
-%           rountine pcg.m)   
+%           routine pcg.m)   
 
 try, method; catch, method = 'direct'; end
 

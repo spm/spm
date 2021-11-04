@@ -3,7 +3,7 @@ function con = spm_cfg_con
 %__________________________________________________________________________
 % Copyright (C) 2005-2021 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_con.m 8119 2021-07-06 13:51:43Z guillaume $
+% $Id: spm_cfg_con.m 8183 2021-11-04 15:25:19Z guillaume $
 
 %--------------------------------------------------------------------------
 % con Contrast Manager
@@ -139,7 +139,7 @@ fcon.val  = {name convec sessrep};
 fcon.help = {
     '* Linear constraining matrices for an SPM{F}'
     ''
-    'The null hypothesis c''B=0 can be thought of as a (linear) constraint on the full model under consideration, yielding a reduced model. Taken from the viewpoint of two designs, with the full model an extension of the reduced model, the null hypothesis is that the additional terms in the full model are redundent.'
+    'The null hypothesis c''B=0 can be thought of as a (linear) constraint on the full model under consideration, yielding a reduced model. Taken from the viewpoint of two designs, with the full model an extension of the reduced model, the null hypothesis is that the additional terms in the full model are redundant.'
     ''
     'Statistical inference proceeds by comparing the additional variance explained by full design over and above the reduced design to the error variance (of the full design), an "Extra Sum-of-Squares" approach yielding an F-statistic for each voxel, whence an SPM{F}.'
     ''
@@ -178,7 +178,7 @@ fcon.help = {
     ''
     'Reading the contrasts weights in each row of c'', we see that row 1 states that category A elicits the same response as category B, row 2 that category B elicits the same response as category C, and hence together than categories A, B & C all elicit the same response.'
     ''
-    'The alternative hypothesis is simply that the three levels are not all the same, i.e. that there is some difference in the paraeters for the three levels of the factor: The first and the second categories produce different brain responses, OR the second and third categories, or both.'
+    'The alternative hypothesis is simply that the three levels are not all the same, i.e. that there is some difference in the parameters for the three levels of the factor: The first and the second categories produce different brain responses, OR the second and third categories, or both.'
     ''
     'In other words, under the null hypothesis (the categories produce the same brain responses), the model reduces to one in which the three level "word category" factor can be replaced by a single "word" effect, since there is no difference in the parameters for each category. The corresponding design matrix would have the first three columns replaced by a single column that is the sum (across rows) of the first three columns in the design matric above, modelling the brain response to a word, whatever is the category. The F-contrast above is in fact testing the hypothesis that this reduced design doesn''t account for significantly less variance than the full design with an effect for each word category.'
     ''
@@ -209,7 +209,7 @@ fcon.help = {
     ''
     '    The first is an F-contrast, testing whether either of the parameters for the effects modelled in the 2nd & 3rd columns of the design matrix are significantly different from zero. Under the null hypothesis c''B=0, the first contrast imposes a two-dimensional constraint on the design. The second contrast tests whether the SUM of the parameters for the 2nd & 3rd columns is significantly different from zero. Under the null hypothesis c''B=0, this second contrast only imposes a one dimensional constraint on the design.'
     ''
-    '    An example of the difference between the two is that the first contrast would be sensitive to the situation where the 2nd & 3rd parameters were +a and -a, for some constant a, wheras the second contrast would not detect this, since the parameters sum to zero.'
+    '    An example of the difference between the two is that the first contrast would be sensitive to the situation where the 2nd & 3rd parameters were +a and -a, for some constant a, whereas the second contrast would not detect this, since the parameters sum to zero.'
     ''
     'The test for an effect of the factor "word category" is an F-test with 3-1=2 "dimensions", or degrees of freedom.'
     ''
@@ -377,7 +377,7 @@ consess        = cfg_repeat;
 consess.tag    = 'consess';
 consess.name   = 'Contrast Sessions';
 consess.help   = {
-    'For general linear model Y = XB + E with data Y, desgin matrix X, parameter vector B, and (independent) errors E, a contrast is a linear combination of the parameters c''B. Usually c is a column vector, defining a simple contrast of the parameters, assessed via an SPM{T}. More generally, c can be a matrix (a linear constraining matrix), defining an "F-contrast" assessed via an SPM{F}.'
+    'For general linear model Y = XB + E with data Y, design matrix X, parameter vector B, and (independent) errors E, a contrast is a linear combination of the parameters c''B. Usually c is a column vector, defining a simple contrast of the parameters, assessed via an SPM{T}. More generally, c can be a matrix (a linear constraining matrix), defining an "F-contrast" assessed via an SPM{F}.'
     ''
     'The vector/matrix c contains the contrast weights. It is this contrast weights vector/matrix that must be specified to define the contrast. The null hypothesis is that the linear combination c''B is zero. The order of the parameters in the parameter (column) vector B, and hence the order to which parameters are referenced in the contrast weights vector c, is determined by the construction of the design matrix.'
     ''

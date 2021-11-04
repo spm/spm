@@ -1,5 +1,5 @@
 /*
- * $Id: spm_make_lookup.c 4452 2011-09-02 10:45:26Z guillaume $
+ * $Id: spm_make_lookup.c 8183 2021-11-04 15:25:19Z guillaume $
  * John Ashburner
  */
 
@@ -47,7 +47,7 @@ void make_lookup_poly(double coord, int q, int dim, int *d1, double *table, doub
            resamplings */
         for(k=k0, p=denom; k<=k1; k++, p++)
         {
-            /* two seperate inner loops - so m!=k */
+            /* two separate inner loops - so m!=k */
             v = 1.0;
             for (m=k0; m<k; m++)
                 v = v*(k-m);
@@ -148,7 +148,7 @@ void make_lookup_poly_grad(double coord, int q, int dim, int *d1, double *table,
            resamplings */
         for(k=k0, p=denom; k<=k1; k++, p++)
         {
-            /* two seperate inner loops - so m!=k */
+            /* two separate inner loops - so m!=k */
             v = 1.0;
             for (m=k0; m<k; m++)
                 v = v*(k-m);

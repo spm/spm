@@ -83,7 +83,7 @@ function ds = spm_uw_estimate(P,par)
 % Copyright (C) 2003-2011 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson
-% $Id: spm_uw_estimate.m 6824 2016-06-27 16:19:51Z guillaume $
+% $Id: spm_uw_estimate.m 8183 2021-11-04 15:25:19Z guillaume $
 
 % This is a major rewrite which uses some new ideas to speed up
 % the estimation of the field. The time consuming part is the
@@ -153,10 +153,10 @@ function ds = spm_uw_estimate(P,par)
 %    updating both parameters pertaining to distortions and to
 %    movement. In order to do so in an unbiased fashion we have
 %    also switched from sampling of images (and deformation fields)
-%    on a grid centered on the voxel-centers, to a grid whith a 
+%    on a grid centred on the voxel-centres, to a grid with a 
 %    different sampling frequency.   
 % 4. Inclusion of a regularisation term. The speed-up has facilitated
-%    using more basis-functions, which makes it neccessary to impose
+%    using more basis-functions, which makes it necessary to impose
 %    regularisation (i.e. punisihing some order derivative of the
 %    deformation field).
 % 5. Change of interpolation model from tri-linear/Sinc to 
@@ -166,7 +166,7 @@ function ds = spm_uw_estimate(P,par)
 %    Our tests have indicated that this is NOT a good idea though. 
 
 
-SVNid = '$Rev: 6824 $';
+SVNid = '$Rev: 8183 $';
 
 %-Say hello
 %--------------------------------------------------------------------------
@@ -203,7 +203,7 @@ if isfield(ud,'expround'),  defpar.exp_round = ud.expround; end
 defnames = fieldnames(defpar);
 
 %
-% Go through input parameters, chosing the default
+% Go through input parameters, choosing the default
 % for any parameters that are missing, warning the 
 % user if there are "unknown" parameters (probably
 % reflecting a misspelling).
@@ -445,8 +445,8 @@ fprintf('%-40s: %30s\n','Completed',spm('time'))                        %-#
 function [q,ep] = make_q(P,fot,sot,exp_round)
 %
 % P         : Array of file-handles
-% fot       : nx1 array of indicies for first order effect.
-% sot       : nx2 matrix of indicies of second order effects.
+% fot       : nx1 array of indices for first order effect.
+% sot       : nx2 matrix of indices of second order effects.
 % exp_round : Point in position space to perform Taylor-expansion
 %             around ('First','Last' or 'Average'). 'Average' should
 %             (in principle) give the best variance reduction. If a
@@ -868,7 +868,7 @@ return;
 %_______________________________________________________________________
 function msk = get_mask(P,xyz,ds,dm)
 %
-% Create a mask to avoid regions where data doesnt exist
+% Create a mask to avoid regions where data doesn't exist
 % for all scans. This mask is slightly less Q&D than that
 % of version 1 of Unwarp. It checks where data exist for
 % all scans with present movement parameters and given

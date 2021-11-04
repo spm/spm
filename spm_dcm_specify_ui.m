@@ -14,7 +14,7 @@ function DCM = spm_dcm_specify_ui(SPM,xY,settings)
 %             .TE          echo time
 %             .nonlinear   non-linear DCM
 %             .two_state   two-state DCM
-%             .stochastic  stocastic DCM
+%             .stochastic  stochastic DCM
 %             .centre      mean-centring of inputs
 %             .induced     induced responses)
 %             .a .b .c .d  connectivity matrices
@@ -24,7 +24,7 @@ function DCM = spm_dcm_specify_ui(SPM,xY,settings)
 % Copyright (C) 2002-2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_specify_ui.m 8034 2020-12-14 09:26:07Z peter $
+% $Id: spm_dcm_specify_ui.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
 %-Interactive window

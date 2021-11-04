@@ -35,7 +35,7 @@ function  [C,h,Ph,F,Fa,Fc] = spm_reml_A(YY,X,Q,N,hE,hC,V)
 % Copyright (C) 2010-2017 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_reml_A.m 7192 2017-10-18 14:59:01Z guillaume $
+% $Id: spm_reml_A.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
 % assume a single sample if not specified
@@ -74,12 +74,12 @@ end
 try, hE = hE(:);        catch, hE = 0;    end
 try, hP = spm_inv(hC);  catch, hP = 1/256; end
 
-% check sise
+% check size
 %--------------------------------------------------------------------------
 if length(hE) < m, hE = hE(1)*ones(m,1);   end
 if length(hP) < m, hP = hP(1)*speye(m,m);  end
 
-% intialise h: so that sum(exp(h)) = 1
+% initialise h: so that sum(exp(h)) = 1
 %--------------------------------------------------------------------------
 if any(diag(hP) > exp(16))
     h = hE;

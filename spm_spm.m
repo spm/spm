@@ -150,7 +150,7 @@ function SPM = spm_spm(SPM)
 % parameters, and 'float' flat-file images of the parameter and variance
 % [hyperparameter] estimates. An 8bit zero-one mask image indicating the
 % voxels assessed is also written out, with zero indicating voxels outside
-% tha analysed volume.
+% the analysed volume.
 %
 %                            ----------------
 %
@@ -268,10 +268,10 @@ function SPM = spm_spm(SPM)
 % Copyright (C) 1994-2019 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston & Guillaume Flandin
-% $Id: spm_spm.m 7738 2019-12-02 12:45:37Z guillaume $
+% $Id: spm_spm.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
-SVNid = '$Rev: 7738 $';
+SVNid = '$Rev: 8183 $';
 
 %-Say hello
 %--------------------------------------------------------------------------

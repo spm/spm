@@ -4,7 +4,7 @@ function create = spm_cfg_opm_create
 % Copyright (C) 2018-2021 Wellcome Trust Centre for Neuroimaging
 
 % Tim Tierney
-% $Id: spm_cfg_opm_create.m 8119 2021-07-06 13:51:43Z guillaume $
+% $Id: spm_cfg_opm_create.m 8183 2021-11-04 15:25:19Z guillaume $
 
 %--------------------------------------------------------------------------
 % Create OPM object
@@ -57,7 +57,7 @@ meg.val = {{''}};
 sens = cfg_branch;
 sens.tag = 'sens';
 sens.name = 'Sensor Info';
-sens.help = {'Input arguements required for sensor level analysis'};
+sens.help = {'Input arguments required for sensor level analysis'};
 sens.val  = {data,chans,meg};
 
 %--------------------------------------------------------------------------
@@ -101,12 +101,12 @@ nSamples.val     = {1};
 simulation = cfg_branch;
 simulation.tag = 'simulation';
 simulation.name = 'Simulation Parameters';
-simulation.help = {'Parameters for simulating OPM data. will be ignored if a dataset has alread been supplied'};
+simulation.help = {'Parameters for simulating OPM data. will be ignored if a dataset has already been supplied'};
 simulation.val  = {wholehead,space,offset,nSamples};
 
 
 %--------------------------------------------------------------------------
-% Source paramters
+% Source parameters
 %--------------------------------------------------------------------------
 positions = cfg_files;
 positions.tag = 'pos';
@@ -121,7 +121,7 @@ coordsystem.tag = 'coord';
 coordsystem.name = 'Coordinate systems';
 coordsystem.filter = '.*.json';
 coordsystem.num = [1 Inf];
-coordsystem.help = {'json file describing hte coordinate systesm of fiducials and sensors.The format of this file should conform to the BIDS standard for coordsystem.json files'};
+coordsystem.help = {'json file describing the coordinate systems of fiducials and sensors. The format of this file should conform to the BIDS standard for coordsystem.json files'};
 coordsystem.val={{''}};
 
 sMRI = cfg_files;
@@ -215,7 +215,7 @@ source.val  = {coordsystem,positions,sMRI,meshres,custom,voltype,lead};
 function out = opm_create(job)
 % construct the S struct
 
-% datset parameters
+% dataset parameters
 S=[];
 S.data=job.sens.data{1};
 S.meg=job.sens.meg;

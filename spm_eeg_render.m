@@ -33,7 +33,7 @@ function [out] = spm_eeg_render(m,options)
 % Copyright (C) 2008-2016 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_render.m 6808 2016-06-13 16:48:30Z guillaume $
+% $Id: spm_eeg_render.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
 %----------------------------------------------------------------------%
@@ -178,7 +178,7 @@ udd.p = handles.p;
 %----------------------------------------------------------------------%
 
 
-% Transparancy sliders
+% Transparency sliders
 pos = [20 100 20 245];
 pos(1) = pos(1) + ns.*25;
 handles.transp = uicontrol(handles.fi,...

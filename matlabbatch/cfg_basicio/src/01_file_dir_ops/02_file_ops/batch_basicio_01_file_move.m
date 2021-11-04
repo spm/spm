@@ -1,5 +1,5 @@
 %-----------------------------------------------------------------------
-% Job configuration created by cfg_util (rev $Rev: 4899 $)
+% Job configuration created by cfg_util (rev $Rev: 8183 $)
 %-----------------------------------------------------------------------
 matlabbatch{1}.menu_cfg{1}.menu_entry{1}.conf_files.type = 'cfg_files';
 matlabbatch{1}.menu_cfg{1}.menu_entry{1}.conf_files.name = 'Files to move/copy/delete';
@@ -90,7 +90,7 @@ matlabbatch{8}.menu_cfg{1}.menu_entry{1}.conf_menu.values{1} = false;
 matlabbatch{8}.menu_cfg{1}.menu_entry{1}.conf_menu.values{2} = true;
 matlabbatch{8}.menu_cfg{1}.menu_entry{1}.conf_menu.check = [];
 matlabbatch{8}.menu_cfg{1}.menu_entry{1}.conf_menu.help = {
-                                                           'If the regexprep operation results in identical output filenames for two or more input files, these can not be written/renamed to their new location without loosing data. If you are sure that your regexprep patterns produce unique filenames, you do not need to care about this.'
+                                                           'If the regexprep operation results in identical output filenames for two or more input files, these can not be written/renamed to their new location without losing data. If you are sure that your regexprep patterns produce unique filenames, you do not need to care about this.'
                                                            'If you choose to append a running number, it will be zero-padded to make sure alphabetical sort of filenames returns them in the same order as the input files are.'
 }';
 matlabbatch{8}.menu_cfg{1}.menu_entry{1}.conf_menu.def = [];

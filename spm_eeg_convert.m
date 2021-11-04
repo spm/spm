@@ -47,9 +47,9 @@ function D = spm_eeg_convert(S)
 % Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_convert.m 7671 2019-10-02 12:34:50Z vladimir $
+% $Id: spm_eeg_convert.m 8183 2021-11-04 15:25:19Z guillaume $
 
-SVNrev = '$Rev: 7671 $';
+SVNrev = '$Rev: 8183 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -102,7 +102,7 @@ else
         if length(unique_label) ~= length(hdr.label)
             warning(['Data file contains several channels with ',...
                 'the same name. These channels cannot be processed and will be disregarded']);
-            % This finds the repeating labels and removes all their occurences
+            % This finds the repeating labels and removes all their occurrences
             sortind     = sort(ind);
             [junk,ind2] = setdiff(hdr.label, unique_label(sortind(diff(sortind)==0)));
             hdr.label   = hdr.label(ind2);

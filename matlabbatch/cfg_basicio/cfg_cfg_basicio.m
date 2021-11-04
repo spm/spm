@@ -255,7 +255,7 @@ unique         = cfg_menu;
 unique.tag     = 'unique';
 unique.name    = 'Unique Filenames';
 unique.help    = {
-                  'If the regexprep operation results in identical output filenames for two or more input files, these can not be written/renamed to their new location without loosing data. If you are sure that your regexprep patterns produce unique filenames, you do not need to care about this.'
+                  'If the regexprep operation results in identical output filenames for two or more input files, these can not be written/renamed to their new location without losing data. If you are sure that your regexprep patterns produce unique filenames, you do not need to care about this.'
                   'If you choose to append a running number, it will be zero-padded to make sure alphabetical sort of filenames returns them in the same order as the input files are.'
                   }';
 unique.labels = {
@@ -325,7 +325,7 @@ unique         = cfg_menu;
 unique.tag     = 'unique';
 unique.name    = 'Unique Filenames';
 unique.help    = {
-                  'If the regexprep operation results in identical output filenames for two or more input files, these can not be written/renamed to their new location without loosing data. If you are sure that your regexprep patterns produce unique filenames, you do not need to care about this.'
+                  'If the regexprep operation results in identical output filenames for two or more input files, these can not be written/renamed to their new location without losing data. If you are sure that your regexprep patterns produce unique filenames, you do not need to care about this.'
                   'If you choose to append a running number, it will be zero-padded to make sure alphabetical sort of filenames returns them in the same order as the input files are.'
                   }';
 unique.labels = {
@@ -1393,5 +1393,5 @@ cfg_basicio         = cfg_choice;
 cfg_basicio.tag     = 'cfg_basicio';
 cfg_basicio.name    = 'BasicIO';
 cfg_basicio.rewrite_job = @cfg_basicio_rewrite;
-cfg_basicio.help    = {'This toolbox contains basic input and output functions. The "Named Input" functions can be used to enter values or file names. These inputs can then be passed on to multiple modules, thereby ensuring all of them use the same input value. Some basic file manipulation is implemented in "Change Directory", "Make Directory", "Move Files". Lists of files can be filtered or splitted into parts using "File Set Filter" and "File Set Split". Output values from other modules can be written out to disk or assigned to MATLAB workspace.'};
+cfg_basicio.help    = {'This toolbox contains basic input and output functions. The "Named Input" functions can be used to enter values or file names. These inputs can then be passed on to multiple modules, thereby ensuring all of them use the same input value. Some basic file manipulation is implemented in "Change Directory", "Make Directory", "Move Files". Lists of files can be filtered or split into parts using "File Set Filter" and "File Set Split". Output values from other modules can be written out to disk or assigned to MATLAB workspace.'};
 cfg_basicio.values  = {file_dir var_ops run_ops };

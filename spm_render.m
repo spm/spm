@@ -33,9 +33,9 @@ function varargout = spm_render(dat,brt,rendfile)
 % Copyright (C) 1996-2019 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_render.m 7577 2019-04-24 08:59:56Z guillaume $
+% $Id: spm_render.m 8183 2021-11-04 15:25:19Z guillaume $
 
-SVNrev = '$Rev: 7577 $';
+SVNrev = '$Rev: 8183 $';
 
 global prevrend
 if ~isstruct(prevrend)
@@ -433,7 +433,7 @@ switch lower(varargin{1})
     varargout = {hs};
     
     %======================================================================
-    case 'setcoords'    % Set co-ordinates
+    case 'setcoords'    % Set coordinates
     %======================================================================
     % [xyz,d] = mydispcursor('SetCoords',xyz,hMe,hC)
     hMe  = varargin{3};

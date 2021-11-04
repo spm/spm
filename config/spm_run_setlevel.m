@@ -7,7 +7,7 @@ function out = spm_run_setlevel(job)
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_setlevel.m 5554 2013-06-13 09:13:56Z gareth $
+% $Id: spm_run_setlevel.m 8183 2021-11-04 15:25:19Z guillaume $
 
 %-Load SPM.mat file
 %--------------------------------------------------------------------------
@@ -29,7 +29,7 @@ Ic=NaN; %% adjust for everything
 disp('Writing new residual images');
 Vres = spm_write_residuals(SPM,Ic);
 
-%%% Now to make standarized residual images
+%%% Now to make standardized residual images
 nSres=size(Vres,2); %% number of subjects/observations
 DIM=Vres.dim;
 %-Initialise standardised residual images

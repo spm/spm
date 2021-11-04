@@ -15,12 +15,12 @@ function varargout=spm_XYZreg_Ex2(varargin)
 %
 % There must be a 'SetCoords' function for this object, with call:
 %   spm_res_ui('SetCoords',xyz,hMe,hC)
-% ...this can handle interna, co-ordinate setting (as in this example), but
+% ...this can handle interna, coordinate setting (as in this example), but
 % must also call the registry.
 %
 % The registry update function is:
 %   spm_XYZreg('SetCoords',xyz,hReg,hMe);
-% ...which must be called at all points where the local co-ordinates can be
+% ...which must be called at all points where the local coordinates can be
 % changed. It is robust to invalid or empty hReg.
 %
 % It's *vital* to specify caller handles (hC), so that the registry doesn't
@@ -34,7 +34,7 @@ function varargout=spm_XYZreg_Ex2(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_XYZreg_Ex2.m 5219 2013-01-29 17:07:07Z spm $
+% $Id: spm_XYZreg_Ex2.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
 %=======================================================================
@@ -72,7 +72,7 @@ varargout = {hMe};
 
 
 %=======================================================================
-case 'setcoords'    % Set co-ordinates
+case 'setcoords'    % Set coordinates
 %=======================================================================
 % [xyz,d] = spm_XYZreg_Ex2('SetCoords',xyz,hMe,hC)
 if nargin<4, hC=0; else hC=varargin{4}; end

@@ -88,7 +88,7 @@ function D = meeg(varargin)
 %       .fid.pnt - fiducial points
 %       .fid.label - fiducial labels
 %
-% .transform - additional information for transfomed (most commonly time-frequency) data
+% .transform - additional information for transformed (most commonly time-frequency) data
 %    Subfields of .transform 
 %        .ID - 'time', 'TF', or 'TFphase'
 %        .frequencies (optional)
@@ -118,7 +118,7 @@ function D = meeg(varargin)
 % Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: meeg.m 6525 2015-08-20 10:03:16Z vladimir $
+% $Id: meeg.m 8183 2021-11-04 15:25:19Z guillaume $
 
 switch nargin
     case 0

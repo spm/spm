@@ -11,9 +11,9 @@ function uid = root(tree)
 % Copyright (C) 2002-2008  http://www.artefact.tk/
 
 % Guillaume Flandin
-% $Id: root.m 4460 2011-09-05 14:52:16Z guillaume $
+% $Id: root.m 8183 2021-11-04 15:25:19Z guillaume $
 
-% Actually root is necessarily the element whos UID is 1, by
+% Actually root is necessarily the element whose UID is 1, by
 % construction. However, xml_parser should return a tree with a ROOT
 % element with as many children as needed but only ONE *element* child
 % who would be the real root (and this method should return the UID of

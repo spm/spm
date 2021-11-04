@@ -11,7 +11,7 @@ function [X,Pnames,Index,idx,jdx,kdx]=spm_DesMtx(varargin)
 %      within any triple. The program then works recursively.
 %
 % X      - design matrix
-% Pnames - paramater names as (constructed from FCnames) - a cellstr
+% Pnames - parameter names as (constructed from FCnames) - a cellstr
 % Index  - integer index of factor levels
 %        - only returned when computing a single design matrix partition
 %
@@ -151,7 +151,7 @@ function [X,Pnames,Index,idx,jdx,kdx]=spm_DesMtx(varargin)
 % design matrix is being computed (single set of parameters). It
 % indexes the actual order of the effect levels in the design matrix block.
 % (Factor levels are introduced in order, regardless of order of
-% appearence in the factor index matrices, so that the parameters
+% appearance in the factor index matrices, so that the parameters
 % vector has a sensible order.) This is used to aid recursion.
 %
 % Similarly idx,jdx & kdx are indexes returned for a single block of
@@ -203,7 +203,7 @@ function [X,Pnames,Index,idx,jdx,kdx]=spm_DesMtx(varargin)
 % Copyright (C) 1994-2011 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_DesMtx.m 5219 2013-01-29 17:07:07Z spm $
+% $Id: spm_DesMtx.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
 %-Parse arguments for recursive construction of design matrices
@@ -308,7 +308,7 @@ X      = zeros(nXrows,nXcols);
 Pnames = cell(nXcols,1);
 for ii=1:nXcols         %-ii indexes i in Index
     X(:,ii) = I==Index(ii);
-    %-Can't use: for i=Index, X(:,i) = I==i; end
+    %-Cannot use: for i=Index, X(:,i) = I==i; end
     % in case Index has holes &/or doesn't start at 1!
     Pnames{ii} = sprintf('%s_{%d}',FCnames{1},Index(ii));
 end
@@ -381,7 +381,7 @@ F = I(:,1:end-1);
 C = I(:,end);
 
 if ~all(all(F==floor(F),1),2)
-    error('non-integer indicies in F partition of FxC'), end
+    error('non-integer indices in F partition of FxC'), end
 
 if isempty(FCnames)
     Fnames = '';
@@ -417,13 +417,13 @@ if size(I,2)~=1, error('Simple main effect requires vector index'), end
 nXcols = size(X,2);
 zCol   = find(Index==0);
 if nXcols==1 && ~strcmp(Constraint,'.0')
-    error('only one level: can''t constrain')
+    error('only one level: cannot constrain')
 elseif strcmp(Constraint,'.')
     X(:,nXcols)=[]; Pnames(nXcols)=[]; Index(nXcols)=[];
 elseif strcmp(Constraint,'.0')
     zCol = find(Index==0);
     if isempty(zCol),   warning('no zero level to constrain')
-    elseif nXcols==1,   error('only one level: can''t constrain'), end
+    elseif nXcols==1,   error('only one level: cannot constrain'), end
     X(:,zCol)=[];   Pnames(zCol)=[]; Index(zCol)=[];
 elseif strcmp(Constraint,'+0')
     X(find(X(:,nXcols)),:)=-1;
@@ -453,7 +453,7 @@ if any(strcmp(Constraint,{'+i0m','+j0m'}))
             rows = find(I(:,2)==j);
             cols = find(Index(2,:)==j);
             if length(cols)==1
-               error('Only one level: Can''t constrain')
+               error('Only one level: cannot constrain')
             end
             X(rows,cols) = X(rows,cols) - 1/length(cols);
         end
@@ -465,7 +465,7 @@ if any(strcmp(Constraint,{'+i0m','+j0m'}))
             rows = find(I(:,1)==i);
             cols = find(Index(1,:)==i);
             if length(cols)==1
-               error('Only one level: Can''t constrain')
+               error('Only one level: cannot constrain')
             end
             X(rows,cols) = X(rows,cols) - 1/length(cols);
         end
@@ -480,7 +480,7 @@ elseif any(strcmp(Constraint,{'+i0','+j0','+ij0'}))
     if SumIToZero   %-impose explicit SumIToZero constraints
         i = max(Index(1,:));
         if i==min(Index(1,:))
-            error('Only one i level: Can''t constrain'), end
+            error('Only one i level: cannot constrain'), end
         cols = find(Index(1,:)==i); %-columns to delete
         for c=cols
             j=Index(2,c);
@@ -504,7 +504,7 @@ elseif any(strcmp(Constraint,{'+i0','+j0','+ij0'}))
     if SumJToZero   %-impose explicit SumJToZero constraints
         j = max(Index(2,:));
         if j==min(Index(2,:))
-            error('Only one j level: Can''t constrain'), end
+            error('Only one j level: cannot constrain'), end
         cols=find(Index(2,:)==j);
         for c=cols
             i=Index(1,c);
@@ -530,7 +530,7 @@ elseif any(strcmp(Constraint,{'.i','.i0','.j','.j0','.ij','.ij0'}))
         if isempty(cols)
             warning('no zero i level to constrain')
         elseif all(Index(1,:)==i)
-            error('only one i level: can''t constrain')
+            error('only one i level: cannot constrain')
         end
         %-delete columns
         X(:,cols)=[]; Pnames(cols)=[]; Index(:,cols)=[];
@@ -543,7 +543,7 @@ elseif any(strcmp(Constraint,{'.i','.i0','.j','.j0','.ij','.ij0'}))
         if isempty(cols)
             warning('no zero j level to constrain')
         elseif all(Index(2,:)==j)
-            error('only one j level: can''t constrain')
+            error('only one j level: cannot constrain')
         end
         X(:,cols)=[]; Pnames(cols)=[]; Index(:,cols)=[];
     end

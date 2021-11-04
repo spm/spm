@@ -1,5 +1,5 @@
 /*
- * $Id: spm_brainwarp.c 4453 2011-09-02 10:47:25Z guillaume $
+ * $Id: spm_brainwarp.c 8183 2021-11-04 15:25:19Z guillaume $
  * John Ashburner
  */
 
@@ -132,7 +132,7 @@ static void mrqcof(double T[], double alpha[], double beta[], double pss[],
 
     for(s0[2]=1; s0[2]<dim1[2]; s0[2]+=samp[2]) /* For each plane of the template images */
     {
-        /* build up the deformation field (and derivatives) from it's seperable form */
+        /* build up the deformation field (and derivatives) from its separable form */
         for(i1=0, ptr1=T; i1<3; i1++, ptr1 += nz*ny*nx)
             for(x1=0; x1<nx*ny; x1++)
             {
@@ -163,7 +163,7 @@ static void mrqcof(double T[], double alpha[], double beta[], double pss[],
 
         for(s0[1]=1; s0[1]<dim1[1]; s0[1]+=samp[1]) /* For each row of the template images plane */
         {
-            /* build up the deformation field (and derivatives) from it's seperable form */
+            /* build up the deformation field (and derivatives) from its separable form */
             for(i1=0, ptr1=Tz; i1<3; i1++, ptr1+=ny*nx)
             {
                 for(x1=0; x1<nx; x1++)
@@ -281,7 +281,7 @@ static void mrqcof(double T[], double alpha[], double beta[], double pss[],
                             dvdt[i1*nx+x1] = tmp * B0[dim1[0]*x1+s0[0]];
                     }
 
-                    /* cf Numerical Recipies "mrqcof.c" routine */
+                    /* cf Numerical Recipes "mrqcof.c" routine */
                     m1 = 3*nx+ni4;
                     for(x1=0; x1<m1; x1++)
                     {

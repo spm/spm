@@ -26,7 +26,7 @@ function [y,S,k] = spm_csd_fmri_mar(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_csd_fmri_mar.m 5618 2013-08-17 10:36:56Z karl $
+% $Id: spm_csd_fmri_mar.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
 % number of nodes and endogenous (neuronal) fluctuations
@@ -89,7 +89,7 @@ Rn    = spm_cat(Rn);
 P.C   = speye(nn,nn);
 [S,k] = spm_dcm_mtf(P,M);
 
-% matix form
+% matrix form
 %--------------------------------------------------------------------------
 for i = 1:nn
     for j = 1:nn
@@ -98,7 +98,7 @@ for i = 1:nn
 end
 K     = spm_cat(K);
 
-% lagged matix form
+% lagged matrix form
 %--------------------------------------------------------------------------
 for i = 1:nn
     for j = 1:nn

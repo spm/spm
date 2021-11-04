@@ -10,7 +10,7 @@ function H = spm_logdet(C)
 % Copyright (C) 2004-2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston and Ged Ridgway
-% $Id: spm_logdet.m 7975 2020-10-06 14:46:56Z spm $
+% $Id: spm_logdet.m 8183 2021-11-04 15:25:19Z guillaume $
 
 % Note that whether sparse or full, rank deficient cases are handled in the
 % same way as in spm_logdet revision 4068, using svd on a full version of C
@@ -29,7 +29,7 @@ TOL   = 1e-16;
 
 if any(i ~= j)
     
-    % assymetric matrix
+    % asymmetric matrix
     %------------------------------------------------------------------
     if norm(spm_vec(C - C'),inf) > TOL
         

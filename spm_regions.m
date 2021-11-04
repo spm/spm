@@ -15,7 +15,7 @@ function [Y,xY] = spm_regions(xSPM,SPM,hReg,xY)
 %       xY.def          - VOI definition
 %       xY.spec         - VOI definition parameters
 %       xY.str          - VOI description as a string
-%       xY.XYZmm        - Co-ordinates of VOI voxels {mm}
+%       xY.XYZmm        - Coordinates of VOI voxels {mm}
 %       xY.y            - [whitened and filtered] voxel-wise data
 %       xY.u            - first eigenvariate {scaled - c.f. mean response}
 %       xY.v            - first eigenimage
@@ -50,7 +50,7 @@ function [Y,xY] = spm_regions(xSPM,SPM,hReg,xY)
 % Copyright (C) 1999-2018 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_regions.m 7450 2018-10-17 09:39:32Z guillaume $
+% $Id: spm_regions.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
 %-Shortcut for VOI display

@@ -51,7 +51,7 @@ function [SPM] = spm_fMRI_design(SPM,save_SPM)
 %             name: - {1 x j} cell of names for each input or cause
 %              ons: - (q x 1) onsets for q  trials {in UNITS}
 %              dur: - (q x 1) durations for trials {in UNITS}
-%                P: - Parameter stucture
+%                P: - Parameter structure
 %                u: - (t x j) inputs or stimulus function matrix
 %              pst: - (1 x k) peristimulus times (seconds)
 %             orth: - boolean: orthogonalise inputs?
@@ -134,7 +134,7 @@ function [SPM] = spm_fMRI_design(SPM,save_SPM)
 %
 %                           ----------------
 %
-% spm_get_ons contructs a struct array containing sparse input
+% spm_get_ons constructs a struct array containing sparse input
 % functions U(i).u specifying occurrence events or epochs (or both).
 % These are convolved with a basis set at a later stage to give
 % regressors that enter into the design matrix. Interactions of evoked
@@ -157,7 +157,7 @@ function [SPM] = spm_fMRI_design(SPM,save_SPM)
 % (e.g. stick functions) in U(u).u by the basis functions in Sess(s).bf
 % to create design matrix X.  For second order expansions new entries appear
 % in the design matrix that correspond to the hemodynamic interaction among the
-% orginal causes (if the events are sufficiently close in time).
+% original causes (if the events are sufficiently close in time).
 % The basis functions for these are two dimensional and are used to
 % assemble the second order kernel in spm_graph.m.  Second order effects
 % are computed for only the first column of U(u).u.
@@ -166,10 +166,10 @@ function [SPM] = spm_fMRI_design(SPM,save_SPM)
 % Copyright (C) 1999-2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_fMRI_design.m 7800 2020-03-12 17:25:34Z karl $
+% $Id: spm_fMRI_design.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
-SVNid = '$Rev: 7800 $';
+SVNid = '$Rev: 8183 $';
 
 %-Say Hello
 %--------------------------------------------------------------------------

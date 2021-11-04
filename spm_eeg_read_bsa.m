@@ -64,9 +64,9 @@ function [tok] = tokenize(str, sep, rep)
 % to cut it into pieces.
 %
 % Using the optional boolean flag rep you can specify whether repeated
-% seperator characters should be squeezed together (e.g. multiple
+% separator characters should be squeezed together (e.g. multiple
 % spaces between two words). The default is rep=1, i.e. repeated
-% seperators are treated as one.
+% separators are treated as one.
 
 % Copyright (C) 2003-2006, Robert Oostenveld
 %

@@ -4,7 +4,7 @@ function prepare = spm_cfg_eeg_prepare
 % Copyright (C) 2012-2021 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_prepare.m 8119 2021-07-06 13:51:43Z guillaume $
+% $Id: spm_cfg_eeg_prepare.m 8183 2021-11-04 15:25:19Z guillaume $
 
 prepare          = cfg_exbranch;
 prepare.tag      = 'prepare';
@@ -283,7 +283,7 @@ replace.name = 'Replace existing events';
 replace.labels = {'Replace', 'Add'};
 replace.val = {1};
 replace.values = {1, 0};
-replace.help = {'Replace exisitng events or add to them'};
+replace.help = {'Replace existing events or add to them'};
 
 bidsevents = cfg_branch;
 bidsevents.tag = 'bidsevents';

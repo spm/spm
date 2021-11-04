@@ -88,7 +88,7 @@ function [o, others] = slover(params, others, varargin)
 % - resurrectf - if not zero, and figure (above) does not exist, will
 %               attempt to recreate figure with same area properties.
 %               Otherwise painting will give an error.
-% - userdata  - flag, non zero -> attaches object to figure when ploting,
+% - userdata  - flag, non zero -> attaches object to figure when plotting,
 %               for use by callbacks (default is 1)
 % - area      - struct with fields
 %                  position - bottom left, x size y size 1x4 vector of
@@ -143,11 +143,11 @@ function [o, others] = slover(params, others, varargin)
 %
 % FORMAT obj = slover('basic_ui' [,dispf])
 % Runs basic UI to fetch some parameters, does display, returns object
-% If optional dispf parameter = 0, supresses display
+% If optional dispf parameter = 0, suppresses display
 %__________________________________________________________________________
 
 % Matthew Brett
-% $Id: slover.m 6623 2015-12-03 18:38:08Z guillaume $
+% $Id: slover.m 8183 2021-11-04 15:25:19Z guillaume $
 
 myclass = 'slover';
 

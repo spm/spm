@@ -67,7 +67,7 @@ function [DCM,BMR,BMA] = spm_dcm_bmr_all(DCM,field,OPT)
 % Copyright (C) 2010-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: spm_dcm_bmr_all.m 8154 2021-09-24 11:25:10Z karl $
+% $Id: spm_dcm_bmr_all.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
 %-specification of null prior covariance
@@ -75,7 +75,7 @@ function [DCM,BMR,BMA] = spm_dcm_bmr_all(DCM,field,OPT)
 if isfield(DCM,'beta'),  beta  = DCM.beta;  else, beta  = 0; end
 if isfield(DCM,'gamma'), gamma = DCM.gamma; else, gamma = 0; end
 
-%-Check fields of parameter stucture (and options)
+%-Check fields of parameter structure (and options)
 %--------------------------------------------------------------------------
 if nargin < 3
     OPT   = 'BMA';
@@ -330,7 +330,7 @@ end
 BMA   = {};
 for i = 1:length(K)
     
-    % if this mdel is in Occam's window, inlcude in BMA
+    % if this mdel is in Occam's window, include in BMA
     %----------------------------------------------------------------------
     if G(i) > (Gmax - 8)
         

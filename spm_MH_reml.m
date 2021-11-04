@@ -10,15 +10,15 @@ function [F,P] = spm_MH_reml(YY,X,Q,N,hE);
 % hE  - prior expectation: log-normal hyper-parameterisation (with hyperpriors)
 %
 % F   - [-ve] free energy F = log evidence = p(Y|X,Q)
-% P   - smaple of hyperparameters from thier posterioir p(h|YY,X,Q)
+% P   - sample of hyperparameters from their posterior p(h|YY,X,Q)
 %--------------------------------------------------------------------------
 %
-% This routiens using MCMC sampling (reverible Metropolis-Hastings)
+% This routine is using MCMC sampling (reverible Metropolis-Hastings)
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MH_reml.m 5033 2012-11-02 20:59:54Z karl $
+% $Id: spm_MH_reml.m 8183 2021-11-04 15:25:19Z guillaume $
 
 % assume a single sample if not specified
 %--------------------------------------------------------------------------

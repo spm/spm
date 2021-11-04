@@ -7,7 +7,7 @@ function varargout = spm_eeg_inv_imag_api(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_imag_api.m 5986 2014-05-15 09:36:55Z vladimir $
+% $Id: spm_eeg_inv_imag_api.m 8183 2021-11-04 15:25:19Z guillaume $
 
 spm('Clear');
 
@@ -32,7 +32,7 @@ if nargin < 2
     handles.fig = fig;
     guidata(fig,handles);
     
-    % intialise with D
+    % initialise with D
     %----------------------------------------------------------------------
     try
         D = spm_eeg_inv_check(varargin{1});
@@ -57,7 +57,7 @@ else
     error('Wrong input format.');
 end
 
-% MAIN FUNCTIONS FOR MODEL SEPCIFICATION AND INVERSION
+% MAIN FUNCTIONS FOR MODEL SPECIFICATION AND INVERSION
 %==========================================================================
 
 % --- Executes on button press in CreateMeshes.
@@ -152,7 +152,7 @@ varargout{1} = handles.D;
 assignin('base','D',handles.D)
 
 
-% FUCNTIONS FOR MANAGING DIFFERENT MODELS
+% FUNCTIONS FOR MANAGING DIFFERENT MODELS
 %==========================================================================
 
 % --- Executes on button press in new.
@@ -221,7 +221,7 @@ Reset(hObject, eventdata, handles);
 
 
 
-% Auxillary functions
+% Auxiliary functions
 %==========================================================================
 function Reset(hObject, eventdata, handles)
 
@@ -313,7 +313,7 @@ else
 end
 
 
-% check anaylsis buttons
+% check analysis buttons
 %--------------------------------------------------------------------------
 set(handles.DataReg, 'enable','off')
 set(handles.Forward, 'enable','off')

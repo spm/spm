@@ -16,7 +16,7 @@ function varargout = spm_SpUtil(varargin)
 % considerable efficiency gain for large design matrices.
 %
 % Note that when space structures are passed as arguments is is
-% assummed that their basic fields are filled in. See spm_sp for
+% assumed that their basic fields are filled in. See spm_sp for
 % details of (design) space structures and their manipulation.
 %
 % Quick Reference    :
@@ -63,7 +63,7 @@ function varargout = spm_SpUtil(varargin)
 % c   - contrast matrix (I.e. matrix of contrast weights, contrasts in columns)
 %       Must have column dimension matching that of X
 %       [defaults to eye(size(X,2)) to test uniqueness of parameter estimates]
-% i   - logical row vector indiciating estimability of contrasts in c
+% i   - logical row vector indicating estimability of contrasts in c
 %
 % A linear combination of the parameter estimates is a contrast if and
 % only if the weight vector is in the space spanned by the rows of X.
@@ -98,7 +98,7 @@ function varargout = spm_SpUtil(varargin)
 % defines a contrast c*B. This is estimated by c*b, where b are the
 % least squares estimates of B given by b=pinv(X)*Y. Thus, c*b = w*Y,
 % where weight vector w is given by w=c*pinv(X); Since the data are
-% assummed independent, two contrasts are indpendent if the
+% assumed independent, two contrasts are independent if the
 % corresponding weight vectors are orthogonal.
 %
 % r is the matrix of normalised inner products between the weight
@@ -160,7 +160,7 @@ function varargout = spm_SpUtil(varargin)
 % FORMAT [uX1,uX0] = spm_SpUtil('c->TSp+',X,c)
 %        + version to deal with the X1o and X0 partitions in the "uk basis"
 %
-% ( Note that unless X0 is reduced to a set of linearely independant   )
+% ( Note that unless X0 is reduced to a set of linearely independent   )
 % ( vectors, c will only be contained in the null space of X0.  If X0  )
 % ( is "reduced", then the "parent" space of c must be reduced as well )
 % ( for c to be the actual null space of X0.                           )
@@ -193,7 +193,7 @@ function varargout = spm_SpUtil(varargin)
 % FORMAT [trRV,trRVRV] = spm_SpUtil('trRV',x[,V])
 % trace(RV) & trace(RVRV) - used in df calculation
 % x      - Design matrix X, or space structure of X
-% V      - V matrix [defult eye] (trRV == trRVRV if V==eye, since R idempotent)
+% V      - V matrix [default eye] (trRV == trRVRV if V==eye, since R idempotent)
 % trRV   - trace(R*V),     computed efficiently
 % trRVRV - trace(R*V*R*V), computed efficiently
 % This uses the Karl's cunning understanding of the trace:
@@ -203,9 +203,9 @@ function varargout = spm_SpUtil(varargin)
 %                           ----------------
 %
 % FORMAT [trMV, trMVMV]] = spm_SpUtil('trMV',x[,V])
-% trace(MV) & trace(MVMV) if two ouput arguments.
+% trace(MV) & trace(MVMV) if two output arguments.
 % x      - Design matrix X, or space structure of X
-% V      - V matrix [defult eye] (trMV == trMVMV if V==eye, since M idempotent)
+% V      - V matrix [default eye] (trMV == trMVMV if V==eye, since M idempotent)
 % trMV   - trace(M*V),     computed efficiently
 % trMVMV - trace(M*V*M*V), computed efficiently
 % Again, this uses the Karl's cunning understanding of the trace:
@@ -256,7 +256,7 @@ function varargout = spm_SpUtil(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes Jean-Baptiste Poline
-% $Id: spm_SpUtil.m 4137 2010-12-15 17:18:32Z guillaume $
+% $Id: spm_SpUtil.m 8183 2021-11-04 15:25:19Z guillaume $
 
 % (frobenius norm trick by S. Rouquette)
 
@@ -573,7 +573,7 @@ case 'trmv'                     %-Traces for (effective) Fdf calculation
 %=======================================================================
 % [trMV, trMVMV]] = spm_SpUtil('trMV',sX [,V])
 %
-% NB : When V is given empty, the routine asssumes it's identity
+% NB : When V is given empty, the routine assumes it's identity
 % This is used in spm_FcUtil.
 
 if nargin == 1, error('insufficient arguments');

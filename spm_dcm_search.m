@@ -29,13 +29,13 @@ function spm_dcm_search(P)
 % are saved for subsequent searches over different partitions of model 
 % space.
 %
-% See alos: spm_dcm_post_hoc.m
+% See also: spm_dcm_post_hoc.m
 %
 %__________________________________________________________________________
 % Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_search.m 6615 2015-11-30 12:56:02Z peter $
+% $Id: spm_dcm_search.m 8183 2021-11-04 15:25:19Z guillaume $
  
 % get filenames
 %--------------------------------------------------------------------------

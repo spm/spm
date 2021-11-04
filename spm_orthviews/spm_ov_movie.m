@@ -18,7 +18,7 @@ function ret = spm_ov_movie(varargin)
 % Copyright (C) 2012-2017 Wellcome Trust Centre for Neuroimaging
 
 % Volkmar Glauche
-% $Id: spm_ov_movie.m 7111 2017-06-16 09:01:09Z guillaume $
+% $Id: spm_ov_movie.m 8183 2021-11-04 15:25:19Z guillaume $
 
 global st;
 if isempty(st)
@@ -57,7 +57,7 @@ switch cmd
             mend=opos;
             bb = st.Space*[st.bb'; 1 1];
             dirs='XYZ';
-            tmp=spm_input([dirs(dir) ' intervall (mm)'], '!+1', 'e', ...
+            tmp=spm_input([dirs(dir) ' interval (mm)'], '!+1', 'e', ...
                 num2str(bb(dir,:), '%.1f %.1f'), 2);
             mstart(dir)=tmp(1);
             mend(dir)=tmp(2);

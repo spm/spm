@@ -34,7 +34,7 @@ function [D, montage] = spm_eeg_montage(S)
 %
 % NOTE:
 % montage are always defined based on the raw data on disk, i.e. discarding
-% any curently applied online montage!
+% any currently applied online montage!
 % Example: Data with 256 channels, online montage with a subset of 64
 % channels. The montage must be based on the original 256 channels, not the
 % "online" 64 ones.
@@ -52,9 +52,9 @@ function [D, montage] = spm_eeg_montage(S)
 % Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld, Stefan Kiebel, Christophe Phillips
-% $Id: spm_eeg_montage.m 7992 2020-10-21 10:44:50Z vladimir $
+% $Id: spm_eeg_montage.m 8183 2021-11-04 15:25:19Z guillaume $
 
-SVNrev = '$Rev: 7992 $';
+SVNrev = '$Rev: 8183 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -512,5 +512,5 @@ spm('FigName','M/EEG montage: done'); spm('Pointer','Arrow');
 % 'montage' is initialized as a variable at "compilation" and then all
 % calls like Nmont = montage(D,'getnumber'); are crashing.
 % I therefore used the not so good looking Nmont = D.montage('getnumber');
-% call. Same goes for the other calls to 'montage', even wih an extra
+% call. Same goes for the other calls to 'montage', even with an extra
 % argument.

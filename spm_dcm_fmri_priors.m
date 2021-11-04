@@ -28,7 +28,7 @@ function [pE,C,x,pC] = spm_dcm_fmri_priors(A,B,C,D,options)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_fmri_priors.m 7914 2020-08-05 12:10:55Z peter $
+% $Id: spm_dcm_fmri_priors.m 8183 2021-11-04 15:25:19Z guillaume $
 
 % number of regions
 %--------------------------------------------------------------------------
@@ -43,7 +43,7 @@ try, options.backwards;  catch, options.backwards  = 0; end
 try, D;                  catch, D = zeros(n,n,0);       end
 
 
-% connectivity priors and intitial states
+% connectivity priors and initial states
 %==========================================================================
 if options.two_state
     

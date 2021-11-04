@@ -41,7 +41,7 @@ function [Ep,Cp] = spm_dcm_sparse(DCM,field)
 % Copyright (C) 2010-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: spm_dcm_sparse.m 7082 2017-05-27 19:36:36Z karl $
+% $Id: spm_dcm_sparse.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
 %-Number of parameters to consider before invoking greedy search
@@ -53,7 +53,7 @@ nmax  = 8;
 if isfield(DCM,'beta'),  beta  = DCM.beta;  else, beta  = 0; end
 if isfield(DCM,'gamma'), gamma = DCM.gamma; else, gamma = 0; end
 
-%-Check fields of parameter stucture
+%-Check fields of parameter structure
 %--------------------------------------------------------------------------
 if nargin < 2 || isempty(field)
     field = {'A','B'};
@@ -62,7 +62,7 @@ if ischar(field)
     field = {field};
 end
 
-%-dela with filenames stucture
+%-dela with filenames structure
 %--------------------------------------------------------------------------
 if ischar(DCM)
     DCM = load(DCM,'DCM');

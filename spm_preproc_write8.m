@@ -5,7 +5,7 @@ function varargout = spm_preproc_write8(res,tc,bf,df,mrf,cleanup,bb,vx,odir)
 % Copyright (C) 2008-2016 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc_write8.m 7901 2020-07-15 18:53:03Z john $
+% $Id: spm_preproc_write8.m 8183 2021-11-04 15:25:19Z guillaume $
 
 % Prior adjustment factor.
 % This is a fudge factor to weaken the effects of the tissue priors.  The
@@ -604,7 +604,7 @@ if nargin<2, level = 1; end
 
 b    = P(:,:,:,2);
 
-% Build a 3x3x3 seperable smoothing kernel
+% Build a 3x3x3 separable smoothing kernel
 %--------------------------------------------------------------------------
 kx=[0.75 1 0.75];
 ky=[0.75 1 0.75];

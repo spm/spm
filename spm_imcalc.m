@@ -82,10 +82,10 @@ function Vo = spm_imcalc(Vi,Vo,f,flags,varargin)
 % Copyright (C) 1998-2016 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner & Andrew Holmes
-% $Id: spm_imcalc.m 6961 2016-12-05 17:36:44Z guillaume $
+% $Id: spm_imcalc.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
-SVNid = '$Rev: 6961 $';
+SVNid = '$Rev: 8183 $';
 
 %-Parameters & arguments
 %==========================================================================
@@ -205,7 +205,7 @@ for p = 1:Vo.dim(3)
         eval(['Yp = ' f ';']);
     catch
         l = lasterror;
-        error('%s\nCan''t evaluate "%s".',l.message,f);
+        error('%s\nCannot evaluate "%s".',l.message,f);
     end
     if prod(Vo.dim(1:2)) ~= numel(Yp)
         error(['"',f,'" produced incompatible image.']); end

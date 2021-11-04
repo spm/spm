@@ -17,10 +17,10 @@ function out = spm_run_dcm_bms(job)
 % Copyright (C) 2009-2015 Wellcome Trust Centre for Neuroimaging
 
 % CC Chen & Maria Joao Rosa
-% $Id: spm_run_dcm_bms.m 7101 2017-06-08 12:36:13Z peter $
+% $Id: spm_run_dcm_bms.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
-SVNid = '$Rev: 7101 $';
+SVNid = '$Rev: 8183 $';
 
 %-Say hello
 %--------------------------------------------------------------------------
@@ -43,7 +43,7 @@ if exist(fname,'file')
         'Continuing will overwrite existing file !!'};
     if spm_input(str,1,'bd','stop|continue',[1,0],1,mfilename);
         fprintf('%-40s: %30s\n\n',...
-            'BMS stoped...existing BMS file in the selected directory',...
+            'BMS stopped...existing BMS file in the selected directory',...
             spm('time'));
         Fgraph  = spm_figure('GetWin','Graphics');
         spm_clf(Fgraph);

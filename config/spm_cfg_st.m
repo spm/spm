@@ -3,7 +3,7 @@ function st = spm_cfg_st
 %__________________________________________________________________________
 % Copyright (C) 2005-2021 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_st.m 8119 2021-07-06 13:51:43Z guillaume $
+% $Id: spm_cfg_st.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
 %--------------------------------------------------------------------------
@@ -18,7 +18,7 @@ st.help    = {
     ''
     'Slice-time corrected files are prepended with an ''a''.'
     ''
-    'Note: The sliceorder arg that specifies slice acquisition order is a vector of N numbers, where N is the number of slices per volume. Each number refers to the position of a slice within the image file. The order of numbers within the vector is the temporal order in which those slices were acquired. To check the order of slices within an image file, use the SPM Display option and move the cross-hairs to a voxel co-ordinate of z=1.  This corresponds to a point in the first slice of the volume.'
+    'Note: The sliceorder arg that specifies slice acquisition order is a vector of N numbers, where N is the number of slices per volume. Each number refers to the position of a slice within the image file. The order of numbers within the vector is the temporal order in which those slices were acquired. To check the order of slices within an image file, use the SPM Display option and move the cross-hairs to a voxel coordinate of z=1.  This corresponds to a point in the first slice of the volume.'
     ''
     'The function corrects differences in slice acquisition times. This routine is intended to correct for the staggered order of slice acquisition that is used during echo-planar scanning. The correction is necessary to make the data on each slice correspond to the same point in time. Without correction, the data on one slice will represent a point in time as far removed as 1/2 the TR from an adjacent slice (in the case of an interleaved sequence).'
     ''

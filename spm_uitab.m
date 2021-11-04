@@ -20,12 +20,12 @@ function [handles] = spm_uitab(hparent,labels,callbacks,tag,active,height,tab_he
 %   tab_height - the relative height of the tabs within its parent spatial
 %                extent [default: 0.025]
 % Output:
-%   handles    - a structure of handles for the differents tab objects.
+%   handles    - a structure of handles for the different tab objects.
 %__________________________________________________________________________
 % Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_uitab.m 6067 2014-06-26 15:33:30Z guillaume $
+% $Id: spm_uitab.m 8183 2021-11-04 15:25:19Z guillaume $
 
 Ntabs = length(labels);
 

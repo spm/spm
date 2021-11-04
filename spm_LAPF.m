@@ -67,7 +67,7 @@ function [DEM] = spm_LAPF(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_LAPF.m 6018 2014-05-25 09:24:14Z karl $
+% $Id: spm_LAPF.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
 % find or create a DEM figure
@@ -269,7 +269,7 @@ dHdp   = sparse(np,  1);
 dHdx   = sparse(nx*n,1);
 dHdv   = sparse(nv*d,1);
 
-% preclude unnecessary iterations and set switchs
+% preclude unnecessary iterations and set switches
 %--------------------------------------------------------------------------
 if ~np && ~nh && ~ng, nN = 1; end
 mnx = nx*~~method.x;
@@ -545,7 +545,7 @@ for iN = 1:nN
             % update conditional moments
             %==============================================================
             
-            % uopdate curvatures of [hyper]paramters
+            % uopdate curvatures of [hyper]parameters
             %--------------------------------------------------------------
             try
                 dLdPP = dLdPP*(1 - 1/ns) + dLdpp/ns;

@@ -17,7 +17,7 @@ function out = spm_run_bms_map (job)
 %       BMS.mat 
 %       Exceedance Probability Maps (*epm.<ext>),
 %       Posterior Probability Maps (*ppm.<ext>),
-%       Dirichlet Paramters (alpha) Maps (*alpha.<ext>).
+%       Dirichlet Parameters (alpha) Maps (*alpha.<ext>).
 %
 % The Fixed-effects 'FFX' method adds together the log-evidences over 
 % subjects/sessions for each group, then compares the group log-ev's. 
@@ -45,7 +45,7 @@ function out = spm_run_bms_map (job)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao Rosa
-% $Id: spm_run_bms_map.m 5740 2013-11-13 12:00:04Z guillaume $
+% $Id: spm_run_bms_map.m 8183 2021-11-04 15:25:19Z guillaume $
 
 % Input
 % -------------------------------------------------------------------------

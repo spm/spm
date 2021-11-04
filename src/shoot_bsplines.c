@@ -1,5 +1,5 @@
 /*
- * $Id: shoot_bsplines.c 7685 2019-11-01 12:56:19Z john $
+ * $Id: shoot_bsplines.c 8183 2021-11-04 15:25:19Z guillaume $
  * John Ashburner
  */
  
@@ -164,7 +164,7 @@ Loop through data and resample the points
     c   - Volume of B-spline coefficients
     m0,m1,m2    - dimensions of c
     n   - number of points to resample
-    x0,x1,x2    - array of co-ordinate to sample
+    x0,x1,x2    - array of coordinates to sample
     d   - degree of spline used
     cond    - code determining boundaries to mask at
     bnd - functions for dealing with edges
@@ -197,7 +197,7 @@ Loop through data and resample the points and their derivatives
     c   - Volume of B-spline coefficients
     m0,m1,m2    - dimensions of c
     n   - number of points to resample
-    x0,x1,x2    - array of co-ordinate to sample
+    x0,x1,x2    - array of coordinates to sample
     d   - degrees of splines used
     cond    - code determining boundaries to mask at
     bnd - functions for dealing with edges
@@ -239,13 +239,13 @@ void bsplins_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prh
     /* Usage:
             f = function(c,Y,d)
                 c - B-spline coefficients
-                Y - co-ordinates
+                Y - coordinates
                 d - B-spline degree
                 f - sampled function
        or:
             [f,df0,df1,df2] = function(c,Y,d)
                 c - B-spline coefficients
-                Y - co-ordinates
+                Y - coordinates
                 d - B-spline degree
                 f - sampled function
                 df0, df1, df2   - sampled derivatives
@@ -288,7 +288,7 @@ void bsplins_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prh
     }
 
     /* if (d==0 && nlhs>1)
-        mexErrMsgTxt("Cant compute gradients when using B-spline(0) interp."); */
+        mexErrMsgTxt("Can't compute gradients when using B-spline(0) interp."); */
 
     /* Dimensions of coefficient volume */
     nd = mxGetNumberOfDimensions(prhs[0]);
@@ -298,14 +298,14 @@ void bsplins_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prh
     if (nd>=2) m1 = dims[1];
     if (nd>=3) m2 = dims[2];
 
-    /* Dimensions of sampling co-ordinates */
+    /* Dimensions of sampling coordinates */
     nd   = mxGetNumberOfDimensions(prhs[1]);
     if (nd!=4) mexErrMsgTxt("Wrong number of dimensions.");
     dims = mxGetDimensions(prhs[1]);
     n = 1;
     for(k=0; k<3; k++) n *=dims[k];
 
-    /* Sampled data same size as sampling co-ords */
+    /* Sampled data same size as sampling coordinates */
     plhs[0] = mxCreateNumericArray(3,dims, mxSINGLE_CLASS, mxREAL);
 
     /* Pointers to double precision data */

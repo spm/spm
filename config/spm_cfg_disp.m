@@ -3,7 +3,7 @@ function disp = spm_cfg_disp
 %__________________________________________________________________________
 % Copyright (C) 2008-2016 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_disp.m 6952 2016-11-25 16:03:13Z guillaume $
+% $Id: spm_cfg_disp.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
 %-------------------------------------------------------------------------
@@ -26,7 +26,7 @@ disp.name    = 'Display Image';
 disp.val     = {data};
 disp.help    = {
     'Interactive display of the orthogonal sections from an image volume.'
-    'Clicking the cursor on either of the three images moves the point around which the orthogonal sections are viewed.  The co-ordinates of the cursor are shown both in voxel co-ordinates and millimetres within some fixed framework. The intensity at that point in the image (sampled using the current interpolation scheme) is also given. The position of the cross-hairs can also be moved by specifying the co-ordinates in millimetres to which they should be moved.  Clicking on the horizontal bar above these boxes will move the cursor back to the origin  (analogous to setting the cross-hair position (in mm) to [0 0 0]).'
+    'Clicking the cursor on either of the three images moves the point around which the orthogonal sections are viewed.  The coordinates of the cursor are shown both in voxel coordinates and millimetres within some fixed framework. The intensity at that point in the image (sampled using the current interpolation scheme) is also given. The position of the cross-hairs can also be moved by specifying the coordinates in millimetres to which they should be moved.  Clicking on the horizontal bar above these boxes will move the cursor back to the origin  (analogous to setting the cross-hair position (in mm) to [0 0 0]).'
     ''
     'The images can be re-oriented by entering appropriate translations, rotations and zooms into the panel on the left.  The transformations can then be saved by hitting the "Reorient images..." button.  The transformations that were applied to the image are saved to the header information of the selected images.  The transformations are considered to be relative to any existing transformations that may be stored.  Note that the order that the transformations are applied in is the same as in spm_matrix.m.'
     ''
@@ -38,7 +38,7 @@ disp.help    = {
     '   Intensity  - scale-factors and possibly a DC offset.'
     '   Miscellaneous other information about the image.'
     '   Vox size   - the distance (in mm) between the centres of neighbouring voxels.'
-    '   Origin     - the voxel at the origin of the co-ordinate system'
+    '   Origin     - the voxel at the origin of the coordinate system'
     '   DIr Cos    - Direction cosines.  This is a widely used representation of the orientation of an image.'
     ''
     'There are also a few options for different resampling modes, zooms etc.  You can also flip between voxel space (as would be displayed by Analyze) or world space (the orientation that SPM considers the image to be in).  If you are re-orienting the images, make sure that world space is specified.  Blobs (from activation studies) can be superimposed on the images and the intensity windowing can also be changed.'

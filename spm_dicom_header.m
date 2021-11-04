@@ -25,7 +25,7 @@ function Header = spm_dicom_header(DicomFilename, DicomDictionary, Options)
 % Copyright (C) 2002-2018 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dicom_header.m 7791 2020-02-19 20:22:24Z john $
+% $Id: spm_dicom_header.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
 if nargin < 3
@@ -36,14 +36,14 @@ Header = [];
 DicomFilename = deblank(DicomFilename);
 FID  = fopen(DicomFilename,'r','ieee-le');
 if FID == -1
-    warning('spm:dicom','%s: Cant open file.', DicomFilename);
+    warning('spm:dicom','%s: Cannot open file.', DicomFilename);
     return;
 end
 
 fseek(FID,128,'bof');
 dcm = char(fread(FID,4,'uint8')');
 if ~strcmp(dcm,'DICM')
-    % Try truncated DICOM file fomat
+    % Try truncated DICOM file format
     fseek(FID,0,'bof');
     Tag.Group   = fread(FID,1,'ushort');
     Tag.Element = fread(FID,1,'ushort');
@@ -54,7 +54,7 @@ if ~strcmp(dcm,'DICM')
     end
     if isempty(find(DicomDictionary.group==Tag.Group & DicomDictionary.element==Tag.Element,1)) && ~(Tag.Group==8 && Tag.Element==0)
         % Entry not found in DICOM dictionary and not from a GE Twin+excite
-        % that starts with with an 8/0 Tag that I can't find any
+        % that starts with with an 8/0 Tag that I cannot find any
         % documentation for.
         fclose(FID);
         warning('spm:dicom','%s: Not a DICOM file.', DicomFilename);
@@ -124,11 +124,11 @@ while BytesRead < NumBytes
                     case {'1.2.840.10008.1.2.1'}    % Explicit VR Little Endian
                         TransferSyntax = 'el';
                     case {'1.2.840.10008.1.2.1.99'} % Deflated Explicit VR Little Endian
-                        warning('spm:dicom','%s: Cant read Deflated Explicit VR Little Endian file.', fopen(FID));
+                        warning('spm:dicom','%s: Cannot read Deflated Explicit VR Little Endian file.', fopen(FID));
                        %TransferSyntax = 'dl';
                         return;
                     case {'1.2.840.10008.1.2.2'}    % Explicit VR Big Endian
-                        %warning('spm:dicom','%s: Cant read Explicit VR Big Endian file',fopen(FID));
+                        %warning('spm:dicom','%s: Cannot read Explicit VR Big Endian file',fopen(FID));
                         TransferSyntax = 'eb'; % Unused
                     case {'1.2.840.10008.1.2.4.50','1.2.840.10008.1.2.4.51','1.2.840.10008.1.2.4.70',...
                           '1.2.840.10008.1.2.4.80','1.2.840.10008.1.2.4.90','1.2.840.10008.1.2.4.91'} % JPEG Explicit VR
@@ -461,7 +461,7 @@ for i=1:n
         t(i).item(t(i).nitems) = struct('xx',[], 'val',[]);
     end
     for j=1:t(i).nitems
-        % This bit is just wierd
+        % This bit is just weird
         t(i).item(j).xx  = fread(FID,4,'int32')'; % [x x 77 x]
         BytesToRead      = t(i).item(j).xx(1)-t(1).nitems;
         if BytesToRead<0 || BytesToRead+BytesRead+4*4>NumBytes

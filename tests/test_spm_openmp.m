@@ -3,7 +3,7 @@ function tests = test_spm_openmp
 %__________________________________________________________________________
 % Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
-% $Id: test_spm_openmp.m 7690 2019-11-07 17:02:55Z guillaume $
+% $Id: test_spm_openmp.m 8183 2021-11-04 15:25:19Z guillaume $
 
 tests = functiontests(localfunctions);
 tests(1:end) = []; % ALL TESTS ARE DISABLED
@@ -15,7 +15,7 @@ tests(1:end) = []; % ALL TESTS ARE DISABLED
 
 % There is a slight issue in the checkerboard scheme with circulant
 % boundary conditions when one of the dimensions is not a multiple of 3.
-% This makes fmg return slighlty different results in mono vs multi
+% This makes fmg return slightly different results in mono vs multi
 % threads. Setting up a tolerance for this step would prevent the test to
 % fail.
 

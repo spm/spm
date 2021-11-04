@@ -54,7 +54,7 @@ function varargout = spm_input(varargin)
 % load a matrix from an ASCII data file and return the results. When
 % called without an argument, spm_load will pop up a file selection
 % dialog. Alternatively, this facility can be gained from the
-% ContextMenu. The second example assummes a custom funcion called
+% ContextMenu. The second example assumes a custom function called
 % input_cov has been written which expects two arguments, for example
 % the following file saved as input_cov.m somewhere on the MATLABPATH
 % (~/matlab, the matlab subdirectory of your home area, and the current
@@ -108,7 +108,7 @@ function varargout = spm_input(varargin)
 %
 % - BUTTON input -
 % For Button input, the prompt is displayed adjacent to a small row of
-% buttons. Press the approprate button. The default button (if
+% buttons. Press the appropriate button. The default button (if
 % available) has a dark outline. Keyboard accelerators are available
 % (provided no graphics widget has the focus):  <RETURN> or <ENTER>
 % selects the default button (if available). Typing the first character
@@ -162,7 +162,7 @@ function varargout = spm_input(varargin)
 % used, or an 'Interactive' window created if no windows are open.
 %
 %-----------------------------------------------------------------------
-% Programers help is contained in the main body of spm_input.m
+% Programmers help is contained in the main body of spm_input.m
 %-----------------------------------------------------------------------
 % See      : input.m     (MatLab Reference Guide)
 % See also : spm_select.m   (SPM file selector dialog)
@@ -171,11 +171,11 @@ function varargout = spm_input(varargin)
 % Copyright (C) 1994-2021 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_input.m 8121 2021-07-08 11:39:59Z guillaume $
+% $Id: spm_input.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
 %=======================================================================
-% - FORMAT specifications for programers
+% - FORMAT specifications for programmers
 %=======================================================================
 % generic    - [p,YPos] = spm_input(Prompt,YPos,Type,...)
 % string     - [p,YPos] = spm_input(Prompt,YPos,'s',DefStr)
@@ -213,12 +213,12 @@ function varargout = spm_input(varargin)
 %          - Defaults (missing or empty) to 'Enter an expression'
 %
 % YPos     - (numeric) vertical position {1 - 12}
-%                  - overriden by global CMDLINE
+%                  - overridden by global CMDLINE
 %                  - 0 for command line
 %                  - negative to force GUI
 %          - (string) relative vertical position E.g. '+1'
 %                  - relative to last position used
-%                  - overriden by global CMDLINE
+%                  - overridden by global CMDLINE
 %                  - YPos(1)=='!' forces GUI E.g. '!+1'
 %                  - '_' is a shortcut for the lowest GUI position
 %          - Defaults (missing or empty) to '+1'
@@ -262,7 +262,7 @@ function varargout = spm_input(varargin)
 %          - Defaults to ''
 %
 % n ('e', 'c' & 'p' types)
-%          - Size of matrix requred
+%          - Size of matrix required
 %          - NaN for 'e' type implies no checking - returns input as evaluated
 %          - length of n(:) specifies dimension - elements specify size
 %          - Inf implies no restriction
@@ -346,7 +346,7 @@ function varargout = spm_input(varargin)
 %
 %-----------------------------------------------------------------------
 % EXAMPLES:
-%            ( Specified YPos is overriden if global CMDLINE is )
+%            ( Specified YPos is overridden if global CMDLINE is )
 %            ( true, when the command line versions are used.   )
 %
 %       p = spm_input
@@ -485,7 +485,7 @@ function varargout = spm_input(varargin)
 % Parser for special 'c'ondition type: Handles digit strings and
 % strings of indicator chars.
 % str     - input string
-% n       - length of condition vector required [defaut Inf - no restriction]
+% n       - length of condition vector required [default Inf - no restriction]
 % m       - number of conditions required   [default Inf - no restrictions]
 % iCond   - Integer condition indicator vector
 % msg     - status message
@@ -537,7 +537,7 @@ function varargout = spm_input(varargin)
 % RRec  - Position of response
 %
 % FORMAT spm_input('!DeleteInputObj',F)
-% Deltes input objects (only) from figure F
+% Deletes input objects (only) from figure F
 % F     - Interactive Figure, Defaults to spm_figure('FindWin','Interactive')
 %
 % FORMAT [CPos,hCPos] = spm_input('!CurrentPos',F)
@@ -1526,7 +1526,7 @@ if nargin<6, UD     = []; else UD     = varargin{6}; end
 if nargin<5, cb     = ''; else cb     = varargin{5}; end
 if nargin<4, Labels = []; else Labels = varargin{4}; end
 
-if CmdLine, error('Can''t do CmdLine GUI utilities!'), end
+if CmdLine, error('Cannot do CmdLine GUI utilities!'), end
 if isempty(cb), cb = 'disp(''(CallBack not set)'')'; end
 if ischar(cb), cb = cellstr(cb); end
 if length(cb)>1 && strcmpi(Type,'m!'), XCB=1; end

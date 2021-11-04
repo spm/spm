@@ -17,7 +17,7 @@ function spm_transverse(varargin)
 %
 % hReg   - handle of MIP XYZ registry object (see spm_XYZreg for details)
 %
-% spm_transverse automatically updates its co-ordinates from the
+% spm_transverse automatically updates its coordinates from the
 % registry, but clicking on the slices has no effect on the registry.
 % i.e., the updating is one way only.
 %
@@ -35,7 +35,7 @@ function spm_transverse(varargin)
 % Copyright (C) 1994-2018 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston & John Ashburner
-% $Id: spm_transverse.m 7376 2018-07-20 10:30:59Z guillaume $
+% $Id: spm_transverse.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
 switch lower(varargin{1})
@@ -84,7 +84,7 @@ transv.blob = struct('xyz', round(SPM.XYZ), 't',SPM.Z, 'dim',SPM.DIM(1:3),...
                      'iM',SPM.iM,...
                      'vox', sqrt(sum(SPM.M(1:3,1:3).^2)), 'u', SPM.u);
 
-%-Get current location and convert to pixel co-ordinates
+%-Get current location and convert to pixel coordinates
 %--------------------------------------------------------------------------
 xyzmm  = spm_XYZreg('GetCoords',transv.hReg);
 xyz    = round(transv.blob.iM(1:3,:)*[xyzmm; 1]);
@@ -281,7 +281,7 @@ if ~isstruct(transv), return; end;
 spm('Pointer','Watch');
 
 
-%-Get current location and convert to pixel co-ordinates
+%-Get current location and convert to pixel coordinates
 %--------------------------------------------------------------------------
 % xyzmm  = spm_XYZreg('GetCoords',transv.hReg)
 xyz    = round(transv.blob.iM(1:3,:)*[xyzmm; 1]);

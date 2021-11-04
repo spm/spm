@@ -35,7 +35,7 @@ function [DCM] = spm_dcm_mdp(DCM)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_mdp.m 7679 2019-10-24 15:54:07Z spm $
+% $Id: spm_dcm_mdp.m 8183 2021-11-04 15:25:19Z guillaume $
 
 % OPTIONS
 %--------------------------------------------------------------------------
@@ -93,7 +93,7 @@ function L = spm_mdp_L(P,M,U,Y)
 % P    - parameter structure
 % M    - generative model
 % U    - inputs
-% Y    - observed repsonses
+% Y    - observed responses
 %__________________________________________________________________________
 
 if ~isstruct(P); P = spm_unvec(P,M.pE); end

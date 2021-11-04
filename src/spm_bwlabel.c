@@ -1,5 +1,5 @@
 /*
- * $Id: spm_bwlabel.c 4929 2012-09-17 14:21:01Z guillaume $
+ * $Id: spm_bwlabel.c 8183 2021-11-04 15:25:19Z guillaume $
  * Jesper Andersson
  */
 
@@ -14,7 +14,7 @@
  ** connected component will have a unique label.
  **
  ** The implementation is not recursive (i.e. will no crash for
- ** large connected components) and is losely based on
+ ** large connected components) and is loosely based on
  ** Thurfjell et al. 1992, A new three-dimensional connected
  ** components labeling algorithm with simultaneous object
  ** feature extraction capability. CVGIP: Graphical Models 

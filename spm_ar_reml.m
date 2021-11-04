@@ -9,7 +9,7 @@ function [C,h,Ph,F] = spm_ar_reml(YY,X,m,N)
 %
 %
 % C   - (m x m) estimated errors = h(1)*Q{1} + h(2)*Q{2} + ...
-% h   - (q x 1) ReML hyperparameters h: normalised AR coeficients
+% h   - (q x 1) ReML hyperparameters h: normalised AR coefficients
 % Ph  - (q x q) conditional precision of h (unnormalised)
 %
 % F   - [-ve] free energy F = log evidence = p(Y|X,Q) = ReML objective
@@ -20,7 +20,7 @@ function [C,h,Ph,F] = spm_ar_reml(YY,X,m,N)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner & Karl Friston
-% $Id: spm_ar_reml.m 5219 2013-01-29 17:07:07Z spm $
+% $Id: spm_ar_reml.m 8183 2021-11-04 15:25:19Z guillaume $
 
 % assume a single sample if not specified
 %--------------------------------------------------------------------------

@@ -15,7 +15,7 @@ function [spatialmodename,Nmodes,newpctest,testchans]=spm_eeg_inv_prep_modes_xva
 % pctest- percentatge of channels to be used for testdata (optional and
 % default 0)
 %% if pctest*Nblocks=100 then will use independent MEG channels and may adjust pctest (in output) to 
-%% accomodate this. ( k-fold cross val)
+%% accommodate this. ( k-fold cross val)
 %% if pctest*Nblocks~=100 then uses random selection of pctest channels for each block (Monte-Carlo cross val)
 
 %% in output file
@@ -26,7 +26,7 @@ function [spatialmodename,Nmodes,newpctest,testchans]=spm_eeg_inv_prep_modes_xva
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 %
 % Gareth Barnes
-% $Id: spm_eeg_inv_prep_modes_xval.m 7118 2017-06-20 10:33:27Z guillaume $
+% $Id: spm_eeg_inv_prep_modes_xval.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
 

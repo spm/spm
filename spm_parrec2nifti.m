@@ -11,7 +11,7 @@ function N = spm_parrec2nifti(parfile,opts)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_parrec2nifti.m 6703 2016-01-28 17:36:10Z guillaume $
+% $Id: spm_parrec2nifti.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
 %-Display warning
@@ -108,7 +108,7 @@ end
 %==========================================================================
 function hdr = spm_par_hdr(fname)
 
-% could yse fileread instead
+% could use fileread instead
 fid = fopen(fname,'rt');
 if fid == -1
     error('Cannot open "%s".',fname);

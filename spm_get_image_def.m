@@ -12,7 +12,7 @@ function [def,jac] = spm_get_image_def(P,ds,defa,ddefa)
 %
 %
 % i          - Index into array of file handles given in ds.
-% P          - File-name or -handle of file that was aquired
+% P          - File-name or -handle of file that was acquired
 %              in same session as the files in ds.P. Note that
 %              P does not have to be one of the files used to
 %              estimate the partial derivatives of the
@@ -42,7 +42,7 @@ function [def,jac] = spm_get_image_def(P,ds,defa,ddefa)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson
-% $Id: spm_get_image_def.m 5219 2013-01-29 17:07:07Z spm $
+% $Id: spm_get_image_def.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
 

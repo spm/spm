@@ -15,7 +15,7 @@ function D = spm_mldivide(A, B)
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
  
 % Ged Ridgway
-% $Id: spm_mldivide.m 5219 2013-01-29 17:07:07Z spm $
+% $Id: spm_mldivide.m 8183 2021-11-04 15:25:19Z guillaume $
 
 % A problem with this (and with original spm_inv) is that negative definite
 % matrices (or those with mixed positive and negative eigenvalues) will not
@@ -23,7 +23,7 @@ function D = spm_mldivide(A, B)
 % expensive to compute the eigenvalues and also difficult to find a general
 % strategy to handle a mixed-sign set of eigenvalues.
 
-% Stop warning being displayed, but clear lastwarn so can observe occurence
+% Stop warning being displayed, but clear lastwarn so can observe occurrence
 sw = warning('off', 'MATLAB:nearlySingularMatrix');
 lastwarn('');
 

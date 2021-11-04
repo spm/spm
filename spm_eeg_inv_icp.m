@@ -31,7 +31,7 @@ function [M1] = spm_eeg_inv_icp(data1,data2,fid1,fid2,Fmri,Fhsp,aff)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout & Guillaume Flandin
-% $Id: spm_eeg_inv_icp.m 7962 2020-09-25 12:06:47Z vladimir $
+% $Id: spm_eeg_inv_icp.m 8183 2021-11-04 15:25:19Z guillaume $
 
 % use figure and fiducials if specified
 %--------------------------------------------------------------------------
@@ -55,7 +55,7 @@ for k = 1:64
     M         = [fid1 data1(:,corr(:,1))];
     S         = [fid2 data2(:,corr(:,2))];
 
-    % apply and accumlate affine scaling
+    % apply and accumulate affine scaling
     %----------------------------------------------------------------------
     if aff
         M     = pinv([S' ones(length(S),1)])*M';

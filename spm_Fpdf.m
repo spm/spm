@@ -55,7 +55,7 @@ function f = spm_Fpdf(x,v,w)
 % Copyright (C) 1994-2011 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_Fpdf.m 4182 2011-02-01 12:29:09Z guillaume $
+% $Id: spm_Fpdf.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
 %-Format arguments, note & check sizes
@@ -74,7 +74,7 @@ if nargin<3
         w  = reshape(v(nv/2+1:nv),vs(1:end-1));
         v  = reshape(v(1:nv/2)   ,vs(1:end-1));
     else
-        error('Can''t unpack both df components from single argument')
+        error('Cannot unpack both df components from single argument')
     end
 end
 

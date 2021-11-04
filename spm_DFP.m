@@ -77,7 +77,7 @@ function [DEM] = spm_DFP(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DFP.m 8171 2021-10-25 10:14:50Z karl $
+% $Id: spm_DFP.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
 % Check model, data, priros and confounds and unpack
@@ -198,7 +198,7 @@ Up    = spm_cat(spm_diag(qp.u));
 np    = sum(cat(1,M.p));                    % number of model parameters
 nb    = size(X,1);                          % number of confounds
 nn    = nb*ny;                              % number of nuisance parameters
-nf    = np + nn;                            % numer of free parameters
+nf    = np + nn;                            % number of free parameters
 ip    = [1:np];
 ib    = [1:nn] + np;
 pp.c  = spm_cat(pp.c);

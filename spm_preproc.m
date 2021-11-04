@@ -9,7 +9,7 @@ function results = spm_preproc(varargin)
 %  opts.warpreg  - warping regularisation
 %  opts.warpco   - cutoff distance for DCT basis functions
 %  opts.biasreg  - regularisation for bias correction
-%  opts.biasfwhm - FWHM of Gausian form for bias regularisation
+%  opts.biasfwhm - FWHM of Gaussian form for bias regularisation
 %  opts.regtype  - regularisation for affine part
 %  opts.fudge    - a fudge factor
 %  opts.msk      - unused
@@ -17,10 +17,10 @@ function results = spm_preproc(varargin)
 % Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc.m 4916 2012-09-11 19:15:53Z guillaume $
+% $Id: spm_preproc.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
-SVNid     = '$Rev: 4916 $';
+SVNid     = '$Rev: 8183 $';
 
 if ~isdeployed, addpath(fullfile(spm('Dir'),'toolbox','OldSeg')); end
 if ~isdeployed, addpath(fullfile(spm('Dir'),'toolbox','OldNorm')); end

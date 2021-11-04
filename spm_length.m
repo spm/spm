@@ -1,7 +1,7 @@
 function [n] = spm_length(X)
 % Length of a vectorised numeric, cell or structure array
 % FORMAT [n] = spm_length(X)
-% X    - numeric, cell or stucture array[s]
+% X    - numeric, cell or structure array[s]
 % n    - length(spm_vec(X))
 %
 % See spm_vec, spm_unvec
@@ -13,7 +13,7 @@ function [n] = spm_length(X)
 % Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_length.m 6233 2014-10-12 09:43:50Z karl $
+% $Id: spm_length.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
 % vectorise numerical arrays

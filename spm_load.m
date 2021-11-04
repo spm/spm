@@ -11,7 +11,7 @@ function x = spm_load(f,v,hdr)
 % Copyright (C) 1995-2020 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_load.m 7837 2020-04-23 11:03:35Z guillaume $
+% $Id: spm_load.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
 %-Get a filename if none was passed
@@ -257,7 +257,7 @@ for i=1:numel(hdr)
             fmt.shape = str2num(strrep(strrep(hdr{i}{2},'(','['),')',']'));
             if numel(fmt.shape) == 1, fmt.shape(2) = 1; end
         otherwise
-            warning('Ignoring nknown disctionary key "%s".',hdr{i}{1});
+            warning('Ignoring unknown dictionary key "%s".',hdr{i}{1});
     end
 end
 if numel(fieldnames(fmt)) ~= 3

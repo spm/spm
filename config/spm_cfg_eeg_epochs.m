@@ -4,7 +4,7 @@ function epoch = spm_cfg_eeg_epochs
 % Copyright (C) 2008-2021 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_epochs.m 8119 2021-07-06 13:51:43Z guillaume $
+% $Id: spm_cfg_eeg_epochs.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
 epoch          = cfg_exbranch;
@@ -122,7 +122,7 @@ arbitrary      = cfg_branch;
 arbitrary.tag  = 'arbitrary';
 arbitrary.name = 'Arbitrary trials';
 arbitrary.val  = {trialength, conditionlabel};
-arbitrary.help = {'Epoch the data in arbitray fixed length trials (e.g. for spectral analysis).'};
+arbitrary.help = {'Epoch the data in arbitrary fixed length trials (e.g. for spectral analysis).'};
 
 trlchoice        = cfg_choice;
 trlchoice.tag    = 'trialchoice';

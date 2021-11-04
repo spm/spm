@@ -54,7 +54,7 @@ function str = spm_file(str,varargin)
 % Copyright (C) 2011-2017 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_file.m 7110 2017-06-15 11:45:05Z guillaume $
+% $Id: spm_file.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
 needchar = ischar(str);
@@ -179,7 +179,7 @@ while ~isempty(options)
                             [str{n}, sts] = urlwrite(str{n},options{2});
                     end
                     if ~sts
-                        error('An error occured while accessing %s.',str{n});
+                        error('An error occurred while accessing %s.',str{n});
                     end
                 else
                     if strcmpi(options{2},'content')

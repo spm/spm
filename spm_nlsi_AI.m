@@ -84,7 +84,7 @@ function [Ep] = spm_nlsi_AI(M,Y,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_AI.m 8171 2021-10-25 10:14:50Z karl $
+% $Id: spm_nlsi_AI.m 8183 2021-11-04 15:25:19Z guillaume $
  
 
 % setup and initialise
@@ -334,7 +334,7 @@ function G  = spm_G(p,n)
 % Copyright (C) 2013-2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_nlsi_AI.m 8171 2021-10-25 10:14:50Z karl $
+% $Id: spm_nlsi_AI.m 8183 2021-11-04 15:25:19Z guillaume $
 %--------------------------------------------------------------------------
 G{1}  = 1;
 for i = 2:n
@@ -356,7 +356,7 @@ function H  = spm_H(p,B)
 % Copyright (C) 2013-2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_nlsi_AI.m 8171 2021-10-25 10:14:50Z karl $
+% $Id: spm_nlsi_AI.m 8183 2021-11-04 15:25:19Z guillaume $
 %--------------------------------------------------------------------------
 H     = B{3};
 x     = {p};
@@ -381,7 +381,7 @@ function K  = spm_sigma(n)
 % Copyright (C) 2013-2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_nlsi_AI.m 8171 2021-10-25 10:14:50Z karl $
+% $Id: spm_nlsi_AI.m 8183 2021-11-04 15:25:19Z guillaume $
 %--------------------------------------------------------------------------
 k     = [0 1 -1];
 K     = k;
@@ -655,7 +655,7 @@ for ip = 1:M.Nmax
     %----------------------------------------------------------------------
     [dxdp,x] = spm_diff(IS,Ep,M,U,1,{Vp});  
     
-    % check for inital iterations and dissipative dynamics
+    % check for initial iterations and dissipative dynamics
     %----------------------------------------------------------------------
     if all(isfinite(spm_vec(x)))
         Gmax = M.Gmax;

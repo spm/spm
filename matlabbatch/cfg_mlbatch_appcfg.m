@@ -5,7 +5,7 @@ function [cfg, def] = cfg_mlbatch_appcfg(varargin)
 % application, create a file called cfg_mlbatch_appcfg.m in the application
 % folder and add this folder to the MATLAB path. cfg_util will look for
 % files with the exact name cfg_mlbatch_appcfg.m and run all of them in
-% order of their occurence on the path.
+% order of their occurrence on the path.
 %
 % This code is part of a batch job configuration system for MATLAB. See 
 %      help matlabbatch
@@ -14,9 +14,9 @@ function [cfg, def] = cfg_mlbatch_appcfg(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_mlbatch_appcfg.m 3179 2009-06-03 12:41:21Z volkmar $
+% $Id: cfg_mlbatch_appcfg.m 8183 2021-11-04 15:25:19Z guillaume $
 
-rev = '$Rev: 3179 $'; %#ok
+rev = '$Rev: 8183 $'; %#ok
 
 if ~isdeployed
     % get path to this file

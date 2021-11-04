@@ -12,7 +12,7 @@ function spm_eeg_inv_vbecd_disp(action,varargin)
 % Copyright (C) 2008-2015 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips
-% $Id: spm_eeg_inv_vbecd_disp.m 6501 2015-07-17 14:32:09Z spm $
+% $Id: spm_eeg_inv_vbecd_disp.m 8183 2021-11-04 15:25:19Z guillaume $
 
 % Note:
 % unfortunately I cannot see how to ensure that when zooming in the image
@@ -194,7 +194,7 @@ if nargin<4
     if isfield(st.vols{1},'sdip')
         sdip = st.vols{1}.sdip;
     else
-        error('I can''t find sdip structure');
+        error('I cannot find sdip structure');
     end
 else
     sdip = varargin{3};
@@ -339,7 +339,7 @@ case 'clearall'
 if isfield(st.vols{1},'sdip')
     sdip = st.vols{1}.sdip;
 else
-    error('I can''t find sdip structure');
+    error('I cannot find sdip structure');
 end
 
 disp('Clears all dipoles')
@@ -454,13 +454,13 @@ end
 if isfield(st.vols{1},'sdip')
         sdip = st.vols{1}.sdip;
     else
-        return; % I don't do anything, as I can't find sdip strucure
+        return; % I don't do anything, as I cannot find sdip structure
 end
 
 if isfield(sdip,'ax')
     Nax = size(sdip.ax,2);
     else
-        return; % I don't do anything, as I can't find axes info
+        return; % I don't do anything, as I cannot find axes info
 end
 
 if seed_i==0 % removes everything

@@ -9,7 +9,7 @@ function [Dnew,meshsourceind]=spm_eeg_simulate(D,prefix,patchmni,simsignal,ormni
 %% D dataset
 %% prefix : prefix of new simulated dataset
 %% patchmni : patch centres in mni space or patch indices
-%% simsignal : Nsources x time series in nAm withinn woi
+%% simsignal : Nsources x time series in nAm within woi
 %% woi: window of interest in seconds
 %% whitenoise level in rms femto Tesla or micro volts
 %% SNRdB power signal to noise ratio in dBs
@@ -19,9 +19,9 @@ function [Dnew,meshsourceind]=spm_eeg_simulate(D,prefix,patchmni,simsignal,ormni
 %% Outputs
 %% Dnew- new dataset
 %% meshsourceind- vertex indices of sources on the mesh
-% $Id: spm_eeg_simulate.m 7835 2020-04-21 08:34:42Z gareth $
+% $Id: spm_eeg_simulate.m 8183 2021-11-04 15:25:19Z guillaume $
 
-%% LOAD IN ORGINAL DATA
+%% LOAD IN ORIGINAL DATA
 useind=1; % D to use
 if nargin<2,
     prefix='';

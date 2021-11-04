@@ -23,7 +23,7 @@ function [F,M,Cq,Cp,QE,Qp] = spm_eeg_invert_EBoptimise(AY,UL,opttype,Qp,Qe,Qe0)
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Gareth Barnes
-% $Id: spm_eeg_invert_EBoptimise.m 6494 2015-07-06 10:23:04Z gareth $
+% $Id: spm_eeg_invert_EBoptimise.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
 if ~iscell(Qe),
@@ -186,7 +186,7 @@ if  isfield(opttype{j},'REMLopt'),
     
     
     
-    %%% NOW OPTMIZE MIXTURE OF PRIOR COVARIANCE COMPS WITH REML
+    %%% NOW OPTIMIZE MIXTURE OF PRIOR COVARIANCE COMPS WITH REML
     
     [Cy,h,Ph,F] = spm_reml_sc(AYYA,[],[Qe LQpL],Nn,-4,16,Q0);
     

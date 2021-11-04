@@ -4,7 +4,7 @@ function S = spm_cfg_eeg_contrast
 % Copyright (C) 2008-2021 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_contrast.m 8119 2021-07-06 13:51:43Z guillaume $
+% $Id: spm_cfg_eeg_contrast.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
 S          = cfg_exbranch;
@@ -61,7 +61,7 @@ weighted.name   = 'Weight by replications';
 weighted.labels = {'Yes', 'No'};
 weighted.values = {1 , 0};
 weighted.val    = {1};
-weighted.help   = {'Weight the contrast by the numner of replications from which the average was computed.'};
+weighted.help   = {'Weight the contrast by the number of replications from which the average was computed.'};
 
 prefix         = cfg_entry;
 prefix.tag     = 'prefix';

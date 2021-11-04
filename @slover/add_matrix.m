@@ -8,12 +8,12 @@ function obj = add_matrix(obj, mat3d, mat, imgno)
 % mat          - optional 4x4 voxel->world translation
 % imgno        - optional img no to add to (defaults to last in object)
 %
-% Ouputs
+% Outputs
 % obj          - modified object
 %__________________________________________________________________________
 
 % Matthew Brett
-% $Id: add_matrix.m 6623 2015-12-03 18:38:08Z guillaume $
+% $Id: add_matrix.m 8183 2021-11-04 15:25:19Z guillaume $
 
 if nargin < 2
     return

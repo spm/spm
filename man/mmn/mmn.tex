@@ -1,6 +1,6 @@
 \chapter{EEG Mismatch negativity data\label{Chap:data:mmn}}
 
-This chapter describes the analysis of a 128-channel single subject EEG data set acquired from a study of mismatch negativity in the auditory system \cite{marta_mmndcm}. We thank Marta Garrido for providing us with these data. The experiment comprised an auditory oddball paradigm in which subjects heard standard (500Hz) and deviant (550Hz) tones, occuring 80\% (480 trials) and 20\% (120 trials) of the time, respectively, in a pseudo-random sequence subject to the constraint that two deviant tones did not occur together.
+This chapter describes the analysis of a 128-channel single subject EEG data set acquired from a study of mismatch negativity in the auditory system \cite{marta_mmndcm}. We thank Marta Garrido for providing us with these data. The experiment comprised an auditory oddball paradigm in which subjects heard standard (500Hz) and deviant (550Hz) tones, occurring 80\% (480 trials) and 20\% (120 trials) of the time, respectively, in a pseudo-random sequence subject to the constraint that two deviant tones did not occur together.
 
 EEG data were recorded with a Biosemi\footnote{BioSemi: \url{http://www.biosemi.com/}} system at 128 scalp electrodes and a sampling rate of 512Hz. Vertical and horizontal eye movements were monitored using EOG electrodes. See \cite{marta_mmndcm} for full details of experimental stimuli and recording. To proceed with the data analysis, first download the  data set from the SPM website\footnote{EEG MMN dataset: \url{http://www.fil.ion.ucl.ac.uk/spm/data/eeg\_mmn/}}. The data comprises a file called \texttt{subject1.bdf} whose size is roughly 200MB. We will refer to the directory in which you have placed it as \texttt{DATA\_DIR}. This chapter takes you through different stages of analysis:
 
@@ -175,7 +175,7 @@ This brings up the source localisation GUI shown in Figure~\ref{source_gui}. The
 \subsection{Mesh}
 The first step is to load the data and create a cortical mesh upon which M/EEG data will be projected:
 \begin{itemize}
-\item{Press the ``Load'' button in the souce localisation GUI and select the file \texttt{maefdfMspmeeg\_subject1.mat}.}
+\item{Press the ``Load'' button in the source localisation GUI and select the file \texttt{maefdfMspmeeg\_subject1.mat}.}
 \item{Enter ``Standard'' under ``Comment/Label for this analysis'' and press OK.}
 \item{Now press the ``template'' button.}
 \item{For ``Cortical mesh'', select ``normal''.}
@@ -286,7 +286,7 @@ This completes the specification of the electromagnetic model. Now:
 \item{Press the (top left) 'save' button and accept the default file name.}
 \item{Press 'Invert DCM'}
 \end{itemize}
-SPM will plot the progess of the model estimation in the MATLAB command window. Plots of data and the progressing model fit will be shown in SPM's graphics window. The algorithm should converge after five to ten minutes (in 64 iterations). Now select the ``ERPs (sources)'' option from the pull down menu to the right of the ``Estimated'' button. This will produce the plot shown in Figure~\ref{source_erps}. The values of the connections between areas can be outputted by selecting eg ''Coupling(A)'' from the pull-down menu in the DCM GUI. This will allow you to interrogate the posterior distribution of model parameters. It is also possible to fit multiple models, eg. with different numbers of regions and different structures, and to compare them using Bayesian Model Comparison. This is implemented by pressing the BMS button (bottom right hand corner of the DCM window).
+SPM will plot the progress of the model estimation in the MATLAB command window. Plots of data and the progressing model fit will be shown in SPM's graphics window. The algorithm should converge after five to ten minutes (in 64 iterations). Now select the ``ERPs (sources)'' option from the pull down menu to the right of the ``Estimated'' button. This will produce the plot shown in Figure~\ref{source_erps}. The values of the connections between areas can be outputted by selecting eg ''Coupling(A)'' from the pull-down menu in the DCM GUI. This will allow you to interrogate the posterior distribution of model parameters. It is also possible to fit multiple models, eg. with different numbers of regions and different structures, and to compare them using Bayesian Model Comparison. This is implemented by pressing the BMS button (bottom right hand corner of the DCM window).
 
 \begin{figure}
 \begin{center}

@@ -2,13 +2,13 @@ function ID = spm_data_id(varargin)
 % generates a specific real number in a deterministic way
 % from any data structure
 % FORMAT ID = spm_data_id(X);
-% X  - numeric, character, cell or stucture array[s]
+% X  - numeric, character, cell or structure array[s]
 % ID - specific ID
 %__________________________________________________________________________
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak (based on Karl's spm_vec)
-% $Id: spm_data_id.m 6712 2016-02-04 15:12:25Z peter $
+% $Id: spm_data_id.m 8183 2021-11-04 15:25:19Z guillaume $
 
 X     = varargin;
 

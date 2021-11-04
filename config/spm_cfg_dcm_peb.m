@@ -4,7 +4,7 @@ function second_level = spm_cfg_dcm_peb
 % Copyright (C) 2016-2017 Wellcome Trust Centre for Neuroimaging
 
 % Peter Zeidman
-% $Id: spm_cfg_dcm_peb.m 7479 2018-11-09 14:17:33Z peter $
+% $Id: spm_cfg_dcm_peb.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
 %==========================================================================
@@ -494,7 +494,7 @@ reduce_all.help  = {['Optimises a PEB model by trying different ' ...
                          'them at their prior value), where doing so does ' ...
                          'not reduce the model evidence. Any parameters ' ...
                          'not contributing will be set to zero.'] '' ...
-                         ['This is equivilant to the function of '... 
+                         ['This is equivalent to the function of '... 
                          'spm_dcm_post_hoc but on the second level (PEB) ' ...
                          'parameters.']};
 reduce_all.prog = @spm_run_bmr_all;
@@ -688,7 +688,7 @@ if ~has_constant
     X = [ones(ns,1) X];
 end
 
-% Ensure a column colinear with the mean wasn't entered accidently
+% Ensure a column colinear with the mean wasn't entered accidentally
 if size(X,2) > 1
     bad = find(~any(diff(X(:,2:end))));
     if ~isempty(bad)

@@ -1,5 +1,5 @@
 /*
- * $Id: spm_render_vol.c 4453 2011-09-02 10:47:25Z guillaume $
+ * $Id: spm_render_vol.c 8183 2021-11-04 15:25:19Z guillaume $
  * John Ashburner
  */
 
@@ -14,7 +14,7 @@ void surface(double mat[], double zbuff[], double xcords[], double ycords[],
     /*
     Project the coordinates of voxels which lie on the surface of the object
     onto the viewing plane.
-    A surface is defined as a voxel above "thresh" adjascent to voxel(s) below "thresh"
+    A surface is defined as a voxel above "thresh" adjacent to voxel(s) below "thresh"
     - assuming 6 nearest neighbours.
     Only the voxels closest to the viewing plane are stored.
 

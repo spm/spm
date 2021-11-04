@@ -1,5 +1,5 @@
 /*
- * $Id: spm_bsplins.c 4624 2012-01-13 13:27:08Z john $
+ * $Id: spm_bsplins.c 8183 2021-11-04 15:25:19Z guillaume $
  * John Ashburner
  */
 
@@ -29,7 +29,7 @@ Loop through data and resample the points
     c   - Volume of B-spline coefficients
     m0,m1,m2    - dimensions of c
     n   - number of points to resample
-    x0,x1,x2    - array of co-ordinate to sample
+    x0,x1,x2    - array of coordinates to sample
     d   - degree of spline used
     cond    - code determining boundaries to mask at
     bnd - functions for dealing with edges
@@ -61,7 +61,7 @@ Loop through data and resample the points and their derivatives
     c   - Volume of B-spline coefficients
     m0,m1,m2    - dimensions of c
     n   - number of points to resample
-    x0,x1,x2    - array of co-ordinate to sample
+    x0,x1,x2    - array of coordinates to sample
     d   - degrees of splines used
     cond    - code determining boundaries to mask at
     bnd - functions for dealing with edges
@@ -102,13 +102,13 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     /* Usage:
             f = function(c,x0,x1,x2,d)
                 c - B-spline coefficients
-                x0, x1, x2 - co-ordinates
+                x0, x1, x2 - coordinates
                 d   - B-spline degree
                 f   - sampled function
        or:
             [f,df0,df1,df2] = function(c,x0,x1,x2,d)
                 c - B-spline coefficients
-                x0, x1, x2 - co-ordinates
+                x0, x1, x2 - coordinates
                 d   - B-spline degree
                 f   - sampled function
                 df0, df1, df2   - sampled derivatives
@@ -147,7 +147,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     }
 
     /* if (d==0 && nlhs>1)
-        mexErrMsgTxt("Cant compute gradients when using B-spline(0) interp."); */
+        mexErrMsgTxt("Can't compute gradients when using B-spline(0) interp."); */
 
     /* Dimensions of coefficient volume */
     nd = mxGetNumberOfDimensions(prhs[0]);
@@ -157,7 +157,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     if (nd>=2) m1 = dims[1];
     if (nd>=3) m2 = dims[2];
 
-    /* Dimensions of sampling co-ordinates */
+    /* Dimensions of sampling coordinates */
     nd = mxGetNumberOfDimensions(prhs[1]);
     dims = mxGetDimensions(prhs[1]);
     if (mxGetNumberOfDimensions(prhs[2]) != nd || mxGetNumberOfDimensions(prhs[3]) != nd)

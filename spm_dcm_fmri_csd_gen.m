@@ -13,10 +13,10 @@ function [y] = spm_dcm_fmri_csd_gen(x,v,P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_fmri_csd_gen.m 5736 2013-11-10 13:17:10Z karl $
+% $Id: spm_dcm_fmri_csd_gen.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
-% global DCM and evaluate orginal generative model
+% global DCM and evaluate original generative model
 %==========================================================================
 global GLOBAL_DCM
 

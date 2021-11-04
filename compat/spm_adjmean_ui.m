@@ -34,7 +34,7 @@ function spm_adjmean_ui
 % The model, filenames, global values and options are saved to a MatLab
 % *.mat file named SPMadj.mat in the current working directory.
 %
-% Implicit masking is carried out: Zero voxels are implicitly assummed
+% Implicit masking is carried out: Zero voxels are implicitly assumed
 % to be masked out. Thus, the adjusted mean is calculated at voxels
 % which are non-zero in *all* the input images pertaining to the
 % adjusted mean (usually those from the appropriate subject). (This is
@@ -47,7 +47,7 @@ function spm_adjmean_ui
 %
 % If computing adjusted means for subsequent (2nd level) modelling, as
 % with a random effects analysis, then it is important to use a
-% seperable model, such that the adjustment for one subject is
+% separable model, such that the adjustment for one subject is
 % independent of other subjects entered into the model. Thus,
 % proportional scaling or subject-specific AnCova adjustment must be
 % used. Further, multiple runs *must* use the same GM value, and should
@@ -76,10 +76,10 @@ function spm_adjmean_ui
 % As always, look at the resulting mean images to make sure they look OK!
 %
 %
-% AdjMean "recipies"...
+% AdjMean "recipes"...
 % ----------------------------------------------------------------------
 % Rather than offer a bewildering array of options, various
-% pre-configured recipies are offered for common scenarios:
+% pre-configured recipes are offered for common scenarios:
 %
 % * Basic means: +/- grand mean scaling; +/- global normalisation
 %
@@ -102,7 +102,7 @@ function spm_adjmean_ui
 %         scaling within block and then writing out the block means, it's
 %         also tagged "scaled means".
 %
-% * The "condition" recipies: Adjusted condition means, computed within subj.
+% * The "condition" recipes: Adjusted condition means, computed within subj.
 %
 %  5) SingleSubj: Condition means (PropSca)
 %       - Proportional scaling global normalisation of image global means
@@ -178,7 +178,7 @@ function spm_adjmean_ui
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_adjmean_ui.m 4418 2011-08-03 12:00:13Z guillaume $
+% $Id: spm_adjmean_ui.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
 
@@ -248,7 +248,7 @@ sGMsca = {  'No Grand Mean Scaling',...             %-1
         'Scaling of overall Grand Mean',...         %-2
         'Scaling of subject Grand Means',...            %-3
         '(Implicit in PropSca global normalisation)'};      %-4
-%-NB: Grand mean scaling by subject is redundent for proportional scaling
+%-NB: Grand mean scaling by subject is redundant for proportional scaling
 dGM = 50;       %-Default Grand Mean value
 
 %-Adjustment options for AnCova designs (for centering of globals)
@@ -264,7 +264,7 @@ sAdjTo = {  'Specify...',...                    %-1
 % - G E T   I M A G E S   &   P A R A M E T E R S
 %=======================================================================
 
-%-Initialise indicies
+%-Initialise indices
 %-----------------------------------------------------------------------
 iSubj   = [];       % Subject (block) index
 iCond   = [];       % condition (or scan) (per subject) index
@@ -287,7 +287,7 @@ iGMsca   = DesDef.iGMsca;
 GM       = DesDef.GM;
 iAdjTo   = DesDef.iAdjTo;
 
-%-Get filenames, build subject & condition indicies
+%-Get filenames, build subject & condition indices
 %-----------------------------------------------------------------------
 if bMSubj
     nSubj  = spm_input(['number of ',sSubj,'s ?'],'+1','n1');

@@ -15,9 +15,9 @@ function P = spm_eeg_inv_vbecd_mom(P)
 %
 % Output:
 % same structure with extra fields
-%  init         - initial valuse used for mu_w/s
+%  init         - initial values used for mu_w/s
 %  dF           - successive (relative) improvement of F
-%  post         - posterior value of estimated parameters and ther variance
+%  post         - posterior value of estimated parameters and their variance
 %  Fi           - successive values of F
 %  F            - Free energy final value.
 %
@@ -30,7 +30,7 @@ function P = spm_eeg_inv_vbecd_mom(P)
 % Copyright (C) 2020 Wellcome Trust Centre for Neuroimaging
 
 % Gareth Barnes
-% $Id: spm_eeg_inv_vbecd_mom.m 7764 2020-01-02 15:34:03Z spm $
+% $Id: spm_eeg_inv_vbecd_mom.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
 % unpack model, priors, data

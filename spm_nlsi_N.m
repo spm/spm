@@ -84,7 +84,7 @@ function [Ep,Eg,Cp,Cg,S,F,L] = spm_nlsi_N(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_N.m 8171 2021-10-25 10:14:50Z karl $
+% $Id: spm_nlsi_N.m 8183 2021-11-04 15:25:19Z guillaume $
  
 % options
 %--------------------------------------------------------------------------
@@ -332,7 +332,7 @@ for ip = 1:M.Nmax
     %----------------------------------------------------------------------
     [dxdp,x] = spm_diff(IS,Ep,M,U,1,{Vp});  
     
-    % check for inital iterations and dissipative dynamics
+    % check for initial iterations and dissipative dynamics
     %----------------------------------------------------------------------
     if all(isfinite(spm_vec(x)))
         Gmax = M.Gmax;

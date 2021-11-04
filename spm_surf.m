@@ -53,9 +53,9 @@ function varargout = spm_surf(P,mode,thresh)
 % Copyright (C) 2002-2018 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_surf.m 7381 2018-07-25 10:27:54Z guillaume $
+% $Id: spm_surf.m 8183 2021-11-04 15:25:19Z guillaume $
 
-SVNrev = '$Rev: 7381 $';
+SVNrev = '$Rev: 8183 $';
 
 spm('FnBanner',mfilename,SVNrev);
 spm('FigName','Surface');
@@ -127,7 +127,7 @@ for i=1:V(1).dim(3)
     br(:,:,i) = tmp;
 end
 
-% Build a 3x3x3 seperable smoothing kernel and smooth
+% Build a 3x3x3 separable smoothing kernel and smooth
 %--------------------------------------------------------------------------
 kx = [0.75 1 0.75];
 ky = [0.75 1 0.75];

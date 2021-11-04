@@ -1,5 +1,5 @@
 /*
- * $Id: shoot_invdef.c 7700 2019-11-21 17:09:15Z john $
+ * $Id: shoot_invdef.c 8183 2021-11-04 15:25:19Z guillaume $
  * John Ashburner
  */
 
@@ -20,7 +20,7 @@
 #define MAXV 16384
 
 static void invertX(float X[][3], float IX[][4])
-/* X is a matrix containing the co-ordinates of the four vertices of a tetrahedron.
+/* X is a matrix containing the coordinates of the four vertices of a tetrahedron.
    IX = inv([X ; 1 1 1 1]);  */
 {
     float id;
@@ -160,7 +160,7 @@ static void invertM(float M[][3], /*@out@*/ float IM[][3])
 }
 
 /****************************************************************************************************/
-/* These routines are for locating integer co-ordinates that lie inside a tetrahedron.  See:
+/* These routines are for locating integer coordinates that lie inside a tetrahedron.  See:
     J. Ashburner, J. Andersson and K. J. Friston (2000).
     "Image Registration using a Symmetric Prior - in Three-Dimensions".
     Human Brain Mapping 9(4):212-225. */
@@ -232,8 +232,8 @@ static void scan_triangle(float tri[][2], mwSignedIndex z, mwSize *n, /*@out@*/ 
 
 static void scan_tetrahedron(float Y[][3], /*@out@*/ mwSize *n, /*@out@*/ mwSignedIndex vox[][3], mwSize maxv)
 /* Y are the vertices of the tetrahedron.  n are the number of located
-   integer co-ordinates, vox are the co-ordinates found and maxv are the
-   maximum number of co-ordinates allowed. */
+   integer coordinates, vox are the coordinates found and maxv are the
+   maximum number of coordinates allowed. */
 {
     float *p[4], *t, tri[4][2], x1, x2, y1, y2, z1, z2;
     mwSignedIndex z, ze, i;
@@ -379,7 +379,7 @@ static void invert_it(mwSignedIndex x0, mwSignedIndex x1, mwSignedIndex x2, floa
         Y0[2][0] = y0[off[k][2][i]]; Y0[2][1] = y1[off[k][2][i]]; Y0[2][2] = y2[off[k][2][i]];
         Y0[3][0] = y0[off[k][3][i]]; Y0[3][1] = y1[off[k][3][i]]; Y0[3][2] = y2[off[k][3][i]];
 
-        /* Convert vertex co-ordinates to voxels */
+        /* Convert vertex coordinates to voxels */
         mulMX(Y, M1, Y0);
 
         /* Compute affine transform mapping vertices together */
@@ -387,7 +387,7 @@ static void invert_it(mwSignedIndex x0, mwSignedIndex x1, mwSignedIndex x2, floa
 
         if (mxIsFinite(M[0][0])) /* Prevent from bombing out when NaNs are encountered */
         {
-            /* Find integer co-ordinates within tetrahedron */
+            /* Find integer coordinates within tetrahedron */
             scan_tetrahedron(Y, &nvox, vox, MAXV);
 
             if (nvox>0)

@@ -41,13 +41,13 @@ function [p,P,f,F,X] = spm_dcm_peb_rnd(DCM,M,field)
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_peb_rnd.m 6737 2016-03-03 12:05:51Z karl $
+% $Id: spm_dcm_peb_rnd.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
 % Set up
 %==========================================================================
 
-% supress plotting
+% suppress plotting
 %--------------------------------------------------------------------------
 if nargout, M.noplot = 1; end
 

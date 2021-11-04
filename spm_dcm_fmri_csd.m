@@ -40,9 +40,9 @@ function DCM = spm_dcm_fmri_csd(P)
 % Copyright (C) 2013-2015 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_fmri_csd.m 8096 2021-04-24 20:27:35Z karl $
+% $Id: spm_dcm_fmri_csd.m 8183 2021-11-04 15:25:19Z guillaume $
 
-SVNid = '$Rev: 8096 $';
+SVNid = '$Rev: 8183 $';
 
 % Load DCM structure
 %--------------------------------------------------------------------------
@@ -209,7 +209,7 @@ DCM.M.m  = size(DCM.U.u,2);
 DCM.M.l  = n;
 DCM.M.p  = DCM.options.order;
 
-% specify M.u - endogenous input (fluctuations) and intial states
+% specify M.u - endogenous input (fluctuations) and initial states
 %--------------------------------------------------------------------------
 DCM.M.u  = sparse(n,1);
 

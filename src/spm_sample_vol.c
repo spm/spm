@@ -1,5 +1,5 @@
 /*
- * $Id: spm_sample_vol.c 4452 2011-09-02 10:45:26Z guillaume $
+ * $Id: spm_sample_vol.c 8183 2021-11-04 15:25:19Z guillaume $
  * John Ashburner
  */
 
@@ -74,7 +74,7 @@ const mxArray *prhs[];
         if (hold==0)
         {
             free_maps(map, 1);
-            mexErrMsgTxt("This wont work for nearest neighbour resampling.");
+            mexErrMsgTxt("This won't work for nearest neighbour resampling.");
         }
         plhs[0] = mxCreateDoubleMatrix(m,n,mxREAL);
         plhs[1] = mxCreateDoubleMatrix(m,n,mxREAL);

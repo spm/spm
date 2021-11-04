@@ -46,7 +46,7 @@ function spm_adjmean_fmri_ui
 %
 % Once the experimental design has been specified, the user is given
 % various options: The box-cars can be convolved with an approximate
-% haemodynamic reponse function; High-pass filter components can be
+% haemodynamic response function; High-pass filter components can be
 % added to the confounds (at a user-specified cut-off which defaults to
 % twice the maximum period of the experiment); Global normalisation can
 % be omitted, or implemented by proportional scaling or AnCova; and the
@@ -59,7 +59,7 @@ function spm_adjmean_fmri_ui
 % The model, filenames, global values and options are saved to a MatLab
 % *.mat file named SPMadj.mat in the current working directory.
 %
-% Implicit masking is carried out: Zero voxels are implicitly assummed
+% Implicit masking is carried out: Zero voxels are implicitly assumed
 % to be masked out. Thus, the adjusted mean is calculated at voxels
 % which are non-zero in *all* the input images pertaining to the
 % adjusted mean (usually those from the appropriate subject). (This is
@@ -72,7 +72,7 @@ function spm_adjmean_fmri_ui
 %
 % If computing adjusted means for subsequent (2nd level) modelling, as
 % with a random effects analysis, then it is important to use a
-% seperable model, such that the adjustment for one subject is
+% separable model, such that the adjustment for one subject is
 % independent of other subjects entered into the model. Thus,
 % proportional scaling or subject-specific AnCova adjustment must be
 % used. Further, multiple runs *must* use the same GM value, and should
@@ -192,7 +192,7 @@ function spm_adjmean_fmri_ui
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_adjmean_fmri_ui.m 4418 2011-08-03 12:00:13Z guillaume $
+% $Id: spm_adjmean_fmri_ui.m 8183 2021-11-04 15:25:19Z guillaume $
 
 
 
@@ -443,7 +443,7 @@ text(-.1,0.11,'Effects of interest orthogonalised (residualised) to confounds')
 text(-.1,0.08,'No temporal smoothing (only required for inference)')
 text(-.1,0.05,sprintf('Parameters saved to: %s/SPMadj.mat',pwd),'FontSize',10)
 
-%-Global mean values plot, with underlayed conditions
+%-Global mean values plot, with underlaid conditions
 %-----------------------------------------------------------------------
 %-Conditions plot (for comparison with global means plot)
 axes('Position',[0.1,0.5,0.8,0.3])

@@ -8,7 +8,7 @@ function out = spm_run_factorial_design(job)
 % Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_run_factorial_design.m 7739 2019-12-02 14:00:18Z guillaume $
+% $Id: spm_run_factorial_design.m 8183 2021-11-04 15:25:19Z guillaume $
 
 %--------------------------------------------------------------------------
 % This function configures the design matrix (describing the general
@@ -58,7 +58,7 @@ function out = spm_run_factorial_design(job)
 % factors and specifying the number of levels and name for each.
 % Nonsphericity, ANOVA-by-factor (for PET data) and scaling options (for
 % PET data) can also be specified at this stage. Secondly, scans are 
-% assigned separately to each cell. This accomodates unbalanced designs.
+% assigned separately to each cell. This accommodates unbalanced designs.
 %
 % For example, if you wish to test for a main effect in the population
 % from which your subjects are drawn and have modelled that effect at the 
@@ -111,7 +111,7 @@ function out = spm_run_factorial_design(job)
 %
 %--------------------------------------------------------------------------
 %
-% Variables saved in the SPM stucture:
+% Variables saved in the SPM structure:
 %
 % xY.VY         - nScan x 1 struct array of memory mapped images
 %                 (see spm_vol for definition of the map structure)
@@ -277,7 +277,7 @@ sGloNorm = {'AnCova';...                                    %-1
 
 
 %-Grand mean scaling options                                        (GMsca)
-% (NB: Grand mean scaling by subject is redundent for proportional scaling)
+% (NB: Grand mean scaling by subject is redundant for proportional scaling)
 %--------------------------------------------------------------------------
 sGMsca = {'scaling of overall grand mean';...               %-1
     'scaling of sF1 grand means';...                        %-2
