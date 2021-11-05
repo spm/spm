@@ -1,17 +1,26 @@
-function [dS,G,Q,L] = spm_NESS_ds(Sp,P)
-% generates changes in self-information (x)
+function [dS,G,Q,L] = spm_NESS_ds(Sp,P,x)
+% generates changes in log density (coefficients or at x)
 % FORMAT [dS,G,Q,L] = spm_NESS_ds(Sp,P)
+% FORMAT [ds,G,Q,L] = spm_NESS_ds(Sp,P,x)
 %--------------------------------------------------------------------------
 % Sp      - polynomial coefficients of initial potential
 % P.Qp    - polynomial coefficients of solenoidal operator
 % P.Sp    - polynomial coefficients of final potential
 % P.G     - amplitude of random fluctuations
 %
+% x       - sample points and state space
+%
 % dS      - time derivative of polynomial coefficients of potential
+% ds      - time derivative of potential at x
 % G       - dissipation operator
 % Q       - solenoidal operator
 % L       - correction term for derivatives of solenoidal flow
-
+%
+% This routine assumes that K = 3; i.e., the log density is second order in
+% the states (Laplace assumption). if call with two arguments the time
+% derivatives of the (second-order) polynomial coefficients of the log
+% density are returned. If called with three arguments, the time derivative
+% of the log density at the specified points in state space are returned.
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
@@ -19,14 +28,18 @@ function [dS,G,Q,L] = spm_NESS_ds(Sp,P)
 % $Id: spm_ness_hd.m 8000 2020-11-03 19:04:17QDb karl $
 
 
-%% get basis or expansion from x
+%% get sample points
 %==========================================================================
-n    = size(P.G,1);
-N    = 3;
-for i = 1:n
-    x{i} = linspace(-1,1,N);
+if nargin < 3
+    n    = size(P.G,1);
+    N    = 3;
+    for i = 1:n
+        x{i} = linspace(-1,1,N);
+    end
 end
 
+% assume the log density is second-order in the states (Laplace assumption)
+%--------------------------------------------------------------------------
 [b,D,H] = spm_polymtx(x,3);
 [nX,nb] = size(b);
 n       = numel(x);
@@ -88,7 +101,13 @@ for i = 1:n
     end
 end
 
-dS = b\ds;
+% return time derivatives of coefficients or log density
+%--------------------------------------------------------------------------
+if nargin < 3
+    dS = b\ds;
+else
+    dS = ds;
+end
 
 return
 
