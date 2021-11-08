@@ -4,7 +4,7 @@ function spm_cli(varargin)
 % Copyright (C) 2016-2021 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_cli.m 8146 2021-09-01 20:00:28Z guillaume $ 
+% $Id: spm_cli.m 8185 2021-11-08 14:11:51Z guillaume $ 
 
 
 %-Input arguments
@@ -189,6 +189,7 @@ end
 %==========================================================================
 function param = get_val(param,flag,c0)
 
+if isa(c0.val,'function_handle'), c0.val = feval(c0.val); end
 for i=1:numel(c0.val)
     if strcmp(c0.val{i}.tag, flag)
         switch class(c0.val{i})
