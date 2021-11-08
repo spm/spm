@@ -36,10 +36,10 @@ function varargout = spm_platform(varargin)
 % Subsequent calls use the information from this persistent variable, if
 % it exists.
 %__________________________________________________________________________
-% Copyright (C) 1999-2020 Wellcome Centre for Human Neuroimaging
+% Copyright (C) 1999-2021 Wellcome Centre for Human Neuroimaging
 
 % Matthew Brett
-% $Id: spm_platform.m 7861 2020-05-21 11:39:27Z guillaume $
+% $Id: spm_platform.m 8186 2021-11-08 14:49:32Z guillaume $
 
 
 %-Initialise
@@ -123,20 +123,28 @@ function PLATFORM = init_platform           %-Initialise platform variables
 if strcmpi(spm_check_version,'matlab')
     comp = computer;
 else
-    if isunix
+    if ismac
+        comp = uname.machine;
+        switch comp
+            case {'x86_64'}
+                comp = 'MACI64';
+            case {'arm64'}
+                comp = 'ARM';
+            otherwise
+                error('%s is not supported.',comp);
+        end
+    elseif isunix
         comp = uname.machine;
         switch comp
             case {'x86_64'}
                 comp = 'GLNXA64';
-            case {'armv6l','armv7l','armv8l','aarch64'}
+            case {'armv6l','armv7l','armv8l','armv9l','aarch64','arm64'}
                 comp = 'ARM';
             otherwise
                 error('%s is not supported.',comp);
         end
     elseif ispc
         comp = 'PCWIN64';
-    elseif ismac
-        comp = 'MACI64';
     end
 end
 
@@ -217,6 +225,8 @@ switch comp
         PLATFORM.font.times     = 'Times New Roman';
         PLATFORM.font.courier   = 'Courier New';
         PLATFORM.font.symbol    = 'Symbol';
+    otherwise
+        error(['Unknown platform "' comp '"']);
 end
 
 
