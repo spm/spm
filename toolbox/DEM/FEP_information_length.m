@@ -340,7 +340,7 @@ for t = 1:T
     % Accumulate information length (joint)
     %----------------------------------------------------------------------
     [ms,cs] = spm_ness_Sp2N(Sp - dS*dt*2,n,K);
-    LL(t,1) = sqrt(spm_kl_normal(mt,ct,ms,cs));
+    LL(t,1) = sqrt(2*spm_kl_normal(mt,ct,ms,cs));
     
     % divergence (extrinsic): conditioned on expected particular state
     %----------------------------------------------------------------------
@@ -350,7 +350,7 @@ for t = 1:T
     % Accumulate information length (extrinsic)
     %----------------------------------------------------------------------
     [mr,cr] = spm_ness_cond(n,K,Sp - dS*dt*2,ip,ms(ip));
-    LL(t,2) = sqrt(spm_kl_normal(me,ce,mr,cr));
+    LL(t,2) = sqrt(2*spm_kl_normal(me,ce,mr,cr));
     
     % divergence (intrinsic): marginal density over a particular state
     %----------------------------------------------------------------------
@@ -364,7 +364,7 @@ for t = 1:T
     ct      = ct(ip,ip);
     ms      = ms(ip);
     cs      = cs(ip,ip);
-    LL(t,3) = sqrt(spm_kl_normal(mt,ct,ms,cs));
+    LL(t,3) = sqrt(2*spm_kl_normal(mt,ct,ms,cs));
     
     
     % illustrate density dynamics by showing its trace over time
