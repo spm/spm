@@ -37,7 +37,7 @@ function [P,C,str] = spm_SARS_priors(nN)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_priors.m 8178 2021-11-03 19:27:23Z karl $
+% $Id: spm_SARS_priors.m 8188 2021-11-14 12:34:09Z karl $
 
 % sources and background
 %--------------------------------------------------------------------------
@@ -65,8 +65,10 @@ if nargin
     % priors for single group
     %----------------------------------------------------------------------
     [P,C,str] = spm_SARS_priors;
-    free  = {'N','Nin','Nou','mem','qua','hos','ccu',...
-             'sev','lat','fat','sur','tes','tts','rol','lnk'};
+    free  = {'N','Nin','Nou','qua',...
+             'hos','ccu','Tim',...
+             'sev','lat','fat','sur',...
+             'tes','tts','rol','lnk'};
 
     if nN == 1
         
@@ -85,12 +87,12 @@ if nargin
         %------------------------------------------------------------------
         P.N   = P.N - log(nN);
         P.n   = P.n - log(nN);
-        P.rol = log([0.001  (365 + 0)   32;
-                     0.01  (365 + 0)   32;
-                     0.01  (365 + 0)   32]);
-        P.fol = log([0.02  (365 + 128) 32;
-                     0.02  (365 + 64)  32;
-                     0.02  (365 + 32)  32]);
+        P.rol = log([0.001 ( 365 + 0)   32;
+                     0.01   (365 + 0)   32;
+                     0.01   (365 + 0)   32]);
+        P.fol = log([0.0001 (365 + 128) 32;
+                     0.0001 (365 + 64)  32;
+                     0.0001 (365 + 32)  32]);
                  
         P.sev = log([0.0010;
                      0.0100;
@@ -130,19 +132,18 @@ if nargin
                      0.001  (365 + 0)   32;
                      0.01   (365 + 0)   32;
                      0.02   (365 + 0)   32]);
+                 
         P.fol = log([0.0001 (365 + 512) 32;
-                     0.02   (365 + 128) 32;
-                     0.02   (365 + 64 ) 32;
-                     0.02   (365 + 32 ) 32]);
+                     0.0001 (365 + 128) 32;
+                     0.0001 (365 + 64 ) 32;
+                     0.0001 (365 + 32 ) 32]);
 
         C.rol = [0    0    0   ;
                  1/16 1/64 1/64;
                  1/16 1/64 1/64;
                  1/16 1/64 1/64];
-        C.fol = [0    0    0   ;
-                 1/16 1/64 1/64;
-                 1/16 1/64 1/64;
-                 1/16 1/64 1/64];
+             
+        C.fol = C.rol*0;
              
         % probability of hospitalisation when seriously ill
         %------------------------------------------------------------------
@@ -240,7 +241,7 @@ names{8}  = 'time constant of unlockin';
 names{9}  = 'viral spreading (days)';
 names{10} = 'admission rate (hospital)';
 names{11} = 'admission rate (critical)';
-names{12} = 'contact rates exponent';
+names{12} = 'infected period (late)';
 
 % infection (transmission) parameters
 %--------------------------------------------------------------------------
@@ -397,22 +398,22 @@ P.qua = 64;                   % (08) time constant of unlocking
 P.exp = 0.02;                 % (09) viral spreading (rate)
 P.hos = 1;                    % (10) admission rate (hospital) [erf]
 P.ccu = 0.1;                  % (11) admission rate (CCU)
-P.s   = 1;                    % (12) exponent of contact rates
+P.s   = 1;                    % (12) exposure period (days)
 
 % infection (transmission) parameters
 %--------------------------------------------------------------------------
 P.Nin = 2;                    % (13) effective number of contacts: home
 P.Nou = 24;                   % (14) effective number of contacts: work
-P.trn = 0.2;                  % (15) transmission strength (secondary attack rate)
+P.trn = 0.4;                  % (15) transmission strength (secondary attack rate)
 P.trm = 0.04;                 % (16) seasonality
 P.Tin = 3;                    % (17) infected period (days)
-P.Tcn = 4.5;                  % (18) infectious period (days)
-P.Tim = 128;                  % (19) seropositive immunity: natural (days)
+P.Tcn = 4;                    % (18) infectious period (days)
+P.Tim = 256;                  % (19) seropositive immunity: natural (days)
 P.res = 0.2;                  % (20) seronegative proportion (late)
 
 % clinical parameters
 %--------------------------------------------------------------------------
-P.Tic = 3;                    % (21) asymptomatic period (days)
+P.Tic = 4;                    % (21) asymptomatic period (days)
 P.Tsy = 5;                    % (22) symptomatic period  (days)
 P.Trd = 16;                   % (23) severe symptoms     (days)
 
@@ -427,7 +428,7 @@ P.ttt = 0.036;                % (28) FTTI efficacy
 P.tes = [16 8];               % (29) bias (for infection): PCR (Pill. 1 & 2)
 P.tts = 1;                    % (30) bias (for infection): LFD
 P.del = 3;                    % (31) test delay (days)
-P.vac = 512;                  % (32) seropositive immunity: vaccine (days)
+P.vac = 256;                  % (32) seropositive immunity: vaccine (days)
 P.fnr = [0.08 0.06];          % (33) false-negative rate  (infected/ious]
 P.fpr = [0.0002 0.003];       % (34) false-positive rate: (Sus. and Ab +ve)
 
@@ -484,7 +485,7 @@ C.qua = W;                    % (08) time constant of unlocking
 C.exp = W;                    % (09) viral spreading (rate)
 C.hos = W;                    % (10) admission rate (hospital)
 C.ccu = W;                    % (11) admission rate (CCU)
-C.s   = 0;                    % (12) decay of social distancing
+C.s   = Z;                    % (12) exposure period (days)
 
 % infection (transmission) parameters
 %--------------------------------------------------------------------------

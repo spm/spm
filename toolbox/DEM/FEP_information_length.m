@@ -13,7 +13,7 @@ function FEP_information_length(gi,qi,ci,fi)
 % first section shows that increasing solenoid flow leads to mixing that
 % accelerates the convergence of a random dynamical system to its
 % (nonequilibrium) steady-state or free energy minimum. Heuristically,
-% solenoidal flow —on the level set of on objective function (here the log
+% solenoidal flow—on the level set of on objective function (here the log
 % density of the said steady state)—can be regarded as searching for
 % ‘points of entry’ in state space with 'steep' gradients. The key
 % observation here is that the rate of convergence, scored with the
@@ -74,7 +74,7 @@ function FEP_information_length(gi,qi,ci,fi)
 %==========================================================================
 % The numerical experiments in the code below leverage the Helmholtz
 % decomposition of any random dynamical system that possesses a
-% steady-state solution to to its density dynamics (i.e., the Fokker Planck
+% steady-state solution to its density dynamics (i.e., the Fokker Planck
 % equation). Specifically, in what follows, we specify the dynamics in
 % terms of three components. The first is the log density (S) corresponding
 % to the final or nonequilibrium steady-state density, a dissipative
@@ -142,7 +142,7 @@ if ~nargin
     % (extrinsic) belief space continues to increase over time. In other
     % words, from an initial (probabilistic) state, the conditional (i.e.,
     % variational) density evolves through discernible probabilistic
-    % configurations (i.e., Bayesian beliefs about external statesthat are
+    % configurations (i.e., Bayesian beliefs about external states that are
     % encoded by the expected internal state)
     %----------------------------------------------------------------------
     spm_figure('GetWin','Precise particles'); clf;

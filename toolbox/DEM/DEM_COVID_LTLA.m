@@ -15,7 +15,7 @@ function [DCM] = DEM_COVID_LTLA(LA)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_LTLA.m 8156 2021-09-27 09:05:29Z karl $
+% $Id: DEM_COVID_LTLA.m 8188 2021-11-14 12:34:09Z karl $
 
 % download from web options
 %--------------------------------------------------------------------------
@@ -318,7 +318,7 @@ for r = 1:numel(D)
     
     % mean infectious period (MIP) & critical herd immunity threshold (CIT)
     %----------------------------------------------------------------------
-    MIP     = exp(Ep.Tin) + exp(Ep.Tcn)/2;
+    MIP     = exp(Ep.Tin) + (1 - exp(Ep.res))*exp(Ep.Tcn)/2;
     CIT     = (Y(end,3)/100/MIP) * 100000;
 
     % supplement with table of posterior expectations

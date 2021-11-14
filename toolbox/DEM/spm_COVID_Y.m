@@ -16,11 +16,12 @@ function [Y,S,dates] = spm_COVID_Y(Y,date0,days)
 %    Y(i).Y    = data points (vector)
 %    Y(i).h    = log-precision
 %    Y(i).n    = number of data points
+%    Y(i).s    = smoothing (days)
 %__________________________________________________________________________
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_Y.m 8173 2021-10-25 10:31:35Z karl $
+% $Id: spm_COVID_Y.m 8188 2021-11-14 12:34:09Z karl $
 
 
 % set up
@@ -72,7 +73,6 @@ for i = 1:numel(Y)
     Y(i).date = Y(i).date(j);
     Y(i).Y    = Y(i).Y(j,:);
     
-    
     % order data by date
     %----------------------------------------------------------------------
     [d,j]     = sort(Y(i).date);
@@ -86,17 +86,30 @@ nY    = zeros(1,numel(Y));
 for i = 1:numel(Y)
     nY(i)  = numel(Y(i).Y);
     Y(i).n = nY(i);
+    Y(i).s = 0;
     
-    % daily timeseries
-    %----------------------------------------------------------------------
-    if mean(diff(Y(i).date)) < 2
+    if Y(i).n
         
-        % cumulative versus rates
-        %----------------------------------------------------------------------
-        if min(diff(Y(i).Y)) >= 0
-            Y(i).Y = cumsum(spm_hist_smooth(gradient(Y(i).Y),days));
-        else
-            Y(i).Y = spm_hist_smooth(Y(i).Y,days);
+        % (AR) precision matrix
+        %--------------------------------------------------------------
+        Y(i).Q = spm_Q(0,Y(i).n);
+        
+        % daily timeseries
+        %------------------------------------------------------------------
+        if mean(diff(Y(i).date)) < 2
+            
+            % cumulative versus rates
+            %--------------------------------------------------------------
+            if min(diff(Y(i).Y)) >= 0
+                Y(i).Y = cumsum(spm_hist_smooth(gradient(Y(i).Y),days));
+            else
+                Y(i).Y = spm_hist_smooth(Y(i).Y,days);
+            end
+            
+            % (AR) precision matrix
+            %--------------------------------------------------------------
+            Y(i).Q = spm_Q(1/2,Y(i).n,1);
+            Y(i).s = days;
         end
     end
 end
@@ -109,14 +122,12 @@ Y     = Y([Y.n] > 1);
 %--------------------------------------------------------------------------
 h     = zeros(1,numel(Y));
 for i = 1:numel(Y)
-    h(i) = sum(Y(i).Y);
+    h(i) = mean(sqrt(Y(i).Y + 1));
 end
-h   = log(h);
-h   = mean(h) - h;
+h         = 4 - log(h);
 for i = 1:numel(Y)
     Y(i).h = Y(i).h + h(i);
 end
-
 
 % dates to generate
 %--------------------------------------------------------------------------

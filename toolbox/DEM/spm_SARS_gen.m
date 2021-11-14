@@ -80,7 +80,7 @@ function [y,x,z,W] = spm_SARS_gen(P,M,U,NPI,age)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_gen.m 8178 2021-11-03 19:27:23Z karl $
+% $Id: spm_SARS_gen.m 8188 2021-11-14 12:34:09Z karl $
 
 
 % The generative model:
@@ -366,8 +366,7 @@ for i = 1:M.T
         r{n} = [(1 - k1) (1 - k2);
                      k1,      k2]*r{n};
         
-        Pout     = r{n}(1)^Q{n}.s;                % P(going out)
-        Pout     = Pout*exp(Rout);                % add fluctuations
+        Pout     = r{n}(1)*exp(Rout);             % P(going out)add fluctuations
         Q{n}.out = erf(Pout*R{n}.out);            % scale by baseline
         
         % seasonal variation in transmission risk
@@ -387,7 +386,7 @@ for i = 1:M.T
         
         % link between transmissibility and period of infection
         %------------------------------------------------------------------
-        % Q{n}.Tin = R{n}.Tin/(1 + R{n}.pro*Ptrn);
+        % Q{n}.Tin = R{n}.Tin/(1 + R{n}.s*Ptrn);
         
         % contact rates
         %------------------------------------------------------------------
@@ -417,12 +416,13 @@ for i = 1:M.T
         Q{n}.nac = 1 - Rvac;
         
         % exponential decay and time-dependent clinical susceptibility
+        % (law of decreasing virulence)
         %------------------------------------------------------------------
         Q{n}.t   = i;                   % time (days)
         S        = exp(-i/512);
         Q{n}.sev = erf(R{n}.sev*S + R{n}.lat*(1 - S));  % P(ARDS | infected)
         Q{n}.fat = erf(R{n}.fat*S + R{n}.sur*(1 - S));  % P(fatality | ARDS, CCU)
-        
+        Q{n}.Tin = R{n}.Tin*(S + R{n}.s*(1 - S));       % Exposure (days)
         
         % update ensemble density (x)
         %==================================================================
@@ -471,7 +471,7 @@ for i = 1:M.T
         
         % seropositive immunity (%) Ab+ and Vaccine+
         %------------------------------------------------------------------
-        Y{n}(i,5) = 100 * sum(p{n}{2}([4,6,7,8]));
+        Y{n}(i,5) = 100 * sum(p{n}{2}([4,5,6,7,8]));
         
         % total number of daily virus tests (PCR and LFD)
         %------------------------------------------------------------------
@@ -555,7 +555,13 @@ for i = 1:M.T
         
         % cumulative number of people (first dose) vaccinated (%)
         %------------------------------------------------------------------
-        Y{n}(i,22) = 100 * sum(p{n}{2}(6:8));
+        q          = sum(p{n}{2}(6:8));
+        if isfield(Q{n},'ve')
+            Y{n}(i,22) = 100 * erf(q/Q{n}.ve);
+        else
+            Y{n}(i,22) = 100 * q;
+        end
+        
         
         % PCR case positivity (%) (seven day rolling average)
         %------------------------------------------------------------------

@@ -14,7 +14,7 @@ function DCM = DEM_COVID_UK4
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_UK4.m 8178 2021-11-03 19:27:23Z karl $
+% $Id: DEM_COVID_UK4.m 8188 2021-11-14 12:34:09Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -29,6 +29,7 @@ function DCM = DEM_COVID_UK4
 % set up and get data
 %==========================================================================
 close all
+clear functions
 clc
 spm_figure('GetWin','SI'); clf;
 cd('C:\Users\karl\Dropbox\Coronavirus\Dashboard')
@@ -144,15 +145,18 @@ url = 'https://assets.publishing.service.gov.uk/government/uploads/system/upload
 tab = webread(url,options);
 writetable(tab(:,1:8),'transport.csv');
 
-ndy = 321;
-url = 'https://www.gstatic.com/covid19/mobility/2020_GB_Region_Mobility_Report.csv';
-tab = webread(url);
-writetable(tab(1:ndy,9:12),'mobility20.csv');
+ndy    = 321;
+url    = 'https://www.gstatic.com/covid19/mobility/2020_GB_Region_Mobility_Report.csv';
+tab    = webread(url);
+vnames = tab.Properties.VariableNames;
+aw     = find(ismember(vnames,'workplaces_percent_change_from_baseline'));
+ad     = find(ismember(vnames,'date'));
+writetable(tab(1:ndy,[ad,aw]),'mobility20.csv');
 
 ndy = datenum(date) - datenum(datestr('01/01/2021','dd/mm/yyyy'));
 url = 'https://www.gstatic.com/covid19/mobility/2021_GB_Region_Mobility_Report.csv';
 tab = webread(url);
-writetable(tab(1:ndy,9:12),'mobility21.csv');
+writetable(tab(1:ndy,[ad,aw]),'mobility21.csv');
 
 
 % Country Code	K02000001	K03000001	K04000001	E92000001	W92000004	S92000003	N92000002	
@@ -292,7 +296,7 @@ Y(5).unit = 'number/day';
 Y(5).U    = 1;
 Y(5).date = datenum(deaths.textdata(2:end,d),'yyyy-mm-dd');
 Y(5).Y    = deaths.data(:,1);
-Y(5).h    = 4;
+Y(5).h    = 2;
 Y(5).lag  = 1;
 Y(5).age  = 0;
 Y(5).hold = 0;
@@ -312,7 +316,7 @@ Y(7).unit = 'number';
 Y(7).U    = 16;
 Y(7).date = datenum(admissions.textdata(2:end,d),'yyyy-mm-dd');
 Y(7).Y    = admissions.data(:,1);
-Y(7).h    = 2;
+Y(7).h    = 0;
 Y(7).lag  = 0;
 Y(7).age  = 0;
 Y(7).hold = 0;
@@ -375,10 +379,10 @@ Y(13).Y    = transport.data(:,1)*100;
 Y(13).date = datenum(transport.textdata(2:end,1),'dd-mmm-yyyy');
 Y(13).h    = 0;
 Y(13).lag  = 0;
-Y(13).age  = 3;
+Y(13).age  = 0;
 Y(13).hold = 1;
 
-Y(14).type = 'Mobility (GOV/Google)'; % retail and recreation (percent)
+Y(14).type = 'Mobility (GOV/Google)'; % workplace activity (percent)
 Y(14).unit = 'percent';
 Y(14).U    = 14;
 Y(14).date = [datenum(mobility20.textdata(2:end,1),'yyyy-mm-dd') ;
@@ -443,18 +447,17 @@ Y(19).unit = 'percent';
 Y(19).U    = 5;
 Y(19).date = datenum(serology.textdata(2:end,1),'dd/mm/yyyy');
 Y(19).Y    = serology.data(:,j(7:9))*ons{3};
-Y(19).h    = 2;
+Y(19).h    = 0;
 Y(19).lag  = 0;
 Y(19).age  = 4;
 Y(19).hold = 0;
-
 
 Y(20).type = 'First dose 15-35 (PHE)'; % percent vaccinated (England)
 Y(20).unit = 'percent';
 Y(20).U    = 22;
 Y(20).date = datenum(agevaccine.textdata(2:end,1),'yyyy-mm-dd');
 Y(20).Y    = agevaccine.data(:,iv2)*vons{1};
-Y(20).h    = 2;
+Y(20).h    = 0;
 Y(20).lag  = 0;
 Y(20).age  = 2;
 Y(20).hold = 1;
@@ -464,7 +467,7 @@ Y(21).unit = 'percent';
 Y(21).U    = 22;
 Y(21).date = datenum(agevaccine.textdata(2:end,1),'yyyy-mm-dd');
 Y(21).Y    = agevaccine.data(:,iv3)*vons{2};
-Y(21).h    = 2;
+Y(21).h    = 0;
 Y(21).lag  = 0;
 Y(21).age  = 3;
 Y(21).hold = 1;
@@ -474,7 +477,7 @@ Y(22).unit = 'percent';
 Y(22).U    = 22;
 Y(22).date = datenum(agevaccine.textdata(2:end,1),'yyyy-mm-dd');
 Y(22).Y    = agevaccine.data(:,iv4)*vons{3};
-Y(22).h    = 2;
+Y(22).h    = 0;
 Y(22).lag  = 0;
 Y(22).age  = 4;
 Y(22).hold = 0;
@@ -676,7 +679,7 @@ Y(39).hold = 0;
 % remove NANs, smooth and sort by date
 %==========================================================================
 M.date  = '01-02-2020';
-[Y,S]   = spm_COVID_Y(Y,M.date,8);
+[Y,S]   = spm_COVID_Y(Y,M.date,16);
 
 % for i = 1:38; plot(Y(i).date,Y(i).Y); pause, end
 
@@ -695,6 +698,11 @@ pC.wo   = ones(1,2);           % prior variance
 pE.gd   = [-1 1];              % coefficients gross domestic product
 pC.gd   = ones(1,2);           % prior variance
 
+% efficacy of first vaccination
+%--------------------------------------------------------------------------
+pE.ve   = zeros(nN,1);         % probability of seroconversion
+pC.ve   = ones(nN,1);          % prior variance
+
 % augment priors with fluctuations
 %--------------------------------------------------------------------------
 i       = ceil((datenum(date) - datenum(M.date))/32);
@@ -705,7 +713,10 @@ pC.tra  = ones(1,k)/8;         % prior variance
 pE.pcr  = zeros(1,j);          % testing
 pC.pcr  = ones(1,j)/8;         % prior variance
 pE.mob  = zeros(1,i);          % mobility
-pC.mob  = ones(1,i)/32;        % prior variance
+pC.mob  = ones(1,i)/64;        % prior variance
+
+
+
 
 % reporting lags
 %--------------------------------------------------------------------------
@@ -715,9 +726,15 @@ pC.lag  = lag;
 
 % data structure with vectorised data and covariance components
 %--------------------------------------------------------------------------
-xY.y    = spm_vec(Y.Y);
-xY.Q    = spm_Ce([Y.n]);
-hE      = spm_vec(Y.h);
+% xY.Q  = spm_Ce([Y.n]);
+xY.y  = spm_vec(Y.Y);
+nY    = numel(Y);
+for i = 1:nY
+    Q       = spm_zeros({Y.Q});
+    Q{i}    = Y(i).Q;
+    xY.Q{i} = spm_cat(spm_diag(Q));   
+end
+hE    = spm_vec(Y.h);
 
 % model specification
 %==========================================================================
@@ -727,7 +744,7 @@ M.FS   = @(Y)real(sqrt(Y));    % feature selection  (link function)
 M.pE   = pE;                   % prior expectations (parameters)
 M.pC   = pC;                   % prior covariances  (parameters)
 M.hE   = hE;                   % prior expectation  (log-precision)
-M.hC   = 1/512;                % prior covariances  (log-precision)
+M.hC   = 1/128;                % prior covariances  (log-precision)
 M.T    = Y;                    % data structure
 
 U      = [Y.U];                % outputs to model
@@ -919,9 +936,8 @@ drawnow
 % lockdown and mobility
 %--------------------------------------------------------------------------
 subplot(2,1,2)
-i       = find(DCM.U == 14,1); D = DCM.Y(:,i);
-[~,~,q] = spm_SARS_ci(Ep,Cp,D,14,M); hold on
-
+i       = find(DCM.U == 14,1);
+[~,~,q] = spm_SARS_ci(Ep,Cp,DCM.Y(:,i),14,M,[],A(i)); hold on
 
 % thresholds
 %--------------------------------------------------------------------------
@@ -992,9 +1008,8 @@ spm_figure('GetWin','long-term (2)'); clf
 
 subplot(2,1,1)
 i   = find(DCM.U == 4,1);
-Rt  = DCM.Y(:,i);
 spm_SARS_ci(Ep,Cp,[],11,M); hold on
-[~,~,q,c] = spm_SARS_ci(Ep,Cp,Rt,4 ,M); hold on
+[~,~,q,c] = spm_SARS_ci(Ep,Cp,DCM.Y(:,i),4,M); hold on
 
 j   = find(t == datenum(date));
 q   = q(j);
@@ -1003,12 +1018,13 @@ str = sprintf('Prevalence and reproduction ratio (%s): R = %.2f (CI %.2f to %.2f
 
 % attack rate, herd immunity and herd immunity threshold
 %--------------------------------------------------------------------------
+E         = 1 - mean(erf(exp(Ep.vef)))*mean(exp(Ep.ves));
 [H,~,~,R] = spm_SARS_gen(Ep,M,[4 29 26]);
 i         = 8:32;                           % pre-pandemic period
 TRN       = [R{1}.Ptrn];                    % transmission risk
 R0        = max(H(i,1));                    % basic reproduction ratio
-RT        = R0*TRN(:)/mean(TRN(i));         % effective reproduction ratio
-HIT       = 100 * (1 - 1./RT);            % herd immunity threshold
+RT        = R0*TRN(:)/min(TRN(i));          % effective reproduction ratio
+HIT       = 100 * (1 - 1./RT)/E;            % herd immunity threshold
 VAC       = H(:,2);                         % percent of people vaccinated
 
 % Add R0
@@ -1111,6 +1127,12 @@ disp('relative transmissibility');
 disp(100*TRN(j)/mean(TRN(1:j)))
 disp('basic reproduction number');
 disp(RT(j))
+
+% mean serial interval
+%--------------------------------------------------------------------------
+disp('mean serial interval (days)');
+disp(exp(Ep.Tin) + (1 - exp(Ep.res))*exp(Ep.Tcn)/2)
+disp(' ');
 
 
 %% save figures
@@ -1262,6 +1284,24 @@ for i = 1:numel(field)
 end
 
 
+%% sensitivity analysis in terms of partial derivatives
+%--------------------------------------------------------------------------
+i     = spm_fieldindices(Ep,'oth');
+nP    = spm_length(Ep);
+V     = spm_speye(nP,i);
+dYdP  = spm_diff(M.G,Ep,M,4,1,{V});
+
+% plot resultsall
+%--------------------------------------------------------------------------
+subplot(2,1,1)
+plot(dYdP)
+subplot(2,1,2)
+plot(cumsum(dYdP))
+ylabel('First-order sensitivity','FontSize',16), box off
+spm_fieldindices(Ep,9)
+
+
+
 
 %% Interventions
 %==========================================================================
@@ -1319,9 +1359,9 @@ spm_figure('GetWin','states'); clf;
 %--------------------------------------------------------------------------
 M.T    = datenum(date) - datenum(DCM.M.date,'dd-mm-yyyy');
 M.T    = M.T + 180;                 % forecast dates
-u      = 32;                        % empirical outcome
-a      = 3;                         % age cohort (0 for everyone)
-Ep.Tim = DCM.Ep.Tim + 0;            % adjusted (log) parameter
+u      = 5;                        % empirical outcome
+a      = 2;                         % age cohort (0 for everyone)
+Ep.Tnn = DCM.Ep.Tnn + 0;            % adjusted (log) parameter
 Ep.vac = DCM.Ep.vac + 0;            % adjusted (log) parameter
 
 [Z,X]  = spm_SARS_gen(Ep,M,u,[],a); % posterior prediction
