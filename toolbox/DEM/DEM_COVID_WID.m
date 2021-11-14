@@ -35,7 +35,7 @@ function DCM = DEM_COVID_WID
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_WID.m 8180 2021-11-03 19:35:52Z karl $
+% $Id: DEM_COVID_WID.m 8189 2021-11-14 12:39:48Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -47,10 +47,80 @@ cd('C:\Users\karl\Dropbox\Coronavirus')
 close all
 
 D      = DATA_WID_data;
+
 [v,vi] = sort([D.vrate],'ascend');
 [n,ni] = sort([D.population],'descend');
 n      = 32;
 ri     = unique([ni(1:n) vi(1:n)]);
+
+for r = 1:numel(ri)
+    country{r} = D(ri(r)).country;
+end
+
+country = [ ...
+    {'Afghanistan'                 }
+    {'Argentina'                   }
+    {'Bangladesh'                  }
+    {'Benin'                       }
+    {'Brazil'                      }
+    {'Cameroon'                    }
+    {'Chad'                        }
+    {'Colombia'                    }
+    {'Congo'                       }
+    {'Cote d''Ivoire'              }
+    {'Democratic Republic of Congo'}
+    {'Djibouti'                    }
+    {'Egypt'                       }
+    {'Ethiopia'                    }
+    {'France'                      }
+    {'Gabon'                       }
+    {'Gambia'                      }
+    {'Germany'                     }
+    {'Ghana'                       }
+    {'Guinea'                      }
+    {'Haiti'                       }
+    {'India'                       }
+    {'Indonesia'                   }
+    {'Iran'                        }
+    {'Italy'                       }
+    {'Japan'                       }
+    {'Kenya'                       }
+    {'Liberia'                     }
+    {'Madagascar'                  }
+    {'Malawi'                      }
+    {'Mali'                        }
+    {'Mexico'                      }
+    {'Mozambique'                  }
+    {'Myanmar'                     }
+    {'Niger'                       }
+    {'Nigeria'                     }
+    {'Pakistan'                    }
+    {'Papua New Guinea'            }
+    {'Philippines'                 }
+    {'Russia'                      }
+    {'Senegal'                     }
+    {'Sierra Leone'                }
+    {'Somalia'                     }
+    {'South Africa'                }
+    {'South Korea'                 }
+    {'South Sudan'                 }
+    {'Spain'                       }
+    {'Sudan'                       }
+    {'Thailand'                    }
+    {'Togo'                        }
+    {'Turkey'                      }
+    {'Uganda'                      }
+    {'Ukraine'                     }
+    {'United Kingdom'              }
+    {'United States'               }
+    {'Vietnam'                     }
+    {'Yemen'                       }
+    {'Zambia'                      }];
+    
+for r = 1:numel(country)
+    ri(r) = find(ismember({D.country},country{r}));
+end
+
 
 %% free parameters of model (i.e., country specific effects)
 %==========================================================================
@@ -196,7 +266,7 @@ for r = ri
     try, load DCM_OWID DCM, end
     clear M
     M.P   = pE;
-    if r < 75
+    if true
         try
             % use previous inversion
             %--------------------------------------------------------------
