@@ -9,13 +9,16 @@ function sts = subsasgn_check_valcfg(subs,val,num)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsasgn_check_valcfg.m 1862 2008-06-30 14:12:49Z volkmar $
+% $Id: subsasgn_check_valcfg.m 8190 2021-11-16 18:26:42Z guillaume $
 
-rev = '$Rev: 1862 $'; %#ok
+rev = '$Rev: 8190 $'; %#ok
 
 sts = true;
 
 % pass a cell of items
+if isa(val,'function_handle')
+    val = feval(val);
+end
 if ~iscell(val)
     cfg_message('matlabbatch:checkval', ...
             'Value must be a cell of ''cfg_item'' objects.');
