@@ -119,7 +119,7 @@ function [MDP] = spm_MDP_VB_XX(MDP,OPTIONS)
 % Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_XX.m 8172 2021-10-25 10:20:42Z karl $
+% $Id: spm_MDP_VB_XX.m 8191 2021-11-30 14:31:53Z guillaume $
 
 
 % deal with a sequence of trials
@@ -1246,7 +1246,7 @@ function A  = spm_margin(A,i)
 %--------------------------------------------------------------------------
 d    = 1:ndims(A);
 d(i) = [];
-A    = sum(A,d);
+A    = spm_sum(A,d);
 A    = A(:);
 
 
