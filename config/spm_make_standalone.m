@@ -1,4 +1,4 @@
-function spm_make_standalone(outdir, gateway, contentsver)
+function spm_make_standalone(outdir, gateway, contentsver, tbxs)
 % Compile SPM as a standalone executable using the MATLAB Compiler
 %   https://www.mathworks.com/products/compiler.html
 %
@@ -8,10 +8,12 @@ function spm_make_standalone(outdir, gateway, contentsver)
 % On Windows:
 %   spm12.exe <modality>
 %   spm12.exe batch <batch.m(at)>
+%   spm12.exe script script.m
 %
 % On Linux/Mac:
 %   ./run_spm12.sh <MCRroot> <modality>
 %   ./run_spm12.sh <MCRroot> batch <batch.m(at)>
+%   ./run_spm12.sh <MCRroot> script script.m
 %
 % The first command starts SPM in interactive mode with GUI. The second
 % executes a batch file or starts the Batch Editor if none is provided.
@@ -24,10 +26,10 @@ function spm_make_standalone(outdir, gateway, contentsver)
 % 
 % See spm_standalone.m and https://en.wikibooks.org/wiki/SPM/Standalone
 %__________________________________________________________________________
-% Copyright (C) 2010-2019 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2010-2021 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_make_standalone.m 7534 2019-02-20 17:09:45Z guillaume $
+% $Id: spm_make_standalone.m 8192 2021-12-06 15:06:52Z guillaume $
 
 
 %-Check startup.m
@@ -45,6 +47,7 @@ if ~nargin
 end
 if nargin < 2 || isempty(gateway), gateway = 'spm_standalone.m'; end
 if nargin < 3, contentsver = ''; end
+if nargin < 4, tbxs = {'signal'}; end
 
 %==========================================================================
 %-Static listing of SPM toolboxes
@@ -110,12 +113,23 @@ for i=1:numel(d)
         [sts, msg] = rmdir(d{i},'s');
     end
 end
+for i=1:numel(tbxs)
+    d = fullfile(spm('Dir'),'external','fieldtrip','external',tbxs{i});
+    if exist(d,'dir')
+        [sts, msg] = rmdir(d{i},'s');
+    end
+end
 
 %==========================================================================
 %-Compilation
 %==========================================================================
-Nopts = {'-p',fullfile(matlabroot,'toolbox','signal')};
-if ~exist(Nopts{2},'dir'), Nopts = {}; end
+Nopts = {};
+for i=1:numel(tbxs)
+    d = fullfile(matlabroot,'toolbox',tbxs{i});
+    if exist(d,'dir')
+        Nopts = [Nopts {'-p'} {d}];
+    end
+end
 Ropts = {'-R','-singleCompThread'} ;
 if ~ismac && spm_check_version('matlab','8.4') >= 0
     Ropts = [Ropts, {'-R','-softwareopengl'}];
