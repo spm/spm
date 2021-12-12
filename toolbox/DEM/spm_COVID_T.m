@@ -22,7 +22,7 @@ function [T,R] = spm_COVID_T(P,I)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_T.m 8178 2021-11-03 19:27:23Z karl $
+% $Id: spm_COVID_T.m 8193 2021-12-12 16:39:15Z karl $
 
 % setup
 %==========================================================================
@@ -242,7 +242,11 @@ b{2} = [Ktic       (1 - Ksym)*(1 - Psev) (1 - Ktrd)*(1 - Pfat) (1 - Kday);
     
 % marginal: clinical {3} | infectious {2}(3)
 %--------------------------------------------------------------------------
-b{3} = b{2};
+Ktic = Ktic*P.s(3);
+b{3} = [Ktic       (1 - Ksym)*(1 - Psev) (1 - Ktrd)*(1 - Pfat) (1 - Kday);
+       (1 - Ktic)   Ksym                  0                     0;
+        0          (1 - Ksym)*Psev        Ktrd                  0;
+        0           0                    (1 - Ktrd)*Pfat        Kday];
 
 % marginal: clinical {3} | Ab+ {2}(4)
 %--------------------------------------------------------------------------
@@ -423,6 +427,7 @@ R.Psen = Psen;
 R.Ptes = Ptes;
 R.Rvac = Rvac;
 R.Tin  = P.Tin;
+R.Tic  = P.Tic;
 
 return
 

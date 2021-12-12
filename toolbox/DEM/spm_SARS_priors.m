@@ -37,7 +37,7 @@ function [P,C,str] = spm_SARS_priors(nN)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_priors.m 8188 2021-11-14 12:34:09Z karl $
+% $Id: spm_SARS_priors.m 8193 2021-12-12 16:39:15Z karl $
 
 % sources and background
 %--------------------------------------------------------------------------
@@ -241,7 +241,7 @@ names{8}  = 'time constant of unlockin';
 names{9}  = 'viral spreading (days)';
 names{10} = 'admission rate (hospital)';
 names{11} = 'admission rate (critical)';
-names{12} = 'infected period (late)';
+names{12} = 'infectivity changes';
 
 % infection (transmission) parameters
 %--------------------------------------------------------------------------
@@ -339,10 +339,11 @@ factor{5} = {' ',' '};
 % Y(:,26) - Population immunity (total)
 % Y(:,27) - Hospital cases
 % Y(:,28) - Incidence of Long Covid
-% Y(:,29) - Proportion vaccinated
+% Y(:,29) - Vaccine antibodies
 % Y(:,30) - Cumulative admissions
 % Y(:,31) - Vaccine effectiveness (prevalence)
 % Y(:,32) - Gross domestic product
+% Y(:,33) - Doubling time (days)
 
 
 str.outcome = {'Daily deaths (28 days)',...
@@ -370,13 +371,14 @@ str.outcome = {'Daily deaths (28 days)',...
     'PCR positivity (%)',...
     'Lateral flow tests',...
     'Attack rate (%)',...
-    'Population immunity (total) (%)'...
+    'Population immunity (%)'...
     'Hospital cases'...
     'Incidence of Long Covid'...
-    'Proportion vaccinated (%)'...
+    'Vaccine antibodies (%)'...
     'Cumulative admissions'...
     'Vaccine effectiveness (prevalence) '...
-    'Gross domestic product'};
+    'Gross domestic product'...
+    'Doubling time (days)'};
 
 str.factors = factors;
 str.factor  = factor;
@@ -398,7 +400,7 @@ P.qua = 64;                   % (08) time constant of unlocking
 P.exp = 0.02;                 % (09) viral spreading (rate)
 P.hos = 1;                    % (10) admission rate (hospital) [erf]
 P.ccu = 0.1;                  % (11) admission rate (CCU)
-P.s   = 1;                    % (12) exposure period (days)
+P.s   = [1 1 1];              % (12) changes in infectivity
 
 % infection (transmission) parameters
 %--------------------------------------------------------------------------
@@ -485,7 +487,7 @@ C.qua = W;                    % (08) time constant of unlocking
 C.exp = W;                    % (09) viral spreading (rate)
 C.hos = W;                    % (10) admission rate (hospital)
 C.ccu = W;                    % (11) admission rate (CCU)
-C.s   = Z;                    % (12) exposure period (days)
+C.s   = X;                    % (12) changes in infectivity
 
 % infection (transmission) parameters
 %--------------------------------------------------------------------------

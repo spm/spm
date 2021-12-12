@@ -39,10 +39,12 @@ function [y,x,z,W] = spm_SARS_gen(P,M,U,NPI,age)
 % Y(:,26) - Population immunity (total)
 % Y(:,27) - Hospital cases
 % Y(:,28) - Incidence of Long Covid
-% Y(:,29) - Proportion vaccinated
+% Y(:,29) - Vaccine immunity (seropositive)
 % Y(:,30) - Cumulative admissions
 % Y(:,31) - Vaccine effectiveness (prevalence)
 % Y(:,32) - Gross domestic product
+% Y(:,33) - doubling time
+
 %
 % X       - (M.T x 4) marginal densities over four factors
 % location   : {'home','out','ccu','removed','isolated','hospital'};
@@ -80,7 +82,7 @@ function [y,x,z,W] = spm_SARS_gen(P,M,U,NPI,age)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_gen.m 8188 2021-11-14 12:34:09Z karl $
+% $Id: spm_SARS_gen.m 8193 2021-12-12 16:39:15Z karl $
 
 
 % The generative model:
@@ -384,10 +386,11 @@ for i = 1:M.T
         Ptrn = Q{n}.trn + Q{n}.trm*S;            % seasonal risk
         Ptrn = erf(Ptrn*Ptra);                   % fluctuating risk
         
-        % link between transmissibility and period of infection
+        % link between transmissibility and periods of infection
         %------------------------------------------------------------------
-        % Q{n}.Tin = R{n}.Tin/(1 + R{n}.s*Ptrn);
-        
+        Q{n}.Tin = R{n}.Tin*Ptra^(log(R{n}.s(1)));
+        Q{n}.Tic = R{n}.Tic*Ptra^(log(R{n}.s(2)));
+
         % contact rates
         %------------------------------------------------------------------
         tin  = 1;
@@ -422,7 +425,9 @@ for i = 1:M.T
         S        = exp(-i/512);
         Q{n}.sev = erf(R{n}.sev*S + R{n}.lat*(1 - S));  % P(ARDS | infected)
         Q{n}.fat = erf(R{n}.fat*S + R{n}.sur*(1 - S));  % P(fatality | ARDS, CCU)
-        Q{n}.Tin = R{n}.Tin*(S + R{n}.s*(1 - S));       % Exposure (days)
+        
+        % Q{n}.Tin = R{n}.Tin*(S + R{n}.s(1)*(1 - S));  % Exposure (days)
+        % Q{n}.Tic = R{n}.Tic*(S + R{n}.s(2)*(1 - S));  % Exposure (days)
         
         % update ensemble density (x)
         %==================================================================
@@ -562,7 +567,6 @@ for i = 1:M.T
             Y{n}(i,22) = 100 * q;
         end
         
-        
         % PCR case positivity (%) (seven day rolling average)
         %------------------------------------------------------------------
         Y{n}(i,23) = 100 * (1 - (1 - p{n}{4}(3))^7)/(1 - (1 - p{n}{4}(3) - p{n}{4}(4))^7);
@@ -592,11 +596,15 @@ end
 
 for n = 1:nN
     
-    % effective reproduction ratio: exp(K*<T>): K = dln(N)/dt
+    % doubling time: ln(2)/K: K = dln(N)/dt
     %----------------------------------------------------------------------
     K          = gradient(log(Y{n}(:,4)));
+    Y{n}(:,33) = log(2)./K;
+    
+    % effective reproduction ratio: exp(K*<T>): K = dln(N)/dt
+    %----------------------------------------------------------------------
     Tin        = [W{n}.Tin]';
-    Tcn        = Q{n}.Tcn*(1 - Q{n}.res);
+    Tcn        =  Q{n}.Tcn;
     Y{n}(:,4)  = 1 + K.*(Tin + Tcn) + (K.^2).*Tin*Tcn;
     
     % incidence of new infections (%)
@@ -625,15 +633,15 @@ for n = 1:nN
     %----------------------------------------------------------------------
     Y{n}(:,25) = 100 * erf(cumsum(Y{n}(:,10)/100));
     
-    % population immunity (seropositive, seronegative) (%)
+    % total immunity (seropositive, seronegative) (%)
     %----------------------------------------------------------------------
     Y{n}(:,26) = 100 * sum(X{n,2}(:,4:8),2);
     
-    % proportion vaccinated (%)
+    % vaccine immunity (seropositive) (%)
     %----------------------------------------------------------------------
     Y{n}(:,29) = 100 * sum(X{n,2}(:,6:8),2);
     
-    % accommodate (3 week) delay in immunity following vaccination
+    % accommodate delay in immunity following vaccination
     %----------------------------------------------------------------------
     Y{n}(:,22) = Y{n}(:,22) + Q{n}.mem*gradient(Y{n}(:,22));
     

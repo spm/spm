@@ -14,7 +14,7 @@ function DCM = DEM_COVID_UK4
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_UK4.m 8188 2021-11-14 12:34:09Z karl $
+% $Id: DEM_COVID_UK4.m 8193 2021-12-12 16:39:15Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -65,7 +65,7 @@ url = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=overview&metric=newO
 writetable(webread(url,options),'certified.csv');
 url = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=nation&areaCode=E92000001&metric=uniqueCasePositivityBySpecimenDateRollingSum&format=csv';
 writetable(webread(url,options),'positivity.csv');
-url = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=nation&areaCode=E92000001&metric=newLFDTests&format=csv';
+url = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=nation&areaCode=E92000001&metric=newLFDTestsBySpecimenDate&format=csv';
 writetable(webread(url,options),'lateralft.csv');
 url = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=nation&areaCode=E92000001&metric=cumAntibodyTestsByPublishDate&format=csv';
 writetable(webread(url,options),'antibody.csv');
@@ -578,7 +578,6 @@ Y(30).lag  = 1;
 Y(30).age  = 4;
 Y(30).hold = 0;
 
-
 j          = find(~ismember(surveyage.textdata(1,2:end),''));
 Y(31).type = 'Prevalence <15 (PHE)';  % Estimated positivity (England)
 Y(31).unit = 'percent';
@@ -937,7 +936,7 @@ drawnow
 %--------------------------------------------------------------------------
 subplot(2,1,2)
 i       = find(DCM.U == 14,1);
-[~,~,q] = spm_SARS_ci(Ep,Cp,DCM.Y(:,i),14,M,[],A(i)); hold on
+[~,~,q] = spm_SARS_ci(Ep,Cp,DCM.Y(:,i),14,M,[],DCM.A(i)); hold on
 
 % thresholds
 %--------------------------------------------------------------------------
@@ -1022,6 +1021,8 @@ E         = 1 - mean(erf(exp(Ep.vef)))*mean(exp(Ep.ves));
 [H,~,~,R] = spm_SARS_gen(Ep,M,[4 29 26]);
 i         = 8:32;                           % pre-pandemic period
 TRN       = [R{1}.Ptrn];                    % transmission risk
+TIN       = [R{1}.Tin];                     % exposure time (days)
+TIC       = [R{1}.Tic];                     % incubation period (days)
 R0        = max(H(i,1));                    % basic reproduction ratio
 RT        = R0*TRN(:)/min(TRN(i));          % effective reproduction ratio
 HIT       = 100 * (1 - 1./RT)/E;            % herd immunity threshold
@@ -1029,11 +1030,14 @@ VAC       = H(:,2);                         % percent of people vaccinated
 
 % Add R0
 %--------------------------------------------------------------------------
-alpha = datenum('20-Sep-2020','dd-mmm-yyyy');
-delta = datenum('20-Mar-2021','dd-mmm-yyyy');
+alpha   = datenum('20-Sep-2020','dd-mmm-yyyy');
+delta   = datenum('20-Mar-2021','dd-mmm-yyyy');
+omicron = datenum('15-Nov-2021','dd-mmm-yyyy');
+
 plot(t,RT)
-text(alpha,4,'alpha','FontSize',10)
-text(delta,4,'delta','FontSize',10)
+text(alpha,4,'alpha','FontSize',10,'HorizontalAlignment','center')
+text(delta,4,'delta','FontSize',10,'HorizontalAlignment','center')
+text(omicron,4,'omicron','FontSize',10,'HorizontalAlignment','center')
 
 % add R = 1 and current dateline
 %--------------------------------------------------------------------------
@@ -1117,9 +1121,14 @@ fprintf('relative risk of fatality %.1f%s\n',      death*100,'%')
 disp(' ')
 
 M.T    = datenum(date) - datenum(DCM.M.date,'dd-mm-yyyy');
-Z      = spm_SARS_gen(Ep,M,31);
-fprintf('vaccine effectiveness (prevalence of infection) %.1f%s\n', Z(end),'%')
+Z      = spm_SARS_gen(Ep,M,[31,33]);
+fprintf('vaccine effectiveness (prevalence of infection) %.1f%s\n', Z(end,1),'%')
 disp(' ')
+
+% doubling time
+%--------------------------------------------------------------------------
+% fprintf('doubling time %.1f (days)\n', Z(end,2))
+% disp(' ')Garay
 
 % report transmissibility and basic reproduction number
 %--------------------------------------------------------------------------
@@ -1131,8 +1140,12 @@ disp(RT(j))
 % mean serial interval
 %--------------------------------------------------------------------------
 disp('mean serial interval (days)');
-disp(exp(Ep.Tin) + (1 - exp(Ep.res))*exp(Ep.Tcn)/2)
-disp(' ');
+disp(mean(TIN(1:j)) + exp(Ep.Tcn)/2)
+
+% mean incubation (asymptomatic).
+%--------------------------------------------------------------------------
+disp('mean asymptomatic period (days)');
+disp(mean(TIC(1:j)))
 
 
 %% save figures
