@@ -30,7 +30,7 @@ function FEP_Manifold
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: FEP_Manifold.m 7163 2017-09-04 09:12:50Z karl $
+% $Id: FEP_Manifold.m 8194 2021-12-12 16:40:20Z karl $
  
  
 % default settings (GRAPHICS sets movies)
@@ -434,7 +434,7 @@ for i = 1:n
     axis square
     
     % plot dynamics
-    %--------------------------------------------------------------------------
+    %----------------------------------------------------------------------
     subplot(2,2,3)
     plot(1:T,squeeze(X(1,:,:)),':',t,squeeze(X(1,:,t)),'-')
     axis([1 T -64 64])
@@ -443,7 +443,7 @@ for i = 1:n
     axis square
     
     % plot entropies
-    %--------------------------------------------------------------------------
+    %----------------------------------------------------------------------
     subplot(2,2,4)
     plot(Hq(:),Hp(:),'.',Hq(:),Hp(:),'o')
     xlabel('Functional entropy','FontSize',12)
@@ -452,3 +452,44 @@ for i = 1:n
     axis square
     
 end
+
+%% notes for variational evolution
+%==========================================================================
+% Reference: Stochastic models of evolution in genetics, ecology and
+% linguistics Jour. Stat. Mech. (JSTAT) P07018, July 2007
+% solution to a master equation for genetic combinations, based upon a
+% graph Laplacian
+%--------------------------------------------------------------------------
+n     = 64;
+x     = linspace(.1,.99,n);
+G     = diag(x);
+for i = 1:n
+    G(:,i) = (1 - x(i))/(n - 1);
+    G(i,i) = x(i);
+end
+[e,s] = eig(G - eye(n));
+s     = diag(s);
+
+[s,i] = min(abs(s));
+e     = e(:,i);
+e     = e/sum(e)
+
+y     = 1./(1 - x);
+y     = y/sum(y);
+
+plot(x,e,'o'); hold on
+plot(x,y,'x');
+
+
+
+
+
+
+
+
+
+
+
+
+
+

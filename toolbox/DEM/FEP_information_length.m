@@ -377,12 +377,16 @@ for t = 1:T
     xlabel('4th state'), ylabel('1st state')
     title('Density dynamics','Fontsize',14)
     
+
+    
     % overlay trajectory
     %----------------------------------------------------------------------
     hold on
     plot(v(4,:),v(1,:),'Color',col)
     plot(u(4,:),u(1,:),':','Color',col), hold off
     drawnow
+    
+    MOV(t) = getframe(gca);
     
 end
 
@@ -423,6 +427,12 @@ plot3(mT(1),mT(2),mT(3),   '.','Color',col,'MarkerSize',32)
 title('State-space','Fontsize',16)
 xlabel('1st state'), ylabel('2nd state'), zlabel('4th state')
 axis square, box off
+
+% assign movies to each graph object
+%--------------------------------------------------------------------------
+subplot(3,2,2)
+set(gca,'Userdata',{MOV,16})
+set(gca,'ButtonDownFcn','spm_DEM_ButtonDownFcn')
 
 % return unless functional forms are requested with a fourth argument
 %--------------------------------------------------------------------------
