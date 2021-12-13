@@ -6,7 +6,7 @@ function this = checkmeeg(this)
 % Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: checkmeeg.m 8062 2021-02-11 10:50:41Z vladimir $
+% $Id: checkmeeg.m 8195 2021-12-13 10:17:55Z vladimir $
 
 
 %-Initialise data dimensions
@@ -265,6 +265,9 @@ if Ntrials > 0
             
             % make sure that all numeric values are double
             for j = 1:length(event)
+                if isempty(event(j).value)
+                    event(j).value = [];
+                end
                 if isnumeric(event(j).value)
                     event(j).value = double(event(j).value);
                 end
