@@ -55,9 +55,9 @@ addpath(fullfile(spm('dir'),'toolbox','Longitudinal'));
 fil = load(filfile);
 
 for n=1:size(P,1)
-    run.gmm.chan.images = {deblank(P(n,:))};
-    [odir,onam,ext] = fileparts(run.gmm.chan.images{1}); % Output directory and filename
-    [dat,sett]  = spm_mb_init(run);                  % Set up data structure
+    cfg.gmm.chan.images = {deblank(P(n,:))};
+    [odir,onam,ext] = fileparts(cfg.gmm.chan.images{1}); % Output directory and filename
+    [dat,sett]  = spm_mb_init(cfg);                  % Set up data structure
     dat(1).v    = zeros([dat(1).dm 3],'single');     % Modify structure to work in memory
     dat(1).psi  = zeros([dat(1).dm 3],'single');     % Modify structure to work in memory
     dat(1).onam = onam;
