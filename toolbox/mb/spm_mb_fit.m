@@ -10,7 +10,7 @@ function [dat,sett,mu] = spm_mb_fit(dat,sett)
 %__________________________________________________________________________
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_fit.m 8115 2021-06-30 08:55:47Z john $
+% $Id: spm_mb_fit.m 8196 2021-12-16 15:18:25Z john $
 
 
 % Repeatable random numbers
@@ -278,7 +278,6 @@ function do_save(mu,sett,dat)
 if isfield(sett,'save') && sett.save
     % Save results so far
     spm_mb_io('save_template',mu,sett);
-    %sett = rmfield(sett,{'ms'});
     save(fullfile(sett.odir,['mb_fit_' sett.onam '.mat']),'sett','dat');
 end
 %==========================================================================

@@ -20,7 +20,7 @@ function model = fil_train(data,sett,model)
 % Copyright (C) 2019-2021 Wellcome Centre for Human Neuroimaging
 
 % John Ashburner
-% $Id: fil_train.m 8139 2021-08-24 19:38:01Z guillaume $
+% $Id: fil_train.m 8196 2021-12-16 15:18:25Z john $
 
 io   = fil_io;                      % Handles to I/O functions
 dat  = io.init(data{:});            % Set up data for I/O
@@ -29,7 +29,7 @@ Mw   = dat.Mw;                      % Voxel-to-world
 r    = sett.r;                      % search radius
 Nsub = size(dat.chan(1).fname, 1);  % Number of subjects
 p0   = ones([Nsub,1],'single');     % Weights for each subject
-% p0 = ones([35,1],'single'); p0(16:25)=0.5; % Uncomment when training with full MICCAI dataset
+%p0   = 1 - [0 0 0 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 0 1 1 0 0 0 0 0 0 0 0 0 0]'*0.5; % Full MICCAI
 p    = get_weights(p0, r, sett.sd); % Weighting (when doing search)
 ind  = true(numel(p), 2);           % Mask indicating which subjects have which data
 
