@@ -884,6 +884,9 @@ if ~isempty(Alpha) && ~isempty(Alpha0)
     % Ignore zeros
     Alpha  = Alpha(2:end,:);
     Alpha0 = Alpha0(2:end,:);
+else
+    lb = 0;
+    return
 end
 
 % E[ln P], where P ~ Dir(Alpha)
