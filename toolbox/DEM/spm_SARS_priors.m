@@ -37,7 +37,7 @@ function [P,C,str] = spm_SARS_priors(nN)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_priors.m 8193 2021-12-12 16:39:15Z karl $
+% $Id: spm_SARS_priors.m 8199 2021-12-18 21:30:24Z karl $
 
 % sources and background
 %--------------------------------------------------------------------------
@@ -344,7 +344,7 @@ factor{5} = {' ',' '};
 % Y(:,31) - Vaccine effectiveness (prevalence)
 % Y(:,32) - Gross domestic product
 % Y(:,33) - Doubling time (days)
-
+% Y(:,34) - Incidence of new cases (total)
 
 str.outcome = {'Daily deaths (28 days)',...
     'Daily confirmed cases',...
@@ -378,7 +378,8 @@ str.outcome = {'Daily deaths (28 days)',...
     'Cumulative admissions'...
     'Vaccine effectiveness (prevalence) '...
     'Gross domestic product'...
-    'Doubling time (days)'};
+    'Doubling time (days)'...
+    'Daily incidence'};
 
 str.factors = factors;
 str.factor  = factor;
@@ -400,7 +401,7 @@ P.qua = 64;                   % (08) time constant of unlocking
 P.exp = 0.02;                 % (09) viral spreading (rate)
 P.hos = 1;                    % (10) admission rate (hospital) [erf]
 P.ccu = 0.1;                  % (11) admission rate (CCU)
-P.s   = [1 1 1];              % (12) changes in infectivity
+P.s   = [1 1 1 1 1];          % (12) changes in infectivity
 
 % infection (transmission) parameters
 %--------------------------------------------------------------------------

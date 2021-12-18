@@ -43,12 +43,12 @@ function [y,x,z,W] = spm_SARS_gen(P,M,U,NPI,age)
 % Y(:,30) - Cumulative admissions
 % Y(:,31) - Vaccine effectiveness (prevalence)
 % Y(:,32) - Gross domestic product
-% Y(:,33) - doubling time
-
+% Y(:,33) - Doubling time
+% Y(:,34) - incidence of new cases (total)
 %
 % X       - (M.T x 4) marginal densities over four factors
 % location   : {'home','out','ccu','removed','isolated','hospital'};
-% infection  : {'susceptible','infected','infectious','Ab +ve','Ab -ve','Vac +ve','Vac Inf'};
+% infection  : {'susceptible','infected','infectious','Ab +ve','Ab -ve','vaccine +ve','infected (vac)','infectious (vac)'};
 % clinical   : {'asymptomatic','symptoms','ARDS','death'};
 % diagnostic : {'untested','waiting','PCR +ve','PCR -ve','LFD +ve','LFD -ve'}
 %
@@ -82,7 +82,7 @@ function [y,x,z,W] = spm_SARS_gen(P,M,U,NPI,age)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_gen.m 8193 2021-12-12 16:39:15Z karl $
+% $Id: spm_SARS_gen.m 8199 2021-12-18 21:30:24Z karl $
 
 
 % The generative model:
@@ -282,7 +282,7 @@ end
 
 % outputs that depend upon population size
 %--------------------------------------------------------------------------
-uN    = [1,2,3,6,9,12,15,16,17,18,24,27,28,30];
+uN    = [1,2,3,6,9,12,15,16,17,18,24,27,28,30,34];
 
 % ensemble density tensor and solve over the specified number of days
 %--------------------------------------------------------------------------
@@ -386,10 +386,12 @@ for i = 1:M.T
         Ptrn = Q{n}.trn + Q{n}.trm*S;            % seasonal risk
         Ptrn = erf(Ptrn*Ptra);                   % fluctuating risk
         
-        % link between transmissibility and periods of infection
+        % fluctuations in epidemiological parameters
         %------------------------------------------------------------------
         Q{n}.Tin = R{n}.Tin*Ptra^(log(R{n}.s(1)));
         Q{n}.Tic = R{n}.Tic*Ptra^(log(R{n}.s(2)));
+        Q{n}.Tim = R{n}.Tim*Ptra^(log(R{n}.s(3)));
+        Q{n}.Tnn = R{n}.Tnn*Ptra^(log(R{n}.s(4)));
 
         % contact rates
         %------------------------------------------------------------------
@@ -649,8 +651,12 @@ for n = 1:nN
     %----------------------------------------------------------------------
     Y{n}(:,30) = cumsum(Y{n}(:,16));
     
-    % retain specified output variables
+    % daily incidence (total)
     %----------------------------------------------------------------------
+    Y{n}(:,34) = Y{n}(:,10)*N(n) / 100;
+    
+    % retain specified output variables
+    %======================================================================
     Y{n} = Y{n}(:,U);
     
 end
@@ -669,13 +675,14 @@ if numel(age) == 1 && age > 1
     % return requested population
     %----------------------------------------------------------------------
     x = X(age,:);
+    z = Z(age,:);
     
 else
     
     % marginalise over populations
     %----------------------------------------------------------------------
-    x      = cell(1,Nf); [x{:}] = deal(0);
-    z      = cell(1,Nt); [z{:}] = deal(0);
+    x     = cell(1,Nf); [x{:}] = deal(0);
+    z     = cell(1,Nt); [z{:}] = deal(0);
     for i = 1:nN
         for j = 1:Nf
             x{1,j} = x{1,j} + X{i,j}*n(i);
@@ -686,8 +693,9 @@ else
             z{1,j} = z{1,j} + Z{i,j}*n(i);
         end
     end
-    
+
 end
+
 
 % age-specific outcomes or averages
 %--------------------------------------------------------------------------

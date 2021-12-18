@@ -14,7 +14,7 @@ function DCM = DEM_COVID_UK4
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_UK4.m 8193 2021-12-12 16:39:15Z karl $
+% $Id: DEM_COVID_UK4.m 8199 2021-12-18 21:30:24Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -74,10 +74,10 @@ writetable(webread(url,options),'antibody.csv');
 %--------------------------------------------------------------------------
 url   = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=nation&areaCode=E92000001&metric=newDeaths28DaysByDeathDateAgeDemographics&format=csv';
 tab   = webread(url,options);
-vnames = tab.Properties.VariableNames;
-aa     = find(ismember(vnames,'age'));
-ad     = find(ismember(vnames,'date'));
-an     = find(ismember(vnames,'deaths'));
+vname = tab.Properties.VariableNames;
+aa     = find(ismember(vname,'age'));
+ad     = find(ismember(vname,'date'));
+an     = find(ismember(vname,'deaths'));
 age   = unique(tab(:,aa));
 for r = 1:numel(age)
     j = find(ismember(tab(:,aa),age(r,1)));
@@ -91,10 +91,10 @@ writetable(agedeaths,'agedeaths.csv')
 %----------------------------------------------------------------------
 url   = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=nation&areaCode=E92000001&metric=newCasesBySpecimenDateAgeDemographics&format=csv';
 tab   = webread(url,options);
-vnames = tab.Properties.VariableNames;
-aa     = find(ismember(vnames,'age'));
-ad     = find(ismember(vnames,'date'));
-an     = find(ismember(vnames,'cases'));
+vname = tab.Properties.VariableNames;
+aa    = find(ismember(vname,'age'));
+ad    = find(ismember(vname,'date'));
+an    = find(ismember(vname,'cases'));
 age   = unique(tab(:,aa));
 for r = 1:numel(age)
     j = find(ismember(tab(:,aa),age(r,1)));
@@ -108,10 +108,10 @@ writetable(agecases,'agecases.csv')
 %----------------------------------------------------------------------
 url   = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=nation&areaCode=E92000001&metric=vaccinationsAgeDemographics&format=csv';
 tab   = webread(url,options);
-vnames = tab.Properties.VariableNames;
-aa     = find(ismember(vnames,'age'));
-ad     = find(ismember(vnames,'date'));
-an     = find(ismember(vnames,'cumVaccinationFirstDoseUptakeByVaccinationDatePercentage'));
+vname = tab.Properties.VariableNames;
+aa    = find(ismember(vname,'age'));
+ad    = find(ismember(vname,'date'));
+an    = find(ismember(vname,'cumVaccinationFirstDoseUptakeByVaccinationDatePercentage'));
 age   = unique(tab(:,aa));
 for r = 1:numel(age)
     j = find(ismember(tab(:,aa),age(r,1)));
@@ -125,10 +125,10 @@ writetable(agevaccine,'agevaccine.csv')
 %----------------------------------------------------------------------
 url   = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=nation&areaCode=E92000001&metric=cumAdmissionsByAge&format=csv';
 tab   = webread(url);
-vnames = tab.Properties.VariableNames;
-aa     = find(ismember(vnames,'age'));
-ad     = find(ismember(vnames,'date'));
-an     = find(ismember(vnames,'value'));
+vname = tab.Properties.VariableNames;
+aa    = find(ismember(vname,'age'));
+ad    = find(ismember(vname,'date'));
+an    = find(ismember(vname,'value'));
 age   = unique(tab(:,aa));
 for r = 1:numel(age)
     j = find(ismember(tab(:,aa),age(r,1)));
@@ -145,17 +145,20 @@ url = 'https://assets.publishing.service.gov.uk/government/uploads/system/upload
 tab = webread(url,options);
 writetable(tab(:,1:8),'transport.csv');
 
-ndy    = 321;
-url    = 'https://www.gstatic.com/covid19/mobility/2020_GB_Region_Mobility_Report.csv';
-tab    = webread(url);
-vnames = tab.Properties.VariableNames;
-aw     = find(ismember(vnames,'workplaces_percent_change_from_baseline'));
-ad     = find(ismember(vnames,'date'));
-writetable(tab(1:ndy,[ad,aw]),'mobility20.csv');
+% ndy   = 321;
+% url   = 'https://www.gstatic.com/covid19/mobility/2020_GB_Region_Mobility_Report.csv';
+% tab   = webread(url);
+% vname = tab.Properties.VariableNames;
+% aw    = find(ismember(vname,'workplaces_percent_change_from_baseline'));
+% ad    = find(ismember(vname,'date'));
+% writetable(tab(1:ndy,[ad,aw]),'mobility20.csv');
 
-ndy = datenum(date) - datenum(datestr('01/01/2021','dd/mm/yyyy'));
-url = 'https://www.gstatic.com/covid19/mobility/2021_GB_Region_Mobility_Report.csv';
-tab = webread(url);
+ndy   = datenum(date) - datenum(datestr('01/01/2021','dd/mm/yyyy'));
+url   = 'https://www.gstatic.com/covid19/mobility/2021_GB_Region_Mobility_Report.csv';
+tab   = webread(url);
+vname = tab.Properties.VariableNames;
+aw    = find(ismember(vname,'workplaces_percent_change_from_baseline'));
+ad    = find(ismember(vname,'date'));
 writetable(tab(1:ndy,[ad,aw]),'mobility21.csv');
 
 
@@ -674,11 +677,10 @@ Y(39).age  = 3;
 Y(39).hold = 0;
 
 
-
 % remove NANs, smooth and sort by date
 %==========================================================================
 M.date  = '01-02-2020';
-[Y,S]   = spm_COVID_Y(Y,M.date,16);
+[Y,S]   = spm_COVID_Y(Y,M.date,8);
 
 % for i = 1:38; plot(Y(i).date,Y(i).Y); pause, end
 
@@ -905,9 +907,11 @@ plot(datenum(date)*[1,1],get(gca,'YLim'),':')
 legend({'CI per day','actual cases per day','CI per week','confirmed cases per week'})
 
 subplot(3,1,2)
-spm_SARS_ci(Ep,Cp,[],2,M); hold on
+spm_SARS_ci(Ep,Cp,[],34,M); hold on
+spm_SARS_ci(Ep,Cp,S(:,1),2, M); hold on
+title('Actual and confirmed daily cases','FontSize',14)
 plot(datenum(date)*[1,1],get(gca,'YLim'),':')
-legend({'CI per day','people testing positive'})
+legend({'CI per day','actual cases','CI per day','confirmed cases'})
 
 subplot(3,1,3)
 spm_SARS_ci(Ep,Cp,[],28,M); hold on
@@ -1120,16 +1124,6 @@ fprintf('relative risk of severe illness %.1f%s\n',severe*100,'%')
 fprintf('relative risk of fatality %.1f%s\n',      death*100,'%')
 disp(' ')
 
-M.T    = datenum(date) - datenum(DCM.M.date,'dd-mm-yyyy');
-Z      = spm_SARS_gen(Ep,M,[31,33]);
-fprintf('vaccine effectiveness (prevalence of infection) %.1f%s\n', Z(end,1),'%')
-disp(' ')
-
-% doubling time
-%--------------------------------------------------------------------------
-% fprintf('doubling time %.1f (days)\n', Z(end,2))
-% disp(' ')Garay
-
 % report transmissibility and basic reproduction number
 %--------------------------------------------------------------------------
 disp('relative transmissibility');
@@ -1147,6 +1141,20 @@ disp(mean(TIN(1:j)) + exp(Ep.Tcn)/2)
 disp('mean asymptomatic period (days)');
 disp(mean(TIC(1:j)))
 
+%% ancillary predictions
+%--------------------------------------------------------------------------
+Z      = spm_SARS_gen(Ep,M,[1,16,31]);
+
+fprintf('vaccine effectiveness (prevalence of infection) %.1f%s\n', Z(j,3),'%')
+disp(' ')
+
+[m,d] = max(Z(j:end,2));
+fprintf('peak hospital admissions:  %.0f on %s\n', m,datestr(t(j + d + 8)))
+disp(' ')
+
+[m,d] = max(Z(j:end,1));
+fprintf('peak (28-day) death rates:  %.0f on %s\n', m,datestr(t(j + d + 8)))
+disp(' ')
 
 %% save figures
 %--------------------------------------------------------------------------
