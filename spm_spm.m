@@ -265,13 +265,13 @@ function SPM = spm_spm(SPM)
 % Analysis of fMRI Time-Series Revisited - Again. Worsley KJ, Friston KJ.
 % (1995) NeuroImage 2:173-181.
 %__________________________________________________________________________
-% Copyright (C) 1994-2019 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1994-2021 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston & Guillaume Flandin
-% $Id: spm_spm.m 8183 2021-11-04 15:25:19Z guillaume $
+% $Id: spm_spm.m 8200 2021-12-21 14:49:44Z guillaume $
 
 
-SVNid = '$Rev: 8183 $';
+SVNid = '$Rev: 8200 $';
 
 %-Say hello
 %--------------------------------------------------------------------------
@@ -350,22 +350,13 @@ end
 %-Delete files from previous analyses
 %--------------------------------------------------------------------------
 if ~isempty(spm_select('List',SPM.swd,'^mask\..{3}$'))
-    
-    str = {'Current directory contains SPM estimation files:',...
-        'pwd = ',SPM.swd,...
-        'Existing results will be overwritten!'};
-    if spm_input(str,1,'bd','stop|continue',[1,0],1)
-        spm('Pointer','Arrow')
-        return
-    else
-        sw = warning('off','backtrace');
-        warning('Overwriting old results\n\t (pwd = %s) ',SPM.swd);
-        warning(sw);
-        try, SPM.xX  = rmfield(SPM.xX, 'W'); end
-        try,
-            if isfield(SPM.xVi,'Vi') && numel(SPM.xVi.Vi)>1
-                SPM.xVi = rmfield(SPM.xVi, 'V');
-            end
+    sw = warning('off','backtrace');
+    warning('Overwriting existing results\n\t (pwd = %s) ',SPM.swd);
+    warning(sw);
+    try, SPM.xX = rmfield(SPM.xX, 'W'); end
+    try,
+        if isfield(SPM.xVi,'Vi') && numel(SPM.xVi.Vi)>1
+            SPM.xVi = rmfield(SPM.xVi, 'V');
         end
     end
 end

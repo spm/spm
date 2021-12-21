@@ -8,9 +8,9 @@ function out = spm_run_fmri_est(job)
 % Output:
 % out    - computation results, usually a struct variable.
 %__________________________________________________________________________
-% Copyright (C) 2005-2017 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2021 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_fmri_est.m 8183 2021-11-04 15:25:19Z guillaume $
+% $Id: spm_run_fmri_est.m 8200 2021-12-21 14:49:44Z guillaume $
 
 
 %-Load SPM.mat file
@@ -30,6 +30,28 @@ cd(fileparts(job.spmmat{:}));
 %                       R E M L   E S T I M A T I O N
 %==========================================================================
 if isfield(job.method,'Classical')
+    
+    %-Delete files from previous analyses
+    %----------------------------------------------------------------------
+%     if ~isempty(spm_select('List',SPM.swd,'^mask\..{3}$'))
+%         
+%         str = {'Current directory contains SPM estimation files:',...
+%             'pwd = ',SPM.swd,...
+%             'Existing results will be overwritten!'};
+%         if spm_input(str,1,'bd','stop|continue',[1,0],1)
+%             error('Model estimation cancelled.');
+%         else
+%             sw = warning('off','backtrace');
+%             warning('Overwriting existing results\n\t (pwd = %s) ',SPM.swd);
+%             warning(sw);
+%             try, SPM.xX = rmfield(SPM.xX, 'W'); end
+%             try,
+%                 if isfield(SPM.xVi,'Vi') && numel(SPM.xVi.Vi)>1
+%                     SPM.xVi = rmfield(SPM.xVi, 'V');
+%                 end
+%             end
+%         end
+%     end
     
     %-ReML estimation of the model
     %----------------------------------------------------------------------
