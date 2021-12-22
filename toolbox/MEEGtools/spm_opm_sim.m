@@ -29,7 +29,7 @@ function [D,L] = spm_opm_sim(S)
 % Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
 
 % Tim Tierney
-% $Id$
+% $Id: spm_opm_sim.m 8203 2021-12-22 15:05:39Z guillaume $
 spm('FnBanner', mfilename);
 
 %-Set default values

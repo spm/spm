@@ -15,7 +15,7 @@ function [mfD,Yinds] = spm_opm_hfc(S)
 % Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
 
 % Tim Tierney
-% $Id$
+% $Id: spm_opm_hfc.m 8203 2021-12-22 15:05:39Z guillaume $
 
 %-Set default values
 %--------------------------------------------------------------------------
