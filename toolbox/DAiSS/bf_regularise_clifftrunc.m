@@ -4,7 +4,7 @@ function res = bf_regularise_clifftrunc(BF, S)
 % Copyright (C) 2021 Wellcome Centre for Human Neuroimaging
 
 % George O'Neill
-% $Id: bf_regularise_minkatrunc.m 7703 2019-11-22 12:06:29Z guillaume $
+% $Id$
 
 %--------------------------------------------------------------------------
 if nargin == 0
