@@ -14,7 +14,7 @@ function DCM = DEM_COVID_UK4
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_UK4.m 8199 2021-12-18 21:30:24Z karl $
+% $Id: DEM_COVID_UK4.m 8204 2021-12-28 21:14:03Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -75,9 +75,9 @@ writetable(webread(url,options),'antibody.csv');
 url   = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=nation&areaCode=E92000001&metric=newDeaths28DaysByDeathDateAgeDemographics&format=csv';
 tab   = webread(url,options);
 vname = tab.Properties.VariableNames;
-aa     = find(ismember(vname,'age'));
-ad     = find(ismember(vname,'date'));
-an     = find(ismember(vname,'deaths'));
+aa    = find(ismember(vname,'age'));
+ad    = find(ismember(vname,'date'));
+an    = find(ismember(vname,'deaths'));
 age   = unique(tab(:,aa));
 for r = 1:numel(age)
     j = find(ismember(tab(:,aa),age(r,1)));
@@ -709,7 +709,7 @@ pC.ve   = ones(nN,1);          % prior variance
 i       = ceil((datenum(date) - datenum(M.date))/32);
 j       = ceil((datenum(date) - datenum(M.date))/48);
 k       = ceil((datenum(date) - datenum(M.date))/64);
-pE.tra  = zeros(1,k);          % increases in transmission strength
+pE.tra  = zeros(1,k) - 2;      % increases in transmission strength
 pC.tra  = ones(1,k)/8;         % prior variance
 pE.pcr  = zeros(1,j);          % testing
 pC.pcr  = ones(1,j)/8;         % prior variance
@@ -1022,15 +1022,15 @@ str = sprintf('Prevalence and reproduction ratio (%s): R = %.2f (CI %.2f to %.2f
 % attack rate, herd immunity and herd immunity threshold
 %--------------------------------------------------------------------------
 E         = 1 - mean(erf(exp(Ep.vef)))*mean(exp(Ep.ves));
-[H,~,~,R] = spm_SARS_gen(Ep,M,[4 29 26]);
+[H,~,~,R] = spm_SARS_gen(Ep,M,[4 29 26 35]);
 i         = 8:32;                           % pre-pandemic period
 TRN       = [R{1}.Ptrn];                    % transmission risk
-TIN       = [R{1}.Tin];                     % exposure time (days)
 TIC       = [R{1}.Tic];                     % incubation period (days)
+TIN       = [R{1}.Tin];                     % exposure time (days)
+ST        = H(:,4);                         % serial interval (days)
 R0        = max(H(i,1));                    % basic reproduction ratio
 RT        = R0*TRN(:)/min(TRN(i));          % effective reproduction ratio
 HIT       = 100 * (1 - 1./RT)/E;            % herd immunity threshold
-VAC       = H(:,2);                         % percent of people vaccinated
 
 % Add R0
 %--------------------------------------------------------------------------
@@ -1050,7 +1050,8 @@ plot(datenum(date,'dd-mm-yyyy')*[1,1],get(gca,'YLim'),':k')
 set(gca,'YLim',[0 8]), ylabel('ratio or percent')
 title(str,'FontSize',14)
 
-legend({'CI prevalence','Prevalence (%)','CI R-number','R DCM','R SPI-M','R0'})
+legend({'90% CI','Prevalence (%)',' ','Effective R-number',...
+    'UKHSA estimate','Basic R_{0}'},'Interpreter','tex','location','northwest')
 legend boxoff
 drawnow
 
@@ -1062,17 +1063,19 @@ spm_SARS_ci(Ep,Cp,[],26,M); hold on
 
 % effective immunity threshold at 80% contact rates
 %--------------------------------------------------------------------------
-plot(t,HIT,t,VAC), hold on
+plot(t,HIT), hold on
+spm_SARS_ci(Ep,Cp,[],29,M); hold on
+
 plot(get(gca,'XLim'),[100 100],':k')
 plot(datenum(date,'dd-mm-yyyy')*[1,1],[0 100],':k')
 ylabel('percent'),  title('Attack rate and immunity','FontSize',14)
-legend({'CI','Attack rate','CI','Population immunity',...
-       'Effective immunity threshold',...
-       'Vaccine antibodies'},'location','west')
+legend({' ','Attack rate',' ','Effective Population immunity',...
+       'Effective immunity threshold',' '....
+       'Effective vaccine antibodies'},'location','west')
 legend boxoff
 
 
-%% report vaccine efficiency
+%% report vaccine efficiencyone
 %--------------------------------------------------------------------------
 q   = Ep.vef(end);
 d   = spm_unvec(diag(Cp),Ep);
@@ -1118,10 +1121,10 @@ infect = mean(erf(exp(Ep.vef)));
 mild   = q*infect;
 severe = mean(exp(Ep.lnk))*mild;
 death  = mean(exp(Ep.lnf))*severe;
-fprintf('relative risk of infection %.1f%s\n',     infect*100,'%')
-fprintf('relative risk of mild illness %.1f%s\n',  mild*100,'%')
-fprintf('relative risk of severe illness %.1f%s\n',severe*100,'%')
-fprintf('relative risk of fatality %.1f%s\n',      death*100,'%')
+fprintf('relative risk of infection %.1f%s\n',      infect*100,'%')
+fprintf('relative risk of mild illness %.1f%s\n',   mild*100,  '%')
+fprintf('relative risk of severe illness %.1f%s\n', severe*100,'%')
+fprintf('relative risk of fatality %.1f%s\n',       death*100, '%')
 disp(' ')
 
 % report transmissibility and basic reproduction number
@@ -1133,13 +1136,19 @@ disp(RT(j))
 
 % mean serial interval
 %--------------------------------------------------------------------------
-disp('mean serial interval (days)');
-disp(mean(TIN(1:j)) + exp(Ep.Tcn)/2)
+disp('serial interval (days)');
+disp(ST(j))
 
 % mean incubation (asymptomatic).
 %--------------------------------------------------------------------------
-disp('mean asymptomatic period (days)');
-disp(mean(TIC(1:j)))
+disp('asymptomatic period (days)');
+disp(TIC(j))
+
+% mean incubation (asymptomatic).
+%--------------------------------------------------------------------------
+disp('exposure time (days)');
+disp(TIN(j))
+
 
 %% ancillary predictions
 %--------------------------------------------------------------------------
@@ -1380,10 +1389,9 @@ spm_figure('GetWin','states'); clf;
 %--------------------------------------------------------------------------
 M.T    = datenum(date) - datenum(DCM.M.date,'dd-mm-yyyy');
 M.T    = M.T + 180;                 % forecast dates
-u      = 5;                        % empirical outcome
-a      = 2;                         % age cohort (0 for everyone)
-Ep.Tnn = DCM.Ep.Tnn + 0;            % adjusted (log) parameter
-Ep.vac = DCM.Ep.vac + 0;            % adjusted (log) parameter
+u      = 1;                         % empirical outcome
+a      = 0;                         % age cohort (0 for everyone)
+Ep.tra(11) = DCM.Ep.tra(11) + 2;  % adjusted (log) parameter
 
 [Z,X]  = spm_SARS_gen(Ep,M,u,[],a); % posterior prediction
 

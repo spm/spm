@@ -15,7 +15,7 @@ function [DCM] = DEM_COVID_LTLA(LA)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_LTLA.m 8188 2021-11-14 12:34:09Z karl $
+% $Id: DEM_COVID_LTLA.m 8204 2021-12-28 21:14:03Z karl $
 
 % download from web options
 %--------------------------------------------------------------------------
@@ -130,9 +130,8 @@ clear U P PN PA AreaCode AreaDate AreaName AreaType
 % check requested if necessary
 %--------------------------------------------------------------------------
 if nargin
-    try
-        i = find(ismember([D.name],LA));
-    catch
+    i     = find(ismember([D.name],LA));
+    if isempty(i)
         i = find(ismember([D.code],LA));
     end
     if isempty(i)

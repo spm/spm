@@ -22,7 +22,7 @@ function [T,R] = spm_COVID_T(P,I)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_T.m 8199 2021-12-18 21:30:24Z karl $
+% $Id: spm_COVID_T.m 8204 2021-12-28 21:14:03Z karl $
 
 % setup
 %==========================================================================
@@ -55,6 +55,7 @@ Pdis = P.m*Pexp;                     % P(leaving effective population)
 %--------------------------------------------------------------------------
 Phos = erf(P.hos);                   % P(hospital | ARDS)
 Pcap = erf(P.ccu);                   % P(transfer to CCU | ARDS)
+Piss = erf(2);                       % probability of self-isolation
 Piso = exp(-1/P.iso);                % period of self-isolation
 
 Ph2h = (1 - Pdis)*(1 - Pout);
@@ -73,12 +74,12 @@ b{1} = [Ph2h       1          0          Pexp      (1 - Piso) 1;
 
 % marginal: location {1}  | symptoms {3}(2)
 %--------------------------------------------------------------------------
-b{2} = [0          0          0          0          0         0;
+b{2} = [(1 - Piss) 0          (1 - Piss) 0         (1 - Piss) (1 - Piss);
+        0          (1 - Piss) 0          0          0         0;
         0          0          0          0          0         0;
-        0          0          0          0          0         0;
-        0          0          0          0          0         0;
-        1          1          1          1          1         0;
-        0          0          0          0          0         1];
+        0          0          0          (1 - Piss) 0         0;
+        Piss       Piss       Piss       Piss       Piss      Piss;
+        0          0          0          0          0         0];
     
 % marginal: location {1}  | ARDS {3}(3)
 %--------------------------------------------------------------------------
@@ -242,7 +243,7 @@ b{2} = [Ktic       (1 - Ksym)*(1 - Psev) (1 - Ktrd)*(1 - Pfat) (1 - Kday);
     
 % marginal: clinical {3} | infectious {2}(3)
 %--------------------------------------------------------------------------
-Ktic = Ktic*P.s(5);
+Ktic = Ktic*P.iss;
 b{3} = [Ktic       (1 - Ksym)*(1 - Psev) (1 - Ktrd)*(1 - Pfat) (1 - Kday);
        (1 - Ktic)   Ksym                  0                     0;
         0          (1 - Ksym)*Psev        Ktrd                  0;

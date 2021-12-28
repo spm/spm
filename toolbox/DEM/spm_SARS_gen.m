@@ -44,7 +44,8 @@ function [y,x,z,W] = spm_SARS_gen(P,M,U,NPI,age)
 % Y(:,31) - Vaccine effectiveness (prevalence)
 % Y(:,32) - Gross domestic product
 % Y(:,33) - Doubling time
-% Y(:,34) - incidence of new cases (total)
+% Y(:,34) - Incidence of new cases (total)
+% Y(:,35) - Serial interval (days)
 %
 % X       - (M.T x 4) marginal densities over four factors
 % location   : {'home','out','ccu','removed','isolated','hospital'};
@@ -82,7 +83,7 @@ function [y,x,z,W] = spm_SARS_gen(P,M,U,NPI,age)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_gen.m 8199 2021-12-18 21:30:24Z karl $
+% $Id: spm_SARS_gen.m 8204 2021-12-28 21:14:03Z karl $
 
 
 % The generative model:
@@ -380,18 +381,22 @@ for i = 1:M.T
         Ptra = 1;
         if isfield(Q{n},'tra')
             for j = 1:numel(Q{n}.tra)
-                Ptra = Ptra + erf(Q{n}.tra(j)) * (1 + erf((i - j*64)/32))/16;
+                Ptra = Ptra + erf(Q{n}.tra(j)) * (1 + erf((i - j*64)/32))/8;
             end
         end
-        Ptrn = Q{n}.trn + Q{n}.trm*S;            % seasonal risk
-        Ptrn = erf(Ptrn*Ptra);                   % fluctuating risk
+        Ptrn = Q{n}.trn + Q{n}.trm*S;              % seasonal risk
+        Ptrn = erf(Ptrn*Ptra);                     % fluctuating risk
         
-        % fluctuations in epidemiological parameters
+        % fluctuations in epidemiological parameters NB Ptra > 1
         %------------------------------------------------------------------
-        Q{n}.Tin = R{n}.Tin*Ptra^(log(R{n}.s(1)));
-        Q{n}.Tic = R{n}.Tic*Ptra^(log(R{n}.s(2)));
-        Q{n}.Tim = R{n}.Tim*Ptra^(log(R{n}.s(3)));
-        Q{n}.Tnn = R{n}.Tnn*Ptra^(log(R{n}.s(4)));
+        Q{n}.Tin = R{n}.Tin*Ptra^(-R{n}.s(1)/16);  % infected time
+        Q{n}.Tic = R{n}.Tic*Ptra^(-R{n}.s(2)/16);  % incubation time
+
+        Q{n}.Tim = R{n}.Tim*Ptra^(log(R{n}.s(3))); % antibody immunity
+        Q{n}.Tnn = R{n}.Tnn*Ptra^(log(R{n}.s(4))); % T-cell immunity
+        
+        Q{n}.sev = R{n}.sev*Ptra^(-R{n}.lat);      % P(ARDS | infected)
+        Q{n}.fat = R{n}.fat*Ptra^(-R{n}.sur);      % P(fatality | ARDS, CCU)
 
         % contact rates
         %------------------------------------------------------------------
@@ -400,11 +405,11 @@ for i = 1:M.T
         for j = 1:nN
             q   = spm_sum(x{j},[3 4]);
             
-            pin = q(1,:)/sum(q(1,:) + eps);      % P(infection | home)
-            pou = q(2,:)/sum(q(2,:) + eps);      % P(infection | work)
+            pin = q(1,:)/sum(q(1,:) + eps);        % P(infection | home)
+            pou = q(2,:)/sum(q(2,:) + eps);        % P(infection | work)
             
-            pin = pin(3) + pin(8);               % P(infectious | home)
-            pou = pou(3) + pou(8);               % P(infectious | work)
+            pin = pin(3) + pin(8);                 % P(infectious | home)
+            pou = pou(3) + pou(8);                 % P(infectious | work)
             
             tin = tin*(1 - Ptrn*pin)^Q{n}.Nin(j);
             tou = tou*(1 - Ptrn*pou)^Q{n}.Nou(j);
@@ -419,18 +424,8 @@ for i = 1:M.T
                    Q{n}.fol(1)*(1 + erf((i - Q{n}.fol(2))/Q{n}.fol(3)));
         
         Q{n}.nac = 1 - Rvac;
-        
-        % exponential decay and time-dependent clinical susceptibility
-        % (law of decreasing virulence)
-        %------------------------------------------------------------------
         Q{n}.t   = i;                   % time (days)
-        S        = exp(-i/512);
-        Q{n}.sev = erf(R{n}.sev*S + R{n}.lat*(1 - S));  % P(ARDS | infected)
-        Q{n}.fat = erf(R{n}.fat*S + R{n}.sur*(1 - S));  % P(fatality | ARDS, CCU)
-        
-        % Q{n}.Tin = R{n}.Tin*(S + R{n}.s(1)*(1 - S));  % Exposure (days)
-        % Q{n}.Tic = R{n}.Tic*(S + R{n}.s(2)*(1 - S));  % Exposure (days)
-        
+               
         % update ensemble density (x)
         %==================================================================
         [T,V]  = spm_COVID_T(Q{n},I);
@@ -606,8 +601,12 @@ for n = 1:nN
     % effective reproduction ratio: exp(K*<T>): K = dln(N)/dt
     %----------------------------------------------------------------------
     Tin        = [W{n}.Tin]';
-    Tcn        =  Q{n}.Tcn;
+    Tcn        = (1 - Q{n}.res)*Q{n}.Tcn;
     Y{n}(:,4)  = 1 + K.*(Tin + Tcn) + (K.^2).*Tin*Tcn;
+    
+    % serial interval
+    %----------------------------------------------------------------------
+    Y{n}(:,35) = Tin + Tcn/2;
     
     % incidence of new infections (%)
     %----------------------------------------------------------------------

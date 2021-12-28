@@ -37,7 +37,7 @@ function [P,C,str] = spm_SARS_priors(nN)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_priors.m 8199 2021-12-18 21:30:24Z karl $
+% $Id: spm_SARS_priors.m 8204 2021-12-28 21:14:03Z karl $
 
 % sources and background
 %--------------------------------------------------------------------------
@@ -67,7 +67,7 @@ if nargin
     [P,C,str] = spm_SARS_priors;
     free  = {'N','Nin','Nou','qua',...
              'hos','ccu','Tim',...
-             'sev','lat','fat','sur',...
+             'sev','fat',...
              'tes','tts','rol','lnk'};
 
     if nN == 1
@@ -97,8 +97,7 @@ if nargin
         P.sev = log([0.0010;
                      0.0100;
                      0.1000]);
-                 
-        P.lat = P.sev;
+
         
         % contact matrices: number of contacts per day
         %------------------------------------------------------------------
@@ -165,15 +164,12 @@ if nargin
                      0.0040
                      0.0100
                      0.1000]);
-        P.lat = P.sev;
-        
         % mortality
         %------------------------------------------------------------------
         P.fat = log([0.005;
                      0.005;
                      0.2;
                      0.4]);
-        P.sur = P.fat;
         
         % vaccination link (pathogenicity)
         %------------------------------------------------------------------
@@ -259,10 +255,10 @@ names{20} = 'resistance';
 names{21} = 'asymptomatic period (days)';
 names{22} = 'symptomatic period (days)';
 names{23} = 'critical period (days)';
-names{24} = 'P(ARDS|symptoms): early';
-names{25} = 'P(ARDS|symptoms): late';
-names{26} = 'P(fatality|ARDS): early';
-names{27} = 'P(fatality|ARDS): late';
+names{24} = 'P(ARDS|symptoms): initial';
+names{25} = 'P(ARDS|symptoms): change';
+names{26} = 'P(fatality|ARDS): initial';
+names{27} = 'P(fatality|ARDS): change';
 
 % testing parameters
 %--------------------------------------------------------------------------
@@ -298,6 +294,8 @@ names{51} = 'LFD sensitivity';
 names{52} = 'PCR testing of fatalities';
 names{53} = 'contact rate decay (days)';
 names{54} = 'survival risk in care homes';
+names{55} = 'relative asymptomatic rate';  
+
 
 % latent or hidden factors
 %--------------------------------------------------------------------------
@@ -345,6 +343,7 @@ factor{5} = {' ',' '};
 % Y(:,32) - Gross domestic product
 % Y(:,33) - Doubling time (days)
 % Y(:,34) - Incidence of new cases (total)
+% Y(:,35) - Serial interval
 
 str.outcome = {'Daily deaths (28 days)',...
     'Daily confirmed cases',...
@@ -379,7 +378,8 @@ str.outcome = {'Daily deaths (28 days)',...
     'Vaccine effectiveness (prevalence) '...
     'Gross domestic product'...
     'Doubling time (days)'...
-    'Daily incidence'};
+    'Daily incidence'...
+    'Serial interval'};
 
 str.factors = factors;
 str.factor  = factor;
@@ -401,7 +401,7 @@ P.qua = 64;                   % (08) time constant of unlocking
 P.exp = 0.02;                 % (09) viral spreading (rate)
 P.hos = 1;                    % (10) admission rate (hospital) [erf]
 P.ccu = 0.1;                  % (11) admission rate (CCU)
-P.s   = [1 1 1 1 1];          % (12) changes in infectivity
+P.s   = [1 1 1 1];            % (12) changes in infectivity
 
 % infection (transmission) parameters
 %--------------------------------------------------------------------------
@@ -420,10 +420,10 @@ P.Tic = 4;                    % (21) asymptomatic period (days)
 P.Tsy = 5;                    % (22) symptomatic period  (days)
 P.Trd = 16;                   % (23) severe symptoms     (days)
 
-P.sev = 0.01;                 % (24) P(ARDS | symptoms): winter
-P.lat = 0.01;                 % (25) P(ARDS | symptoms): summer
-P.fat = 0.5;                  % (26) P(fatality | ARDS): winter
-P.sur = 0.5;                  % (27) P(fatality | ARDS): summer
+P.sev = 0.01;                 % (24) P(ARDS | symptoms)
+P.lat = 1;                    % (25) changes in severity
+P.fat = 0.5;                  % (26) P(fatality | ARDS)
+P.sur = 1;                    % (27) changes in severity
 
 % testing parameters
 %--------------------------------------------------------------------------
@@ -459,7 +459,7 @@ P.lpr = 0.0002;               % (51) LFD specificity
 P.rel = 0.9;                  % (52) PCR testing of fatalities
 P.pro = 128;                  % (53) contact rate decay (days)
 P.oth = 0.1;                  % (54) relative survival outside hospital
-
+P.iss = 1;                    % (55) relative asymptomatic rate (infectious)
 
 % infection fatality (for susceptible population)
 %--------------------------------------------------------------------------
@@ -506,10 +506,10 @@ C.res = X;                    % (20) seronegative immunity (proportion)
 C.Tic = X;                    % (21) asymptomatic period (days)
 C.Tsy = X;                    % (22) symptomatic period  (days)
 C.Trd = W;                    % (23) CCU period (days)
-C.sev = W;                    % (24) P(ARDS | symptoms): winter
-C.lat = W;                    % (25) P(ARDS | symptoms): summer
-C.fat = W;                    % (26) P(fatality | ARDS): rate
-C.sur = W;                    % (27) P(fatality | ARDS): decay
+C.sev = W;                    % (24) P(ARDS | symptoms)
+C.lat = W;                    % (25) changes in severity
+C.fat = W;                    % (26) P(fatality | ARDS)
+C.sur = W;                    % (27) changes in severity
 
 % testing parameters
 %--------------------------------------------------------------------------
@@ -545,6 +545,8 @@ C.lpr = X;                    % (51) LFD specificity
 C.rel = W;                    % (52) PCR testing of fatalities
 C.pro = W;                    % (53) contact rate decay (days)
 C.oth = W;                    % (54) relative survival outside hospital
+C.iss = X;                    % (55) relative asymptomatic rate (infectious)
+
 
 % check prior expectations and covariances are consistent
 %--------------------------------------------------------------------------
