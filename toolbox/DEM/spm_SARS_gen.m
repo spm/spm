@@ -83,7 +83,7 @@ function [y,x,z,W] = spm_SARS_gen(P,M,U,NPI,age)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_gen.m 8204 2021-12-28 21:14:03Z karl $
+% $Id: spm_SARS_gen.m 8205 2021-12-30 18:04:59Z karl $
 
 
 % The generative model:
@@ -394,6 +394,7 @@ for i = 1:M.T
 
         Q{n}.Tim = R{n}.Tim*Ptra^(log(R{n}.s(3))); % antibody immunity
         Q{n}.Tnn = R{n}.Tnn*Ptra^(log(R{n}.s(4))); % T-cell immunity
+        Q{n}.Trd = R{n}.Trd*Ptra^(log(R{n}.s(5))); % duration of ARDS 
         
         Q{n}.sev = R{n}.sev*Ptra^(-R{n}.lat);      % P(ARDS | infected)
         Q{n}.fat = R{n}.fat*Ptra^(-R{n}.sur);      % P(fatality | ARDS, CCU)
@@ -442,10 +443,10 @@ for i = 1:M.T
         % outcomes
         %==================================================================
         
-        % probability of a positive PCR test within 28 days
+        % probability of a positive PCR test within 28 or 14 days
         %------------------------------------------------------------------
-        pcr28   = (1 - p{n}{4}(1)^28);
-        pcr14   = (1 - p{n}{4}(1)^14);
+        pcr28   = 1 - (1 - p{n}{4}(3))^28;
+        pcr14   = 1 - (1 - p{n}{4}(3))^14;
         
         % time-varying parameters and other vaiables
         %------------------------------------------------------------------
@@ -530,8 +531,7 @@ for i = 1:M.T
             g = Q{n}.gd(1)*q^(Q{n}.gd(2));
         end
         Y{n}(i,32) = 100 * (1 - real(g));
-        
-        
+             
         % certified deaths per day
         %------------------------------------------------------------------
         Y{n}(i,15) = N(n) * p{n}{3}(4);
@@ -542,9 +542,9 @@ for i = 1:M.T
         q          = sum(q([3,6],3));
         Y{n}(i,27) = N(n) * q;
         
-        % hospital admissions (ARDS admitted to hospital/CCU)
+        % hospital admissions (ARDS and incidental admissions)
         %------------------------------------------------------------------
-        Y{n}(i,16) = Y{n}(i,27)/Q{n}.Trd;
+        Y{n}(i,16) = Y{n}(i,27)/Q{n}.Trd + N(n) * pcr14 * 2e-03;
         
         % excess deaths in hospital/CCU
         %------------------------------------------------------------------

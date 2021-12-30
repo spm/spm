@@ -37,7 +37,7 @@ function [P,C,str] = spm_SARS_priors(nN)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_priors.m 8204 2021-12-28 21:14:03Z karl $
+% $Id: spm_SARS_priors.m 8205 2021-12-30 18:04:59Z karl $
 
 % sources and background
 %--------------------------------------------------------------------------
@@ -401,7 +401,7 @@ P.qua = 64;                   % (08) time constant of unlocking
 P.exp = 0.02;                 % (09) viral spreading (rate)
 P.hos = 1;                    % (10) admission rate (hospital) [erf]
 P.ccu = 0.1;                  % (11) admission rate (CCU)
-P.s   = [1 1 1 1];            % (12) changes in infectivity
+P.s   = [1 1 1 1 1];          % (12) changes in infectivity
 
 % infection (transmission) parameters
 %--------------------------------------------------------------------------

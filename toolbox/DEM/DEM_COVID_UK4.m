@@ -14,7 +14,7 @@ function DCM = DEM_COVID_UK4
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_UK4.m 8204 2021-12-28 21:14:03Z karl $
+% $Id: DEM_COVID_UK4.m 8205 2021-12-30 18:04:59Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -368,7 +368,7 @@ Y(12).type = 'R-ratio (WHO/GOV)'; % the production ratio
 Y(12).unit = 'ratio';
 Y(12).U    = 4;
 Y(12).date = [datenum(ratio.textdata(2:end,1),'dd/mm/yyyy') - 16; ...
-    datenum(ratio.textdata(2:end,1),'dd/mm/yyyy') - 15];
+              datenum(ratio.textdata(2:end,1),'dd/mm/yyyy') - 15];
 Y(12).Y    = [ratio.data(:,1); ratio.data(:,2)];
 Y(12).h    = 2;
 Y(12).lag  = 1;
@@ -628,9 +628,9 @@ EnglandUK  = UK/England;
 
 Y(35).type = 'Cumulative admissions <15 (ONS)';  % Cumulative admissions (England)
 Y(35).unit = 'number';
-Y(35).U    = 30;
+Y(35).U    = 16;
 Y(35).date = datenum(cumAdmiss.textdata(2:end,1),'yyyy-mm-dd');
-Y(35).Y    = cumAdmiss.data*cum(:,1)*EnglandUK;
+Y(35).Y    = gradient(cumAdmiss.data*cum(:,1)*EnglandUK)./gradient(Y(35).date);
 Y(35).h    = 0;
 Y(35).lag  = 0;
 Y(35).age  = 1;
@@ -638,9 +638,9 @@ Y(35).hold = 1;
 
 Y(36).type = 'Cumulative admissions 15-35 (ONS)'; % Cumulative admissions (England)
 Y(36).unit = 'number';
-Y(36).U    = 30;
+Y(36).U    = 16;
 Y(36).date = datenum(cumAdmiss.textdata(2:end,1),'yyyy-mm-dd');
-Y(36).Y    = cumAdmiss.data*cum(:,2)*EnglandUK;
+Y(36).Y    = gradient(cumAdmiss.data*cum(:,2)*EnglandUK)./gradient(Y(36).date);
 Y(36).h    = 0;
 Y(36).lag  = 0;
 Y(36).age  = 2;
@@ -648,9 +648,9 @@ Y(36).hold = 1;
 
 Y(37).type = 'Cumulative admissions 35-70 (ONS)'; % Cumulative admissions (England)
 Y(37).unit = 'number';
-Y(37).U    = 30;
+Y(37).U    = 16;
 Y(37).date = datenum(cumAdmiss.textdata(2:end,1),'yyyy-mm-dd');
-Y(37).Y    = cumAdmiss.data*cum(:,3)*EnglandUK;
+Y(37).Y    = gradient(cumAdmiss.data*cum(:,3)*EnglandUK)./gradient(Y(37).date);
 Y(37).h    = 0;
 Y(37).lag  = 0;
 Y(37).age  = 3;
@@ -658,9 +658,9 @@ Y(37).hold = 1;
 
 Y(38).type = 'Cumulative admissions -15-35-70- (ONS)'; % Cumulative admissions (England)
 Y(38).unit = 'number';
-Y(38).U    = 30;
+Y(38).U    = 16;
 Y(38).date = datenum(cumAdmiss.textdata(2:end,1),'yyyy-mm-dd');
-Y(38).Y    = cumAdmiss.data*cum(:,4)*EnglandUK;
+Y(38).Y    = gradient(cumAdmiss.data*cum(:,4)*EnglandUK)./gradient(Y(38).date);
 Y(38).h    = 0;
 Y(38).lag  = 0;
 Y(38).age  = 4;
@@ -1391,7 +1391,7 @@ M.T    = datenum(date) - datenum(DCM.M.date,'dd-mm-yyyy');
 M.T    = M.T + 180;                 % forecast dates
 u      = 1;                         % empirical outcome
 a      = 0;                         % age cohort (0 for everyone)
-Ep.tra(11) = DCM.Ep.tra(11) + 2;  % adjusted (log) parameter
+Ep.tra(11) = DCM.Ep.tra(11) + 2;    % adjusted (log) parameter
 
 [Z,X]  = spm_SARS_gen(Ep,M,u,[],a); % posterior prediction
 
