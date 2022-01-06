@@ -14,7 +14,7 @@ function DCM = DEM_COVID_UK4
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_UK4.m 8205 2021-12-30 18:04:59Z karl $
+% $Id: DEM_COVID_UK4.m 8206 2022-01-06 11:27:29Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -141,26 +141,21 @@ writetable(cumAdmiss,'cumAdmiss.csv')
 
 % mobility and transport
 %--------------------------------------------------------------------------
-url = 'https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/947572/COVID-19-transport-use-statistics.ods.ods';
-tab = webread(url,options);
+url  = 'https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/947572/COVID-19-transport-use-statistics.ods.ods';
+tab  = webread(url,options);
 writetable(tab(:,1:8),'transport.csv');
 
-% ndy   = 321;
-% url   = 'https://www.gstatic.com/covid19/mobility/2020_GB_Region_Mobility_Report.csv';
-% tab   = webread(url);
-% vname = tab.Properties.VariableNames;
-% aw    = find(ismember(vname,'workplaces_percent_change_from_baseline'));
-% ad    = find(ismember(vname,'date'));
-% writetable(tab(1:ndy,[ad,aw]),'mobility20.csv');
-
-ndy   = datenum(date) - datenum(datestr('01/01/2021','dd/mm/yyyy'));
-url   = 'https://www.gstatic.com/covid19/mobility/2021_GB_Region_Mobility_Report.csv';
-tab   = webread(url);
-vname = tab.Properties.VariableNames;
-aw    = find(ismember(vname,'workplaces_percent_change_from_baseline'));
-ad    = find(ismember(vname,'date'));
-writetable(tab(1:ndy,[ad,aw]),'mobility21.csv');
-
+% Google mobility
+%--------------------------------------------------------------------------
+url  = 'Global_Mobility_Report.csv';
+opts = detectImportOptions(url);
+opts.SelectedVariableNames = {'country_region_code','sub_region_1',...
+    'date',...
+    'workplaces_percent_change_from_baseline',...
+    'retail_and_recreation_percent_change_from_baseline'};
+tab  = readtable(url,opts);
+i    = ismember(tab{:,1},'GB') & ismember(tab{:,2},'');
+writetable(tab(i,[3,4,5]),'mobility.csv');
 
 % Country Code	K02000001	K03000001	K04000001	E92000001	W92000004	S92000003	N92000002	
 % All Persons	67,081,234	65,185,724	59,719,724	56,550,138	3,169,586	5,466,000	1,895,510	
@@ -235,8 +230,7 @@ occupancy  = importdata('occupancy.csv');
 positivity = importdata('positivity.csv');
 lateralft  = importdata('lateralft.csv');
 transport  = importdata('transport.csv');
-mobility20 = importdata('mobility20.csv');
-mobility21 = importdata('mobility21.csv');
+mobility   = importdata('mobility.csv');
 agevaccine = importdata('agevaccine.csv');
 agedeaths  = importdata('agedeaths.csv');
 agecases   = importdata('agecases.csv');
@@ -388,12 +382,11 @@ Y(13).hold = 1;
 Y(14).type = 'Mobility (GOV/Google)'; % workplace activity (percent)
 Y(14).unit = 'percent';
 Y(14).U    = 14;
-Y(14).date = [datenum(mobility20.textdata(2:end,1),'yyyy-mm-dd') ;
-              datenum(mobility21.textdata(2:end,1),'yyyy-mm-dd')];
-Y(14).Y    = [mobility20.data(:,1); mobility21.data(:,1)] + 100;
+Y(14).date = datenum(mobility.textdata(2:end,1),'yyyy-mm-dd');
+Y(14).Y    = (mobility.data(:,1) + mobility.data(:,1))/2 + 100;
 Y(14).h    = 0;
 Y(14).lag  = 0;
-Y(14).age  = 2;
+Y(14).age  = 0;
 Y(14).hold = 0;
 
 % scaling for data from England and Wales 
@@ -709,12 +702,12 @@ pC.ve   = ones(nN,1);          % prior variance
 i       = ceil((datenum(date) - datenum(M.date))/32);
 j       = ceil((datenum(date) - datenum(M.date))/48);
 k       = ceil((datenum(date) - datenum(M.date))/64);
-pE.tra  = zeros(1,k) - 2;      % increases in transmission strength
-pC.tra  = ones(1,k)/8;         % prior variance
+pE.tra  = zeros(1,j) - 2;      % increases in transmission strength
+pC.tra  = ones(1,j)/8;         % prior variance
 pE.pcr  = zeros(1,j);          % testing
 pC.pcr  = ones(1,j)/8;         % prior variance
 pE.mob  = zeros(1,i);          % mobility
-pC.mob  = ones(1,i)/64;        % prior variance
+pC.mob  = ones(1,i)/256;       % prior variance
 
 
 

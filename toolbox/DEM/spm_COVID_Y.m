@@ -21,7 +21,7 @@ function [Y,S,dates] = spm_COVID_Y(Y,date0,days)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_Y.m 8188 2021-11-14 12:34:09Z karl $
+% $Id: spm_COVID_Y.m 8206 2022-01-06 11:27:29Z karl $
 
 
 % set up
@@ -67,17 +67,12 @@ for i = 1:numel(Y)
     Y(i).date = Y(i).date(j);
     Y(i).Y    = Y(i).Y(j,:);
     
-    % remove outliers
-    %----------------------------------------------------------------------
-    j         = abs(Y(i).Y - mean(Y(i).Y)) < 4*std(Y(i).Y);
-    Y(i).date = Y(i).date(j);
-    Y(i).Y    = Y(i).Y(j,:);
-    
     % order data by date
     %----------------------------------------------------------------------
     [d,j]     = sort(Y(i).date);
     Y(i).date = Y(i).date(j);
     Y(i).Y    = Y(i).Y(j,:);
+    
 end
 
 % smooth data using graph Laplacian (seven day average)
@@ -110,6 +105,7 @@ for i = 1:numel(Y)
             %--------------------------------------------------------------
             Y(i).Q = spm_Q(1/2,Y(i).n,1);
             Y(i).s = days;
+            
         end
     end
 end
@@ -124,7 +120,7 @@ h     = zeros(1,numel(Y));
 for i = 1:numel(Y)
     h(i) = mean(sqrt(Y(i).Y + 1));
 end
-h         = 4 - log(h);
+h     = 4 - log(h);
 for i = 1:numel(Y)
     Y(i).h = Y(i).h + h(i);
 end

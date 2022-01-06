@@ -22,7 +22,7 @@ function [T,R] = spm_COVID_T(P,I)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_T.m 8205 2021-12-30 18:04:59Z karl $
+% $Id: spm_COVID_T.m 8206 2022-01-06 11:27:29Z karl $
 
 % setup
 %==========================================================================
@@ -430,6 +430,10 @@ R.Rvac = Rvac;
 R.Tin  = P.Tin;
 R.Tic  = P.Tic;
 R.Trd  = P.Trd;
+
+R.Tim  = P.Tim;
+R.Tnn  = P.Tnn;
+R.Vac  = P.vac;
 
 return
 

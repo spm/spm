@@ -37,7 +37,7 @@ function [P,C,str] = spm_SARS_priors(nN)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_priors.m 8205 2021-12-30 18:04:59Z karl $
+% $Id: spm_SARS_priors.m 8206 2022-01-06 11:27:29Z karl $
 
 % sources and background
 %--------------------------------------------------------------------------
@@ -65,7 +65,8 @@ if nargin
     % priors for single group
     %----------------------------------------------------------------------
     [P,C,str] = spm_SARS_priors;
-    free  = {'N','Nin','Nou','qua',...
+    free  = {'N','Nin','Nou',...
+             'qua','pro'...
              'hos','ccu','Tim',...
              'sev','fat',...
              'tes','tts','rol','lnk'};
@@ -295,6 +296,7 @@ names{52} = 'PCR testing of fatalities';
 names{53} = 'contact rate decay (days)';
 names{54} = 'survival risk in care homes';
 names{55} = 'relative asymptomatic rate';  
+names{56} = 'incidental admissions';  
 
 
 % latent or hidden factors
@@ -460,6 +462,10 @@ P.rel = 0.9;                  % (52) PCR testing of fatalities
 P.pro = 128;                  % (53) contact rate decay (days)
 P.oth = 0.1;                  % (54) relative survival outside hospital
 P.iss = 1;                    % (55) relative asymptomatic rate (infectious)
+P.iad = 0.26;                 % (56) incidental admissions
+
+
+
 
 % infection fatality (for susceptible population)
 %--------------------------------------------------------------------------
@@ -546,6 +552,7 @@ C.rel = W;                    % (52) PCR testing of fatalities
 C.pro = W;                    % (53) contact rate decay (days)
 C.oth = W;                    % (54) relative survival outside hospital
 C.iss = X;                    % (55) relative asymptomatic rate (infectious)
+C.iad = 0;                    % (56) incidental admissions
 
 
 % check prior expectations and covariances are consistent

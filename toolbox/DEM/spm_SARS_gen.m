@@ -83,7 +83,7 @@ function [y,x,z,W] = spm_SARS_gen(P,M,U,NPI,age)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_gen.m 8205 2021-12-30 18:04:59Z karl $
+% $Id: spm_SARS_gen.m 8206 2022-01-06 11:27:29Z karl $
 
 
 % The generative model:
@@ -353,7 +353,7 @@ for i = 1:M.T
         Rout = 0;
         if isfield(P,'mob')
             for j = 1:numel(Q{n}.mob)
-                Rout = Rout + log(Q{n}.mob(j)) * exp(-(i - j*32).^2/256)/8;
+                Rout = Rout + log(Q{n}.mob(j)) * exp(-(i - j*32).^2/((32/2)^2))/8;
             end
         end
         
@@ -381,7 +381,7 @@ for i = 1:M.T
         Ptra = 1;
         if isfield(Q{n},'tra')
             for j = 1:numel(Q{n}.tra)
-                Ptra = Ptra + erf(Q{n}.tra(j)) * (1 + erf((i - j*64)/32))/8;
+                Ptra = Ptra + erf(Q{n}.tra(j)) * (1 + erf((i - j*48)/(48/2)))/8;
             end
         end
         Ptrn = Q{n}.trn + Q{n}.trm*S;              % seasonal risk
@@ -544,7 +544,7 @@ for i = 1:M.T
         
         % hospital admissions (ARDS and incidental admissions)
         %------------------------------------------------------------------
-        Y{n}(i,16) = Y{n}(i,27)/Q{n}.Trd + N(n) * pcr14 * 2e-03;
+        Y{n}(i,16) = (Y{n}(i,27)/Q{n}.Trd) * (1 + Q{n}.iad);
         
         % excess deaths in hospital/CCU
         %------------------------------------------------------------------
