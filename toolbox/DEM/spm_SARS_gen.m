@@ -83,7 +83,7 @@ function [y,x,z,W] = spm_SARS_gen(P,M,U,NPI,age)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_gen.m 8206 2022-01-06 11:27:29Z karl $
+% $Id: spm_SARS_gen.m 8207 2022-01-09 13:56:05Z karl $
 
 
 % The generative model:
@@ -397,8 +397,9 @@ for i = 1:M.T
         Q{n}.Trd = R{n}.Trd*Ptra^(log(R{n}.s(5))); % duration of ARDS 
         
         Q{n}.sev = R{n}.sev*Ptra^(-R{n}.lat);      % P(ARDS | infected)
-        Q{n}.fat = R{n}.fat*Ptra^(-R{n}.sur);      % P(fatality | ARDS, CCU)
-
+        Q{n}.fat = R{n}.fat*Ptra^(-R{n}.sur);      % P(fatality | ARDS)
+        Q{n}.ccu = R{n}.ccu*Ptra^(-R{n}.iad);      % P(CCU | ARDS)
+        
         % contact rates
         %------------------------------------------------------------------
         tin  = 1;
@@ -536,15 +537,14 @@ for i = 1:M.T
         %------------------------------------------------------------------
         Y{n}(i,15) = N(n) * p{n}{3}(4);
         
-        % hospital occupancy (ARDS people in hospital/CCU)
+        % hospital occupancy (people in hospital/CCU and incidental admissions)
         %------------------------------------------------------------------
-        q          = squeeze(spm_sum(x{n},[2,4]));
-        q          = sum(q([3,6],3));
-        Y{n}(i,27) = N(n) * q;
+        q          = sum(p{n}{1}([3,6]));
+        Y{n}(i,27) = N(n) * q * 1.32;
         
         % hospital admissions (ARDS and incidental admissions)
         %------------------------------------------------------------------
-        Y{n}(i,16) = (Y{n}(i,27)/Q{n}.Trd) * (1 + Q{n}.iad);
+        Y{n}(i,16) = Y{n}(i,27)/Q{n}.Trd;
         
         % excess deaths in hospital/CCU
         %------------------------------------------------------------------

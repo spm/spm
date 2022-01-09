@@ -22,7 +22,7 @@ function [T,R] = spm_COVID_T(P,I)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_T.m 8206 2022-01-06 11:27:29Z karl $
+% $Id: spm_COVID_T.m 8207 2022-01-09 13:56:05Z karl $
 
 % setup
 %==========================================================================
@@ -54,7 +54,7 @@ Pdis = P.m*Pexp;                     % P(leaving effective population)
 % bed availability
 %--------------------------------------------------------------------------
 Phos = erf(P.hos);                   % P(hospital | ARDS)
-Pcap = erf(P.ccu);                   % P(transfer to CCU | ARDS)
+Pccu = erf(P.ccu);                   % P(transfer to CCU | ARDS)
 Piss = erf(2);                       % probability of self-isolation
 Piso = exp(-1/P.iso);                % period of self-isolation
 
@@ -85,10 +85,10 @@ b{2} = [(1 - Piss) 0          (1 - Piss) 0         (1 - Piss) (1 - Piss);
 %--------------------------------------------------------------------------
 b{3} = [0          0          0          0          0         0;
         0          0          0          0          0         0;
-        0          0          1          0          0         Pcap;
+        0          0          1          0          0         Pccu;
         0          0          0          0          0         0;
        (1 - Phos) (1 - Phos)  0         (1 - Phos) (1 - Phos) 0;
-        Phos       Phos       0          Phos       Phos     (1 - Pcap)];
+        Phos       Phos       0          Phos       Phos     (1 - Pccu)];
 
 
 % marginal: location {1}  | deceased {3}(4)
@@ -129,6 +129,13 @@ ij   = Bij({1,[3 8],1,1:6},{1,[3 8],1,1:6},dim);  B{1}(ij) = (1 - P.ttt)*(1 - Po
 ij   = Bij({1,[3 8],1,1:6},{2,[3 8],1,1:6},dim);  B{1}(ij) = (1 - P.ttt)*Pout;
 ij   = Bij({1,[3 8],1,1:6},{4,[3 8],1,1:6},dim);  B{1}(ij) = 0;
 ij   = Bij({1,[3 8],1,1:6},{6,[3 8],1,1:6},dim);  B{1}(ij) = 0;
+
+% vaccine-dependent transfer to CCU with ARDS: third order dependencies
+%--------------------------------------------------------------------------
+% Pccu = Pccu*P.lnf;
+% ij   = Bij({6,6:8,3,1:6},{3,6:8,3,1:6},dim); B{1}(ij) = Pcap;
+% ij   = Bij({6,6:8,3,1:6},{6,6:8,3,1:6},dim); B{1}(ij) = (1 - Pcap);
+
 
 % probabilistic transitions: infection
 %==========================================================================
@@ -289,7 +296,7 @@ B{3} = spm_kron({b,I{4}});
 
 % location dependent fatalities (in hospital or CCU): third order dependencies
 %--------------------------------------------------------------------------
-Pfat = Pfat*P.lnf;         % vaccinated
+Pfat = P.fat*P.lnf;        % vaccinated
 ij   = Bij({[3 6],6:8,3,1:6},{[3 6],6:8,4,1:6},dim); B{3}(ij) = (1 - Ktrd)*Pfat;
 ij   = Bij({[3 6],6:8,3,1:6},{[3 6],6:8,1,1:6},dim); B{3}(ij) = (1 - Ktrd)*(1 - Pfat);
 Pfat = P.fat;              % unvaccinated

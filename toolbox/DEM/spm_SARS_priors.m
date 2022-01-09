@@ -37,7 +37,7 @@ function [P,C,str] = spm_SARS_priors(nN)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_priors.m 8206 2022-01-06 11:27:29Z karl $
+% $Id: spm_SARS_priors.m 8207 2022-01-09 13:56:05Z karl $
 
 % sources and background
 %--------------------------------------------------------------------------
@@ -296,7 +296,7 @@ names{52} = 'PCR testing of fatalities';
 names{53} = 'contact rate decay (days)';
 names{54} = 'survival risk in care homes';
 names{55} = 'relative asymptomatic rate';  
-names{56} = 'incidental admissions';  
+names{56} = 'changes in transfer to CCU';  
 
 
 % latent or hidden factors
@@ -462,7 +462,7 @@ P.rel = 0.9;                  % (52) PCR testing of fatalities
 P.pro = 128;                  % (53) contact rate decay (days)
 P.oth = 0.1;                  % (54) relative survival outside hospital
 P.iss = 1;                    % (55) relative asymptomatic rate (infectious)
-P.iad = 0.26;                 % (56) incidental admissions
+P.iad = 1;                    % (56) exponent: transfer to CCU
 
 
 
@@ -513,9 +513,9 @@ C.Tic = X;                    % (21) asymptomatic period (days)
 C.Tsy = X;                    % (22) symptomatic period  (days)
 C.Trd = W;                    % (23) CCU period (days)
 C.sev = W;                    % (24) P(ARDS | symptoms)
-C.lat = W;                    % (25) changes in severity
+C.lat = V;                    % (25) changes in severity
 C.fat = W;                    % (26) P(fatality | ARDS)
-C.sur = W;                    % (27) changes in severity
+C.sur = V;                    % (27) changes in severity
 
 % testing parameters
 %--------------------------------------------------------------------------
@@ -552,7 +552,7 @@ C.rel = W;                    % (52) PCR testing of fatalities
 C.pro = W;                    % (53) contact rate decay (days)
 C.oth = W;                    % (54) relative survival outside hospital
 C.iss = X;                    % (55) relative asymptomatic rate (infectious)
-C.iad = 0;                    % (56) incidental admissions
+C.iad = V;                    % (56) exponent: transfer to CCU
 
 
 % check prior expectations and covariances are consistent

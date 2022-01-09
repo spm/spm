@@ -14,7 +14,7 @@ function DCM = DEM_COVID_UK4
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_UK4.m 8206 2022-01-06 11:27:29Z karl $
+% $Id: DEM_COVID_UK4.m 8207 2022-01-09 13:56:05Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -1068,7 +1068,7 @@ legend({' ','Attack rate',' ','Effective Population immunity',...
 legend boxoff
 
 
-%% report vaccine efficiencyone
+%% report vaccine efficiency
 %--------------------------------------------------------------------------
 q   = Ep.vef(end);
 d   = spm_unvec(diag(Cp),Ep);
@@ -1107,6 +1107,9 @@ qU  = 100*(1 - exp(q - d));
 fprintf('preventing fatality when seriously ill %.1f%s (CI %.1f to %.1f)\n',qE,'%',qL,qU)
 disp(' ')
 
+disp('The corresponding cumulative (vaccinated vs. unvaccinated) risks are:')
+disp(' ')
+
 q      = (mean(exp(Ep.Tin)) + mean(exp(Ep.Tcn))*mean(exp(Ep.ves))) /...
          (mean(exp(Ep.Tin)) + mean(exp(Ep.Tcn)));
 
@@ -1120,28 +1123,27 @@ fprintf('relative risk of severe illness %.1f%s\n', severe*100,'%')
 fprintf('relative risk of fatality %.1f%s\n',       death*100, '%')
 disp(' ')
 
+fprintf('%s%.1f%s\n\n','For example, vaccination reduces the risk of being infected and subsequently developing a severe illness to ',severe*100,'% of the risk prior to vaccination. The risk then increases slowly until the next vaccination.')
+
+% mean serial interval
+%--------------------------------------------------------------------------
+fprintf('%s%.1f%s\n','The average serial interval has fallen to ',ST(j),' days')
+
+% exposure time
+%--------------------------------------------------------------------------
+fprintf('%s%.1f%s\n','The average period between exposure and becoming infectious is ',TIN(j),' days')
+
+% mean incubation (asymptomatic).
+%--------------------------------------------------------------------------
+fprintf('%s%.1f%s\n\n','The average asymptomatic period is currently ',TIC(j),' days')
+
 % report transmissibility and basic reproduction number
 %--------------------------------------------------------------------------
 disp('relative transmissibility');
 disp(100*TRN(j)/mean(TRN(1:j)))
 disp('basic reproduction number');
 disp(RT(j))
-
-% mean serial interval
-%--------------------------------------------------------------------------
-disp('serial interval (days)');
-disp(ST(j))
-
-% mean incubation (asymptomatic).
-%--------------------------------------------------------------------------
-disp('asymptomatic period (days)');
-disp(TIC(j))
-
-% mean incubation (asymptomatic).
-%--------------------------------------------------------------------------
-disp('exposure time (days)');
-disp(TIN(j))
-
+disp(' ')
 
 %% ancillary predictions
 %--------------------------------------------------------------------------
