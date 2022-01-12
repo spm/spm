@@ -35,9 +35,9 @@
 %
 % See README.md for details of this release.
 %__________________________________________________________________________
-% Copyright (C) 1991,1994-2021 Wellcome Centre for Human Neuroimaging
+% Copyright (C) 1991,1994-2022 Wellcome Centre for Human Neuroimaging
 
-% $Id: Contents.m 8041 2021-01-04 14:24:00Z spm $
+% $Id: Contents.m 8208 2022-01-12 11:10:09Z spm $
 
 %==========================================================================
 % PROGRAMMERS NOTE:
