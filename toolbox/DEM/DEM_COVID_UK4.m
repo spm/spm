@@ -14,7 +14,7 @@ function DCM = DEM_COVID_UK4
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_UK4.m 8207 2022-01-09 13:56:05Z karl $
+% $Id: DEM_COVID_UK4.m 8209 2022-01-17 10:34:40Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -1153,11 +1153,11 @@ fprintf('vaccine effectiveness (prevalence of infection) %.1f%s\n', Z(j,3),'%')
 disp(' ')
 
 [m,d] = max(Z(j:end,2));
-fprintf('peak hospital admissions:  %.0f on %s\n', m,datestr(t(j + d + 8)))
+fprintf('peak hospital admissions:  %.0f on %s\n', m,datestr(t(j + d)))
 disp(' ')
 
 [m,d] = max(Z(j:end,1));
-fprintf('peak (28-day) death rates:  %.0f on %s\n', m,datestr(t(j + d + 8)))
+fprintf('peak (28-day) death rates:  %.0f on %s\n', m,datestr(t(j + d)))
 disp(' ')
 
 %% save figures

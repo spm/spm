@@ -83,7 +83,7 @@ function [y,x,z,W] = spm_SARS_gen(P,M,U,NPI,age)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_gen.m 8207 2022-01-09 13:56:05Z karl $
+% $Id: spm_SARS_gen.m 8209 2022-01-17 10:34:40Z karl $
 
 
 % The generative model:
@@ -444,22 +444,24 @@ for i = 1:M.T
         % outcomes
         %==================================================================
         
-        % probability of a positive PCR test within 28 or 14 days
+        % probability of a [positive] PCR test within 28 or 14 days
         %------------------------------------------------------------------
-        pcr28   = 1 - (1 - p{n}{4}(3))^28;
-        pcr14   = 1 - (1 - p{n}{4}(3))^14;
+        ncr28   = 1 - p{n}{4}(1)^28;        % probability of being tested
+        pcr28   = 1 - (1 - p{n}{4}(3))^28;  % probability of being positive
+        pcr14   = 1 - (1 - p{n}{4}(3))^14;  % probability of being positive
         
         % time-varying parameters and other vaiables
         %------------------------------------------------------------------
         V.Ptrn  = Ptrn;
+        V.ncr28 = ncr28;
         V.pcr28 = pcr28;
         V.pcr14 = pcr14;
         W{n}(i) = V;
         
-        % number of daily deaths (28 days)
+        % number of daily deaths (28 days) assuming 1500 deaths per day 
         %------------------------------------------------------------------
-        q         = erf(Q{n}.rel);
-        Y{n}(i,1) = N(n) * p{n}{3}(4)*(q + (1 - q)*pcr28);
+        q         = ncr28^(Q{n}.rel/16);              % untested proportion
+        Y{n}(i,1) = N(n) * p{n}{3}(4)*q + 1500*pcr28; % plus incidental
         
         % number of daily (positive) tests (PCR and LFD)
         %------------------------------------------------------------------

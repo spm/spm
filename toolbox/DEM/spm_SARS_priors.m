@@ -37,7 +37,7 @@ function [P,C,str] = spm_SARS_priors(nN)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_priors.m 8207 2022-01-09 13:56:05Z karl $
+% $Id: spm_SARS_priors.m 8209 2022-01-17 10:34:40Z karl $
 
 % sources and background
 %--------------------------------------------------------------------------
@@ -88,7 +88,7 @@ if nargin
         %------------------------------------------------------------------
         P.N   = P.N - log(nN);
         P.n   = P.n - log(nN);
-        P.rol = log([0.001 ( 365 + 0)   32;
+        P.rol = log([0.001  (365 + 0)   32;
                      0.01   (365 + 0)   32;
                      0.01   (365 + 0)   32]);
         P.fol = log([0.0001 (365 + 128) 32;
@@ -128,17 +128,17 @@ if nargin
         %------------------------------------------------------------------
         P.N   = P.N - log(nN);
         P.n   = P.n - log(nN);
-        P.rol = log([0.0001 (365 + 0)   32;
-                     0.001  (365 + 0)   32;
-                     0.01   (365 + 0)   32;
-                     0.02   (365 + 0)   32]);
+        P.rol = log([0.0001 (365 + 192)  128;
+                     0.001  (300 + 128)  64;
+                     0.01   (300 + 96 )  32;
+                     0.02   (300 + 32 )  16]);
                  
         P.fol = log([0.0001 (365 + 512) 32;
                      0.0001 (365 + 128) 32;
                      0.0001 (365 + 64 ) 32;
                      0.0001 (365 + 32 ) 32]);
 
-        C.rol = [0    0    0   ;
+        C.rol = [1/16 1/64 1/64;
                  1/16 1/64 1/64;
                  1/16 1/64 1/64;
                  1/16 1/64 1/64];
@@ -458,7 +458,7 @@ P.Tnn = 256;                  % (49) loss of T-cell immunity (days)
 
 P.lnr = 0.46;                 % (50) LFD sensitivity
 P.lpr = 0.0002;               % (51) LFD specificity
-P.rel = 0.9;                  % (52) PCR testing of fatalities
+P.rel = 1;                    % (52) PCR testing of fatalities
 P.pro = 128;                  % (53) contact rate decay (days)
 P.oth = 0.1;                  % (54) relative survival outside hospital
 P.iss = 1;                    % (55) relative asymptomatic rate (infectious)
@@ -533,7 +533,7 @@ C.ons = U;                    % (37) testing: onset (days)
 
 C.lag = V;                    % (38) reporting lag
 C.inn = V;                    % (39) seasonal phase
-C.mem = W;                    % (40) vaccination delay (days)
+C.mem = Z;                    % (40) vaccination delay (days)
 C.rol = X;                    % (41) vaccination rollout (1st)
 C.fol = X;                    % (42) vaccination rollout (2nd)
 

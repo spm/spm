@@ -13,7 +13,7 @@ function Tab = DEM_vaccination
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_vaccination.m 8204 2021-12-28 21:14:03Z karl $
+% $Id: DEM_vaccination.m 8209 2022-01-17 10:34:40Z karl $
 
 
 % sent plotting colours for overlay (with without interventions)
@@ -818,7 +818,7 @@ clear
 DCM = load('DCM_UK.mat','DCM');
 DCM = DCM.DCM;
 
-% parametric intervention (relaxation social distancing threshold)
+% parametric intervention (transmission)
 %==========================================================================
 period = {DCM.M.date,'01-08-2022'};          % duration of epidemic
 
@@ -885,5 +885,102 @@ for j = 1:numel(NPI)
         xlabel(sprintf('Date [difference: %.0f (%.2f%s)]',-d(i,j), -100*d(i,j)/e1, '%'))
     end
 end
+
+
+
+
+%% scenario modelling for increased transmissibility on 15 Jan 2022
+%==========================================================================
+clear
+DCM = load('DCM_UK.mat','DCM');
+DCM = DCM.DCM;
+
+% parametric intervention (relaxation of social distancing threshold)
+%==========================================================================
+period = {DCM.M.date,'01-09-2022'};          % duration of epidemic
+
+% scenario: relaxation of restrictions on 21st of June
+%--------------------------------------------------------------------------
+NPI(1).period = period;
+NPI(1).param  = {'qua'};
+NPI(1).Q      = 8;
+NPI(1).dates  = {'26-01-2022',period{2}};
+
+% unpack model and posterior expectations
+%--------------------------------------------------------------------------
+M   = DCM.M;                                 % model (priors)
+Ep  = DCM.Ep;                                % posterior expectation
+Cp  = DCM.Cp;                                % posterior covariances
+S   = DCM.Y;                                 % smooth timeseries
+U   = DCM.U;                                 % indices of outputs
+
+% plot epidemiological trajectories and hold plots
+%==========================================================================
+spm_figure('GetWin','states'); clf;
+%--------------------------------------------------------------------------
+M.T    = datenum(period{2},'dd-mm-yyyy') - datenum(period{1},'dd-mm-yyyy');
+u      = 14;
+[Z,X]  = spm_SARS_gen(Ep,M,u);
+spm_SARS_plot(Z,X,S(:,find(U == u)),u)
+
+% and the effect of intervention (NPI) on latent states
+%--------------------------------------------------------------------------
+for i = 1:numel(NPI)
+    for j = 1:2, subplot(3,2,j), hold on, end
+    for j = 5:12,subplot(6,2,j), hold on, end
+    
+    [Z,X] = spm_SARS_gen(Ep,M,u,NPI(i));
+    spm_SARS_plot(Z,X,S(:,find(U == u)),u)
+end
+
+
+%% confidence intervals: fatalities (u = 1), cases (u = 2), retail (u = 14)
+% admissions (u = 16) and Long COVID (u = 28)
+%--------------------------------------------------------------------------
+spm_figure('GetWin','outcomes'); clf;
+%--------------------------------------------------------------------------
+u  = [1 2 16 28 13 32];
+nu = numel(u);
+
+for j = 1:numel(NPI)
+    for i = 1:nu
+
+        subplot(nu/2,2,i), hold on
+        [m1,c1] = spm_SARS_ci(Ep,Cp,S(:,find(U == u(i),1)),u(i),M);
+        axis square
+        subplot(nu/2,2,i), hold on
+        [m2,c2] = spm_SARS_ci(Ep,Cp,S(:,find(U == u(i),1)),u(i),M,NPI(j));
+        axis square
+        
+        plot([1 1]*datenum(NPI(j).dates{1},'dd-mm-yyyy'),get(gca,'YLim'),':k')
+        plot([1 1]*datenum(NPI(j).dates{2},'dd-mm-yyyy'),get(gca,'YLim'),':k')
+
+        k      = datenum(NPI(j).dates{1},'dd-mm-yyyy') - datenum(period{1},'dd-mm-yyyy');
+        e1     = m1(end) - m1(k);
+        e2     = m2(end) - m2(k);
+        d(i,j) = e2 - e1;
+         
+        xlabel(sprintf('Date [difference: %.0f (%.2f%s)]',d(i,j), 100*d(i,j)/e1, '%'))
+    end
+end
+
+%% hospital admissions
+%--------------------------------------------------------------------------
+clc
+dif = d(3,1);
+fprintf('Cost of hospital admissions: %.0f x £50,000 = £%.2fB\n\n',dif, dif*50000/1e9)
+
+% £-QALY = £60,000 (green Book), 1 death = 7.6 QALY
+%--------------------------------------------------------------------------
+dif = d(1,1);
+fprintf('Cost (£-QALY = £60,000) of deaths (1 death = 7.6 QALY): %.0f x £456,000 = £%.2fB\n\n',dif, dif*456000/1e9)
+
+
+% Gross domestic product
+%--------------------------------------------------------------------------
+days = M.T - k;
+dif = d(6,1)/days;   % percent GDP loss per day
+gdp = 560/(365/4);
+fprintf('Loss to GDP: %.2f%s per day x %.0f days @ £560B per quarter = £%.2fB\n\n',dif, '%', days, days*gdp*dif/100)
 
 
