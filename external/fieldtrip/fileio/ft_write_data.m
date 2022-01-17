@@ -84,12 +84,49 @@ end
 % convert 'yes' or 'no' string into boolean
 append = istrue(append);
 
-% determine the data size
-[nchans, nsamples] = size(dat);
-
 % ensure that the directory exists if we want to write to a file
 if ~ismember(dataformat, {'empty', 'fcdc_global', 'fcdc_buffer', 'fcdc_mysql'})
   isdir_or_mkdir(fileparts(filename));
+end
+
+% determine the data size
+[nchans, nsamples] = size(dat);
+
+% ensure that the header is (reasonably) complete
+if ~isfield(hdr, 'nChans')
+  if isfield(hdr, 'label')
+    hdr.nChans = length(hdr.label);
+  else
+    hdr.nChans = nchans;
+  end
+end
+
+if ~isfield(hdr, 'label')
+  hdr.label = arrayfun(@num2str, 1:hdr.nChans, 'UniformOutput', false)';
+end
+
+if ~isfield(hdr, 'chantype')
+  % use a helper function which has some built in intelligence
+  hdr.chantype = ft_chantype(hdr);
+end
+
+if ~isfield(hdr, 'chanunit')
+  % use a helper function which has some built in intelligence
+  hdr.chanunit = ft_chanunit(hdr);
+end
+
+if ~isempty(chanindx)
+  % the header (and possibly the data) correspond to the original multichannel file
+  hdr.label    = hdr.label(chanindx);
+  hdr.chantype = hdr.chantype(chanindx);
+  hdr.chanunit = hdr.chanunit(chanindx);
+  hdr.nChans   = length(chanindx);
+  if length(chanindx)==nchans
+    % assume that the data already represents the desired subset of channels
+  else
+    % assume that the data corresponds to the original multichannel file
+    dat = dat(chanindx,:);
+  end
 end
 
 switch dataformat
@@ -129,13 +166,6 @@ switch dataformat
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     if ~isempty(evt)
       ft_error('writing events is not supported here, please see FT_WRITE_EVENT');
-    end
-    
-    if ~isempty(chanindx)
-      % assume that the header corresponds to the original multichannel
-      % file and that the data represents a subset of channels
-      hdr.label  = hdr.label(chanindx);
-      hdr.nChans = length(chanindx);
     end
     
     [host, port] = filetype_check_uri(filename);
@@ -246,34 +276,17 @@ switch dataformat
     end % writing header
     
     if ~isempty(dat)
-      max_nsamples = 32556;
-      if size(dat,2)>max_nsamples
-        % FIXME this is a hack to split large writes into multiple smaller writes
-        % this is to work around a problem observed in the neuralynx proxy
-        % when sampling 32 channels at 32KHz
-        begsample = 1;
-        while begsample<=size(dat,2)
-          endsample = begsample - 1 + max_nsamples;
-          endsample = min(endsample, size(dat,2));
-          % if append is already one of the arguments, remove it from varargin
-          indx = find(strcmp(varargin, 'append')); % find the "append" key
-          if ~isempty(indx)
-            indx = [indx indx+1];                  % remove the key and the value
-            varargin(indx) = [];
-          end
-          ft_write_data(filename, dat(:,begsample:endsample), varargin{:}, 'append', false);
-          begsample = endsample + 1;
-        end
-      else
-        % FIXME this is the normal code, which will also be used recursively
-        % reformat the data into a buffer-compatible format
-        packet.nchans    = size(dat,1);
-        packet.nsamples  = size(dat,2);
-        packet.data_type = find(strcmp(type, class(dat))) - 1; % zero-offset
-        packet.bufsize   = numel(dat) * wordsize{strcmp(type, class(dat))};
-        packet.buf       = dat;
-        buffer('put_dat', packet, host, port);
-      end % if data larger than chuncksize
+      MAXNUMSAMPLE = 600000; % see buffer.h
+      if size(dat,2)>MAXNUMSAMPLE
+        ft_error('number of samples exceeds the size of the ring buffer');
+      end
+      % reformat the data into a buffer-compatible format
+      packet.nchans    = size(dat,1);
+      packet.nsamples  = size(dat,2);
+      packet.data_type = find(strcmp(type, class(dat))) - 1; % zero-offset
+      packet.bufsize   = numel(dat) * wordsize{strcmp(type, class(dat))};
+      packet.buf       = dat;
+      buffer('put_dat', packet, host, port);
     end
     
   case {'brainvision_eeg', 'brainvision_vhdr'}
@@ -284,12 +297,6 @@ switch dataformat
       ft_error('appending data is not yet supported for this data format');
     end
     
-    if nchans~=hdr.nChans && length(chanindx)==nchans
-      % assume that the header corresponds to the original multichannel
-      % file and that the data represents a subset of channels
-      hdr.label  = hdr.label(chanindx);
-      hdr.nChans = length(chanindx);
-    end
     % the header should at least contain the following fields
     %   hdr.label
     %   hdr.nChans
@@ -332,12 +339,6 @@ switch dataformat
     else
       hdr.nSamples = nsamples;
       hdr.nTrials  = 1;
-      if nchans~=hdr.nChans && length(chanindx)==nchans
-        % assume that the header corresponds to the original multichannel
-        % file and that the data represents a subset of channels
-        hdr.label     = hdr.label(chanindx);
-        hdr.nChans    = length(chanindx);
-      end
       if ~isfield(hdr, 'precision')
         hdr.precision = 'double';
       end
@@ -593,25 +594,21 @@ switch dataformat
     if ~isempty(evt)
       ft_error('writing events is not supported');
     end
-    
-    if nchans~=hdr.nChans && length(chanindx)==nchans
-      % assume that the header corresponds to the original multichannel
-      % file and that the data represents a subset of channels
-      hdr.label  = hdr.label(chanindx);
-      hdr.nChans = length(chanindx);
-    end
-    
     if nchans~=1
       ft_error('this format only supports single channel continuous data');
     end
     
-    [p, f, x] = fileparts(filename);
-    if isempty(x)
-      % append the format as extension
-      filename = [filename '.' dataformat];
-    end
+    [path, file, ext] = fileparts(filename);
+    filename = fullfile(path, [file '.' dataformat]);
     
-    audiowrite(filename, dat, hdr.Fs, 'BitsPerSample', nbits);
+    switch dataformat
+      case {'m4a' 'mp4' 'oga' 'ogg'}
+        options = {};
+      otherwise
+        options = {'BitsPerSample', nbits};
+    end % switch
+    
+    audiowrite(filename, dat, hdr.Fs, options{:});
     
   case 'plexon_nex'
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -623,12 +620,13 @@ switch dataformat
     if ~isempty(evt)
       ft_error('writing events is not supported');
     end
-    
-    [path, file] = fileparts(filename);
-    filename = fullfile(path, [file, '.nex']);
     if nchans~=1
       ft_error('only supported for single-channel data');
     end
+    
+    [path, file, ext] = fileparts(filename);
+    filename = fullfile(path, [file, '.nex']);
+    
     % construct a NEX structure with  the required parts of the header
     nex.hdr.VarHeader.Type       = 5; % continuous
     nex.hdr.VarHeader.Name       = hdr.label{1};
@@ -668,20 +666,8 @@ switch dataformat
     [path, file, ext] = fileparts(filename);
     filename = fullfile(path, [file, '.ncs']);
     
-    if nchans~=hdr.nChans && length(chanindx)==nchans
-      % assume that the header corresponds to the original multichannel
-      % file and that the data represents a subset of channels
-      % WARNING the AD channel index assumes that the data was read from a DMA or SDMA file
-      % the first 17 channels contain status info, this number is zero-offset
-      ADCHANNEL  = chanindx - 17 - 1;
-      LABEL      = hdr.label{chanindx};
-    elseif hdr.nChans==1
-      ADCHANNEL  = -1;            % unknown
-      LABEL      = hdr.label{1};  % single channel
-    else
-      ft_error('cannot determine channel label');
-    end
-    
+    LABEL      = hdr.label{1};  % single channel
+    ADCHANNEL  = -1;            % unknown
     FSAMPLE    = hdr.Fs;
     RECORDNSMP = 512;
     RECORDSIZE = 1044;
@@ -722,7 +708,7 @@ switch dataformat
     fprintf('writing to %s\n', filename);
     write_neuralynx_ncs(filename, ncs);
     
-    if 0
+    if false
       % the following code snippet can be used for testing
       ncs2 = read_neuralynx_ncs(filename, 1, inf);
     end
@@ -737,12 +723,10 @@ switch dataformat
     if ~isempty(evt)
       ft_error('writing events is not supported');
     end
-    if ~isempty(chanindx)
-      % assume that the header corresponds to the original multichannel
-      % file and that the data represents a subset of channels
-      hdr.label  = hdr.label(chanindx);
-      hdr.nChans = length(chanindx);
-    end
+    
+    [path, file, ext] = fileparts(filename);
+    filename = fullfile(path, [file, '.gdf']);
+    
     write_gdf(filename, hdr, dat);
     
   case 'edf'
@@ -755,12 +739,10 @@ switch dataformat
     if ~isempty(evt)
       ft_error('writing events is not supported');
     end
-    if ~isempty(chanindx)
-      % assume that the header corresponds to the original multichannel
-      % file and that the data represents a subset of channels
-      hdr.label  = hdr.label(chanindx);
-      hdr.nChans = length(chanindx);
-    end
+    
+    [path, file, ext] = fileparts(filename);
+    filename = fullfile(path, [file, '.edf']);
+    
     write_edf(filename, hdr, dat);
     
   case 'anywave_ades'
@@ -772,14 +754,6 @@ switch dataformat
     end
     if ~isempty(evt)
       ft_error('writing events is not supported');
-    end
-    if ~isempty(chanindx)
-      % assume that the header corresponds to the original multichannel
-      % file and that the data represents a subset of channels
-      hdr.label     = hdr.label(chanindx);
-      hdr.chantype  = hdr.chantype(chanindx);
-      hdr.chanunit  = hdr.chanunit(chanindx);
-      hdr.nChans    = length(chanindx);
     end
     
     dattype = unique(hdr.chantype);
@@ -829,12 +803,6 @@ switch dataformat
     if append
       ft_error('appending data is not yet supported for this data format');
     end
-    if ~isempty(chanindx)
-      % assume that the header corresponds to the original multichannel
-      % file and that the data represents a subset of channels
-      hdr.label  = hdr.label(chanindx);
-      hdr.nChans = length(chanindx);
-    end
     
     % convert the input arguments into a FieldTrip raw data structure
     data = [];
@@ -858,12 +826,6 @@ switch dataformat
     if append
       ft_error('appending data is not yet supported for this data format');
     end
-    if ~isempty(chanindx)
-      % assume that the header corresponds to the original multichannel
-      % file and that the data represents a subset of channels
-      hdr.label  = hdr.label(chanindx);
-      hdr.nChans = length(chanindx);
-    end
     
     % this uses the SNIRF reading functions from the Homer3 toolbox
     ft_hastoolbox('homer3', 1);
@@ -880,7 +842,7 @@ switch dataformat
     snirf = SnirfClass();
     
     % collect information for creation of snirf file
-    source_idx = find(contains(hdr.opto.optotype, {'transmitter', 'source'}));
+    source_idx   = find(contains(hdr.opto.optotype, {'transmitter', 'source'}));
     detector_idx = find(contains(hdr.opto.optotype, {'receiver', 'detector'}));
     tra = hdr.opto.tra;
     tra_t = tra'; % transpose tra matrix to get indices of wavelength by row (thus by channel)
@@ -906,7 +868,7 @@ switch dataformat
     for i=1:size(tra,1)
       source = find(tra(i,:)>0);
       detector = find(tra(i,:)<0);
-      snirf.data.measurementList(i).sourceIndex = find(source_idx==source);
+      snirf.data.measurementList(i).sourceIndex   = find(source_idx==source);
       snirf.data.measurementList(i).detectorIndex = find(detector_idx==detector);
       %     snirf.data.measurementList(i).wavelengthActual = all_wavelengths(i); % this is not yet supported by the snirf toolbox
       if any(all_wavelengths(i)==WL1.values)
@@ -930,12 +892,13 @@ switch dataformat
       % select events with a string value, the type will be a string
       sel = cellfun(@ischar, {evt.value});
       if any(sel)
-        evt_names = unique({evt(:).value}); % if the values are strings, this propably contains the event names
+        evt_string = evt(sel);
+        evt_names = unique({evt_string(:).value}); % if the values are strings, this propably contains the event names
         for i=1:length(evt_names)
           snirf.stim(i).name = evt_names{i};
-          evt_idx = find(strcmp({evt(:).value}, evt_names{i}));
-          starttime = ([evt(evt_idx).sample]-1)/hdr.Fs;
-          duration = [evt(evt_idx).duration]/hdr.Fs;
+          evt_idx = find(strcmp({evt_string(:).value}, evt_names{i}));
+          starttime = ([evt_string(evt_idx).sample]-1)/hdr.Fs;
+          duration = [evt_string(evt_idx).duration]/hdr.Fs;
           if isempty(duration)
             duration = zeros(1, length(starttime));
           end
@@ -946,16 +909,17 @@ switch dataformat
       % select events with a numeric value, the type will be a string
       sel = cellfun(@isnumeric, {evt.value});
       if any(sel)
-        evt_names = unique({evt(:).type});
+        evt_numeric = evt(sel);
+        evt_names = unique({evt_numeric(:).type});
         for i=1:length(evt_names)
           snirf.stim(i).name = evt_names{i};
-          evt_idx = find(strcmp({evt(:).type}, evt_names{i}));
-          starttime = ([evt(evt_idx).sample]-1)/hdr.Fs;
-          duration = [evt(evt_idx).duration]/hdr.Fs;
+          evt_idx = find(strcmp({evt_numeric(:).type}, evt_names{i}));
+          starttime = ([evt_numeric(evt_idx).sample]-1)/hdr.Fs;
+          duration = [evt_numeric(evt_idx).duration]/hdr.Fs;
           if isempty(duration)
             duration = zeros(1, length(starttime));
           end
-          value = [evt(evt_idx).value];
+          value = [evt_numeric(evt_idx).value];
           if isempty(value)
             value = ones(1, length(starttime));
           end
@@ -1028,5 +992,3 @@ for i=1:numel(type)
       type{i} = 'Other';
   end
 end
-
-

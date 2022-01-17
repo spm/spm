@@ -286,7 +286,7 @@ switch cfg.method
 end
 
 % select trials of interest
-tmpcfg = keepfields(cfg, {'trials', 'channel', 'tolerance', 'showcallinfo'});
+tmpcfg = keepfields(cfg, {'trials', 'channel', 'tolerance', 'showcallinfo', 'trackcallinfo', 'trackconfig', 'trackusage', 'trackdatainfo', 'trackmeminfo', 'tracktimeinfo'});
 data   = ft_selectdata(tmpcfg, data);
 % restore the provenance information
 [cfg, data] = rollback_provenance(cfg, data);
@@ -347,7 +347,12 @@ end
 if strcmp(cfg.doscale, 'yes')
   % determine the scaling of the data, scale it to approximately unity
   % this will improve the performance of some methods, esp. fastica
-  tmp                 = data.trial{1};
+  trlidx = 1;
+  tmp    = data.trial{trlidx};
+  while all(isnan(tmp(:))) % if all data in this trial is NaN
+      trlidx  = trlidx + 1; % try next trial
+      tmp     = data.trial{trlidx}; % overwrite tmp with next trial
+  end
   tmp(~isfinite(tmp)) = 0; % ensure that the scaling is a finite value
   scale = norm((tmp*tmp')./size(tmp,2)); clear tmp;
   scale = sqrt(scale);

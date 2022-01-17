@@ -20,7 +20,7 @@ function [tap] = hanning(n, str)
 
 % Copyright (c) 2010, Jan-Mathijs Schoffelen, DCCN Nijmegen
 %
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
 %    FieldTrip is free software: you can redistribute it and/or modify
@@ -38,11 +38,11 @@ function [tap] = hanning(n, str)
 %
 % $Id$
 
-if nargin==1,
+if nargin==1
   str = 'symmetric';
 end
   
-switch str,
+switch str
 case 'periodic'
    % Includes the first zero sample
    tap = [0; hanningX(n-1)];
