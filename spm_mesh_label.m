@@ -12,7 +12,7 @@ function [C, N] = spm_mesh_label(M,opt)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_label.m 4035 2010-08-05 18:54:32Z guillaume $
+% $Id: spm_mesh_label.m 8211 2022-01-24 15:35:03Z guillaume $
 
 
 %-Parse input arguments
@@ -46,10 +46,8 @@ switch lower(opt)
     case 'vertices'
         %-Label vertices
         %------------------------------------------------------------------
-        C = zeros(size(A,1),1);
-        for i=1:length(r)-1
-            C(p(r(i):r(i+1)-1)) = i;
-        end
+        C = cumsum(full(sparse(1,r(1:end-1),1,1,size(A,1))))';
+        C(p) = C;
         
     otherwise
         error('Unknown option.');
