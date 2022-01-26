@@ -14,7 +14,7 @@ function DCM = DEM_COVID_UK4
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_UK4.m 8209 2022-01-17 10:34:40Z karl $
+% $Id: DEM_COVID_UK4.m 8212 2022-01-26 10:16:43Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -152,10 +152,14 @@ opts = detectImportOptions(url);
 opts.SelectedVariableNames = {'country_region_code','sub_region_1',...
     'date',...
     'workplaces_percent_change_from_baseline',...
-    'retail_and_recreation_percent_change_from_baseline'};
+    'retail_and_recreation_percent_change_from_baseline',...
+    'grocery_and_pharmacy_percent_change_from_baseline',...
+    'parks_percent_change_from_baseline',...
+    'transit_stations_percent_change_from_baseline',...
+    'residential_percent_change_from_baseline'};
 tab  = readtable(url,opts);
 i    = ismember(tab{:,1},'GB') & ismember(tab{:,2},'');
-writetable(tab(i,[3,4,5]),'mobility.csv');
+writetable(tab(i,[3,4,5,6,7,8,9]),'mobility.csv');
 
 % Country Code	K02000001	K03000001	K04000001	E92000001	W92000004	S92000003	N92000002	
 % All Persons	67,081,234	65,185,724	59,719,724	56,550,138	3,169,586	5,466,000	1,895,510	
@@ -383,11 +387,27 @@ Y(14).type = 'Mobility (GOV/Google)'; % workplace activity (percent)
 Y(14).unit = 'percent';
 Y(14).U    = 14;
 Y(14).date = datenum(mobility.textdata(2:end,1),'yyyy-mm-dd');
-Y(14).Y    = (mobility.data(:,1) + mobility.data(:,1))/2 + 100;
+Y(14).Y    = (mobility.data(:,1) + mobility.data(:,2))/2 + 100;
 Y(14).h    = 0;
 Y(14).lag  = 0;
 Y(14).age  = 0;
 Y(14).hold = 0;
+
+% subplot(2,1,1),cla
+% for i = 1:size(mobility.data,2)
+%     plot(Y(14).date,mobility.data(:,i) + 100), hold on
+% end
+% legend(mobility.textdata(1,2:end))
+% 
+% set(gca,'XLim',[datenum('01-11-21','dd-mm-yy'),datenum(date)])
+% datetick('x','dd-mmm','KeepLimits')
+% plot(datenum('15-11-21','dd-mm-yy')*[1,1],[0 150],':r')
+% plot(datenum('08-12-21','dd-mm-yy')*[1,1],[0 150],'--b')
+% plot(datenum('20-01-22','dd-mm-yy')*[1,1],[0 150],'--b')
+% 
+% legend([mobility.textdata(1,2:end) 'Omicron' 'Plan-B','Plan-B'])
+% title('Google mobility data')
+
 
 % scaling for data from England and Wales 
 %--------------------------------------------------------------------------

@@ -37,7 +37,7 @@ function [P,C,str] = spm_SARS_priors(nN)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_priors.m 8209 2022-01-17 10:34:40Z karl $
+% $Id: spm_SARS_priors.m 8212 2022-01-26 10:16:43Z karl $
 
 % sources and background
 %--------------------------------------------------------------------------
@@ -459,7 +459,7 @@ P.Tnn = 256;                  % (49) loss of T-cell immunity (days)
 P.lnr = 0.46;                 % (50) LFD sensitivity
 P.lpr = 0.0002;               % (51) LFD specificity
 P.rel = 1;                    % (52) PCR testing of fatalities
-P.pro = 128;                  % (53) contact rate decay (days)
+P.pro = 1;                    % (53) contact rate decay (days)
 P.oth = 0.1;                  % (54) relative survival outside hospital
 P.iss = 1;                    % (55) relative asymptomatic rate (infectious)
 P.iad = 1;                    % (56) exponent: transfer to CCU

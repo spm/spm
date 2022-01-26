@@ -83,7 +83,7 @@ function [y,x,z,W] = spm_SARS_gen(P,M,U,NPI,age)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_gen.m 8209 2022-01-17 10:34:40Z karl $
+% $Id: spm_SARS_gen.m 8212 2022-01-26 10:16:43Z karl $
 
 
 % The generative model:
@@ -357,25 +357,6 @@ for i = 1:M.T
             end
         end
         
-        % probability of lockdown (a function of prevalence)
-        %------------------------------------------------------------------
-        qp   = 0;
-        for j = 1:nN
-            qp = qp + (p{j}{2}(3) + p{j}{2}(8))*N(j);
-        end
-        qp   = Q{n}.sde*qp/sum(N);                % prevalence
-        k1   = exp(-i/(Q{n}.pro))*qp;             % contact rates
-        k2   = exp(-1/(Q{n}.qua));                % relaxation
-        r{n} = [(1 - k1) (1 - k2);
-                     k1,      k2]*r{n};
-        
-        Pout     = r{n}(1)*exp(Rout);             % P(going out)add fluctuations
-        Q{n}.out = erf(Pout*R{n}.out);            % scale by baseline
-        
-        % seasonal variation in transmission risk
-        %------------------------------------------------------------------
-        S    = (1 + cos(2*pi*(i - log(Q{n}.inn)*8)/365))/2;
-        
         % and fluctuations in transmissibility: cumulative error functions
         %------------------------------------------------------------------
         Ptra = 1;
@@ -384,8 +365,6 @@ for i = 1:M.T
                 Ptra = Ptra + erf(Q{n}.tra(j)) * (1 + erf((i - j*48)/(48/2)))/8;
             end
         end
-        Ptrn = Q{n}.trn + Q{n}.trm*S;              % seasonal risk
-        Ptrn = erf(Ptrn*Ptra);                     % fluctuating risk
         
         % fluctuations in epidemiological parameters NB Ptra > 1
         %------------------------------------------------------------------
@@ -399,6 +378,35 @@ for i = 1:M.T
         Q{n}.sev = R{n}.sev*Ptra^(-R{n}.lat);      % P(ARDS | infected)
         Q{n}.fat = R{n}.fat*Ptra^(-R{n}.sur);      % P(fatality | ARDS)
         Q{n}.ccu = R{n}.ccu*Ptra^(-R{n}.iad);      % P(CCU | ARDS)
+        
+        Q{n}.sde = R{n}.sde*Ptra^(-R{n}.pro);      % prevalence sensitivity
+        Q{n}.sde = R{n}.sde*exp(-i/(128*R{n}.pro));    % prevalence sensitivity
+
+        
+        
+        % probability of lockdown (a function of prevalence)
+        %------------------------------------------------------------------
+        qp   = 0;
+        for j = 1:nN
+            qp = qp + (p{j}{2}(3) + p{j}{2}(8))*N(j);
+        end
+        k1   = Q{n}.sde*qp/sum(N);                % prevalence
+        k2   = exp(-1/(Q{n}.qua));                % relaxation
+        r{n} = [(1 - k1) (1 - k2);
+                     k1,      k2]*r{n};
+        
+        Pout     = r{n}(1)*exp(Rout);             % P(going out) with fluctuations
+        Q{n}.out = erf(Pout*R{n}.out);            % scale by baseline
+        
+
+        
+
+        
+        % seasonal variation in transmission risk
+        %------------------------------------------------------------------
+        S    = (1 + cos(2*pi*(i - log(Q{n}.inn)*8)/365))/2;
+        Ptrn = Q{n}.trn + Q{n}.trm*S;              % seasonal risk
+        Ptrn = erf(Ptrn*Ptra);                     % fluctuating risk
         
         % contact rates
         %------------------------------------------------------------------
@@ -458,10 +466,10 @@ for i = 1:M.T
         V.pcr14 = pcr14;
         W{n}(i) = V;
         
-        % number of daily deaths (28 days) assuming 1500 deaths per day 
+        % number of daily deaths (28 days) assuming mortality = 10/1000/yr
         %------------------------------------------------------------------
-        q         = ncr28^(Q{n}.rel/16);              % untested proportion
-        Y{n}(i,1) = N(n) * p{n}{3}(4)*q + 1500*pcr28; % plus incidental
+        q         = ncr28^(Q{n}.rel/16);             % untested proportion
+        Y{n}(i,1) = N(n) * (p{n}{3}(4)*q + 0.01/365*pcr28); % & incidental
         
         % number of daily (positive) tests (PCR and LFD)
         %------------------------------------------------------------------
