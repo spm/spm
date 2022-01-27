@@ -14,10 +14,10 @@ function fig = spm_glass(X,pos,varargin)
 % Output:
 %   fig             - Handle for generated figure
 %__________________________________________________________________________
-% Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
+% Copyright (C) 2020-2022 Wellcome Centre for Human Neuroimaging
 
-% George O'Neill
-% $Id: spm_glass.m 7845 2020-05-05 14:25:32Z george $
+% George O'Neill & Guillaume Flandin
+% $Id: spm_glass.m 8214 2022-01-27 15:34:03Z george $
 
 % prep
 %---------------------------------------------------------------------
@@ -39,11 +39,11 @@ if ~isfield(S, 'cmap'),         S.cmap = 'gray'; end
 if ~isfield(S, 'detail'),       S.detail = 1; end
 if ~isfield(S, 'grid'),         S.grid = false; end
 
+M = [-2 0 0 92;0 2 0 -128;0 0 2 -74;0 0 0 1];
+dim = [91 109 91];
+pos = ceil(M \ [pos';ones(1,size(pos,1))])';
 
-V = spm_vol(fullfile(spm('dir'),'canonical','avg152T1.nii'));
-pos = ceil(ft_warp_apply(inv(V.mat),pos));
-
-if sum(X<0) & sum(X>0)
+if any(X<0) && any(X>0)
     div = 1;
     S.cmap = 'rdbu';
 else
@@ -59,7 +59,7 @@ end
 
 % saggital plane
 %----------------------------------------------------------------------
-p_sag = NaN(V.dim(2),V.dim(3));
+p_sag = NaN(dim(2),dim(3));
 
 for ii = 1:length(id)
     
@@ -71,7 +71,7 @@ end
 
 % coronal plane
 %----------------------------------------------------------------------
-p_cor = NaN(V.dim(1),V.dim(3));
+p_cor = NaN(dim(1),dim(3));
 
 for ii = 1:length(id)
     
@@ -84,7 +84,7 @@ end
 
 % axial plane
 %----------------------------------------------------------------------
-p_axi = NaN(V.dim(2),V.dim(1));
+p_axi = NaN(dim(2),dim(1));
 
 for ii = 1:length(id)
     
@@ -97,9 +97,9 @@ end
 
 % combine and plot
 %---------------------------------------------------------------------
-
 p_all = [rot90(p_sag,1) fliplr(rot90(p_cor,1));...
     rot90(p_axi,1) NaN(size(rot90(p_cor,1)))];
+p_all(isnan(p_all)) = 0;
 imagesc(p_all)
 set(gca,'XTickLabel',{},'YTickLabel',{});
 axis image
@@ -138,7 +138,7 @@ end
 
 function overlay_glass_brain(orient,dark,detail)
 
-load(fullfile(spm('dir'),'glass_brain.mat'));
+load(fullfile(fileparts(mfilename('fullpath')),'glass_brain.mat'));
 
 dat = glass.(orient);
 
@@ -168,15 +168,12 @@ for ii = 1:length(dat.paths)
             pts = pth.items(jj).pts;
             v = [generate_bezier(pts) ones(10,1)];
             v2 = v*xform;
-            f = [1:(length(v)-1); 2:length(v)]';
-            
             if dark
                 c = 1 - hex2rgb(pth.edgecolor);
             else
                 c = hex2rgb(pth.edgecolor);
             end
-            
-            patch('faces',f,'vertices',v2(:,1:2),'linewidth',pth.linewidth,'edgecolor',c);
+            line(v2(:,1),v2(:,2),'LineWidth',pth.linewidth,'Color',c);
         end
     end
 end
