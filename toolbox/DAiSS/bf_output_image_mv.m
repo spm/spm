@@ -3,7 +3,7 @@ function res = bf_output_image_mv(BF, S)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Gareth Barnes, modified from Vladimir Litvak's example code
-% $Id: bf_output_image_mv.m 7703 2019-11-22 12:06:29Z guillaume $
+% $Id: bf_output_image_mv.m 8213 2022-01-27 15:33:26Z george $
 
 %--------------------------------------------------------------------------
 
@@ -13,7 +13,7 @@ if nargin == 0
     all = cfg_const;
     all.tag = 'all';
     all.name = 'All';
-    all.val  = {1};        
+    all.val  = {1};
     
     condlabel = cfg_entry;
     condlabel.tag = 'condlabel';
@@ -33,7 +33,7 @@ if nargin == 0
     whatconditions.tag = 'whatconditions';
     whatconditions.name = 'What conditions to include?';
     whatconditions.values = {all, conditions};
-    whatconditions.val = {all};    
+    whatconditions.val = {all};
     
     %     design = cfg_const;
     %     design.tag = 'design';
@@ -152,10 +152,10 @@ D = BF.data.D;
 
 if isfield(S.isdesign,'custom'),
     %% gui specified conditions and contrast
-        
-         
+    
+    
     woitmp = S.isdesign.custom.woi;
-   
+    
     % DP - The indsample function does not work for matrices, so I have
     % looped through. Otherwise, we are left with only one windows of
     % interest.
@@ -163,31 +163,37 @@ if isfield(S.isdesign,'custom'),
         woiind(wi,:)=D.indsample(woitmp(wi,:)/1000);
         woi(wi,:)=D.time(woiind(wi,:)); %% in seconds
     end
-   
+    
     duration=unique(woiind(:,2)-woiind(:,1))./D.fsample; %% in sec
     if numel(duration)>1,
         error('both windows need to be the same length');
     end;
-   
+    
     % DP - this can result in a tiny bit of residual, presumably due to
     % numerical imprecision. Not sure. Doesn't seem necessary anyway since
     % the number of samples is equal.
-%     duration=unique(woi(:,2)-woi(:,1));
-%     if numel(duration)>1,
-%         error('both windows need to be the same length');
-%     end;
-%     woi = S.isdesign.custom.woi;
-%     woiind=D.indsample(woi/1000);
-%     woi=D.time(woiind); %% in seconds
+    %     duration=unique(woi(:,2)-woi(:,1));
+    %     if numel(duration)>1,
+    %         error('both windows need to be the same length');
+    %     end;
+    %     woi = S.isdesign.custom.woi;
+    %     woiind=D.indsample(woi/1000);
+    %     woi=D.time(woiind); %% in seconds
     
-%     duration=unique(woiind(:,2)-woiind(:,1))./D.fsample; %% in sec
-%     if numel(duration)>1,
-%         error('both windows need to be the same length');
-%     end;
+    %     duration=unique(woiind(:,2)-woiind(:,1))./D.fsample; %% in sec
+    %     if numel(duration)>1,
+    %         error('both windows need to be the same length');
+    %     end;
     
     duration=unique(woi(:,2)-woi(:,1));
     if numel(duration)>1,
-        error('both windows need to be the same length');
+        % There's edge cases where a floating point difference happens,
+        % check for that before throwing an error - GO
+        if diff(duration) > eps
+            error('both windows need to be the same length');
+        else
+            duration = duration(1);
+        end
     end;
     
     %
@@ -213,7 +219,7 @@ if isfield(S.isdesign,'custom'),
             else
                 trials{i} = D.indtrial(whatconditions.condlabel{i}, 'GOOD');
             end
-                        
+            
             
         end
         if isempty(trials)
@@ -221,7 +227,7 @@ if isfield(S.isdesign,'custom'),
         end
     end
     
-      
+    
     %%check for number of trials //// added by ANNA 30/04/2013
     for i=1:numel(trials)
         num_trials(i) = length(trials{i});
@@ -247,32 +253,32 @@ if isfield(S.isdesign,'custom'),
                 X=[X;zeros(nt,size(X,2))]; %1)]; ANNA
             end;
             X=[X Xtmp];
-            tlist = spm_vec(trials{i}); % ANNA list of trials 
+            tlist = spm_vec(trials{i}); % ANNA list of trials
             Xtrials=[Xtrials ; tlist(1:nt)]; % ANNA list of trials - this must be a vector
             Xstartlatencies=[Xstartlatencies; ones(nt,1).*woi(j,1)];%% again this has to be a vector
             xlabel=strvcat(xlabel,[clabel{i} ',' num2str(woi(j,1))]);
         end;
     end;
-%     % ORIG
-%     col=0;
-%     X=[];
-%     Xtrials=[];
-%     Xstartlatencies=[];
-%     xlabel=[];
-%     for j=1:size(woi, 1),
-%         for i=1:numel(trials)
-%             col=col+1;
-%             nt=numel(trials{i});
-%             Xtmp=[zeros(size(X,1),1); ones(nt,1)];
-%             if col>1,
-%                 X=[X;zeros(nt,1)];
-%             end;
-%             X=[X Xtmp];
-%             Xtrials=[Xtrials ;[trials{i}]];
-%             Xstartlatencies=[Xstartlatencies; ones(nt,1).*woi(j,1)];
-%             xlabel=strvcat(xlabel,[clabel{i} ',' num2str(woi(j,1))]);
-%         end;
-%     end;
+    %     % ORIG
+    %     col=0;
+    %     X=[];
+    %     Xtrials=[];
+    %     Xstartlatencies=[];
+    %     xlabel=[];
+    %     for j=1:size(woi, 1),
+    %         for i=1:numel(trials)
+    %             col=col+1;
+    %             nt=numel(trials{i});
+    %             Xtmp=[zeros(size(X,1),1); ones(nt,1)];
+    %             if col>1,
+    %                 X=[X;zeros(nt,1)];
+    %             end;
+    %             X=[X Xtmp];
+    %             Xtrials=[Xtrials ;[trials{i}]];
+    %             Xstartlatencies=[Xstartlatencies; ones(nt,1).*woi(j,1)];
+    %             xlabel=strvcat(xlabel,[clabel{i} ',' num2str(woi(j,1))]);
+    %         end;
+    %     end;
     
     allsamples=[D.indsample(Xstartlatencies); D.indsample(Xstartlatencies+ones(size(Xstartlatencies)).*duration)]';
     contrast=S.isdesign.custom.contrast';

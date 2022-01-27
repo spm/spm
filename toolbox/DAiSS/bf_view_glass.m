@@ -3,7 +3,7 @@ function res = bf_view_glass(BF, S)
 % Copyright (C) 2020 Wellcome Trust Centre for Neuroimaging
 
 % George O'Neill
-% $Id: bf_view_glass.m 7846 2020-05-05 14:33:24Z george $
+% $Id: bf_view_glass.m 8213 2022-01-27 15:33:26Z george $
 
 %--------------------------------------------------------------------------
 if nargin == 0
@@ -71,7 +71,7 @@ if iscell(S.cmap); S.cmap = cell2mat(S.cmap); end
 
 pos = ft_warp_apply(BF.data.transforms.toMNI, BF.sources.pos);
 
-X = BF.output.image.val;
+X = BF.output.image(end).val;
 [~, id] = sort(X,'descend');
 id = id(1:S.ndips);
 
