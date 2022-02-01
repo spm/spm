@@ -50,10 +50,10 @@ function varargout=spm(varargin)
 % FORMAT & help in the main body of spm.m
 %
 %_______________________________________________________________________
-% Copyright (C) 1991,1994-2021 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1991,1994-2022 Wellcome Centre for Human Neuroimaging
 
 % Andrew Holmes
-% $Id: spm.m 8183 2021-11-04 15:25:19Z guillaume $
+% $Id: spm.m 8216 2022-02-01 17:56:49Z guillaume $
 
 
 %=======================================================================
@@ -422,10 +422,12 @@ if strcmpi(Modality,'EEG')
         ft_default.trackcallinfo = 'no';
         ft_default.showcallinfo = 'no';
         ft_default.trackusage = 'no';
+        ft_default.showlogo = 'no';
         ft_defaults;
         ft_default.trackcallinfo = 'no';
         ft_default.showcallinfo = 'no';
         ft_default.trackusage = 'no';
+        ft_default.showlogo = 'no';
         ft_warning('off','backtrace');
     end
     if ~isdeployed
