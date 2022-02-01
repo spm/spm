@@ -94,6 +94,9 @@ handles.file = file;
 set(handles.pushbutton51,'String','run demo')
 guidata(hObject, handles);
 
+% --- Executes on resize
+function figure1_SizeChangedFcn(hObject, eventdata, handles)
+
 
 % --- Executes on button press in pushbutton131.
 function pushbutton131_Callback(hObject, eventdata, handles)
