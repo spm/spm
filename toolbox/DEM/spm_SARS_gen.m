@@ -83,7 +83,7 @@ function [y,x,z,W] = spm_SARS_gen(P,M,U,NPI,age)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_gen.m 8212 2022-01-26 10:16:43Z karl $
+% $Id: spm_SARS_gen.m 8218 2022-02-04 10:55:20Z karl $
 
 
 % The generative model:
@@ -380,7 +380,7 @@ for i = 1:M.T
         Q{n}.ccu = R{n}.ccu*Ptra^(-R{n}.iad);      % P(CCU | ARDS)
         
         Q{n}.sde = R{n}.sde*Ptra^(-R{n}.pro);      % prevalence sensitivity
-        Q{n}.sde = R{n}.sde*exp(-i/(128*R{n}.pro));    % prevalence sensitivity
+        Q{n}.sde = R{n}.sde*exp(-i/(128*R{n}.pro));% prevalence sensitivity
 
         
         
@@ -390,17 +390,14 @@ for i = 1:M.T
         for j = 1:nN
             qp = qp + (p{j}{2}(3) + p{j}{2}(8))*N(j);
         end
-        k1   = Q{n}.sde*qp/sum(N);                % prevalence
-        k2   = exp(-1/(Q{n}.qua));                % relaxation
+        k1   = Q{n}.sde*qp/sum(N);                 % prevalence
+        k2   = exp(-1/(Q{n}.qua));                 % relaxation
         r{n} = [(1 - k1) (1 - k2);
                      k1,      k2]*r{n};
         
-        Pout     = r{n}(1)*exp(Rout);             % P(going out) with fluctuations
-        Q{n}.out = erf(Pout*R{n}.out);            % scale by baseline
+        Pout     = r{n}(1)*exp(Rout);              % P(going out) with fluctuations
+        Q{n}.out = erf(Pout*R{n}.out);             % scale by baseline
         
-
-        
-
         
         % seasonal variation in transmission risk
         %------------------------------------------------------------------
@@ -425,8 +422,8 @@ for i = 1:M.T
             tou = tou*(1 - Ptrn*pou)^Q{n}.Nou(j);
         end
         
-        Q{n}.tin = min(tin,1);          % P(no transmission | home)
-        Q{n}.tou = min(tou,1);          % P(no transmission | work)
+        Q{n}.tin = min(tin,1);    % P(no transmission | home)
+        Q{n}.tou = min(tou,1);    % P(no transmission | work)
         
         % vaccination rollout: nac = 1 - vaccination rate
         %------------------------------------------------------------------
@@ -434,7 +431,7 @@ for i = 1:M.T
                    Q{n}.fol(1)*(1 + erf((i - Q{n}.fol(2))/Q{n}.fol(3)));
         
         Q{n}.nac = 1 - Rvac;
-        Q{n}.t   = i;                   % time (days)
+        Q{n}.t   = i;             % time (days)
                
         % update ensemble density (x)
         %==================================================================
