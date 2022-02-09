@@ -25,7 +25,7 @@ function varargout = spm_mb_shape(varargin)
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_shape.m 8126 2021-07-22 17:58:11Z john $
+% $Id: spm_mb_shape.m 8219 2022-02-09 09:42:10Z john $
 [varargout{1:nargout}] = spm_subfun(localfunctions,varargin{:});
 %==========================================================================
 
@@ -585,7 +585,7 @@ function dat = update_simple_affines(dat,mu,sett)
 accel = sett.accel;
 B     = sett.B;
 if ~isempty(B)
-    groupwise = isa(sett.mu,'struct') && isfield(sett.mu,'create');
+    groupwise = isa(sett.mu,'struct') && isfield(sett.mu,'create') && numel(dat)>1;
 
     % Update the affine parameters
     spm_diffeo('boundary',1);
@@ -629,6 +629,16 @@ end
 
 %==========================================================================
 function datn = update_simple_affines_sub(datn,mu,G,H0,sett)
+eprev = datn.E(1)/datn.nvox;
+for it=1:8
+    datn = update_simple_affines_sub1(datn,mu,G,H0,sett);
+    if eprev - datn.E(1)/datn.nvox < sett.tol, break; end
+    eprev = datn.E(1)/datn.nvox;
+end
+%==========================================================================
+
+%==========================================================================
+function datn = update_simple_affines_sub1(datn,mu,G,H0,sett)
 
 % Parse function settings
 B    = sett.B;

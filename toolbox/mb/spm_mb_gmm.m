@@ -220,7 +220,9 @@ for k=1:K
         muo     = mu(io,k);
         mum     = mu(im,k);
 
-        iAkmm   = inv(Ak(im,im));
+        iAkmm   = Ak(im,im);
+        iAkmm   = iAkmm + eye(size(iAkmm))*(1e-6*max(diag(iAkmm))+1e-30);
+        iAkmm   = inv(iAkmm);
         SA      = iAkmm*Ak(im,io);
 
         % 1) observed

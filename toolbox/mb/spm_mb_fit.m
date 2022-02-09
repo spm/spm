@@ -10,7 +10,7 @@ function [dat,sett,mu] = spm_mb_fit(dat,sett)
 %__________________________________________________________________________
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_fit.m 8196 2021-12-16 15:18:25Z john $
+% $Id: spm_mb_fit.m 8219 2022-02-09 09:42:10Z john $
 
 
 % Repeatable random numbers
@@ -116,30 +116,6 @@ for it0=1:nit_aff
         countdown = 6;
     end
 end
-
-% Finish affine registration of any subjects that need a few more iterations
-for it0=1:3
-
-    if updt_mu
-        [mu,sett,dat,te,E] = iterate_mean(mu,sett,dat,te,nit_mu);
-    end
-
-    for n=1:numel(dat)
-        En = Inf;
-        for it1=1:nit_aff
-            oEn    = En;
-            dat(n) = spm_mb_shape('update_simple_affines',dat(n),mu,sett);
-            En     = sum(dat(n).E)/nvox(dat(n));
-            if abs(oEn-En) < sett.tol*0.2, break; end
-        end
-    end
-
-    E   = sum(sum(cat(2,dat.E),2),1) + te;  % Cost function after previous update
-    fprintf('%8.4f\n', E/nvox(dat));
-    spm_plot_convergence('Set',E/nvox(dat));
-    do_save(mu,sett,dat);
-end
-
 spm_plot_convergence('Clear');
 nit_mu = 2;
 

@@ -4,8 +4,8 @@ P        = spm_select(Inf,'nifti','Select scans to label');
 % Needs some files uploaded from:
 % https://figshare.com/projects/Factorisation-based_Image_Labelling/128189
 
-%datadir = fullfile(spm('dir'),'toolbox','mb'); % Suggested location for data files
-datadir  = '.'; % Edit to indicate location of various files
+datadir = fullfile(spm('dir'),'toolbox','mb','data'); % Suggested location for data files
+%datadir  = '.'; % Edit to indicate location of various files
 
 mufile   = fullfile(datadir,'mu_X.nii'); % Head Tissue Template
 %filfile = fullfile(datadir,'fil15-nuNaN-v1-d4-K24-r3-sd2.mat');   % Trained FIL Model (15 training subjects)
