@@ -5,7 +5,7 @@ function [dat,sett] = spm_mb_init(cfg)
 % Copyright (C) 2018-2020 Wellcome Centre for Human Neuroimaging
 
 
-% $Id: spm_mb_init.m 8086 2021-04-01 09:13:20Z john $
+% $Id: spm_mb_init.m 8220 2022-02-09 12:21:22Z john $
 
 [dat,sett] = mb_init1(cfg);
 
@@ -43,7 +43,7 @@ sett.K      = K;
 if ~isempty(sett.aff)
     B   = spm_mb_shape('affine_bases',sett.aff);
 else
-    B   = zeros([3 3 0]);
+    B   = zeros([4 4 0]);
 end
 sett.B = B;
 sett   = rmfield(sett,'aff');
