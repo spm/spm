@@ -22,7 +22,7 @@ function [T,R] = spm_COVID_T(P,I)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_T.m 8209 2022-01-17 10:34:40Z karl $
+% $Id: spm_COVID_T.m 8221 2022-02-13 11:12:11Z karl $
 
 % setup
 %==========================================================================
@@ -250,7 +250,6 @@ b{2} = [Ktic       (1 - Ksym)*(1 - Psev) (1 - Ktrd)*(1 - Pfat) (1 - Kday);
     
 % marginal: clinical {3} | infectious {2}(3)
 %--------------------------------------------------------------------------
-Ktic = Ktic*P.iss;
 b{3} = [Ktic       (1 - Ksym)*(1 - Psev) (1 - Ktrd)*(1 - Pfat) (1 - Kday);
        (1 - Ktic)   Ksym                  0                     0;
         0          (1 - Ksym)*Psev        Ktrd                  0;
@@ -314,9 +313,10 @@ b    = cell(1,dim(2));
 % fluctuations in testing rate: Gaussian basis functions
 %--------------------------------------------------------------------------
 Ppcr = 0;
+dt   = 48;
 if isfield(P,'pcr')
     for i = 1:numel(P.pcr)
-        Ppcr = Ppcr + log(P.pcr(i)) * exp(-(P.t - i*48).^2./((48/2)^2));
+        Ppcr = Ppcr + log(P.pcr(i)) * exp(-(P.t - i*dt).^2./((dt/2)^2));
     end
 end
 Ppcr = exp(erf(Ppcr)/4);

@@ -14,7 +14,7 @@ function DCM = DEM_COVID_UK4
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_UK4.m 8212 2022-01-26 10:16:43Z karl $
+% $Id: DEM_COVID_UK4.m 8221 2022-02-13 11:12:11Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -29,7 +29,7 @@ function DCM = DEM_COVID_UK4
 % set up and get data
 %==========================================================================
 close all
-clear functions
+clear all
 clc
 spm_figure('GetWin','SI'); clf;
 cd('C:\Users\karl\Dropbox\Coronavirus\Dashboard')
@@ -365,9 +365,8 @@ Y(11).hold = 0;
 Y(12).type = 'R-ratio (WHO/GOV)'; % the production ratio
 Y(12).unit = 'ratio';
 Y(12).U    = 4;
-Y(12).date = [datenum(ratio.textdata(2:end,1),'dd/mm/yyyy') - 16; ...
-              datenum(ratio.textdata(2:end,1),'dd/mm/yyyy') - 15];
-Y(12).Y    = [ratio.data(:,1); ratio.data(:,2)];
+Y(12).date = datenum(ratio.textdata(2:end,1),'dd/mm/yyyy') - 16;
+Y(12).Y    = (ratio.data(:,1) + ratio.data(:,2))/2;
 Y(12).h    = 2;
 Y(12).lag  = 1;
 Y(12).age  = 0;
@@ -706,11 +705,11 @@ pC.N    = spm_zeros(pE.N);
 % age-specific
 %--------------------------------------------------------------------------
 pE.mo   = [ 0 1];              % coefficients for transport
-pC.mo   = ones(1,2);           % prior variance
-pE.wo   = [ 0 0];              % coefficients for workplace
-pC.wo   = ones(1,2);           % prior variance
+pC.mo   = ones(1,2)/8;         % prior variance
+pE.wo   = [ 0 1];              % coefficients for workplace
+pC.wo   = ones(1,2)/8;         % prior variance
 pE.gd   = [-1 1];              % coefficients gross domestic product
-pC.gd   = ones(1,2);           % prior variance
+pC.gd   = ones(1,2)/8;         % prior variance
 
 % efficacy of first vaccination
 %--------------------------------------------------------------------------
@@ -722,14 +721,12 @@ pC.ve   = ones(nN,1);          % prior variance
 i       = ceil((datenum(date) - datenum(M.date))/32);
 j       = ceil((datenum(date) - datenum(M.date))/48);
 k       = ceil((datenum(date) - datenum(M.date))/64);
-pE.tra  = zeros(1,j) - 2;      % increases in transmission strength
-pC.tra  = ones(1,j)/8;         % prior variance
+pE.tra  = zeros(1,k) - 2;      % increases in transmission strength
+pC.tra  = ones(1,k)/8;         % prior variance
 pE.pcr  = zeros(1,j);          % testing
 pC.pcr  = ones(1,j)/8;         % prior variance
 pE.mob  = zeros(1,i);          % mobility
-pC.mob  = ones(1,i)/256;       % prior variance
-
-
+pC.mob  = ones(1,i)/128;       % prior variance
 
 
 % reporting lags
@@ -775,10 +772,12 @@ if true
     % initialise if previous posteriors are the right size
     %----------------------------------------------------------------------
     M.P   = pE;
-    field = fieldnames(DCM.Ep);
+    field = fieldnames(M.P);
     for i = 1:numel(field)
-        if all(size(pE.(field{i})) == size(DCM.Ep.(field{i})))
-            M.P.(field{i}) = DCM.Ep.(field{i});
+        try
+            if all(size(pE.(field{i})) == size(DCM.Ep.(field{i})))
+                M.P.(field{i}) = DCM.Ep.(field{i});
+            end
         end
     end
     clear DCM
@@ -1404,9 +1403,9 @@ spm_figure('GetWin','states'); clf;
 %--------------------------------------------------------------------------
 M.T    = datenum(date) - datenum(DCM.M.date,'dd-mm-yyyy');
 M.T    = M.T + 180;                 % forecast dates
-u      = 1;                         % empirical outcome
+u      = 13;                         % empirical outcome
 a      = 0;                         % age cohort (0 for everyone)
-Ep.tra(11) = DCM.Ep.tra(11) + 2;    % adjusted (log) parameter
+Ep.tra(11) = DCM.Ep.tra(11);        % adjusted (log) parameter
 
 [Z,X]  = spm_SARS_gen(Ep,M,u,[],a); % posterior prediction
 

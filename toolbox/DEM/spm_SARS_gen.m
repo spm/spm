@@ -83,7 +83,7 @@ function [y,x,z,W] = spm_SARS_gen(P,M,U,NPI,age)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_gen.m 8218 2022-02-04 10:55:20Z karl $
+% $Id: spm_SARS_gen.m 8221 2022-02-13 11:12:11Z karl $
 
 
 % The generative model:
@@ -351,18 +351,20 @@ for i = 1:M.T
         % fluctuations in contact rates (mobility): radial basis functions
         %------------------------------------------------------------------
         Rout = 0;
+        dt   = 32;
         if isfield(P,'mob')
             for j = 1:numel(Q{n}.mob)
-                Rout = Rout + log(Q{n}.mob(j)) * exp(-(i - j*32).^2/((32/2)^2))/8;
+                Rout = Rout + log(Q{n}.mob(j)) * exp(-(i - j*dt).^2/((dt/2)^2))/8;
             end
         end
         
         % and fluctuations in transmissibility: cumulative error functions
         %------------------------------------------------------------------
         Ptra = 1;
+        dt   = 64;
         if isfield(Q{n},'tra')
             for j = 1:numel(Q{n}.tra)
-                Ptra = Ptra + erf(Q{n}.tra(j)) * (1 + erf((i - j*48)/(48/2)))/8;
+                Ptra = Ptra + erf(Q{n}.tra(j)) * (1 + erf((i - j*dt)/(dt/2)))/8;
             end
         end
         
@@ -381,23 +383,20 @@ for i = 1:M.T
         
         Q{n}.sde = R{n}.sde*Ptra^(-R{n}.pro);      % prevalence sensitivity
         Q{n}.sde = R{n}.sde*exp(-i/(128*R{n}.pro));% prevalence sensitivity
-
-        
         
         % probability of lockdown (a function of prevalence)
         %------------------------------------------------------------------
         qp   = 0;
         for j = 1:nN
-            qp = qp + (p{j}{2}(3) + p{j}{2}(8))*N(j);
+            qp = qp + (p{j}{2}(3) + p{j}{2}(8))*N(j)/sum(N);
         end
-        k1   = Q{n}.sde*qp/sum(N);                 % prevalence
+        k1   = Q{n}.sde*qp;                        % prevalence
         k2   = exp(-1/(Q{n}.qua));                 % relaxation
         r{n} = [(1 - k1) (1 - k2);
                      k1,      k2]*r{n};
         
         Pout     = r{n}(1)*exp(Rout);              % P(going out) with fluctuations
-        Q{n}.out = erf(Pout*R{n}.out);             % scale by baseline
-        
+        Q{n}.out = erf(Pout)*R{n}.out;             % scale by baseline
         
         % seasonal variation in transmission risk
         %------------------------------------------------------------------
@@ -422,8 +421,8 @@ for i = 1:M.T
             tou = tou*(1 - Ptrn*pou)^Q{n}.Nou(j);
         end
         
-        Q{n}.tin = min(tin,1);    % P(no transmission | home)
-        Q{n}.tou = min(tou,1);    % P(no transmission | work)
+        Q{n}.tin = tin;          % P(no transmission | home)
+        Q{n}.tou = tou;          % P(no transmission | work)
         
         % vaccination rollout: nac = 1 - vaccination rate
         %------------------------------------------------------------------
@@ -520,25 +519,27 @@ for i = 1:M.T
         
         % mobility (% normal)
         %------------------------------------------------------------------
-        q     = 1 - Q{n}.out/W{n}(1).Pout;
+        q     = 1 - Q{n}.out/R{n}.out;
         if isfield(Q{n},'mo')
-            g = Q{n}.mo(1)*q^(Q{n}.mo(2));
+            q = Q{n}.mo(1)*q^(Q{n}.mo(2));
         end
-        Y{n}(i,13) = 100 * (1 - real(g));
+        Y{n}(i,13) = 100 * (1 - q);
         
         % work (% normal)
         %------------------------------------------------------------------
+        q     = 1 - Q{n}.out/R{n}.out;
         if isfield(Q{n},'wo')
-            g = Q{n}.wo(1)*q^(Q{n}.wo(2));
+            q = Q{n}.wo(1)*q^(Q{n}.wo(2));
         end
-        Y{n}(i,14) = 100 * (1 - real(g));
+        Y{n}(i,14) = 100 * (1 - q);
         
         % gross domestic product (% 2018)
         %------------------------------------------------------------------
+        q     = 1 - Q{n}.out/R{n}.out;
         if isfield(Q{n},'gd')
-            g = Q{n}.gd(1)*q^(Q{n}.gd(2));
+            q = Q{n}.gd(1)*q^(Q{n}.gd(2));
         end
-        Y{n}(i,32) = 100 * (1 - real(g));
+        Y{n}(i,32) = 100 * (1 - q);
              
         % certified deaths per day
         %------------------------------------------------------------------

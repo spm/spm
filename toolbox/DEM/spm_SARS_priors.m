@@ -37,7 +37,7 @@ function [P,C,str] = spm_SARS_priors(nN)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_priors.m 8218 2022-02-04 10:55:20Z karl $
+% $Id: spm_SARS_priors.m 8221 2022-02-13 11:12:11Z karl $
 
 % sources and background
 %--------------------------------------------------------------------------
@@ -66,10 +66,10 @@ if nargin
     %----------------------------------------------------------------------
     [P,C,str] = spm_SARS_priors;
     free  = {'N','Nin','Nou',...
-             'sde','qua','pro'...
+             'qua','pro'...
              'hos','ccu','Tim',...
              'sev','fat',...
-             'tes','tts','rol','lnk'};
+             'rol','lnk'};
 
     if nN == 1
         
@@ -192,10 +192,10 @@ if nargin
                      1     1     2    1;
                      1     1     1    2]/2);
         
-        P.Nou = log([32    4     2    1;
+        P.Nou = log([16    4     2    1;
                      4     24    4    2;
                      2     4     16   4;
-                     1     2     4    16]);
+                     1     2     4    8]);
         
         C.Nin = (exp(P.Nin) > 0)*C.Nin(1);
         C.Nou = (exp(P.Nou) > 0)*C.Nou(1);
@@ -295,9 +295,7 @@ names{51} = 'LFD sensitivity';
 names{52} = 'PCR testing of fatalities';
 names{53} = 'contact rate decay (days)';
 names{54} = 'survival risk in care homes';
-names{55} = 'relative asymptomatic rate';  
-names{56} = 'changes in transfer to CCU';  
-
+names{55} = 'changes in transfer to CCU';  
 
 % latent or hidden factors
 %--------------------------------------------------------------------------
@@ -398,8 +396,8 @@ P.m   = 0.1;                  % (05) relative eflux
 % location (exposure) parameters
 %--------------------------------------------------------------------------
 P.out = 0.4;                  % (06) P(leaving home)
-P.sde = 4;                    % (07) time constant of lockdown
-P.qua = 64;                   % (08) time constant of unlocking
+P.sde = 16;                   % (07) time constant of lockdown
+P.qua = 128;                  % (08) time constant of unlocking
 P.exp = 0.02;                 % (09) viral spreading (rate)
 P.hos = 1;                    % (10) admission rate (hospital) [erf]
 P.ccu = 0.1;                  % (11) admission rate (CCU)
@@ -409,7 +407,7 @@ P.s   = [1 1 1 1 1];          % (12) changes in infectivity
 %--------------------------------------------------------------------------
 P.Nin = 2;                    % (13) effective number of contacts: home
 P.Nou = 24;                   % (14) effective number of contacts: work
-P.trn = 0.4;                  % (15) transmission strength (secondary attack rate)
+P.trn = 0.2;                  % (15) transmission strength (secondary attack rate)
 P.trm = 0.04;                 % (16) seasonality
 P.Tin = 3;                    % (17) infected period (days)
 P.Tcn = 4;                    % (18) infectious period (days)
@@ -461,9 +459,7 @@ P.lpr = 0.0002;               % (51) LFD specificity
 P.rel = 1;                    % (52) PCR testing of fatalities
 P.pro = 1;                    % (53) contact rate decay (days)
 P.oth = 0.1;                  % (54) relative survival outside hospital
-P.iss = 1;                    % (55) relative asymptomatic rate (infectious)
-P.iad = 1;                    % (56) exponent: transfer to CCU
-
+P.iad = 1;                    % (55) exponent: transfer to CCU
 
 
 
@@ -489,8 +485,8 @@ C.m   = W;                    % (05) relative eflux
 % location (exposure) parameters
 %--------------------------------------------------------------------------
 C.out = X;                    % (06) P(leaving home)
-C.sde = W;                    % (07) time constant of lockdown
-C.qua = W;                    % (08) time constant of unlocking
+C.sde = X;                    % (07) time constant of lockdown
+C.qua = X;                    % (08) time constant of unlocking
 C.exp = W;                    % (09) viral spreading (rate)
 C.hos = W;                    % (10) admission rate (hospital)
 C.ccu = W;                    % (11) admission rate (CCU)
@@ -498,8 +494,8 @@ C.s   = X;                    % (12) changes in infectivity
 
 % infection (transmission) parameters
 %--------------------------------------------------------------------------
-C.Nin = W;                    % (13) effective number of contacts: home
-C.Nou = W;                    % (14) effective number of contacts: work
+C.Nin = X;                    % (13) effective number of contacts: home
+C.Nou = X;                    % (14) effective number of contacts: work
 C.trn = X;                    % (16) transmission strength
 C.trm = W;                    % (15) seasonality
 C.Tin = Z;                    % (17) infected period (days)
@@ -551,9 +547,7 @@ C.lpr = X;                    % (51) LFD specificity
 C.rel = W;                    % (52) PCR testing of fatalities
 C.pro = W;                    % (53) contact rate decay (days)
 C.oth = W;                    % (54) relative survival outside hospital
-C.iss = X;                    % (55) relative asymptomatic rate (infectious)
-C.iad = V;                    % (56) exponent: transfer to CCU
-
+C.iad = V;                    % (55) exponent: transfer to CCU
 
 % check prior expectations and covariances are consistent
 %--------------------------------------------------------------------------
