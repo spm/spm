@@ -100,7 +100,7 @@ function [MDP] = spm_MDP_VB(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_VB.m 7120 2017-06-20 11:30:30Z spm $
+% $Id: spm_MDP_VB.m 8222 2022-02-13 11:14:08Z karl $
  
  
 % deal with a sequence of trials
@@ -313,7 +313,7 @@ end
 qbeta = beta;                       % initialise rate parameters
 qeta  = eta - mean(sum(Vs,2));      % initialise rate parameters
 gu    = zeros(1,T)  + 1/qbeta;      % posterior precision (policy)
-gx    = zeros(Nh,T) + 1/qeta;       % posterior precision (policy)
+gx    = zeros(Nh,T) + 1/qeta;       % posterior precision (states)
 qeta  = zeros(Nh,1) + qeta;
 
 
@@ -590,6 +590,7 @@ end
  
 % assemble results and place in NDP structure
 %--------------------------------------------------------------------------
+MDP.T   = T;              % number of time points (+1)
 MDP.P   = P;              % probability of action at time 1,...,T - 1
 MDP.Q   = x;              % conditional expectations over N hidden states
 MDP.X   = X;              % Bayesian model averages

@@ -29,7 +29,7 @@ function Q = spm_MDP_VB_game(MDP)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_game.m 7766 2020-01-05 21:37:39Z karl $
+% $Id: spm_MDP_VB_game.m 8222 2022-02-13 11:14:08Z karl $
 
 % numbers of transitions, policies and states
 %--------------------------------------------------------------------------
@@ -147,7 +147,9 @@ else
     MarkerSize = 16;
 end
 image(t,1:Np,64*(1 - u)),  hold on
-plot(linspace(1,Nt,numel(v)),v,'c.','MarkerSize',16)
+try
+    plot(linspace(1,Nt,numel(v)),v,'c.','MarkerSize',16)
+end
 for f = 1:Nf
     for i = 1:max(s(f,:))
         j = find(s(f,:) == i);
@@ -226,8 +228,6 @@ for f = 1:Nf
     try
         set(gca,'YTickLabel',MDP(1).Bname{f});
     end
-    
-    
 end
 if isfield(MDP(1),'c')
     title('Learning (C and D)')
