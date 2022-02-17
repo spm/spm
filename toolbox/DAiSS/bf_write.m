@@ -4,7 +4,7 @@ function out = bf_write
 % Copyright (C) 2015-2021 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: bf_write.m 8119 2021-07-06 13:51:43Z guillaume $
+% $Id: bf_write.m 8223 2022-02-17 16:01:40Z george $
 
 
 out          = cfg_exbranch;
@@ -51,9 +51,10 @@ function  out = bf_write_run(job)
 
 outdir = spm_file(job.BF{1}, 'fpath');
 
-cd(outdir);
+% cd(outdir);
 
-BF = bf_load('BF.mat', {'data', 'sources', 'features', 'output'});
+BF = bf_load(fullfile(outdir, 'BF.mat'),...
+    {'data', 'sources', 'features', 'output'});
 
 plugin_name   = cell2mat(fieldnames(job.plugin));
 
@@ -61,7 +62,7 @@ outfield_name =  strtok(plugin_name, '_');
 
 BF.write.(outfield_name) = feval(['bf_write_' plugin_name], BF, job.plugin.(plugin_name));
 
-bf_save(BF);
+bf_save_path(BF,fullfile(outdir, 'BF.mat'));
 
 out.BF{1} = fullfile(outdir, 'BF.mat');
 out.files = BF.write.(outfield_name).files;

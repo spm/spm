@@ -4,7 +4,7 @@ function out = bf_output
 % Copyright (C) 2015-2021 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: bf_output.m 8119 2021-07-06 13:51:43Z guillaume $
+% $Id: bf_output.m 8223 2022-02-17 16:01:40Z george $
 
 
 out = cfg_exbranch;
@@ -53,9 +53,10 @@ function  out = bf_output_run(job)
 
 outdir = spm_file(job.BF{1}, 'fpath');
 
-cd(outdir);
+% cd(outdir);
 
-BF = bf_load('BF.mat', {'data','sources', 'features', 'inverse'});
+BF = bf_load(fullfile(outdir, 'BF.mat'),...
+    {'data','sources', 'features', 'inverse'});
 
 plugin_name   = cell2mat(fieldnames(job.plugin));
 
@@ -63,7 +64,7 @@ outfield_name =  strtok(plugin_name, '_');
 
 BF.output.(outfield_name) = feval(['bf_output_' plugin_name], BF, job.plugin.(plugin_name));
 
-bf_save(BF);
+bf_save_path(BF,fullfile(outdir, 'BF.mat'));
 
 out.BF{1} = fullfile(outdir, 'BF.mat');
 
