@@ -29,7 +29,7 @@ function spm_make_standalone(outdir, gateway, contentsver, tbxs)
 % Copyright (C) 2010-2021 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_make_standalone.m 8192 2021-12-06 15:06:52Z guillaume $
+% $Id: spm_make_standalone.m 8224 2022-02-18 11:27:42Z lars $
 
 
 %-Check startup.m
@@ -41,10 +41,10 @@ end
 
 %-Input arguments
 %--------------------------------------------------------------------------
-if ~nargin
+if ~nargin || isempty(outdir)
     outdir = fullfile(spm('Dir'),'..','standalone'); 
-    if ~exist(outdir,'dir'), mkdir(outdir); end
 end
+if ~exist(outdir,'dir'), mkdir(outdir); end
 if nargin < 2 || isempty(gateway), gateway = 'spm_standalone.m'; end
 if nargin < 3, contentsver = ''; end
 if nargin < 4, tbxs = {'signal'}; end
@@ -116,7 +116,7 @@ end
 for i=1:numel(tbxs)
     d = fullfile(spm('Dir'),'external','fieldtrip','external',tbxs{i});
     if exist(d,'dir')
-        [sts, msg] = rmdir(d{i},'s');
+        [sts, msg] = rmdir(d,'s');
     end
 end
 
