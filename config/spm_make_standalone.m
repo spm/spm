@@ -41,10 +41,10 @@ end
 
 %-Input arguments
 %--------------------------------------------------------------------------
-if ~nargin
+if ~nargin || isempty(outdir)
     outdir = fullfile(spm('Dir'),'..','standalone'); 
-    if ~exist(outdir,'dir'), mkdir(outdir); end
 end
+if ~exist(outdir,'dir'), mkdir(outdir); end
 if nargin < 2 || isempty(gateway), gateway = 'spm_standalone.m'; end
 if nargin < 3, contentsver = ''; end
 if nargin < 4, tbxs = {'signal'}; end
