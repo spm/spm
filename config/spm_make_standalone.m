@@ -116,7 +116,7 @@ end
 for i=1:numel(tbxs)
     d = fullfile(spm('Dir'),'external','fieldtrip','external',tbxs{i});
     if exist(d,'dir')
-        [sts, msg] = rmdir(d{i},'s');
+        [sts, msg] = rmdir(d,'s');
     end
 end
 
