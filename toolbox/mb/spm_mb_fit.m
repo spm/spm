@@ -10,7 +10,7 @@ function [dat,sett,mu] = spm_mb_fit(dat,sett)
 %__________________________________________________________________________
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_fit.m 8219 2022-02-09 09:42:10Z john $
+% $Id: spm_mb_fit.m 8225 2022-02-23 14:37:49Z john $
 
 
 % Repeatable random numbers
@@ -74,7 +74,7 @@ end
 
 % Update affine only
 %--------------------------------------------------------------------------
-fprintf('Rigid (zoom=%d): %d x %d x %d\n',2^(numel(sz)-1),sett.ms.d);
+fprintf('Rigid (zoom=1/%d): %d x %d x %d\n',2^(numel(sz)-1),sett.ms.d);
 spm_plot_convergence('Init','Rigid Alignment','Objective','Iteration');
 E      = Inf;
 for it0=1:nit_aff
@@ -117,13 +117,13 @@ for it0=1:nit_aff
     end
 end
 spm_plot_convergence('Clear');
-nit_mu = 2;
+nit_mu = 4;
 
 % Update affine and diffeo (iteratively decreases the template resolution)
 %--------------------------------------------------------------------------
 spm_plot_convergence('Init','Diffeomorphic Alignment','Objective','Iteration');
 for zm=numel(sz):-1:1 % loop over zoom levels
-    fprintf('\nzoom=%d: %d x %d x %d\n', 2^(zm-1), sett.ms.d);
+    fprintf('\nzoom=1/%d: %d x %d x %d\n', 2^(zm-1), sett.ms.d);
 
     if updt_mu
         dat = spm_mb_appearance('restart',dat,sett);
@@ -152,7 +152,7 @@ for zm=numel(sz):-1:1 % loop over zoom levels
     end
     fprintf('\n');
 
-    nit_max = nit_zm0 + (zm - 1)*3;
+    nit_max = nit_zm0 + (zm - 1);
     for it0=1:nit_max
 
         oE  = E/nvox(dat);

@@ -25,7 +25,7 @@ function varargout = spm_mb_shape(varargin)
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_shape.m 8219 2022-02-09 09:42:10Z john $
+% $Id: spm_mb_shape.m 8225 2022-02-23 14:37:49Z john $
 [varargout{1:nargout}] = spm_subfun(localfunctions,varargin{:});
 %==========================================================================
 
@@ -509,46 +509,121 @@ mu = gn_mu_update(mu,g,w,mu_settings,accel);
 %==========================================================================
 
 %==========================================================================
-function mu = gn_mu_update(mu,g,w,mu_settings,accel)
+function mu = gn_mu_update(mu,g,w,mu_settings,accel,nit)
+% Solve the problem
+% x = (L + H)\g
+% Regularisation L = kron(eye(K)-1/(K+1),L0)
+% Hessian H is constructed on the fly using mu and w.
+if nargin<6, nit   = [1 16 1]; end
+if nargin<5, accel = 0.8;      end
+s = softmax(mu);
+x = zeros(size(s),'single');
+for it=1:nit(1)
+    for subit=1:nit(2), x = relax_mu1(x,s,g,w,mu_settings,accel); end
+    for subit=1:nit(3), x = relax_mu2(x,s,g,w,mu_settings,accel); end
+end
+mu = mu - x;
+%==========================================================================
+
+%==========================================================================
+function x = relax_mu2(x,s,g,w,mu_settings,accel)
 % Use Gauss-Seidel method for computing updates
 % https://en.wikipedia.org/wiki/Gauss%E2%80%93Seidel_method
+% This approach is for when the regularisation is high relative
+% to the Hessian of the data.
+
+if isempty(x), x = zeros(size(g),'single'); end
 spm_field('boundary',1);
-K   = size(mu,4);
-update_settings = [mu_settings(1:3) mu_settings(4:end)*(1-1/(K+1)) 2 2];
-if accel>0, s   = softmax(mu); end
-dmu = zeros(size(mu),'single');
-for it=1:10
+d = size(g);
+K = d(4);
+for k=1:K
+
+    % Diagonal elements of Hessian
+    h_kk = hessel(k,k,K,accel,s).*w;
+
+    % Dot product betwen off-diagonals of likelihood Hessian and x
+    g_k = zeros(d(1:3),'single');
+    for k1=1:K
+        if k1~=k, g_k = g_k + x(:,:,:,k1).*hessel(k,k1,K,accel,s); end
+    end
+    g_k = g_k.*w;
+
+    % Dot product between off-diagonals of regularisation Hessian and x
+    g_k = g_k - spm_field('vel2mom', (sum(x,4)-x(:,:,:,k))/(K+1), mu_settings);
+
+    % Gauss-Seidel update
+    x(:,:,:,k) = spm_field(h_kk, g(:,:,:,k) - g_k, [mu_settings(1:3) mu_settings(4:end)*(1-1/(K+1)) 2 2]);
+end
+%==========================================================================
+
+%==========================================================================
+function x = relax_mu1(x,s,g,w,mu_settings,accel)
+% https://en.wikipedia.org/wiki/Jacobi_method
+% This approach is for when the regularisation is small relative
+% to the Hessian of the data.
+
+if isempty(x), x = zeros(size(g),'single'); end
+L  = operator(mu_settings);
+dc = L(1,1,1);
+d  = size(g);
+K  = d(4);
+spm_field('boundary',1);
+
+% Multiply with "off diagonal" part of matrix and compute the residual
+x  = spm_field('vel2mom',x,mu_settings) - x*dc;
+sx = sum(x,4)/(K+1);
+for k=1:K, x(:,:,:,k) = g(:,:,:,k) - (x(:,:,:,k) - sx); end
+
+% Divide by "diagonal" part
+H = zeros([d(1:2) 1 d(4)*(d(4)+1)/2],'single');
+for i=1:d(3)
+
+    % Construct Hessian for this slice, adding the diagona term from the regularisation
+    si = s(:,:,i,:);
+    wi = w(:,:,i);
+
+    % Diagonal components
+    for k=1:K, H(:,:,1,k) = hessel(k, k, K, accel, si).*wi + dc*(1-1/(K+1)); end
+
+    % Off-diagonal components
+    kk = K+1;
     for k=1:K
-
-        % Diagonal elements of Hessian
-        if accel==0
-            h_kk = (0.5*(1-1/(K+1)) + 1e-5)*w;
-        else
-            h_kk = (accel*(s(:,:,:,k)-s(:,:,:,k).^2) + (1-accel)*0.5*(1-1/(K+1)) + 1e-5).*w;
+        for k1=(k+1):K,
+            H(:,:,1,kk) = hessel(k, k1, K, accel, si).*wi - dc/(K+1);
+            kk = kk + 1;
         end
+    end
 
-        % Dot product betwen off-diagonals of likelihood Hessian and dmu
-        g_k = zeros([size(mu,1),size(mu,2),size(mu,3)],'single');
-        for k1=1:K
-            if k1~=k
-                % Off-diaginal elements of Hessian
-                if accel==0
-                    g_k = g_k - dmu(:,:,:,k1).*(0.5/(K+1));
-                else
-                    g_k = g_k - dmu(:,:,:,k1).*(accel*(s(:,:,:,k).*s(:,:,:,k1)) + ((1-accel)*0.5/(K+1)));
-                end
-            end
-        end
-        g_k = g_k.*w;
+    % Update with only diagonal part of regularisation
+    x(:,:,i,:) = spm_field(H,x(:,:,i,:),[mu_settings(1:3) 0 0 0  1 1]);
+end
+%==========================================================================
 
-        % Dot product between off-diagonals of regularisation Hessian and dmu
-        g_k = g_k - spm_field('vel2mom', (sum(dmu,4)-dmu(:,:,:,k))/(K+1), mu_settings);
-
-        % Gauss-Seidel update
-        dmu(:,:,:,k) = spm_field(h_kk, g(:,:,:,k) - g_k, update_settings);
+%==========================================================================
+function h = hessel(k,k1,K,accel,s)
+% Element of Hessian
+if k==k1
+    h = 0.5*(1-1/(K+1)) + 1e-5;
+    if accel>0
+        sk = s(:,:,:,k);
+        h  = accel*(sk-sk.^2) + (1-accel)*h;
+    end
+else
+    h = -0.5/(K+1);
+    if accel>0
+        h = -accel*s(:,:,:,k).*s(:,:,:,k1) + (1-accel)*h;
     end
 end
-mu = mu - dmu;
+%==========================================================================
+
+%==========================================================================
+function L = operator(mu_settings)
+b        = spm_field('boundary');
+spm_field('boundary',0);
+L        = zeros([5 5 5],'single');
+L(1,1,1) = 1;
+L        = spm_field('vel2mom',L,mu_settings);
+spm_field('boundary',b);
 %==========================================================================
 
 %==========================================================================
@@ -616,7 +691,6 @@ if ~isempty(B)
         for n=1:numel(dat)
             dat(n).q = dat(n).q - mq;
         end
-         
     end
 
     % Update orientations in deformation headers when appropriate
