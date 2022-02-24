@@ -10,7 +10,7 @@ function [dat,sett,mu] = spm_mb_fit(dat,sett)
 %__________________________________________________________________________
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_fit.m 8225 2022-02-23 14:37:49Z john $
+% $Id: spm_mb_fit.m 8226 2022-02-24 10:44:46Z john $
 
 
 % Repeatable random numbers
@@ -152,7 +152,7 @@ for zm=numel(sz):-1:1 % loop over zoom levels
     end
     fprintf('\n');
 
-    nit_max = nit_zm0 + (zm - 1);
+    nit_max = nit_zm0 + (zm - 1)*2;
     for it0=1:nit_max
 
         oE  = E/nvox(dat);

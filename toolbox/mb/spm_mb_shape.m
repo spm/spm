@@ -25,7 +25,7 @@ function varargout = spm_mb_shape(varargin)
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_shape.m 8225 2022-02-23 14:37:49Z john $
+% $Id: spm_mb_shape.m 8226 2022-02-24 10:44:46Z john $
 [varargout{1:nargout}] = spm_subfun(localfunctions,varargin{:});
 %==========================================================================
 
@@ -703,7 +703,12 @@ end
 
 %==========================================================================
 function datn = update_simple_affines_sub(datn,mu,G,H0,sett)
-eprev = datn.E(1)/datn.nvox;
+if numel(datn.E) >=1
+    eprev = datn.E(1)/datn.nvox;
+else
+    eprev = Inf;
+end
+
 for it=1:8
     datn = update_simple_affines_sub1(datn,mu,G,H0,sett);
     if eprev - datn.E(1)/datn.nvox < sett.tol, break; end
