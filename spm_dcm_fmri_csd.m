@@ -40,9 +40,9 @@ function DCM = spm_dcm_fmri_csd(P)
 % Copyright (C) 2013-2015 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_fmri_csd.m 8183 2021-11-04 15:25:19Z guillaume $
+% $Id: spm_dcm_fmri_csd.m 8228 2022-02-26 13:54:27Z karl $
 
-SVNid = '$Rev: 8183 $';
+SVNid = '$Rev: 8228 $';
 
 % Load DCM structure
 %--------------------------------------------------------------------------
@@ -239,10 +239,10 @@ end
 %--------------------------------------------------------------------------
 DCM.Y.Q  = spm_dcm_csd_Q(DCM.Y.csd);
 DCM.Y.X0 = sparse(size(DCM.Y.Q,1),0);
-DCM.Y.p  = DCM.M.p;
 
 % Variational Laplace: model inversion (using spectral responses)
 %==========================================================================
+Y            = DCM.Y;
 Y.y          = DCM.Y.csd;
 [Ep,Cp,Eh,F] = spm_nlsi_GN(DCM.M,DCM.U,Y);
 

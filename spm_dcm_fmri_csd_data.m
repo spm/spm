@@ -15,7 +15,7 @@ function DCM = spm_dcm_fmri_csd_data(DCM)
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_fmri_csd_data.m 7270 2018-03-04 13:08:10Z karl $
+% $Id: spm_dcm_fmri_csd_data.m 8228 2022-02-26 13:54:27Z karl $
 
 
 % check for cell array data
@@ -39,7 +39,7 @@ if iscell(DCM.Y.y)
     end
     DCM.Y.Hz  = dcm.Y.Hz;
     DCM.Y.pst = dcm.Y.pst;
-    DCM.Y.p      = dcm.Y.p;
+    DCM.Y.p   = dcm.Y.p;
     return
 end
 
