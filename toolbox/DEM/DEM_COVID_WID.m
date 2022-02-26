@@ -35,7 +35,7 @@ function DCM = DEM_COVID_WID
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_WID.m 8189 2021-11-14 12:39:48Z karl $
+% $Id: DEM_COVID_WID.m 8227 2022-02-26 13:35:03Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -44,7 +44,7 @@ function DCM = DEM_COVID_WID
 % large population, or an impoverished vaccination rate
 %--------------------------------------------------------------------------
 cd('C:\Users\karl\Dropbox\Coronavirus')
-close all
+close all, clear all, clc
 
 D      = DATA_WID_data;
 
@@ -267,17 +267,19 @@ for r = ri
     clear M
     M.P   = pE;
     if true
-        try
-            % use previous inversion
-            %--------------------------------------------------------------
-            field = fieldnames(DCM(r).Ep);
-            for i = 1:numel(field)
+        
+        % use previous inversion
+        %--------------------------------------------------------------
+        field = fieldnames(pE);
+        for i = 1:numel(field)
+            try
                 if all(size(pE.(field{i})) == size(DCM(r).Ep.(field{i})))
                     M.P.(field{i}) = DCM(r).Ep.(field{i});
                 end
             end
-            disp('initialising with previous posteriors')
         end
+        disp('initialising with previous posteriors')
+        
     end
     
     % model specification
