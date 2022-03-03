@@ -1,20 +1,37 @@
-function M = spm_mesh_join(Ms)
+function [M, I] = spm_mesh_join(varargin)
 % Join a list of surface meshes into a single one
-% FORMAT M = spm_mesh_join(Ms)
-% Ms       - a patch structure array
+% FORMAT [M, I] = spm_mesh_join(Ms)
+% Ms            - a patch structure array or list of scalar patch structures
 %
-% M        - a patch structure
+% M             - a scalar patch structure
+% I             - a column vector of face indices
 %
 % See also spm_mesh_split
 %__________________________________________________________________________
-% Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2016-2022 Wellcome Centre for Human Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_join.m 6912 2016-10-26 14:50:53Z guillaume $
+% $Id: spm_mesh_join.m 8230 2022-03-03 17:50:45Z guillaume $
 
+
+Ms = varargin{1};
+for i=2:numel(varargin)
+    fn = fieldnames(varargin{i});
+    for j=1:numel(fn)
+        Ms(i).(fn{j}) = varargin{i}.(fn{j});
+    end
+end
+if isfield(Ms,'mat')
+    for i=1:numel(Ms)
+        if isempty(Ms(i).mat)
+            Ms(i).mat = eye(4);
+        end
+    end
+end
 
 fn = fieldnames(Ms(1));
 M  = cell2struct(cell(numel(fn),1),fn);
+I  = zeros(numel(Ms),1);
 
 for i=1:numel(Ms)
     if i==1
@@ -22,6 +39,7 @@ for i=1:numel(Ms)
     else
         M.faces   = [M.faces; Ms(i).faces+size(M.vertices,1)];
     end
+    I(i)          = size(Ms(i).faces,1);
     M.vertices    = [M.vertices; Ms(i).vertices];
     try, M.cdata  = [M.cdata; Ms(i).cdata]; end
     try
@@ -33,3 +51,4 @@ for i=1:numel(Ms)
         end
     end
 end
+if nargout > 1, I = repelem((1:numel(I))',I); end

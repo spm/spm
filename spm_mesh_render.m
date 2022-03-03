@@ -39,7 +39,7 @@ function varargout = spm_mesh_render(action,varargin)
 % Copyright (C) 2010-2019 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_render.m 8183 2021-11-04 15:25:19Z guillaume $
+% $Id: spm_mesh_render.m 8230 2022-03-03 17:50:45Z guillaume $
 
 
 %-Input parameters
@@ -83,8 +83,17 @@ switch lower(action)
         %-Figure & Axis
         %------------------------------------------------------------------
         if isfield(O,'parent')
-            H.axis   = O.parent;
-            H.figure = ancestor(H.axis,'figure');
+            switch get(O.parent,'Type')
+                case 'axes'
+                    H.axis   = O.parent;
+                    H.figure = ancestor(H.axis,'figure');
+                case 'figure'
+                    H.figure = O.parent;
+                    H.axis   = axes('Parent',H.figure);
+                    set(H.axis,'Visible','off');
+                otherwise
+                    error('Invalid parent option.');
+            end
             figure(H.figure); axes(H.axis);
         else
             H.figure = figure('Color',[1 1 1]);

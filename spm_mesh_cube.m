@@ -1,5 +1,6 @@
 function M = spm_mesh_cube
 % Triangle mesh of a unit cube
+% FORMAT M = spm_mesh_cube
 % M        - patch structure
 %__________________________________________________________________________
 %
@@ -9,7 +10,7 @@ function M = spm_mesh_cube
 % Copyright (C) 2022 Wellcome Centre for Human Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_cube.m 8229 2022-03-01 14:24:08Z guillaume $
+% $Id: spm_mesh_cube.m 8230 2022-03-03 17:50:45Z guillaume $
 
 
 M.vertices = [...
