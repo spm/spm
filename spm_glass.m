@@ -17,7 +17,7 @@ function fig = spm_glass(X,pos,varargin)
 % Copyright (C) 2020-2022 Wellcome Centre for Human Neuroimaging
 
 % George O'Neill & Guillaume Flandin
-% $Id: spm_glass.m 8214 2022-01-27 15:34:03Z george $
+% $Id: spm_glass.m 8231 2022-03-09 14:47:42Z george $
 
 % prep
 %---------------------------------------------------------------------
@@ -38,6 +38,7 @@ if ~isfield(S, 'dark'),         S.dark = false; end
 if ~isfield(S, 'cmap'),         S.cmap = 'gray'; end
 if ~isfield(S, 'detail'),       S.detail = 1; end
 if ~isfield(S, 'grid'),         S.grid = false; end
+if ~isfield(S, 'colourbar'),    S.colourbar = false; end
 
 M = [-2 0 0 92;0 2 0 -128;0 0 2 -74;0 0 0 1];
 dim = [91 109 91];
@@ -65,7 +66,15 @@ for ii = 1:length(id)
     
     pnt = [pos(id(ii),2),pos(id(ii),3)];
     bnd = -S.brush:S.brush;
-    p_sag(pnt(1)+bnd,pnt(2)+bnd) = bin(id(ii));
+    
+    p1 = pnt(1)+bnd;
+    bads = find(p1 < 1 | p1 > dim(2));
+    p2 = pnt(2)+bnd;
+    bads = [bads find(p2 < 1 | p2 > dim(3))];
+    p1(bads) = [];
+    p2(bads) = [];
+    
+    p_sag(p1,p2) = bin(id(ii));
     
 end
 
@@ -77,7 +86,15 @@ for ii = 1:length(id)
     
     pnt = [pos(id(ii),1),pos(id(ii),3)];
     bnd = -S.brush:S.brush;
-    p_cor(pnt(1)+bnd,pnt(2)+bnd) = bin(id(ii));
+    
+    p1 = pnt(1)+bnd;
+    bads = find(p1 < 1 | p1 > dim(1));
+    p2 = pnt(2)+bnd;
+    bads = [bads find(p2 < 1 | p2 > dim(3))];
+    p1(bads) = [];
+    p2(bads) = [];
+    
+    p_cor(p1,p2) = bin(id(ii));
     
 end
 
@@ -90,15 +107,38 @@ for ii = 1:length(id)
     
     pnt = [pos(id(ii),2),pos(id(ii),1)];
     bnd = -S.brush:S.brush;
-    p_axi(pnt(1)+bnd,pnt(2)+bnd) = bin(id(ii));
     
+    p1 = pnt(1)+bnd;
+    bads = find(p1 < 1 | p1 > dim(2));
+    p2 = pnt(2)+bnd;
+    bads = [bads find(p2 < 1 | p2 > dim(1))];
+    p1(bads) = [];
+    p2(bads) = [];
+    
+    p_axi(p1,p2) = bin(id(ii));
+    
+end
+
+% optional colorbar
+%---------------------------------------------------------------------
+p_col = NaN(dim(1),dim(3));
+if S.colourbar
+    for ii = 42:52
+        p_col(14:78,ii) = linspace(2,65,numel(14:78));
+    end
+    if div
+        rmin = -max(abs(X));
+    else
+        rmin = min(abs(X));
+    end
+    rmax = max(abs(X));
 end
 
 
 % combine and plot
 %---------------------------------------------------------------------
 p_all = [rot90(p_sag,1) fliplr(rot90(p_cor,1));...
-    rot90(p_axi,1) NaN(size(rot90(p_cor,1)))];
+    rot90(p_axi,1) rot90(p_col,1)];
 p_all(isnan(p_all)) = 0;
 imagesc(p_all)
 set(gca,'XTickLabel',{},'YTickLabel',{});
@@ -121,6 +161,11 @@ if S.dark
     set(gcf,'color','k');
 else
     set(gcf,'color','w');
+end
+
+if S.colourbar
+    text(124,150,num2str(rmin),'color',~c(1,:),'fontsize',14,'horizontalalignment','center');
+    text(185,150,num2str(rmax),'color',~c(1,:),'fontsize',14,'horizontalalignment','center');
 end
 
 if S.grid
