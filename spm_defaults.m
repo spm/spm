@@ -20,10 +20,10 @@ function spm_defaults
 %
 %                 ** This file should not be edited **
 %__________________________________________________________________________
-% Copyright (C) 1994-2018 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1994-2022 Wellcome Trust Centre for Neuroimaging
 
 % SPM
-% $Id: spm_defaults.m 7503 2018-12-03 12:20:12Z guillaume $
+% $Id: spm_defaults.m 8234 2022-03-24 10:43:45Z tibor $
 
 
 global defaults
@@ -46,6 +46,7 @@ defaults.renderer   = 'opengl';
 % left/right handedness of the voxel indices is now done entirely by
 % spm_flip_analyze_images.m
 defaults.images.format  = 'nii'; % options: 'img', 'nii'
+defaults.images.tol_orient = 1e-4; % tolerance (see spm_check_orientation)
 defaults.mat.format     = '-v6'; % options: '-mat', '-v6', '-v7.0', '-v7.3'
 
 % Toolboxes defaults
