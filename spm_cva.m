@@ -6,6 +6,7 @@ function [CVA] = spm_cva(Y,X,X0,c,U)
 % X0           - null space
 % c            - contrast weights
 % U            - dimension reduction (projection matrix)
+%              - or number to retain
 % 
 % 
 % CVA.c        - contrast weights
@@ -66,7 +67,7 @@ function [CVA] = spm_cva(Y,X,X0,c,U)
 % Copyright (C) 2006-2013 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_cva.m 7303 2018-04-28 16:00:22Z karl $
+% $Id: spm_cva.m 8238 2022-04-03 11:32:57Z karl $
 
 
 if nargin < 3, X0 = [];             end
@@ -89,8 +90,8 @@ P     = pinv(X);
 
 %-Dimension reduction (if necessary)
 %==========================================================================
+[n,m] = size(Y);
 if nargin < 5
-    [n,m] = size(Y);
     n     = fix(n/4);
     if m > n
         U = spm_svd(Y');
@@ -101,7 +102,19 @@ if nargin < 5
         U = speye(size(Y,2));
     end
 else
-    U = spm_svd(U);
+    if isscalar(U)
+        n    = U;
+        if m > n
+            U = spm_svd(Y');
+            try
+                U = U(:,1:n);
+            end
+        else
+            U = speye(size(Y,2));
+        end
+    else
+        U = spm_svd(U);
+    end
 end
 Y     = Y*U;
 
@@ -122,6 +135,11 @@ SST   = T'*T;
 SSR   = Y - T;
 SSR   = SSR'*SSR;
 [v,d] = eig(SST,SSR);
+
+%-flip so vectors are (on average) positive
+%--------------------------------------------------------------------------
+i     = sum(U*v) > 0;
+v     = bsxfun(@times,v,(2*i - 1));
 
 %-sort and order
 %--------------------------------------------------------------------------

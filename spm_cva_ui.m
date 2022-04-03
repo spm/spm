@@ -82,7 +82,7 @@ function [CVA] = spm_cva_ui(action,varargin)
 % Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_cva_ui.m 8171 2021-10-25 10:14:50Z karl $
+% $Id: spm_cva_ui.m 8238 2022-04-03 11:32:57Z karl $
 
 
 %-Get figure handles
@@ -267,8 +267,9 @@ switch lower(action)
             end
             subplot(2,2,1)
             plot(CVA.V(:,i)), axis square
-            ylabel('response')
-            
+            ylabel('weight')
+            xlabel('response space')
+            title(str)
         end
         
         %-Inference and canonical variates
