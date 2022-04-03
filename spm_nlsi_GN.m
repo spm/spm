@@ -96,7 +96,7 @@ function [Ep,Cp,Eh,F,L,dFdp,dFdpp] = spm_nlsi_GN(M,U,Y)
 % Copyright (C) 2001-2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_nlsi_GN.m 8183 2021-11-04 15:25:19Z guillaume $
+% $Id: spm_nlsi_GN.m 8237 2022-04-03 11:27:36Z karl $
 
 % options
 %--------------------------------------------------------------------------
@@ -454,7 +454,15 @@ for k = 1:M.Nmax
         
     end
     
-    
+    % mean field effects of hyperparameter uncertainty (disabled)
+    %----------------------------------------------------------------------
+    A     = 0;
+    B     = 0;
+    for i = 1:0 %% nh
+        A = A - Ch(i,i)*real(J'*P{i})*e;
+        B = B - Ch(i,i)*diag(diag(JPJ{i}));
+    end
+
     % E-Step with Levenberg-Marquardt regularization
     %======================================================================
     
@@ -490,8 +498,8 @@ for k = 1:M.Nmax
         
         % E-Step: Conditional update of gradients and curvature
         %------------------------------------------------------------------
-        dFdp  = -real(J'*iS*e) - ipC*p;
-        dFdpp = -real(J'*iS*J) - ipC;
+        dFdp  = -real(J'*iS*e) - ipC*p + A/2;
+        dFdpp = -real(J'*iS*J) - ipC   + B/2;
         
         % decrease regularization
         %------------------------------------------------------------------
