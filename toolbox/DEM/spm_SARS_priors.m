@@ -37,7 +37,7 @@ function [P,C,str] = spm_SARS_priors(nN)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_priors.m 8221 2022-02-13 11:12:11Z karl $
+% $Id: spm_SARS_priors.m 8236 2022-04-03 11:26:28Z karl $
 
 % sources and background
 %--------------------------------------------------------------------------
@@ -296,6 +296,7 @@ names{52} = 'PCR testing of fatalities';
 names{53} = 'contact rate decay (days)';
 names{54} = 'survival risk in care homes';
 names{55} = 'changes in transfer to CCU';  
+names{56} = 'transmissibility parameters';
 
 % latent or hidden factors
 %--------------------------------------------------------------------------
@@ -460,6 +461,7 @@ P.rel = 1;                    % (52) PCR testing of fatalities
 P.pro = 1;                    % (53) contact rate decay (days)
 P.oth = 0.1;                  % (54) relative survival outside hospital
 P.iad = 1;                    % (55) exponent: transfer to CCU
+P.tra = [1 1 1 1];            % (56) transmissibility parameters
 
 
 
@@ -548,6 +550,8 @@ C.rel = W;                    % (52) PCR testing of fatalities
 C.pro = W;                    % (53) contact rate decay (days)
 C.oth = W;                    % (54) relative survival outside hospital
 C.iad = V;                    % (55) exponent: transfer to CCU
+C.tra = V;                    % (56) transmissibility parameters
+
 
 % check prior expectations and covariances are consistent
 %--------------------------------------------------------------------------

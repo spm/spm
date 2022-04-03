@@ -22,7 +22,7 @@ function [T,R] = spm_COVID_T(P,I)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_T.m 8227 2022-02-26 13:35:03Z karl $
+% $Id: spm_COVID_T.m 8236 2022-04-03 11:26:28Z karl $
 
 % setup
 %==========================================================================
@@ -428,9 +428,9 @@ end
 % time-dependent parameters
 %--------------------------------------------------------------------------
 R.Pout = Pout;
-R.Psev = Psev;
 R.Pinf = Ktic;
-R.Pfat = Pfat;
+R.Psev = P.sev;
+R.Pfat = P.fat;
 R.Psen = Psen;
 R.Ptes = Ptes;
 R.Rvac = Rvac;

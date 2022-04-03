@@ -83,7 +83,7 @@ function [y,x,z,W] = spm_SARS_gen(P,M,U,NPI,age)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_gen.m 8221 2022-02-13 11:12:11Z karl $
+% $Id: spm_SARS_gen.m 8236 2022-04-03 11:26:28Z karl $
 
 
 % The generative model:
@@ -227,6 +227,9 @@ for n = 1:nN
     
     % initial marginals (Dirichlet parameters)
     %----------------------------------------------------------------------
+    Q{n}.r = erf(Q{n}.r);
+    Q{n}.o = erf(Q{n}.o);
+    
     c    = Q{n}.n;                % proportion of initial cases
     N(n) = Q{n}.N*1e6;            % population size
     r    = Q{n}.r;                % proportion of resistant cases
@@ -358,24 +361,19 @@ for i = 1:M.T
             end
         end
         
-        % and fluctuations in transmissibility: cumulative error functions
+        % and slow fluctuations in transmissibility
         %------------------------------------------------------------------
-        Ptra = 1;
-        dt   = 64;
-        if isfield(Q{n},'tra')
-            for j = 1:numel(Q{n}.tra)
-                Ptra = Ptra + erf(Q{n}.tra(j)) * (1 + erf((i - j*dt)/(dt/2)))/8;
-            end
-        end
-        
+        Ptra  = spm_phi(((i - 400*Q{n}.tra(2))/(96*Q{n}.tra(3))));
+        Ptra  = exp(Ptra^(4*Q{n}.tra(4)));
+
         % fluctuations in epidemiological parameters NB Ptra > 1
         %------------------------------------------------------------------
         Q{n}.Tin = R{n}.Tin*Ptra^(-R{n}.s(1)/16);  % infected time
         Q{n}.Tic = R{n}.Tic*Ptra^(-R{n}.s(2)/16);  % incubation time
-
+        
         Q{n}.Tim = R{n}.Tim*Ptra^(log(R{n}.s(3))); % antibody immunity
         Q{n}.Tnn = R{n}.Tnn*Ptra^(log(R{n}.s(4))); % T-cell immunity
-        Q{n}.Trd = R{n}.Trd*Ptra^(log(R{n}.s(5))); % duration of ARDS 
+        Q{n}.Trd = R{n}.Trd*Ptra^(log(R{n}.s(5))); % duration of ARDS
         
         Q{n}.sev = R{n}.sev*Ptra^(-R{n}.lat);      % P(ARDS | infected)
         Q{n}.fat = R{n}.fat*Ptra^(-R{n}.sur);      % P(fatality | ARDS)
@@ -402,7 +400,7 @@ for i = 1:M.T
         %------------------------------------------------------------------
         S    = (1 + cos(2*pi*(i - log(Q{n}.inn)*8)/365))/2;
         Ptrn = Q{n}.trn + Q{n}.trm*S;              % seasonal risk
-        Ptrn = erf(Ptrn*Ptra);                     % fluctuating risk
+        Ptrn = erf(Ptrn*Q{n}.tra(1)*Ptra);         % fluctuating risk
         
         % contact rates
         %------------------------------------------------------------------
@@ -456,6 +454,7 @@ for i = 1:M.T
         
         % time-varying parameters and other vaiables
         %------------------------------------------------------------------
+        V.Ptra  = Ptra;
         V.Ptrn  = Ptrn;
         V.ncr28 = ncr28;
         V.pcr28 = pcr28;

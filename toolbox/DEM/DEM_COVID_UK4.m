@@ -14,7 +14,7 @@ function DCM = DEM_COVID_UK4
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_UK4.m 8221 2022-02-13 11:12:11Z karl $
+% $Id: DEM_COVID_UK4.m 8236 2022-04-03 11:26:28Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -720,14 +720,11 @@ pC.ve   = ones(nN,1);          % prior variance
 %--------------------------------------------------------------------------
 i       = ceil((datenum(date) - datenum(M.date))/32);
 j       = ceil((datenum(date) - datenum(M.date))/48);
-k       = ceil((datenum(date) - datenum(M.date))/64);
-pE.tra  = zeros(1,k) - 2;      % increases in transmission strength
-pC.tra  = ones(1,k)/8;         % prior variance
+
 pE.pcr  = zeros(1,j);          % testing
 pC.pcr  = ones(1,j)/8;         % prior variance
 pE.mob  = zeros(1,i);          % mobility
 pC.mob  = ones(1,i)/128;       % prior variance
-
 
 % reporting lags
 %--------------------------------------------------------------------------
@@ -737,7 +734,6 @@ pC.lag  = lag;
 
 % data structure with vectorised data and covariance components
 %--------------------------------------------------------------------------
-% xY.Q  = spm_Ce([Y.n]);
 xY.y  = spm_vec(Y.Y);
 nY    = numel(Y);
 for i = 1:nY
@@ -906,7 +902,7 @@ spm_figure('GetWin','outcomes (4)'); clf
 Ep  = DCM.Ep;
 Cp  = DCM.Cp;
 M   = DCM.M;
-M.T = 30*6 + datenum(date) - datenum(M.date,'dd-mm-yyyy');
+M.T = 30*12 + datenum(date) - datenum(M.date,'dd-mm-yyyy');
 t   = (1:M.T) + datenum(M.date,'dd-mm-yyyy');
 
 % infection fatality ratios (%)
@@ -1021,6 +1017,9 @@ drawnow
 %--------------------------------------------------------------------------
 spm_figure('GetWin','long-term (2)'); clf
 
+M.T = 30*12 + datenum(date) - datenum(M.date,'dd-mm-yyyy');
+t   = (1:M.T) + datenum(M.date,'dd-mm-yyyy');
+
 subplot(2,1,1)
 i   = find(DCM.U == 4,1);
 spm_SARS_ci(Ep,Cp,[],11,M); hold on
@@ -1087,7 +1086,27 @@ legend({' ','Attack rate',' ','Effective Population immunity',...
 legend boxoff
 
 
-%% report vaccine efficiency
+%% infection fatality ratio (%)
+% probability of becoming symptomatic: (1 - Pinf.^(Q{n}.Tin + Q{n}.Tcn))
+%----------------------------------------------------------------------
+for n = 1:numel(R)
+    
+    Psev     = [R{n}.Psev]';
+    Pfat     = [R{n}.Pfat]';
+    IFR(n,1) = 100 * Psev(j).*Pfat(j);
+
+    Psev = Psev*exp(Ep.lnk(n));         % vaccine efficiency: pathogenicity
+    Pfat = Pfat*exp(Ep.lnf(1));         % vaccine efficiency: fatality
+    IFR(n,2) = 100 * Psev(j).*Pfat(j);
+end
+
+fprintf('(Symptomatic) IFR: likelihood of dying from COVID-19 (%s) \n','%');
+fprintf('            Age group  0-14     15-34    35-69   70+  \n');
+fprintf('   recent vaccination: %.3f    %.3f    %.3f   %.3f \n',IFR(:,2));
+fprintf('no vaccine protection: %.3f    %.3f    %.3f   %.3f \n\n',IFR(:,1));
+
+
+% report vaccine efficiency
 %--------------------------------------------------------------------------
 q   = Ep.vef(end);
 d   = spm_unvec(diag(Cp),Ep);
@@ -1166,18 +1185,18 @@ disp(' ')
 
 %% ancillary predictions
 %--------------------------------------------------------------------------
-Z      = spm_SARS_gen(Ep,M,[1,16,31]);
-
-fprintf('vaccine effectiveness (prevalence of infection) %.1f%s\n', Z(j,3),'%')
-disp(' ')
-
-[m,d] = max(Z(j:end,2));
-fprintf('peak hospital admissions:  %.0f on %s\n', m,datestr(t(j + d)))
-disp(' ')
-
-[m,d] = max(Z(j:end,1));
-fprintf('peak (28-day) death rates:  %.0f on %s\n', m,datestr(t(j + d)))
-disp(' ')
+% Z      = spm_SARS_gen(Ep,M,[1,16,31]);
+% 
+% fprintf('vaccine effectiveness (prevalence of infection) %.1f%s\n', Z(j,3),'%')
+% disp(' ')
+% 
+% [m,d] = max(Z(j:end,2));
+% fprintf('peak hospital admissions:  %.0f on %s\n', m,datestr(t(j + d)))
+% disp(' ')
+% 
+% [m,d] = max(Z(j:end,1));
+% fprintf('peak (28-day) death rates:  %.0f on %s\n', m,datestr(t(j + d)))
+% disp(' ')
 
 %% save figures
 %--------------------------------------------------------------------------
@@ -1403,9 +1422,9 @@ spm_figure('GetWin','states'); clf;
 %--------------------------------------------------------------------------
 M.T    = datenum(date) - datenum(DCM.M.date,'dd-mm-yyyy');
 M.T    = M.T + 180;                 % forecast dates
-u      = 13;                         % empirical outcome
+u      = 13;                        % empirical outcome
 a      = 0;                         % age cohort (0 for everyone)
-Ep.tra(11) = DCM.Ep.tra(11);        % adjusted (log) parameter
+Ep.tra(1) = DCM.Ep.tra(1);          % adjusted (log) parameter
 
 [Z,X]  = spm_SARS_gen(Ep,M,u,[],a); % posterior prediction
 
