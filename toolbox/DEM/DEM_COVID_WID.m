@@ -35,7 +35,7 @@ function DCM = DEM_COVID_WID
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_WID.m 8236 2022-04-03 11:26:28Z karl $
+% $Id: DEM_COVID_WID.m 8239 2022-04-09 12:45:02Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -46,76 +46,77 @@ function DCM = DEM_COVID_WID
 cd('C:\Users\karl\Dropbox\Coronavirus')
 close all, clear all, clc
 
-D      = DATA_WID_data;
+D         = DATA_WID_data;
+% [i,j]   = sort([D.population],'descend');
+% country = {D.country};
+% country = country(j(1:64));
 
-[v,vi] = sort([D.vrate],'ascend');
-[n,ni] = sort([D.population],'descend');
-n      = 32;
-ri     = unique([ni(1:n) vi(1:n)]);
-
-for r = 1:numel(ri)
-    country{r} = D(ri(r)).country;
-end
 
 country = [ ...
-    {'Afghanistan'                 }
-    {'Argentina'                   }
-    {'Bangladesh'                  }
-    {'Benin'                       }
-    {'Brazil'                      }
-    {'Cameroon'                    }
-    {'Chad'                        }
-    {'Colombia'                    }
-    {'Congo'                       }
-    {'Cote d''Ivoire'              }
-    {'Democratic Republic of Congo'}
-    {'Djibouti'                    }
-    {'Egypt'                       }
-    {'Ethiopia'                    }
-    {'France'                      }
-    {'Gabon'                       }
-    {'Gambia'                      }
-    {'Germany'                     }
-    {'Ghana'                       }
-    {'Guinea'                      }
-    {'Haiti'                       }
-    {'India'                       }
-    {'Indonesia'                   }
-    {'Iran'                        }
-    {'Italy'                       }
-    {'Japan'                       }
-    {'Kenya'                       }
-    {'Liberia'                     }
-    {'Madagascar'                  }
-    {'Malawi'                      }
-    {'Mali'                        }
-    {'Mexico'                      }
-    {'Mozambique'                  }
-    {'Myanmar'                     }
-    {'Niger'                       }
-    {'Nigeria'                     }
-    {'Pakistan'                    }
-    {'Papua New Guinea'            }
-    {'Philippines'                 }
-    {'Russia'                      }
-    {'Senegal'                     }
-    {'Sierra Leone'                }
-    {'Somalia'                     }
-    {'South Africa'                }
-    {'South Korea'                 }
-    {'South Sudan'                 }
-    {'Spain'                       }
-    {'Sudan'                       }
-    {'Thailand'                    }
-    {'Togo'                        }
-    {'Turkey'                      }
-    {'Uganda'                      }
-    {'Ukraine'                     }
-    {'United Kingdom'              }
-    {'United States'               }
-    {'Vietnam'                     }
-    {'Yemen'                       }
-    {'Zambia'                      }];
+    {'India'              }
+    {'United States'      }
+    {'Indonesia'          }
+    {'Brazil'             }
+    {'Bangladesh'         }
+    {'Russia'             }
+    {'Mexico'             }
+    {'Japan'              }
+    {'Vietnam'            }
+    {'Turkey'             }
+    {'Germany'            }
+    {'Thailand'           }
+    {'United Kingdom'     }
+    {'France'             }
+    {'Italy'              }
+    {'South Africa'       }
+    {'South Korea'        }
+    {'Colombia'           }
+    {'Spain'              }
+    {'Argentina'          }
+    {'Ukraine'            }
+    {'Canada'             }
+    {'Poland'             }
+    {'Morocco'            }
+    {'Peru'               }
+    {'Malaysia'           }
+    {'Cote d''Ivoire'     }
+    {'Australia'          }
+    {'Taiwan'             }
+    {'Sri Lanka'          }
+    {'Chile'              }
+    {'Romania'            }
+    {'Guatemala'          }
+    {'Ecuador'            }
+    {'Cambodia'           }
+    {'Zimbabwe'           }
+    {'Tunisia'            }
+    {'Bolivia'            }
+    {'Belgium'            }
+    {'Dominican Republic' }
+    {'Czechia'            }
+    {'Greece'             }
+    {'Azerbaijan'         }
+    {'Portugal'           }
+    {'Hungary'            }
+    {'Israel'             }
+    {'Switzerland'        }
+    {'Hong Kong'          }
+    {'Paraguay'           }
+    {'Bulgaria'           }
+    {'Lebanon'            }
+    {'Denmark'            }
+    {'Norway'             }
+    {'Singapore'          }
+    {'New Zealand'        }
+    {'Ireland'            }
+    {'Croatia'            }
+    {'Uruguay'            }
+    {'Mongolia'           }
+    {'Lithuania'          }
+    {'Slovenia'           }
+    {'Latvia'             }
+    {'Bahrain'            }
+    {'Trinidad and Tobago'}];
     
 for r = 1:numel(country)
     ri(r) = find(ismember({D.country},country{r}));
@@ -124,7 +125,10 @@ end
 
 %% free parameters of model (i.e., country specific effects)
 %==========================================================================
-free  = {'n','o','m','exp','sde','qua','res','inn','lim','ons','rat','pcr','mob','rel'};
+free  = {'n','o','m','exp','sde','qua',...
+         'res','inn','lim','ons','rat',...
+         'pcr','mob','rel','rol'};
+reset = {'pcr','mob'};
 
 % (empirical) priors from the United Kingdom
 %--------------------------------------------------------------------------
@@ -133,39 +137,36 @@ PCM   = PCM.DCM;
 pE    = PCM.Ep;
 pC    = spm_zeros(PCM.M.pC);
 for i = 1:numel(free)
-    pE.(free{i}) = PCM.M.pE.(free{i});
-    pC.(free{i}) = PCM.M.pC.(free{i});
+    pC.(free{i})  = PCM.M.pC.(free{i});
+end
+for i = 1:numel(reset)
+    pE.(reset{i}) = PCM.M.pE.(reset{i});
 end
 
-% reset age-specific vaccination rollout
-%--------------------------------------------------------------------------
-pE.rol = log([...
-    0.0001 (365 + 0)   32;
-    0.001  (365 + 0)   32;
-    0.02   (365 + 0)   32;
-    0.03   (365 + 0)   32]);
-
-pC.rol     = spm_zeros(pE.rol) + exp(-4);
-PCM.Ep.rol = pE.rol;
-
-% And reserve follow-up vaccination for subsequent scenario modelling
-%--------------------------------------------------------------------------
-pE.fol = log([...
-    exp(-16) (365 + 512) 32;
-    exp(-16) (365 + 128) 32;
-    exp(-16) (365 + 64 ) 32;
-    exp(-16) (365 + 32 ) 32]);
-
-pC.fol     = spm_zeros(pE.fol);
-PCM.Ep.fol = pE.fol;
-
+% lock age-specific parameters
+%==========================================================================
+PC    = diag(spm_vec(pC));
+field = fieldnames(pE);
+for i = 1:numel(field)
+    [na,np] = size(pE.(field{i}));
+    if any(any(pC.(field{i}))) && (na > 1)
+        j = spm_fieldindices(pE,field{i});
+        j = reshape(j,na,np);
+        for k = 1:np
+            ii = j(:,k);
+            PC(ii,ii) = PC(ii(1),ii(1));
+        end
+        fprintf(field{i})
+    end
+end
 
 % Cycle over selected countries to estimate model parameters
 %==========================================================================
 UK    = find(ismember({D.country},'United Kingdom'));
-for r = ri
+for k = 1:numel(ri)
     
-    fprintf('%d out of %d\n',r,numel(D));
+    fprintf('%d out of %d\n',k,numel(ri));
+    r         = ri(k);
     disp(D(r).country)
     try, clear Y; end
     
@@ -199,11 +200,11 @@ for r = ri
     Y(4).Y    = D(r).tests;
     Y(4).h    = 0;
     
-    Y(5).type = 'Percent vaccinated';
-    Y(5).unit = 'percent';
-    Y(5).U    = 22;
+    Y(5).type = 'Total vaccinated';
+    Y(5).unit = 'number';
+    Y(5).U    = 36;
     Y(5).date = datenum(D(r).date);
-    Y(5).Y    = 100 * D(r).vaccine / D(r).population;
+    Y(5).Y    = D(r).vaccine;
     Y(5).h    = 0;
     
     Y(6).type = 'R-ratio';
@@ -264,9 +265,13 @@ for r = ri
     
     % initialise based on previous inversions
     %======================================================================
-    UPDATE = 1;
+    UPDATE = 0;
     if UPDATE
-        try, load DCM_OWID DCM, end
+        try
+            load DCM_OWID DCM
+        catch
+            UPDATE = 0;
+        end
     end
     clear M
     M.P   = pE;
@@ -276,15 +281,17 @@ for r = ri
         %------------------------------------------------------------------
         field = fieldnames(pE);
         for i = 1:numel(field)
-            try
-                if all(size(pE.(field{i})) == size(DCM(r).Ep.(field{i})))
-                    M.P.(field{i}) = DCM(r).Ep.(field{i});
+            if any(any(pC.(field{i})))
+                try
+                    if all(size(pE.(field{i})) == size(DCM(k).Ep.(field{i})))
+                        M.P.(field{i}) = DCM(k).Ep.(field{i});
+                    end
+                    fprintf('+')
                 end
             end
         end
-        disp('initialising with previous posteriors')
-        
-    end
+    end  
+    
     
     % model specification
     %======================================================================
@@ -293,7 +300,7 @@ for r = ri
     M.G    = @spm_SARS_gen;        % generative function
     M.FS   = @(Y)real(sqrt(Y));    % feature selection  (link function)
     M.pE   = pE;                   % prior expectations (parameters)
-    M.pC   = pC;                   % prior covariances  (parameters)
+    M.pC   = PC;                   % prior covariances  (parameters)
     M.hE   = hE + 2;               % prior expectation  (log-precision)
     M.hC   = 1/512;                % prior covariances  (log-precision)
     M.T    = Y;                    % data structure
@@ -306,33 +313,31 @@ for r = ri
     
     % save in DCM structure
     %----------------------------------------------------------------------
-    DCM(r).country = D(r).country;
+    DCM(k).country = D(r).country;
     
-    DCM(r).M  = M;
-    DCM(r).Ep = Ep;
-    DCM(r).Eh = Eh;
-    DCM(r).Cp = Cp;
-    DCM(r).F  = F;
-    DCM(r).S  = S;
-    DCM(r).U  = U;
-    DCM(r).D  = D(r);
+    DCM(k).M  = M;
+    DCM(k).Ep = Ep;
+    DCM(k).Eh = Eh;
+    DCM(k).Cp = Cp;
+    DCM(k).F  = F;
+    DCM(k).S  = S;
+    DCM(k).U  = U;
+    DCM(k).D  = D(r);
     
-    GCM(r)    = DCM(r);
     save('DCM_OWID.mat','DCM')
-    save('DCM_GWID.mat','GCM')
     
     % posterior predictions
     %======================================================================
-    spm_figure('GetWin',D(r).country); clf;
+    spm_figure('GetWin',DCM(k).country); clf;
     M.T     = datenum(date) + 512 - datenum('01-02-2020','dd-mm-yyyy');
     v       = [1 2 23];
     u       = [find(U == 1) find(U == 2) find(U == 23)];   
-    [Z,X]   = spm_SARS_gen(DCM(r).Ep,M,v);
-    spm_SARS_plot(Z,X,DCM(r).S(:,u),v)
+    [Z,X]   = spm_SARS_gen(DCM(k).Ep,M,v);
+    spm_SARS_plot(Z,X,DCM(k).S(:,u),v)
     
     % data fits
     %----------------------------------------------------------------------
-    spm_figure('GetWin',[D(r).country ' data fits']); clf;
+    spm_figure('GetWin',[DCM(k).country ' data fits']); clf;
     for i = 1:numel(U)
         subplot(4,2,i)
         spm_SARS_ci(Ep,Cp,S(:,i),U(i),M);
@@ -554,6 +559,15 @@ for j = 1:16
     M.hE   = hE + 2;
     M.T    = Y;
     
+    M.P   = M.pE;
+    field = fieldnames(M.pE);
+    for i = 1:numel(field)
+        if all(size(M.pE.(field{i})) == size(DCM(r).Ep.(field{i})))
+            M.P.(field{i}) = DCM(r).Ep.(field{i});
+        end
+        fprintf('+')
+    end
+    
     % model inversion with Variational Laplace (Gauss Newton)
     %----------------------------------------------------------------------
     [Ep,Cp,Eh,F] = spm_nlsi_GN(M,U,xY);
@@ -590,10 +604,12 @@ for j = 1:16
     legend({'outcome','prediction'}), legend boxoff
     xlabel('date'), datetick('x','dd-mmm','keeplimits','keepticks')
     title('Forecast of cumulative deaths'), spm_axis tight
+    
+    % save temp copy
+    %----------------------------------------------------------------------
+    save OWID_Q Q
  
 end
-
-%for i=2:16,Q(:,:,i)=Q(:,:,1).*(rand(size(Q(:,:,1)))/8 + rand);end
 
 % quantify variance explained over countries
 %--------------------------------------------------------------------------
@@ -905,7 +921,7 @@ end
 disp('total deaths (millions)'), disp(sum(Z)*1e-6);
 disp('lives saved  (millions)'), disp((sum(Z) - sum(E))*1e-6);
 
-% £-QALY = £60,000 (green Book), 1 death = 7.6 QALY
+% Â£-QALY = Â£60,000 (green Book), 1 death = 7.6 QALY
 %--------------------------------------------------------------------------
 dif = (sum(Z) - sum(E));
 fprintf('Cost ($-QALY = $80,000) of deaths (1 death = 7.6 QALY): %.0f x $608,000 = $%.2fB\n\n',dif, dif*608000/1e9)
@@ -979,7 +995,7 @@ disp('cases avoided (M)'), disp((sum(Z) - sum(E))*1e-6);
 % hospital admissions
 %--------------------------------------------------------------------------
 dif   = sum(Z) - sum(E);
-fprintf('Cost of hospital admissions: %.0f x $60,000 = £%.2fB\n\n',dif, dif*60000/1e9)
+fprintf('Cost of hospital admissions: %.0f x $60,000 = Â£%.2fB\n\n',dif, dif*60000/1e9)
 
 
 %% scenario modelling - economy

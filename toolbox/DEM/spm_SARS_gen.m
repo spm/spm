@@ -46,6 +46,7 @@ function [y,x,z,W] = spm_SARS_gen(P,M,U,NPI,age)
 % Y(:,33) - Doubling time
 % Y(:,34) - Incidence of new cases (total)
 % Y(:,35) - Serial interval (days)
+% Y(:,36) - Vaccination rate (total)
 %
 % X       - (M.T x 4) marginal densities over four factors
 % location   : {'home','out','ccu','removed','isolated','hospital'};
@@ -83,7 +84,7 @@ function [y,x,z,W] = spm_SARS_gen(P,M,U,NPI,age)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_gen.m 8236 2022-04-03 11:26:28Z karl $
+% $Id: spm_SARS_gen.m 8239 2022-04-09 12:45:02Z karl $
 
 
 % The generative model:
@@ -227,8 +228,8 @@ for n = 1:nN
     
     % initial marginals (Dirichlet parameters)
     %----------------------------------------------------------------------
-    Q{n}.r = erf(Q{n}.r);
-    Q{n}.o = erf(Q{n}.o);
+    Q{n}.r = erf(2*Q{n}.r)/2;
+    Q{n}.o = erf(2*Q{n}.o)/2;
     
     c    = Q{n}.n;                % proportion of initial cases
     N(n) = Q{n}.N*1e6;            % population size
@@ -286,7 +287,7 @@ end
 
 % outputs that depend upon population size
 %--------------------------------------------------------------------------
-uN    = [1,2,3,6,9,12,15,16,17,18,24,27,28,30,34];
+uN    = [1,2,3,6,9,12,15,16,17,18,24,27,28,30,34,36];
 
 % ensemble density tensor and solve over the specified number of days
 %--------------------------------------------------------------------------
@@ -424,8 +425,8 @@ for i = 1:M.T
         
         % vaccination rollout: nac = 1 - vaccination rate
         %------------------------------------------------------------------
-        Rvac     = Q{n}.rol(1)*(1 + erf((i - Q{n}.rol(2))/Q{n}.rol(3))) + ...
-                   Q{n}.fol(1)*(1 + erf((i - Q{n}.fol(2))/Q{n}.fol(3)));
+        Rvac     = Q{n}.rol(1)*(1  + erf((i - Q{n}.rol(2))/Q{n}.rol(3))) + ...
+                   Q{n}.fol(1)*(1  + erf((i - Q{n}.fol(2))/Q{n}.fol(3)));
         
         Q{n}.nac = 1 - Rvac;
         Q{n}.t   = i;             % time (days)
@@ -442,6 +443,7 @@ for i = 1:M.T
         for j = 1:Nf
             X{n,j}(i,:) = p{n}{j};
         end
+        
         
         % outcomes
         %==================================================================
@@ -590,8 +592,13 @@ for i = 1:M.T
         v          = sum(p{n}{2}([7,8]))/sum(p{n}{2}(6:8));
         Y{n}(i,31) = 100 * (q - v)/q;
         
-        % joint density
+        % vaccination rate (total)
         %------------------------------------------------------------------
+        Y{n}(i,36) = N(n) * sum(p{n}{2}([1,4,5]) * V.Rvac);
+        
+        
+        % joint density
+        %==================================================================
         Z{n,i} = x{n};
         
     end
@@ -648,6 +655,14 @@ for n = 1:nN
     % vaccine immunity (seropositive) (%)
     %----------------------------------------------------------------------
     Y{n}(:,29) = 100 * sum(X{n,2}(:,6:8),2);
+    
+    % vaccination all doses (%)
+    %------------------------------------------------------------------
+    % Y{n}(:,22) = 100 * (1 - cumprod(1 - Y{n}(:,36)/N(n)));
+    
+    % total vaccination doses administered
+    %------------------------------------------------------------------
+    Y{n}(:,36) = cumsum(Y{n}(:,36));
     
     % accommodate delay in immunity following vaccination
     %----------------------------------------------------------------------

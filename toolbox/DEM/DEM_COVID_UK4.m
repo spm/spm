@@ -14,17 +14,19 @@ function DCM = DEM_COVID_UK4
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_UK4.m 8236 2022-04-03 11:26:28Z karl $
+% $Id: DEM_COVID_UK4.m 8239 2022-04-09 12:45:02Z karl $
 
 % set up and preliminaries
 %==========================================================================
+% https://www.ons.gov.uk/peoplepopulationandcommunity/healthandsocialcare/conditionsanddiseases/datasets/coronaviruscovid19antibodydatafortheuk
 % https://www.ons.gov.uk/peoplepopulationandcommunity/healthandsocialcare/conditionsanddiseases/datasets/coronaviruscovid19infectionsurveydata
 % https://www.ndm.ox.ac.uk/covid-19/covid-19-infection-survey/results
 % https://coronavirus.data.gov.uk/
 % https://covid.joinzoe.com/data#levels-over-time
-% https://www.gov.uk/guidance/the-r-number-in-the-uk#history
+% https://www.gov.uk/guidance/the-r-value-and-growth-rate#contents
 % https://www.gov.uk/government/statistics/transport-use-during-the-coronavirus-covid-19-pandemic
 % https://www.google.com/covid19/mobility/
+% https://www.statista.com/statistics/1175538/monthly-gdp-uk/
 
 % set up and get data
 %==========================================================================
@@ -436,11 +438,12 @@ Y(16).hold = 0;
 
 % age-specific data
 %--------------------------------------------------------------------------
+i          = 24;                         % lag (days)                 
 j          = find(~ismember(serology.textdata(1,2:end),''));
 Y(17).type = 'Seropositive 15-35 (PHE)'; % percent antibody positive (England)
 Y(17).unit = 'percent';
 Y(17).U    = 5;
-Y(17).date = datenum(serology.textdata(2:end,1),'dd/mm/yyyy');
+Y(17).date = datenum(serology.textdata(2:end,1),'dd/mm/yyyy') - i;
 Y(17).Y    = serology.data(:,j(1:2))*ons{1};
 Y(17).h    = 2;
 Y(17).lag  = 0;
@@ -450,7 +453,7 @@ Y(17).hold = 1;
 Y(18).type = 'Seropositive 35-70 (PHE)'; % percent antibody positive (England)
 Y(18).unit = 'percent';
 Y(18).U    = 5;
-Y(18).date = datenum(serology.textdata(2:end,1),'dd/mm/yyyy');
+Y(18).date = datenum(serology.textdata(2:end,1),'dd/mm/yyyy') - i;
 Y(18).Y    = serology.data(:,j(3:6))*ons{2};
 Y(18).h    = 2;
 Y(18).lag  = 0;
@@ -460,7 +463,7 @@ Y(18).hold = 1;
 Y(19).type = 'Seropositive 15-35-70- (PHE)'; % percent antibody positive (England)
 Y(19).unit = 'percent';
 Y(19).U    = 5;
-Y(19).date = datenum(serology.textdata(2:end,1),'dd/mm/yyyy');
+Y(19).date = datenum(serology.textdata(2:end,1),'dd/mm/yyyy') - i;
 Y(19).Y    = serology.data(:,j(7:9))*ons{3};
 Y(19).h    = 0;
 Y(19).lag  = 0;
@@ -1422,9 +1425,9 @@ spm_figure('GetWin','states'); clf;
 %--------------------------------------------------------------------------
 M.T    = datenum(date) - datenum(DCM.M.date,'dd-mm-yyyy');
 M.T    = M.T + 180;                 % forecast dates
-u      = 13;                        % empirical outcome
+u      = 36;                        % empirical outcome
 a      = 0;                         % age cohort (0 for everyone)
-Ep.tra(1) = DCM.Ep.tra(1);          % adjusted (log) parameter
+Ep.rol(1,3) = DCM.Ep.rol(1,3) - 0;          % adjusted (log) parameter
 
 [Z,X]  = spm_SARS_gen(Ep,M,u,[],a); % posterior prediction
 

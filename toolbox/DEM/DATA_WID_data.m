@@ -9,7 +9,7 @@ function D = DATA_WID_data
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DATA_WID_data.m 8157 2021-09-27 09:14:34Z karl $
+% $Id: DATA_WID_data.m 8239 2022-04-09 12:45:02Z karl $
 
 
 % web options
@@ -66,7 +66,7 @@ for k = 1:numel(State)
     Data(k).cases    = D{j,ismember(vname,'new_cases')};
     Data(k).death    = D{j,ismember(vname,'new_deaths')};
     Data(k).tests    = D{j,ismember(vname,'new_tests')};
-    Data(k).vaccine  = D{j,ismember(vname,'people_vaccinated')};
+    Data(k).vaccine  = D{j,ismember(vname,'total_vaccinations')};
     Data(k).positive = D{j,ismember(vname,'positive_rate')};
     Data(k).ratio    = D{j,ismember(vname,'reproduction_rate')};
     

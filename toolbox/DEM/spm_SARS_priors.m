@@ -37,7 +37,7 @@ function [P,C,str] = spm_SARS_priors(nN)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_priors.m 8236 2022-04-03 11:26:28Z karl $
+% $Id: spm_SARS_priors.m 8239 2022-04-09 12:45:02Z karl $
 
 % sources and background
 %--------------------------------------------------------------------------
@@ -345,6 +345,7 @@ factor{5} = {' ',' '};
 % Y(:,33) - Doubling time (days)
 % Y(:,34) - Incidence of new cases (total)
 % Y(:,35) - Serial interval
+% Y(:,36) - Vaccination rate
 
 str.outcome = {'Daily deaths (28 days)',...
     'Daily confirmed cases',...
@@ -380,7 +381,8 @@ str.outcome = {'Daily deaths (28 days)',...
     'Gross domestic product'...
     'Doubling time (days)'...
     'Daily incidence'...
-    'Serial interval'};
+    'Serial interval'...
+    'Vaccination rate'};
 
 str.factors = factors;
 str.factor  = factor;
@@ -413,7 +415,7 @@ P.trm = 0.04;                 % (16) seasonality
 P.Tin = 3;                    % (17) infected period (days)
 P.Tcn = 4;                    % (18) infectious period (days)
 P.Tim = 256;                  % (19) seropositive immunity: natural (days)
-P.res = 0.2;                  % (20) seronegative proportion (late)
+P.res = 0.2;                  % (20) seronegative proportion (resistance)
 
 % clinical parameters
 %--------------------------------------------------------------------------
@@ -474,9 +476,9 @@ P.tra = [1 1 1 1];            % (56) transmissibility parameters
 %==========================================================================
 U     = exp( 2);              % flat priors
 V     = exp(-2);              % uninformative priors
-W     = exp(-4);              % informative priors
-X     = exp(-6);              % informative priors
-Z     = exp(-8);              % informative priors
+W     = exp(-4);              % informative priors (weak)
+X     = exp(-6);              % informative priors (strong)
+Z     = exp(-8);              % informative priors (very strong)
 
 C.N   = U;                    % (01) population size (millions)
 C.n   = U;                    % (02) initial cases (cases)

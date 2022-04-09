@@ -22,7 +22,7 @@ function [T,R] = spm_COVID_T(P,I)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_T.m 8236 2022-04-03 11:26:28Z karl $
+% $Id: spm_COVID_T.m 8239 2022-04-09 12:45:02Z karl $
 
 % setup
 %==========================================================================
@@ -153,7 +153,7 @@ Kvac = exp(-1/P.vac);                      % Loss of Ab+ vaccine  (per day)
 
 Kinf = exp(-1/P.Tin);                      % infection rate
 Kcon = exp(-1/P.Tcn);                      % infectious rate
-Pres = 1 - erf(P.res);                     % non-resistant proportion
+Pres = 1 - erf(2*P.res)/2;                 % non-resistant proportion
 Pvef = erf(P.vef);                         % vaccination: Infection risk 
 Prev = P.ves*Pres;                         % vaccination: Infectious risk
 
