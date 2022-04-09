@@ -9,7 +9,7 @@ function D = DATA_WID_data
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DATA_WID_data.m 8239 2022-04-09 12:45:02Z karl $
+% $Id: DATA_WID_data.m 8240 2022-04-09 12:47:01Z karl $
 
 
 % web options
@@ -88,7 +88,7 @@ for r = 1:numel(Data)
     for j = 1:numel(series)
         d = Data(r).(series{j});
         k = datenum(Data(r).date) < datenum('2021-09-01','yyyy-mm-dd');
-        if sum(isfinite(d(k))) < 8
+        if sum(isfinite(d(k))) < 128
             i(r) = 1;
         end
     end
@@ -101,69 +101,11 @@ for r = 1:numel(Data)
         end
     end
 end
-D     = Data(find(~i));
+D    = Data(find(~i));
 
 % remove world
 %--------------------------------------------------------------------------
 i    = find(ismember({D.country},'World'));
 D(i) = [];
 
-if numel(D) ~= 167
-    warning('data have changed')
-end
-
 return
-
-% Percentage of population currently analysed
-%--------------------------------------------------------------------------
-load DCM_OWID
-pop   = 0;
-for r = 1:numel(DCM)
-    try, pop = pop + DCM(r).D.population; end
-end
-i    = find(ismember({Data.country},'World'));
-N    = Data(i).population
-disp('Perecent popuation')
-disp(100 * pop/N)
-    
-
-%% order countries using their similarity in terms of new cases and deaths
-%==========================================================================
-for r = 1:numel(D)
-    
-    fprintf('%d out of %d\n',r,numel(D));
-    disp(D(r).country)
-    try, clear Y; end
-    
-    % create data structure
-    %----------------------------------------------------------------------
-    Y(1).type = 'New cases';
-    Y(1).unit = 'number/day';
-    Y(1).U    = 2;
-    Y(1).date = datenum(D(r).date);
-    Y(1).Y    = D(r).cases;
-    Y(1).h    = 0;
-    
-    Y(2).type = 'Daily deaths';
-    Y(2).unit = 'number/day';
-    Y(2).U    = 1;
-    Y(2).date = datenum(D(r).date);
-    Y(2).Y    = D(r).death;
-    Y(2).h    = 2;   
-    
-    % remove NANs, smooth and sort by date
-    %----------------------------------------------------------------------
-    [Y,S] = spm_COVID_Y(Y,'01-02-2020',16);
-    S(isnan(S)) = 0;
-    % S       = S/D(r).population;
-    
-    YY(:,r) = spm_vec(S);
-end
-
-[u,s,v] = spm_svd(YY);
-[d,i]   = sort(v(:,1));
-D       = D(i);
-
-return
-
-
