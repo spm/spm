@@ -1,9 +1,10 @@
 function [mfD,Yinds] = spm_opm_hfc(S)
-% remove interference that behaves as if it was from a homogeneous (magnetic) field
+% remove interference that behaves as if it was from a harmonic (magnetic) field
 % FORMAT D = spm_opm_hfc(S)
 %   S               - input structure
 %  fields of S:
 %   S.D             - SPM MEEG object                                - Default: no Default
+%   S.L             - Spherical harmonic order (1=homogenous field)  - Default: 1
 %   S.usebadchans   - logical to correct channels marked as bad      - Default: 0
 %   S.chunkSize     - max memory usage(for large datasets)           - Default 512(MB)
 %   S.badChanThresh - threshold (std) to identify odd channels       - Default 50 (pT)
@@ -15,7 +16,7 @@ function [mfD,Yinds] = spm_opm_hfc(S)
 % Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
 
 % Tim Tierney
-% $Id: spm_opm_hfc.m 8203 2021-12-22 15:05:39Z guillaume $
+% $Id: spm_opm_hfc.m 8241 2022-04-12 11:01:42Z george $
 
 %-Set default values
 %--------------------------------------------------------------------------
@@ -25,6 +26,7 @@ if ~isfield(S, 'usebadchans'),   S.usebadchans = 0; end
 if ~isfield(S, 'chunkSize'),     S.chunkSize = 512; end
 if ~isfield(S, 'badChanThresh'), S.badChanThresh = 50; end
 if ~isfield(S, 'balance'),       S.balance = 1; end
+if ~isfield(S, 'L'),             S.L = 1; end
 
 %-Get design matrix
 %--------------------------------------------------------------------------
@@ -47,7 +49,14 @@ else
     sinds = setdiff(LabInds,indsRem);
     usedLabs= s.label(sinds);
 end
-X= s.coilori(sinds,:);
+
+%-Define harmonic Basis Set
+%--------------------------------------------------------------------------
+args=[];
+args.o= s.coilori(sinds,:);
+args.v = s.coilpos(sinds,:);
+args.li = S.L;
+X = spm_opm_vslm(args);
 fprintf('%-40s: %30s\n','Created Design Matrix',spm('time'));
 
 %-Compute projector

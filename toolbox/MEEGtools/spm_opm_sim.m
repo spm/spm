@@ -6,8 +6,8 @@ function [D,L] = spm_opm_sim(S)
 % SENSOR LEVEL INFO
 %   S.fs            - Sampling frequency (Hz)      - Default: REQUIRED if S.meg is empty
 % SIMULATION
-%   S.wholehead     - whole head coverage flag     - Deafult: 0
-%   S.space         - space between sensors(mm)    - Default: 25
+%   S.wholehead     - whole head coverage flag     - Deafult: 1
+%   S.space         - space between sensors(mm)    - Default: 35
 %   S.offset        - scalp to sensor distance(mm) - Default: 6.5
 %   S.nSamples      - number of samples            - Default: 1000
 %   S.Dens          - number of density checks     - Default: 40
@@ -29,7 +29,7 @@ function [D,L] = spm_opm_sim(S)
 % Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
 
 % Tim Tierney
-% $Id: spm_opm_sim.m 8203 2021-12-22 15:05:39Z guillaume $
+% $Id: spm_opm_sim.m 8241 2022-04-12 11:01:42Z george $
 spm('FnBanner', mfilename);
 
 %-Set default values
