@@ -37,7 +37,7 @@ function [P,C,str] = spm_SARS_priors(nN)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_priors.m 8240 2022-04-09 12:47:01Z karl $
+% $Id: spm_SARS_priors.m 8242 2022-04-18 11:44:38Z karl $
 
 % sources and background
 %--------------------------------------------------------------------------
@@ -88,12 +88,10 @@ if nargin
         %------------------------------------------------------------------
         P.N   = P.N - log(nN);
         P.n   = P.n - log(nN);
-        P.rol = log([0.001  (365 + 0)   32;
-                     0.01   (365 + 0)   32;
-                     0.01   (365 + 0)   32]);
-        P.fol = log([0.0001 (365 + 128) 32;
-                     0.0001 (365 + 64)  32;
-                     0.0001 (365 + 32)  32]);
+        P.rol = log([0.004  64  128;
+                     0.04   32  64;
+                     0.04   16  32]);
+        P.fol = P.rol;
                  
         P.sev = log([0.0010;
                      0.0100;
@@ -128,22 +126,19 @@ if nargin
         %------------------------------------------------------------------
         P.N   = P.N - log(nN);
         P.n   = P.n - log(nN);
-        P.rol = log([0.0001 (365 + 256)  128;
-                     0.001  (365 + 128)  64;
-                     0.01   (365 + 32 )  32;
-                     0.02   (365 + 0  )  16]);
+        P.rol = log([0.0001 256  256;
+                     0.004  128  128;
+                     0.04   64   64;
+                     0.08   32   32]);
                  
-        P.fol = log([0.0001 (365 + 256) 32;
-                     0.0001 (365 + 128) 32;
-                     0.0001 (365 + 32 ) 32;
-                     0.0001 (365 + 0  ) 32]);
+        P.fol = P.rol;
 
         C.rol = [1/16 1/64 1/64;
                  1/16 1/64 1/64;
                  1/16 1/64 1/64;
                  1/16 1/64 1/64];
              
-        C.fol = C.rol*0;
+        C.fol = C.rol;
              
         % probability of hospitalisation when seriously ill
         %------------------------------------------------------------------
@@ -161,14 +156,14 @@ if nargin
                  
         % morbidity
         %------------------------------------------------------------------
-        P.sev = log([0.0004
-                     0.0040
-                     0.0100
-                     0.1000]);
+        P.sev = log([0.004
+                     0.008
+                     0.010
+                     0.100]);
         % mortality
         %------------------------------------------------------------------
-        P.fat = log([0.005;
-                     0.005;
+        P.fat = log([0.01;
+                     0.01;
                      0.2;
                      0.4]);
         
@@ -267,7 +262,7 @@ names{28} = 'FTTI efficacy';
 names{29} = 'testing: bias (PCR)';
 names{30} = 'testing: bias (LFD)';
 names{31} = 'test delay (days)';
-names{32} = 'loss of vaccine immunity (days)';
+names{32} = 'vaccine seroconversion (days)';
 names{33} = 'false-negative rate';
 names{34} = 'false-positive rate';
 
@@ -277,7 +272,7 @@ names{37} = 'testing: onset';
 
 names{38} = 'reporting lag';
 names{39} = 'seasonal phase';
-names{40} = 'vaccination delay (days)';
+names{40} = 'vaccination rollout (days)';
 names{41} = 'vaccination rollout (1st)';
 names{42} = 'vaccination rollout (2nd)';
 
@@ -297,6 +292,8 @@ names{53} = 'contact rate decay (days)';
 names{54} = 'survival risk in care homes';
 names{55} = 'changes in transfer to CCU';  
 names{56} = 'transmissibility parameters';
+names{57} = 'doses per seroconversion';
+names{58} = 'antibody scaling';
 
 % latent or hidden factors
 %--------------------------------------------------------------------------
@@ -434,7 +431,7 @@ P.ttt = 0.036;                % (28) FTTI efficacy
 P.tes = [16 8];               % (29) bias (for infection): PCR (Pill. 1 & 2)
 P.tts = 1;                    % (30) bias (for infection): LFD
 P.del = 3;                    % (31) test delay (days)
-P.vac = 256;                  % (32) seropositive immunity: vaccine (days)
+P.vac = 32;                   % (32) seroconversion: vaccine (days)
 P.fnr = [0.08 0.06];          % (33) false-negative rate  (infected/ious]
 P.fpr = [0.0002 0.003];       % (34) false-positive rate: (Sus. and Ab +ve)
 
@@ -444,9 +441,9 @@ P.ons = [100 200 300 400];    % (37) testing: onset
 
 P.lag = [1 1];                % (38) reporting lag
 P.inn = 1;                    % (39) seasonal phase
-P.mem = 32;                   % (40) vaccination delay (days)
-P.rol = [exp(-16) 365 32];    % (41) vaccination rollout (1st)
-P.fol = [exp(-16) 512 32];    % (42) vaccination rollout (2nd)
+P.mem = 128;                  % (40) vaccination (days)
+P.rol = [exp(-16) 32 32];     % (41) vaccination rollout (1st)
+P.fol = [exp(-16) 32 32];     % (42) vaccination rollout (2nd)
 
 P.vef = 0.4;                  % (43) 1 - vaccine efficacy: infection
 P.lnk = 0.2;                  % (44) 1 - vaccine efficacy: pathogenicity
@@ -464,8 +461,8 @@ P.pro = 1;                    % (53) contact rate decay (days)
 P.oth = 0.1;                  % (54) relative survival outside hospital
 P.iad = 1;                    % (55) exponent: transfer to CCU
 P.tra = [1 1 1 1];            % (56) transmissibility parameters
-
-
+P.dps = [2 1];                % (57) doses per seroconversion
+P.abs = 1;                    % (58) antibody scaling
 
 % infection fatality (for susceptible population)
 %--------------------------------------------------------------------------
@@ -504,7 +501,7 @@ C.trn = X;                    % (16) transmission strength
 C.trm = W;                    % (15) seasonality
 C.Tin = Z;                    % (17) infected period (days)
 C.Tcn = Z;                    % (18) infectious period (days)
-C.Tim = X;                    % (19) seropositive immunity (days)
+C.Tim = Z;                    % (19) seropositive immunity (days)
 C.res = X;                    % (20) seronegative immunity (proportion)
 
 % clinical parameters
@@ -512,9 +509,9 @@ C.res = X;                    % (20) seronegative immunity (proportion)
 C.Tic = X;                    % (21) asymptomatic period (days)
 C.Tsy = X;                    % (22) symptomatic period  (days)
 C.Trd = W;                    % (23) CCU period (days)
-C.sev = W;                    % (24) P(ARDS | symptoms)
+C.sev = V;                    % (24) P(ARDS | symptoms)
 C.lat = V;                    % (25) changes in severity
-C.fat = W;                    % (26) P(fatality | ARDS)
+C.fat = V;                    % (26) P(fatality | ARDS)
 C.sur = V;                    % (27) changes in severity
 
 % testing parameters
@@ -533,7 +530,7 @@ C.ons = U;                    % (37) testing: onset (days)
 
 C.lag = V;                    % (38) reporting lag
 C.inn = V;                    % (39) seasonal phase
-C.mem = Z;                    % (40) vaccination delay (days)
+C.mem = Z;                    % (40) vaccination (initial doses)
 C.rol = X;                    % (41) vaccination rollout (1st)
 C.fol = X;                    % (42) vaccination rollout (2nd)
 
@@ -553,7 +550,8 @@ C.pro = W;                    % (53) contact rate decay (days)
 C.oth = W;                    % (54) relative survival outside hospital
 C.iad = V;                    % (55) exponent: transfer to CCU
 C.tra = V;                    % (56) transmissibility parameters
-
+C.dps = X;                    % (57) doses per seroconversion
+C.abs = X;                    % (58) antibody scaling
 
 % check prior expectations and covariances are consistent
 %--------------------------------------------------------------------------

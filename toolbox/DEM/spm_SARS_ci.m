@@ -34,7 +34,7 @@ function [S,CS,Y,C,t] = spm_SARS_ci(Ep,Cp,Z,U,M,NPI,age)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_ci.m 8173 2021-10-25 10:31:35Z karl $
+% $Id: spm_SARS_ci.m 8242 2022-04-18 11:44:38Z karl $
 
 % default: number of outcomes to evaluate
 %--------------------------------------------------------------------------
@@ -111,7 +111,7 @@ if numel(U) == 1
     ylabel('number of cases/day')
     title(outcome,'FontSize',14)
     
-    sprintf('%s, %6.0f',outcome{1},sum(Y))
+    % sprintf('%s, %6.0f',outcome{1},sum(Y))
     
     % label time
     %----------------------------------------------------------------------

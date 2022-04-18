@@ -35,7 +35,7 @@ function DCM = DEM_COVID_WID
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_WID.m 8239 2022-04-09 12:45:02Z karl $
+% $Id: DEM_COVID_WID.m 8242 2022-04-18 11:44:38Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -204,7 +204,7 @@ for k = 1:numel(ri)
     Y(5).unit = 'number';
     Y(5).U    = 36;
     Y(5).date = datenum(D(r).date);
-    Y(5).Y    = D(r).vaccine;
+    Y(5).Y    = D(r).vaccine/1e6;
     Y(5).h    = 0;
     
     Y(6).type = 'R-ratio';
@@ -855,6 +855,8 @@ fprintf('total doses: %.2f billion \n',Z(end)/1e9)
 fprintf('extra doses: %.2f billion (%.1f%s)\n\n',dif/1e9,100*dif/Z(end),'%' )
 fprintf('extra cost: $%.2f billion (@ $1.8 per dose)\n\n',dif*1.8/1e9 )
 
+
+
 %% scenario modelling - fatalities
 %==========================================================================
 % now repeat the procedure but focusing on fatalities
@@ -921,7 +923,7 @@ end
 disp('total deaths (millions)'), disp(sum(Z)*1e-6);
 disp('lives saved  (millions)'), disp((sum(Z) - sum(E))*1e-6);
 
-% Â£-QALY = Â£60,000 (green Book), 1 death = 7.6 QALY
+% $-QALY = $80,000 (green Book), 1 death = 7.6 QALY
 %--------------------------------------------------------------------------
 dif = (sum(Z) - sum(E));
 fprintf('Cost ($-QALY = $80,000) of deaths (1 death = 7.6 QALY): %.0f x $608,000 = $%.2fB\n\n',dif, dif*608000/1e9)

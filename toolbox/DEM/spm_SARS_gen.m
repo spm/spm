@@ -46,7 +46,7 @@ function [y,x,z,W] = spm_SARS_gen(P,M,U,NPI,age)
 % Y(:,33) - Doubling time
 % Y(:,34) - Incidence of new cases (total)
 % Y(:,35) - Serial interval (days)
-% Y(:,36) - Vaccination rate (total)
+% Y(:,36) - Cumulative vaccines (M)
 %
 % X       - (M.T x 4) marginal densities over four factors
 % location   : {'home','out','ccu','removed','isolated','hospital'};
@@ -84,7 +84,7 @@ function [y,x,z,W] = spm_SARS_gen(P,M,U,NPI,age)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_gen.m 8240 2022-04-09 12:47:01Z karl $
+% $Id: spm_SARS_gen.m 8242 2022-04-18 11:44:38Z karl $
 
 
 % The generative model:
@@ -394,8 +394,8 @@ for i = 1:M.T
         r{n} = [(1 - k1) (1 - k2);
                      k1,      k2]*r{n};
         
-        Pout     = r{n}(1)*exp(Rout);              % P(going out) with fluctuations
-        Q{n}.out = erf(Pout)*R{n}.out;             % scale by baseline
+        Pout     = erf(r{n}(1)*exp(Rout));         % P(going out) with fluctuations
+        Q{n}.out = Pout*R{n}.out;                  % scale by baseline
         
         % seasonal variation in transmission risk
         %------------------------------------------------------------------
@@ -421,15 +421,21 @@ for i = 1:M.T
         end
         
         Q{n}.tin = min(tin,1);                     % P(no transmission | home)
-        Q{n}.tou = min(tou,1);                     % P(no transmission | work)
+        Q{n}.tou = min(tou,1);                     % P(no transmission | work)       
         
         % vaccination rollout: nac = 1 - vaccination rate
         %------------------------------------------------------------------
-        Rvac     = Q{n}.rol(1)*(1  + erf((i - Q{n}.rol(2))/Q{n}.rol(3))) + ...
-                   Q{n}.fol(1)*(1  + erf((i - Q{n}.fol(2))/Q{n}.fol(3)));
+        t    =  i - 365;
+        q    = (t - Q{n}.rol(2))/Q{n}.rol(3);
+        Rvac = Q{n}.rol(1)*(1 + erf(q))*exp(-t/Q{n}.mem);
+        for j = 0:4
+            t    =  i - 565 - (6*28)*j;
+            q    = (t - Q{n}.fol(2))/Q{n}.fol(3);
+            Rvac = Rvac + Q{n}.fol(1)*(1 + erf(q))*exp(-t/Q{n}.mem);
+        end
         
-        Q{n}.nac = 1 - Rvac;
-        Q{n}.t   = i;             % time (days)
+        Q{n}.nac = 1 - erf(Rvac);
+        Q{n}.t   = i;                              % time (days)
                
         % update ensemble density (x)
         %==================================================================
@@ -465,8 +471,9 @@ for i = 1:M.T
         
         % number of daily deaths (28 days) assuming mortality = 10/1000/yr
         %------------------------------------------------------------------
-        q         = ncr28^(Q{n}.rel/16);             % untested proportion
-        Y{n}(i,1) = N(n) * (p{n}{3}(4)*q + 0.01/365*pcr28); % & incidental
+        q         = ncr28^(Q{n}.rel/16);                 % untested proportion
+        iq        = sum(p{n}{2}([2,3,7,8]));
+        Y{n}(i,1) = N(n) * (p{n}{3}(4)*q + iq*0.01/365); % plus incidental
         
         % number of daily (positive) tests (PCR and LFD)
         %------------------------------------------------------------------
@@ -480,10 +487,10 @@ for i = 1:M.T
         %------------------------------------------------------------------
         Y{n}(i,4) = sum(p{n}{2}([2,3,7,8]));
         
-        % seropositive immunity (%) Ab+ and Vaccine+
+        % seropositive immunity (%) Ab
         %------------------------------------------------------------------
-        Y{n}(i,5) = 100 * sum(p{n}{2}([4,5,6,7,8]));
-        
+        Y{n}(i,5) = 100 * sum(p{n}{2}([4,7,8])) * Q{n}.abs;
+     
         % total number of daily virus tests (PCR and LFD)
         %------------------------------------------------------------------
         Y{n}(i,6) = N(n) * sum(p{n}{4}(3:6));
@@ -517,10 +524,9 @@ for i = 1:M.T
         %------------------------------------------------------------------
         Y{n}(i,12) = N(n) * p{n}{3}(2);
         
-        
         % mobility (% normal)
         %------------------------------------------------------------------
-        q     = 1 - Q{n}.out/R{n}.out;
+        q     = 1 - Pout;
         if isfield(Q{n},'mo')
             q = Q{n}.mo(1)*q^(Q{n}.mo(2));
         end
@@ -563,16 +569,7 @@ for i = 1:M.T
         % excess deaths not in hospital
         %------------------------------------------------------------------
         Y{n}(i,18) = N(n) * sum(q([1,2,4,5],4));
-        
-        % cumulative number of people (first dose) vaccinated (%)
-        %------------------------------------------------------------------
-        q          = sum(p{n}{2}(6:8));
-        if isfield(Q{n},'ve')
-            Y{n}(i,22) = 100 * erf(q/Q{n}.ve);
-        else
-            Y{n}(i,22) = 100 * q;
-        end
-        
+                
         % PCR case positivity (%) (seven day rolling average)
         %------------------------------------------------------------------
         Y{n}(i,23) = 100 * (1 - (1 - p{n}{4}(3))^7)/(1 - (1 - p{n}{4}(3) - p{n}{4}(4))^7);
@@ -592,9 +589,10 @@ for i = 1:M.T
         v          = sum(p{n}{2}([7,8]))/sum(p{n}{2}(6:8));
         Y{n}(i,31) = 100 * (q - v)/q;
         
-        % vaccination rate (total)
+        % total rate of vaccination
         %------------------------------------------------------------------
-        Y{n}(i,36) = N(n) * sum(p{n}{2}([1,4,5]) * V.Rvac);
+        Y{n}(i,36) = p{n}{2}(1) * Q{n}.dps(1) * V.Rvac + ...  % first doses
+                     p{n}{2}(5) * Q{n}.dps(2) * V.Rvac;       % booster
         
         
         % joint density
@@ -646,27 +644,23 @@ for n = 1:nN
     
     % cumulative attack rate (%)
     %----------------------------------------------------------------------
-    Y{n}(:,25) = 100 * erf(cumsum(Y{n}(:,10)/100));
+    Y{n}(:,25) = 100 * (1 - cumprod(1 - Y{n}(:,10)/100));
     
     % total immunity (seropositive, seronegative) (%)
     %----------------------------------------------------------------------
     Y{n}(:,26) = 100 * sum(X{n,2}(:,4:8),2);
     
-    % vaccine immunity (seropositive) (%)
+    % total immunity (seropositive) (%)
     %----------------------------------------------------------------------
-    Y{n}(:,29) = 100 * sum(X{n,2}(:,6:8),2);
+    Y{n}(:,29) = 100 * sum(X{n,2}(:,4),2);
     
-    % vaccination all doses (%)
-    %------------------------------------------------------------------
-    % Y{n}(:,22) = 100 * (1 - cumprod(1 - Y{n}(:,36)/N(n)));
-    
-    % total vaccination doses administered
-    %------------------------------------------------------------------
-    Y{n}(:,36) = cumsum(Y{n}(:,36));
-    
-    % accommodate delay in immunity following vaccination
+    % vaccination first doses (%)
     %----------------------------------------------------------------------
-    Y{n}(:,22) = Y{n}(:,22) + Q{n}.mem*gradient(Y{n}(:,22));
+    Y{n}(:,22) = 100 * (1 - cumprod(1 - Y{n}(:,36)));
+    
+    % total vaccination doses administered (millions)
+    %----------------------------------------------------------------------
+    Y{n}(:,36) = N(n) * cumsum(Y{n}(:,36))/1e6;
     
     % cumulative admissions
     %----------------------------------------------------------------------

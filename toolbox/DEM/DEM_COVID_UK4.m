@@ -14,7 +14,7 @@ function DCM = DEM_COVID_UK4
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_UK4.m 8239 2022-04-09 12:45:02Z karl $
+% $Id: DEM_COVID_UK4.m 8242 2022-04-18 11:44:38Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -71,6 +71,9 @@ url = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=nation&areaCode=E920
 writetable(webread(url,options),'lateralft.csv');
 url = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=nation&areaCode=E92000001&metric=cumAntibodyTestsByPublishDate&format=csv';
 writetable(webread(url,options),'antibody.csv');
+url = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=overview&metric=cumVaccinesGivenByPublishDate&format=csv';
+writetable(webread(url,options),'vaccines.csv');
+
 
 % get death by age (England)
 %--------------------------------------------------------------------------
@@ -241,6 +244,7 @@ agevaccine = importdata('agevaccine.csv');
 agedeaths  = importdata('agedeaths.csv');
 agecases   = importdata('agecases.csv');
 cumAdmiss  = importdata('cumAdmiss.csv');
+vaccines   = importdata('vaccines.csv');
 
 serology   = importdata('serology.csv');
 place      = importdata('place.csv');
@@ -302,7 +306,7 @@ Y(5).Y    = deaths.data(:,1);
 Y(5).h    = 2;
 Y(5).lag  = 1;
 Y(5).age  = 0;
-Y(5).hold = 0;
+Y(5).hold = 1;
 
 Y(6).type = 'Certified deaths (ONS)'; % weekly covid related deaths
 Y(6).unit = 'number';
@@ -438,7 +442,8 @@ Y(16).hold = 0;
 
 % age-specific data
 %--------------------------------------------------------------------------
-i          = 24;                         % lag (days)                 
+i          = 16;                            % lag (days)
+
 j          = find(~ismember(serology.textdata(1,2:end),''));
 Y(17).type = 'Seropositive 15-35 (PHE)'; % percent antibody positive (England)
 Y(17).unit = 'percent';
@@ -681,6 +686,8 @@ Y(38).lag  = 0;
 Y(38).age  = 4;
 Y(38).hold = 0;
 
+% auxiliary data
+%--------------------------------------------------------------------------
 Y(39).type = 'GDP (Statistica)'; % Gross domestic product
 Y(39).unit = 'percent';
 Y(39).U    = 32;
@@ -690,6 +697,19 @@ Y(39).h    = 0;
 Y(39).lag  = 0;
 Y(39).age  = 3;
 Y(39).hold = 0;
+
+d          = find(ismember(vaccines.textdata(1,1:end),'date'));
+
+Y(40).type = 'Vaccines given';   % cumulative vaccines (millions)
+Y(40).unit = 'million';
+Y(40).U    = 36;
+Y(40).date = datenum(vaccines.textdata(2:end,d),'yyyy-mm-dd');
+Y(40).Y    = vaccines.data/1e6;
+Y(40).h    = 0;
+Y(40).lag  = 1;
+Y(40).age  = 0;
+Y(40).hold = 0;
+
 
 
 % remove NANs, smooth and sort by date
@@ -713,11 +733,6 @@ pE.wo   = [ 0 1];              % coefficients for workplace
 pC.wo   = ones(1,2)/8;         % prior variance
 pE.gd   = [-1 1];              % coefficients gross domestic product
 pC.gd   = ones(1,2)/8;         % prior variance
-
-% efficacy of first vaccination
-%--------------------------------------------------------------------------
-pE.ve   = zeros(nN,1);         % probability of seroconversion
-pC.ve   = ones(nN,1);          % prior variance
 
 % augment priors with fluctuations
 %--------------------------------------------------------------------------
@@ -813,7 +828,7 @@ spm_SARS_plot(H,X,S(:,u),[1 2 3])
 spm_figure('GetWin','outcomes (1)');
 %--------------------------------------------------------------------------
 j     = 0;
-k     = 0;
+k     = 1;
 for i = 1:numel(Y)
     
     j = j + 1;
@@ -831,22 +846,16 @@ for i = 1:numel(Y)
     
     % hold plot
     %----------------------------------------------------------------------
-    if numel(Y) > 8
-        if Y(i).hold
-            j = j - 1; hold on
-        end
+    if Y(i).hold
+        j = j - 1; hold on
     end
-    
+
     % new figure
     %----------------------------------------------------------------------
     if j == 8
-        if k > 0
-            spm_figure('GetWin','outcomes (3)');
-        else
-            spm_figure('GetWin','outcomes (2)');
-            k = k + 1;
-        end
+        k = k + 1;
         j = 0;
+        spm_figure('GetWin',sprintf('outcomes (%i)',k));
     end
     
 end
@@ -1083,9 +1092,10 @@ spm_SARS_ci(Ep,Cp,[],29,M); hold on
 plot(get(gca,'XLim'),[100 100],':k')
 plot(datenum(date,'dd-mm-yyyy')*[1,1],[0 100],':k')
 ylabel('percent'),  title('Attack rate and immunity','FontSize',14)
-legend({' ','Attack rate',' ','Effective Population immunity',...
+legend({' ','Attack rate',' ',...
+       'Effective population immunity',...
        'Effective immunity threshold',' '....
-       'Effective vaccine antibodies'},'location','west')
+       'Effective antibodies'},'location','west')
 legend boxoff
 
 
@@ -1103,7 +1113,7 @@ for n = 1:numel(R)
     IFR(n,2) = 100 * Psev(j).*Pfat(j);
 end
 
-fprintf('(Symptomatic) IFR: likelihood of dying from COVID-19 (%s) \n','%');
+fprintf('\n\n(Symptomatic) IFR: likelihood of dying from COVID-19 (%s) \n','%');
 fprintf('            Age group  0-14     15-34    35-69   70+  \n');
 fprintf('   recent vaccination: %.3f    %.3f    %.3f   %.3f \n',IFR(:,2));
 fprintf('no vaccine protection: %.3f    %.3f    %.3f   %.3f \n\n',IFR(:,1));
@@ -1424,18 +1434,24 @@ A   = DCM.A;                                 % age cohort
 spm_figure('GetWin','states'); clf;
 %--------------------------------------------------------------------------
 M.T    = datenum(date) - datenum(DCM.M.date,'dd-mm-yyyy');
-M.T    = M.T + 180;                 % forecast dates
-u      = 36;                        % empirical outcome
-a      = 0;                         % age cohort (0 for everyone)
-Ep.rol(1,3) = DCM.Ep.rol(1,3) - 0;          % adjusted (log) parameter
+M.T    = M.T + 360;                          % forecast dates
+u      = [5,22];                             % empirical outcome
+a      = [4,4];                              % age cohort (0 for everyone)
+% u      = 36;
+% a      = 0;
+Ep.mem = DCM.Ep.mem - 0;                     % adjusted (log) parameter
+Ep.Tim = log(256);                     % adjusted (log) parameter
 
 [Z,X]  = spm_SARS_gen(Ep,M,u,[],a); % posterior prediction
 
 % and plot
 %--------------------------------------------------------------------------
 try
-    j      = find(U == u & A == a);   
-    spm_SARS_plot(Z,X,S(:,j(1)),u)
+    j     = [];
+    for i = 1:numel(u)
+        j = [j find(U == u(i) & A == a(i))];  
+    end
+    spm_SARS_plot(Z,X,S(:,j),u)
 catch
     spm_SARS_plot(Z,X,[],u)
 end
