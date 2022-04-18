@@ -35,7 +35,7 @@ function DCM = DEM_COVID_WID
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_WID.m 8242 2022-04-18 11:44:38Z karl $
+% $Id: DEM_COVID_WID.m 8243 2022-04-18 12:03:14Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -129,6 +129,7 @@ free  = {'n','o','m','exp','sde','qua',...
          'res','inn','lim','ons','rat',...
          'pcr','mob','rel','rol'};
 reset = {'pcr','mob'};
+lock  = {'rol','fol'};
 
 % (empirical) priors from the United Kingdom
 %--------------------------------------------------------------------------
@@ -146,17 +147,16 @@ end
 % lock age-specific parameters
 %==========================================================================
 PC    = diag(spm_vec(pC));
-field = fieldnames(pE);
-for i = 1:numel(field)
-    [na,np] = size(pE.(field{i}));
-    if any(any(pC.(field{i}))) && (na > 1)
-        j = spm_fieldindices(pE,field{i});
+for i = 1:numel(lock)
+    [na,np] = size(pE.(lock{i}));
+    if any(any(pC.(lock{i}))) && (na > 1)
+        j = spm_fieldindices(pE,lock{i});
         j = reshape(j,na,np);
         for k = 1:np
             ii = j(:,k);
             PC(ii,ii) = PC(ii(1),ii(1));
         end
-        fprintf(field{i})
+        fprintf(lock{i})
     end
 end
 
