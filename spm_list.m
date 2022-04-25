@@ -111,10 +111,10 @@ function varargout = spm_list(varargin)
 % extract the table data to the MATLAB workspace.
 %
 %__________________________________________________________________________
-% Copyright (C) 1999-2019 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1999-2022 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Andrew Holmes, Guillaume Flandin
-% $Id: spm_list.m 8183 2021-11-04 15:25:19Z guillaume $
+% $Id: spm_list.m 8244 2022-04-25 13:58:20Z guillaume $
 
 
 %==========================================================================
@@ -808,12 +808,6 @@ case 'table'                                                        %-Table
         if nargin < 2, error('Not enough input arguments.'); end
         if nargin < 3, hReg = []; else hReg = varargin{3};   end
         xSPM = varargin{2};
-
-        if isfield(xSPM,'G')
-            warning('"current cluster" option not implemented for meshes.');
-            varargout = { evalin('base','TabDat') };
-            return;
-        end
         
         %-Get number of maxima per cluster to be reported
         %------------------------------------------------------------------
@@ -832,17 +826,25 @@ case 'table'                                                        %-Table
         %-If there are suprathreshold voxels, filter out all but current cluster
         %------------------------------------------------------------------
         if ~isempty(xSPM.Z)
-
+            
             %-Jump to voxel nearest current location
             %--------------------------------------------------------------
             [xyzmm,i] = spm_XYZreg('NearestXYZ',...
                 spm_results_ui('GetCoords'),xSPM.XYZmm);
             spm_results_ui('SetCoords',xSPM.XYZmm(:,i));
-
+            
             %-Find selected cluster
             %--------------------------------------------------------------
-            A          = spm_clusters(xSPM.XYZ);
-            j          = find(A == A(i));
+            if isfield(xSPM,'G')
+                C      = NaN(1,size(xSPM.G.vertices,1));
+                C(xSPM.XYZ(1,:)) = ones(size(xSPM.Z));
+                j      = spm_mesh_clusters(xSPM.G,C);
+                j      = j==j(xSPM.XYZ(1,i));
+                j      = j(xSPM.XYZ(1,:));
+            else
+                A      = spm_clusters(xSPM.XYZ);
+                j      = find(A == A(i));
+            end
             xSPM.Z     = xSPM.Z(j);
             xSPM.XYZ   = xSPM.XYZ(:,j);
             xSPM.XYZmm = xSPM.XYZmm(:,j);
