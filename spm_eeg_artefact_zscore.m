@@ -17,7 +17,7 @@ function res = spm_eeg_artefact_zscore(S)
 % Copyright (C) 2013-2017 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_artefact_zscore.m 7132 2017-07-10 16:22:58Z guillaume $
+% $Id: spm_eeg_artefact_zscore.m 8246 2022-04-26 16:05:54Z vladimir $
 
 
 %-This part if for creating a config branch that plugs into spm_cfg_eeg_artefact
@@ -52,7 +52,7 @@ if nargin == 0
     return
 end
 
-SVNrev = '$Rev: 7132 $';
+SVNrev = '$Rev: 8246 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -86,7 +86,7 @@ for j = 1:length(chanind)
     
     dat = detrend(dat);
     
-    zsdat = dat./repmat(std(dat), size(dat, 1), 1);
+    zsdat = dat./std(dat(:));
     
     if isequal(S.mode, 'reject')
         res(chanind(j), :) = any(abs(zsdat)>threshold);
