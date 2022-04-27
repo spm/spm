@@ -37,7 +37,7 @@ function [P,C,str] = spm_SARS_priors(nN)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_priors.m 8242 2022-04-18 11:44:38Z karl $
+% $Id: spm_SARS_priors.m 8247 2022-04-27 10:26:13Z karl $
 
 % sources and background
 %--------------------------------------------------------------------------
@@ -66,10 +66,10 @@ if nargin
     %----------------------------------------------------------------------
     [P,C,str] = spm_SARS_priors;
     free  = {'N','Nin','Nou',...
-             'qua','pro'...
+             'sde','qua','pro'...
              'hos','ccu','Tim',...
              'sev','fat',...
-             'rol','lnk'};
+             'rol','lnk','dps'};
 
     if nN == 1
         
@@ -156,15 +156,15 @@ if nargin
                  
         % morbidity
         %------------------------------------------------------------------
-        P.sev = log([0.004
-                     0.008
-                     0.010
-                     0.100]);
+        P.sev = log([0.002
+                     0.020
+                     0.020
+                     0.200]);
         % mortality
         %------------------------------------------------------------------
-        P.fat = log([0.01;
-                     0.01;
-                     0.2;
+        P.fat = log([0.0001;
+                     0.001;
+                     0.02;
                      0.4]);
         
         % vaccination link (pathogenicity)
@@ -243,7 +243,7 @@ names{15} = 'transmission strength';
 names{16} = 'seasonal transmission';
 names{17} = 'infected period   (days)';
 names{18} = 'infectious period (days)';
-names{19} = 'loss of natural immunity  (days)';
+names{19} = 'loss of natural immunity (days)';
 names{20} = 'resistance';
 
 % clinical parameters
@@ -299,9 +299,9 @@ names{58} = 'antibody scaling';
 %--------------------------------------------------------------------------
 factors   = {'Location','Infection','Symptoms','Testing'};
 
-factor{1} = {'lo-risk','hi-risk','ICU','no-risk','isolated','hospital'};
-factor{2} = {'susceptible','infected','infectious','Ab +ve','Ab -ve','Vac +ve','infected (vac)','infectious (vac)'};
-factor{3} = {'none','symptoms','severe','deceased'};
+factor{1} = {'lo-risk','hi-risk','CCU','safe','isolated','hospital'};
+factor{2} = {'susceptible','exposed','infectious','Ab +ve','Ab -ve','vaccinated','exposed (Ab)','infectious (Ab)'};
+factor{3} = {'asymptomatic','symptomatic','severe','deceased'};
 factor{4} = {'untested','waiting','PCR +ve','PCR -ve','LFD +ve','LFD -ve'};
 factor{5} = {' ',' '};
 
@@ -501,7 +501,7 @@ C.trn = X;                    % (16) transmission strength
 C.trm = W;                    % (15) seasonality
 C.Tin = Z;                    % (17) infected period (days)
 C.Tcn = Z;                    % (18) infectious period (days)
-C.Tim = Z;                    % (19) seropositive immunity (days)
+C.Tim = X;                    % (19) seropositive immunity (days)
 C.res = X;                    % (20) seronegative immunity (proportion)
 
 % clinical parameters
@@ -551,7 +551,7 @@ C.oth = W;                    % (54) relative survival outside hospital
 C.iad = V;                    % (55) exponent: transfer to CCU
 C.tra = V;                    % (56) transmissibility parameters
 C.dps = X;                    % (57) doses per seroconversion
-C.abs = X;                    % (58) antibody scaling
+C.abs = Z;                    % (58) antibody scaling
 
 % check prior expectations and covariances are consistent
 %--------------------------------------------------------------------------

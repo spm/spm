@@ -84,7 +84,7 @@ function [y,x,z,W] = spm_SARS_gen(P,M,U,NPI,age)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_gen.m 8242 2022-04-18 11:44:38Z karl $
+% $Id: spm_SARS_gen.m 8247 2022-04-27 10:26:13Z karl $
 
 
 % The generative model:
@@ -381,7 +381,7 @@ for i = 1:M.T
         Q{n}.ccu = R{n}.ccu*Ptra^(-R{n}.iad);      % P(CCU | ARDS)
         
         Q{n}.sde = R{n}.sde*Ptra^(-R{n}.pro);      % prevalence sensitivity
-        Q{n}.sde = R{n}.sde*exp(-i/(128*R{n}.pro));% prevalence sensitivity
+        % Q{n}.sde = R{n}.sde*exp(-i/(128*R{n}.pro));% prevalence sensitivity
         
         % probability of lockdown (a function of prevalence)
         %------------------------------------------------------------------
@@ -389,6 +389,7 @@ for i = 1:M.T
         for j = 1:nN
             qp = qp + (p{j}{2}(3) + p{j}{2}(8))*N(j)/sum(N);
         end
+        qp   = p{n}{2}(3) + p{n}{2}(8);
         k1   = Q{n}.sde*qp;                        % prevalence
         k2   = exp(-1/(Q{n}.qua));                 % relaxation
         r{n} = [(1 - k1) (1 - k2);
@@ -469,11 +470,11 @@ for i = 1:M.T
         V.pcr14 = pcr14;
         W{n}(i) = V;
         
-        % number of daily deaths (28 days) assuming mortality = 10/1000/yr
+        % number of daily deaths (28 days) assuming mortality = 16/1000/yr
         %------------------------------------------------------------------
         q         = ncr28^(Q{n}.rel/16);                 % untested proportion
-        iq        = sum(p{n}{2}([2,3,7,8]));
-        Y{n}(i,1) = N(n) * (p{n}{3}(4)*q + iq*0.01/365); % plus incidental
+        incident  = sum(p{n}{2}([2,3,7,8])) * 0.016/365;
+        Y{n}(i,1) = N(n) * (p{n}{3}(4)*q + incident);    % plus incidental
         
         % number of daily (positive) tests (PCR and LFD)
         %------------------------------------------------------------------
@@ -489,7 +490,7 @@ for i = 1:M.T
         
         % seropositive immunity (%) Ab
         %------------------------------------------------------------------
-        Y{n}(i,5) = 100 * sum(p{n}{2}([4,7,8])) * Q{n}.abs;
+        Y{n}(i,5) = 100 * erf(sum(p{n}{2}([4,7,8])) * Q{n}.abs);
      
         % total number of daily virus tests (PCR and LFD)
         %------------------------------------------------------------------

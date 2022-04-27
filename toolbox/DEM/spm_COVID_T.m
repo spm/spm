@@ -22,7 +22,7 @@ function [T,R] = spm_COVID_T(P,I)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_T.m 8242 2022-04-18 11:44:38Z karl $
+% $Id: spm_COVID_T.m 8247 2022-04-27 10:26:13Z karl $
 
 % setup
 %==========================================================================
@@ -166,40 +166,40 @@ Rvac = 1 - Pvac;                           % vaccination rate
 %    susceptible     infected            infectious      Ab+                   Ab-                      Vaccine            infected (Ab+)       infectious  (Ab+)
 %----------------------------------------------------------------------------------------------------------------------------------------------------------------
 Pinv = (1 - Ptin)*Pvef;
-b{1} = [Ptin*Pvac        0                     0          0                    (1 - Pinv)*(1 - Kinn)*Pvac 0                     0                     0; 
-        (1 - Ptin)*Pvac  Kinf                  0          0                     0                         0                     0                     0;
-        0               (1 - Kinf)*Pres        Kcon       0                     0                         0                     0                     0;
-        0               (1 - Kinf)*(1 - Pres) (1 - Kcon) (1 - Pinv)*Kimm        Rvac                     (1 - Pinv)*(1 - Kvac)  (1 - Kinf)*(1 - Prev) (1 - Kcon) ;
-        0                0                     0         (1 - Pinv)*(1 - Kimm) (1 - Pinv)*Kinn*Pvac       0                     0                     0;
-        Rvac             0                     0          0                     0                        (1 - Pinv)*Kvac        0                     0;
-        0                0                     0          Pinv                  Pinv*Pvac                 Pinv                  Kinf                  0
-        0                0                     0          0                     0                         0                    (1 - Kinf)*Prev        Kcon];
+b{1} = [Ptin*Pvac        0                     0          0                    (1 - Kinn)*Ptin*Pvac        0                     0                     0; 
+        (1 - Ptin)*Pvac  Kinf                  0          0                     0                          0                     0                     0;
+        0               (1 - Kinf)*Pres        Kcon       0                     0                          0                     0                     0;
+        0               (1 - Kinf)*(1 - Pres) (1 - Kcon) (1 - Pinv)*Kimm        Rvac                      (1 - Pinv)*(1 - Kvac)  (1 - Kinf)*(1 - Prev) (1 - Kcon) ;
+        0                0                     0         (1 - Pinv)*(1 - Kimm)  Kinn*Pvac                  0                     0                     0;
+        Rvac             0                     0          0                     0                         (1 - Pinv)*Kvac        0                     0;
+        0                0                     0          Pinv                 (1 - Kinn)*(1 - Ptin)*Pvac  Pinv                  Kinf                  0
+        0                0                     0          0                     0                          0                    (1 - Kinf)*Prev        Kcon];
     
 % marginal: infection {2} | work {1}(2)
 %--------------------------------------------------------------------------
 Ptin = Ptou;
 Pinv = (1 - Ptin)*Pvef;
-b{2} = [Ptin*Pvac        0                     0          0                    (1 - Pinv)*(1 - Kinn)*Pvac 0                     0                     0; 
-        (1 - Ptin)*Pvac  Kinf                  0          0                     0                         0                     0                     0;
-        0               (1 - Kinf)*Pres        Kcon       0                     0                         0                     0                     0;
-        0               (1 - Kinf)*(1 - Pres) (1 - Kcon) (1 - Pinv)*Kimm        Rvac                     (1 - Pinv)*(1 - Kvac)  (1 - Kinf)*(1 - Prev) (1 - Kcon) ;
-        0                0                     0         (1 - Pinv)*(1 - Kimm) (1 - Pinv)*Kinn*Pvac       0                     0                     0;
-        Rvac             0                     0          0                     0                        (1 - Pinv)*Kvac        0                     0;
-        0                0                     0          Pinv                  Pinv*Pvac                 Pinv                  Kinf                  0
-        0                0                     0          0                     0                         0                    (1 - Kinf)*Prev        Kcon];
-
+b{2} = [Ptin*Pvac        0                     0          0                    (1 - Kinn)*Ptin*Pvac        0                     0                     0; 
+        (1 - Ptin)*Pvac  Kinf                  0          0                     0                          0                     0                     0;
+        0               (1 - Kinf)*Pres        Kcon       0                     0                          0                     0                     0;
+        0               (1 - Kinf)*(1 - Pres) (1 - Kcon) (1 - Pinv)*Kimm        Rvac                      (1 - Pinv)*(1 - Kvac)  (1 - Kinf)*(1 - Prev) (1 - Kcon) ;
+        0                0                     0         (1 - Pinv)*(1 - Kimm)  Kinn*Pvac                  0                     0                     0;
+        Rvac             0                     0          0                     0                         (1 - Pinv)*Kvac        0                     0;
+        0                0                     0          Pinv                 (1 - Kinn)*(1 - Ptin)*Pvac  Pinv                  Kinf                  0
+        0                0                     0          0                     0                          0                    (1 - Kinf)*Prev        Kcon];
+    
 % marginal: infection {2} | ccu {1}(3)
 %--------------------------------------------------------------------------
 Ptin = 1;
 Pinv = (1 - Ptin)*Pvef;
-b{3} = [Ptin*Pvac        0                     0          0                    (1 - Pinv)*(1 - Kinn)*Pvac 0                     0                     0; 
-        (1 - Ptin)*Pvac  Kinf                  0          0                     0                         0                     0                     0;
-        0               (1 - Kinf)*Pres        Kcon       0                     0                         0                     0                     0;
-        0               (1 - Kinf)*(1 - Pres) (1 - Kcon) (1 - Pinv)*Kimm        Rvac                     (1 - Pinv)*(1 - Kvac)  (1 - Kinf)*(1 - Prev) (1 - Kcon) ;
-        0                0                     0         (1 - Pinv)*(1 - Kimm) (1 - Pinv)*Kinn*Pvac       0                     0                     0;
-        Rvac             0                     0          0                     0                        (1 - Pinv)*Kvac        0                     0;
-        0                0                     0          Pinv                  Pinv*Pvac                 Pinv                  Kinf                  0
-        0                0                     0          0                     0                         0                    (1 - Kinf)*Prev        Kcon];
+b{3} = [Ptin*Pvac        0                     0          0                    (1 - Kinn)*Ptin*Pvac        0                     0                     0; 
+        (1 - Ptin)*Pvac  Kinf                  0          0                     0                          0                     0                     0;
+        0               (1 - Kinf)*Pres        Kcon       0                     0                          0                     0                     0;
+        0               (1 - Kinf)*(1 - Pres) (1 - Kcon) (1 - Pinv)*Kimm        Rvac                      (1 - Pinv)*(1 - Kvac)  (1 - Kinf)*(1 - Prev) (1 - Kcon) ;
+        0                0                     0         (1 - Pinv)*(1 - Kimm)  Kinn*Pvac                  0                     0                     0;
+        Rvac             0                     0          0                     0                         (1 - Pinv)*Kvac        0                     0;
+        0                0                     0          Pinv                 (1 - Kinn)*(1 - Ptin)*Pvac  Pinv                  Kinf                  0
+        0                0                     0          0                     0                          0                    (1 - Kinf)*Prev        Kcon];
     
 
 % marginal: infection {2} | removed {1}(4)

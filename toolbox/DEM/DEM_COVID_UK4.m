@@ -14,7 +14,7 @@ function DCM = DEM_COVID_UK4
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_UK4.m 8242 2022-04-18 11:44:38Z karl $
+% $Id: DEM_COVID_UK4.m 8247 2022-04-27 10:26:13Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -53,7 +53,7 @@ options.Timeout = 40;
 %--------------------------------------------------------------------------
 url = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=overview&metric=newCasesBySpecimenDate&format=csv';
 writetable(webread(url,options),'cases.csv');
-url = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=overview&metric=newDeaths28DaysByPublishDate&format=csv';
+url = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=overview&metric=newDeaths28DaysByDeathDate&format=csv';
 writetable(webread(url,options),'deaths.csv');
 url = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=overview&metric=covidOccupiedMVBeds&format=csv';
 writetable(webread(url,options),'critical.csv');
@@ -293,7 +293,7 @@ Y(4).unit = 'percent';
 Y(4).U    = 11;
 Y(4).date = datenum(survey.textdata(2:end,1),'dd/mm/yyyy') - 7;
 Y(4).Y    = survey.data(:,1);
-Y(4).h    = 2;
+Y(4).h    = 4;
 Y(4).lag  = 1;
 Y(4).age  = 0;
 Y(4).hold = 0;
@@ -470,7 +470,7 @@ Y(19).unit = 'percent';
 Y(19).U    = 5;
 Y(19).date = datenum(serology.textdata(2:end,1),'dd/mm/yyyy') - i;
 Y(19).Y    = serology.data(:,j(7:9))*ons{3};
-Y(19).h    = 0;
+Y(19).h    = 2;
 Y(19).lag  = 0;
 Y(19).age  = 4;
 Y(19).hold = 0;
@@ -705,7 +705,7 @@ Y(40).unit = 'million';
 Y(40).U    = 36;
 Y(40).date = datenum(vaccines.textdata(2:end,d),'yyyy-mm-dd');
 Y(40).Y    = vaccines.data/1e6;
-Y(40).h    = 0;
+Y(40).h    = 2;
 Y(40).lag  = 1;
 Y(40).age  = 0;
 Y(40).hold = 0;
@@ -1439,8 +1439,7 @@ u      = [5,22];                             % empirical outcome
 a      = [4,4];                              % age cohort (0 for everyone)
 % u      = 36;
 % a      = 0;
-Ep.mem = DCM.Ep.mem - 0;                     % adjusted (log) parameter
-Ep.Tim = log(256);                     % adjusted (log) parameter
+Ep.Tnn = DCM.Ep.Tnn + 0;                     % adjusted (log) parameter
 
 [Z,X]  = spm_SARS_gen(Ep,M,u,[],a); % posterior prediction
 
