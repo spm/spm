@@ -21,7 +21,7 @@ function varargout = spm_shoot_greens(varargin)
 % (c) Wellcome Trust Centre for NeuroImaging (2012)
 
 % John Ashburner
-% $Id: spm_shoot_greens.m 7593 2019-05-20 18:58:16Z john $
+% $Id: spm_shoot_greens.m 8248 2022-04-28 12:24:12Z john $
 
 if nargin==3 && isa(varargin{1},'char') && strcmp(varargin{1},'kernel')
     d   = varargin{2};
@@ -95,7 +95,7 @@ else
     % Convolve with the Green's function via Fourier methods
     m = varargin{1};
     F = varargin{2};
-    v = zeros(size(m),'single');
+    v = zeros(size(m),'like',m);
     if size(F,4) == 1
         % Simple case where convolution is done one field at a time
         prm = varargin{3};
