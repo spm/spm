@@ -11,7 +11,7 @@ clear
 %addpath('**path to spm12***');
 
 %%
-%spm('defaults', 'eeg');
+spm('defaults', 'eeg');
 
 
 %% 0. Load Data
@@ -29,7 +29,7 @@ end
 sMRI = fullfile(pwd, 'mprage.nii');
 
 % Set reconstruction number
-val = 2;
+val = 1;
 
 D.val = val;
 
