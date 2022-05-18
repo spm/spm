@@ -37,7 +37,7 @@ function [P,C,str] = spm_SARS_priors(nN)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_priors.m 8247 2022-04-27 10:26:13Z karl $
+% $Id: spm_SARS_priors.m 8252 2022-05-18 13:23:48Z karl $
 
 % sources and background
 %--------------------------------------------------------------------------
@@ -66,7 +66,7 @@ if nargin
     %----------------------------------------------------------------------
     [P,C,str] = spm_SARS_priors;
     free  = {'N','Nin','Nou',...
-             'sde','qua','pro'...
+             'abs','qua','pro'...
              'hos','ccu','Tim',...
              'sev','fat',...
              'rol','lnk','dps'};
@@ -131,7 +131,10 @@ if nargin
                      0.04   64   64;
                      0.08   32   32]);
                  
-        P.fol = P.rol;
+        P.fol = log([0.0001 64  256;
+                     0.004  48  128;
+                     0.04   32   64;
+                     0.08   16   32]);
 
         C.rol = [1/16 1/64 1/64;
                  1/16 1/64 1/64;
@@ -194,6 +197,11 @@ if nargin
         
         C.Nin = (exp(P.Nin) > 0)*C.Nin(1);
         C.Nou = (exp(P.Nou) > 0)*C.Nou(1);
+        
+        % sensitivity to prevalence
+        %------------------------------------------------------------------
+        P.sde = log(ones(1,nN)*4);
+        C.sde = ones(1,nN)*C.sde(1);
         
 %         % contact matrices: number of contacts per day
 %         % https://www.researchgate.net/figure/Social-contact-matrices-Values-and-colours-show-the-mean-number-of-contacts-per-day_fig4_221698133
@@ -293,7 +301,7 @@ names{54} = 'survival risk in care homes';
 names{55} = 'changes in transfer to CCU';  
 names{56} = 'transmissibility parameters';
 names{57} = 'doses per seroconversion';
-names{58} = 'antibody scaling';
+names{58} = 'sensitivity to contact fluctuations';
 
 % latent or hidden factors
 %--------------------------------------------------------------------------
@@ -401,7 +409,7 @@ P.qua = 128;                  % (08) time constant of unlocking
 P.exp = 0.02;                 % (09) viral spreading (rate)
 P.hos = 1;                    % (10) admission rate (hospital) [erf]
 P.ccu = 0.1;                  % (11) admission rate (CCU)
-P.s   = [1 1 1 1 1];          % (12) changes in infectivity
+P.s   = [1 1 1 1 1 1 1];      % (12) infectivity exponents
 
 % infection (transmission) parameters
 %--------------------------------------------------------------------------
@@ -421,9 +429,9 @@ P.Tsy = 5;                    % (22) symptomatic period  (days)
 P.Trd = 16;                   % (23) severe symptoms     (days)
 
 P.sev = 0.01;                 % (24) P(ARDS | symptoms)
-P.lat = 1;                    % (25) changes in severity
+P.lat = [1 1];                % (25) changes in severity
 P.fat = 0.5;                  % (26) P(fatality | ARDS)
-P.sur = 1;                    % (27) changes in severity
+P.sur = [1 1];                % (27) changes in severity
 
 % testing parameters
 %--------------------------------------------------------------------------
@@ -457,12 +465,12 @@ P.Tnn = 256;                  % (49) loss of T-cell immunity (days)
 P.lnr = 0.46;                 % (50) LFD sensitivity
 P.lpr = 0.0002;               % (51) LFD specificity
 P.rel = 1;                    % (52) PCR testing of fatalities
-P.pro = 1;                    % (53) contact rate decay (days)
+P.pro = [1 1];                % (53) contact rate decay (days)
 P.oth = 0.1;                  % (54) relative survival outside hospital
-P.iad = 1;                    % (55) exponent: transfer to CCU
+P.iad = [1 1];                % (55) exponent: transfer to CCU
 P.tra = [1 1 1 1];            % (56) transmissibility parameters
 P.dps = [2 1];                % (57) doses per seroconversion
-P.abs = 1;                    % (58) antibody scaling
+P.abs = 1;                    % (58) Sensitivity to contact fluctuations
 
 % infection fatality (for susceptible population)
 %--------------------------------------------------------------------------
@@ -479,14 +487,14 @@ Z     = exp(-8);              % informative priors (very strong)
 
 C.N   = U;                    % (01) population size (millions)
 C.n   = U;                    % (02) initial cases (cases)
-C.r   = W;                    % (03) pre-existing immunity (proportion)
+C.r   = X;                    % (03) pre-existing immunity (proportion)
 C.o   = W;                    % (04) initial exposed proportion
 C.m   = W;                    % (05) relative eflux
 
 % location (exposure) parameters
 %--------------------------------------------------------------------------
 C.out = X;                    % (06) P(leaving home)
-C.sde = X;                    % (07) time constant of lockdown
+C.sde = W;                    % (07) time constant of lockdown
 C.qua = X;                    % (08) time constant of unlocking
 C.exp = W;                    % (09) viral spreading (rate)
 C.hos = W;                    % (10) admission rate (hospital)
@@ -551,7 +559,7 @@ C.oth = W;                    % (54) relative survival outside hospital
 C.iad = V;                    % (55) exponent: transfer to CCU
 C.tra = V;                    % (56) transmissibility parameters
 C.dps = X;                    % (57) doses per seroconversion
-C.abs = Z;                    % (58) antibody scaling
+C.abs = X;                    % (58) Sensitivity to contact fluctuations
 
 % check prior expectations and covariances are consistent
 %--------------------------------------------------------------------------

@@ -14,7 +14,7 @@ function DCM = DEM_COVID_UK4
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_UK4.m 8247 2022-04-27 10:26:13Z karl $
+% $Id: DEM_COVID_UK4.m 8252 2022-05-18 13:23:48Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -89,7 +89,9 @@ for r = 1:numel(age)
     agedeaths(:,1)     = tab(j,ad);
     agedeaths(:,r + 1) = tab(j,an);
 end
-agedeaths = renamevars(agedeaths,(1:numel(age)) + 1,table2array(age));
+try
+    agedeaths = renamevars(agedeaths,(1:numel(age)) + 1,table2array(age));
+end
 writetable(agedeaths,'agedeaths.csv')
 
 % get cases by age (England)
@@ -106,7 +108,9 @@ for r = 1:numel(age)
     agecases(:,1)     = tab(j,ad);
     agecases(:,r + 1) = tab(j,an);
 end
-agecases = renamevars(agecases,(1:numel(age)) + 1,table2array(age));
+try
+    agecases = renamevars(agecases,(1:numel(age)) + 1,table2array(age));
+end
 writetable(agecases,'agecases.csv')
 
 % get vaccination by age (England)
@@ -123,7 +127,9 @@ for r = 1:numel(age)
     agevaccine(:,1)     = tab(j,ad);
     agevaccine(:,r + 1) = tab(j,an);
 end
-agevaccine = renamevars(agevaccine,(1:numel(age)) + 1,table2array(age));
+try
+    agevaccine = renamevars(agevaccine,(1:numel(age)) + 1,table2array(age));
+end
 writetable(agevaccine,'agevaccine.csv')
 
 % get (cumulative) admissions by age (England)
@@ -140,7 +146,9 @@ for r = 1:numel(age)
     cumAdmiss(:,1)     = tab(j,ad);
     cumAdmiss(:,r + 1) = tab(j,an);
 end
-cumAdmiss = renamevars(cumAdmiss,(1:numel(age)) + 1,table2array(age));
+try
+    cumAdmiss = renamevars(cumAdmiss,(1:numel(age)) + 1,table2array(age));
+end
 writetable(cumAdmiss,'cumAdmiss.csv')
 
 
@@ -148,7 +156,11 @@ writetable(cumAdmiss,'cumAdmiss.csv')
 %--------------------------------------------------------------------------
 url  = 'https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/947572/COVID-19-transport-use-statistics.ods.ods';
 tab  = webread(url,options);
-writetable(tab(:,1:8),'transport.csv');
+if isempty(table2array(tab{1,3}))
+    writetable(tab(8:end,1:4),'transport.csv');
+else
+    writetable(tab(:,1:4),'transport.csv');
+end
 
 % Google mobility
 %--------------------------------------------------------------------------
@@ -303,7 +315,7 @@ Y(5).unit = 'number/day';
 Y(5).U    = 1;
 Y(5).date = datenum(deaths.textdata(2:end,d),'yyyy-mm-dd');
 Y(5).Y    = deaths.data(:,1);
-Y(5).h    = 2;
+Y(5).h    = 4;
 Y(5).lag  = 1;
 Y(5).age  = 0;
 Y(5).hold = 1;
@@ -313,7 +325,7 @@ Y(6).unit = 'number';
 Y(6).U    = 15;
 Y(6).date = datenum(certified.textdata(2:end,d),'yyyy-mm-dd') - 10;
 Y(6).Y    = certified.data(:,1)/7;
-Y(6).h    = 2;
+Y(6).h    = 4;
 Y(6).lag  = 0;
 Y(6).age  = 0;
 Y(6).hold = 0;
@@ -381,22 +393,51 @@ Y(12).hold = 0;
 Y(13).type = 'Transport (GOV)'; % cars (percent)
 Y(13).unit = 'percent';
 Y(13).U    = 13;
-Y(13).Y    = transport.data(:,1)*100;
-Y(13).date = datenum(transport.textdata(2:end,1),'dd-mmm-yyyy');
+Y(13).age  = 0;
 Y(13).h    = 0;
 Y(13).lag  = 0;
-Y(13).age  = 0;
 Y(13).hold = 1;
+try
+    Y(13).date = datenum(transport.textdata(2:end,1),'dd-mmm-yyyy');
+catch
+    Y(13).date = datenum(transport.textdata(2:end,1),'dd/mm/yyyy');
+end
+% try
+%     load DCM_UK DCM
+%     M.date   = DCM.M.date;
+%     M.T      = Y(13);
+%     Z        = spm_SARS_gen(DCM.Ep,M);  % posterior prediction
+%     X        = transport.data*100 - 100;
+%     X        = [X X.^2];
+%     Y(13).Y  = X*(X\(Z - 100)) + 100;
+% catch
+     Y(13).Y  = transport.data(:,1)*100;
+% end
 
 Y(14).type = 'Mobility (GOV/Google)'; % workplace activity (percent)
 Y(14).unit = 'percent';
 Y(14).U    = 14;
-Y(14).date = datenum(mobility.textdata(2:end,1),'yyyy-mm-dd');
-Y(14).Y    = (mobility.data(:,1) + mobility.data(:,2))/2 + 100;
 Y(14).h    = 0;
 Y(14).lag  = 0;
 Y(14).age  = 0;
 Y(14).hold = 0;
+if numel(mobility.textdata{2,1}) == numel('yyyy-mm-dd')
+    Y(14).date = datenum(mobility.textdata(2:end,1),'yyyy-mm-dd');
+else
+    Y(14).date = datenum(mobility.textdata(2:end,1),'dd-mmm-yyyy');
+end
+% try
+%     load DCM_UK DCM
+%     M.date   = DCM.M.date;
+%     M.T      = Y(14);
+%     Z        = spm_SARS_gen(DCM.Ep,M); % posterior prediction
+%     X        = mobility.data;
+%     X        = [X X.^2];
+%     Y(14).Y  = X*(X\(Z - 100)) + 100;
+% catch
+     Y(14).Y  = (mobility.data(:,1) + mobility.data(:,2))/2 + 100;
+% end
+
 
 % subplot(2,1,1),cla
 % for i = 1:size(mobility.data,2)
@@ -450,7 +491,7 @@ Y(17).unit = 'percent';
 Y(17).U    = 5;
 Y(17).date = datenum(serology.textdata(2:end,1),'dd/mm/yyyy') - i;
 Y(17).Y    = serology.data(:,j(1:2))*ons{1};
-Y(17).h    = 2;
+Y(17).h    = 0;
 Y(17).lag  = 0;
 Y(17).age  = 2;
 Y(17).hold = 1;
@@ -460,7 +501,7 @@ Y(18).unit = 'percent';
 Y(18).U    = 5;
 Y(18).date = datenum(serology.textdata(2:end,1),'dd/mm/yyyy') - i;
 Y(18).Y    = serology.data(:,j(3:6))*ons{2};
-Y(18).h    = 2;
+Y(18).h    = 0;
 Y(18).lag  = 0;
 Y(18).age  = 3;
 Y(18).hold = 1;
@@ -470,7 +511,7 @@ Y(19).unit = 'percent';
 Y(19).U    = 5;
 Y(19).date = datenum(serology.textdata(2:end,1),'dd/mm/yyyy') - i;
 Y(19).Y    = serology.data(:,j(7:9))*ons{3};
-Y(19).h    = 2;
+Y(19).h    = 0;
 Y(19).lag  = 0;
 Y(19).age  = 4;
 Y(19).hold = 0;
@@ -693,7 +734,7 @@ Y(39).unit = 'percent';
 Y(39).U    = 32;
 Y(39).date = datenum(gdp.textdata(2:end,1),'dd/mm/yyyy');
 Y(39).Y    = gdp.data;
-Y(39).h    = 0;
+Y(39).h    = 4;
 Y(39).lag  = 0;
 Y(39).age  = 3;
 Y(39).hold = 0;
@@ -710,7 +751,9 @@ Y(40).lag  = 1;
 Y(40).age  = 0;
 Y(40).hold = 0;
 
-
+% Data selection
+%--------------------------------------------------------------------------
+% Y([13,14]) = [];
 
 % remove NANs, smooth and sort by date
 %==========================================================================
@@ -727,12 +770,13 @@ pC.N    = spm_zeros(pE.N);
 
 % age-specific
 %--------------------------------------------------------------------------
-pE.mo   = [ 0 1];              % coefficients for transport
-pC.mo   = ones(1,2)/8;         % prior variance
-pE.wo   = [ 0 1];              % coefficients for workplace
-pC.wo   = ones(1,2)/8;         % prior variance
-pE.gd   = [-1 1];              % coefficients gross domestic product
-pC.gd   = ones(1,2)/8;         % prior variance
+j       = nN;
+pE.mo   = ones(j,1)*[ 0 1];   % coefficients for transport
+pC.mo   = ones(j,2)/8;        % prior variance
+pE.wo   = ones(j,1)*[ 0 1];   % coefficients for workplace
+pC.wo   = ones(j,2)/8;        % prior variance
+pE.gd   = ones(j,1)*[-1 1];   % coefficients gross domestic product
+pC.gd   = ones(j,2)/8;        % prior variance
 
 % augment priors with fluctuations
 %--------------------------------------------------------------------------
@@ -960,7 +1004,11 @@ drawnow
 %--------------------------------------------------------------------------
 subplot(2,1,2)
 i       = find(DCM.U == 14,1);
-[~,~,q] = spm_SARS_ci(Ep,Cp,DCM.Y(:,i),14,M,[],DCM.A(i)); hold on
+try
+    [~,~,q] = spm_SARS_ci(Ep,Cp,DCM.Y(:,i),14,M,[],DCM.A(i)); hold on
+catch
+    [~,~,q] = spm_SARS_ci(Ep,Cp,[],14,M); hold on
+end
 
 % thresholds
 %--------------------------------------------------------------------------
@@ -1435,8 +1483,8 @@ spm_figure('GetWin','states'); clf;
 %--------------------------------------------------------------------------
 M.T    = datenum(date) - datenum(DCM.M.date,'dd-mm-yyyy');
 M.T    = M.T + 360;                          % forecast dates
-u      = [5,22];                             % empirical outcome
-a      = [4,4];                              % age cohort (0 for everyone)
+u      = 13;                             % empirical outcome
+a      = 0;                              % age cohort (0 for everyone)
 % u      = 36;
 % a      = 0;
 Ep.Tnn = DCM.Ep.Tnn + 0;                     % adjusted (log) parameter

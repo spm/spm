@@ -84,7 +84,7 @@ function [y,x,z,W] = spm_SARS_gen(P,M,U,NPI,age)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_gen.m 8247 2022-04-27 10:26:13Z karl $
+% $Id: spm_SARS_gen.m 8252 2022-05-18 13:23:48Z karl $
 
 
 % The generative model:
@@ -376,26 +376,30 @@ for i = 1:M.T
         Q{n}.Tnn = R{n}.Tnn*Ptra^(log(R{n}.s(4))); % T-cell immunity
         Q{n}.Trd = R{n}.Trd*Ptra^(log(R{n}.s(5))); % duration of ARDS
         
-        Q{n}.sev = R{n}.sev*Ptra^(-R{n}.lat);      % P(ARDS | infected)
-        Q{n}.fat = R{n}.fat*Ptra^(-R{n}.sur);      % P(fatality | ARDS)
-        Q{n}.ccu = R{n}.ccu*Ptra^(-R{n}.iad);      % P(CCU | ARDS)
+        Q{n}.tes = R{n}.tes*Ptra^(log(R{n}.s(6))); % testing bias PCR
+        Q{n}.tts = R{n}.tts*Ptra^(log(R{n}.s(7))); % testing bias LFD
         
-        Q{n}.sde = R{n}.sde*Ptra^(-R{n}.pro);      % prevalence sensitivity
-        % Q{n}.sde = R{n}.sde*exp(-i/(128*R{n}.pro));% prevalence sensitivity
+        Q{n}.sev = R{n}.sev*Ptra^(-R{n}.lat(1));   % P(ARDS | infected)
+        Q{n}.sev = Q{n}.sev*exp(-i/(256*R{n}.lat(2)));
+        Q{n}.fat = R{n}.fat*Ptra^(-R{n}.sur(1));   % P(fatality | ARDS)
+        Q{n}.fat = Q{n}.fat*exp(-i/(256*R{n}.sur(2)));
+        Q{n}.ccu = R{n}.ccu*Ptra^(-R{n}.iad(1));   % P(CCU | ARDS)
+        Q{n}.ccu = Q{n}.ccu*exp(-i/(256*R{n}.iad(2)));
+        
+        Q{n}.sde = R{n}.sde*Ptra^(-R{n}.pro(1));   % prevalence sensitivity
+        Q{n}.sde = Q{n}.sde*exp(-i/(256*R{n}.pro(2)));
         
         % probability of lockdown (a function of prevalence)
         %------------------------------------------------------------------
-        qp   = 0;
         for j = 1:nN
-            qp = qp + (p{j}{2}(3) + p{j}{2}(8))*N(j)/sum(N);
+            qp(j,1) = p{j}{2}(3) + p{j}{2}(8);
         end
-        qp   = p{n}{2}(3) + p{n}{2}(8);
         k1   = Q{n}.sde*qp;                        % prevalence
         k2   = exp(-1/(Q{n}.qua));                 % relaxation
         r{n} = [(1 - k1) (1 - k2);
                      k1,      k2]*r{n};
         
-        Pout     = erf(r{n}(1)*exp(Rout));         % P(going out) with fluctuations
+        Pout     = erf(r{n}(1) + Q{n}.abs*Rout);   % P(going out) with fluctuations
         Q{n}.out = Pout*R{n}.out;                  % scale by baseline
         
         % seasonal variation in transmission risk
@@ -490,8 +494,9 @@ for i = 1:M.T
         
         % seropositive immunity (%) Ab
         %------------------------------------------------------------------
-        Y{n}(i,5) = 100 * erf(sum(p{n}{2}([4,7,8])) * Q{n}.abs);
-     
+        
+        Y{n}(i,5) = 100 * sum(p{n}{2}([4,7,8]));
+
         % total number of daily virus tests (PCR and LFD)
         %------------------------------------------------------------------
         Y{n}(i,6) = N(n) * sum(p{n}{4}(3:6));
