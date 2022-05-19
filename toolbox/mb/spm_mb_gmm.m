@@ -832,7 +832,6 @@ v     = v0 - sum(lnP,2);   % Sufficient statistic
 eta   = N  + eta0;         % Number of observations
 
 % Starting estimates (working with log(alpha0))
-la0    = log(a0)*ones(K,1);
 la0    = log(mean(Alpha,2));
 alpha0 = exp(la0);
 for it=1:100
@@ -850,7 +849,7 @@ for it=1:100
     la0    = la0 - H\g;
     alpha0 = exp(la0);
 
-    if norm(la0-la0o).^2 <= norm(la0).^2*1e-9, break; end
+    if norm(la0-la0o)^2 <= norm(la0)^2*1e-9, break; end
 end
 alpha0 = alpha0 + eps;
 lb  = [(-eta0*(sum(gammaln(alpha0)) - gammaln(sum(alpha0))) - v0'*alpha0)

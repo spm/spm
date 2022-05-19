@@ -3,7 +3,7 @@ function out = spm_mb_merge(cfg)
 %__________________________________________________________________________
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_merge.m 7892 2020-07-10 16:39:18Z john $
+% $Id: spm_mb_merge.m 8253 2022-05-19 09:14:05Z john $
 
 out      = struct('mu','priors');
 odir     = cfg.odir{1};
@@ -129,7 +129,7 @@ dm0       = [size(Nii.dat) 1];
 dm0       = dm0(1:3);
 msk       = ~isfinite(bb(1,:));
 bb(1,msk) = 1;
-bb1(1,:)  = round(max(bb(1,:),1));
+bb(1,:)   = round(max(bb(1,:),1));
 msk       = ~isfinite(bb(2,:));
 bb(2,msk) = dm0(msk);
 bb(2,:)   = round(min(bb(2,:),dm0));

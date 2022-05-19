@@ -22,7 +22,7 @@ function files = fil_label(fil,mbsett,mbdat,iterations,vsett_scale,odir,df,Mf)
 % Copyright (C) 2019-2021 Wellcome Centre for Human Neuroimaging
 
 % John Ashburner
-% $Id: fil_label.m 8139 2021-08-24 19:38:01Z guillaume $
+% $Id: fil_label.m 8253 2022-05-19 09:14:05Z john $
 
 if nargin<4, iterations  = [6 10 10]; end
 if nargin<5, vsett_scale = 1/4; end
@@ -105,11 +105,11 @@ for it=1:niter(1)
 
     % Push differences from native-space to label-space
     % This approach was used in the validations
-   %[a,c]  = sh.push1(f - sh.softmax(sh.pull1(mu,phi),4),phi,dl,1);
+   %[a,c]  = sh.push1(f - sh.softmax0(sh.pull1(mu,phi),4),phi,dl,1);
 
     % Compute gradients that match the objective function of the labelling
     [f1,c] = sh.push1(f,phi,dl,1);
-    a      = f1 - bsxfun(@times,c, sh.softmax(mu,4));
+    a      = f1 - bsxfun(@times,c, sh.softmax0(mu,4));
 
     % Note that the affine mapping should ideally be translation by integer numbers of voxels
     g     = sh.push1(reshape(sum(bsxfun(@times,a,G0),4),[dl 3]), sh.affine(dl,Mmu\Ml),dmu); % Registration gradients
@@ -161,7 +161,7 @@ L = zeros(dm_temp,'single'); % Map of lse values
 for p=1:numel(model)         % Loop over patches
     patch     = model(p);                          % Model for current patch
     dm_patch  = cellfun(@numel,patch.pos);         % Dimensions of patch
-    L(patch.pos{:}) = getLSE(Z{p},patch.mod(ind),dm_patch); % log-sum-exp from variables
+    L(patch.pos{:}) = getLSE0(Z{p},patch.mod(ind),dm_patch); % log-sum-exp from variables
 end
 
 % Native-space data
@@ -223,7 +223,7 @@ else
 end
 
 
-function lse = getLSE(z,mod,dm)
+function lse = getLSE0(z,mod,dm)
 % Compute log-sum-exp
 K   = size(mod.W,3);
 M   = size(mod.W,2);
@@ -248,7 +248,7 @@ gam    = gmm.gam;
 chan   = app.inu_basis(gmm.T,size(fn),datn.Mat,ones(1,C));
 [~,mf,vf] = app.inu_recon(fn,[],chan,gmm.T,gmm.Sig);
 
-mu  = spm_mb_classes('template_k1',mu);
+mu  = spm_mb_classes('template_k1',mu,datn.delta);
 fl  = spm_gmmlib('resp',gmm.m,gmm.b,gmm.W,gmm.nu,gam,...
                  uint64(mg_ix), mu,mf,vf, uint64(gmm.samp));
 fl  = fl(:,:,:,select);
@@ -348,7 +348,7 @@ if isempty(W), g = zeros([size(W,3),1],'single'); return; end
 [Nvox,M,K] = size(W);
 A    = Abohning(M);
 Psi0 = reshape(  reshape(W,[Nvox*M,K])*z,[Nvox,M]);
-P    = softmax(Psi0+mu,2);
+P    = softmax0(Psi0+mu,2);
 r    = reshape(F+(Psi0*A-P).*wt,[1,Nvox*M]);
 g    = reshape(r*reshape(W,[Nvox*M,K]),[K,1]);
 
@@ -357,13 +357,13 @@ function A = Abohning(M)
 A  = 0.5*(eye(M)-1/(M+1));
 
 
-function P = softmax(Psi,d)
+function P = softmax0(Psi,d)
 mx  = max(Psi,[],d);
 E   = exp(Psi-mx);
 P   = E./(sum(E,d)+exp(-mx));
 
 
-%function P = softmaxOld(Psi,d)
+%function P = softmax0Old(Psi,d)
 %mx  = max(Psi,[],d);
 %E   = exp(bsxfun(@minus,Psi,mx));
 %P   = bsxfun(@rdivide, E, sum(E,d)+exp(-mx));
@@ -398,7 +398,7 @@ chan   = app.inu_basis(gmm.T,size(fn),datn.Mat,ones(1,C));
 [~,mf,vf] = app.inu_recon(fn,[],chan,gmm.T,gmm.Sig);
 
 % Adjust priors
-mu1     = spm_mb_classes('template_k1',mu1); % Add implicit class
+mu1     = spm_mb_classes('template_k1',mu1,datn.delta); % Add implicit class
 mu1(:,:,:,select) = 0;                       % Compute only likelihoods for foreground tissues
 other  = setxor(select,1:size(mu,4));        % Tissues to be merged into the background class
 mu2    = mu1(:,:,:,other);                   % Background tissue probabilities

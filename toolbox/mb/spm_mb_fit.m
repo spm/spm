@@ -10,7 +10,7 @@ function [dat,sett,mu] = spm_mb_fit(dat,sett)
 %__________________________________________________________________________
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_fit.m 8226 2022-02-24 10:44:46Z john $
+% $Id: spm_mb_fit.m 8253 2022-05-19 09:14:05Z john $
 
 
 % Repeatable random numbers
@@ -139,7 +139,7 @@ for zm=numel(sz):-1:1 % loop over zoom levels
     if ~updt_mu
         mu = spm_mb_shape('shrink_template',mu0,Mmu,sett);
     else
-        [mu,sett,dat,te,E] = iterate_mean(mu,sett,dat,te,nit_mu);
+        [mu,sett,dat,te] = iterate_mean(mu,sett,dat,te,nit_mu);
     end
 
     if updt_aff

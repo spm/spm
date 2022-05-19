@@ -47,7 +47,7 @@ function x = spm_coreg(varargin)
 % Copyright (C) 1994-2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_coreg.m 7320 2018-05-29 10:19:49Z john $
+% $Id: spm_coreg.m 8253 2022-05-19 09:14:05Z john $
 
 %--------------------------------------------------------------------------
 % References
@@ -84,7 +84,7 @@ function x = spm_coreg(varargin)
 % Published by Cambridge.
 %--------------------------------------------------------------------------
 
-SVNid = '$Rev: 7320 $';
+SVNid = '$Rev: 8253 $';
 
 if nargin >= 4
     x = optfun(varargin{:});
@@ -116,12 +116,15 @@ else
     VG = varargin{1};
     if ischar(VG), VG = spm_vol(VG); end
 end
+VG = VG(1); % In case multiple volumes are selected
+
 if nargin < 2
     VF = spm_vol(spm_select(Inf,'image','Select moved image(s)'));
 else
     VF = varargin{2};
     if ischar(VF) || iscellstr(VF), VF = spm_vol(char(VF)); end;
 end
+VF = VF(1); % In case multiple volumes are selected
 
 if ~isfield(VG, 'uint8')
     VG.uint8 = loaduint8(VG);

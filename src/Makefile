@@ -3,7 +3,7 @@
 #
 # Copyright (C) 1991-2021 Wellcome Centre for Human Neuroimaging
 #
-# $Id: Makefile 8058 2021-02-10 10:38:31Z guillaume $
+# $Id: Makefile 8253 2022-05-19 09:14:05Z john $
 #
 ###############################################################################
 #
@@ -322,7 +322,7 @@ spm_field.$(MEXEXT): spm_field.c  shoot_optimN.c shoot_multiscale.c shoot_bounda
 		spm_openmp.c $(MEXEND)
 
 spm_gmmlib.$(MEXEXT): spm_gmmlib.c gmmlib.c gmmlib.h 
-	$(MEX) spm_gmmlib.c gmmlib.c $(MEXEND)
+	$(MEX) spm_gmmlib.c gmmlib.c -largeArrayDims $(MEXEND)
 
 spm_jsonread.$(MEXEXT): spm_jsonread.c jsmn.h jsmn.c
 	$(MEX) spm_jsonread.c jsmn.c -DJSMN_PARENT_LINKS $(MEXEND)

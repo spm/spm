@@ -5,7 +5,7 @@ function res = spm_mb_output(cfg)
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_output.m 8164 2021-10-15 16:05:27Z john $
+% $Id: spm_mb_output.m 8253 2022-05-19 09:14:05Z john $
 
 res  = cfg.result;
 if iscell(res), res = res{1}; end
@@ -57,13 +57,13 @@ if nw > 1 && numel(dat) > 1 % PARFOR
     fprintf('Write output: ');
     parfor(n=1:N,nw)
         fprintf('.');
-        res(n) = ProcessSubject(dat(n),res(n),mu,sett,opt);
+        res(n) = ProcessSubject(dat(n),mu,sett,opt);
     end
     fprintf(' done!\n');
 else
     spm_progress_bar('Init',N,'Writing MB output','Subjects complete');
     for n=1:N % FOR
-        res(n) = ProcessSubject(dat(n),res(n),mu,sett,opt);
+        res(n) = ProcessSubject(dat(n),mu,sett,opt);
         spm_progress_bar('Set',n);
     end
     spm_progress_bar('Clear');
@@ -92,7 +92,7 @@ zn = single(P)/255;
 
 %==========================================================================
 % ProcessSubject()
-function resn = ProcessSubject(datn,resn,mu,sett,opt)
+function resn = ProcessSubject(datn,mu,sett,opt)
 
 % Parse function settings
 dmu         = sett.ms.d;
@@ -140,7 +140,6 @@ if isfield(datn.model,'gmm')
     mg_ix  = gmms.mg_ix;
     K      = sett.K;
     K1     = K + 1;
-    Kmg    = numel(mg_ix);
 
     % Integrate K1 and C into write settings
     if size(write_inu,1) == 1
@@ -194,10 +193,7 @@ if isfield(datn.model,'gmm') && (any(write_im(:)) || any(write_tc(:)))
 
     % Get warped tissue priors
     mun    = spm_mb_shape('pull1',mu,psi);
-    mun    = spm_mb_classes('template_k1',mun,4);
-
-    % Integrate use of multiple Gaussians per tissue
-    gam  = gmm.gam;
+    mun    = spm_mb_classes('template_k1',mun,datn.delta);
 
     % Format for spm_gmm
     chan                     = spm_mb_appearance('inu_basis',gmm.T,df,datn.Mat,ones(1,C));
@@ -341,7 +337,7 @@ if any(write_tc(:,2)) || any(write_tc(:,3)) || any(write_tc(:,4))
         % native space.
         mun = spm_mb_shape('pull1',mu,psi);
         clear mu
-        mun = spm_mb_shape('softmax',mun,4);
+        mun = spm_mb_shape('softmax0',mun,4);
         mun = cat(4,mun,max(1 - sum(mun,4),0));
     end
 

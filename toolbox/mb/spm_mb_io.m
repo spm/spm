@@ -11,7 +11,7 @@ function varargout = spm_mb_io(varargin)
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_io.m 8086 2021-04-01 09:13:20Z john $
+% $Id: spm_mb_io.m 8253 2022-05-19 09:14:05Z john $
 
 [varargout{1:nargout}] = spm_subfun(localfunctions,varargin{:});
 %==========================================================================
@@ -166,7 +166,7 @@ Nmu.dat(:,:,:,:) = mu;
 
 if true
     % Softmax
-    mu  = spm_mb_shape('softmax',mu,4);
+    mu  = spm_mb_shape('softmax0',mu,4);
     d   = [size(mu) 1 1];
     [pth,nam,ext] = fileparts(sett.mu.create.mu);
     nam      = ['softmax' nam(3:end)];

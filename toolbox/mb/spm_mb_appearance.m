@@ -11,7 +11,7 @@ function varargout = spm_mb_appearance(varargin) % Appearance model
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
 % Mikael Brudfors, John Ashburner & Yael Balbastre
-% $Id: spm_mb_appearance.m 8086 2021-04-01 09:13:20Z john $
+% $Id: spm_mb_appearance.m 8253 2022-05-19 09:14:05Z john $
 [varargout{1:nargout}] = spm_subfun(localfunctions,varargin{:});
 %==========================================================================
 
@@ -21,7 +21,7 @@ function [dat,sett] = restart(dat,sett)
 for n=1:numel(dat)
     if isfield(dat(n).model,'gmm')
         p    = dat(n).model.gmm.pop;
-        same = all(sum(diff(sett.gmm(p).pr{1},1,2).^2,1))==0;
+        same = ~all(sum(diff(sett.gmm(p).pr{1},1,2).^2,1));
         if same
             % Intensity priors are identical for all clusters
             % so need to break the symmetry.
@@ -624,7 +624,7 @@ elseif strcmp(img_is,'observed')
     c   = 1;  % Channel to show
     img = img(:,:,:,c);
 elseif strcmp(img_is,'template')
-    img = spm_mb_classes('template_k1',img,4);
+    img = spm_mb_classes('template_k1',img,[]);
 end
 clim = [-Inf Inf];
 if modality == 2

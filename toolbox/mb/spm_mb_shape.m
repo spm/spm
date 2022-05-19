@@ -6,13 +6,13 @@ function varargout = spm_mb_shape(varargin)
 % FORMAT psi       = spm_mb_shape('compose',psi1,psi0)
 % FORMAT id        = spm_mb_shape('identity',d)
 % FORMAT dat       = spm_mb_shape('init_def',dat,sett.ms)
-% FORMAT l         = spm_mb_shape('LSE',mu,ax)
+% FORMAT l         = spm_mb_shape('LSE0',mu,ax)
 % FORMAT a1        = spm_mb_shape('pull1',a0,psi,r)
 % FORMAT [f1,w1]   = spm_mb_shape('push1',f,psi,d,r)
 % FORMAT sd        = spm_mb_shape('samp_dens',Mmu,Mn)
 % FORMAT varargout = spm_mb_shape('shoot',v0,kernel,args)
 % FORMAT mu1       = spm_mb_shape('shrink_template',mu,oMmu,sett)
-% FORMAT P         = spm_mb_shape('softmax',mu,ax)
+% FORMAT P         = spm_mb_shape('softmax0',mu,ax)
 % FORMAT E         = spm_mb_shape('template_energy',mu,sett)
 % FORMAT dat       = spm_mb_shape('update_affines',dat,mu,sett)
 % FORMAT [mu,dat]  = spm_mb_shape('update_mean',dat, mu, sett)
@@ -25,7 +25,7 @@ function varargout = spm_mb_shape(varargin)
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_shape.m 8226 2022-02-24 10:44:46Z john $
+% $Id: spm_mb_shape.m 8253 2022-05-19 09:14:05Z john $
 [varargout{1:nargout}] = spm_subfun(localfunctions,varargin{:});
 %==========================================================================
 
@@ -45,7 +45,7 @@ if d(3) == 1, psi0(:,:,:,3) = 1; end
 %==========================================================================
 function B = affine_bases(code)
 g     = regexpi(code,'(?<code>\w*)\((?<dim>\d*)\)','names');
-g.dim = str2num(g.dim);
+g.dim = str2double(g.dim);
 if numel(g.dim)~=1 || (g.dim ~=0 && g.dim~=2 && g.dim~=3)
     error('Can not use size');
 end
@@ -154,8 +154,9 @@ id = zeros([ds(:)',3],'single');
 %==========================================================================
 
 %==========================================================================
-function l = LSE(mu,ax)
-% log-sum-exp function
+function l = LSE0(mu,ax)
+% Strictly convex log-sum-exp function
+% https://en.wikipedia.org/wiki/LogSumExp#A_strictly_convex_log-sum-exp_type_function
 
 if nargin<2, ax = 4; end
 mx = max(mu,[],ax);
@@ -312,7 +313,7 @@ d0    = [size(mu,1) size(mu,2) size(mu,3)];
 Mzoom = Mmu\oMmu;
 if any(d0~=d) || norm(Mzoom-eye(4))>1e-4
     y      = affine(d0,Mzoom);
-    mu     = exp(bsxfun(@minus,mu,LSE(mu,4)));
+    mu     = exp(bsxfun(@minus,mu,LSE0(mu,4)));
     [mu,c] = push1(mu,y,d,1);
     e      = eps('single');
     mu     = bsxfun(@rdivide,mu,max(c,e));
@@ -321,8 +322,21 @@ end
 %==========================================================================
 
 %==========================================================================
-function P = softmax(mu,ax)
-% safe softmax function
+function P = softmax0_delta(mu,delta)
+if nargin>=2 && ~isempty(delta)
+    P = zeros(size(mu),'like',mu);
+    delta = reshape(delta,[1 1 1 numel(delta)]);
+    for k=1:size(mu,3) % Save memory by looping over planes
+        P(:,:,k,:) = softmax0(bsxfun(@plus,mu(:,:,k,:),delta));
+    end
+else
+    P = softmax0(mu,4);
+end
+%==========================================================================
+
+%==========================================================================
+function P = softmax0(mu,ax)
+% safe softmax function (matches LSE0)
 
 if nargin<2, ax = 4; end
 mx  = max(mu,[],ax);
@@ -390,9 +404,9 @@ B     = sett.B;
 d     = sett.ms.d;
 Mmu   = sett.ms.Mmu;
 
-q    = double(datn.q);
-Mn   = datn.Mat;
-samp = datn.samp;
+q     = double(datn.q);
+Mn    = datn.Mat;
+samp  = datn.samp;
 [Mr,dM3] = spm_dexpm(q,B);
 dM   = zeros(12,size(B,3));
 for m=1:size(B,3)
@@ -440,8 +454,8 @@ clear J mu
 
 msk    = all(isfinite(f),4) & all(isfinite(mu1),4);
 mu1(~isfinite(mu1)) = 0;
-a      = mask(f - softmax(mu1,4),msk);
-[H,g]  = affine_hessian(mu1,G,a,single(msk),accel,samp);
+a      = mask(f - softmax0_delta(mu1,datn.delta),msk);
+[H,g]  = affine_hessian(mu1,G,a,single(msk),datn.delta,accel,samp);
 g      = double(dM'*g);
 H      = dM'*H*dM;
 H      = H + eye(numel(q))*(norm(H)*1e-6 + 0.001);
@@ -450,7 +464,7 @@ datn.q = q;
 %==========================================================================
 
 %==========================================================================
-function [H,g] = affine_hessian(mu,G,a,w,accel,samp)
+function [H,g] = affine_hessian(mu,G,a,w,delta,accel,samp)
 if nargin<6, samp = [1 1 1]; end
 d = [size(mu,1),size(mu,2),size(mu,3)];
 I = horder(3);
@@ -460,7 +474,7 @@ g = zeros(12, 1);
 for i=1:d(3)
     x{3} = x{3}*0+(i-1)*samp(3)+1;
     gv   = reshape(sum(bsxfun(@times,a(:,:,i,:),G(:,:,i,:,:)),4),[d(1:2) 1 3]);
-    Hv   = bsxfun(@times,w(:,:,i),velocity_hessian(mu(:,:,i,:),G(:,:,i,:,:),accel));
+    Hv   = bsxfun(@times,w(:,:,i),velocity_hessian(mu(:,:,i,:),G(:,:,i,:,:),delta,accel));
     for i1=1:12
         k1g   = rem(i1-1,3)+1;
         k1x   = floor((i1-1)/3)+1;
@@ -476,6 +490,8 @@ end
 
 %==========================================================================
 function [mu,dat] = update_mean(dat, mu, sett)
+
+[dat,mu] = adjust_delta(dat,mu);
 
 % Parse function settings
 accel       = sett.accel;
@@ -509,6 +525,20 @@ mu = gn_mu_update(mu,g,w,mu_settings,accel);
 %==========================================================================
 
 %==========================================================================
+function [dat,mu] = adjust_delta(dat,mu)
+% Zero-mean the deltas over subjects, and make a corresponding
+% adjustment to mu.
+mean_delta = mean(cat(1,dat.delta),1);
+if ~isempty(mean_delta)
+    for n=1:numel(dat)
+        dat(n).delta = dat(n).delta - mean_delta;
+    end
+    mean_delta = reshape(mean_delta,[1 1 1 size(mu,4)]);
+    mu         = bsxfun(@plus,mu,mean_delta);
+end
+%==========================================================================
+
+%==========================================================================
 function mu = gn_mu_update(mu,g,w,mu_settings,accel,nit)
 % Solve the problem
 % x = (L + H)\g
@@ -516,7 +546,7 @@ function mu = gn_mu_update(mu,g,w,mu_settings,accel,nit)
 % Hessian H is constructed on the fly using mu and w.
 if nargin<6, nit   = [1 16 1]; end
 if nargin<5, accel = 0.8;      end
-s = softmax(mu);
+s = softmax0(mu);
 x = zeros(size(s),'single');
 for it=1:nit(1)
     for subit=1:nit(2), x = relax_mu1(x,s,g,w,mu_settings,accel); end
@@ -588,7 +618,7 @@ for i=1:d(3)
     % Off-diagonal components
     kk = K+1;
     for k=1:K
-        for k1=(k+1):K,
+        for k1=(k+1):K
             H(:,:,1,kk) = hessel(k, k1, K, accel, si).*wi - dc/(K+1);
             kk = kk + 1;
         end
@@ -650,7 +680,7 @@ psi      = compose(get_def(datn,Mmu),affine(df, Mmu\spm_dexpm(q,B)*Mn,samp));
 spm_diffeo('boundary',1); % Neumann
 mu       = pull1(mu,psi);
 [f,datn] = spm_mb_classes(datn,mu,sett);
-[g,w]    = push1(softmax(mu,4) - f,psi,d,1);
+[g,w]    = push1(softmax0_delta(mu,datn.delta) - f,psi,d,1);
 %==========================================================================
 
 %==========================================================================
@@ -665,7 +695,7 @@ if ~isempty(B)
     % Update the affine parameters
     spm_diffeo('boundary',1);
     G  = spm_diffeo('grad',mu);
-    H0 = velocity_hessian(mu,G,accel);
+    H0 = velocity_hessian(mu,G,[],accel); % May need to use subject-specific deltas
 
     nw = get_num_workers(sett,dat,3*sett.K+4,3*sett.K+5);
     if nw > 1 && numel(dat) > 1 % PARFOR
@@ -738,7 +768,7 @@ end
 psi      = affine(df,Mmu\Mr*Mn,samp);
 mu1      = pull1(mu,psi);
 [f,datn] = spm_mb_classes(datn,mu1,sett);
-[a,w]    = push1(f - softmax(mu1,4),psi,d,1);
+[a,w]    = push1(f - softmax0_delta(mu1,datn.delta),psi,d,1);
 clear mu1 psi f
 
 [H,g]    = simple_affine_hessian(mu,G,H0,a,w);
@@ -777,7 +807,6 @@ end
 function dat = update_velocities(dat,mu,sett)
 
 % Parse function settings
-accel     = sett.accel;
 groupwise = isa(sett.mu,'struct') && isfield(sett.mu,'create');
 if groupwise
     scal = 1-1/numel(dat);
@@ -788,22 +817,17 @@ scal = min(scal,1.0);
 
 spm_diffeo('boundary',1); % Neumann boundary
 G  = spm_diffeo('grad',mu);
-H0 = velocity_hessian(mu,G,accel);
-if size(G,3) == 1
-    % Data is 2D -> add some regularisation
-    H0(:,:,:,3) = H0(:,:,:,3) + mean(reshape(H0(:,:,:,[1 2]),[],1));
-end
 
 nw = get_num_workers(sett,dat,4*sett.K+28,3*sett.K+7);
 if nw > 1 && numel(dat) > 1 % PARFOR
-    parfor(n=1:numel(dat),nw), dat(n) = update_velocities_sub(dat(n),mu,G,H0,sett,scal); end
+    parfor(n=1:numel(dat),nw), dat(n) = update_velocities_sub(dat(n),mu,G,sett,scal); end
 else % FOR
-    for n=1:numel(dat), dat(n) = update_velocities_sub(dat(n),mu,G,H0,sett,scal); end
+    for n=1:numel(dat), dat(n) = update_velocities_sub(dat(n),mu,G,sett,scal); end
 end
 %==========================================================================
 
 %==========================================================================
-function datn = update_velocities_sub(datn,mu,G,H0,sett,scal)
+function datn = update_velocities_sub(datn,mu,G,sett,scal)
 
 % Parse function settings
 B          = sett.B;
@@ -822,13 +846,18 @@ Mr       = spm_dexpm(q,B);
 Mat      = Mmu\Mr*Mn;
 df       = datn.dm;
 psi      = compose(get_def(datn,Mmu),affine(df,Mat,samp));
-mu       = pull1(mu,psi);
-[f,datn] = spm_mb_classes(datn,mu,sett);
-[a,w]    = push1(f - softmax(mu,4),psi,d,1);
-clear psi f mu
+mu1      = pull1(mu,psi);
+[f,datn] = spm_mb_classes(datn,mu1,sett);
+[a,w]    = push1(f - softmax0_delta(mu1,datn.delta),psi,d,1);
+clear psi f mu1
 
 g         = reshape(sum(bsxfun(@times,a,G),4),[d 3]);
-H         = bsxfun(@times,w,H0);
+H         = velocity_hessian(mu,G,datn.delta,sett.accel);
+H         = bsxfun(@times,w,H);
+if size(G,3) == 1
+    % Data is 2D -> add some regularisation
+    H(:,:,:,3) = H(:,:,:,3) + mean(reshape(H(:,:,:,[1 2]),[],1));
+end
 clear a w
 
 spm_diffeo('boundary',0); % Circulant boundary conditions
@@ -845,13 +874,13 @@ datn.v = spm_mb_io('set_data',datn.v,v);
 %==========================================================================
 
 %==========================================================================
-function H = velocity_hessian(mu,G,accel)
+function H = velocity_hessian(mu,G,delta,accel)
 d  = [size(mu,1),size(mu,2),size(mu,3)];
 M  = size(mu,4);
 Ab = 0.5*(eye(M)-1/(M+1)); % See Bohning's paper
 H  = zeros([d 6],'single');
 for i=1:d(3)
-    if accel>0, s = softmax(mu(:,:,i,:),4); end
+    if accel>0, s = softmax0_delta(mu(:,:,i,:),delta); end
     H11 = zeros(d(1:2));
     H22 = H11;
     H33 = H11;

@@ -3,7 +3,7 @@ function cfg = tbx_cfg_mb
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: tbx_cfg_mb.m 8219 2022-02-09 09:42:10Z john $
+% $Id: tbx_cfg_mb.m 8253 2022-05-19 09:14:05Z john $
 
 
 if ~isdeployed, addpath(fileparts(mfilename('fullpath'))); end
@@ -200,7 +200,7 @@ pop       = cfg_branch;
 pop.tag   = 'gmm';
 pop.name  = 'Pop. of scans';
 pop.val   = {chans, has_labels, pr,...
-             const('tol_gmm', 0.0005), const('nit_gmm_miss',32), const('nit_gmm',8), const('nit_appear', 4)};
+             const('tol_gmm', 0.0005), const('nit_gmm_miss',32), const('nit_gmm',8), const('nit_appear', 8)};
 pop.check = @check_pop;
 pop.help  = {'Information about a population of subjects that all have the same set of scans.',''};
 % ---------------------------------------------------------------------
@@ -400,7 +400,7 @@ onam.help       = {'Specify a key string for inclusion within all the output fil
 mb             = cfg_exbranch;
 mb.tag         = 'run';
 mb.name        = 'Fit Multi-Brain model';
-mb.val         = {mu_prov, aff, dff, onam, odir, segs, pops,...
+mb.val         = {mu_prov, aff, dff, const('del_settings',Inf), onam, odir, segs, pops,...
                    const('accel',0.8), const('min_dim', 8), const('tol',0.001),...
                    const('sampdens',2),const('save',true),const('nworker',0)};
 mb.prog        = @run_mb;
