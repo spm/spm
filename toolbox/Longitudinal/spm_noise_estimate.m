@@ -13,7 +13,7 @@ function [noise,mu_val,info] = spm_noise_estimate(Scans,K)
 %  Copyright (C) 2012-2019 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_noise_estimate.m 7599 2019-05-30 13:50:41Z mikael $
+% $Id: spm_noise_estimate.m 8254 2022-05-26 16:52:56Z nicole $
 
 if ~isa(Scans,'nifti'), Scans = nifti(Scans); end
 
@@ -21,7 +21,7 @@ if nargin < 2, K = 2; end
 
 noise  = zeros(numel(Scans),1);
 mu_val = zeros(numel(Scans),1);
-info   = struct('x',[],'h',[],'p',[],'sp',[],'md',[]);
+info   = struct('x',[],'h',[],'p',[],'lse',[],'md',[]);
 for i=1:numel(Scans)
     Nii = Scans(i);
     f   = Nii.dat(:,:,:);
