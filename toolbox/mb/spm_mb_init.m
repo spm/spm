@@ -5,7 +5,7 @@ function [dat,sett] = spm_mb_init(cfg)
 % Copyright (C) 2018-2020 Wellcome Centre for Human Neuroimaging
 
 
-% $Id: spm_mb_init.m 8257 2022-06-01 12:06:03Z john $
+% $Id: spm_mb_init.m 8258 2022-06-01 12:19:20Z john $
 
 [dat,sett] = mb_init1(cfg);
 
@@ -202,7 +202,7 @@ for p=1:numel(cfg.gmm)
             for c=2:Nc
                 dmc = size(f(c).dat,[1 2 3]);
                 if ~all(dmc==dm)
-                    error('Incompatible image dimensions for subject %d in population %d (%dx%dx%d ~= %dx%dx%d)', np, p, dmc, dm);
+                    error(sprintf('Incompatible image dimensions for subject %d in population %d (%dx%dx%d ~= %dx%dx%d)', np, p, dmc, dm));
                 end
             end
 
