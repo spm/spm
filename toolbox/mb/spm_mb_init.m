@@ -5,7 +5,7 @@ function [dat,sett] = spm_mb_init(cfg)
 % Copyright (C) 2018-2020 Wellcome Centre for Human Neuroimaging
 
 
-% $Id: spm_mb_init.m 8253 2022-05-19 09:14:05Z john $
+% $Id: spm_mb_init.m 8256 2022-06-01 11:46:19Z john $
 
 [dat,sett] = mb_init1(cfg);
 
@@ -170,8 +170,8 @@ for p=1:numel(cfg.gmm)
     sett.gmm(ix_gmm).nit_appear   = cfg.gmm(p).nit_appear;
 
     % Multiple Gaussians per template class
-    if isfield(cfg.gmm(p),'mg_ix')
-        sett.gmm(ix_gmm).mg_ix = cfg.gmm.mg_ix;
+    if isfield(cfg.gmm(p),'mg_ix') && ~isempty(cfg.gmm(p).mg_ix)
+        sett.gmm(ix_gmm).mg_ix = cfg.gmm(p).mg_ix;
     else
         sett.gmm(ix_gmm).mg_ix = 1:(sett.K+1);
     end
