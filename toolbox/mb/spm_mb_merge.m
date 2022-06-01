@@ -3,7 +3,7 @@ function out = spm_mb_merge(cfg)
 %__________________________________________________________________________
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_merge.m 8253 2022-05-19 09:14:05Z john $
+% $Id: spm_mb_merge.m 8259 2022-06-01 12:35:54Z john $
 
 out      = struct('mu','priors');
 odir     = cfg.odir{1};
@@ -26,7 +26,7 @@ if strcmp(ext,'.mat')
         [~,nam,ext] = fileparts(mu_name);
         [pth,~,~]   = fileparts(res_file);
         if ~exist(fullfile(pth,[nam ext]),'file')
-            error('Cannot find file %s or %s.',mu_name, fullfile(pth,[nam ext]));
+            error(sprintf('Cannot find file %s or %s.',mu_name, fullfile(pth,[nam ext])));
         else
             mu_name = fullfile(pth,[nam ext]);
         end
@@ -70,7 +70,7 @@ out.mu    = {Nmu.dat.fname};
 function mu1 = merge_mu(mu,ix)
 K  = size(mu,4)+1;
 if numel(ix)~=K
-    error('Incorrect index dimension.\n The mean image suggests K=%d, whereas the indices assume K=%d.',K, numel(ix));
+    error(sprintf('Incorrect index dimension.\n The mean image suggests K=%d, whereas the indices assume K=%d.',K, numel(ix)));
 end
 if any(ix>K) || any(ix<1)
     error('Index out of bounds.');

@@ -10,7 +10,7 @@ function varargout = spm_subfun(varargin)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % John Ashburner
-% $Id: spm_subfun.m 7908 2020-07-24 18:30:35Z spm $
+% $Id: spm_subfun.m 8259 2022-06-01 12:35:54Z john $
 
 if nargin <= 1
     [varargout{1:nargout}] = import(varargin{1:nargin});
@@ -23,7 +23,7 @@ end
 function varargout = select(funs,opt,varargin)
 opt = lower(opt);
 s   = import(funs);
-if ~isfield(s,opt), error('Unknown function (%s)',opt); end
+if ~isfield(s,opt), error(sprintf('Unknown function (%s)',opt)); end
 [varargout{1:nargout}] = feval(s.(opt),varargin{:});
 %==========================================================================
 

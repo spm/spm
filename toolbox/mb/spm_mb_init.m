@@ -5,7 +5,7 @@ function [dat,sett] = spm_mb_init(cfg)
 % Copyright (C) 2018-2020 Wellcome Centre for Human Neuroimaging
 
 
-% $Id: spm_mb_init.m 8258 2022-06-01 12:19:20Z john $
+% $Id: spm_mb_init.m 8259 2022-06-01 12:35:54Z john $
 
 [dat,sett] = mb_init1(cfg);
 
@@ -65,12 +65,12 @@ for p=1:numel(cfg.gmm)
     end
     for c=2:numel(cfg.gmm(p).chan)
         if numel(cfg.gmm(p).chan(c).images)~=Np
-            error('Incompatible numbers of scans over channels (pop-%d).',p);
+            error(sprintf('Incompatible numbers of scans over channels (pop-%d).',p));
         end
     end
     if isfield(cfg.gmm(p).labels,'true')
         if numel(cfg.gmm(p).labels.true.images)~=Np
-            error('Incompatible numbers of label images (pop-%d).',p);
+            error(sprintf('Incompatible numbers of label images (pop-%d).',p));
         end
     end
 end
@@ -96,7 +96,7 @@ if numel(cfg.cat)>=1
         for c=2:Nc
             dmc = size(f(c).dat,[1 2 3]);
             if ~all(dmc==dm)
-                error('Incompatible image dimensions for tissue classes of subject %d (%dx%dx%d ~= %dx%dx%d)', np, dmc, dm);
+                error(sprintf('Incompatible image dimensions for tissue classes of subject %d (%dx%dx%d ~= %dx%dx%d)', np, dmc, dm));
             end
         end
 
@@ -126,7 +126,7 @@ if numel(cfg.cat)>=1
         end
         if K>=0
             if Kn~=K
-                error('Incompatible numbers of categories for subject %d (%d~=%d).',np,Kn,K);
+                error(sprintf('Incompatible numbers of categories for subject %d (%d~=%d).',np,Kn,K));
             end
         else
             K = Kn;
@@ -253,7 +253,7 @@ for p=1:numel(cfg.gmm)
 
             if C>=0
                 if Cn~=C
-                    error('Incompatible numbers of channels (pop=%d, n=%d).',p, np);
+                    error(sprintf('Incompatible numbers of channels (pop=%d, n=%d).',p, np));
                 end
             else
                 C = Cn;
@@ -267,13 +267,13 @@ for p=1:numel(cfg.gmm)
                 lab = struct('f', nifti(cfg.gmm(p).labels.true.images{np}));
                 dmc = size(lab.f(1).dat,[1 2 3]);
                 if ~all(dmc==dm)
-                    error('Incompatible image dimensions for images of subject %d in population %d (%dx%dx%d ~= %dx%dx%d)', np, p, dmc, dm);
+                    error(sprintf('Incompatible image dimensions for images of subject %d in population %d (%dx%dx%d ~= %dx%dx%d)', np, p, dmc, dm));
                 end
                 if ~all(lab.f.mat(:)==f(1).mat(:))
                     warning('Incompatible s-form matrices for subject %d in population %d', np, p);
                 end
                %if max(cellfun(@max,lab.cm_map)) > K+1 || min(cellfun(@min,lab.cm_map)) < 1
-               %    error('Poorly specified label mapping for population %d', p);
+               %    error(sprintf('Poorly specified label mapping for population %d', p));
                %end
                 Alpha = ones(256,K+1)*eps;
             else
@@ -300,16 +300,16 @@ for p=1:numel(cfg.gmm)
         pr = load(cfg.gmm(p).pr.file{1});
         if isfield(pr,'mg_ix')
             if max(pr.mg_ix) ~= K+1
-                error('Incompatible K dimensions for intensity priors ("%s").',cfg.gmm(p).pr.file{1});
+                error(sprintf('Incompatible K dimensions for intensity priors ("%s").',cfg.gmm(p).pr.file{1}));
             end
             sett.gmm(ix_gmm).mg_ix = pr.mg_ix;
         end
         if isfield(pr,'pr')
             if size(pr.pr{1},1) ~= C
-                error('Incompatible C dimensions for intensity priors ("%s").',cfg.gmm(p).pr.file{1});
+                error(sprintf('Incompatible C dimensions for intensity priors ("%s").',cfg.gmm(p).pr.file{1}));
             end
             if size(pr.pr{1},2) ~= numel(sett.gmm(ix_gmm).mg_ix)
-                error('Incompatible total K dimensions for intensity priors ("%s").',cfg.gmm(p).pr.file{1});
+                error(sprintf('Incompatible total K dimensions for intensity priors ("%s").',cfg.gmm(p).pr.file{1}));
             end
             sett.gmm(ix_gmm).pr = pr.pr;
         end

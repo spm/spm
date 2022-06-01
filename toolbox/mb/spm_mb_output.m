@@ -5,7 +5,7 @@ function res = spm_mb_output(cfg)
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_output.m 8253 2022-05-19 09:14:05Z john $
+% $Id: spm_mb_output.m 8259 2022-06-01 12:35:54Z john $
 
 res  = cfg.result;
 if iscell(res), res = res{1}; end
@@ -451,7 +451,7 @@ case 'int16'
     s  = max(mx/32767,-mn/32768);
     fa = file_array(f,size(img),typ,0,s,0);
 otherwise
-    error('Can''t do datatype "%s"', typ);
+    error(sprintf('Can''t do datatype "%s"', typ));
 end
 Nii         = nifti;
 Nii.dat     = fa;

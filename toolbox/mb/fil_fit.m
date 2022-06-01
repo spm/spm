@@ -14,7 +14,7 @@ function [mod,Z,V] = fil_fit(F,J,sett,ind,p,varargin)
 % Copyright (C) 2019-2021 Wellcome Centre for Human Neuroimaging
 
 % John Ashburner & Yu Yan
-% $Id: fil_fit.m 8139 2021-08-24 19:38:01Z guillaume $
+% $Id: fil_fit.m 8259 2022-06-01 12:35:54Z john $
 
 if nargin<3, error('Incorrect usage.'); end
 if nargin<4 || isempty(ind), ind = true(size(F{1},3), numel(F)); end
@@ -40,7 +40,7 @@ if nargin<6 || isempty(varargin{1})
     randn('seed',0);
     for l=1:numel(mod)
         if sum(ind(:,l),1)~=size(F{l},3)
-            error('Incompatible dimensions (%d ~= %d).', sum(ind(:,l),1), size(F{l},3));
+            error(sprintf('Incompatible dimensions (%d ~= %d).', sum(ind(:,l),1), size(F{l},3)));
         end
         mod(l).mu = zeros(size(F{l},1), size(F{l},2),'single');
         mod(l).W  = randn(size(F{l},1), size(F{l},2), K,'single');
