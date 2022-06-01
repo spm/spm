@@ -5,7 +5,7 @@ function [dat,sett] = spm_mb_init(cfg)
 % Copyright (C) 2018-2020 Wellcome Centre for Human Neuroimaging
 
 
-% $Id: spm_mb_init.m 8256 2022-06-01 11:46:19Z john $
+% $Id: spm_mb_init.m 8257 2022-06-01 12:06:03Z john $
 
 [dat,sett] = mb_init1(cfg);
 
@@ -443,18 +443,25 @@ for p=1:numel(sett.gmm) % Loop over populations
         for n=1:N
             n1   = index(n);
 
-            % Initial distribution for mean
-            m    = sett.gmm(p).pr{1};      % Use prior mean
-            b    = ones(1,K1)*1e-3;        % Uninformative
+%           % Initial distribution for mean
+%           m    = sett.gmm(p).pr{1};      % Use prior mean
+%           b    = ones(1,K1)*1e-3;        % Uninformative
+%
+%           % Initial distribution for precision
+%           nu0  = size(m,1)-1+1e-3;
+%           nu   = ones(1,K1)*nu0;
+%
+%           vr   = double(mean(vr_all,2));
+%           scal = max(K1-1,1).^(2/C);     % Crude heuristic
+%           W    = diag(1./vr)*(scal/nu0); % Low precision
+%           W    = repmat(W,[1 1 K1]);
 
-            % Initial distribution for precision
-            nu0  = size(m,1)-1+1e-3;
-            nu   = ones(1,K1)*nu0;
-
-            vr   = double(mean(vr_all,2));
-            scal = max(K1-1,1).^(2/C);     % Crude heuristic
-            W    = diag(1./vr)*(scal/nu0); % Low precision
-            W    = repmat(W,[1 1 K1]);
+            % directly using the learned priors seems to work better
+            % (for CT at least)
+            m = sett.gmm(p).pr{1};
+            b = sett.gmm(p).pr{2};
+            W = sett.gmm(p).pr{3};
+            nu = sett.gmm(p).pr{4};
 
             dat(n1).model.gmm.m   = m;
             dat(n1).model.gmm.b   = b;
