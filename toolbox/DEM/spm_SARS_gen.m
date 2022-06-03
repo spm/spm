@@ -84,7 +84,7 @@ function [y,x,z,W] = spm_SARS_gen(P,M,U,NPI,age)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_gen.m 8260 2022-06-03 14:06:33Z karl $
+% $Id: spm_SARS_gen.m 8261 2022-06-03 14:10:59Z karl $
 
 
 % The generative model:
@@ -265,11 +265,12 @@ for n = 1:nN
     x{n}  = spm_cross(p{n});
     P     = R{n};
     P.n   = 0;
-    P.t   = 1;
+    P.pcr = 1;    % testing
     P.tin = 1;    % P(no transmission | home)
     P.tou = 1;    % P(no transmission | work)
     P.ths = 1;    % P(no transmission | hospital)
     P.nac = 1;    % P(no vaccination)
+    P.pil = [0,0,0,0];
     for i = 1:8
         T    = spm_COVID_T(P,I);
         x{n} = spm_unvec(T*spm_vec(x{n}),x{n});
@@ -352,21 +353,42 @@ for i = 1:M.T
         % coupling between groups (contact rates)
         %==================================================================
         
-        % fluctuations in contact rates (mobility): radial basis functions
+        % fluctuations in testing rate: Gaussian basis functions
+        %------------------------------------------------------------------
+        Ppcr = 0;
+        dt   = 64;
+        if isfield(R{n},'pcr')
+            for j = 1:numel(R{n}.pcr)
+                Ppcr = Ppcr + log(R{n}.pcr(j)) * exp(-(i - j*dt).^2./((dt/2)^2));
+            end
+        end
+        Q{n}.pcr = exp(erf(Ppcr)/4);
+        
+        % fluctuations in contact rates (mobility): Gaussian basis functions
         %------------------------------------------------------------------
         Rout = 0;
-        dt   = 32;
-        if isfield(P,'mob')
-            for j = 1:numel(Q{n}.mob)
-                Rout = Rout + log(Q{n}.mob(j)) * exp(-(i - j*dt).^2/((dt/2)^2))/8;
+        dt   = 64;
+        if isfield(R{n},'mob')
+            for j = 1:numel(R{n}.mob)
+                Rout = Rout + log(R{n}.mob(j)) * exp(-(i - j*dt).^2/((dt/2)^2))/8;
             end
         end
         
-        % and slow fluctuations in transmissibility
+        % fluctuations in transmissibility: Growth curves
         %------------------------------------------------------------------
-        Ptra  = spm_phi(((i - 400*Q{n}.tra(2))/(96*Q{n}.tra(3))));
-        Ptra  = exp(Ptra^(4*Q{n}.tra(4)));
-
+        Ptra  = 1;
+        dt    = 64;
+        for j = 1:numel(R{n}.tra)
+            Ptra  = Ptra + R{n}.tra(j) * spm_phi((i - j*dt)/(dt/2))/16;
+        end
+        
+        % (pillar 1, 2 and LFD) phases of testing: Growth curves
+        %------------------------------------------------------------------
+        for j = 1:numel(R{n}.lim)
+            Q{n}.pil(j) = R{n}.lim(j)*spm_phi((i - R{n}.ons(j))/R{n}.rat(j));
+        end
+        
+        
         % fluctuations in epidemiological parameters NB Ptra > 1
         %------------------------------------------------------------------
         Q{n}.Tin = R{n}.Tin*Ptra^(-R{n}.s(1)/16);  % infected time
@@ -406,7 +428,7 @@ for i = 1:M.T
         %------------------------------------------------------------------
         S    = (1 + cos(2*pi*(i - log(Q{n}.inn)*8)/365))/2;
         Ptrn = Q{n}.trn + Q{n}.trm*S;              % seasonal risk
-        Ptrn = erf(Ptrn*Q{n}.tra(1)*Ptra);         % fluctuating risk
+        Ptrn = erf(Ptrn*Ptra);                     % fluctuating risk
         
         % contact rates
         %------------------------------------------------------------------
@@ -431,16 +453,14 @@ for i = 1:M.T
         % vaccination rollout: nac = 1 - vaccination rate
         %------------------------------------------------------------------
         t    =  i - 365;
-        q    = (t - Q{n}.rol(2))/Q{n}.rol(3);
-        Rvac = Q{n}.rol(1)*(1 + erf(q))*exp(-t/Q{n}.mem);
+        q    = (t - Q{n}.rol(2))/Q{n}.mem(2);
+        Rvac = Q{n}.rol(1)*(1 + erf(q))*exp(-t/Q{n}.mem(1));
         for j = 0:4
             t    =  i - 565 - (6*28)*j;
-            q    = (t - Q{n}.fol(2))/Q{n}.fol(3);
-            Rvac = Rvac + Q{n}.fol(1)*(1 + erf(q))*exp(-t/Q{n}.mem);
+            q    = (t - Q{n}.fol(2))/Q{n}.mem(2);
+            Rvac = Rvac + Q{n}.fol(1)*(1 + erf(q))*exp(-t/Q{n}.mem(1));
         end
-        
         Q{n}.nac = 1 - erf(Rvac);
-        Q{n}.t   = i;                              % time (days)
                
         % update ensemble density (x)
         %==================================================================

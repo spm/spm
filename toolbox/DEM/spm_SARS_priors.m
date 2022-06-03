@@ -37,7 +37,7 @@ function [P,C,str] = spm_SARS_priors(nN)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_priors.m 8252 2022-05-18 13:23:48Z karl $
+% $Id: spm_SARS_priors.m 8261 2022-06-03 14:10:59Z karl $
 
 % sources and background
 %--------------------------------------------------------------------------
@@ -65,11 +65,11 @@ if nargin
     % priors for single group
     %----------------------------------------------------------------------
     [P,C,str] = spm_SARS_priors;
-    free  = {'N','Nin','Nou',...
+    free  = {'N'  ,'Nin','Nou',...
              'abs','qua','pro'...
              'hos','ccu','Tim',...
-             'sev','fat',...
-             'rol','lnk','dps'};
+             'sev','fat','lnk',...
+             'rol','fol','mem'};
 
     if nN == 1
         
@@ -88,9 +88,9 @@ if nargin
         %------------------------------------------------------------------
         P.N   = P.N - log(nN);
         P.n   = P.n - log(nN);
-        P.rol = log([0.004  64  128;
-                     0.04   32  64;
-                     0.04   16  32]);
+        P.rol = log([0.004  64;
+                     0.04   32;
+                     0.04   16]);
         P.fol = P.rol;
                  
         P.sev = log([0.0010;
@@ -122,24 +122,24 @@ if nargin
             C.(free{i}) = kron(ones(nN,1),C.(free{i}));
         end
         
-        % Age-specific prior expectations
+        % Age-specific prior expectations (amplitude and latency)
         %------------------------------------------------------------------
         P.N   = P.N - log(nN);
         P.n   = P.n - log(nN);
-        P.rol = log([0.0001 256  256;
-                     0.004  128  128;
-                     0.04   64   64;
-                     0.08   32   32]);
+        P.rol = log([0.0001 256;
+                     0.004  128;
+                     0.04   64;
+                     0.08   32]);
                  
-        P.fol = log([0.0001 64  256;
-                     0.004  48  128;
-                     0.04   32   64;
-                     0.08   16   32]);
+        P.fol = log([0.0001 64;
+                     0.004  48;
+                     0.04   32;
+                     0.08   16]);
 
-        C.rol = [1/16 1/64 1/64;
-                 1/16 1/64 1/64;
-                 1/16 1/64 1/64;
-                 1/16 1/64 1/64];
+        C.rol = [1/16 1/64;
+                 1/16 1/64;
+                 1/16 1/64;
+                 1/16 1/64];
              
         C.fol = C.rol;
              
@@ -449,9 +449,9 @@ P.ons = [100 200 300 400];    % (37) testing: onset
 
 P.lag = [1 1];                % (38) reporting lag
 P.inn = 1;                    % (39) seasonal phase
-P.mem = 128;                  % (40) vaccination (days)
-P.rol = [exp(-16) 32 32];     % (41) vaccination rollout (1st)
-P.fol = [exp(-16) 32 32];     % (42) vaccination rollout (2nd)
+P.mem = [128 32];             % (40) vaccination (days)
+P.rol = [exp(-16) 32];        % (41) vaccination rollout (1st)
+P.fol = [exp(-16) 32];        % (42) vaccination rollout (2nd)
 
 P.vef = 0.4;                  % (43) 1 - vaccine efficacy: infection
 P.lnk = 0.2;                  % (44) 1 - vaccine efficacy: pathogenicity
@@ -468,7 +468,7 @@ P.rel = 1;                    % (52) PCR testing of fatalities
 P.pro = [1 1];                % (53) contact rate decay (days)
 P.oth = 0.1;                  % (54) relative survival outside hospital
 P.iad = [1 1];                % (55) exponent: transfer to CCU
-P.tra = [1 1 1 1];            % (56) transmissibility parameters
+P.tra = ones(1,14);           % (56) transmissibility parameters
 P.dps = [2 1];                % (57) doses per seroconversion
 P.abs = 1;                    % (58) Sensitivity to contact fluctuations
 
@@ -557,7 +557,7 @@ C.rel = W;                    % (52) PCR testing of fatalities
 C.pro = W;                    % (53) contact rate decay (days)
 C.oth = W;                    % (54) relative survival outside hospital
 C.iad = V;                    % (55) exponent: transfer to CCU
-C.tra = V;                    % (56) transmissibility parameters
+C.tra = X;                    % (56) transmissibility parameters
 C.dps = X;                    % (57) doses per seroconversion
 C.abs = X;                    % (58) Sensitivity to contact fluctuations
 

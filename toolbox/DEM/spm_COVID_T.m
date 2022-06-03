@@ -22,7 +22,7 @@ function [T,R] = spm_COVID_T(P,I)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_T.m 8247 2022-04-27 10:26:13Z karl $
+% $Id: spm_COVID_T.m 8261 2022-06-03 14:10:59Z karl $
 
 % setup
 %==========================================================================
@@ -313,27 +313,9 @@ ij   = Bij({[3 6],1:5,3,1:6},{[3 6],1:5,1,1:6},dim); B{3}(ij) = (1 - Ktrd)*(1 - 
 %--------------------------------------------------------------------------
 b    = cell(1,dim(2));
 
-% fluctuations in testing rate: Gaussian basis functions
-%--------------------------------------------------------------------------
-Ppcr = 0;
-dt   = 48;
-if isfield(P,'pcr')
-    for i = 1:numel(P.pcr)
-        Ppcr = Ppcr + log(P.pcr(i)) * exp(-(P.t - i*dt).^2./((dt/2)^2));
-    end
-end
-Ppcr = exp(erf(Ppcr)/4);
-
-% (pillar 1, 2 and LFD) phases of testing
-%--------------------------------------------------------------------------
-pill   = zeros(1,numel(P.lim));
-for i = 1:numel(P.lim)
-    pill(i) = P.lim(i)*spm_phi((P.t - P.ons(i))/P.rat(i));
-end
-
-pcr1 = pill(1);                                % pillar one testing   PCR
-pcr2 = Ppcr*pill(2);                           % surveillance testing PCR
-Plfd = Ppcr*sum(pill(3) + pill(4));            % surveillance testing LFD
+pcr1 = P.pil(1);                               % pillar one testing   PCR
+pcr2 = P.pcr*P.pil(2);                         % surveillance testing PCR
+Plfd = P.pcr*sum(P.pil(3) + P.pil(4));         % surveillance testing LFD
 Psen = erf(pcr1 + pcr2);                       % testing rate | susceptible PCR
 Ptes = erf(pcr1*P.tes(1) + pcr2*P.tes(2));     % testing rate | infection   PCR
 Plen = erf(Plfd);                              % testing rate | susceptible LFD

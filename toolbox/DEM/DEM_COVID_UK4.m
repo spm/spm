@@ -14,7 +14,7 @@ function DCM = DEM_COVID_UK4
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_UK4.m 8252 2022-05-18 13:23:48Z karl $
+% $Id: DEM_COVID_UK4.m 8261 2022-06-03 14:10:59Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -156,9 +156,13 @@ writetable(cumAdmiss,'cumAdmiss.csv')
 %--------------------------------------------------------------------------
 url  = 'https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/947572/COVID-19-transport-use-statistics.ods.ods';
 tab  = webread(url,options);
-if isempty(table2array(tab{1,3}))
-    writetable(tab(8:end,1:4),'transport.csv');
-else
+try
+    if isempty(table2array(tab{1,3}))
+        writetable(tab(8:end,1:4),'transport.csv');
+    else
+        writetable(tab(:,1:4),'transport.csv');
+    end
+catch
     writetable(tab(:,1:4),'transport.csv');
 end
 
@@ -521,7 +525,7 @@ Y(20).unit = 'percent';
 Y(20).U    = 22;
 Y(20).date = datenum(agevaccine.textdata(2:end,1),'yyyy-mm-dd');
 Y(20).Y    = agevaccine.data(:,iv2)*vons{1};
-Y(20).h    = 0;
+Y(20).h    = 2;
 Y(20).lag  = 0;
 Y(20).age  = 2;
 Y(20).hold = 1;
@@ -531,7 +535,7 @@ Y(21).unit = 'percent';
 Y(21).U    = 22;
 Y(21).date = datenum(agevaccine.textdata(2:end,1),'yyyy-mm-dd');
 Y(21).Y    = agevaccine.data(:,iv3)*vons{2};
-Y(21).h    = 0;
+Y(21).h    = 2;
 Y(21).lag  = 0;
 Y(21).age  = 3;
 Y(21).hold = 1;
@@ -541,7 +545,7 @@ Y(22).unit = 'percent';
 Y(22).U    = 22;
 Y(22).date = datenum(agevaccine.textdata(2:end,1),'yyyy-mm-dd');
 Y(22).Y    = agevaccine.data(:,iv4)*vons{3};
-Y(22).h    = 0;
+Y(22).h    = 2;
 Y(22).lag  = 0;
 Y(22).age  = 4;
 Y(22).hold = 0;
@@ -780,11 +784,11 @@ pC.gd   = ones(j,2)/8;        % prior variance
 
 % augment priors with fluctuations
 %--------------------------------------------------------------------------
-i       = ceil((datenum(date) - datenum(M.date))/32);
-j       = ceil((datenum(date) - datenum(M.date))/48);
+i       = ceil((datenum(date) - datenum(M.date))/64);
+j       = ceil((datenum(date) - datenum(M.date))/64);
 
 pE.pcr  = zeros(1,j);          % testing
-pC.pcr  = ones(1,j)/8;         % prior variance
+pC.pcr  = ones(1,j);           % prior variance
 pE.mob  = zeros(1,i);          % mobility
 pC.mob  = ones(1,i)/128;       % prior variance
 
@@ -1117,8 +1121,8 @@ text(omicron,4,'omicron','FontSize',10,'HorizontalAlignment','center')
 % add R = 1 and current dateline
 %--------------------------------------------------------------------------
 plot(get(gca,'XLim'),[1,1],':k')
-plot(datenum(date,'dd-mm-yyyy')*[1,1],get(gca,'YLim'),':k')
-set(gca,'YLim',[0 8]), ylabel('ratio or percent')
+plot(datenum(date,'dd-mm-yyyy')*[1,1],[0 max(RT)],':k')
+set(gca,'YLim',[0 10]), ylabel('ratio or percent')
 title(str,'FontSize',14)
 
 legend({'90% CI','Prevalence (%)',' ','Effective R-number',...
