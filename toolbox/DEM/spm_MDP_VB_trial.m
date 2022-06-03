@@ -16,12 +16,12 @@ function spm_MDP_VB_trial(MDP,gf,gg)
 %
 % [f,g]           - factors and outcomes to plot [Default: first 3]
 %
-% please see spm_MDP_VB
+% please see spm_MDP_VB. For multiple trials please see spm_MDP_VB_game
 %__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_trial.m 8172 2021-10-25 10:20:42Z karl $
+% $Id: spm_MDP_VB_trial.m 8262 2022-06-03 14:15:28Z karl $
 
 % graphics
 %==========================================================================
@@ -58,13 +58,11 @@ ng    = numel(gg);
 for f = 1:nf
     subplot(3*nf,2,(f - 1)*2 + 1)
     image(64*(1 - X{gf(f)})), hold on
-    a = axis;
     if size(X{gf(f)},1) > 128
-        
-        spm_spy(X{gf(f)},16,1)
-        ;
+        % spm_spy(X{gf(f)},16,1);
     end
-    plot(MDP.s(gf(f),:),'.c','MarkerSize',16), axis(a), hold off
+    a = axis; hold on
+    plot(MDP.s(gf(f),:),'.r','MarkerSize',16), axis(a), hold off
     if f < 2
         title(sprintf('Hidden states - %s',MDP.label.factor{gf(f)}));
     else

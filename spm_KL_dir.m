@@ -11,12 +11,12 @@ function [d] = spm_KL_dir(q,p)
 % This routine uses an efficient computation that handles arrays, matrices 
 % or vectors. It returns the sum of divergences over columns.
 %
-% see also: spm_kl_dirichlet.m (for rwo vectors)
+% see also: spm_kl_dirichlet.m (for row vectors)
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_KL_dir.m 8183 2021-11-04 15:25:19Z guillaume $
+% $Id: spm_KL_dir.m 8262 2022-06-03 14:15:28Z karl $
 
 %  KL divergence based on log beta functions
 %--------------------------------------------------------------------------

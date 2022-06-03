@@ -6,8 +6,8 @@ function [u,v] = spm_MDP_VB_LFP(MDP,UNITS,f,SPECTRAL)
 %  .xn       - neuronal firing
 %  .dn       - phasic dopamine responses
 %
-% UNITS(1,j) - hidden state                           [default: all]
-% UNITS(2,j) - time step
+% UNITS(1,:) - hidden state                           [default: all]
+% UNITS(2,:) - time step
 %
 % FACTOR     - hidden factor to plot                  [default: 1]
 % SPECTRAL   - replace raster with spectral responses [default: 0]
@@ -23,7 +23,7 @@ function [u,v] = spm_MDP_VB_LFP(MDP,UNITS,f,SPECTRAL)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_VB_LFP.m 8172 2021-10-25 10:20:42Z karl $
+% $Id: spm_MDP_VB_LFP.m 8262 2022-06-03 14:15:28Z karl $
  
  
 % defaults
@@ -54,19 +54,20 @@ for i = 1:Ne
         ALL(:,end + 1) = [j;i];
     end
 end
-i     = size(ALL,2);
-if  i > 512
-    ALL = ALL(:,round(linspace(1,i,512)));
+if  size(ALL,2) > 512
+    ii  = round(linspace(1,size(ALL,2),512));
+    ALL = ALL(:,ii);
 end
 if isempty(UNITS)
     UNITS = ALL;
 end
-    
-% summary statistics
+ii = 1:size(ALL,2);
+
+% summary statistics: firing rates
 %==========================================================================
 for i = 1:Nt
     
-    % all units
+    % for all units
     %----------------------------------------------------------------------
     str    = {};
     try
@@ -76,24 +77,19 @@ for i = 1:Nt
     end
     for j = 1:size(ALL,2)
         for k = 1:Ne
-            zj{k,j} = xn(:,ALL(1,j),ALL(2,j),k);
-            xj{k,j} = gradient(zj{k,j}')';
+            z{i,1}{k,j} = xn(:,ALL(1,j),ALL(2,j),k);
         end
         str{j} = sprintf('%s: t=%i',MDP(1).label.name{f}{ALL(1,j)},ALL(2,j));
     end
-    z{i,1} = zj;
-    x{i,1} = xj;
     
-    % selected units
+    % for selected units
     %----------------------------------------------------------------------
     for j = 1:size(UNITS,2)
         for k = 1:Ne
-            vj{k,j} = xn(:,UNITS(1,j),UNITS(2,j),k);
-            uj{k,j} = gradient(vj{k,j}')';
+            v{i,1}{k,j} = xn(:,UNITS(1,j),UNITS(2,j),k);
         end
     end
-    v{i,1} = vj;
-    u{i,1} = uj;
+
     
     % dopamine or changes in precision
     %----------------------------------------------------------------------
@@ -110,11 +106,24 @@ t   = (1:(Nb*Ne*Nt))*dt;                 % time (seconds)
 Hz  = 4:32;                              % frequency range
 n   = 1/(4*dt);                          % window length
 w   = Hz*(dt*n);                         % cycles per window
- 
-% simulated firing rates and local field potential
+
+% simulated firing rates 
+%--------------------------------------------------------------------------
+z = spm_cat(z)';                         % firing rates of all units
+v = spm_cat(v)';                         % firing rates of selected units
+
+% bandpass filter log rates between 8 and 32 Hz: local field potential
+%--------------------------------------------------------------------------
+c  = 1/32;
+x  = log(z' + c);
+u  = log(v' + c);
+x  = spm_conv(x,2,0) - spm_conv(x,16,0);
+u  = spm_conv(u,2,0) - spm_conv(u,16,0);
+
+% simulated firing rates
 %--------------------------------------------------------------------------
 if Nt == 1, subplot(3,2,1), else, subplot(4,1,1),end
-image(t,1:(Nx*Ne),64*(1 - spm_cat(z)'))
+image(t,ii,64*(1 - z))
 title(MDP(1).label.factor{f},'FontSize',16)
 xlabel('time (sec)','FontSize',12)
 
@@ -128,10 +137,9 @@ if Nt == 1,    axis square,              end
  
 % time frequency analysis and theta phase
 %--------------------------------------------------------------------------
-LFP = spm_cat(x);
-wft = spm_wft(LFP,w,n);
+wft = spm_wft(x,w,n);
 csd = sum(abs(wft),3);
-lfp = sum(LFP,2);
+lfp = sum(x,2);
 phi = spm_iwft(sum(wft(1,:,:),3),w(1),n);
 lfp = 4*lfp/std(lfp) + 16;
 phi = 4*phi/std(phi) + 16;
@@ -177,9 +185,9 @@ end
 % local field potentials
 %==========================================================================
 if Nt == 1, subplot(3,2,4), else, subplot(4,1,3),end
-plot(t,spm_cat(u)),     hold off, spm_axis tight, a = axis;
-plot(t,spm_cat(x),':'), hold on
-plot(t,spm_cat(u)),     hold off, axis(a)
+plot(t,u),     hold off, spm_axis tight, a = axis;
+plot(t,x,':'), hold on
+plot(t,u),     hold off, axis(a)
 grid on, set(gca,'XTick',(1:(Ne*Nt))*Nb*dt), 
 for i = 2:2:Nt
     h = patch(((i - 1) + [0 0 1 1])*Ne*Nb*dt,a([3,4,4,3]),-[1 1 1 1],'w');
@@ -192,11 +200,9 @@ if Nt == 1, axis square, end, box off
 
 % firing rates
 %==========================================================================
-qu   = spm_cat(v);
-qx   = spm_cat(z);
 if Nt == 1, subplot(3,2,2)
-    plot(t,qu),     hold on, spm_axis tight, a = axis;
-    plot(t,qx,':'), hold off
+    plot(t,v),     hold on, spm_axis tight, a = axis;
+    plot(t,z,':'), hold off
     grid on, set(gca,'XTick',(1:(Ne*Nt))*Nb*dt), axis(a)
     title('Firing rates','FontSize',16)
     xlabel('time (sec)')
@@ -219,10 +225,10 @@ if Nt == 1, axis square, end
 % simulated rasters
 %==========================================================================
 Nr    = 16;
-if Nt == 1 && size(z{1},2) < 129
+if Nt == 1 && numel(ii) < 129
     subplot(3,2,5)
     
-    R  = kron(spm_cat(z)',ones(Nr,Nr));
+    R  = kron(z,ones(Nr,Nr));
     R  = rand(size(R)) > R*(1 - 1/16);
     imagesc(t,1:(Nx*Ne),R),title('Unit firing','FontSize',16)
     xlabel('time (sec)','FontSize',12)

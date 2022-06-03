@@ -4,7 +4,7 @@ function MDP = DEM_demo_MDP_rule
 %
 % This routine simulates a crude form of consciousness using active
 % inference and structure learning to vitiate ignorance or nescience. This
-% entails learning the hyper parameters of causal structure generating
+% entails learning the hyperparameters of causal structure generating
 % outcomes and then using Bayesian model reduction (during sleep) to
 % minimise complexity.
 %
@@ -32,7 +32,7 @@ function MDP = DEM_demo_MDP_rule
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_demo_MDP_rule.m 7679 2019-10-24 15:54:07Z spm $
+% $Id: DEM_demo_MDP_rule.m 8262 2022-06-03 14:15:28Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -85,7 +85,7 @@ for f1 = 1:Ns(1)                     % rule
                 
                 % A{3} feedback: {'null','right','wrong'}
                 %----------------------------------------------------------
-                if f4 == 4,
+                if f4 == 4
                     A{3}(1,f1,f2,f3,f4) = 1;                             % undecided
                 else
                     if f1 == 2 && f4 == 2,  A{3}(2,f1,f2,f3,f4) = 1; end % right
@@ -321,32 +321,29 @@ title('Action ','Fontsize',16), legend({'saccades','hits'})
 % illustrate Bayesian model reduction
 %--------------------------------------------------------------------------
 OPTIONS.g = 1;
-OPTIONS.f = 2;
+OPTIONS.x = 8;
 OPTIONS.T = 3;
-OPTIONS.m = @(i,i1,i2,i3,i4) i == i2;
 
 for n = 1:N
-    sdp{n} = spm_MDP_VB_sleep(MDP(n),OPTIONS);
-    cor(n) = corr(spm_vec(MDP(n).A{1} > 0),spm_vec(sdp{n}.a{1}) > 0);
+    sdp{n} = spm_MDP_VB_rule(MDP(n),OPTIONS);
+    cor(n) = corr(spm_vec(MDP(n).A{1}) > 0,spm_vec(sdp{n}.a{1}) > 0);
 end
 [m,n] = max(cor);
 
 spm_figure('GetWin','Figure 9'); clf; str = sprintf('Sleep (trial %d)',n);
-for n = n
-    subplot(3,2,1), spm_MDP_A_plot(MDP(n).A);
-    subplot(3,2,2), spm_MDP_A_plot(MDP(n).a0), title('Before','Fontsize',16)
-    subplot(3,2,3), spm_MDP_A_plot(MDP(n).a),  title('After', 'Fontsize',16)
-    subplot(3,2,4), spm_MDP_A_plot(sdp{n}.a),  title(str,     'Fontsize',16)
-end
+subplot(3,2,1), spm_MDP_A_plot(MDP(n).A);
+subplot(3,2,2), spm_MDP_A_plot(MDP(n).a0), title('Before','Fontsize',16)
+subplot(3,2,3), spm_MDP_A_plot(MDP(n).a),  title('After', 'Fontsize',16)
+subplot(3,2,4), spm_MDP_A_plot(sdp{n}.a),  title(str,     'Fontsize',16)
+
 
 % return % here for short demo
 
 % Bayesian model reduction with dreaming
 %--------------------------------------------------------------------------
 OPTIONS.o = {MDP.o};
-rdp       = spm_MDP_VB_sleep(MDP(n),OPTIONS);
+rdp       = spm_MDP_VB_rule(MDP(n),OPTIONS);
 sdp       = sdp{n};
-
 
 % illustrate benefits of sleep (with and without dreaming)
 %==========================================================================
@@ -442,12 +439,12 @@ for i = n
 end
 
 
-% run multiple subjects
+%% run multiple subjects
 %==========================================================================
 BMR.g   = 1;
-BMR.f   = 2;
+BMR.x   = 8;
 BMR.T   = 3;
-BMR.m   = @(i,i1,i2,i3,i4) i == i2;
+BMR.fun = @(MDP,BMR)spm_MDP_VB_rule(MDP,BMR)
 OPT.BMR = BMR;
 
 N     = 32;
@@ -461,7 +458,7 @@ for m = 1:Ns
         MDP(i) = mda;
     end
     rng(m)
-    MDP  = spm_MDP_VB_X(MDP);
+    MDP      = spm_MDP_VB_X(MDP);
     
     % free energy and confidence
     %----------------------------------------------------------------------
@@ -497,12 +494,6 @@ for m = 1:Ns
        c(i,1) = corr(vA,(spm_vec(RDP(i).a{1}) > 0));
     end
     bmr(:,m) = diff(c);
-    
-    % preferred locations
-    %----------------------------------------------------------------------
-    for i = 1:N
-        if hit(RDP(i)); r(i,m) = 1; else, r(i,m) = 0;  end
-    end
     
     % find run of correct responses
     %----------------------------------------------------------------------
@@ -554,7 +545,7 @@ for m = 1:Ns
     end
     hold off, drawnow
     
-    save paper
+    % save paper
     
 end
 
@@ -562,7 +553,7 @@ end
 return
 
 
-% confidence - negatively over policies
+%% confidence - negatively over policies
 %--------------------------------------------------------------------------
 for i = 1:numel(MDP)
     p     = MDP(i).R;
@@ -593,7 +584,7 @@ function spm_MDP_A_plot(A)
 % assemble key parts of the likelihood array
 %==========================================================================
 for i = 1:3
-    for j = 1:3;
+    for j = 1:3
         a{i,j} = squeeze(A{1}(:,i,:,j,4));
         a{i,j} = a{i,j}*diag(1./sum(a{i,j}));
     end
@@ -665,6 +656,189 @@ axis([-2 2 -2 2]);
 
 return
 
+% Bayesian model reduction routines
+%==========================================================================
+function [MDP] = spm_MDP_VB_rule(MDP,BMR)
+% Bayesian model reduction for MDP models with rules or motifs
+% FORMAT [MDP] = spm_MDP_VB_rule(MDP,BMR)
+%
+% MDP  - (inverted) MDP structure
+%
+% BMR.g - modality [default: 1]
+% BMR.o - outcomes - that induce REM [default: {}]
+% BMR.x - increase in concentration parameters for BMR [default: 8]
+% BMR.T - log Bayes factor threshold [default: 2]
+%
+%
+% MDP  - (reduced) model structure: with reduced MDP.a
+%
+% This routine optimises the hyperparameters of a MDP model (i.e.,
+% concentration parameters encoding probabilities. It uses Bayesian model
+% reduction to evaluate the evidence for models with and without particular
+% parameters in the columns of MDP.a (c.f., SWS)
+%
+% If specified, the scheme will then recompute posterior beliefs about the
+% model parameters based upon (fictive) outcomes generated under its
+% (reduced) generative model.(c.f., REM sleep)
+%
+% See also: spm_MDP_log_evidence.m, spm_MDP_VB and spm_MDP_VB_X.m
+%__________________________________________________________________________
+% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
+
+% Karl Friston
+% $Id: DEM_demo_MDP_rule.m 8262 2022-06-03 14:15:28Z karl $
+
+
+% deal with a sequence of trials
+%==========================================================================
+
+% BMR options
+%--------------------------------------------------------------------------
+try, g  = BMR.g; catch, g = 1;  end
+try, o  = BMR.o; catch, o = {}; end
+try, x  = BMR.x; catch, x = 8;  end
+try, T  = BMR.T; catch, T = 2;  end
+
+% Baysian model reduction - parameters
+%--------------------------------------------------------------------------
+[sa,ra] = spm_MDP_VB_prune_mot(MDP.a{g},MDP.a0{g},x,T);
+
+% reiterate expectation maximisation (or rapid eye movement sleep)
+%--------------------------------------------------------------------------
+N  = numel(o);
+if N
+    
+    % remove previous experience
+    %----------------------------------------------------------------------
+    REM  = MDP;
+    try, REM = rmfield(REM,'s'); end
+    try, REM = rmfield(REM,'o'); end
+    try, REM = rmfield(REM,'u'); end
+    
+    % and install a generative process and reset priors
+    %----------------------------------------------------------------------
+    REM.a{g}  = ra;
+    REM.a0{g} = ra;
+    REM.o = o{1};
+    for i = 1:N
+        REM(i)   = REM(1);
+        REM(i).o = o{i};
+    end
+    
+    % Bayesian updating and updated parameters
+    %----------------------------------------------------------------------
+    REM    = spm_MDP_VB_X(REM);
+    MDP.a  = REM(N).a;
+    MDP.a0{g} = ra;
+    
+else
+    
+    % otherwise, use reduced posteriors and priors
+    %----------------------------------------------------------------------
+    MDP.a{g}  = sa;
+    MDP.a0{g} = ra;
+end
+
+
+return
+
+% alternative formulation with motifs for a specific example
+%==========================================================================
+function [sA,nA] = spm_MDP_VB_prune_mot(qA,pA,x,T)
+% FORMAT [sA,rA] = spm_MDP_VB_prune_mot(qA,pA,x,T)
+% example of pruning over hardcoded motifs (cf: rules)
+% qA - posterior expectations
+% pA - prior expectations
+% x  - prior counts [default: 8]
+% T  - threshold for Bayesian model reduction [default: 3]
+%
+% sA - reduced posterior expectations
+% rA - reduced prior expectations
+%__________________________________________________________________________
+
+% defaults
+%--------------------------------------------------------------------------
+if nargin < 3, x = 8; end
+if nargin < 4, T = 2; end
+
+% motifs of salient (low free free energy) probabilities
+%--------------------------------------------------------------------------
+mot{1} = [1 0 0;0 1 0;0 0 1];
+mot{2} = [1 0 0;0 0 1;0 1 0];
+mot{3} = [0 1 0;1 0 0;0 0 1];
+mot{4} = [0 1 0;0 0 1;1 0 0];
+mot{5} = [0 0 1;1 0 0;0 1 0];
+mot{6} = [0 0 1;0 1 0;1 0 0];
+
+% model space: additional concentration parameters (i.e., precision)
+%--------------------------------------------------------------------------
+nmot  = numel(mot);
+for i = 1:nmot*nmot
+    rA{i} = spm_zeros(pA);
+end
+for m1 = 1:numel(mot)
+    [i1,i2] = find(mot{m1});
+    for m2 = 1:numel(mot)
+        i  = nmot*(m1 - 1) + m2;
+        for j = 1:numel(i1)
+            dA                      = spm_zeros(pA);
+            dA(1:3,i1(j),:,i2(j),4) = mot{m2};
+            rA{i}                   = rA{i} + dA*x;
+        end
+    end
+end
+
+% score models using Bayesian model reduction
+%--------------------------------------------------------------------------
+for i = 1:numel(rA)
+    F(i) = sum(spm_MDP_log_evidence(qA,pA,pA + rA{i}));
+end
+
+% find any model that has greater evidence than the parent model
+%--------------------------------------------------------------------------
+[F,j] = min(F);
+if (F + T) < 0
+    rA = rA{j};
+else
+    rA = spm_zeros(pA);
+end
+
+% reduced posterior and prior
+%--------------------------------------------------------------------------
+sA     = qA;
+nA     = pA;
+for i1 = 1:size(qA,2)
+    for i2 = 1:size(qA,3)
+        for i3 = 1:size(qA,4)
+            for i4 = 1:size(qA,5)
+                
+                % get posteriors, priors and reduced priors
+                %----------------------------------------------------------
+                p  = pA(:,i1,i2,i3,i4);
+                q  = qA(:,i1,i2,i3,i4);
+                r  = rA(:,i1,i2,i3,i4);
+                j  = find(p);
+                p  = p(j);
+                q  = q(j);
+                r  = j(find(r(j)));
+                
+                % redistribute concentration parameters if indicated
+                %----------------------------------------------------------
+                if numel(r)
+                    sA(:,i1,i2,i3,i4) = 0;
+                    nA(:,i1,i2,i3,i4) = 0;
+                    sA(r,i1,i2,i3,i4) = sum(q);
+                    nA(r,i1,i2,i3,i4) = sum(p);
+                else
+                    sA(j,i1,i2,i3,i4) = q;
+                    nA(j,i1,i2,i3,i4) = p;
+                end
+            end
+        end
+    end
+end
+
+return
 
 
 

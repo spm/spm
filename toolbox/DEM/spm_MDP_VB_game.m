@@ -29,7 +29,7 @@ function Q = spm_MDP_VB_game(MDP)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_game.m 8222 2022-02-13 11:14:08Z karl $
+% $Id: spm_MDP_VB_game.m 8262 2022-06-03 14:15:28Z karl $
 
 % numbers of transitions, policies and states
 %--------------------------------------------------------------------------
@@ -75,7 +75,7 @@ for i = 1:Nt
     o(:,i) = MDP(i).o(:,end);
     u{1,i} = MDP(i).R;
     v{1,i} = MDP(i).v;
-    w(:,i) = MDP(i).dn,2;
+    w(:,i) = MDP(i).dn;
     
     
     % assemble context learning

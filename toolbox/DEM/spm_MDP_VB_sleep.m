@@ -7,28 +7,34 @@ function [MDP] = spm_MDP_VB_sleep(MDP,BMR)
 % BMR.g - modality [default: 1]
 % BMR.o - outcomes - that induce REM [default: {}]
 % BMR.x - increase in concentration parameters for BMR [default: 8]
-% BMR.f - hearing factors to sum over [default: 0]
-% BMR.T - log Bayes factor threshold [default: 1/4]
-% BMR.m - indicator function to enable BMR [@(i,i1,i2,i3,i4)1]
-%
+% BMR.f - hidden factors to contract over [default: 0]
+% BMR.T - log Bayes factor threshold [default: 2]
 %
 % MDP  - (reduced) model structure: with reduced MDP.a
 %
-% This routine optimises the hyperparameters of a NDP model (i.e.,
-% concentration parameters encoding probabilities. It uses Bayesian model
-% reduction to evaluate the evidence for models with and without a
-% particular parameter in the columns of MDP.a (c.f., SWS)
+% This routine optimises the hyperparameters of a MDP model (i.e.,
+% concentration parameters encoding likelihoods. It uses Bayesian model
+% reduction to evaluate the evidence for models with and without an
+% increase in a particular parameter in the columns of MDP.a (c.f., SWS)
 %
 % If specified, the scheme will then recompute posterior beliefs about the
 % model parameters based upon (fictive) outcomes generated under its
 % (reduced) generative model.(c.f., REM sleep)
+%
+% This version compares models (i.e., prior concentration parameters) in
+% which one unique outcome is much more likely than any other outcome.
+% Furthermore, it will then reduce posterior concentration parameters to
+% prior concentration parameters for all likelihood mappings, to and from
+% the parameter in question, if the reduced prior exceeds the specified
+% Occams window. effectively, this implements the structural hyperprior
+% that likelihood mappings with a high mutual information are plausible.
 %
 % See also: spm_MDP_log_evidence.m, spm_MDP_VB and spm_MDP_VB_X.m
 %__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_sleep.m 7679 2019-10-24 15:54:07Z spm $
+% $Id: spm_MDP_VB_sleep.m 8262 2022-06-03 14:15:28Z karl $
 
 
 % deal with a sequence of trials
@@ -36,29 +42,39 @@ function [MDP] = spm_MDP_VB_sleep(MDP,BMR)
 
 % BMR options
 %--------------------------------------------------------------------------
-try, g   = BMR.g; catch, g = 1;   end
-try, o   = BMR.o; catch, o = {};  end
-try, x   = BMR.x; catch, x = 8;   end
-try, f   = BMR.f; catch, f = 0;   end
-try, T   = BMR.T; catch, T = 1/4; end
+try, g  = BMR.g; catch, g = 1;    end       % outcome modality
+try, o  = BMR.o; catch, o = {};   end       % outcomes for empirical BMS
+try, f  = BMR.f; catch, f = 0;    end       % factors to contract over
+try, T  = BMR.T; catch, T = 2;    end       % threshold or window (nats)
 
-% model selection function
+% for multiple agents
 %--------------------------------------------------------------------------
-if isfield(BMR,'m')
-    m = BMR.m;
-else
-    m = @(i,i1,i2,i3,i4)1;
+if size(MDP,1) > 1
+    for i = 1:size(MDP,1)
+        MDP(i) = spm_MDP_VB_sleep(MDP(i),BMR);
+    end
+    return
 end
 
-% Baysian model reduction - parameters
+% Prior Dirichlet counts (assumed to be one, everywhere)
+%--------------------------------------------------------------------------
+if isfield(MDP,'a0')
+    a0 = MDP.a0{g};
+else
+    a0 = (MDP.a{g} > 0);
+end
+
+% Baysian model reduction - likelihood parameters
 %--------------------------------------------------------------------------
 if isfield(MDP,'a')
-    [sa,ra] = spm_MDP_VB_prune(MDP(end).a{g},MDP(1).a0{g},f,x,T,m);
+    [sa,ra] = spm_MDP_VB_prune(MDP.a{g},a0,f,T);
+else
+    return
 end
 
-
-% reiterate expectation maximisation (or rapid eye movement sleep)
-%--------------------------------------------------------------------------
+% repeat active inference and learning under reduced model and outcomes
+% (c.f., rapid eye movement sleep)
+%==========================================================================
 N  = numel(o);
 if N
     
@@ -79,11 +95,11 @@ if N
         REM(i).o = o{i};
     end
     
-    % Bayesian updating and updated parameters
+    % Bayesian belief updating: posteriors and priors
     %----------------------------------------------------------------------
-    REM    = spm_MDP_VB_X(REM);
-    MDP.a  = REM(N).a;
-    MDP.a0 = REM(N).a0;
+    REM       = spm_MDP_VB_X(REM);
+    MDP.a     = REM(N).a;
+    MDP.a0{g} = ra;
     
 else
     
@@ -95,13 +111,19 @@ else
 end
 
 
-function [sA,nA] = spm_MDP_VB_prune(qA,pA,f,x,T,m)
-% FORMAT [sA,nA] = spm_MDP_VB_prune(qA,pA,f,x,T,m)
+
+return
+
+
+
+% Bayesian model reduction subroutine
+%==========================================================================
+function [qA,pA] = spm_MDP_VB_prune(qA,pA,f,T)
+% FORMAT [sA,rA] = spm_MDP_VB_prune(qA,pA,f,T)
 % qA - posterior expectations
 % pA - prior expectations
-% f  - hidden factor to integrate over [defult: 0]
-% x  - prior counts [default: 8]
-% T  - threshold for Bayesian model reduction [default: three]
+% f  - hidden factor to contract over [default: 0]
+% T  - Occam's window [default: 2]
 %
 % sA - reduced posterior expectations
 % rA - reduced prior expectations
@@ -109,205 +131,69 @@ function [sA,nA] = spm_MDP_VB_prune(qA,pA,f,x,T,m)
 
 % defaults
 %--------------------------------------------------------------------------
-if nargin < 4, T = 3; end
-if nargin < 3, x = 8; end
+if nargin < 3, f = 0; end
+if nargin < 4, T = 2; end
 
-% identify noninformative subspaces
+% some Dirichlet parameters over conditionally independent factors
 %--------------------------------------------------------------------------
-ndim  = ndims(pA);
-for i = 1:ndim
-    d    = 1:ndim;
-    d(i) = [];
-    s    = pA < 4 & pA > 0;
-    for j = 1:(ndim - 1)
-        s = sum(s,d(j));
+nd  = size(pA);                         % size of likelihood tensor
+s   = prod(nd(f + 1));                  % contraction scaling
+if f
+    pA  = spm_sum(pA,f + 1);
+    qA  = spm_sum(qA,f + 1);
+end
+
+% Bayesian model reduction (starting with the largest posterior)
+%--------------------------------------------------------------------------
+qA    = qA(:,:);
+pA    = pA(:,:);
+c     = ones(1,size(pA,2));
+while(any(c))
+    
+    % find maximum Dirichlet parameter for this hidden state
+    %----------------------------------------------------------------------
+    [d,j]  = max(max(qA - pA).*c);
+    [d,i]  = max(qA(:,j));
+    c(j)   = 0;
+    
+    % create reduced prior (by adding eight Dirichlet counts)
+    %----------------------------------------------------------------------
+    rA     = pA(:,j);
+    rA(i)  = rA(i)*4*s;
+
+    % evaluate reduced posterior and free energy (negative log evidence)
+    %----------------------------------------------------------------------
+    [F,sA] = spm_MDP_log_evidence(qA(:,j),pA(:,j),rA);
+    
+    % retain reduced priors and posteriors if outwith Occam's window
+    %----------------------------------------------------------------------
+    if F < -T
+        disp('mutual'),disp(sum(F))
+        qA(i,:) = pA(i,:);            % forget afferent mapping (column)
+        qA(:,j) = pA(:,j);            % forget efferent mapping (row)
+        qA(:,j) = sA;
+        pA(:,j) = rA;
     end
-    ind{i} = find(s(:));
 end
 
-% motifs of salient (low free free energy) abilities
+% redistribute scaled parameters over contracted dimensions
 %--------------------------------------------------------------------------
-mot{1} = [1 0 0;0 1 0;0 0 1];
-mot{2} = [1 0 0;0 0 1;0 1 0];
-mot{3} = [0 1 0;1 0 0;0 0 1];
-mot{4} = [0 1 0;0 0 1;1 0 0];
-mot{5} = [0 0 1;1 0 0;0 1 0];
-mot{6} = [0 0 1;0 1 0;1 0 0];
-
-% model space: additional concentration parameters (i.e., precision)
-%--------------------------------------------------------------------------
-nmot  = numel(mot);
-for i = 1:nmot*nmot;
-    rA{i} = spm_zeros(pA);
-end
-
-for m1 = 1:numel(mot)
-    [i1,i2] = find(mot{m1});
-    for m2 = 1:numel(mot)
-        i  = nmot*(m1 - 1) + m2;
-        for j = 1:numel(i1)
-            dA    = spm_zeros(pA);
-            dA(1:3,i1(j),:,i2(j),4) = mot{m2};
-            rA{i} = rA{i} + dA*x;
-        end
-    end
-end
-
-% score models using Bayesian model reduction
-%--------------------------------------------------------------------------
-for i = 1:numel(rA);
-    G    = spm_MDP_log_evidence(qA,pA,pA + rA{i});
-    F(i) = sum(G(isfinite(G)));
-end
-
-% find any model that has greater evidence than the parent model
-%--------------------------------------------------------------------------
-[F,j] = min(F);
-if (F + T) < 0
-    rA = rA{j};
-else
-    rA = spm_zeros(pA);
-end
-
-% reduced posterior and prior
-%--------------------------------------------------------------------------
-sA     = qA;
-nA     = pA;
-for i1 = 1:size(qA,2)
-    for i2 = 1:size(qA,3)
-        for i3 = 1:size(qA,4)
-            for i4 = 1:size(qA,5)
-                
-                % get posteriors, priors and reduced priors
-                %----------------------------------------------------------
-                p  = pA(:,i1,i2,i3,i4);
-                q  = qA(:,i1,i2,i3,i4);
-                r  = rA(:,i1,i2,i3,i4);
-                j  = find(p);
-                p  = p(j);
-                q  = q(j);
-                r  = j(find(r(j)));
-                
-                % redistribute concentration parameters if indicated
-                %----------------------------------------------------------
-                if numel(r);
-                    sA(:,i1,i2,i3,i4) = 0;
-                    nA(:,i1,i2,i3,i4) = 0;
-                    sA(r,i1,i2,i3,i4) = sum(q);
-                    nA(r,i1,i2,i3,i4) = sum(p);
-                else
-                    sA(j,i1,i2,i3,i4) = q;
-                    nA(j,i1,i2,i3,i4) = p;
-                end
-            end
-        end
-    end
+if f
+    pA = bsxfun(@plus,zeros(nd),pA/s);
+    qA = bsxfun(@plus,zeros(nd),qA/s);
 end
 
 return
 
-% alternative formulation with specified indicator functions
-%==========================================================================
 
-% defaults
+function A  = spm_log(A)
+% log of numeric array plus a small constant
 %--------------------------------------------------------------------------
-if nargin < 5, m = @(i,i1,i2,i3,i4)1; end
-if nargin < 4, T = 3; end
-if nargin < 3, x = 8; end
-if nargin < 2, f = 0; end
+A           = log(A);
+A(isinf(A)) = -32;
 
-% column-wise model comparison
+function A  = spm_norm(A)
+% normalisation of a probability transition matrix (columns)
 %--------------------------------------------------------------------------
-for i1 = 1:size(qA,2)
-    for i2 = 1:size(qA,3)
-        for i3 = 1:size(qA,4)
-            for i4 = 1:size(qA,5)
-                
-                % get posteriors, priors and cycle over reduced priors
-                %----------------------------------------------------------
-                p  = pA(:,i1,i2,i3,i4);
-                q  = qA(:,i1,i2,i3,i4);
-                j  = find(p);
-                p  = p(j);
-                q  = q(j);
-                
-                % informative state?
-                %----------------------------------------------------------
-                F  = 0;
-                if length(j) > 1
-                    for i = 1:length(j);
-                        if m(i,i1,i2,i3,i4)
-                            r    = p;
-                            r(i) = r(i) + x;
-                            F(i) = spm_MDP_log_evidence(q,p,r);
-                        else
-                            F(i) = 16;
-                        end
-                    end
-                end
-                
-                % eliminate parameter
-                %----------------------------------------------------------
-                [F,i] = min(F);
-                mF(i1,i2,i3,i4) = F;
-                iF(i1,i2,i3,i4) = j(i);
-            end
-        end
-    end
-end
-
-% pool over s{f}
-%---------------------------------------------------------------------
-if f, sF = sum(mF,f); end
-
-% column-wise reduction
-%--------------------------------------------------------------------------
-sA     = qA;
-rA     = pA;
-for i1 = 1:size(qA,2)
-    for i2 = 1:size(qA,3)
-        for i3 = 1:size(qA,4)
-            for i4 = 1:size(qA,5)
-                
-                % get posteriors, priors and cycle over reduced priors
-                %----------------------------------------------------------
-                p  = pA(:,i1,i2,i3,i4);
-                q  = qA(:,i1,i2,i3,i4);
-                i  = iF(i1,i2,i3,i4);
-                j  = find(p);
-                p  = p(j);
-                q  = q(j);
-                
-                % BMC
-                %----------------------------------------------------------
-                if f == 0
-                    F = mF(i1,i2,i3,i4);
-                elseif f == 1
-                    F = sF( 1,i2,i3,i4);
-                elseif f == 2
-                    F = sF(i1, 1,i3,i4);
-                elseif f == 3
-                    F = sF(i1,i2, 1,i4);
-                elseif f == 4
-                    F = sF(i1,i2,i3, 1);
-                end
-                
-                % eliminate parameter
-                %----------------------------------------------------------
-                if F < - T;
-                    sA(:,i1,i2,i3,i4) = 0;
-                    rA(:,i1,i2,i3,i4) = 0;
-                    sA(i,i1,i2,i3,i4) = sum(q);
-                    rA(i,i1,i2,i3,i4) = sum(p);
-                else
-                    sA(j,i1,i2,i3,i4) = q;
-                    rA(j,i1,i2,i3,i4) = p;
-                end
-                
-            end
-        end
-    end
-end
-
-
-
+A           = bsxfun(@rdivide,A,sum(A,1));
+A(isnan(A)) = 1/size(A,1);

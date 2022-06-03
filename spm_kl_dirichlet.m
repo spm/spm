@@ -6,20 +6,20 @@ function [d] = spm_kl_dirichlet (lambda_q,lambda_p,log_tilde_pi)
 % between two Dirichlet densities Q and P
 %
 % lambda_q      Parameter vector of first density
-% lambda_p      Parameter vectpr of second density
+% lambda_p      Parameter vector of second density
 % log_tilde_pi  <log (pi)> where avg is over Q. If this argument
 %               isn't passed the routine will calculate it
 %___________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_kl_dirichlet.m 7382 2018-07-25 13:58:04Z karl $
+% $Id: spm_kl_dirichlet.m 8262 2022-06-03 14:15:28Z karl $
 
 if nargin < 3
     m    =length(lambda_q);
     lambda_tot = sum(lambda_q);
     dglt = psi(lambda_tot);
-    for  s = 1:m,
+    for  s = 1:m
         log_tilde_pi(s) = psi(lambda_q(s)) - dglt;
     end
 end

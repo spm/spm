@@ -134,7 +134,7 @@ function [MDP] = spm_MDP_VB_X(MDP,OPTIONS)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_X.m 8162 2021-10-02 14:30:02Z thomas $
+% $Id: spm_MDP_VB_X.m 8262 2022-06-03 14:15:28Z karl $
 
 
 % deal with a sequence of trials
@@ -190,8 +190,13 @@ if size(MDP,2) > 1
         % Bayesian model reduction
         %------------------------------------------------------------------
         if isfield(OPTIONS,'BMR')
+            if isfield(OPTIONS.BMR,'fun')
+                bmrfun = OPTIONS.BMR.fun;
+            else
+                bmrfun = @(MDP,BMR) spm_MDP_VB_sleep(MDP,BMR);
+            end
             for m = 1:size(MDP,1)
-                OUT(m,i) = spm_MDP_VB_sleep(OUT(m,i),OPTIONS.BMR);
+                OUT(m,i) = bmrfun(OUT(m,i),OPTIONS.BMR);
             end
         end
         
@@ -1330,7 +1335,7 @@ for m = 1:size(MDP,1)
         HMM = 1;
     end
     
-    if isfield(MDP(m),'O') && ~any(MDP(m).o(:)) && HMM
+    if isfield(MDP(m),'O') && HMM
         
         % probabilistic outcomes - assume hidden Markov model (HMM)
         %------------------------------------------------------------------
