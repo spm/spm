@@ -84,7 +84,7 @@ function [y,x,z,W] = spm_SARS_gen(P,M,U,NPI,age)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_gen.m 8252 2022-05-18 13:23:48Z karl $
+% $Id: spm_SARS_gen.m 8260 2022-06-03 14:06:33Z karl $
 
 
 % The generative model:
@@ -425,8 +425,8 @@ for i = 1:M.T
             tou = tou*(1 - Ptrn*pou)^Q{n}.Nou(j);
         end
         
-        Q{n}.tin = min(tin,1);                     % P(no transmission | home)
-        Q{n}.tou = min(tou,1);                     % P(no transmission | work)       
+        Q{n}.tin = max(min(tin,1),0);                     % P(no transmission | home)
+        Q{n}.tou = max(min(tou,1),0);                     % P(no transmission | work)       
         
         % vaccination rollout: nac = 1 - vaccination rate
         %------------------------------------------------------------------

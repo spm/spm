@@ -9,7 +9,7 @@ function D = DATA_WID_data
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DATA_WID_data.m 8240 2022-04-09 12:47:01Z karl $
+% $Id: DATA_WID_data.m 8260 2022-06-03 14:06:33Z karl $
 
 
 % web options
@@ -88,8 +88,9 @@ for r = 1:numel(Data)
     for j = 1:numel(series)
         d = Data(r).(series{j});
         k = datenum(Data(r).date) < datenum('2021-09-01','yyyy-mm-dd');
-        if sum(isfinite(d(k))) < 128
+        if sum(isfinite(d(k))) < 32
             i(r) = 1;
+            disp(series{j}),disp(Data(r).country)
         end
     end
     
@@ -98,6 +99,7 @@ for r = 1:numel(Data)
     for j = 1:numel(stats)
         if isnan(Data(r).(stats{j}))
             i(r) = 1;
+            disp(stats{j}), disp(Data(r).country)
         end
     end
 end

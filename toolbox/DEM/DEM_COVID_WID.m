@@ -35,7 +35,7 @@ function DCM = DEM_COVID_WID
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_WID.m 8243 2022-04-18 12:03:14Z karl $
+% $Id: DEM_COVID_WID.m 8260 2022-06-03 14:06:33Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -50,8 +50,7 @@ D         = DATA_WID_data;
 % [i,j]   = sort([D.population],'descend');
 % country = {D.country};
 % country = country(j(1:64));
-
-
+UPDATE  = 1;
 country = [ ...
     {'India'              }
     {'United States'      }
@@ -127,7 +126,7 @@ end
 %==========================================================================
 free  = {'n','o','m','exp','sde','qua',...
          'res','inn','lim','ons','rat',...
-         'pcr','mob','rel','rol'};
+         'pcr','mob','rel','rol','fol'};
 reset = {'pcr','mob'};
 lock  = {'rol','fol'};
 
@@ -265,7 +264,6 @@ for k = 1:numel(ri)
     
     % initialise based on previous inversions
     %======================================================================
-    UPDATE = 0;
     if UPDATE
         try
             load DCM_OWID DCM
