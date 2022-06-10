@@ -50,7 +50,7 @@ function [Y,xY] = spm_regions(xSPM,SPM,hReg,xY)
 % Copyright (C) 1999-2018 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_regions.m 8183 2021-11-04 15:25:19Z guillaume $
+% $Id: spm_regions.m 8263 2022-06-10 09:42:41Z peter $
 
 
 %-Shortcut for VOI display
@@ -120,7 +120,7 @@ if ~isfield(xY,'Ic')
     q(1)   = 0;
     Con    = {'<don''t adjust>'};
     q(2)   = NaN;
-    Con{2} = '<adjust for everything>';
+    Con{2} = '<adjust for (regress out) everything>';
     for i = 1:length(SPM.xCon)
         if strcmp(SPM.xCon(i).STAT,'F')
             q(end + 1) = i;
@@ -130,7 +130,8 @@ if ~isfield(xY,'Ic')
     if numel(Con) == 2
         warning('No F-contrast has been defined: are you sure?');
     end
-    i     = spm_input('adjust data for (select contrast)','!+1','m',Con);
+    i     = spm_input('adjust data (select a contrast over effects to retain)',...
+        '!+1','m',Con);
     xY.Ic = q(i);
 end
  

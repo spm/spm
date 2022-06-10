@@ -24,7 +24,7 @@ function DCM = spm_dcm_specify_ui(SPM,xY,settings)
 % Copyright (C) 2002-2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_specify_ui.m 8183 2021-11-04 15:25:19Z guillaume $
+% $Id: spm_dcm_specify_ui.m 8263 2022-06-10 09:42:41Z peter $
 
 
 %-Interactive window
@@ -96,6 +96,24 @@ else
     U.name = {};
     U.u    = [];
     U.idx  = [];
+    
+    % Perform checks related to timeseries adjustment
+    ex = [];
+    try Ic = xY(1).Ic; catch, Ic = []; end    
+    if ~isempty(Ic)        
+        % Check that all VOIs used the same adjustment
+        if ~all([xY.Ic]==Ic)
+            warning(['VOIs were adjusted using different F-contrasts. ' ...
+                     'This may not have been intentional.']);
+        end
+        
+        % Identify excluded regressors
+        if isnan(Ic)
+            ex = 1:size(SPM.xX.X,2);
+        elseif Ic > 0
+            ex = find(~any(SPM.xCon(Ic).c'));
+        end
+    end        
 
     for i = 1:u
         for j = 1:length(Sess.U(i).name)
@@ -111,7 +129,20 @@ else
                 U.u             = [U.u Sess.U(i).u(33:end,j)];
                 U.name{end + 1} = Sess.U(i).name{j};
                 U.idx           = [U.idx; i j];
+                
+                % Check this condition wasn't excluded using an F-contrast
+                if isfield(Sess,'Fc')
+                    col = Sess.col(Sess.Fc(i).i(j));
+                    if ismember(col, ex)
+                        str = (['Condition %s was excluded using an ' ...
+                            'effects of interest F-contrast during VOI ' ...
+                            'extraction, but was included in the DCM. Please ' ...
+                            'revisit VOI extraction.']);
+                        warning(str,Sess.U(i).name{j});
+                    end
+                end                
             end
+            
         end
     end
     
