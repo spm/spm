@@ -90,7 +90,7 @@ function ret = spm_ov_roi(varargin)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Volkmar Glauche
-% $Id: spm_ov_roi.m 6991 2017-01-19 13:09:51Z guillaume $
+% $Id: spm_ov_roi.m 8264 2022-06-10 10:45:49Z guillaume $
 
 % Note: This plugin depends on the blobs set by spm_orthviews('addblobs',...) 
 % They should not be removed while ROI tool is active and no other blobs be
@@ -121,7 +121,7 @@ switch cmd
         spm('pointer','watch');
         Vroi = spm_vol(varargin{3});
         switch varargin{4} % loadasroi
-            case 1,
+            case 1
                 roi = spm_read_vols(Vroi)>0;
                 [x,y,z] = ndgrid(1:Vroi.dim(1),1:Vroi.dim(2),1:Vroi.dim(3));
                 xyz = [x(roi(:))'; y(roi(:))'; z(roi(:))'];
@@ -133,8 +133,8 @@ switch cmd
                 if ~isempty(xyz)
                     ind = sub2ind(Vroi.dim(1:3),xyz(1,:),xyz(2,:),xyz(3,:));
                     roi(ind) = true;
-                end;
-        end;
+                end
+        end
         % reset data type to save disk space
         Vroi.dt(1) = spm_type('uint8');
         % reset scaling factor of Vroi handle
@@ -159,7 +159,7 @@ switch cmd
         else
             hframe = [];
             fxyz  = [];
-        end;
+        end
         
         cb = cell(1,3);
         for k=1:3
@@ -167,7 +167,7 @@ switch cmd
             set(st.vols{volhandle}.ax{k}.ax,...
                 'ButtonDownFcn',...
                 @(ob,ev)spm_ov_roi('bdfcn',volhandle,ob,ev));
-        end;
+        end
         
         st.vols{volhandle}.roi = struct('Vroi',Vroi, 'xyz',xyz, 'roi',roi,...
                                         'hroi',1, 'fxyz',fxyz,...
@@ -181,13 +181,13 @@ switch cmd
         if ~isempty(st.vols{volhandle}.roi.fxyz)
             if isfield(st.vols{volhandle}, 'blobs')
                 st.vols{volhandle}.roi.hframe = numel(st.vols{volhandle}.blobs)+1;
-            end;
+            end
             spm_orthviews('addcolouredblobs',volhandle, ...
                           st.vols{volhandle}.roi.fxyz,...
                           ones(size(st.vols{volhandle}.roi.fxyz,2),1), ... 
                           st.vols{volhandle}.roi.Vroi.mat,[1 .5 .5]);
             st.vols{volhandle}.blobs{st.vols{volhandle}.roi.hframe}.max=1.3;
-        end;
+        end
         update_roi=1;
         obj = findobj(0, 'Tag',  sprintf('ROI_1_%d', volhandle));
         set(obj, 'Visible', 'on');
@@ -215,22 +215,22 @@ switch cmd
             case 'poly'
                 
                 % @COPYRIGHT  :
-      %             Copyright 1993,1994 Mark Wolforth and Greg Ward, McConnell
-      %             Brain Imaging Centre, Montreal Neurological Institute, McGill
-      %             University.
-      %             Permission to use, copy, modify, and distribute this software
-      %             and its documentation for any purpose and without fee is
-      %             hereby granted, provided that the above copyright notice
-      %             appear in all copies.  The authors and McGill University make
-      %             no representations about the suitability of this software for
-      %             any purpose.  It is provided "as is" without express or
-      %             implied warranty.
+                % Copyright 1993,1994 Mark Wolforth and Greg Ward, McConnell
+                % Brain Imaging Centre, Montreal Neurological Institute, McGill
+                % University.
+                % Permission to use, copy, modify, and distribute this software
+                % and its documentation for any purpose and without fee is
+                % hereby granted, provided that the above copyright notice
+                % appear in all copies.  The authors and McGill University make
+                % no representations about the suitability of this software for
+                % any purpose.  It is provided "as is" without express or
+                % implied warranty.
                 for k = 1:3
                     if st.vols{volhandle}.ax{k}.ax == gca
                         axhandle = k;
                         break;
-                    end;
-                end;
+                    end
+                end
                 line_color = [1 1 0];
                 axes(st.vols{volhandle}.ax{axhandle}.ax);
       
@@ -263,38 +263,38 @@ switch cmd
                     if isempty(xc) || bc > 1
                         if bc == 3
                             x = []; y=[];
-                        end;
+                        end
                         if bc == 2 || bc == 3
                             bc = [];
                             break;
-                        end;
+                        end
                     else
                         if xc > Xlimits(2)
                             xc = Xlimits(2);
                         elseif xc < Xlimits(1)
                             xc = Xlimits(1);
-                        end;
+                        end
                         if yc > Ylimits(2)
                             yc = Ylimits(2);
                         elseif yc < Ylimits(1)
                             yc = Ylimits(1);
-                        end;
+                        end
                         x(i) = xc;
                         y(i) = yc;
                         i=i+1;
                         if ishandle(lineHandle)
                             delete(lineHandle);
-                        end;
+                        end
                         lineHandle = line (x,y,ones(1,length(x)), ...
                                            'Color',line_color,...
                                            'parent',st.vols{volhandle}.ax{axhandle}.ax,...
                                            'HitTest','off');
-                    end;
+                    end
                 end
                 
                 if ishandle(lineHandle)
                     delete(lineHandle);
-                end;
+                end
                 if ~isempty(x)
                     spm('pointer','watch');
                     x(i)=x(1);
@@ -306,22 +306,22 @@ switch cmd
                     cent = is(1:3,1:3)*st.centre(:) + is(1:3,4);
                     polyoff = [0 0 0];
                     switch axhandle
-                        case 1,
+                        case 1
                             M0 = [ 1 0 0 -st.bb(1,1)+1
                                    0 1 0 -st.bb(1,2)+1
                                    0 0 1 -cent(3)
                                    0 0 0 1];
                             polyoff(3) = st.vols{volhandle}.roi.polyslices/2;
                             polythick = prms(9);
-                        case 2,
+                        case 2
                             M0 = [ 1 0 0 -st.bb(1,1)+1
                                    0 0 1 -st.bb(1,3)+1
                                    0 1 0 -cent(2)
                                    0 0 0 1];
                             polyoff(2) = st.vols{volhandle}.roi.polyslices/2;
                             polythick = prms(8);
-                        case 3,
-                            if st.mode ==0,
+                        case 3
+                            if st.mode ==0
                                 M0 = [ 0 0 1 -st.bb(1,3)+1
                                        0 1 0 -st.bb(1,2)+1
                                        1 0 0 -cent(1)
@@ -331,10 +331,10 @@ switch cmd
                                        0  0 1 -st.bb(1,3)+1
                                        1  0 0 -cent(1)
                                        0  0 0 1];
-                            end;
+                            end
                             polyoff(1) = st.vols{volhandle}.roi.polyslices/2;
                             polythick = abs(prms(7));
-                    end;
+                    end
                     polvx = st.vols{volhandle}.roi.Vroi.mat\(st.Space*(M0\...
                             [x(:)';y(:)'; zeros(size(x(:)')); ones(size(x(:)'))]));
                     % Bounding volume for polygon in ROI voxel space
@@ -357,12 +357,12 @@ switch cmd
                     if ~isempty(xyz)
                         tochange = round(xyz(1:3,:));
                         update_roi = 1;
-                    end;
-                end;
+                    end
+                end
                 set(st.vols{volhandle}.ax{axhandle}.ax,...
                     'Selected','off', 'XLimMode',XLimMode, 'YLimMode',YLimMode,...
                     'ButtonDownFcn',ButtonDownFcn, 'UIContextMenu',UIContextMenu);
-        end;
+        end
     case 'thresh'
         spm('pointer','watch');
         rind = find(st.vols{volhandle}.roi.roi);
@@ -378,7 +378,7 @@ switch cmd
         else
             toset   = [x(sel)'; y(sel)'; z(sel)'];
             toclear = st.vols{volhandle}.roi.xyz;
-        end;
+        end
         update_roi = 1;
         
     case 'erodilate'
@@ -392,7 +392,7 @@ switch cmd
             toclear = st.vols{volhandle}.roi.xyz;
         else
             toclear = ero;
-        end;
+        end
         update_roi = 1;
         
     case {'connect', 'cleanup'}
@@ -406,19 +406,19 @@ switch cmd
                 sel = V(pos(1),pos(2),pos(3));
                 if sel == 0
                     sel = [];
-                end;
+                end
             case 'cleanup'
                 numV = zeros(1,L);
                 for k = 1:L
                     numV(k) = sum(V(:)==k);
-                end;
+                end
                 sel = find(numV>st.vols{volhandle}.roi.csize);
-        end;
+        end
         if ~isempty(sel)
             ind1 = cell(1,numel(sel));
             for k=1:numel(sel)
                 ind1{k} = find(V(:) == sel(k));
-            end;
+            end
             ind = cat(1,ind1{:});
             conn = zeros(3,numel(ind));
             [conn(1,:),conn(2,:),conn(3,:)] = ...
@@ -429,8 +429,8 @@ switch cmd
                 toclear = st.vols{volhandle}.roi.xyz;
             else
                 toclear = conn;
-            end;
-        end;
+            end
+        end
         update_roi = 1;
         
     case 'invert'
@@ -462,7 +462,7 @@ switch cmd
             dat = spm_sample_vol(V(k), xyzvx(1,:), xyzvx(2,:), xyzvx(3,:), 0);
             dat(~isfinite(dat)) = 0;
             msk = msk | logical(dat);
-        end;
+        end
         [tochange(1,:),tochange(2,:),tochange(3,:)] = ind2sub(st.vols{volhandle}.roi.Vroi.dim(1:3),find(msk));
         clear xyzmm xyzvx msk
         update_roi = 1;
@@ -475,13 +475,13 @@ switch cmd
             if ~ischar(pth)
                 warning('spm:spm_ov_roi','Save cancelled');
                 return;
-            end;
+            end
             [p,n,e,v] = spm_fileparts(fullfile(pth,name));
             if isempty(e)
                 e = flt{idx,1}(2:end);
-            end;
+            end
             st.vols{volhandle}.roi.Vroi.fname = fullfile(p, [n e v]);
-        end;
+        end
         spm('pointer','watch');
         spm_write_vol(st.vols{volhandle}.roi.Vroi, ...
                       st.vols{volhandle}.roi.roi);
@@ -578,15 +578,15 @@ switch cmd
                             'ROI space definition', 'SPM result'},[1 0 2],1);
         xyz = [];
         switch loadasroi
-            case 1,
+            case 1
                 imfname = spm_select(1, 'image', 'Select ROI image');
-            case 0,
+            case 0
                 imfname = spm_select(1, 'image', 'Select image defining ROI space');
-            case 2,
+            case 2
                 [SPM, xSPM] = spm_getSPM;
                 xyz = xSPM.XYZ;
                 imfname = SPM.Vbeta(1).fname;
-        end;
+        end
         spm_input('!DeleteInputObj',Finter);
         feval('spm_ov_roi','init',volhandle,imfname,loadasroi,xyz);
         return;
@@ -673,7 +673,7 @@ switch cmd
         spm_orthviews('rmblobs', volhandle);
         for k=1:3
             set(st.vols{volhandle}.ax{k}.ax,'ButtonDownFcn', st.vols{volhandle}.roi.cb{k});
-        end;
+        end
         st.vols{volhandle} = rmfield(st.vols{volhandle}, 'roi');
         spm_orthviews('redraw');
         return;
@@ -692,7 +692,7 @@ switch cmd
     otherwise    
         fprintf('spm_orthviews(''roi'', ...): Unknown action %s', cmd);
         return;
-end;
+end
 
 if update_roi
     if ~isempty(tochange) % change state according to mode
@@ -700,8 +700,8 @@ if update_roi
             toset = tochange;
         else
             toclear = tochange;
-        end;
-    end;
+        end
+    end
     % clear first, then set (needed for connect operation)
     if ~isempty(toclear)
         itoclear = sub2ind(st.vols{volhandle}.roi.Vroi.dim(1:3), ...
@@ -711,8 +711,8 @@ if update_roi
             st.vols{volhandle}.roi.xyz = setdiff(st.vols{volhandle}.roi.xyz',toclear','rows')';
         else
             st.vols{volhandle}.roi.xyz = [];
-        end;
-    end;
+        end
+    end
 
     if ~isempty(toset)
         % why do we need this round()?? I don't know, but Matlab thinks
@@ -724,8 +724,8 @@ if update_roi
             st.vols{volhandle}.roi.xyz = union(st.vols{volhandle}.roi.xyz',toset','rows')';
         else
             st.vols{volhandle}.roi.xyz = toset;
-        end;
-    end;
+        end
+    end
     
     if isfield(st.vols{volhandle}, 'blobs')
         nblobs=length(st.vols{volhandle}.blobs);
@@ -736,14 +736,14 @@ if update_roi
         else
             if isempty(st.vols{volhandle}.roi.hframe) % save frame
                 st.vols{volhandle}=rmfield(st.vols{volhandle},'blobs');
-            end;
-        end;
-    end;
+            end
+        end
+    end
     if isfield(st.vols{volhandle}, 'blobs')
         st.vols{volhandle}.roi.hroi = numel(st.vols{volhandle}.blobs)+1;
     else
         st.vols{volhandle}.roi.hroi = 1;
-    end;
+    end
     if isempty(st.vols{volhandle}.roi.xyz)  % initialised with empty roi
         spm_orthviews('addcolouredblobs', volhandle, ...
                       [1; 1; 1], 0, st.vols{volhandle}.roi.Vroi.mat,[1 3 1]); 
@@ -751,10 +751,10 @@ if update_roi
         spm_orthviews('addcolouredblobs', volhandle, ...
                       st.vols{volhandle}.roi.xyz, ones(size(st.vols{volhandle}.roi.xyz,2),1), ... 
                       st.vols{volhandle}.roi.Vroi.mat,[1 3 1]); % use color that is more intense than standard rgb range
-    end;
+    end
     st.vols{volhandle}.blobs{st.vols{volhandle}.roi.hroi}.max=2;
     spm_orthviews('redraw');
-end;
+end
 
 spm('pointer','arrow');
 
@@ -777,7 +777,7 @@ switch cmd
             varargout{1}=stck;
         else
             error('Stack overflow\n');
-        end;
+        end
         
     case 'pop'
         if stack('isempty',varargin{1})
@@ -786,5 +786,5 @@ switch cmd
             varargout{2} = varargin{1}.st{varargin{1}.top};
             varargin{1}.top = varargin{1}.top - 1;
             varargout{1} = varargin{1};
-        end;
-end;
+        end
+end

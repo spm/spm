@@ -24,7 +24,7 @@ function spm_ovhelper_3Dreg(cmd, varargin)
 % Copyright (C) 2008-2013 Wellcome Trust Centre for Neuroimaging
 
 % Volkmar Glauche
-% $Id: spm_ovhelper_3Dreg.m 5219 2013-01-29 17:07:07Z spm $
+% $Id: spm_ovhelper_3Dreg.m 8264 2022-06-10 10:45:49Z guillaume $
 
 if ishandle(varargin{1})
     h = varargin{1};
@@ -46,7 +46,7 @@ switch lower(cmd)
     case 'setcoords'
         setcoords(varargin{1:end});
         return;
-    case 'unregister',
+    case 'unregister'
         unregister(h,varargin{2:end});
         return;
     case 'xhairson'
