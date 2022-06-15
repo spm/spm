@@ -6,10 +6,10 @@ function ret = spm_ov_mesh(varargin)
 %             help spm_orthviews
 % at the MATLAB prompt.
 %__________________________________________________________________________
-% Copyright (C) 2017-2019 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2017-2022 Wellcome Trust Centre for Neuroimaging
 
 % Torben Lund, Guillaume Flandin & Christian Gaser
-% $Id: spm_ov_mesh.m 7678 2019-10-24 14:08:03Z guillaume $
+% $Id: spm_ov_mesh.m 8265 2022-06-15 20:39:29Z guillaume $
 
 
 switch lower(varargin{1})
@@ -109,7 +109,13 @@ if nargin < 2
     [g,sts] = spm_select([1 Inf],'mesh','Select mesh(es)...');
     if ~sts, st.vols{i}.mesh.meshes = m; return; end
 end
-if ischar(g), fname = cellstr(g); else fname = repmat({''},1,numel(g)); end
+if ischar(g)
+    fname = cellstr(g);
+elseif iscellstr(g)
+    fname = g(:)';
+else
+    fname = repmat({''},1,numel(g));
+end
 g = export(gifti(g),'patch');
 for j=1:numel(g)
     if ~isfield(g(j),'vertices') || ~isfield(g(j),'faces')
@@ -118,7 +124,7 @@ for j=1:numel(g)
 end
 
 st.vols{i}.mesh.meshes = [m, g];
-st.vols{i}.mesh.fname = [f; fname];
+st.vols{i}.mesh.fname = [f, fname];
 
 hM = findobj(st.vols{i}.ax{1}.cm,'Label','Mesh');
 if numel(get(hM,'children')) < 3
