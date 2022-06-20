@@ -37,7 +37,7 @@ function [P,C,str] = spm_SARS_priors(nN)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_priors.m 8261 2022-06-03 14:10:59Z karl $
+% $Id: spm_SARS_priors.m 8266 2022-06-20 09:05:48Z karl $
 
 % sources and background
 %--------------------------------------------------------------------------
@@ -66,10 +66,10 @@ if nargin
     %----------------------------------------------------------------------
     [P,C,str] = spm_SARS_priors;
     free  = {'N'  ,'Nin','Nou',...
-             'abs','qua','pro'...
-             'hos','ccu','Tim',...
-             'sev','fat','lnk',...
-             'rol','fol','mem'};
+             'abs','qua','pro',...
+             'hos','ccu',...
+             'sev','fat',...
+             'rol','fol','lnk'};
 
     if nN == 1
         

@@ -22,7 +22,7 @@ function [T,R] = spm_COVID_T(P,I)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_T.m 8261 2022-06-03 14:10:59Z karl $
+% $Id: spm_COVID_T.m 8266 2022-06-20 09:05:48Z karl $
 
 % setup
 %==========================================================================
@@ -387,8 +387,6 @@ b{8} = b{3};
 
 % kroneckor form
 %--------------------------------------------------------------------------
-if min(spm_vec(b)) < 0; keyboard, end
-
 b    = spm_cat(spm_diag(b));
 b    = spm_kron({b,I{1},I{3}});
 B{4} = spm_permute_kron(b,dim([4,2,1,3]),[3,2,4,1]);
@@ -406,8 +404,8 @@ for i = 1:4
     T = T*B{i};
 end
 
-% if min(spm_vec(T)) < 0; keyboard, end
-% if max(spm_vec(T)) < 0; keyboard, end
+if min(T(:)) < 0; keyboard, end
+if max(T(:)) > 1; keyboard, end
 
 
 % time-dependent parameters

@@ -14,7 +14,7 @@ function DCM = DEM_COVID_UK4
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_UK4.m 8261 2022-06-03 14:10:59Z karl $
+% $Id: DEM_COVID_UK4.m 8266 2022-06-20 09:05:48Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -135,7 +135,7 @@ writetable(agevaccine,'agevaccine.csv')
 % get (cumulative) admissions by age (England)
 %----------------------------------------------------------------------
 url   = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=nation&areaCode=E92000001&metric=cumAdmissionsByAge&format=csv';
-tab   = webread(url);
+tab   = webread(url,options);
 vname = tab.Properties.VariableNames;
 aa    = find(ismember(vname,'age'));
 ad    = find(ismember(vname,'date'));
@@ -370,7 +370,7 @@ Y(10).U    = 23;
 Y(10).date = datenum(positivity.textdata(2:end,d),'yyyy-mm-dd');
 Y(10).Y    = positivity.data(:,1);
 Y(10).h    = 0;
-Y(10).lag  = 1;
+Y(10).lag  = 0;
 Y(10).age  = 0;
 Y(10).hold = 0;
 
@@ -406,17 +406,8 @@ try
 catch
     Y(13).date = datenum(transport.textdata(2:end,1),'dd/mm/yyyy');
 end
-% try
-%     load DCM_UK DCM
-%     M.date   = DCM.M.date;
-%     M.T      = Y(13);
-%     Z        = spm_SARS_gen(DCM.Ep,M);  % posterior prediction
-%     X        = transport.data*100 - 100;
-%     X        = [X X.^2];
-%     Y(13).Y  = X*(X\(Z - 100)) + 100;
-% catch
-     Y(13).Y  = transport.data(:,1)*100;
-% end
+Y(13).Y    = transport.data(:,1)*100;
+
 
 Y(14).type = 'Mobility (GOV/Google)'; % workplace activity (percent)
 Y(14).unit = 'percent';
@@ -430,33 +421,7 @@ if numel(mobility.textdata{2,1}) == numel('yyyy-mm-dd')
 else
     Y(14).date = datenum(mobility.textdata(2:end,1),'dd-mmm-yyyy');
 end
-% try
-%     load DCM_UK DCM
-%     M.date   = DCM.M.date;
-%     M.T      = Y(14);
-%     Z        = spm_SARS_gen(DCM.Ep,M); % posterior prediction
-%     X        = mobility.data;
-%     X        = [X X.^2];
-%     Y(14).Y  = X*(X\(Z - 100)) + 100;
-% catch
-     Y(14).Y  = (mobility.data(:,1) + mobility.data(:,2))/2 + 100;
-% end
-
-
-% subplot(2,1,1),cla
-% for i = 1:size(mobility.data,2)
-%     plot(Y(14).date,mobility.data(:,i) + 100), hold on
-% end
-% legend(mobility.textdata(1,2:end))
-% 
-% set(gca,'XLim',[datenum('01-11-21','dd-mm-yy'),datenum(date)])
-% datetick('x','dd-mmm','KeepLimits')
-% plot(datenum('15-11-21','dd-mm-yy')*[1,1],[0 150],':r')
-% plot(datenum('08-12-21','dd-mm-yy')*[1,1],[0 150],'--b')
-% plot(datenum('20-01-22','dd-mm-yy')*[1,1],[0 150],'--b')
-% 
-% legend([mobility.textdata(1,2:end) 'Omicron' 'Plan-B','Plan-B'])
-% title('Google mobility data')
+Y(14).Y  = (mobility.data(:,1) + mobility.data(:,2))/2 + 100;
 
 
 % scaling for data from England and Wales 
@@ -471,7 +436,7 @@ Y(15).U    = 17;
 Y(15).date = datenum(place.textdata(2:end - 8,1),'dd/mm/yyyy');
 Y(15).Y    = place.data(1:end - 8,4)*EngWaleUK;
 Y(15).h    = 0;
-Y(15).lag  = 1;
+Y(15).lag  = 0;
 Y(15).age  = 0;
 Y(15).hold = 1;
 
@@ -751,7 +716,7 @@ Y(40).U    = 36;
 Y(40).date = datenum(vaccines.textdata(2:end,d),'yyyy-mm-dd');
 Y(40).Y    = vaccines.data/1e6;
 Y(40).h    = 2;
-Y(40).lag  = 1;
+Y(40).lag  = 0;
 Y(40).age  = 0;
 Y(40).hold = 0;
 
@@ -775,12 +740,12 @@ pC.N    = spm_zeros(pE.N);
 % age-specific
 %--------------------------------------------------------------------------
 j       = nN;
-pE.mo   = ones(j,1)*[ 0 1];   % coefficients for transport
-pC.mo   = ones(j,2)/8;        % prior variance
-pE.wo   = ones(j,1)*[ 0 1];   % coefficients for workplace
-pC.wo   = ones(j,2)/8;        % prior variance
-pE.gd   = ones(j,1)*[-1 1];   % coefficients gross domestic product
-pC.gd   = ones(j,2)/8;        % prior variance
+pE.mo   = ones(j,1)*[ 0 1];    % coefficients for transport
+pC.mo   = ones(j,2)/8;         % prior variance
+pE.wo   = ones(j,1)*[ 0 1];    % coefficients for workplace
+pC.wo   = ones(j,2)/8;         % prior variance
+pE.gd   = ones(j,1)*[-1 1];    % coefficients gross domestic product
+pC.gd   = ones(j,2)/8;         % prior variance
 
 % augment priors with fluctuations
 %--------------------------------------------------------------------------
@@ -1288,7 +1253,7 @@ savefig(gcf,'Fig7')
 
 % Table
 %--------------------------------------------------------------------------
-Tab = spm_COVID_table(Ep,Cp,M)
+disp(spm_COVID_table(DCM.Ep,DCM.Cp,DCM.M))
 
 save('DCM_UK.mat','DCM')
 cd('C:\Users\karl\Dropbox\Coronavirus')
@@ -1487,10 +1452,8 @@ spm_figure('GetWin','states'); clf;
 %--------------------------------------------------------------------------
 M.T    = datenum(date) - datenum(DCM.M.date,'dd-mm-yyyy');
 M.T    = M.T + 360;                          % forecast dates
-u      = 13;                             % empirical outcome
+u      = 23;                             % empirical outcome
 a      = 0;                              % age cohort (0 for everyone)
-% u      = 36;
-% a      = 0;
 Ep.Tnn = DCM.Ep.Tnn + 0;                     % adjusted (log) parameter
 
 [Z,X]  = spm_SARS_gen(Ep,M,u,[],a); % posterior prediction

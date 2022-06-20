@@ -84,7 +84,7 @@ function [y,x,z,W] = spm_SARS_gen(P,M,U,NPI,age)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_gen.m 8261 2022-06-03 14:10:59Z karl $
+% $Id: spm_SARS_gen.m 8266 2022-06-20 09:05:48Z karl $
 
 
 % The generative model:
@@ -421,7 +421,8 @@ for i = 1:M.T
         r{n} = [(1 - k1) (1 - k2);
                      k1,      k2]*r{n};
         
-        Pout     = erf(r{n}(1) + Q{n}.abs*Rout);   % P(going out) with fluctuations
+        Pout     = r{n}(1)*exp(Q{n}.abs*Rout);     % P(going out) with fluctuations
+        Pout     = erf(Pout);
         Q{n}.out = Pout*R{n}.out;                  % scale by baseline
         
         % seasonal variation in transmission risk
@@ -436,19 +437,20 @@ for i = 1:M.T
         tou  = 1;
         for j = 1:nN
             q   = spm_sum(x{j},[3 4]);
-            
+
             pin = q(1,:)/sum(q(1,:) + eps);        % P(infection | home)
             pou = q(2,:)/sum(q(2,:) + eps);        % P(infection | work)
-            
+
             pin = pin(3) + pin(8);                 % P(infectious | home)
             pou = pou(3) + pou(8);                 % P(infectious | work)
-            
+
             tin = tin*(1 - Ptrn*pin)^Q{n}.Nin(j);
             tou = tou*(1 - Ptrn*pou)^Q{n}.Nou(j);
+
         end
         
-        Q{n}.tin = max(min(tin,1),0);                     % P(no transmission | home)
-        Q{n}.tou = max(min(tou,1),0);                     % P(no transmission | work)       
+        Q{n}.tin = max(min(tin,1),0);              % P(no transmission | home)
+        Q{n}.tou = max(min(tou,1),0);              % P(no transmission | work)       
         
         % vaccination rollout: nac = 1 - vaccination rate
         %------------------------------------------------------------------
@@ -464,9 +466,10 @@ for i = 1:M.T
                
         % update ensemble density (x)
         %==================================================================
-        [T,V]  = spm_COVID_T(Q{n},I);
-        x{n}   = spm_unvec(T*spm_vec(x{n}),x{n});
-        x{n}   = x{n}/sum(x{n}(:));
+        [T,V]   = spm_COVID_T(Q{n},I);
+        x{n}    = spm_unvec(T*spm_vec(x{n}),x{n});
+        x{n}    = max(min(real(x{n}),1),0);
+        x{n}    = x{n}/sum(x{n}(:));
         
         % marginal densities (p)
         %------------------------------------------------------------------
@@ -598,7 +601,8 @@ for i = 1:M.T
                 
         % PCR case positivity (%) (seven day rolling average)
         %------------------------------------------------------------------
-        Y{n}(i,23) = 100 * (1 - (1 - p{n}{4}(3))^7)/(1 - (1 - p{n}{4}(3) - p{n}{4}(4))^7);
+        q          = (1 - (1 - p{n}{4}(3))^7)/(1 - (1 - p{n}{4}(3) - p{n}{4}(4))^7);
+        Y{n}(i,23) = 100 * q;
         
         % daily lateral flow tests (positive and negative)
         %------------------------------------------------------------------
