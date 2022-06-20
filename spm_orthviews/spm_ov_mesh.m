@@ -9,7 +9,7 @@ function ret = spm_ov_mesh(varargin)
 % Copyright (C) 2017-2022 Wellcome Trust Centre for Neuroimaging
 
 % Torben Lund, Guillaume Flandin & Christian Gaser
-% $Id: spm_ov_mesh.m 8265 2022-06-15 20:39:29Z guillaume $
+% $Id: spm_ov_mesh.m 8267 2022-06-20 16:28:27Z guillaume $
 
 
 switch lower(varargin{1})
@@ -34,6 +34,7 @@ switch lower(varargin{1})
             'UserData',struct('str','Line width', 'field','width'),...
             'Callback',@(hObj,event) mesh_options(hObj,event,item0));
         ret = item0;
+        
     case 'display'
         if nargin < 2
             varargin{2} = spm_input('Select image', '!+1', 'e');
@@ -41,9 +42,15 @@ switch lower(varargin{1})
         mesh_add(varargin{2:end});
         mesh_delete(varargin{2});
         mesh_display(varargin{2});
+        
     case 'redraw'
         mesh_redraw(varargin{2:end});
+        
+    case 'options'
+        spm_options_cli(varargin{2:end});
+        
     otherwise
+        % no-op
 end
 
 
@@ -71,6 +78,25 @@ if T == 's'
 end
 set(hM,'UserData',UDc);
 try, mesh_redraw(UDc.id); end
+
+
+%==========================================================================
+function spm_options_cli(i,varargin)
+global st
+
+hM = findobj(st.vols{i}.ax{1}.cm,'Label','Mesh');
+UD = get(hM,'UserData');
+if mod(numel(varargin),2)
+    error('Options should be key/value pairs.');
+end
+for o=1:2:numel(varargin)
+    if ~ischar(varargin{o})
+        error('Invalid option.');
+    end
+    UD.(varargin{o}) = varargin{o+1};
+end
+set(hM,'UserData',UD);
+try, mesh_redraw(UD.id); end
 
 
 %==========================================================================
@@ -111,6 +137,7 @@ if nargin < 2
 end
 if ischar(g)
     fname = cellstr(g);
+    fname = fname(:)';
 elseif iscellstr(g)
     fname = g(:)';
 else
