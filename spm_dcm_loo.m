@@ -33,7 +33,7 @@ function [qE,qC,Q] = spm_dcm_loo(DCM,M,field)
 % Copyright (C) 2015-2017 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_loo.m 7120 2017-06-20 11:30:30Z spm $
+% $Id: spm_dcm_loo.m 8269 2022-06-30 18:53:59Z karl $
 
 
 % Set up
@@ -74,7 +74,7 @@ end
 %==========================================================================
 Ns    = numel(DCM);
 for i = 1:Ns
-
+    
     % get posterior predictive density for each subject
     %----------------------------------------------------------------------
     j         = 1:Ns;
@@ -97,7 +97,7 @@ xlabel('subject','FontSize',12), ylabel('group effect','FontSize',12)
 title('Out of sample estimates','FontSize',16)
 spm_axis tight, axis square
 
-% classical inference on classification accuracy
+% classical inference on predictive accuracy
 %--------------------------------------------------------------------------
 [T,df] = spm_ancova(M.X(:,1:2),[],qE(:),[0;1]);
 r      = corrcoef(qE(:),M.X(:,2));
@@ -108,6 +108,9 @@ if isnan(T)
 else
     p = 1 - spm_Tcdf(T,df(2));
 end
+
+% correlation (c.f., out-of-sample variance explained)
+%--------------------------------------------------------------------------
 str = sprintf('corr(df:%-2.0f) = %-0.2f: p = %-0.5f',df(2),r,p);
 
 subplot(2,2,2)
@@ -117,15 +120,20 @@ title(str,'FontSize',16)
 axis square
 
 if size(Q,1) > 2
-    % Continuous prediction
+    
+    % Continuous prediction (c.f., regression)
+    %----------------------------------------------------------------------
     subplot(2,1,2), imagesc(1:Ns,unique(M.X(:,2)),Q), hold on
     plot(M.X(:,2),'.c','MarkerSize',32), hold off
     xlabel('Subject','FontSize',12);
     ylabel('levels of group effect','FontSize',12)
     title('Predictive posterior (and true values)','FontSize',16)
     axis square xy
+    
 else
-    % Binary classification
+
+    % discrete prediction (c.f., classification)
+    %----------------------------------------------------------------------
     subplot(4,1,3), bar(Q(1,:))
     xlabel('subject','FontSize',12);
     ylabel('posterior probability','FontSize',12);
@@ -139,4 +147,5 @@ else
     title('Group effect (group 2)','FontSize',16);
     axis([0 (Ns + 1) 0 1]);
     line([0 Ns+0.5],[0.95 0.95],'LineStyle','--','Color','r');
+    
 end

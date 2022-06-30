@@ -10,11 +10,11 @@ function [qE,qC,P] = spm_dcm_ppd(TEST,TRAIN,Y,X,field,iX)
 %     DCM{i}.Ep   - posterior expectations
 %     DCM{i}.Cp   - posterior covariance
 %
-% Y      - known values of design matrix for the test subject
+% Y      - known values of design (i.e., GLM) matrix for the test subject
 % X      - second level design matrix, where X(:,1) = ones(N,1) [default]
 % field  - parameter fields in DCM{i}.Ep to optimise [default: {'A','B'}]
 %          'All' will invoke all fields (these constitute random effects)
-% iX     - column of design matrix to be predicted   [default: iX=2]
+% iX     - column of design matrix to be predicted [default: iX=2]
 % 
 % qE     - posterior predictive expectation
 % qC     - posterior predictive covariances
@@ -23,22 +23,22 @@ function [qE,qC,P] = spm_dcm_ppd(TEST,TRAIN,Y,X,field,iX)
 %
 % This routine inverts a hierarchical DCM using variational Laplace and
 % Bayesian model reduction. In essence, it optimises the empirical priors
-% over the parameters of a training set of first level DCMs, using 
-% between subject constraints specified in the design matrix X. These
-% optimised empirical priors are then used to parameterise a model of
-% between subject effects for a single (test) subject. Usually, the second
-% level of the design matrix specifies group differences and the posterior
-% predictive density over this group effect can be used for classification
-% or cross validation. it is assumed that the unknown  explanatory
-% variable in the design matrix  pertains to the second column unless
-% otherwise specified
+% over the parameters of a training set of first level DCMs, using between
+% subject constraints specified in the design matrix X. These optimised
+% empirical priors are then used to parameterise a model of between subject
+% effects for a single (test) subject. Usually, the second level of the
+% design matrix specifies group differences and the posterior predictive
+% density over this group effect can be used for classification or cross
+% validation. it is assumed that the unknown predictive (i.e., explanatory
+% variable in the design matrix pertains to the second column unless
+% otherwise specified by iX
 %
 % See also: spm_dcm_peb.m and spm_dcm_loo.m
 %__________________________________________________________________________
 % Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ppd.m 6737 2016-03-03 12:05:51Z karl $
+% $Id: spm_dcm_ppd.m 8269 2022-06-30 18:53:59Z karl $
 
 
 % Set up
@@ -46,16 +46,16 @@ function [qE,qC,P] = spm_dcm_ppd(TEST,TRAIN,Y,X,field,iX)
 
 % explanatory variable (between subject effect) of interest
 %--------------------------------------------------------------------------
-if nargin < 6;
+if nargin < 6
     iX    = 2;
 end
 
 % parameter fields
 %--------------------------------------------------------------------------
-if nargin < 5;
+if nargin < 5
     field = {'A','B'};
 end
-if strcmpi(field,'all');
+if strcmpi(field,'all')
     field = fieldnames(TEST(1,1).M.pE);
 end
 

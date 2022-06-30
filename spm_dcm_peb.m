@@ -11,7 +11,8 @@ function [PEB,P]   = spm_dcm_peb(P,M,field)
 %     DCM{i}.Cp     - posterior covariance
 %     DCM{i}.F      - free energy
 %
-% M.X      - 2nd-level design matrix: X(:,1) = ones(N,1) [default]
+% M.X      - 2nd-level design matrix (between subject): X(:,1) = ones(N,1) [default]
+% M.W      - 2nd-level design matrix (within subject) [default eye(n,n)]
 % M.bE     - 3rd-level prior expectation [default: DCM{1}.M.pE]
 % M.bC     - 3rd-level prior covariance  [default: DCM{1}.M.pC/M.alpha]
 % M.pC     - 2nd-level prior covariance  [default: DCM{1}.M.pC/M.beta]
@@ -30,7 +31,7 @@ function [PEB,P]   = spm_dcm_peb(P,M,field)
 % NB2:       to manually specify which parameters should be assigned to 
 %            which covariance components, M.Q can be set to a cell array of 
 %            [nxn] binary matrices, where n is the number of DCM 
-%            parameters. A value of M.Q{i}(n,n)==1 indicates that parameter 
+%            parameters. A value of M.Q{i}(n,n) = 1 means that parameter 
 %            n should be modelled with component i.
 %
 % M.Xnames - cell array of names for second level parameters [default: {}]
@@ -61,7 +62,7 @@ function [PEB,P]   = spm_dcm_peb(P,M,field)
 %     PEB.Ce        - expected  covariance of second level random effects
 %     PEB.F         - free energy of second level model
 %
-% DCM           - 1st level (reduced) DCM structures with empirical priors
+% DCM       - 1st level (reduced) DCM structures with empirical priors
 %
 %          If DCM is an an (N x M} array, hierarchical inversion will be
 %          applied to each model (i.e., each row) - and PEB will be a 
@@ -70,7 +71,7 @@ function [PEB,P]   = spm_dcm_peb(P,M,field)
 % This routine inverts a hierarchical DCM using variational Laplace and
 % Bayesian model reduction. In essence, it optimises the empirical priors
 % over the parameters of a set of first level DCMs, using second level or
-% between subject constraints specified in the design matrix X. This scheme
+% between subject constraints, specified in the design matrix X. This scheme
 % is efficient in the sense that it does not require inversion of the first
 % level DCMs - it just requires the prior and posterior densities from each
 % first level DCM to compute empirical priors under the implicit
@@ -80,18 +81,24 @@ function [PEB,P]   = spm_dcm_peb(P,M,field)
 % to perform BMC at the group level. Alternatively, subject-specific (first
 % level) posterior expectations can be used for classical inference in the
 % usual way. Note that these (summary statistics) are optimal in the sense
-% that they have been estimated under empirical (hierarchical)  priors. 
+% that they have been estimated under empirical (hierarchical)  priors.
 %
-% If called with a single DCM, there are no between-subject effects and the
-% design matrix is assumed to model mixtures of parameters at the first
-% level. If called with a cell array, each column is assumed to contain 1st
+% If called with a single subject (or DCM), there are no between subject
+% effects and the second level GLM simply modelsmixtures of parameters at
+% the first level. These mixtures are specified by M.W, where M.X = 1. When
+% called with multiple subjects (or DCMs)it is assumed that all parameters
+% specified by the input argument 'field' are explained by the same between
+% subject effects in M.X. This means that M.W becomes an identity matrix,
+% such that the implicit GLM over subjects and parameters is kron(X,W).
+%
+% If called with a cell array, each column is assumed to contain 1st
 % level DCMs inverted under the same model.
 %
 %__________________________________________________________________________
 % Copyright (C) 2015-2016 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_peb.m 8148 2021-09-06 13:55:10Z peter $
+% $Id: spm_dcm_peb.m 8269 2022-06-30 18:53:59Z karl $
  
 
 % get filenames and set up
@@ -145,9 +152,11 @@ Ns    = numel(P);                               % number of subjects
 if isfield(M,'bC') && Ns > 1
     q = spm_find_pC(M.bC,M.bE,field);           % parameter indices
 elseif isnumeric(field)
-    q = field;                                  % parameter indices
+    q = field;
+elseif iscell(field) && isstruct(DCM.M.pE) && (Ns == 1)
+    q = spm_fieldindices(DCM.M.pE,field{:});
 else
-    q = spm_find_pC(DCM,field);                 % parameter indices
+    q = spm_find_pC(DCM,field);
 end
 
 % prepare field names
@@ -155,14 +164,19 @@ end
 is_peb_of_pebs = isfield(DCM,'Pnames');         % PEB given as input?
 
 if is_peb_of_pebs
+    
     % PEBs given as input. Field names have form covariate:fieldname
+    %----------------------------------------------------------------------
     Pstr  = [];
     for i = 1:length(DCM.Xnames)
         str  = strcat(DCM.Xnames{i}, ': ', DCM.Pnames);
         Pstr = [Pstr; str];
     end
+    
 else
+    
     % DCMs given as input. Retrieve or generate field names
+    %----------------------------------------------------------------------
     try
         Pstr  = spm_fieldindices(DCM.M.pE,q);
     catch
@@ -220,12 +234,16 @@ for i = 1:Ns
     PE = PE + pE{i}(q);
     PC = PC + pC{i}(q,q);
 end
-PE = PE ./ Ns;
-PC = PC ./ Ns;
+PE = PE/Ns;
+PC = PC/Ns;
 
 % deal with rank deficient priors
 % -------------------------------------------------------------------------
-U     = spm_svd(PC);
+if Ns > 1
+    U = spm_svd(PC);
+else
+    U = 1;
+end
 for i = 1:Ns
     
     % select parameters in field
@@ -258,24 +276,24 @@ if ~isfield(M,'Q')
     OPTION = 'single';
 elseif iscell(M.Q) && isnumeric(M.Q{1})
     OPTION = 'manual';
-    Q = M.Q;
+    Q      = M.Q;
 else
     OPTION = M.Q;
 end
 
-% design matrices
-%--------------------------------------------------------------------------
+% within and between subject design matrices (W,X)
+%==========================================================================
 if Ns > 1
     
-    % between-subject design matrices and prior expectations
-    %======================================================================
-    X   = M.X;
-    W   = U'*M.W*U;
+    % assume W = eye(Np,Np) and work in the prior (SVD) subspace (U)
+    %----------------------------------------------------------------------
+    X      = M.X;
+    W      = U'*M.W*U;
     
 else
     
     % within subject design
-    %======================================================================
+    %----------------------------------------------------------------------
     OPTION = 'none';
     U      = 1;
     X      = 1;
@@ -316,8 +334,10 @@ end
 % between (e.g.,) subject covariances (for precision components Q)
 %--------------------------------------------------------------------------
 if isfield(M,'pC')
+    
     if isstruct(M.pC),    M.pC = diag(spm_vec(M.pC)); end
     if size(M.pC,1) > Np && Ns > 1, M.pC = M.pC(q,q); end
+    
 elseif ~beta
     
     % If beta = 0, use variance of MAP estimators
@@ -329,6 +349,7 @@ else
     % otherwise, use a scaled prior covariance
     %----------------------------------------------------------------------
     M.pC = PC/beta;
+    
 end
 
 
