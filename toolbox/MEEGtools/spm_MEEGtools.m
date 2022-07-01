@@ -1,10 +1,10 @@
 function spm_MEEGtools
 % GUI gateway to MEEGtools toolbox
-% _______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_MEEGtools.m 8132 2021-08-10 14:54:27Z vladimir $
+% $Id: spm_MEEGtools.m 8272 2022-07-01 12:16:04Z guillaume $
 
 
 funlist = {
@@ -35,6 +35,11 @@ funlist = {
 str = sprintf('%s|', funlist{:, 1});
 str = str(1:(end-1));
 
-fun = spm_input('MEEG tools',1,'m', str, strvcat(funlist(:, 2)));
+try
+    fun = spm_input('MEEG tools',1,'m', str, strvcat(funlist(:, 2)));
+catch
+    % Interactive window closed without a selection being made
+    return;
+end
   
 eval(fun);
