@@ -84,7 +84,7 @@ function [y,x,z,W] = spm_SARS_gen(P,M,U,NPI,age)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_gen.m 8266 2022-06-20 09:05:48Z karl $
+% $Id: spm_SARS_gen.m 8270 2022-07-01 09:58:38Z karl $
 
 
 % The generative model:
@@ -416,7 +416,7 @@ for i = 1:M.T
         for j = 1:nN
             qp(j,1) = p{j}{2}(3) + p{j}{2}(8);
         end
-        k1   = Q{n}.sde*qp;                        % prevalence
+        k1   = erf(Q{n}.sde*qp);                   % prevalence
         k2   = exp(-1/(Q{n}.qua));                 % relaxation
         r{n} = [(1 - k1) (1 - k2);
                      k1,      k2]*r{n};
