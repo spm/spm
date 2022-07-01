@@ -10,8 +10,9 @@ function [DCM,BMR,BMA] = spm_dcm_bmr_all(DCM,field,OPT)
 %  DCM.Cp    - posterior covariances
 %  DCM.beta  - prior expectation of reduced parameters (default: 0)
 %              NB: beta  = 'full' uses full prior expectations
-%  DCM.gamma - prior variance    of reduced parameters (default: 0)
-%              NB: gamma = 'full' uses full prior variances
+%  DCM.gamma - prior variance of reduced parameters (default: 0)
+%              NB:  multiplies the prior variance from the full model
+%              NB2: gamma = 'full' uses full prior variances
 %
 % field      - parameter fields in DCM{i}.Ep to optimise [default: {'A','B'}]
 %             'All' will invoke all fields (i.e. random effects)
@@ -67,7 +68,7 @@ function [DCM,BMR,BMA] = spm_dcm_bmr_all(DCM,field,OPT)
 % Copyright (C) 2010-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: spm_dcm_bmr_all.m 8183 2021-11-04 15:25:19Z guillaume $
+% $Id: spm_dcm_bmr_all.m 8271 2022-07-01 10:35:53Z peter $
 
 
 %-specification of null prior covariance
