@@ -11,7 +11,7 @@ function varargout = spm_mb_appearance(varargin) % Appearance model
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
 % Mikael Brudfors, John Ashburner & Yael Balbastre
-% $Id: spm_mb_appearance.m 8253 2022-05-19 09:14:05Z john $
+% $Id: spm_mb_appearance.m 8273 2022-07-04 12:44:57Z john $
 [varargout{1:nargout}] = spm_subfun(localfunctions,varargin{:});
 %==========================================================================
 
@@ -32,16 +32,33 @@ for n=1:numel(dat)
                                         mean(dat(n).model.gmm.m,2)*0.9);
             dat(n).model.gmm.Alpha = dat(n).model.gmm.Alpha*0+eps;
         else
-            % Set all GMM parameters to be identical so the
-            % next GMM fit restarts everything at the current
-            % priors. Symmetry already broken with intensity
-            % priors.
-            [M,K1] = size(dat(n).model.gmm.m);
-            dat(n).model.gmm.m  = ones(M,K1)*1000;
-            dat(n).model.gmm.b  = ones(1,K1);
-            dat(n).model.gmm.W  = repmat(eye(M,M)/1000,[1 1 K1]);
-            dat(n).model.gmm.nu = ones(1,K1)*(M+1);
-            dat(n).model.gmm.Alpha = dat(n).model.gmm.Alpha*0+eps;
+            if numel(sett.gmm)==1
+                % Initialise to the current priors.
+                % Tissue priors have less effect on the posterior
+                % whereas intensity priors have a stronger effect
+                % on ensuring a consistent clustering across subjects.
+                dat(n).model.gmm.m  = sett.gmm(p).pr{1};
+                dat(n).model.gmm.b  = sett.gmm(p).pr{2};
+                dat(n).model.gmm.W  = sett.gmm(p).pr{3};
+                dat(n).model.gmm.nu = sett.gmm(p).pr{4};
+                dat(n).model.gmm.Alpha = dat(n).model.gmm.Alpha*0+eps;
+           else
+                % Set all GMM parameters to be identical so the
+                % next GMM fit restarts everything at the current
+                % priors. Symmetry already broken with intensity
+                % priors.
+                % Tissue priors have more effect on the posterior
+                % which reduces the chance of different populations
+                % having their own clustering. This is an attempt
+                % to ensure that clusters correspond across
+                % populations.
+                [M,K1] = size(dat(n).model.gmm.m);
+                dat(n).model.gmm.m  = ones(M,K1)*1000;
+                dat(n).model.gmm.b  = ones(1,K1);
+                dat(n).model.gmm.W  = repmat(eye(M,M)/1000,[1 1 K1]);
+                dat(n).model.gmm.nu = ones(1,K1)*(M+1);
+                dat(n).model.gmm.Alpha = dat(n).model.gmm.Alpha*0+eps;
+           end
         end
     end
 end

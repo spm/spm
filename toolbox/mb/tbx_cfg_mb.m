@@ -3,7 +3,7 @@ function cfg = tbx_cfg_mb
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: tbx_cfg_mb.m 8253 2022-05-19 09:14:05Z john $
+% $Id: tbx_cfg_mb.m 8273 2022-07-04 12:44:57Z john $
 
 
 if ~isdeployed, addpath(fileparts(mfilename('fullpath'))); end
@@ -330,8 +330,8 @@ mu_prov.help    = {[...
 aff             = cfg_menu;
 aff.tag         = 'aff';
 aff.name        = 'Affine';
-aff.labels      = {'None', 'Translations', 'Rigid', 'Affine'};
-aff.values      = {'', 'T(3)', 'SE(3)', 'Aff(3)'};
+aff.labels      = {'None', 'Translations', 'Rigid', 'Rigid+Zoom', 'Affine'};
+aff.values      = {'', 'T(3)', 'SE(3)', 'SEZ(3)', 'Aff(3)'};
 aff.val         = {'SE(3)'};
 aff.help        = {[...
 'Type of affine transform to use in the model, which may be either ' ...
