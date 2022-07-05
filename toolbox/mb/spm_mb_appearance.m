@@ -11,7 +11,7 @@ function varargout = spm_mb_appearance(varargin) % Appearance model
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
 % Mikael Brudfors, John Ashburner & Yael Balbastre
-% $Id: spm_mb_appearance.m 8273 2022-07-04 12:44:57Z john $
+% $Id: spm_mb_appearance.m 8274 2022-07-05 09:03:43Z john $
 [varargout{1:nargout}] = spm_subfun(localfunctions,varargin{:});
 %==========================================================================
 
@@ -32,11 +32,13 @@ for n=1:numel(dat)
                                         mean(dat(n).model.gmm.m,2)*0.9);
             dat(n).model.gmm.Alpha = dat(n).model.gmm.Alpha*0+eps;
         else
-            if numel(sett.gmm)==1
+            if false % numel(sett.gmm)==1
                 % Initialise to the current priors.
                 % Tissue priors have less effect on the posterior
                 % whereas intensity priors have a stronger effect
                 % on ensuring a consistent clustering across subjects.
+                % Commented out because it appears to cause strange
+                % behaviour for empty clusters.
                 dat(n).model.gmm.m  = sett.gmm(p).pr{1};
                 dat(n).model.gmm.b  = sett.gmm(p).pr{2};
                 dat(n).model.gmm.W  = sett.gmm(p).pr{3};
