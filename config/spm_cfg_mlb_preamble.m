@@ -3,6 +3,4 @@
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_mlb_preamble.m 1373 2008-04-11 14:24:03Z spm $
-
-rev = '$Rev: 1373 $';
+% $Id: spm_cfg_mlb_preamble.m 8276 2022-07-06 11:31:55Z guillaume $
