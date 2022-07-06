@@ -118,7 +118,7 @@ function varargout = spm_DesRep(varargin)
 % Copyright (C) 1999-2021 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_DesRep.m 8183 2021-11-04 15:25:19Z guillaume $
+% $Id: spm_DesRep.m 8275 2022-07-06 11:14:02Z guillaume $
 
 
 %==========================================================================
@@ -251,12 +251,10 @@ function varargout = spm_DesRep(varargin)
 %__________________________________________________________________________
 
 
-SVNid = '$Rev: 8183 $'; 
-
 %-Format arguments
 %--------------------------------------------------------------------------
 if ~nargin
-    SPMid = spm('FnBanner',mfilename,SVNid);
+    SPMid = spm('FnBanner',mfilename);
     hC    = spm_DesRep('DesRepUI'); 
     SPM   = get(hC,'UserData');
     if ~isempty(SPM)

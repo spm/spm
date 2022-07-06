@@ -14,13 +14,12 @@ function D = spm_eeg_avgfreq(S)
 % Copyright (C) 2012-2017 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_avgfreq.m 7132 2017-07-10 16:22:58Z guillaume $
+% $Id: spm_eeg_avgfreq.m 8275 2022-07-06 11:14:02Z guillaume $
 
-SVNrev = '$Rev: 7132 $';
 
 %-Startup
 %--------------------------------------------------------------------------
-spm('FnBanner', mfilename, SVNrev);
+spm('FnBanner', mfilename);
 spm('FigName','Average over frequency'); spm('Pointer','Watch');
 
 if ~isfield(S, 'prefix'),       S.prefix   = 'P';           end

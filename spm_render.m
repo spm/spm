@@ -33,9 +33,8 @@ function varargout = spm_render(dat,brt,rendfile)
 % Copyright (C) 1996-2019 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_render.m 8183 2021-11-04 15:25:19Z guillaume $
+% $Id: spm_render.m 8275 2022-07-06 11:14:02Z guillaume $
 
-SVNrev = '$Rev: 8183 $';
 
 global prevrend
 if ~isstruct(prevrend)
@@ -50,7 +49,7 @@ varargout = {};
 %-Get surface
 %--------------------------------------------------------------------------
 if nargin < 3 || isempty(prevrend.rendfile)
-    spm('FnBanner',mfilename,SVNrev);
+    spm('FnBanner',mfilename);
     [rendfile, sts] = spm_select(1,{'mat','mesh'},'Render file');
     if ~sts, return; end
 end

@@ -15,7 +15,6 @@ function res = spm_eeg_regressors_movement_ctf(S)
 
 % Vladimir Litvak
 
-SVNrev = '$Rev: 6186 $';
 
 if nargin == 0
     
@@ -48,7 +47,7 @@ hlc_chan_label = {'HLC0011' 'HLC0012' 'HLC0013'...
 
 %-Startup
 %--------------------------------------------------------------------------
-spm('sFnBanner', mfilename, SVNrev);
+spm('sFnBanner', mfilename);
 spm('FigName','CTF movement regressors');
 
 if iscell(S.Dmov)

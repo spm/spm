@@ -124,7 +124,7 @@ function varargout = spm_results_ui(varargin)
 % Copyright (C) 1996-2018 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston & Andrew Holmes
-% $Id: spm_results_ui.m 8183 2021-11-04 15:25:19Z guillaume $
+% $Id: spm_results_ui.m 8275 2022-07-06 11:14:02Z guillaume $
  
  
 %==========================================================================
@@ -235,8 +235,7 @@ function varargout = spm_results_ui(varargin)
 % deletes HandleGraphics objects, but only if they're valid, thus avoiding
 % warning statements from MATLAB.
 %__________________________________________________________________________
- 
-SVNid = '$Rev: 8183 $'; 
+
 
 %-Condition arguments
 %--------------------------------------------------------------------------
@@ -249,7 +248,7 @@ switch lower(Action), case 'setup'                         %-Set up results
  
     %-Initialise
     %----------------------------------------------------------------------
-    spm('FnBanner',mfilename,SVNid);
+    spm('FnBanner',mfilename);
     [Finter,Fgraph,CmdLine] = spm('FnUIsetup','Stats: Results');
     spm_clf('Satellite');
  

@@ -28,16 +28,14 @@ function varargout = spm_preproc_run(job,action)
 % Copyright (C) 2008-2015 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc_run.m 7892 2020-07-10 16:39:18Z john $
+% $Id: spm_preproc_run.m 8275 2022-07-06 11:14:02Z guillaume $
 
-
-SVNid = '$Rev: 7892 $';
 
 if nargin == 1, action = 'run'; end
 
 switch lower(action)
     case 'run'
-        spm('FnBanner',mfilename,SVNid);
+        spm('FnBanner',mfilename);
         varargout{1} = run_job(job);
         fprintf('%-40s: %30s\n','Completed',spm('time'))                %-#
     case 'check'

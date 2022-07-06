@@ -16,13 +16,12 @@ function D = spm_eeg_erp_correction(S)
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Melanie Boly
-% $Id: spm_eeg_erp_correction.m 6907 2016-10-21 09:41:59Z vladimir $
+% $Id: spm_eeg_erp_correction.m 8275 2022-07-06 11:14:02Z guillaume $
 
-SVNrev = '$Rev: 6907 $';
 
 %-Startup
 %--------------------------------------------------------------------------
-spm('FnBanner', mfilename, SVNrev);
+spm('FnBanner', mfilename);
 spm('FigName','Correct ERPs'); spm('Pointer','Arrow');
 
 if nargin == 0

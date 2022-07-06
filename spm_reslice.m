@@ -59,7 +59,7 @@ function spm_reslice(P,flags)
 % Copyright (C) 1999-2017 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_reslice.m 7792 2020-02-25 14:30:37Z john $
+% $Id: spm_reslice.m 8275 2022-07-06 11:14:02Z guillaume $
 
 %__________________________________________________________________________
 %
@@ -95,12 +95,10 @@ function spm_reslice(P,flags)
 % for Functional MRI. Mag. Res. Med. 42(6):1014-1018
 %__________________________________________________________________________
 
-
-SVNid = '$Rev: 7792 $';
  
 %-Say hello
 %--------------------------------------------------------------------------
-SPMid = spm('FnBanner',mfilename,SVNid);
+spm('FnBanner',mfilename);
 
 %-Parameters
 %--------------------------------------------------------------------------

@@ -89,14 +89,12 @@ function spm_slice_timing(P, sliceorder, refslice, timing, prefix)
 % Copyright (C) 1998-2014 Wellcome Trust Centre for Neuroimaging
 
 % Darren Gitelman et al.
-% $Id: spm_slice_timing.m 8183 2021-11-04 15:25:19Z guillaume $
+% $Id: spm_slice_timing.m 8275 2022-07-06 11:14:02Z guillaume $
 
-
-SVNid = '$Rev: 8183 $';
 
 %-Say hello
 %--------------------------------------------------------------------------
-SPMid = spm('FnBanner',mfilename,SVNid);
+spm('FnBanner',mfilename);
 
 %-Parameters & Arguments
 %==========================================================================

@@ -12,14 +12,12 @@ function D = spm_eeg_inv_forward(varargin)
 % Copyright (C) 2008-2018 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_forward.m 8059 2021-02-10 12:35:02Z vladimir $
+% $Id: spm_eeg_inv_forward.m 8275 2022-07-06 11:14:02Z guillaume $
 
-
-SVNrev = '$Rev: 8059 $';
 
 %-Startup
 %--------------------------------------------------------------------------
-spm('FnBanner', mfilename, SVNrev);
+spm('FnBanner', mfilename);
 
 %-Initialisation
 %--------------------------------------------------------------------------

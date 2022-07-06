@@ -17,13 +17,12 @@ function regfile = spm_eeg_regressors(S)
 % Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_regressors.m 6186 2014-09-22 11:31:11Z vladimir $
+% $Id: spm_eeg_regressors.m 8275 2022-07-06 11:14:02Z guillaume $
 
-SVNrev = '$Rev: 6186 $';
 
 %-Startup
 %--------------------------------------------------------------------------
-spm('FnBanner', mfilename, SVNrev);
+spm('FnBanner', mfilename);
 spm('FigName','M/EEG Regressors'); spm('Pointer','Watch');
 
 D = spm_eeg_load(S.D);

@@ -9,12 +9,10 @@ function spm_get_dataset(repo, name, rev, outdir)
 % Copyright (C) 2017-2018 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_get_dataset.m 7265 2018-02-22 15:34:59Z guillaume $
+% $Id: spm_get_dataset.m 8275 2022-07-06 11:14:02Z guillaume $
 
 
-SVNrev = '$Rev: 7265 $';
-
-spm('FnBanner', mfilename, SVNrev);
+spm('FnBanner', mfilename);
 
 if nargin < 1, error('A repository name is mandatory.'); end
 if nargin < 2, error('A dataset name is mandatory.');    end

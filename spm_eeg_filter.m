@@ -25,14 +25,12 @@ function D = spm_eeg_filter(S)
 % Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_filter.m 7125 2017-06-23 09:49:29Z guillaume $
-
-SVNrev = '$Rev: 7125 $';
+% $Id: spm_eeg_filter.m 8275 2022-07-06 11:14:02Z guillaume $
 
 
 %-Startup
 %--------------------------------------------------------------------------
-spm('FnBanner', mfilename, SVNrev);
+spm('FnBanner', mfilename);
 spm('FigName','M/EEG filter'); spm('Pointer', 'Watch');
 
 if ~isfield(S, 'type'),   S.type   = 'butterworth'; end

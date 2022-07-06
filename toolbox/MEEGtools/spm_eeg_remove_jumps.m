@@ -28,16 +28,14 @@ function D = spm_eeg_remove_jumps(S)
 % Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Dominik R Bach
-% $Id: spm_eeg_remove_jumps.m 5865 2014-01-31 11:48:30Z vladimir $
+% $Id: spm_eeg_remove_jumps.m 8275 2022-07-06 11:14:02Z guillaume $
 
 % Input parameters
 %==========================================================================
 
-SVNrev = '$Rev: 5865 $';
-
 %-Startup
 %--------------------------------------------------------------------------
-spm('FnBanner', mfilename, SVNrev);
+spm('FnBanner', mfilename);
 spm('FigName','Remove jumps'); spm('Pointer','Watch');
 
 if ~isfield(S, 'prefix'),       S.prefix      = 'j';           end

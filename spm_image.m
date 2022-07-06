@@ -48,10 +48,8 @@ function spm_image(action,varargin)
 % Copyright (C) 1994-2019 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_image.m 8183 2021-11-04 15:25:19Z guillaume $
+% $Id: spm_image.m 8275 2022-07-06 11:14:02Z guillaume $
 
-
-SVNid = '$Rev: 8183 $';
 
 global st
 
@@ -69,7 +67,7 @@ switch lower(action)
     case {'init','display'}
     % Display image
     %----------------------------------------------------------------------
-    spm('FnBanner',mfilename,SVNid);                                    %-#
+    spm('FnBanner',mfilename);                                          %-#
     if isempty(varargin)
         [P, sts] = spm_select(1,'image','Select image');
         if ~sts, return; end

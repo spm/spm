@@ -17,17 +17,15 @@ function results = spm_preproc(varargin)
 % Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc.m 8183 2021-11-04 15:25:19Z guillaume $
+% $Id: spm_preproc.m 8275 2022-07-06 11:14:02Z guillaume $
 
-
-SVNid     = '$Rev: 8183 $';
 
 if ~isdeployed, addpath(fullfile(spm('Dir'),'toolbox','OldSeg')); end
 if ~isdeployed, addpath(fullfile(spm('Dir'),'toolbox','OldNorm')); end
 
 %-Say hello
 %--------------------------------------------------------------------------
-SPMid     = spm('FnBanner',mfilename,SVNid);
+SPMid     = spm('FnBanner',mfilename);
 
 %-Parameters & Arguments
 %--------------------------------------------------------------------------

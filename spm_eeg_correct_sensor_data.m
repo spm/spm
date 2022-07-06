@@ -18,13 +18,12 @@ function D = spm_eeg_correct_sensor_data(S)
 % Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_correct_sensor_data.m 7701 2019-11-21 21:50:17Z vladimir $
+% $Id: spm_eeg_correct_sensor_data.m 8275 2022-07-06 11:14:02Z guillaume $
 
-SVNrev = '$Rev: 7701 $';
 
 %-Startup
 %--------------------------------------------------------------------------
-spm('FnBanner', mfilename, SVNrev);
+spm('FnBanner', mfilename);
 spm('FigName','Correct sensor data');
 
 if ~isfield(S, 'mode') && isfield(S, 'correction'),  S.mode  = S.correction;  end

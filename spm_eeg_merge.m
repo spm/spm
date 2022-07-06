@@ -58,13 +58,12 @@ function Dout = spm_eeg_merge(S)
 % Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Vladimir Litvak, Doris Eckstein, Rik Henson
-% $Id: spm_eeg_merge.m 8059 2021-02-10 12:35:02Z vladimir $
+% $Id: spm_eeg_merge.m 8275 2022-07-06 11:14:02Z guillaume $
 
-SVNrev = '$Rev: 8059 $';
 
 %-Startup
 %--------------------------------------------------------------------------
-spm('FnBanner', mfilename, SVNrev);
+spm('FnBanner', mfilename);
 spm('FigName','M/EEG Merge'); spm('Pointer','Watch');
 
 if ~isfield(S,'prefix'), S.prefix = 'c';    end

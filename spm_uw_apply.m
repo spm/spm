@@ -120,14 +120,12 @@ function varargout = spm_uw_apply(ds,flags)
 % Copyright (C) 2003-2015 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson
-% $Id: spm_uw_apply.m 8183 2021-11-04 15:25:19Z guillaume $
+% $Id: spm_uw_apply.m 8275 2022-07-06 11:14:02Z guillaume $
 
-
-SVNid = '$Rev: 8183 $';
 
 %-Say hello
 %--------------------------------------------------------------------------
-SPMid = spm('FnBanner',mfilename,SVNid);
+spm('FnBanner',mfilename);
 
 %-Parameters
 %--------------------------------------------------------------------------

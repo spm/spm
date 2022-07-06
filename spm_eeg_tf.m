@@ -44,13 +44,12 @@ function [Dtf, Dtph] = spm_eeg_tf(S)
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_tf.m 7449 2018-10-16 13:52:04Z vladimir $
+% $Id: spm_eeg_tf.m 8275 2022-07-06 11:14:02Z guillaume $
 
-SVNrev = '$Rev: 7449 $';
 
 %-Startup
 %--------------------------------------------------------------------------
-spm('FnBanner', mfilename, SVNrev);
+spm('FnBanner', mfilename);
 spm('FigName','M/EEG Time-Frequency'); spm('Pointer','Watch');
 
 %-Configure the analysis

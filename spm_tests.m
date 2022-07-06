@@ -16,15 +16,14 @@ function results = spm_tests(varargin)
 % Copyright (C) 2015-2019 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_tests.m 7548 2019-03-20 10:08:49Z guillaume $
+% $Id: spm_tests.m 8275 2022-07-06 11:14:02Z guillaume $
 
 
 if spm_check_version('matlab','8.3') < 0
     error('Unit Tests require MATLAB R2014a or above.');
 end
 
-SVNid = '$Rev: 7548 $';
-SPMid = spm('FnBanner',mfilename,SVNid);
+spm('FnBanner',mfilename);
 
 %-Input parameters
 %--------------------------------------------------------------------------

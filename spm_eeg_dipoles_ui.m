@@ -4,13 +4,12 @@ function dipoles = spm_eeg_dipoles_ui
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Christophe Phillips
-% $Id: spm_eeg_dipoles_ui.m 7755 2019-12-16 13:19:28Z spm $
+% $Id: spm_eeg_dipoles_ui.m 8275 2022-07-06 11:14:02Z guillaume $
 
-SVNrev = '$Rev: 7755 $';
 
 %-Startup
 %--------------------------------------------------------------------------
-spm('FnBanner', mfilename, SVNrev);
+spm('FnBanner', mfilename);
 spm('FnUIsetup','Specify dipole model',0);
 
 label = {};

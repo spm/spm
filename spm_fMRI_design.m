@@ -166,14 +166,12 @@ function [SPM] = spm_fMRI_design(SPM,save_SPM)
 % Copyright (C) 1999-2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_fMRI_design.m 8183 2021-11-04 15:25:19Z guillaume $
+% $Id: spm_fMRI_design.m 8275 2022-07-06 11:14:02Z guillaume $
 
-
-SVNid = '$Rev: 8183 $';
 
 %-Say Hello
 %--------------------------------------------------------------------------
-spm('FnBanner',mfilename,SVNid);
+spm('FnBanner',mfilename);
 
 
 %-Construct Design matrix {X}

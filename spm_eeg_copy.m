@@ -12,14 +12,13 @@ function D = spm_eeg_copy(S)
 % Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_copy.m 7132 2017-07-10 16:22:58Z guillaume $
+% $Id: spm_eeg_copy.m 8275 2022-07-06 11:14:02Z guillaume $
 
 
-SVNrev = '$Rev: 7132 $';
 
 %-Startup
 %--------------------------------------------------------------------------
-spm('FnBanner', mfilename, SVNrev);
+spm('FnBanner', mfilename);
 spm('FigName','M/EEG copy');
 
 if ~isfield(S, 'updatehistory'), S.updatehistory = 1; end

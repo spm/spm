@@ -20,13 +20,12 @@ function spm_eeg_cfc(S)
 % Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Bernadette van Wijk, Vladimir Litvak
-% $Id: spm_eeg_cfc.m 7594 2019-05-21 09:56:41Z bernadette $
+% $Id: spm_eeg_cfc.m 8275 2022-07-06 11:14:02Z guillaume $
 
-SVNrev = '$Rev: 7594 $';
 
 %-Startup
 %--------------------------------------------------------------------------
-spm('FnBanner', mfilename, SVNrev);
+spm('FnBanner', mfilename);
 spm('FigName','Cross-frequency coupling'); spm('Pointer','Watch');
 
 D = spm_eeg_load(S.D);

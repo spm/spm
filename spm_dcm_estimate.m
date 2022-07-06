@@ -55,11 +55,9 @@ function [DCM] = spm_dcm_estimate(P)
 % Copyright (C) 2002-2012 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_estimate.m 7479 2018-11-09 14:17:33Z peter $
- 
- 
-SVNid = '$Rev: 7479 $';
- 
+% $Id: spm_dcm_estimate.m 8275 2022-07-06 11:14:02Z guillaume $
+
+
 %-Load DCM structure
 %--------------------------------------------------------------------------
 if ~nargin
@@ -408,7 +406,7 @@ DCM.BIC    = evidence.bic_overall;
 %--------------------------------------------------------------------------
 [DCM.version.SPM.version, DCM.version.SPM.revision] = spm('Ver');
 DCM.version.DCM.version  = spm_dcm_ui('Version');
-DCM.version.DCM.revision = SVNid;
+DCM.version.DCM.revision = '';
  
 %-Save DCM
 %--------------------------------------------------------------------------

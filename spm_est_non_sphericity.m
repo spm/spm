@@ -30,14 +30,12 @@ function [xVi, mask] = spm_est_non_sphericity(SPM)
 % Copyright (C) 1994-2019 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston & Guillaume Flandin
-% $Id: spm_est_non_sphericity.m 7577 2019-04-24 08:59:56Z guillaume $
+% $Id: spm_est_non_sphericity.m 8275 2022-07-06 11:14:02Z guillaume $
 
-
-SVNid = '$Rev: 7577 $';
 
 %-Say hello
 %--------------------------------------------------------------------------
-spm('FnBanner',mfilename,SVNid);
+spm('FnBanner',mfilename);
 
 
 %-Get data, design, mask and variance components details

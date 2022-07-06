@@ -17,7 +17,7 @@ function res = spm_eeg_artefact_peak2peak(S)
 % Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_artefact_peak2peak.m 7132 2017-07-10 16:22:58Z guillaume $
+% $Id: spm_eeg_artefact_peak2peak.m 8275 2022-07-06 11:14:02Z guillaume $
 
 
 %-This part if for creating a config branch that plugs into spm_cfg_eeg_artefact
@@ -43,11 +43,10 @@ if nargin == 0
     return
 end
 
-SVNrev = '$Rev: 7132 $';
 
 %-Startup
 %--------------------------------------------------------------------------
-spm('sFnBanner', mfilename, SVNrev);
+spm('sFnBanner', mfilename);
 spm('FigName','M/EEG peak to peak artefact detection');
 
 if isequal(S.mode, 'mark')

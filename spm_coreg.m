@@ -47,7 +47,7 @@ function x = spm_coreg(varargin)
 % Copyright (C) 1994-2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_coreg.m 8253 2022-05-19 09:14:05Z john $
+% $Id: spm_coreg.m 8275 2022-07-06 11:14:02Z guillaume $
 
 %--------------------------------------------------------------------------
 % References
@@ -84,7 +84,6 @@ function x = spm_coreg(varargin)
 % Published by Cambridge.
 %--------------------------------------------------------------------------
 
-SVNid = '$Rev: 8253 $';
 
 if nargin >= 4
     x = optfun(varargin{:});
@@ -93,7 +92,7 @@ end
 
 %-Say hello
 %--------------------------------------------------------------------------
-SPMid = spm('FnBanner',mfilename,SVNid);
+SPMid = spm('FnBanner',mfilename);
 
 def_flags          = spm_get_defaults('coreg.estimate');
 def_flags.params   = [0 0 0  0 0 0];

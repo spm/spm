@@ -86,14 +86,12 @@ function P = spm_realign(P,flags)
 % Copyright (C) 1994-2017 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_realign.m 8002 2020-11-04 12:15:38Z john $
+% $Id: spm_realign.m 8275 2022-07-06 11:14:02Z guillaume $
 
-
-SVNid = '$Rev: 8002 $';
 
 %-Say hello
 %--------------------------------------------------------------------------
-SPMid = spm('FnBanner',mfilename,SVNid);
+spm('FnBanner',mfilename);
 
 %-Parameters & Arguments
 %==========================================================================

@@ -27,7 +27,6 @@ function Dnew = spm_eeg_ffilter(S)
 % Tim Tierney
 % $Id: spm_eeg_filter.m 7125 2017-06-23 09:49:29Z guillaume $
 
-SVNrev = '$Rev: 7125 $';
 
 if ~isfield(S, 'dir'),    S.dir    = 'twopass';     end
 if ~isfield(S, 'chunkSize'),    S.chunkSize    = 200;     end

@@ -17,7 +17,7 @@ function res = spm_eeg_artefact_threshchan(S)
 % Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_artefact_threshchan.m 8183 2021-11-04 15:25:19Z guillaume $
+% $Id: spm_eeg_artefact_threshchan.m 8275 2022-07-06 11:14:02Z guillaume $
 
 
 %-This part if for creating a config branch that plugs into spm_cfg_eeg_artefact
@@ -52,11 +52,10 @@ if nargin == 0
     return
 end
 
-SVNrev = '$Rev: 8183 $';
 
 %-Startup
 %--------------------------------------------------------------------------
-spm('sFnBanner', mfilename, SVNrev);
+spm('sFnBanner', mfilename);
 spm('FigName','M/EEG threshold channels');
 
 D = spm_eeg_load(S.D);

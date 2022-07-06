@@ -53,11 +53,10 @@ function varargout = spm_surf(P,mode,thresh)
 % Copyright (C) 2002-2018 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_surf.m 8183 2021-11-04 15:25:19Z guillaume $
+% $Id: spm_surf.m 8275 2022-07-06 11:14:02Z guillaume $
 
-SVNrev = '$Rev: 8183 $';
 
-spm('FnBanner',mfilename,SVNrev);
+spm('FnBanner',mfilename);
 spm('FigName','Surface');
 
 %-Get input: filenames 'P'

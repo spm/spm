@@ -17,13 +17,12 @@ function D = spm_eeg_remove_bad_trials(S)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_remove_bad_trials.m 6526 2015-08-20 10:28:36Z vladimir $
+% $Id: spm_eeg_remove_bad_trials.m 8275 2022-07-06 11:14:02Z guillaume $
 
-SVNrev = '$Rev: 6526 $';
 
 %-Startup
 %--------------------------------------------------------------------------
-spm('FnBanner', mfilename, SVNrev);
+spm('FnBanner', mfilename);
 spm('FigName','Remove bad trials'); spm('Pointer','Watch');
 
 if ~isfield(S, 'prefix'),       S.prefix = 'r';              end

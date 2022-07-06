@@ -11,14 +11,12 @@ function D = spm_eeg_firstlevel(S)
 % Copyright (C) 2013-2019 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_firstlevel.m 7739 2019-12-02 14:00:18Z guillaume $
+% $Id: spm_eeg_firstlevel.m 8275 2022-07-06 11:14:02Z guillaume $
 
-
-SVNrev = '$Rev: 7739 $';
 
 %-Startup
 %--------------------------------------------------------------------------
-spm('FnBanner', mfilename, SVNrev);
+spm('FnBanner', mfilename);
 spm('FigName','M/EEG first level');
 
 D        = spm_eeg_load(char(S.sess.D));

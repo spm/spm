@@ -28,14 +28,12 @@ function [D] = spm_eeg_inv_Mesh2Voxels(varargin)
 % Copyright (C) 2007-2017 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_inv_Mesh2Voxels.m 7094 2017-06-06 11:14:10Z guillaume $
+% $Id: spm_eeg_inv_Mesh2Voxels.m 8275 2022-07-06 11:14:02Z guillaume $
 
-
-SVNrev = '$Rev: 7094 $';
 
 %-Startup
 %--------------------------------------------------------------------------
-spm('FnBanner', mfilename, SVNrev);
+spm('FnBanner', mfilename);
 
 %-Parse input arguments
 %--------------------------------------------------------------------------

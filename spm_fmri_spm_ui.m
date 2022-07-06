@@ -172,10 +172,8 @@ function [SPM] = spm_fmri_spm_ui(SPM)
 % Copyright (C) 1994-2019 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_fmri_spm_ui.m 7738 2019-12-02 12:45:37Z guillaume $
+% $Id: spm_fmri_spm_ui.m 8275 2022-07-06 11:14:02Z guillaume $
 
-
-SVNid = '$Rev: 7738 $';
 
 %==========================================================================
 % - D E S I G N   M A T R I X
@@ -191,7 +189,7 @@ nsess = length(nscan);
 %==========================================================================
 % - D E S I G N   P A R A M E T E R S
 %==========================================================================
-SPM.SPMid = spm('FnBanner',mfilename,SVNid);
+SPM.SPMid = spm('FnBanner',mfilename);
 
 %-High-pass filtering
 %==========================================================================

@@ -83,7 +83,7 @@ function ds = spm_uw_estimate(P,par)
 % Copyright (C) 2003-2011 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson
-% $Id: spm_uw_estimate.m 8183 2021-11-04 15:25:19Z guillaume $
+% $Id: spm_uw_estimate.m 8275 2022-07-06 11:14:02Z guillaume $
 
 % This is a major rewrite which uses some new ideas to speed up
 % the estimation of the field. The time consuming part is the
@@ -166,11 +166,9 @@ function ds = spm_uw_estimate(P,par)
 %    Our tests have indicated that this is NOT a good idea though. 
 
 
-SVNid = '$Rev: 8183 $';
-
 %-Say hello
 %--------------------------------------------------------------------------
-SPMid = spm('FnBanner',mfilename,SVNid);
+spm('FnBanner',mfilename);
 
 %-Parameters
 %--------------------------------------------------------------------------

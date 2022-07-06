@@ -24,10 +24,10 @@ function D = spm_eeg_inv_optireg(S)
 % Copyright (C) 2021 Wellcome Centre for Human Neuroimaging
 
 % George O'Neill
-% $Id: spm_eeg_inv_optireg.m 8095 2021-04-21 16:45:20Z george $
+% $Id: spm_eeg_inv_optireg.m 8275 2022-07-06 11:14:02Z guillaume $
 
-SVNrev = '$Rev: 8095 $';
-spm('FnBanner', mfilename, SVNrev);
+
+spm('FnBanner', mfilename);
 
 if ~isfield(S,'D');         error('You must specify a MEEG dataset!');  end
 if ~isfield(S,'fidfile');   error('You must specify a fiducial file!');	end

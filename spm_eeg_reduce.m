@@ -25,13 +25,12 @@ function D = spm_eeg_reduce(S)
 % Copyright (C) 2012-2016 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_reduce.m 6843 2016-07-28 10:55:47Z vladimir $
+% $Id: spm_eeg_reduce.m 8275 2022-07-06 11:14:02Z guillaume $
 
-SVNrev = '$Rev: 6843 $';
 
 %-Startup
 %--------------------------------------------------------------------------
-spm('FnBanner', mfilename, SVNrev);
+spm('FnBanner', mfilename);
 spm('FigName','M/EEG reduce'); spm('Pointer','Watch');
 
 

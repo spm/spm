@@ -15,7 +15,6 @@ function res = spm_eeg_regressors_tfphase(S)
 
 % Vladimir Litvak
 
-SVNrev = '$Rev: 6188 $';
 
 if nargin == 0
     %--------------------------------------------------------------------------
@@ -93,7 +92,7 @@ end
 
 %-Startup
 %--------------------------------------------------------------------------
-spm('sFnBanner', mfilename, SVNrev);
+spm('sFnBanner', mfilename);
 spm('FigName','Time-frequency phase regressors');
 
 if ~isfield(S, 'timewin'),      S.timewin  = [-Inf Inf];    end

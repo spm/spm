@@ -26,13 +26,12 @@ function D = tsss_spm_enm(S)
 % in connection with its use and distribution of any and all parts of the Software under this license.
 % 
 
-% $Id: tsss_spm_enm.m 7703 2019-11-22 12:06:29Z guillaume $
+% $Id: tsss_spm_enm.m 8275 2022-07-06 11:14:02Z guillaume $
 
-SVNrev = '$Rev: 7703 $';
 
 %-Startup
 %--------------------------------------------------------------------------
-spm('FnBanner', mfilename, SVNrev);
+spm('FnBanner', mfilename);
 spm('FigName','TSSS tool'); spm('Pointer','Watch');
 
 if ~isfield(S, 'tsss'),            S.tsss       = 1;     end

@@ -18,7 +18,7 @@ function res = spm_eeg_artefact_eyeblink(S)
 % Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
 
 % Laurence Hunt
-% $Id: spm_eeg_artefact_eyeblink.m 7500 2018-11-28 14:42:14Z vladimir $
+% $Id: spm_eeg_artefact_eyeblink.m 8275 2022-07-06 11:14:02Z guillaume $
 
 
 %-This part if for creating a config branch that plugs into spm_cfg_eeg_artefact
@@ -53,11 +53,10 @@ if nargin == 0
     return
 end
 
-SVNrev = '$Rev: 7500 $';
 
 %-Startup
 %--------------------------------------------------------------------------
-spm('sFnBanner', mfilename, SVNrev);
+spm('sFnBanner', mfilename);
 spm('FigName','M/EEG eyeblink detection');
 
 if isequal(S.mode, 'reject')

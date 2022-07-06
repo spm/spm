@@ -82,10 +82,8 @@ function Vo = spm_imcalc(Vi,Vo,f,flags,varargin)
 % Copyright (C) 1998-2016 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner & Andrew Holmes
-% $Id: spm_imcalc.m 8183 2021-11-04 15:25:19Z guillaume $
+% $Id: spm_imcalc.m 8275 2022-07-06 11:14:02Z guillaume $
 
-
-SVNid = '$Rev: 8183 $';
 
 %-Parameters & arguments
 %==========================================================================
@@ -94,7 +92,7 @@ if nargin < 3
     return;
 end
 
-spm('FnBanner',mfilename,SVNid);
+spm('FnBanner',mfilename);
 
 %-Input images
 %--------------------------------------------------------------------------

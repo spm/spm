@@ -26,13 +26,12 @@ function Do = spm_eeg_grandmean(S)
 % Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_grandmean.m 7139 2017-07-24 10:54:11Z guillaume $
+% $Id: spm_eeg_grandmean.m 8275 2022-07-06 11:14:02Z guillaume $
 
-SVNrev = '$Rev: 7139 $';
 
 %-Startup
 %--------------------------------------------------------------------------
-spm('FnBanner', mfilename, SVNrev);
+spm('FnBanner', mfilename);
 spm('FigName','M/EEG Grand Mean'); spm('Pointer','Watch');
 
 if ~isfield(S, 'weighted'),     S.weighted = 0;            end

@@ -17,14 +17,12 @@ function out = spm_run_dcm_bms(job)
 % Copyright (C) 2009-2015 Wellcome Trust Centre for Neuroimaging
 
 % CC Chen & Maria Joao Rosa
-% $Id: spm_run_dcm_bms.m 8183 2021-11-04 15:25:19Z guillaume $
+% $Id: spm_run_dcm_bms.m 8275 2022-07-06 11:14:02Z guillaume $
 
-
-SVNid = '$Rev: 8183 $';
 
 %-Say hello
 %--------------------------------------------------------------------------
-spm('FnBanner',mfilename,SVNid);
+spm('FnBanner',mfilename);
 
 %-Input parameters
 %--------------------------------------------------------------------------
@@ -41,7 +39,7 @@ out.bmsmat = {''};
 if exist(fname,'file')
     str = {'Current directory contains a BMS file:',...
         'Continuing will overwrite existing file !!'};
-    if spm_input(str,1,'bd','stop|continue',[1,0],1,mfilename);
+    if spm_input(str,1,'bd','stop|continue',[1,0],1,mfilename)
         fprintf('%-40s: %30s\n\n',...
             'BMS stopped...existing BMS file in the selected directory',...
             spm('time'));
@@ -53,7 +51,7 @@ end
 
 %-Method
 % -------------------------------------------------------------------------
-if strcmp(job.method,'FFX');
+if strcmp(job.method,'FFX')
     method = 'FFX';                      % Fixed-effects
 else
     method = 'RFX';                      % Random-effects

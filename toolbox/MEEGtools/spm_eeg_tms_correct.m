@@ -23,13 +23,12 @@ function D = spm_eeg_tms_correct(S)
 % Neuroimage. 2007; 37(1):56-70.
 %
 % Vladimir Litvak
-% $Id: spm_eeg_tms_correct.m 6965 2016-12-08 13:47:06Z vladimir $
+% $Id: spm_eeg_tms_correct.m 8275 2022-07-06 11:14:02Z guillaume $
 
-SVNrev = '$Rev: 6965 $';
 
 %-Startup
 %--------------------------------------------------------------------------
-spm('FnBanner', mfilename, SVNrev);
+spm('FnBanner', mfilename);
 spm('FigName','Correct TMS artefact');
 
 %-Get MEEG object

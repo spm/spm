@@ -19,13 +19,12 @@ function [D, S] = spm_eeg_reref_eeg(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Rik Henson (updated so that bad channels included in tra but not used)
-% $Id: spm_eeg_reref_eeg.m 6374 2015-03-12 10:15:18Z vladimir $
+% $Id: spm_eeg_reref_eeg.m 8275 2022-07-06 11:14:02Z guillaume $
 
-SVNrev = '$Rev: 6374 $';
 
 %-Startup
 %--------------------------------------------------------------------------
-spm('FnBanner', mfilename, SVNrev);
+spm('FnBanner', mfilename);
 spm('FigName','EEG reref'); spm('Pointer','Watch');
 
 %-Get MEEG object

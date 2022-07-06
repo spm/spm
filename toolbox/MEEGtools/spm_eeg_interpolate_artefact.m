@@ -15,13 +15,12 @@ function D = spm_eeg_interpolate_artefact(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_interpolate_artefact.m 6965 2016-12-08 13:47:06Z vladimir $
+% $Id: spm_eeg_interpolate_artefact.m 8275 2022-07-06 11:14:02Z guillaume $
 
-SVNrev = '$Rev: 6965 $';
 
 %-Startup
 %--------------------------------------------------------------------------
-spm('sFnBanner', mfilename, SVNrev);
+spm('sFnBanner', mfilename);
 spm('FigName','M/EEG artefact interpolation'); spm('Pointer','Watch');
 
 %-Get MEEG object

@@ -17,13 +17,12 @@ function D = tsss_spm_momentspace(S)
 % Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: tsss_spm_momentspace.m 7703 2019-11-22 12:06:29Z guillaume $
+% $Id: tsss_spm_momentspace.m 8275 2022-07-06 11:14:02Z guillaume $
 
-SVNrev = '$Rev: 7703 $';
 
 %-Startup
 %--------------------------------------------------------------------------
-spm('FnBanner', mfilename, SVNrev);
+spm('FnBanner', mfilename);
 spm('FigName','TSSS momenspace transformation'); spm('Pointer','Watch');
 
 if ~isfield(S, 'condthresh'),       S.condthresh   = 80;           end

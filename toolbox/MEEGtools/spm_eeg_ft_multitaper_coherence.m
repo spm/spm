@@ -33,24 +33,21 @@ function Dcoh = spm_eeg_ft_multitaper_coherence(S)
 % Copyright (C) 2008 Institute of Neurology, UCL
 
 % Vladimir Litvak
-% $Id: spm_eeg_ft_multitaper_coherence.m 6699 2016-01-28 09:55:26Z vladimir $
+% $Id: spm_eeg_ft_multitaper_coherence.m 8275 2022-07-06 11:14:02Z guillaume $
 
-%%
-SVNrev = '$Rev: 6699 $';
 
 %-Startup
 %--------------------------------------------------------------------------
-spm('FnBanner', mfilename, SVNrev);
+spm('FnBanner', mfilename);
 spm('FigName','Fieldtrip multitaper coherence');
 
-%%
 %-Test for the presence of required Matlab toolbox
 %--------------------------------------------------------------------------
 if ~license('test','signal_toolbox')
     error('This function requires the Signal Processing Toolbox.');
 end
 
-%% ============ Load SPM EEG file and verify consistency
+% ============ Load SPM EEG file and verify consistency
 if nargin == 0
     S = [];
 end
@@ -152,7 +149,7 @@ data = D.ftraw(D.indchantype('ALL', 'GOOD'), ':', ':');
 
 prestim = 1e-3*S.pretrig;
 poststim = 1e-3*S.posttrig;
-%%
+%
 timewin = 1e-3*S.timewin;
 step = 1e-3*S.timestep;
 
@@ -226,7 +223,7 @@ if robust && savew
     Dw = timeonset(Dw, freq.time(1));
     Dw = check(Dw);
 end
-%%
+%-
 %--------------------------------------------------------------------------
 cl = D.condlist;
 nc = length(cl);
@@ -331,7 +328,6 @@ for j = 1:np
     
     spm_progress_bar('Set', j);
 end
-%%
 
 %-Copy some additional information from the original file
 %--------------------------------------------------------------------------
@@ -358,5 +354,3 @@ end
 %--------------------------------------------------------------------------
 spm_progress_bar('Clear');
 spm('FigName','M/EEG merge: done'); spm('Pointer','Arrow');
-
-

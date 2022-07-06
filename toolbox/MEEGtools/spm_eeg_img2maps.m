@@ -12,20 +12,19 @@ function spm_eeg_img2maps(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_img2maps.m 6669 2016-01-11 15:51:06Z guillaume $
+% $Id: spm_eeg_img2maps.m 8275 2022-07-06 11:14:02Z guillaume $
 
-SVNrev = '$Rev: 6669 $';
 
 %-Startup
 %--------------------------------------------------------------------------
-spm('FnBanner', mfilename, SVNrev);
+spm('FnBanner', mfilename);
 spm('FigName','Plot scalp maps');
 
 if nargin == 0
     S = [];
 end
 
-%% -Input parameters
+%-Input parameters
 %--------------------------------------------------------------------------
 if ~isfield(S, 'image')
     [S.image, sts] = spm_select(1, 'image', 'Select an M/EEG image (in voxel-space)');
@@ -93,7 +92,6 @@ end
 Y = Y(sub2ind(size(Y), Cel(:, 1), Cel(:, 2)));
 
 
-%%
 % SPM graphics figure
 %--------------------------------------------------------------------------
 Fgraph  = spm_figure('GetWin','Graphics'); spm_figure('Clear',Fgraph)
@@ -138,7 +136,7 @@ switch style
     case '3d'        
         spm_eeg_headplot(Y, D, axes);
 end    
-%%
+
 %-Cleanup
 %--------------------------------------------------------------------------
 spm('FigName','Plot scalp maps: done');

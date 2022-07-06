@@ -20,13 +20,12 @@ function D = spm_eeg_downsample(S)
 % Copyright (C) 2005-2017 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_downsample.m 7125 2017-06-23 09:49:29Z guillaume $
+% $Id: spm_eeg_downsample.m 8275 2022-07-06 11:14:02Z guillaume $
 
-SVNrev = '$Rev: 7125 $';
 
 %-Startup
 %--------------------------------------------------------------------------
-spm('FnBanner', mfilename, SVNrev);
+spm('FnBanner', mfilename);
 spm('FigName','M/EEG downsampling'); spm('Pointer','Watch');
 
 if ~isfield(S, 'prefix'),       S.prefix = 'd';           end

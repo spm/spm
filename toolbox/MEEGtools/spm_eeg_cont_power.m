@@ -15,13 +15,12 @@ function D = spm_eeg_cont_power(S)
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_cont_power.m 7006 2017-02-06 11:09:06Z vladimir $
+% $Id: spm_eeg_cont_power.m 8275 2022-07-06 11:14:02Z guillaume $
 
-SVNrev = '$Rev: 7006 $';
 
 %-Startup
 %--------------------------------------------------------------------------
-spm('FnBanner', mfilename, SVNrev);
+spm('FnBanner', mfilename);
 spm('FigName','M/EEG power'); spm('Pointer', 'Watch');
 
 if nargin == 0

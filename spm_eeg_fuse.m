@@ -12,13 +12,12 @@ function D = spm_eeg_fuse(S)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 %
 % Vladimir Litvak
-% $Id: spm_eeg_fuse.m 5595 2013-07-30 19:34:06Z vladimir $
+% $Id: spm_eeg_fuse.m 8275 2022-07-06 11:14:02Z guillaume $
 
-SVNrev = '$Rev: 5595 $';
 
 %-Startup
 %--------------------------------------------------------------------------
-spm('FnBanner', mfilename, SVNrev);
+spm('FnBanner', mfilename);
 spm('FigName','M/EEG fuse'); spm('Pointer','Watch');
 
 if ~isfield(S, 'prefix'),       S.prefix = 'u';           end

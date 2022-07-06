@@ -20,17 +20,16 @@ function D = spm_eeg_ft_megplanar(S)
 % Copyright (C) 2017 Institute of Neurology, UCL
 
 % Vladimir Litvak
-% $Id: spm_eeg_ft_megplanar.m 7663 2019-09-19 11:29:11Z vladimir $
- 
-%%
-SVNrev = '$Rev: 7663 $';
+% $Id: spm_eeg_ft_megplanar.m 8275 2022-07-06 11:14:02Z guillaume $
+
 
 %-Startup
 %--------------------------------------------------------------------------
-spm('FnBanner', mfilename, SVNrev);
+spm('FnBanner', mfilename);
 spm('FigName','Fieldtrip megplanar'); 
 
-%% ============ Load SPM EEG file and verify consistency
+%-Load SPM EEG file and verify consistency
+%--------------------------------------------------------------------------
 if nargin == 0
     S = [];
 end
@@ -53,7 +52,7 @@ if ischar(D)
 end
 
 %-Configure the spectral analysis
-%%--------------------------------------------------------------------------
+%--------------------------------------------------------------------------
 
 cfg = [];
 cfg.neighbours = ft_prepare_neighbours(struct('method', 'template', 'template', 'CTF275_neighb.mat'), D.sensors('MEG'));
@@ -92,5 +91,3 @@ Dout = history(Dout, mfilename, S);
 save(Dout);
 
 D = Dout;
-
-

@@ -12,13 +12,12 @@ function D = spm_eeg_recode_epoched_ctf(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_recode_epoched_ctf.m 3566 2009-11-13 12:37:38Z vladimir $
+% $Id: spm_eeg_recode_epoched_ctf.m 8275 2022-07-06 11:14:02Z guillaume $
 
-SVNrev = '$Rev: 3566 $';
 
 %-Startup
 %--------------------------------------------------------------------------
-spm('FnBanner', mfilename, SVNrev);
+spm('FnBanner', mfilename);
 spm('FigName', 'CTF trial recode'); spm('Pointer','Watch');
 
 %-Get MEEG object

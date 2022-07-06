@@ -16,13 +16,12 @@ function D = spm_eeg_crop(S)
 % Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_crop.m 7132 2017-07-10 16:22:58Z guillaume $
+% $Id: spm_eeg_crop.m 8275 2022-07-06 11:14:02Z guillaume $
 
-SVNrev = '$Rev: 7132 $';
 
 %-Startup
 %--------------------------------------------------------------------------
-spm('FnBanner', mfilename, SVNrev);
+spm('FnBanner', mfilename);
 spm('FigName','Crop M/EEG data'); spm('Pointer','Watch');
 
 if ~isfield(S, 'prefix'),       S.prefix   = 'p';           end

@@ -9,9 +9,8 @@ function [L,D] = spm_eeg_lgainmat(D,Is,channels)
 % Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_lgainmat.m 8183 2021-11-04 15:25:19Z guillaume $
+% $Id: spm_eeg_lgainmat.m 8275 2022-07-06 11:14:02Z guillaume $
 
-SVNrev = '$Rev: 8183 $';
 
 %-Get gain or lead-field matrix
 %--------------------------------------------------------------------------
@@ -51,7 +50,7 @@ try
         error('Gain matrix has an incorrect number of channels.');
     end
 catch
-    spm('sFnBanner', mfilename, SVNrev);
+    spm('sFnBanner', mfilename);
     spm('Pointer', 'Watch');
     
     G     = {};

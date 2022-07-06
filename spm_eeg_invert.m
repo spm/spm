@@ -122,14 +122,12 @@ function [D] = spm_eeg_invert(D, val)
 % Copyright (C) 2006-2017 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_invert.m 7118 2017-06-20 10:33:27Z guillaume $
+% $Id: spm_eeg_invert.m 8275 2022-07-06 11:14:02Z guillaume $
 
-
-SVNid = '$Rev: 7118 $';
 
 %-Say hello
 %--------------------------------------------------------------------------
-spm('FnBanner',mfilename,SVNid);
+spm('FnBanner',mfilename);
 
 % check whether this is a group inversion for (Nl) number of subjects
 %--------------------------------------------------------------------------

@@ -21,7 +21,7 @@ function spm_mask(P1, P2, thresh)
 % Copyright (C) 1999-2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_mask.m 4419 2011-08-03 18:42:35Z guillaume $
+% $Id: spm_mask.m 8275 2022-07-06 11:14:02Z guillaume $
 
 
 persistent runonce
@@ -30,11 +30,9 @@ if isempty(runonce)
     runonce = 1;
 end
 
-SVNid = '$Rev: 4419 $';
-
 %-Say hello
 %--------------------------------------------------------------------------
-SPMid = spm('FnBanner',mfilename,SVNid);
+SPMid = spm('FnBanner',mfilename);
 
 %-Parameters & Arguments
 %--------------------------------------------------------------------------

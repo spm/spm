@@ -40,9 +40,8 @@ function DCM = spm_dcm_fmri_csd(P)
 % Copyright (C) 2013-2015 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_fmri_csd.m 8228 2022-02-26 13:54:27Z karl $
+% $Id: spm_dcm_fmri_csd.m 8275 2022-07-06 11:14:02Z guillaume $
 
-SVNid = '$Rev: 8228 $';
 
 % Load DCM structure
 %--------------------------------------------------------------------------
@@ -305,7 +304,7 @@ DCM.F  = F;                    % Laplace log evidence
 %--------------------------------------------------------------------------
 [DCM.version.SPM.version, DCM.version.SPM.revision] = spm('Ver');
 DCM.version.DCM.version  = spm_dcm_ui('Version');
-DCM.version.DCM.revision = SVNid;
+DCM.version.DCM.revision = '';
 
 % and save
 %--------------------------------------------------------------------------

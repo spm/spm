@@ -13,14 +13,12 @@ function D = spm_eeg_spatial_confounds(S)
 % Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_spatial_confounds.m 8128 2021-08-02 15:53:03Z vladimir $
+% $Id: spm_eeg_spatial_confounds.m 8275 2022-07-06 11:14:02Z guillaume $
 
-
-SVNrev = '$Rev: 8128 $';
 
 %-Startup
 %--------------------------------------------------------------------------
-spm('FnBanner', mfilename, SVNrev);
+spm('FnBanner', mfilename);
 spm('FigName','Define spatial confounds');
 
 if ~isfield(S, 'mode') && isfield(S, 'method'),          S.mode  = S.method;             end

@@ -268,14 +268,12 @@ function SPM = spm_spm(SPM)
 % Copyright (C) 1994-2021 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston & Guillaume Flandin
-% $Id: spm_spm.m 8200 2021-12-21 14:49:44Z guillaume $
+% $Id: spm_spm.m 8275 2022-07-06 11:14:02Z guillaume $
 
-
-SVNid = '$Rev: 8200 $';
 
 %-Say hello
 %--------------------------------------------------------------------------
-SPMid = spm('FnBanner',mfilename,SVNid);
+SPMid = spm('FnBanner',mfilename);
 spm('Pointer','Watch');
 
 %-Get SPM
@@ -423,7 +421,7 @@ if ~isfield(xVi,'V')
     SPM.xX.K   = xX.K;
     [xVi, am]  = spm_est_non_sphericity(SPM);
     mask       = mask & am;
-    spm('FnBanner',mfilename,SVNid);
+    spm('FnBanner',mfilename);
 end
 
 %-Get weight/whitening matrix:  W*W' = inv(V)

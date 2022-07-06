@@ -14,10 +14,8 @@ function res = spm_eeg_regressors_chandata(S)
 % Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_regressors_chandata.m 6186 2014-09-22 11:31:11Z vladimir $
+% $Id: spm_eeg_regressors_chandata.m 8275 2022-07-06 11:14:02Z guillaume $
 
-
-SVNrev = '$Rev: 6186 $';
 
 if nargin == 0
     %--------------------------------------------------------------------------
@@ -53,7 +51,7 @@ end
 
 %-Startup
 %--------------------------------------------------------------------------
-spm('sFnBanner', mfilename, SVNrev);
+spm('sFnBanner', mfilename);
 spm('FigName','Channel data regressors');
 
 if ~isfield(S, 'timewin'),      S.timewin  = [-Inf Inf];    end

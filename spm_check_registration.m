@@ -12,9 +12,8 @@ function spm_check_registration(varargin)
 % Copyright (C) 1997-2019 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_check_registration.m 7759 2019-12-19 11:50:50Z guillaume $
+% $Id: spm_check_registration.m 8275 2022-07-06 11:14:02Z guillaume $
 
-SVNid = '$Rev: 7759 $';
 
 %-Get input
 %--------------------------------------------------------------------------
@@ -45,7 +44,7 @@ images = images(1:min(numel(images),24));
 
 %-Print
 %--------------------------------------------------------------------------
-spm('FnBanner',mfilename,SVNid);                                        %-#
+spm('FnBanner',mfilename);                                              %-#
 exactfname  = @(f) [f.fname ',' num2str(f.n(1))];
 cmddispone  = 'spm_image(''display'',''%s'')';
 cmddispall  = 'spm_check_registration(''%s'')';

@@ -27,13 +27,12 @@ function D = spm_eeg_tf_rescale(S)
 % Copyright (C) 2009-2016 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_eeg_tf_rescale.m 6825 2016-07-04 10:03:57Z vladimir $
+% $Id: spm_eeg_tf_rescale.m 8275 2022-07-06 11:14:02Z guillaume $
 
-SVNrev = '$Rev: 6825 $';
 
 %-Startup
 %--------------------------------------------------------------------------
-spm('FnBanner', mfilename, SVNrev);
+spm('FnBanner', mfilename);
 spm('FigName','M/EEG Time-frequency rescale'); spm('Pointer','Watch');
 
 if ~isfield(S, 'prefix'),         S.prefix   = 'r';           end

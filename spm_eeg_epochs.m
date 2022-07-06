@@ -49,13 +49,12 @@ function D = spm_eeg_epochs(S)
 % Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_epochs.m 8183 2021-11-04 15:25:19Z guillaume $
+% $Id: spm_eeg_epochs.m 8275 2022-07-06 11:14:02Z guillaume $
 
-SVNrev = '$Rev: 8183 $';
 
 %-Startup
 %--------------------------------------------------------------------------
-spm('FnBanner', mfilename, SVNrev);
+spm('FnBanner', mfilename);
 spm('FigName','M/EEG epoching'); spm('Pointer','Watch');
 
 %-Get MEEG object

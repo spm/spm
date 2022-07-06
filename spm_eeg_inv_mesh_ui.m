@@ -16,13 +16,12 @@ function D = spm_eeg_inv_mesh_ui(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_mesh_ui.m 4027 2010-07-31 12:49:19Z vladimir $
+% $Id: spm_eeg_inv_mesh_ui.m 8275 2022-07-06 11:14:02Z guillaume $
 
-SVNrev = '$Rev: 4027 $';
 
 %-Startup
 %--------------------------------------------------------------------------
-spm('FnBanner', mfilename, SVNrev);
+spm('FnBanner', mfilename);
 spm('FigName','Define head model');
 
 %-Initialisation

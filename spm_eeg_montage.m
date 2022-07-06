@@ -52,13 +52,12 @@ function [D, montage] = spm_eeg_montage(S)
 % Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld, Stefan Kiebel, Christophe Phillips
-% $Id: spm_eeg_montage.m 8183 2021-11-04 15:25:19Z guillaume $
+% $Id: spm_eeg_montage.m 8275 2022-07-06 11:14:02Z guillaume $
 
-SVNrev = '$Rev: 8183 $';
 
 %-Startup
 %--------------------------------------------------------------------------
-spm('FnBanner', mfilename, SVNrev);
+spm('FnBanner', mfilename);
 spm('FigName','M/EEG montage'); spm('Pointer','Watch');
 
 if ~isfield(S, 'montage') || isempty(S.montage)

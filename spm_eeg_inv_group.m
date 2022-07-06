@@ -28,13 +28,12 @@ function spm_eeg_inv_group(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_inv_group.m 6862 2016-08-25 14:42:19Z guillaume $
- 
-SVNrev = '$Rev: 6862 $';
- 
+% $Id: spm_eeg_inv_group.m 8275 2022-07-06 11:14:02Z guillaume $
+
+
 %-Startup
 %--------------------------------------------------------------------------
-spm('FnBanner', mfilename, SVNrev);
+spm('FnBanner', mfilename);
  
 %-Check if to proceed
 %--------------------------------------------------------------------------

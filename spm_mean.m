@@ -15,7 +15,7 @@ function spm_mean(P)
 % Copyright (C) 1998-2014 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner, Andrew Holmes
-% $Id: spm_mean.m 6081 2014-07-01 18:19:42Z guillaume $
+% $Id: spm_mean.m 8275 2022-07-06 11:14:02Z guillaume $
 
 
 persistent runonce
@@ -24,11 +24,9 @@ if isempty(runonce)
     runonce = 1;
 end
 
-SVNid = '$Rev: 6081 $';
-
 %-Say hello
 %--------------------------------------------------------------------------
-SPMid = spm('FnBanner',mfilename,SVNid);
+SPMid = spm('FnBanner',mfilename);
 
 %-Select images & check dimensions, orientations and voxel sizes
 %--------------------------------------------------------------------------

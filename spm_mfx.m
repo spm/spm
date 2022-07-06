@@ -78,13 +78,12 @@ function [SPM] = spm_mfx(SPM,c)
 % Copyright (C) 2002-2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_mfx.m 7739 2019-12-02 14:00:18Z guillaume $
+% $Id: spm_mfx.m 8275 2022-07-06 11:14:02Z guillaume $
 
-SVNid = '$Rev: 7739 $';
 
 %-Say hello
 %--------------------------------------------------------------------------
-SPMid  = spm('FnBanner',mfilename,SVNid);
+spm('FnBanner',mfilename);
 Finter = spm('FigName','MFX specification...'); spm('Pointer','Arrow')
 
 %-Get SPM.mat if necessary

@@ -20,11 +20,10 @@ function D = spm_eeg_split_conditions(S)
 % Dominik R Bach
 % based on spm_eeg_remove_bad_trials
 
-SVNrev = '$Rev: 6374 $';
 
 %-Startup
 %--------------------------------------------------------------------------
-spm('FnBanner', mfilename, SVNrev);
+spm('FnBanner', mfilename);
 spm('FigName','Remove bad trials'); spm('Pointer','Watch');
 
 %-Get MEEG object

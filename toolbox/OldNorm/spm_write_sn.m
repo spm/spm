@@ -62,14 +62,12 @@ function VO = spm_write_sn(V,prm,flags,extras)
 % Copyright (C) 1996-2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_write_sn.m 4878 2012-08-31 12:07:30Z guillaume $
+% $Id: spm_write_sn.m 8275 2022-07-06 11:14:02Z guillaume $
 
-
-SVNid = '$Rev: 4878 $';
  
 %-Say hello
 %--------------------------------------------------------------------------
-SPMid = spm('FnBanner',mfilename,SVNid);
+spm('FnBanner',mfilename);
 
 %-Get images
 %--------------------------------------------------------------------------

@@ -14,13 +14,12 @@ function elec = spm_eeg_transform_cap(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_transform_cap.m 4020 2010-07-28 12:41:23Z vladimir $
+% $Id: spm_eeg_transform_cap.m 8275 2022-07-06 11:14:02Z guillaume $
 
-SVNrev = '$Rev: 4020 $';
 
 %-Startup
 %--------------------------------------------------------------------------
-spm('FnBanner', mfilename, SVNrev);
+spm('FnBanner', mfilename);
 spm('FigName','Transform cap'); spm('Pointer','Watch');
 
 

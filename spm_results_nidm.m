@@ -23,7 +23,7 @@ function [nidmfile, prov] = spm_results_nidm(SPM,xSPM,TabDat,opts)
 % Copyright (C) 2013-2017 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_results_nidm.m 7057 2017-04-13 16:45:49Z guillaume $
+% $Id: spm_results_nidm.m 8275 2022-07-06 11:14:02Z guillaume $
 
 
 %-Get input parameters, interactively if needed
@@ -62,7 +62,6 @@ end
 %--------------------------------------------------------------------------
 gz           = '.gz';                        %-Compressed NIfTI {'.gz', ''}
 NIDMversion  = '1.3.0';
-SVNrev       = '$Rev: 7057 $';
 
 %-Reference space
 %--------------------------------------------------------------------------
@@ -367,7 +366,7 @@ pp.agent(idExporter,{...
     'prov:type',nidm_conv('nidm_spm_results_nidm',pp),...
     'prov:type','prov:SoftwareAgent',...
     'prov:label',{'spm_results_nidm','xsd:string'},...
-    nidm_conv('nidm_softwareVersion',pp),{[V '.' char(regexp(SVNrev,'\$Rev: (\w.*?) \$','tokens','once'))],'xsd:string'},...
+    nidm_conv('nidm_softwareVersion',pp),{[V '.' R],'xsd:string'},...
     });
 
 idExport = getid('niiri:export_id',isHumanReadable);
