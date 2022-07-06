@@ -38,6 +38,7 @@ clear cfg
 cfg.mu.exist   = {mufile};              % Tissue priors
 cfg.aff        = 'SE(3)';               % Include rigid alignment
 cfg.v_settings = [0.0001 0.5 0.5 0 1];  % Registration regularisation
+cfg.del_settings = Inf;                 % No variability of tissue prior rescaling
 cfg.onam       = '';                    % No names for the outputs
 cfg.odir       = {''};                  % No output directory
 cfg.cat        = {{}};                  % Not working with pre-segmented images
