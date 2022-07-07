@@ -11,13 +11,12 @@ function K = spm_kron(A,B)
 %      [ X(1,1)*Y  X(1,2)*Y  X(1,3)*Y
 %        X(2,1)*Y  X(2,2)*Y  X(2,3)*Y ]
 % 
-% When called with a single cell array input, the tensor product
-% is formed recursively 
+% When called with a single cell array input, the tensor product is formed
+% recursively.
 %__________________________________________________________________________
-% Copyright (C) 2008-2020 Wellcome Centre for Human Neuroimaging
  
 % Karl Friston
-% $Id: spm_kron.m 7814 2020-04-06 11:47:47Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % Deal with cell arrays

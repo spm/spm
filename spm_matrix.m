@@ -41,10 +41,9 @@ function [A] = spm_matrix(P, order)
 %
 % See also: spm_imatrix.m
 %__________________________________________________________________________
-% Copyright (C) 1994-2011 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_matrix.m 4414 2011-08-01 17:51:40Z guillaume $
+% Copyright (C) 1994-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Special case: translation only

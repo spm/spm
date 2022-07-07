@@ -1,7 +1,7 @@
-function [DCM]   = spm_dem2dcm(DEM,DCM)
-% reorganisation of posteriors and priors into DCM format
-% FORMAT [DCM]   = spm_dem2dcm(DEM)
-% FORMAT [DEM]   = spm_dem2dcm(DEM,DCM)
+function [DCM] = spm_dem2dcm(DEM,DCM)
+% Reorganisation of posteriors and priors into DCM format
+% FORMAT [DCM] = spm_dem2dcm(DEM)
+% FORMAT [DEM] = spm_dem2dcm(DEM,DCM)
 %
 % DEM - structure array (hierarchicial model)
 % DCM - structure array (flat model)
@@ -16,10 +16,9 @@ function [DCM]   = spm_dem2dcm(DEM,DCM)
 % For hierarchical models (DEM.M) the first level with non-zero prior
 % variance on the parameters will be extracted.
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dem2dcm.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2015-2022 Wellcome Centre for Human Neuroimaging
 
 
 % check for arrays
@@ -71,8 +70,3 @@ else
     %----------------------------------------------------------------------
     DCM = DEM;
 end
-
-
-
-
-

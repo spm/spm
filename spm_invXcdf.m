@@ -43,10 +43,9 @@ function x = spm_invXcdf(F,v)
 %        Cambridge
 %
 %__________________________________________________________________________
-% Copyright (C) 1993-2011 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_invXcdf.m 4182 2011-02-01 12:29:09Z guillaume $
+% Copyright (C) 1993-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Check enough arguments

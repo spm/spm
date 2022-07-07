@@ -1,11 +1,10 @@
 function p = spm_Q_perm(Q)
-% returns a cell of permutation indices for separating matrices
-% FOTMAT p = spm_Q_perm(Q);
+% Return a cell of permutation indices for separating matrices
+% FORMAT p = spm_Q_perm(Q)
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % John Ashburner & Karl Friston
-% $Id: spm_Q_perm.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2009-2022 Wellcome Centre for Human Neuroimaging
  
  
 % add cell arrays of components

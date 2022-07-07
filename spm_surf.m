@@ -50,10 +50,9 @@ function varargout = spm_surf(P,mode,thresh)
 % 0.5. The input segmentation images can be manually cleaned up first using
 % e.g., MRIcron.
 %__________________________________________________________________________
-% Copyright (C) 2002-2018 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_surf.m 8275 2022-07-06 11:14:02Z guillaume $
+% Copyright (C) 2002-2022 Wellcome Centre for Human Neuroimaging
 
 
 spm('FnBanner',mfilename);

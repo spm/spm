@@ -8,10 +8,9 @@ function [M, I] = spm_mesh_join(varargin)
 %
 % See also spm_mesh_split
 %__________________________________________________________________________
-% Copyright (C) 2016-2022 Wellcome Centre for Human Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_join.m 8230 2022-03-03 17:50:45Z guillaume $
+% Copyright (C) 2016-2022 Wellcome Centre for Human Neuroimaging
 
 
 Ms = varargin{1};

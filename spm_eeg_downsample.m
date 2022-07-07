@@ -17,10 +17,9 @@ function D = spm_eeg_downsample(S)
 %               http://www.mathworks.com/products/signal/
 % (function resample.m) if present and spm_timeseries_resample.m otherwise.
 %__________________________________________________________________________
-% Copyright (C) 2005-2017 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_downsample.m 8275 2022-07-06 11:14:02Z guillaume $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Startup

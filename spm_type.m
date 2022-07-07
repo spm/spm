@@ -21,10 +21,10 @@ function T = spm_type(x, arg)
 %
 % With no arguments, a list of data types is returned.
 %__________________________________________________________________________
-% Copyright (C) 1996-2015 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner & Andrew Holmes
-% $Id: spm_type.m 7932 2020-08-18 11:05:19Z john $
+% Copyright (C) 1996-2022 Wellcome Centre for Human Neuroimaging
+
 
 prec   = {'uint8','int16','int32','float32','float64','int8','uint16','uint32','int64','uint64'};
 conv   = {@uint8,@int16,@int32,@single,@double,@int8,@uint16,@uint32,@int64,@uint64};
@@ -70,4 +70,3 @@ else
         otherwise,     T = NaN;
     end
 end
-

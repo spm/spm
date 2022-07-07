@@ -13,10 +13,10 @@ function [edges,weights] = spm_vb_edgeweights(vxyz,img)
 % Ne       number of edges (cardinality of edges set)
 % N        number of nodes (cardinality of node set)
 %__________________________________________________________________________
-% Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Lee Harrison
-% $Id: spm_vb_edgeweights.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
+
 
 N       = size(vxyz,1);
 [r,c,v] = find(vxyz');

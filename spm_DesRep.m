@@ -115,10 +115,9 @@ function varargout = spm_DesRep(varargin)
 % Double clicking on a contrast depiction extracts the contrast weights
 % into the base workspace.
 %__________________________________________________________________________
-% Copyright (C) 1999-2021 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_DesRep.m 8275 2022-07-06 11:14:02Z guillaume $
+% Copyright (C) 1999-2022 Wellcome Centre for Human Neuroimaging
 
 
 %==========================================================================

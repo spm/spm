@@ -1,6 +1,6 @@
-function [d] = spm_kl_normald (m_q,c_q,m_p,c_p)
+function [d] = spm_kl_normald(m_q,c_q,m_p,c_p)
 % KL divergence between two Gaussians with, possibly, diagonal covariances
-% FORMAT [d] = spm_kl_normald (m_q,c_q,m_p,c_p)
+% FORMAT [d] = spm_kl_normald(m_q,c_q,m_p,c_p)
 %
 % Calculate the KL distance KL (Q||P) = <log Q/P> where avg is wrt Q
 % between two Normal densities Q and P
@@ -9,12 +9,12 @@ function [d] = spm_kl_normald (m_q,c_q,m_p,c_p)
 % m_p, c_p    Mean and covariance of second Normal density
 % 
 % If c_q and c_p are diagonal, pass them as vectors, and KL will
-% be computed more efficiently. Both must be full or both must be diagonal
-%___________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% be computed more efficiently. Both must be full or both must be diagonal.
+%__________________________________________________________________________
 
 % Will Penny 
-% $Id: spm_kl_normald.m 2696 2009-02-05 20:29:48Z guillaume $
+% Copyright (C) 2007-2022 Wellcome Centre for Human Neuroimaging
+
 
 dd=length(m_q);
 

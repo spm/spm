@@ -3,14 +3,13 @@ function [f] = spm_fx_poly(x,v,P)
 % FORMAT [f] = spm_fx_poly(x,v,P)
 % x      - state vector
 % v      - exogenous cause
-% P      - free parameters 
+% P      - free parameters
 %
 % f      - dx/dt
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_fx_poly.m 3878 2010-05-07 19:53:54Z karl $
+% Copyright (C) 2010-2022 Wellcome Centre for Human Neuroimaging
 
 % compute Jacobian from blinear terms
 %--------------------------------------------------------------------------
@@ -23,4 +22,3 @@ for i = 1:length(P.C)
     J = J + P.C{i}*v(i);
 end
 f     = J*x;
-    

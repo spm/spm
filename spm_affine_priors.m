@@ -4,10 +4,10 @@ function [mu,isig] = spm_affine_priors(typ)
 % The parameters for this distribution were derived empirically from 227
 % scans, that were matched to the ICBM space.
 %__________________________________________________________________________
-% Copyright (C) 2003-2018 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_affine_priors.m 7377 2018-07-23 13:56:24Z guillaume $
+% Copyright (C) 2003-2022 Wellcome Centre for Human Neuroimaging
+
 
 % % Values can be derived by...
 % sn = spm_select(Inf,'.*seg_inv_sn.mat$');

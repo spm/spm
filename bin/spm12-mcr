@@ -1,12 +1,10 @@
 #!/bin/sh
 #
 # Command Line Interface for SPM
-# SPM: http://www.fil.ion.ucl.ac.uk/spm/
-#
-# Copyright (C) 2017 Wellcome Trust Centre for Neuroimaging
+# SPM: https://www.fil.ion.ucl.ac.uk/spm/
 #
 # Guillaume Flandin
-# $Id: spm12-mcr 7014 2017-02-13 12:31:33Z guillaume $ 
+# Copyright (C) 2017-2022 Wellcome Centre for Human Neuroimaging
 
 if [ "${MCR_HOME}" = "" ]; then
   echo "Set MCR_HOME environment variable." >&2 

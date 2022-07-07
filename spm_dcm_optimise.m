@@ -1,5 +1,5 @@
 function [varargout] = spm_dcm_optimise(qE,qC,pE,pC,priorfun,varargin)
-% Optimises the priors of a model (under Laplace approximation)
+% Optimise the priors of a model (under Laplace approximation)
 % FORMAT [rE,rC] = spm_dcm_optimise(qE,qC,pE,pC,priorfun,varargin)
 %
 % qE,qC    - posterior expectation and covariance of model
@@ -23,11 +23,11 @@ function [varargout] = spm_dcm_optimise(qE,qC,pE,pC,priorfun,varargin)
 % unknown hyperparameters. The outputs are the prior moments (mean and 
 % covariance) of the optimum model.
 %__________________________________________________________________________
-% Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_optimise.m 4261 2011-03-24 16:39:42Z karl $
- 
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
+
 % Compute reduced log-evidence
 %==========================================================================
 
@@ -42,4 +42,3 @@ end
 varargout   = spm_argmax('spm_log_evidence',qE,qC,pE,pC,priorfun,varargin{:},6);
 varargin{1} = varargout;
 varargout   = priorfun(varargin{:});
-

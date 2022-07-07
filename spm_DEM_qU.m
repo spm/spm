@@ -1,6 +1,6 @@
 function spm_DEM_qU(qU,pU)
-% displays conditional estimates of states (qU)
-% FORMAT spm_DEM_qU(qU,pU);
+% Display conditional estimates of states (qU)
+% FORMAT spm_DEM_qU(qU,pU)
 %
 % qU.v{i}    - causal states (V{1} = y = predicted response)
 % qU.x{i}    - hidden states
@@ -10,11 +10,11 @@ function spm_DEM_qU(qU,pU)
 %
 % pU         - optional input for known states
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM_qU.m 7322 2018-05-31 09:47:15Z karl $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
  
+
 % unpack
 %--------------------------------------------------------------------------
 clf

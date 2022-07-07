@@ -5,10 +5,9 @@ function spm_spy(X,Markersize,m)
 %
 % See also: spy
 %__________________________________________________________________________
-% Copyright (C) 1994-2020 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_spy.m 7826 2020-04-12 09:54:35Z guillaume $
+% Copyright (C) 1994-2022 Wellcome Centre for Human Neuroimaging
 
 
 % defaults

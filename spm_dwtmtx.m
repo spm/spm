@@ -11,10 +11,9 @@ function H = spm_dwtmtx(N,K,T)
 % spm_dwtmtx creates a matrix for the first few basis functions of a one
 % dimensional Haar Discrete Wavelet transform.
 %__________________________________________________________________________
-% Copyright (C) 2011-2015 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dwtmtx.m 6416 2015-04-21 15:34:10Z guillaume $
+% Copyright (C) 2011-2022 Wellcome Centre for Human Neuroimaging
  
  
 % Create basis set

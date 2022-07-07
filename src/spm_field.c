@@ -1,5 +1,7 @@
-/* $Id: spm_field.c 7776 2020-01-30 15:24:01Z yael $ */
-/* (c) John Ashburner (2007) */
+/*
+ * John Ashburner
+ * Copyright (C) 2007-2022 Wellcome Centre for Human Neuroimaging
+ */
 
 #include "mex.h"
 #include <math.h>

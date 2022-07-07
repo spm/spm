@@ -1,5 +1,5 @@
 function y = spm_betaln(z)
-% returns the log the multivariate beta function of a vector.
+% Logarithm of the multivariate beta function of a vector
 % FORMAT y = spm_betaln(z)
 %   y = spm_betaln(z) computes the natural logarithm of the beta function
 %   for corresponding elements of the vector z. if z is an array, the beta
@@ -11,10 +11,10 @@ function y = spm_betaln(z)
 %   Ref: Abramowitz & Stegun, Handbook of Mathematical Functions, sec. 6.2.
 %   Copyright 1984-2004 The MathWorks, Inc. 
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_betaln.m 8262 2022-06-03 14:15:28Z karl $
+% Copyright (C) 2016-2022 Wellcome Centre for Human Neuroimaging
+
 
 % log the multivariate beta function of a vector
 %--------------------------------------------------------------------------

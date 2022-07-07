@@ -32,10 +32,9 @@ function [u, Ps] = spm_uc_peakFDR(q,df,STAT,R,n,Z,XYZ,ui,G)
 % J.R. Chumbley, K.J. Worsley, G. Flandin and K.J. Friston, "Topological
 % FDR for NeuroImaging". NeuroImage, 49(4):3057-3064, 2010.
 %__________________________________________________________________________
-% Copyright (C) 2009-2013 Wellcome Trust Centre for Neuroimaging
 
 % Justin Chumbley & Guillaume Flandin
-% $Id: spm_uc_peakFDR.m 5224 2013-02-01 12:19:17Z guillaume $
+% Copyright (C) 2009-2022 Wellcome Centre for Human Neuroimaging
 
 
 ws = warning('off','SPM:outOfRangePoisson');

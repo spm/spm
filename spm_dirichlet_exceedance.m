@@ -19,10 +19,10 @@ function xp = spm_dirichlet_exceedance(alpha,Nsamp)
 % Stephan KE, Penny WD, Daunizeau J, Moran RJ, Friston KJ
 % Bayesian Model Selection for Group Studies. NeuroImage (in press)
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Klaas Enno Stephan
-% $Id: spm_dirichlet_exceedance.m 3118 2009-05-12 17:37:32Z guillaume $
+% Copyright (C) 2009-2022 Wellcome Centre for Human Neuroimaging
+
 
 if nargin < 2
     Nsamp = 1e6;

@@ -64,10 +64,9 @@ function [CVA] = spm_cva(Y,X,X0,c,U)
 % Barnes G, Fuentemilla Lluis, Duzel E, Penny WD. PLoS One. 2013.
 % 8(8): e71305
 %__________________________________________________________________________
-% Copyright (C) 2006-2013 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_cva.m 8238 2022-04-03 11:32:57Z karl $
+% Copyright (C) 2006-2022 Wellcome Centre for Human Neuroimaging
 
 
 if nargin < 3, X0 = [];             end

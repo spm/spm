@@ -12,10 +12,10 @@ function [Ds, D] = spm_eeg_inv_extract(D)
 %     D.inv{i}.source.fname - output file name
 %     D.inv{i}.source.type  - output type ('evoked'/'trials')
 %__________________________________________________________________________
-% Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
  
 % Vladimir Litvak, Laurence Hunt, Karl Friston
-% $Id: spm_eeg_inv_extract.m 7009 2017-02-07 18:14:16Z vladimir $
+% Copyright (C) 2011-2022 Wellcome Centre for Human Neuroimaging
+
  
 % SPM data structure
 %==========================================================================
@@ -235,5 +235,3 @@ D.inv{D.val}.source.fname = fname;
 % save headers
 %-----------------------------------------------------------------------
 save(Ds);
-
-

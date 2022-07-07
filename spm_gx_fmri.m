@@ -12,10 +12,9 @@ function [g,dgdx] = spm_gx_fmri(x,u,P,M)
 % Stephan KE, Weiskopf N, Drysdale PM, Robinson PA, Friston KJ (2007)
 % Comparing hemodynamic models with DCM. NeuroImage 38: 387-401.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston & Klaas Enno Stephan
-% $Id: spm_gx_fmri.m 6262 2014-11-17 13:47:56Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
  
 % Biophysical constants for 1.5T

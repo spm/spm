@@ -1,10 +1,10 @@
 function dipoles = spm_eeg_dipoles_ui
 % Get dipole locations and orientations from the user
+% FORMAT dipoles = spm_eeg_dipoles_ui
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Christophe Phillips
-% $Id: spm_eeg_dipoles_ui.m 8275 2022-07-06 11:14:02Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Startup

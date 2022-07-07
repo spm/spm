@@ -8,10 +8,10 @@ function I = spm_grid(I)
 % spm_grid adds a grid to the input argument.
 % The grid is scaled to 10% of the input's maximum.
 %__________________________________________________________________________
-% Copyright (C) 1994-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_grid.m 6083 2014-07-03 11:25:13Z guillaume $
+% Copyright (C) 1994-2022 Wellcome Centre for Human Neuroimaging
+
 
 GRID  = 0.1;
 

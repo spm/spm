@@ -1,5 +1,5 @@
 function Sp = spm_ness_p2Sp(p,x,K)
-% converts a density into polynomial potential parameters  
+% Convert a density into polynomial potential parameters  
 % FORMAT Sp = spm_ness_p2Sp(p,x,K))
 %--------------------------------------------------------------------------
 % p    - probability density
@@ -8,10 +8,10 @@ function Sp = spm_ness_p2Sp(p,x,K)
 %
 % Sp   - Polynomial coefficients or parameters of log density
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ness_cond.m 8097 2021-04-24 20:28:27Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 % defaults
 %--------------------------------------------------------------------------
@@ -26,6 +26,3 @@ p       = p/sum(p);
 %--------------------------------------------------------------------------
 b       = spm_polymtx(x,K);
 Sp      = b\log(p);
-
-return
-

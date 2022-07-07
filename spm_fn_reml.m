@@ -19,10 +19,10 @@ function [C,h,Ph,F] = spm_fn_reml(YY,X,Q,N,hE,K);
 % Performs a Fisher-Scoring ascent on F to find ReML variance parameter
 % estimates.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner & Karl Friston
-% $Id: spm_fn_reml.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2006-2022 Wellcome Centre for Human Neuroimaging
+
 
 % assume a single sample if not specified
 %--------------------------------------------------------------------------
@@ -153,5 +153,3 @@ if nargout > 3
         -   spm_logdet(Ph)/2 ...
         +   spm_logdet(hP)/2;
 end
-
-    

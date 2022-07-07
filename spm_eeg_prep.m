@@ -14,10 +14,9 @@ function D = spm_eeg_prep(S)
 %
 % D                 - MEEG object
 %__________________________________________________________________________
-% Copyright (C) 2008-2019 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep.m 8130 2021-08-05 13:15:12Z vladimir $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 D = spm_eeg_load(S.D);
 

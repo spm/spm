@@ -1,6 +1,6 @@
 function [d] = spm_KL_dir(q,p)
 % KL divergence between two Dirichlet distributions
-% FORMAT [d] = spm_kl_dirichlet(lambda_q,lambda_p)
+% FORMAT [d] = spm_kl_dir(lambda_q,lambda_p)
 %
 % Calculate KL(Q||P) = <log Q/P> where avg is wrt Q between two Dirichlet 
 % distributions Q and P
@@ -11,12 +11,12 @@ function [d] = spm_KL_dir(q,p)
 % This routine uses an efficient computation that handles arrays, matrices 
 % or vectors. It returns the sum of divergences over columns.
 %
-% see also: spm_kl_dirichlet.m (for row vectors)
+% See also: spm_kl_dirichlet.m (for row vectors)
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_KL_dir.m 8262 2022-06-03 14:15:28Z karl $
+% Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
+
 
 %  KL divergence based on log beta functions
 %--------------------------------------------------------------------------

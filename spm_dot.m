@@ -13,10 +13,10 @@ function [X] = spm_dot(X,x,i)
 %
 % See also: spm_cross
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dot.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2015-2022 Wellcome Centre for Human Neuroimaging
+
 
 % initialise dimensions
 %--------------------------------------------------------------------------

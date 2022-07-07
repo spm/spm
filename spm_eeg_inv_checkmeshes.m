@@ -8,10 +8,9 @@ function [h_ctx,h_iskl,h_oskl,h_slp] = spm_eeg_inv_checkmeshes(varargin)
 % h_oskl - handle to outer skull patch
 % h_slp  - handle to scalp patch
 %__________________________________________________________________________
-% Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_checkmeshes.m 6182 2014-09-18 12:03:18Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Initialisation

@@ -1,6 +1,6 @@
 /*
- * $Id: spm_mesh_geodesic.cpp 8028 2020-12-03 21:50:11Z guillaume $
  * Guillaume Flandin
+ * Copyright (C) 2020-2022 Wellcome Centre for Human Neuroimaging
  */
 
 #include "mex.h"

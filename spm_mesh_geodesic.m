@@ -21,10 +21,10 @@ function [D,L,P] = spm_mesh_geodesic(M,i,d,s)
 % [2] J. O'Rourke, Computational Geometry Column 35, SIGACT News, 30(2)
 %     Issue #111 (1999).
 %__________________________________________________________________________
-% Copyright (C) 2010-2020 Wellcome Centre for Human Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_geodesic.m 7973 2020-10-05 16:09:34Z guillaume $
+% Copyright (C) 2010-2022 Wellcome Centre for Human Neuroimaging
+
 
 % % A previous version of this function was computing approximate
 % % geodesic distances using Dijkstra algorithm

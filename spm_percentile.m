@@ -13,10 +13,9 @@ function [y] = spm_percentile(data, p)
 % Example:
 %  spm_summarise(vols, 'all', @spm_percentile) % quartiles of images
 %__________________________________________________________________________
-% Copyright (C) 2010-2016 Wellcome Trust Centre for Neuroimaging
 
 % Ged Ridgway
-% $Id: spm_percentile.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2010-2022 Wellcome Centre for Human Neuroimaging
 
 % The algorithm used is that described by NIST, with x = k+d = 1+p(N-1)/100
 % http://www.itl.nist.gov/div898/handbook/prc/section2/prc252.htm

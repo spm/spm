@@ -20,10 +20,9 @@ function spm_dcm_create(syn_model,source_model,SNR)
 % manual specification of nonlinear DCMs; however, these can be imported 
 % from existing files.
 %__________________________________________________________________________
-% Copyright (C) 2002-2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Klaas Enno Stephan & Peter Zeidman
-% $Id: spm_dcm_create.m 7654 2019-08-25 20:09:35Z karl $
+% Copyright (C) 2002-2022 Wellcome Centre for Human Neuroimaging
 
 
 Finter = spm_figure('GetWin','Interactive');

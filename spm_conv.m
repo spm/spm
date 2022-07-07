@@ -12,10 +12,9 @@ function [X] = spm_conv(X,sx,sy)
 % kernel by using one-dimensional convolutions and kernels that are
 % restricted to non near-zero values.
 %__________________________________________________________________________
-% Copyright (C) 1999-2020 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_conv.m 8052 2021-02-06 21:58:41Z karl $
+% Copyright (C) 1999-2022 Wellcome Centre for Human Neuroimaging
 
 
 % assume isomorphic smoothing

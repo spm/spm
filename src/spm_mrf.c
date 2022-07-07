@@ -1,5 +1,7 @@
-/* $Id: spm_mrf.c 7172 2017-09-21 16:31:30Z john $ */
-/* (c) John Ashburner (2010) */
+/*
+ * John Ashburner
+ * Copyright (C) 2010-2022 Wellcome Centre for Human Neuroimaging
+ */
 
 #include "mex.h"
 #include <math.h>
@@ -321,4 +323,3 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
     mrf1(dm, q,p,G,w,code);
 }
-

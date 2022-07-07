@@ -16,10 +16,10 @@ function [vor, dist] = spm_voronoi(img, seeds, distance)
 % objects using front propagation. The distance map is also available 
 % on output.
 %__________________________________________________________________________
-% Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_voronoi.m 6079 2014-06-30 18:25:37Z spm $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 %-This is merely the help file for the compiled routine
 error('spm_voronoi.c not compiled - see Makefile')

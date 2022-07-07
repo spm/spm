@@ -1,5 +1,7 @@
-/* $Id: shoot_optim3d.c 7968 2020-09-30 12:16:15Z john $ */
-/* (c) John Ashburner (2011) */
+/*
+ * John Ashburner
+ * Copyright (C) 2011-2022 Wellcome Centre for Human Neuroimaging
+ */
 
 #include<math.h>
 extern double log(double x);
@@ -383,4 +385,3 @@ void fmg3(mwSize n0[], float *a0, float *b0, double param0[], int c, int nit,
         }
     }
 }
-

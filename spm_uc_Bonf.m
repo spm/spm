@@ -19,10 +19,9 @@ function [u] = spm_uc_Bonf(a,df,STAT,S,n)
 % specified significance level (a). If n > 1, a conjunction probability
 % over the n values of the statistic is returned.
 %__________________________________________________________________________
-% Copyright (C) 1999-2015 Wellcome Trust Centre for Neuroimaging
 
 % Thomas Nichols
-% $Id: spm_uc_Bonf.m 6416 2015-04-21 15:34:10Z guillaume $
+% Copyright (C) 1999-2022 Wellcome Centre for Human Neuroimaging
 
 
 u   = spm_u((a/S).^(1/n),df,STAT);

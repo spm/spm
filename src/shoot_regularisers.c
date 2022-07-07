@@ -1,5 +1,7 @@
-/* $Id: shoot_regularisers.c 7723 2019-11-27 18:12:41Z john $ */
-/* (c) John Ashburner (2011) */
+/*
+ * John Ashburner
+ * Copyright (C) 2011-2022 Wellcome Centre for Human Neuroimaging
+ */
 
 #include <math.h>
 extern double log(double x);
@@ -1655,4 +1657,3 @@ void relax(mwSize dm[], /*@null@*/ float a[], float b[], double s[], int nit, fl
     else
         relax_all(dm, a, b, s, nit, u);
 }
-

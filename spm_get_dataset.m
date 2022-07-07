@@ -6,10 +6,9 @@ function spm_get_dataset(repo, name, rev, outdir)
 % rev    - revision of dataset [default: '']
 % outdir - output directory [default: pwd]
 %__________________________________________________________________________
-% Copyright (C) 2017-2018 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_get_dataset.m 8275 2022-07-06 11:14:02Z guillaume $
+% Copyright (C) 2017-2022 Wellcome Centre for Human Neuroimaging
 
 
 spm('FnBanner', mfilename);

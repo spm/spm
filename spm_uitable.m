@@ -65,11 +65,9 @@ function [varargout] = spm_uitable(varargin)
 %     See also AWTCREATE, AWTINVOKE, JAVACOMPONENT, UITREE, UITREENODE
 
 %   Copyright 2002-2006 The MathWorks, Inc.
-%   $Revision: 6072 $  $Date: 2006/11/29 21:53:13 $
+%   $Revision: 8278 $  $Date: 2006/11/29 21:53:13 $
 
 %   Release: R14. This feature will not work in previous versions of MATLAB.
-
-% $Id: spm_uitable.m 6072 2014-06-27 16:35:30Z guillaume $
 
 % Setup and P-V parsing
 

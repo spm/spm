@@ -9,15 +9,14 @@ function spm_eeg_inv_vbecd_disp(action,varargin)
 % Display the ind^th .inv{} cell element, if it is actually a VB-ECD 
 % solution.
 %__________________________________________________________________________
-% Copyright (C) 2008-2015 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips
-% $Id: spm_eeg_inv_vbecd_disp.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 % Note:
 % unfortunately I cannot see how to ensure that when zooming in the image
 % the dipole location stays in place...
-
 
 global st
 

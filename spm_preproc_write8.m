@@ -2,10 +2,9 @@ function varargout = spm_preproc_write8(res,tc,bf,df,mrf,cleanup,bb,vx,odir)
 % Write out VBM preprocessed data
 % FORMAT [cls,M1] = spm_preproc_write8(res,tc,bf,df,mrf,cleanup,bb,vx,odir)
 %__________________________________________________________________________
-% Copyright (C) 2008-2016 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc_write8.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 % Prior adjustment factor.
 % This is a fudge factor to weaken the effects of the tissue priors.  The
@@ -674,4 +673,3 @@ for i=1:size(b,3)
     end 
 end
 spm_progress_bar('Clear');
-

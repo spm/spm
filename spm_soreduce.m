@@ -1,5 +1,5 @@
 function [M0,M1,M2,L1,L2] = spm_soreduce(M,P)
-% reduction of a fully nonlinear MIMO system to second-order form
+% Reduction of a fully nonlinear MIMO system to second-order form
 % FORMAT [M0,M1,M2,L1,L2] = spm_soreduce(M,P);
 %
 % M   - model specification structure
@@ -14,8 +14,8 @@ function [M0,M1,M2,L1,L2] = spm_soreduce(M,P)
 % A second order approximation is returned where the states are
 %
 %        q(t) = [1; x(t) - x(0)]
+%__________________________________________________________________________
 %
-%___________________________________________________________________________
 % Returns Matrix operators for the Bilinear approximation to the MIMO
 % system described by
 %
@@ -28,12 +28,10 @@ function [M0,M1,M2,L1,L2] = spm_soreduce(M,P)
 %               u(1)*M1{1}*q + u(2)*M1{2}*q + ....
 %               x(1)*M2{1}*q + x(2)*M2{2}*q + ....
 %        y(i) = L(i,:)*q + ...
-%
-%--------------------------------------------------------------------------
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Karl Friston
-% $Id: spm_soreduce.m 5219 2013-01-29 17:07:07Z spm $
+% Copyright (C) 2010-2022 Wellcome Centre for Human Neuroimaging
 
 
 % set up
@@ -130,4 +128,3 @@ end
 for i = 1:l
     L2{i} = spm_cat(spm_diag({0, D{i}}));
 end
-    

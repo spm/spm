@@ -17,10 +17,10 @@ function [i,pC,pE,Np] = spm_find_pC(varargin)
 % rE     - reduced expectation
 % 
 %__________________________________________________________________________
-% Copyright (C) 2015-2019 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_find_pC.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2015-2022 Wellcome Centre for Human Neuroimaging
+
 
 %-parse input arguments
 %--------------------------------------------------------------------------

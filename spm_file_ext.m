@@ -10,10 +10,10 @@ function varargout = spm_file_ext(ext)
 % The file extension returned by this function is defined in spm_defaults.m
 % in field 'defaults.images.format'.
 %__________________________________________________________________________
-% Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_file_ext.m 4422 2011-08-04 16:18:05Z guillaume $ 
+% Copyright (C) 2011-2022 Wellcome Centre for Human Neuroimaging
+
 
 if ~nargin
     defaults = spm_get_defaults;

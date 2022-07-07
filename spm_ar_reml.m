@@ -1,6 +1,6 @@
 function [C,h,Ph,F] = spm_ar_reml(YY,X,m,N)
 % ReML estimation of covariance components from y*y'
-% FORMAT [C,h,Ph,F] = spm_ar_reml(YY,X,m,N);
+% FORMAT [C,h,Ph,F] = spm_ar_reml(YY,X,m,N)
 %
 % YY  - (m x m) sample covariance matrix Y*Y'  {Y = (m x N) data matrix}
 % X   - (m x p) design matrix
@@ -17,10 +17,10 @@ function [C,h,Ph,F] = spm_ar_reml(YY,X,m,N)
 % Performs a Fisher-Scoring ascent on F to find ReML variance parameter
 % estimates.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner & Karl Friston
-% $Id: spm_ar_reml.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2006-2022 Wellcome Centre for Human Neuroimaging
+
 
 % assume a single sample if not specified
 %--------------------------------------------------------------------------
@@ -164,4 +164,3 @@ end
 %--------------------------------------------------------------------------
 C    =  C*Ys;
 h    = -h(2:m)/(h(1)*2);
-

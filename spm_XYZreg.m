@@ -164,11 +164,9 @@ function varargout = spm_XYZreg(varargin)
 % and rounding in voxel coordinates.
 % Concept and examples can be found in the body of the function.
 %__________________________________________________________________________
-% Copyright (C) 1999-2018 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes, Chloe Hutton
-% $Id: spm_XYZreg.m 8183 2021-11-04 15:25:19Z guillaume $
-
+% Copyright (C) 1999-2022 Wellcome Centre for Human Neuroimaging
 
 
 % THE REGISTRY

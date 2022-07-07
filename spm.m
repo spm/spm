@@ -50,10 +50,9 @@ function varargout=spm(varargin)
 % FORMAT & help in the main body of spm.m
 %
 %_______________________________________________________________________
-% Copyright (C) 1991,1994-2022 Wellcome Centre for Human Neuroimaging
 
 % Andrew Holmes
-% $Id: spm.m 8216 2022-02-01 17:56:49Z guillaume $
+% Copyright (C) 1991,1994-2022 Wellcome Centre for Human Neuroimaging
 
 
 %=======================================================================

@@ -1,5 +1,5 @@
 function [F,S,Q,L,H,DS] = spm_NESS_gen_lap(P,M,x)
-% generates flow (f) at locations x
+% Generate flow (f) at locations x
 % FORMAT [F,S,Q,L,H,D] = spm_NESS_gen_lap(P,M,x)
 % FORMAT [F,S,Q,L,H,D] = spm_NESS_gen_lap(P,M,U)
 %--------------------------------------------------------------------------
@@ -31,13 +31,12 @@ function [F,S,Q,L,H,DS] = spm_NESS_gen_lap(P,M,x)
 % U.dbQdp - gradients of bQ w.r.t. flow parameters
 % U.dLdp  - gradients of L w.r.t. flow parameters
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ness_hd.m 8000 2020-11-03 19:04:17QDb karl $
+% Copyright (C) 2021-2022 Wellcome Centre for Human Neuroimaging
 
 
-%% get basis set and gradients
+% get basis set and gradients
 %--------------------------------------------------------------------------
 if ~isstruct(x)
     if ~iscell(x)
@@ -153,4 +152,3 @@ for k = 1:nX
         DS{j}(k,1) = X*DH(:,:,j,k)*X' + H(j,:,k)*X';
     end
 end
-

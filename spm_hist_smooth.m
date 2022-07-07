@@ -1,13 +1,13 @@
 function x = spm_hist_smooth(x,s)
-% histogram smoothing (graph Laplacian)
+% Histogram smoothing (graph Laplacian)
 % FORMAT x = spm_hist_smooth(x,s)
 % x   - data vector
 % s   - smoothing
 %__________________________________________________________________________
-% Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_hist_smooth.m 8000 2020-11-03 19:04:17Z karl $
+% Copyright (C) 2020-2022 Wellcome Centre for Human Neuroimaging
+
 
 % remove negative values
 %--------------------------------------------------------------------------

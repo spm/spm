@@ -169,10 +169,9 @@ function [SPM] = spm_fmri_spm_ui(SPM)
 % Map. 5:243-248
 %
 %__________________________________________________________________________
-% Copyright (C) 1994-2019 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_fmri_spm_ui.m 8275 2022-07-06 11:14:02Z guillaume $
+% Copyright (C) 1994-2022 Wellcome Centre for Human Neuroimaging
 
 
 %==========================================================================

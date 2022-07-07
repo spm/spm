@@ -79,10 +79,9 @@ function [CVA] = spm_cva_ui(action,varargin)
 % Vieth J, Keber H, Hunter K, Frackowiak RS. NeuroImage. 1996 Jun;
 % 3(3):167-174.
 %__________________________________________________________________________
-% Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_cva_ui.m 8238 2022-04-03 11:32:57Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Get figure handles

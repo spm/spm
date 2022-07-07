@@ -56,10 +56,9 @@ function [Ep,Cp,Eh,F] = spm_nlsi_GN_H(M,U,Y)
 % free energy by recasting the problem in terms of a parameterised mapping 
 % from conditional expectations to free energy explicitly.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_GN_H.m 7714 2019-11-26 11:25:50Z spm $
+% Copyright (C) 2012-2022 Wellcome Centre for Human Neuroimaging
  
 % dimension reduction of parameter space
 %--------------------------------------------------------------------------

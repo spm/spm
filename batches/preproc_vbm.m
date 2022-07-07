@@ -10,10 +10,9 @@
 % be left in the directory of the first selected structural image; not
 % moved to the Templates_etc directory along with the Template image files.
 %__________________________________________________________________________
-% Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Ged Ridgway
-% $Id: preproc_vbm.m 6177 2014-09-16 10:44:55Z guillaume $
+% Copyright (C) 2014-2022 Wellcome Centre for Human Neuroimaging
 
 if exist('preproc_vbm', 'file') && ~isdeployed
     help preproc_vbm

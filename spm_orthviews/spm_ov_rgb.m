@@ -10,10 +10,10 @@ function ret = spm_ov_rgb(varargin)
 %             help spm_orthviews
 % at the MATLAB prompt.
 %__________________________________________________________________________
-% Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Volkmar Glauche
-% $Id: spm_ov_rgb.m 4996 2012-10-11 18:28:37Z guillaume $
+% Copyright (C) 2012-2022 Wellcome Centre for Human Neuroimaging
+
 
 global st;
 if isempty(st)

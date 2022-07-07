@@ -53,10 +53,9 @@ function varargout = spm_help(varargin)
 % keywords. Type `help lookfor` in the MATLAB command window for further
 % details.
 %__________________________________________________________________________
-% Copyright (C) 1994-2012 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes, Karl Friston
-% $Id: spm_help.m 7478 2018-11-08 14:51:54Z guillaume $
+% Copyright (C) 1994-2022 Wellcome Centre for Human Neuroimaging
 
 
 %__________________________________________________________________________

@@ -1,10 +1,10 @@
 function [varargout] = spm_eeg_review_callbacks(varargin)
 % Callbacks of the M/EEG Review facility
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_callbacks.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 spm('pointer','watch');
 drawnow expose

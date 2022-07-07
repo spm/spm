@@ -15,10 +15,9 @@ function res = spm_eeg_artefact_eyeblink(S)
 %    If input is provided the plugin returns a matrix of size D.nchannels x D.ntrials
 %    with zeros for clean channel/trials and ones for artefacts.
 %__________________________________________________________________________
-% Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
 
 % Laurence Hunt
-% $Id: spm_eeg_artefact_eyeblink.m 8275 2022-07-06 11:14:02Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-This part if for creating a config branch that plugs into spm_cfg_eeg_artefact

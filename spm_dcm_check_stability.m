@@ -8,12 +8,11 @@ function [is_stable,eigval] = spm_dcm_check_stability(DCM)
 % eigval     - Lyapunov exponent
 %
 % This function checks the stability of a DCM by examining the eigenvalue
-% spectrum for the the intrinsic connectivity matrix (Lyapunov exponent).
+% spectrum for the intrinsic connectivity matrix (Lyapunov exponent).
 %__________________________________________________________________________
-% Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Klaas Enno Stephan & Peter Zeidman
-% $Id: spm_dcm_check_stability.m 6077 2014-06-30 16:55:03Z spm $
+% Copyright (C) 2014-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Load DCM if necessary

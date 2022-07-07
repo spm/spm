@@ -1,5 +1,6 @@
 function res = spm_eeg_regressors_movement_ctf(S)
 % Generate movement regressors for CTF MEG data
+% FORMAT res = spm_eeg_regressors_movement_ctf(S)
 % S                     - input structure
 % fields of S:
 %    S.D                - M/EEG object
@@ -10,10 +11,10 @@ function res = spm_eeg_regressors_movement_ctf(S)
 %   If no input is provided the plugin returns a cfg branch for itself
 %
 %   If input is provided the plugin returns
-%______________________________________________________________________________________
-% Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Vladimir Litvak
+% Copyright (C) 2014-2022 Wellcome Centre for Human Neuroimaging
 
 
 if nargin == 0
@@ -143,4 +144,3 @@ spm_progress_bar('Clear');
 
 P = detrend(P, 'constant');
 P = P./repmat(std(P), size(P, 1), 1);
-

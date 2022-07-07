@@ -1,18 +1,16 @@
 function [Gu,Gn,w, dt] = spm_csd_fmri_gu(P,dt)
-% spectra of neuronal fluctuations and noise
+% Spectra of neuronal fluctuations and noise
 % FORMAT [Gu,Gn,Hz,dt] = spm_csd_fmri_gu(P,dt)
 %
 % P  - model parameters
 % dt - sampling interval
 %
 % This routine returns the spectra of neuronal fluctuations and noise for a
-% standard frequency range specified by the sampling interval
-%
+% standard frequency range specified by the sampling interval.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_csd_fmri_gu.m 7270 2018-03-04 13:08:10Z karl $
+% Copyright (C) 2016-2022 Wellcome Centre for Human Neuroimaging
 
 
 % compute log-spectral density
@@ -76,5 +74,3 @@ for i = 1:nn
         Gn(:,j,i) = Gn(:,i,j);
     end
 end
-
-

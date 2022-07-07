@@ -7,10 +7,9 @@ function [xCon,SPM] = spm_vb_logbf(SPM,XYZ,xCon,ic)
 % xCon   - contrast info
 % ic     - contrast number
 %__________________________________________________________________________
-% Copyright (C) 2012-2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_vb_logbf.m 6079 2014-06-30 18:25:37Z spm $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 
 % Get approximate posterior covariance using Taylor-series approximation

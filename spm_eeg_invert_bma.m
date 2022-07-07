@@ -7,10 +7,9 @@ function [Jbma,qCbma,PostMax]=spm_eeg_invert_bma(manyinverse,F)
 % At the moment adds a random DC offset (and not a random time series) to
 % the estimated current distribution at each vertex.
 %__________________________________________________________________________
-% Copyright (C) 2013-2014 Wellcome Trust Centre for Neuroimaging
 
 % Jose David Lopez and Gareth Barnes
-% $Id: spm_eeg_invert_bma.m 6125 2014-07-30 14:07:04Z guillaume $
+% Copyright (C) 2013-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-1. Load F with the free energies and take the probabilities

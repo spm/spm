@@ -1,5 +1,5 @@
 function [DCM,S] = spm_large_dcm_reduce(DCM)
-% Optimises the number of prior connectivity eigenmodes
+% Optimise the number of prior connectivity eigenmodes
 % FORMAT [DCM,S] = spm_large_dcm_reduce(DCM)
 % DCM    - DCM structure
 % S      - log-evidences
@@ -14,10 +14,9 @@ function [DCM,S] = spm_large_dcm_reduce(DCM)
 % M.L. Seghier and K.J. Friston, "Network discovery with large DCMs".
 % NeuroImage, 68:181-191, 2013.
 %__________________________________________________________________________
-% Copyright (C) 2012-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_large_dcm_reduce.m 6204 2014-09-26 18:12:27Z mohamed $
+% Copyright (C) 2012-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Create priors

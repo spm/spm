@@ -17,10 +17,10 @@ function [xY, XYZmm, j] = spm_ROI(xY, XYZmm)
 % XYZmm  - [3xn] filtered locations of voxels {mm} (m>=n) within VOI xY
 % j      - [1xn] indices of input locations XYZmm within VOI xY
 %__________________________________________________________________________
-% Copyright (C) 2008-2019 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston, Guillaume Flandin
-% $Id: spm_ROI.m 7744 2019-12-03 12:38:47Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 if nargin < 2 && nargout > 1
     error('Too many output arguments.');

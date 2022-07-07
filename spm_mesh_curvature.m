@@ -5,10 +5,10 @@ function C = spm_mesh_curvature(M)
 %
 % C        - curvature vector
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_curvature.m 3135 2009-05-19 14:49:42Z guillaume $
+% Copyright (C) 2009-2022 Wellcome Centre for Human Neuroimaging
+
 
 A = spm_mesh_adjacency(M);
 A = sparse(1:size(M.vertices,1),1:size(M.vertices,1),1./sum(A,2)) * A;

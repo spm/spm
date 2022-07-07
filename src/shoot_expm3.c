@@ -1,5 +1,7 @@
-/* $Id: shoot_expm3.c 7700 2019-11-21 17:09:15Z john $ */
-/* (c) John Ashburner (2011) */
+/*
+ * John Ashburner
+ * Copyright (C) 2011-2022 Wellcome Centre for Human Neuroimaging
+ */
 
 #include "spm_mex.h"
 #include <math.h>
@@ -181,5 +183,3 @@ void expm22(float *a, /*@out@*/ float *l)
     else
         pade22(a, l);
 }
-
-

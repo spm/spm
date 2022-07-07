@@ -7,10 +7,10 @@ function MS = spm_mesh_split(M, C)
 %
 % MS        - a patch structure array
 %__________________________________________________________________________
-% Copyright (C) 2010-2016 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_split.m 6911 2016-10-26 12:10:58Z guillaume $
+% Copyright (C) 2010-2022 Wellcome Centre for Human Neuroimaging
+
 
 if isnumeric(M), M = struct('faces',M); end
 

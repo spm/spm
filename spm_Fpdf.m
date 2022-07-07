@@ -52,10 +52,9 @@ function f = spm_Fpdf(x,v,w)
 %        Cambridge
 %
 %__________________________________________________________________________
-% Copyright (C) 1994-2011 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_Fpdf.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 1994-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Format arguments, note & check sizes

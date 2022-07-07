@@ -5,10 +5,9 @@ function [h] = spm_funcheck(f)
 % f   - filename, character expression or inline function
 % h   - corresponding function handle
 %__________________________________________________________________________
-% Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_funcheck.m 6481 2015-06-16 17:01:47Z karl $
+% Copyright (C) 2013-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Create function handle
@@ -22,7 +21,7 @@ if isa(f,'function_handle') || isempty(f)
 % if f is filename or expression
 %--------------------------------------------------------------------------
 elseif isa(f,'char')
-    if exist(f,'builtin') || exist(f,'file');
+    if exist(f,'builtin') || exist(f,'file')
         h = str2func(f);
     else
         h = spm_funcheck(inline(f));

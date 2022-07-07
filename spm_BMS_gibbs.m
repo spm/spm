@@ -16,10 +16,9 @@ function [exp_r,xp,r_samp,g_post] = spm_BMS_gibbs (lme, alpha0, Nsamp)
 % g_post   - [Ni x Nk] matrix of posterior probabilities with 
 %            g_post(i,k) being post prob that subj i used model k
 %__________________________________________________________________________
-% Copyright (C) 2009-2013 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_BMS_gibbs.m 6381 2015-03-17 17:55:09Z will $
+% Copyright (C) 2009-2022 Wellcome Centre for Human Neuroimaging
 
 
 if nargin < 3 || isempty(Nsamp)

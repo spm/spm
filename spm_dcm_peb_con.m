@@ -40,10 +40,9 @@ function [P,c,v] = spm_dcm_peb_con(PEB, C, threshold, doplot)
 %
 % [P,c,v] = spm_dcm_peb_con(PEB, C, 0, true);
 %__________________________________________________________________________
-% Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Peter Zeidman
-% $Id: spm_dcm_peb_con.m 7832 2020-04-16 10:16:31Z peter $
+% Copyright (C) 2020-2022 Wellcome Centre for Human Neuroimaging
 
 % Validate
 if length(PEB) ~= 1

@@ -356,4 +356,3 @@
 % Copyright (C) 1991,1994-2022 Wellcome Centre for Human Neuroimaging
 
 % The FIL Methods Group
-% $Id: LICENCE.txt 8208 2022-01-12 11:10:09Z spm $

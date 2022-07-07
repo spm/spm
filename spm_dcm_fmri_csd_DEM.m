@@ -1,5 +1,5 @@
 function DCM = spm_dcm_fmri_csd_DEM(DCM)
-% Estimates parameters of a DCM using cross spectral fMRI densities
+% Estimate parameters of a DCM using cross spectral fMRI densities
 % FORMAT DCM = spm_dcm_fmri_csd_DEM(DCM)
 %   DCM - DCM structure
 %
@@ -37,10 +37,9 @@ function DCM = spm_dcm_fmri_csd_DEM(DCM)
 % see also: spm_dcm_estimate
 %           spm_dcm_fmri_csd
 %__________________________________________________________________________
-% Copyright (C) 2013-2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_fmri_csd_DEM.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2013-2022 Wellcome Centre for Human Neuroimaging
 
 
 % get DCM

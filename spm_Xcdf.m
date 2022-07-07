@@ -47,10 +47,9 @@ function F = spm_Xcdf(x,v,tail)
 %        Cambridge
 %
 %__________________________________________________________________________
-% Copyright (C) 1992-2019 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_Xcdf.m 7582 2019-05-01 15:37:16Z guillaume $
+% Copyright (C) 1992-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Check enough arguments

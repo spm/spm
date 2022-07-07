@@ -1,6 +1,6 @@
-function [DEM] = spm_ADEM(DEM)
+function DEM = spm_ADEM(DEM)
 % Dynamic expectation maximisation:  Active inversion
-% FORMAT DEM   = spm_ADEM(DEM)
+% FORMAT DEM = spm_ADEM(DEM)
 %
 % DEM.G  - generative process
 % DEM.M  - recognition  model
@@ -129,13 +129,12 @@ function [DEM] = spm_ADEM(DEM)
 % in generalised coordinates.  This means DEM can deconvolve online and 
 % represents an alternative to Kalman filtering or alternative Bayesian
 % update procedures.
-%
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_ADEM.m 8183 2021-11-04 15:25:19Z guillaume $
- 
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
+
 % check model, data, priors and unpack
 %--------------------------------------------------------------------------
 DEM   = spm_ADEM_set(DEM);

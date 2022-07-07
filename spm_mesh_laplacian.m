@@ -10,10 +10,9 @@ function L = spm_mesh_laplacian(M,T)
 %   https://en.wikipedia.org/wiki/Laplacian_matrix
 %   https://en.wikipedia.org/wiki/Discrete_Laplace_operator#Mesh_Laplacians
 %__________________________________________________________________________
-% Copyright (C) 2021 Wellcome Centre for Human Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_laplacian.m 8083 2021-03-18 18:52:59Z guillaume $
+% Copyright (C) 2021-2022 Wellcome Centre for Human Neuroimaging
 
 
 if nargin < 2, T = 'graph'; end

@@ -44,10 +44,10 @@ function x = spm_coreg(varargin)
 % make the cost function as smooth as possible, to give faster convergence
 % and less chance of local minima.
 %__________________________________________________________________________
-% Copyright (C) 1994-2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_coreg.m 8275 2022-07-06 11:14:02Z guillaume $
+% Copyright (C) 1994-2022 Wellcome Centre for Human Neuroimaging
+
 
 %--------------------------------------------------------------------------
 % References

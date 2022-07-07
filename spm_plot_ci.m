@@ -10,10 +10,9 @@ function spm_plot_ci(E,C,x,j,s)
 % If E is a row vector with two elements, confidence regions will be
 % plotted; otherwise, bar charts with confidence intervals are provided.
 %__________________________________________________________________________
-% Copyright (C) 2008-2021 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_plot_ci.m 8154 2021-09-24 11:25:10Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % get axis

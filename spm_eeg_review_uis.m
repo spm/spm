@@ -1,10 +1,10 @@
 function [D] = spm_eeg_review_uis(D,objects)
 % GUI of the M/EEG Review facility
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_uis.m 6070 2014-06-26 20:53:39Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 % POS = get(D.PSD.handles.hfig,'position');
 

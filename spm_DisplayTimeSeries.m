@@ -54,10 +54,9 @@ function [ud] = spm_DisplayTimeSeries(y,options)
 %   graphical objects created for the GUI. This is useful for manipulating
 %   the figure later on (see below).
 %__________________________________________________________________________
-% Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_DisplayTimeSeries.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 if ~exist('options','var')

@@ -1,5 +1,5 @@
 function [dx] = spm_dx_eig(dfdx,f,t)
-% returns dx(t) = (expm(dfdx*t) - I)*inv(dfdx)*f; using an eigensystem
+% Return dx(t) = (expm(dfdx*t) - I)*inv(dfdx)*f; using an eigensystem
 % FORMAT [dx] = spm_dx_eig(dfdx,f,[t])
 % dfdx   = df/dx
 % f      = dx/dt
@@ -43,12 +43,11 @@ function [dx] = spm_dx_eig(dfdx,f,t)
 % Ozaki T (1992) A bridge between nonlinear time-series models and
 % nonlinear stochastic dynamical systems: A local linearization approach.
 % Statistica Sin. 2:113-135.
-% 
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dx_eig.m 5219 2013-01-29 17:07:07Z spm $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 % defaults
 %--------------------------------------------------------------------------

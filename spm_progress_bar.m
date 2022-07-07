@@ -17,10 +17,9 @@ function spm_progress_bar(action,varargin)
 % FORMAT spm_progress_bar('Clear')
 % Clear the 'Interactive' window.
 %__________________________________________________________________________
-% Copyright (C) 1996-2017 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_progress_bar.m 7112 2017-06-16 11:30:37Z guillaume $
+% Copyright (C) 1996-2022 Wellcome Centre for Human Neuroimaging
 
 
 persistent pbar;

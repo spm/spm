@@ -56,10 +56,9 @@ function F = spm_Pcdf(x,l)
 %        Cambridge
 %
 %__________________________________________________________________________
-% Copyright (C) 1996-2011 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_Pcdf.m 7809 2020-03-31 11:55:09Z karl $
+% Copyright (C) 1996-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Format arguments, note & check sizes

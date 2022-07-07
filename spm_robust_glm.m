@@ -15,10 +15,10 @@ function [B, W] = spm_robust_glm(Y, X, dim, ks)
 %   Increased sensitivity in neuroimaging analyses using robust regression.
 %   Neuroimage. 2005 May 15;26(1):99-113
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % James Kilner,  Vladimir Litvak
-% $Id: spm_robust_glm.m 4407 2011-07-26 12:13:00Z vladimir $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 if nargin < 3 || isempty(ks)
     ks = 3;
@@ -79,7 +79,7 @@ while max(abs(ores-nres))>sqrt(1E-8)
     
     B = zeros(size(X, 2), size(Y, 2));
             
-    for i = 1:size(Y, 2);
+    for i = 1:size(Y, 2)
         B(:, i) = inv(X'*diag(W(:, i))*X)*X'*diag(W(:, i))*YY(:, i);
     end
 
@@ -128,6 +128,3 @@ else
         Y(i) = median(X(~isnan(X(:, i)), i));
     end
 end
-
-
-

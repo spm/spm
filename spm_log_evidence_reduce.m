@@ -21,10 +21,9 @@ function [F,sE,sC] = spm_log_evidence_reduce(qE,qC,pE,pC,rE,rC,TOL)
 % eigen-reduction of the prior covariance matrix to eliminate fixed
 % mixtures of parameters (to ensure well conditioned matrix inversion)
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_log_evidence_reduce.m 6849 2016-07-31 12:34:33Z karl $
+% Copyright (C) 2015-2022 Wellcome Centre for Human Neuroimaging
  
 
 % Compute reduced log-evidence

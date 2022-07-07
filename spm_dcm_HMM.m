@@ -45,10 +45,9 @@ function [HMM,csd] = spm_dcm_HMM(GCM,N,b)
 %  space; in other words, a discrete characterisation of dynamic or
 %  fluctuating effective connectivity.
 %__________________________________________________________________________
-% Copyright (C) 2015-2016 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_HMM.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2015-2022 Wellcome Centre for Human Neuroimaging
 
 
 %  get windowed cross spectra if necessary
@@ -61,7 +60,7 @@ else
 end
 
 
-%% inversion of hierarchical (empirical) Bayesian HMM model
+% inversion of hierarchical (empirical) Bayesian HMM model
 %==========================================================================
 [N,P] = size(csd);                 % number of windows and sessions
 a     = spm_find_pC(csd{1},{'A'}); % indices of state-dependent parameters
@@ -236,4 +235,3 @@ for p = 1:P
     end
     
 end
-

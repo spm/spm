@@ -1,5 +1,5 @@
 function [a] = spm_uncat(x,a)
-% converts a matrix into an array
+% Convert a matrix into an array
 % FORMAT [a] = spm_uncat(x,a)
 % x - matrix
 % a - cell array
@@ -8,10 +8,10 @@ function [a] = spm_uncat(x,a)
 %
 % see also spm_vec and spm_unvec
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_uncat.m 5219 2013-01-29 17:07:07Z spm $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
+
 
 % fill in varargout
 %--------------------------------------------------------------------------

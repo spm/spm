@@ -22,10 +22,10 @@ function [handles] = spm_uitab(hparent,labels,callbacks,tag,active,height,tab_he
 % Output:
 %   handles    - a structure of handles for the different tab objects.
 %__________________________________________________________________________
-% Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_uitab.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 Ntabs = length(labels);
 

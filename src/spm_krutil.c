@@ -1,6 +1,6 @@
 /*
- * $Id: spm_krutil.c 8183 2021-11-04 15:25:19Z guillaume $
  * John Ashburner & Jesper Andersson
+ * Copyright (C) 2002-2022 Wellcome Centre for Human Neuroimaging
  */
  
 #include <math.h>

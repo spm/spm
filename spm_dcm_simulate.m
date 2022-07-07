@@ -1,6 +1,8 @@
 function [GCM,gen] = spm_dcm_simulate(GCM, mode, noise, gen_idx)
-% Populate the given group DCM array (GCM) with simulated data. If each
-% subject has M models, any one of these M can be chosen to be the
+% Populate the given group DCM array (GCM) with simulated data
+% FORMAT [GCM,gen] = spm_dcm_simulate(GCM, mode, noise, gen_idx)
+% 
+% If each subject has M models, any one of these M can be chosen to be the
 % generative model, and all models for the same subject will be assigned
 % the same simulated data.
 %
@@ -27,10 +29,10 @@ function [GCM,gen] = spm_dcm_simulate(GCM, mode, noise, gen_idx)
 % Example:
 % DCM = spm_dcm_simulate(GCM, 'SNR_std', 1);
 %__________________________________________________________________________
-% Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
 
 % Peter Zeidman, Vladimir Litvak
-% $Id: spm_dcm_simulate.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2016-2022 Wellcome Centre for Human Neuroimaging
+
 
 % Check parameters and load specified DCM
 %--------------------------------------------------------------------------

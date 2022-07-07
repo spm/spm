@@ -13,10 +13,9 @@ function results = spm_tests(varargin)
 % results     - TestResult array containing information describing the
 %               result of running the test suite.
 %__________________________________________________________________________
-% Copyright (C) 2015-2019 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_tests.m 8275 2022-07-06 11:14:02Z guillaume $
+% Copyright (C) 2015-2022 Wellcome Centre for Human Neuroimaging
 
 
 if spm_check_version('matlab','8.3') < 0

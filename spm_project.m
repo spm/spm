@@ -18,10 +18,9 @@ function varargout = spm_project(varargin)
 %
 % See also: spm_mip.m and spm_mip_ui.m
 %__________________________________________________________________________
-% Copyright (C) 1994-2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_project.m 5160 2012-12-21 16:58:38Z guillaume $
+% Copyright (C) 1994-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-This is merely the help file for the compiled routine

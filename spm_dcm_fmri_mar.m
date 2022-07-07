@@ -1,5 +1,5 @@
 function DCM = spm_dcm_fmri_mar(DCM)
-% Estimates parameters of a DCM using a MAR model of temporal dependencies
+% Estimate parameters of a DCM using a MAR model of temporal dependencies
 % FORMAT DCM = spm_dcm_fmri_mar(DCM)
 %   DCM - DCM structure
 %
@@ -34,10 +34,9 @@ function DCM = spm_dcm_fmri_mar(DCM)
 % see also: spm_dcm_estimate
 %           spm_dcm_fmri_csd
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_fmri_mar.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2013-2022 Wellcome Centre for Human Neuroimaging
 
 
 % get DCM

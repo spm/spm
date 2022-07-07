@@ -4,10 +4,10 @@ function gl = spm_get_volumes(P)
 % P  - a matrix of image filenames
 % gl - a vector of volumes (in litres)
 %__________________________________________________________________________
-% Copyright (C) 2006-2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_get_volumes.m 5670 2013-10-04 16:48:38Z ged $
+% Copyright (C) 2006-2022 Wellcome Centre for Human Neuroimaging
+
 
 warning('spm:deprecated', ...
     ['spm_get_volumes will be removed in the future, please use ' ...
@@ -29,4 +29,3 @@ else
         gl(n) = spm_summarise(V(n), 'all', 'litres');
     end
 end
-

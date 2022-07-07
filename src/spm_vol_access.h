@@ -1,6 +1,6 @@
 /*
- * $Id: spm_vol_access.h 4453 2011-09-02 10:47:25Z guillaume $
  * John Ashburner
+ * Copyright (C) 1997-2022 Wellcome Centre for Human Neuroimaging
  */
  
 /* Matlab independent image access routines */

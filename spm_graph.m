@@ -21,10 +21,9 @@ function [Y,y,beta,Bcov,G] = spm_graph(SPM,XYZ,xG)
 %
 % See spm_graph_ui for details.
 %__________________________________________________________________________
-% Copyright (C) 1996-2016 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_graph.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 1996-2022 Wellcome Centre for Human Neuroimaging
 
 
 if nargin == 3 && isstruct(SPM) && isstruct(XYZ) && ishandle(xG)

@@ -11,10 +11,9 @@ function [X] = spm_conv_full(X,sx,sy)
 % multidimensional convolution with a hanning kernel by using
 % one-dimensional convolutions.
 %__________________________________________________________________________
-% Copyright (C) 1999-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_conv_full.m 7749 2019-12-05 17:05:46Z guillaume $
+% Copyright (C) 1999-2022 Wellcome Centre for Human Neuroimaging
 
 
 % assume isomorphic smoothing

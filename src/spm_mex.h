@@ -1,5 +1,6 @@
 /*
- * $Id: spm_mex.h 7968 2020-09-30 12:16:15Z john $
+ * John Ashburner
+ * Copyright (C) 2019-2022 Wellcome Centre for Human Neuroimaging
  */
 
 #if defined (MATLAB_MEX_FILE) || defined (OCTAVE_MEX_FILE)

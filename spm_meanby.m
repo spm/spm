@@ -15,10 +15,9 @@ function [M,Mi,i] = spm_meanby(Y,I)
 % spm_meanby computes means for grouped data presented as columns of data
 % with a vector of group indicators.
 %__________________________________________________________________________
-% Copyright (C) 2008-2019 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_meanby.m 7675 2019-10-09 10:37:43Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Check arguments

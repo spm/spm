@@ -1,14 +1,12 @@
 function spm_eeg_inv_checkdatareg(varargin)
-% Display of the coregistred meshes and sensor locations in MRI space for
-% quality check by eye.
-% Fiducials which were used for rigid registration are also displayed
-%
+% Display of the coregistred meshes and sensor locations in MRI space
 % FORMAT spm_eeg_inv_checkdatareg(D, val, ind)
+%
+% Fiducials which were used for rigid registration are also displayed.
 %__________________________________________________________________________
-% Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_checkdatareg.m 7010 2017-02-07 18:15:30Z vladimir $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % Inputs

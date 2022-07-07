@@ -44,10 +44,9 @@ function [F,pm] = spm_vb_roi_basis (VOI_fnames,SPM,bases,model)
 % See W. Penny et al. (2007). Bayesian Model Comparison of Spatially 
 % Regularised General Linear Models. Human Brain Mapping.
 %__________________________________________________________________________
-% Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_vb_roi_basis.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Check input parameters
@@ -155,7 +154,7 @@ switch bases
     case 'fir'
         window_length = 20; % length in seconds
         bins = [1:1:10];
-        for i=1:length(bins),
+        for i=1:length(bins)
             model(i).name   = 'Finite Impulse Response';
             model(i).sname  = int2str(bins(i));
             model(i).order  = bins(i); 
@@ -164,7 +163,7 @@ switch bases
     case 'fh'
         window_length = 20; % length in seconds
         bins = [1:1:10];
-        for i=1:length(bins),
+        for i=1:length(bins)
             model(i).name   = 'Fourier set (Hanning)';
             model(i).sname  = int2str(bins(i));
             model(i).order  = bins(i); 

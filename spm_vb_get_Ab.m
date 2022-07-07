@@ -11,10 +11,10 @@ function [voxel] = spm_vb_get_Ab(Y,slice)
 % The above quantities are estimated using pre-computed
 % cross-covariance matrices
 %__________________________________________________________________________
-% Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny and Nelson Trujillo-Barreto
-% $Id: spm_vb_get_Ab.m 6079 2014-06-30 18:25:37Z spm $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
+
 
 k = slice.k;
 N = slice.N;

@@ -9,14 +9,15 @@ function [pnt, tri] = spm_eeg_inv_mesh_spherify(pnt, tri, varargin)
 % dividing them by this interpolated radius.
 %
 % Use as
-%   [pnt, tri] = mesh_spherify(pnt, tri, ...)
+%   [pnt, tri] = spm_eeg_inv_mesh_spherify(pnt, tri, ...)
 %
 % Optional arguments should come as key-value pairs and may include
 %   shift  = 'no', mean', 'range'
 %   smooth = number (default = 20)
+%__________________________________________________________________________
 
-% Copyright (C) 2008, Robert Oostenveld
-% $Id: spm_eeg_inv_mesh_spherify.m 4701 2012-03-22 16:47:05Z guillaume $
+% Robert Oostenveld
+% Copyright (C) 2009-2022 Wellcome Centre for Human Neuroimaging
 
 
 % graphical display for debugging
@@ -114,7 +115,7 @@ if fb
 end
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % VONMISESFISCHER probability distribution
 %
 % Use as
@@ -131,7 +132,7 @@ end
 %
 % This implementation is based on
 % http://en.wikipedia.org/wiki/Von_Mises-Fisher_distribution
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function y = vonmisesfischer(k, u, x)
 

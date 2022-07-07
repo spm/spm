@@ -1,5 +1,5 @@
 function [y,lfp,csd,w] = spm_gen_fmri(P,M,U)
-% Generates a prediction of (multimodal) source activity
+% Generate a prediction of (multimodal) source activity
 % FORMAT [y,lfp,csd,w] = spm_gen_fmri(P,M,U)
 %
 % P - parameters
@@ -27,10 +27,9 @@ function [y,lfp,csd,w] = spm_gen_fmri(P,M,U)
 % depends upon the mixtures of pre-synaptic activity driving haemodynamic
 % model. The associated weights are free parameters.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_gen_fmri.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % persistent variables to speed integration schemes
@@ -204,11 +203,3 @@ H.ns  = M.ns;
 % solve for haemodynamic responses
 %--------------------------------------------------------------------------
 y        = spm_int(P.H,H,U);
-
-
-
-
-
-
-
-

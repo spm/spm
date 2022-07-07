@@ -1,6 +1,6 @@
-function [DEM] = spm_GDEM(DEM)
+function DEM = spm_GDEM(DEM)
 % Dynamic expectation maximisation:  Generation and inversion
-% FORMAT DEM   = spm_GDEM(DEM)
+% FORMAT DEM = spm_GDEM(DEM)
 %
 % DEM.G  - generation model
 % DEM.M  - inversion model
@@ -104,10 +104,11 @@ function [DEM] = spm_GDEM(DEM)
 % represents an alternative to Kalman filtering or alternative Bayesian
 % update procedures.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+
 
 % Karl Friston
-% $Id: spm_GDEM.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
  
 % check model, data, priors and confounds and unpack
 %--------------------------------------------------------------------------

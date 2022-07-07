@@ -9,10 +9,10 @@ function [model] = spm_vb_models(SPM,factor)
 %          It is assumed that the levels of the first factor change
 %          slowest with condition
 %__________________________________________________________________________
-% Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_vb_models.m 6079 2014-06-30 18:25:37Z spm $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
+
 
 %-Number of factors
 %--------------------------------------------------------------------------

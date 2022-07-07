@@ -1,5 +1,5 @@
 function [DCM] = spm_dcm_fmri_check(P, varargin)
-% post-hoc diagnostics for DCM (bilinear or nonlinear) of fMRI data
+% Post-hoc diagnostics for DCM (bilinear or nonlinear) of fMRI data
 % FORMAT [DCM] = spm_dcm_fmri_check(DCM)
 %   DCM     - DCM structure or its filename
 %
@@ -44,10 +44,9 @@ function [DCM] = spm_dcm_fmri_check(P, varargin)
 %
 % This routine is compatible with DCM8, DCM10 and DCM12 files.
 %__________________________________________________________________________
-% Copyright (C) 2012-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_fmri_check.m 7639 2019-07-16 14:48:11Z peter $
+% Copyright (C) 2012-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Prepare inputs

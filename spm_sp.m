@@ -39,7 +39,7 @@ function varargout = spm_sp(varargin)
 %
 % The basic required fields are X, tol, ds, u, v, rk.
 %
-% ======================================================================
+% =========================================================================
 %
 % FORMAT x = spm_sp('Set',X)
 % Set up space structure, storing matrix, singular values, rank & tolerance
@@ -168,18 +168,17 @@ function varargout = spm_sp(varargin)
 % the internal subfunction sf_isset, which checks that the basic fields
 % are not empty. See sf_isset (below).
 %
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % SUBFUNCTIONS:
 %
 % FORMAT b = sf_isset(x)
 % Checks that the basic fields are non-empty (doesn't check they're right!)
 % x - space structure
 % b - true if the basic fields are non-empty
-%_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Jean-Baptiste Poline
-% $Id: spm_sp.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 1998-2022 Wellcome Centre for Human Neuroimaging
 
 
 if nargin==0
@@ -1411,5 +1410,3 @@ if r > 0 %- else returns the input;
     end
 
 end
-
-

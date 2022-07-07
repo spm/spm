@@ -1,6 +1,6 @@
 function con = spm_dcm_connectivity_ui(DCM,D,title_text,defaults,enabled)
 % GUI for manually specifying connection values in a DCM
-% FORMAT [con] = spm_dcm_connectivity_ui(DCM,D,title_text,defaults,enabled)
+% FORMAT con = spm_dcm_connectivity_ui(DCM,D,title_text,defaults,enabled)
 %
 % DCM        - DCM structure
 % D          - 'A','B' or 'C' i.e. connectivity matrix of interest
@@ -13,10 +13,9 @@ function con = spm_dcm_connectivity_ui(DCM,D,title_text,defaults,enabled)
 % Returns:
 % con        - structure with con.A, con.B and con.C of user-entered values
 %__________________________________________________________________________
-% Copyright (C) 2014-2016 Wellcome Trust Centre for Neuroimaging    
 
 % Will Penny & Peter Zeidman
-% $Id: spm_dcm_connectivity_ui.m 6808 2016-06-13 16:48:30Z guillaume $
+% Copyright (C) 2014-2016 Wellcome Centre for Human Neuroimaging
 
 
 % Set-up data
@@ -129,7 +128,7 @@ switch D
          
     case 'B' % modulatory
         %------------------------------------------------------------------
-        for k = 1:m,
+        for k = 1:m
             str   = sprintf(...
                 '%s B: effects of input  %-12s',...
                 title_text, input_names{k});

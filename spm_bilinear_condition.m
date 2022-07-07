@@ -1,13 +1,13 @@
 function M0 = spm_bilinear_condition(M0)
-% conditions a bilinear operator by suppressing positive eigenmodes
+% Condition a bilinear operator by suppressing positive eigenmodes
 % FORMAT M0 = spm_bilinear_condition(M0)
 % M0 - bilinear operator
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_bilinear_condition.m 6937 2016-11-20 12:30:40Z karl $
+% Copyright (C) 2012-2022 Wellcome Centre for Human Neuroimaging
  
+
 % conditions a bilinear operator by suppressing positive eigenmodes
 %==========================================================================
  

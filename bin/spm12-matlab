@@ -3,10 +3,8 @@
 # Command Line Interface for SPM
 # SPM: https://www.fil.ion.ucl.ac.uk/spm/
 #
-# Copyright (C) 2017-2021 Wellcome Centre for Human Neuroimaging
-#
 # Guillaume Flandin
-# $Id: spm12-matlab 8167 2021-10-15 16:56:11Z guillaume $ 
+# Copyright (C) 2017-2022 Wellcome Centre for Human Neuroimaging
 
 PLATFORM=$(uname)
 

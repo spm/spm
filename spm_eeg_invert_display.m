@@ -9,10 +9,10 @@ function spm_eeg_invert_display(D,PST,Ndip)
 %
 % Ndip - number of dipole to display (default 512)
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_invert_display.m 5219 2013-01-29 17:07:07Z spm $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
  
 % Number of dipoles to display
 %==========================================================================

@@ -200,10 +200,9 @@ function [X,Pnames,Index,idx,jdx,kdx]=spm_DesMtx(varargin)
 %       * Otherwise, block is scaled to cover [-1,1].
 %
 %__________________________________________________________________________
-% Copyright (C) 1994-2011 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_DesMtx.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 1994-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Parse arguments for recursive construction of design matrices

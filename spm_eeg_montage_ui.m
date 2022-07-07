@@ -9,10 +9,9 @@ function montage = spm_eeg_montage_ui(montage)
 %
 % Output is empty if the GUI is closed.
 %__________________________________________________________________________
-% Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_montage_ui.m 7755 2019-12-16 13:19:28Z spm $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % Create the figure

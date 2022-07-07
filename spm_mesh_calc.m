@@ -10,10 +10,9 @@ function Mo = spm_mesh_calc(Mi,Mo,f,varargin)
 % opts - optional list of pairs of property names and values
 %        dmtx - read images into data matrix X [default: false]
 %__________________________________________________________________________
-% Copyright (C) 2015-2019 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_calc.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2015-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Check input arguments

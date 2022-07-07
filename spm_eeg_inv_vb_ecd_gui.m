@@ -36,10 +36,9 @@ function D = spm_eeg_inv_vb_ecd_gui(D,val)
 % squares) estimator - should it be required. examples of this are provided
 % during the presentation of the results below.
 %__________________________________________________________________________
-% Copyright (C) 2016-2019 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_inv_vb_ecd_gui.m 7714 2019-11-26 11:25:50Z spm $
+% Copyright (C) 2016-2022 Wellcome Centre for Human Neuroimaging
 
 
 % Load data, if necessary

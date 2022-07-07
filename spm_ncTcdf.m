@@ -13,10 +13,9 @@ function F = spm_ncTcdf(x,v,d)
 % Russell V. Lenth
 % Applied Statistics, Vol. 38, No. 1 (1989), pp. 185-189
 %__________________________________________________________________________
-% Copyright (C) 2009-2018 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Guillaume Flandin
-% $Id: spm_ncTcdf.m 7263 2018-02-21 13:30:16Z guillaume $
+% Copyright (C) 2009-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Format arguments, note & check sizes

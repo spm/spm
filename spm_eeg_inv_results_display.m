@@ -1,15 +1,13 @@
 function spm_eeg_inv_results_display(D)
 % Displays contrast of evoked responses and power
-% FORMAT spm_eeg_inv_results_display((D)
+% FORMAT spm_eeg_inv_results_display(D)
 %__________________________________________________________________________
-% Copyright (C) 2007-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_inv_results_display.m 5367 2013-03-28 13:03:39Z guillaume $
+% Copyright (C) 2007-2022 Wellcome Centre for Human Neuroimaging
 
-%==========================================================================
+
 Ndip  = 256; % Number of dipoles to display
-%==========================================================================
 
 %-MEEG data structure
 %==========================================================================

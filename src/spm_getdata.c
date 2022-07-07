@@ -1,6 +1,6 @@
 /*
- * $Id: spm_getdata.c 7932 2020-08-18 11:05:19Z john $
  * John Ashburner
+ * Copyright (C) 1999-2022 Wellcome Centre for Human Neuroimaging
  */
  
 /* Routines for accessing datatypes for images */
@@ -82,4 +82,3 @@ long long getint64(long long x)
     p2[1] = p1[6]; p2[0] = p1[7];
     return(y);
 }
-

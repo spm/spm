@@ -1,5 +1,5 @@
 function [P] = spm_P_FDR(Z,df,STAT,n,Ps)
-% Returns the corrected FDR P value
+% Return the corrected FDR P value
 %
 % FORMAT [P] = spm_P_FDR(Z,df,STAT,n,Ps)
 %
@@ -74,10 +74,10 @@ function [P] = spm_P_FDR(Z,df,STAT,n,Ps)
 % controlling multiple test procedures for correlated test
 % statistics".  J of Statistical Planning and Inference, 82:171-196.
 %__________________________________________________________________________
-% Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Thomas Nichols and Ged Ridgway
-% $Id: spm_P_FDR.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 %-Set Benjamini & Yeuketeli cV for independence/PosRegDep case
 %--------------------------------------------------------------------------

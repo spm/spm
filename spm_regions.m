@@ -47,10 +47,9 @@ function [Y,xY] = spm_regions(xSPM,SPM,hReg,xY)
 % be extracted from xY.y, and will be the same as the [adjusted] data 
 % returned by the plotting routine (spm_graph.m) for the same contrast.
 %__________________________________________________________________________
-% Copyright (C) 1999-2018 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_regions.m 8263 2022-06-10 09:42:41Z peter $
+% Copyright (C) 1999-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Shortcut for VOI display

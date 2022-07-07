@@ -1,9 +1,10 @@
 function selected = spm_eeg_select_event_ui(event)
 % Allow the user to select an event using GUI
-% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
+% FORMAT selected = spm_eeg_select_event_ui(event)
+%__________________________________________________________________________
 
 % Vladimir Litvak
-% $Id: spm_eeg_select_event_ui.m 5592 2013-07-24 16:25:55Z vladimir $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 selected={};

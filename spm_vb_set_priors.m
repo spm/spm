@@ -28,10 +28,10 @@ function [block] = spm_vb_set_priors(block,priors,vxyz)
 %
 % vxyz    - locations of voxels 
 %__________________________________________________________________________
-% Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny and Lee Harrison
-% $Id: spm_vb_set_priors.m 6079 2014-06-30 18:25:37Z spm $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
+
 
 if ~isfield(block,'verbose')
     block.verbose = 0;

@@ -2,10 +2,9 @@ function spm_copy(source, dest, varargin)
 % Copy file(s)
 % FORMAT spm_copy(source, dest [,opts])
 %__________________________________________________________________________
-% Copyright (C) 2017-2018 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_copy.m 7744 2019-12-03 12:38:47Z guillaume $
+% Copyright (C) 2017-2018 Wellcome Centre for Human Neuroimaging
 
 
 %-Source and destination

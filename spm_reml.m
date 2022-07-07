@@ -34,10 +34,9 @@ function [V,h,Ph,F,Fa,Fc] = spm_reml(YY,X,Q,N,t,hE,hP)
 %      spm_sp_reml: for sparse patterns (c.f., ARD)
 %
 %__________________________________________________________________________
-% Copyright (C) 2002-2020 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner & Karl Friston
-% $Id: spm_reml.m 7789 2020-02-19 16:58:21Z guillaume $
+% Copyright (C) 2002-2022 Wellcome Centre for Human Neuroimaging
 
 
 % check defaults

@@ -45,10 +45,10 @@ function [dx] = spm_dx(dfdx,f,t)
 % nonlinear stochastic dynamical systems: A local linearization approach.
 % Statistica Sin. 2:113-135.
 %__________________________________________________________________________
-% Copyright (C) 2005-2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_dx.m 7975 2020-10-06 14:46:56Z spm $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
+
 
 % defaults
 %--------------------------------------------------------------------------

@@ -1,6 +1,6 @@
-function [family,model] = spm_compare_families (lme,family)
+function [family,model] = spm_compare_families(lme,family)
 % Bayesian comparison of model families for group studies 
-% FORMAT [family,model] = spm_compare_families (lme,family)
+% FORMAT [family,model] = spm_compare_families(lme,family)
 %
 % INPUT:
 %
@@ -41,10 +41,10 @@ function [family,model] = spm_compare_families (lme,family)
 %                   .posts         model posteriors
 %
 %__________________________________________________________________________
-% Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_compare_families.m 6052 2014-06-17 09:38:13Z will $
+% Copyright (C) 2009-2022 Wellcome Centre for Human Neuroimaging
+
 
 try
     infer=family.infer;

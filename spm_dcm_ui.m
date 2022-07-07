@@ -64,10 +64,9 @@ function varargout = spm_dcm_ui(Action)
 % majority  of imaging  neuroscience  relies  upon designed  experiments we
 % consider DCM a potentially useful complement to existing techniques.  
 %__________________________________________________________________________
-% Copyright (C) 2002-2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_ui.m 7481 2018-11-09 15:36:57Z peter $
+% Copyright (C) 2002-2022 Wellcome Centre for Human Neuroimaging
 
 
 DCMversion = 'DCM12.5';

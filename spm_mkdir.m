@@ -6,10 +6,9 @@ function sts = spm_mkdir(varargin)
 % sts    - true if all directories were successfully created or already
 %          existing, false otherwise.
 %__________________________________________________________________________
-% Copyright (C) 2017 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mkdir.m 7088 2017-06-01 16:18:44Z guillaume $
+% Copyright (C) 2017-2022 Wellcome Centre for Human Neuroimaging
 
 
 sts = true;

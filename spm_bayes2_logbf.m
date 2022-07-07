@@ -7,11 +7,10 @@ function [xCon,SPM]= spm_bayes2_logbf(SPM,XYZ,xCon,ic)
 % xCon - contrast info
 % ic   - contrast number
 %__________________________________________________________________________
-% Copyright (C) 2010-2011 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_bayes2_logbf.m 4615 2012-01-10 16:56:25Z will $
-        
+% Copyright (C) 2010-2022 Wellcome Centre for Human Neuroimaging
+
 
 %-Compound Contrast
 %--------------------------------------------------------------------------

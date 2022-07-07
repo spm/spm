@@ -14,10 +14,10 @@ function [H, HC] = spm_browser(url,F,pos,format)
 % H      - handle to the Java component
 % HC     - handle to the HG container
 %__________________________________________________________________________
-% Copyright (C) 2011-2019 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_browser.m 7755 2019-12-16 13:19:28Z spm $
+% Copyright (C) 2011-2022 Wellcome Centre for Human Neuroimaging
+
 
 %-Input arguments
 %--------------------------------------------------------------------------

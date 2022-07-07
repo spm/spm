@@ -1,6 +1,6 @@
 /*
- * $Id: spm_unlink.c 4872 2012-08-30 15:29:15Z guillaume $
  * John Ashburner
+ * Copyright (C) 1996-2022 Wellcome Centre for Human Neuroimaging
  */
 
 /* Do a silent deletion of files on disk */

@@ -3,10 +3,9 @@ function spm_extract_files(P,cwd)
 % forints files (and their subroutines) and expect them to the current
 % directory
 %__________________________________________________________________________
-% Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_extract_files.m 5175 2013-01-04 12:50:44Z guillaume $
+% Copyright (C) 2013-2022 Wellcome Centre for Human Neuroimaging
 
 
 if nargin == 1; cwd = pwd; end

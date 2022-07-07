@@ -1,6 +1,6 @@
-function [DEM] = spm_ADEM_update(DEM,COV)
-% Updates ADEM structure using conditional expectations
-% FORMAT [DEM] = spm_ADEM_update(DEM,COV)
+function DEM = spm_ADEM_update(DEM,COV)
+% Update ADEM structure using conditional expectations
+% FORMAT DEM = spm_ADEM_update(DEM,COV)
 %
 % DEM - DEM structure
 % COV - Covariance of parameter (P) fluctuations (E): P(i + 1) = P(i) + E
@@ -12,10 +12,9 @@ function [DEM] = spm_ADEM_update(DEM,COV)
 % called with an extra argument, the posterior variances of the
 % parameters are also updated.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ADEM_update.m 6506 2015-07-24 10:26:51Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % preliminaries

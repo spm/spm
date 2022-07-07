@@ -63,14 +63,12 @@ function DCM = spm_dcm_post_hoc_old(P,fun,varargin)
 % DCM.Pf     -  Model posteriors over user specified families
 % DCM.fun    -  User-specified family definition function
 % DCM.files  -  List of DCM files used for Bayesian averaging
-
-% See also: spm_dcm_search.m
 %
+% See also: spm_dcm_search.m
 %__________________________________________________________________________
-% Copyright (C) 2010-2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_post_hoc_old.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2010-2022 Wellcome Centre for Human Neuroimaging
 
 
 % number of parameters to consider before invoking greedy search
@@ -541,4 +539,3 @@ catch
 end
 
 save(name,'DCM', spm_get_defaults('mat.format'));
-

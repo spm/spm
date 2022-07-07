@@ -12,10 +12,10 @@ function [p] = spm_mvb_p(MVB,k)
 % target vector and repeating the greedy search. It adds the p-value as a
 % field (p_value) to MVB.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mvb_p.m 4492 2011-09-16 12:11:09Z guillaume $
+% Copyright (C) 2007-2022 Wellcome Centre for Human Neuroimaging
+
  
 %-number of samples
 %--------------------------------------------------------------------------

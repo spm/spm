@@ -28,20 +28,19 @@ function [p,P,f,F,X] = spm_dcm_peb_rnd(DCM,M,field)
 % X      - randomised design generating non-distribution
 %__________________________________________________________________________
 %
-% This routine uses the posterior  density over the coefficients of
-% between subject effects encoded by a design matrix X. It is assumed
-% that the second column of X contains classification or predictor variables.
-% The significance of group effects is assessed using re-randomization by
-% permuting the element s(of the second) explanatory variable. This provides a
-% null distribution for the relative free energy and a posterior
+% This routine uses the posterior  density over the coefficients of between
+% subject effects encoded by a design matrix X. It is assumed that the
+% second column of X contains classification or predictor variables. The
+% significance of group effects is assessed using re-randomization by
+% permuting the element s(of the second) explanatory variable. This
+% provides a null distribution for the relative free energy and a posterior
 % probability over random permutations of the second level model.
 %
 % See also: spm_dcm_peb.m and spm_dcm_loo.m
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_peb_rnd.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2015 Wellcome Centre for Human Neuroimaging
 
 
 % Set up
@@ -56,10 +55,10 @@ if nargout, M.noplot = 1; end
 if ~isfield(M,'N')
     M.N = 32;
 end
-if nargin < 3;
+if nargin < 3
     field  = {'A','B'};
 end
-if strcmpi(field,'all');
+if strcmpi(field,'all')
     field = fieldnames(DCM(1,1).M.pE);
 end
 

@@ -1,5 +1,5 @@
 function [y,K] = spm_rand_power_law(csd,Hz,dt,N)
-% generates random variates with a power law spectral density
+% Generate random variates with a power law spectral density
 % FORMAT [y,K] = spm_rand_power_law(csd,Hz,dt,N)
 % csd - spectral densities (one per column)
 % Hz  - frequencies
@@ -11,10 +11,9 @@ function [y,K] = spm_rand_power_law(csd,Hz,dt,N)
 %
 % see also: spm_rand_mar; spm_Q
 %__________________________________________________________________________
-% Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_rand_power_law.m 6759 2016-03-27 19:45:17Z karl $
+% Copyright (C) 2012-2022 Wellcome Centre for Human Neuroimaging
  
 
 % create random process
@@ -23,7 +22,7 @@ function [y,K] = spm_rand_power_law(csd,Hz,dt,N)
 % create AR representation and associated convolution kernels
 %--------------------------------------------------------------------------
 p     = fix(length(Hz) - 1);
-for i = 1:size(csd,2);
+for i = 1:size(csd,2)
     ccf    = spm_csd2ccf(csd(:,i),Hz,dt);
     mar    = spm_ccf2mar(ccf,p);
     A      = [1 -mar.a'];

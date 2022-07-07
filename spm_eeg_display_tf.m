@@ -4,10 +4,9 @@ function spm_eeg_display_tf(files)
 % files  -  list of images to display (as char or cell array of strings)
 %           Up to 6 images are supported 
 %__________________________________________________________________________
-% Copyright (C) 2019 Wellcome Centre for Human Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_display_tf.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2019-2022 Wellcome Centre for Human Neuroimaging
 
 
 if ~nargin

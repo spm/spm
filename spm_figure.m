@@ -42,10 +42,9 @@ function varargout = spm_figure(varargin)
 %
 % See also: spm_print, spm_clf, spm_colourmap
 %__________________________________________________________________________
-% Copyright (C) 1994-2018 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_figure.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 1994-2022 Wellcome Centre for Human Neuroimaging
 
 
 %==========================================================================

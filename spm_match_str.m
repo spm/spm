@@ -7,11 +7,10 @@ function [sel1, sel2] = spm_match_str(a, b)
 %
 % The strings can be stored as a char matrix or as an vertical array of
 % cells, the matching is done for each row.
-%_______________________________________________________________________
-% Copyright (C) 2000, Robert Oostenveld
+%__________________________________________________________________________
 
 % Robert Oostenveld
-% $Id: spm_match_str.m 3589 2009-11-20 17:17:41Z guillaume $
+% Copyright (C) 2000-2022 Wellcome Centre for Human Neuroimaging
 
 % ensure that both are cell-arrays
 if isempty(a)

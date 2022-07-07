@@ -10,10 +10,9 @@ function y = spm_detrend(x,p)
 % spm_detrend removes linear and nonlinear trends from column-wise data
 % matrices.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_detrend.m 7271 2018-03-04 13:11:54Z karl $
+% Copyright (C) 1995-2022 Wellcome Centre for Human Neuroimaging
 
 % Check for cell arrays
 %-------------------------------------------------------------------------

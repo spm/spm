@@ -3,10 +3,9 @@ function V = spm_create_vol(V)
 % FORMAT V = spm_create_vol(V)
 % V        - image volume information (see spm_vol.m)
 %__________________________________________________________________________
-% Copyright (C) 2005-2018 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_create_vol.m 7455 2018-10-22 12:34:12Z guillaume $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 
 if ~isstruct(V)

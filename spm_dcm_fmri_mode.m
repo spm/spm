@@ -1,6 +1,6 @@
 function [U,E,F] = spm_dcm_fmri_mode(Ev,modes)
-% Generates modes and matrices for spectral DCM from Lyapunov exponents
-% FORMAT [Ep,Cp] = spm_dcm_fmri_mode_gen(Ev,modes,Cv)
+% Generate modes and matrices for spectral DCM from Lyapunov exponents
+% FORMAT [U,E,F] = spm_dcm_fmri_mode(Ev,modes)
 % Ev    - (log of negative) Lyapunov exponents or eigenvalues of Jacobian
 % modes - modes or eigenvectors
 %
@@ -10,10 +10,9 @@ function [U,E,F] = spm_dcm_fmri_mode(Ev,modes)
 %
 % This routine computes the connecivity graph for spectral DCM (modes).
 %__________________________________________________________________________
-% Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_fmri_mode.m 5823 2014-01-02 14:01:10Z guillaume $
+% Copyright (C) 2013-2022 Wellcome Centre for Human Neuroimaging
 
     
 % outer product

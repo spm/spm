@@ -1,5 +1,5 @@
 function spm_fmri_concatenate(P, scans)
-% Adjust an SPM.mat which has concatenated sessions.
+% Adjust an SPM.mat which has concatenated sessions
 % FORMAT spm_post_concatenate(P, scans)
 % Session regressors are added and the high-pass filter and non-sphericity
 % estimates adjusted as if sessions are separate.
@@ -19,10 +19,9 @@ function spm_fmri_concatenate(P, scans)
 %   this, acquire additional volumes at the end of each session and / or
 %   add regressors to model the trials at the session borders.
 %__________________________________________________________________________
-% Copyright (C) 2015-2017 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin & Peter Zeidman
-% $Id: spm_fmri_concatenate.m 7018 2017-02-15 13:36:48Z guillaume $
+% Copyright (C) 2015-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Input parameters

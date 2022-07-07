@@ -9,10 +9,9 @@ function varargout = spm_print(varargin)
 % FORMAT spm_print(job)
 % Run a batch print job (see spm_cfg_print)
 %__________________________________________________________________________
-% Copyright (C) 1994-2017 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_print.m 7018 2017-02-15 13:36:48Z guillaume $
+% Copyright (C) 1994-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Shortcut for list of graphics file formats available

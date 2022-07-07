@@ -1,6 +1,6 @@
 function [P,F] = spm_MH(L,B,y,M)
 % The Rejection-Metropolis-Hastings Algorithm
-% FORMAT [P,F] = spm_MH(L,P,y)
+% FORMAT [P,F] = spm_MH(L,B,y,M)
 %
 % L   - likelihood function: inline(P,y,M)
 % B   - free parameter [structure]
@@ -12,13 +12,13 @@ function [P,F] = spm_MH(L,B,y,M)
 %--------------------------------------------------------------------------
 %
 % Returns a harmonic mean estimate of the log-marginal likelihood or
-% log-evidence and a sample from the posterior density of the free parameters
-% of a model.
+% log-evidence and a sample from the posterior density of the free
+% parameters of a model.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MH.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2006-2022 Wellcome Centre for Human Neuroimaging
+
 
 % initialise parameters
 %--------------------------------------------------------------------------

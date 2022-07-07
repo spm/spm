@@ -1,5 +1,5 @@
 function [G] = spm_morlet_conv(G,w,dt,wnum)
-% temporal convolution of complex spectral responses with Morlet envelope
+% Temporal convolution of complex spectral responses with Morlet envelope
 % FORMAT [G] = spm_morlet_conv(G,w,dt,wnum)
 %
 % G      - (t x w x n x n) cross spectral density
@@ -13,10 +13,9 @@ function [G] = spm_morlet_conv(G,w,dt,wnum)
 % This routine simply smooths a cross spectral response to emulate a 
 % wavelet transform.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_morlet_conv.m 6857 2016-08-19 15:17:06Z karl $
+% Copyright (C) 2012-2022 Wellcome Centre for Human Neuroimaging
 
 
 % setup and defaults
@@ -58,4 +57,3 @@ for k = 1:nw
         end
     end
 end
-

@@ -1,5 +1,7 @@
-/* $Id: shoot_dartel.c 7593 2019-05-20 18:58:16Z john $ */
-/* (c) John Ashburner (2011) */
+/*
+ * John Ashburner
+ * Copyright (C) 2011-2022 Wellcome Centre for Human Neuroimaging
+ */
 
 #include <math.h>
 #include <stdio.h>
@@ -1561,4 +1563,3 @@ void exp_mexFunction(mwSize nlhs, mxArray *plhs[], mwSize nrhs, const mxArray *p
     unwrap((mwSize *)dm, t);
     mxFree((void *)t1);
 }
-

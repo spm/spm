@@ -20,10 +20,9 @@ function M = spm_mesh_reduce(M,t)
 % Wrapper around an implementation by Sven Forstmann, MIT licence:
 % https://github.com/sp4cerat/Fast-Quadric-Mesh-Simplification
 %__________________________________________________________________________
-% Copyright (C) 2018 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_reduce.m 7421 2018-09-20 10:58:01Z guillaume $
+% Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-This is merely the help file for the compiled routine

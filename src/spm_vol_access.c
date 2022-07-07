@@ -1,6 +1,6 @@
 /*
- * $Id: spm_vol_access.c 8183 2021-11-04 15:25:19Z guillaume $
  * John Ashburner
+ * Copyright (C) 1997-2022 Wellcome Centre for Human Neuroimaging
  */
 
 /* MATLAB independent image access routines
@@ -320,4 +320,3 @@ int slice(double *mat, double *image, int xdim1, int ydim1, MAPTYPE *vol, int ho
 #endif
     return(sts);
 }
-

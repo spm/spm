@@ -41,10 +41,9 @@ function [Dtf, Dtph] = spm_eeg_tf(S)
 %                                           of multi-taper spectral
 %                                           analysis
 %__________________________________________________________________________
-% Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_tf.m 8275 2022-07-06 11:14:02Z guillaume $
+% Copyright (C) 2010-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Startup

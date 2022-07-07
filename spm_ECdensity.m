@@ -1,14 +1,13 @@
 function [EC] = spm_ECdensity(STAT,t,df)
-% Returns the Euler characteristic (EC) density
+% Return the Euler characteristic (EC) density
 % FORMAT function [EC] = spm_ECdensity(STAT,t,df)
 %__________________________________________________________________________
 %
 % Reference : Worsley KJ et al (1996), Hum Brain Mapp. 4:58-73
 %__________________________________________________________________________
-% Copyright (C) 1999-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ECdensity.m 5544 2013-06-12 11:01:49Z guillaume $
+% Copyright (C) 1999-2022 Wellcome Centre for Human Neuroimaging
 
 
 % EC densities

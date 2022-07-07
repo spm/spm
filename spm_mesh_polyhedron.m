@@ -9,10 +9,9 @@ function M = spm_mesh_polyhedron(name)
 %
 % See https://www.wikipedia.org/wiki/Platonic_solid
 %__________________________________________________________________________
-% Copyright (C) 2012-2018 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_polyhedron.m 7383 2018-07-31 10:53:37Z guillaume $
+% Copyright (C) 2012-2022 Wellcome Centre for Human Neuroimaging
 
 
 switch lower(name)

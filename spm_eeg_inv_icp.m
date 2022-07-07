@@ -1,7 +1,7 @@
 function [M1] = spm_eeg_inv_icp(data1,data2,fid1,fid2,Fmri,Fhsp,aff)
-% Iterative Closest Point (ICP) registration algorithm.
+% Iterative Closest Point (ICP) registration algorithm
 % Surface matching computation: registration from one 3D surface onto
-% another 3D surface 
+% another 3D surface.
 %
 % FORMAT [M1] = spm_eeg_inv_icp(data1,data2,[fid1],[fid2],[Fmri],[Fhsp],[aff])
 % Input:
@@ -28,10 +28,10 @@ function [M1] = spm_eeg_inv_icp(data1,data2,fid1,fid2,Fmri,Fhsp,aff)
 % distributed for research purposes with acknowledgement of the author and 
 % inclusion this copyright information.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout & Guillaume Flandin
-% $Id: spm_eeg_inv_icp.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 % use figure and fiducials if specified
 %--------------------------------------------------------------------------

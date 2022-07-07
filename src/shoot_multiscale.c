@@ -1,5 +1,7 @@
-/* $Id: shoot_multiscale.c 7684 2019-10-30 14:21:34Z john $ */
-/* (c) John Ashburner (2011) */
+/*
+ * John Ashburner
+ * Copyright (C) 2011-2022 Wellcome Centre for Human Neuroimaging
+ */
 
 #include <math.h>
 #include "spm_mex.h"
@@ -353,4 +355,3 @@ void resize_vol(mwSize na[], float *a, mwSize nc[], float *c, float *b)
         }
     }
 }
-

@@ -1,15 +1,14 @@
-function [P] = spm_dcm_fmri_graph_gen(x,v,P)
-% Generates adjacency graph for spectral DCM for fMRI
-% FORMAT [g] = spm_dcm_fmri_graph_gen(x,v,P)
+function P = spm_dcm_fmri_graph_gen(x,v,P)
+% Generate adjacency graph for spectral DCM for fMRI
+% FORMAT g = spm_dcm_fmri_graph_gen(x,v,P)
 %
 % This routine computes the adjacency matrix (A) for spm_fx_fmri
 %
 % see also: spm_fx_fmri
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_fmri_graph_gen.m 5821 2013-12-31 14:26:41Z karl $
+% Copyright (C) 2013-2022 Wellcome Centre for Human Neuroimaging
 
 
 % compute bias for log connectivity using functional space
@@ -108,10 +107,3 @@ elseif size(P.A,3) == 2
     end
     
 end
-
-
-
-
-
-
-

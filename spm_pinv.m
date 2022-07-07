@@ -1,16 +1,16 @@
 function X = spm_pinv(A,TOL)
-% pseudo-inverse for sparse matrices
+% Pseudo-inverse for sparse matrices
 % FORMAT X = spm_pinv(A,TOL)
 %
 % A   - matrix
 % TOL - Tolerance to force singular value decomposition
 % X   - generalised inverse
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_pinv.m 5877 2014-02-11 20:03:34Z karl $
- 
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
+
 % check A
 %--------------------------------------------------------------------------
 [m,n] = size(A);

@@ -1,10 +1,10 @@
 function dictionary = spm_eeg_spmft_chan_dictionary
-% Returns a table of corresponce between SPM and FieldTrip channel types
-%______________________________________________________________________
-% Copyright (C) 2021 Wellcome Trust Centre for Neuroimaging
+% Return a table of corresponce between SPM and FieldTrip channel types
+% FORMAT dictionary = spm_eeg_spmft_chan_dictionary
+%__________________________________________________________________________
 
 % Vladimir Litvak
-% $Id: spm_eeg_spmft_chan_dictionary.m 8130 2021-08-05 13:15:12Z vladimir $
+% Copyright (C) 2021-2022 Wellcome Centre for Human Neuroimaging
 
 dictionary = {
             'eog',           'EOG';

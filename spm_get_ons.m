@@ -35,10 +35,9 @@ function [U] = spm_get_ons(SPM,s)
 % there is a negligible gap between volume acquisitions).
 % Default values are defined in spm_defaults.m
 %__________________________________________________________________________
-% Copyright (C) 1999-2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_get_ons.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 1999-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Time units

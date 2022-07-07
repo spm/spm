@@ -10,10 +10,9 @@ function mesh = spm_eeg_inv_mesh(sMRI, Msize)
 % Output:
 %   mesh   - inverse - normalized canonical mesh
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_mesh.m 6682 2016-01-15 15:52:00Z vladimir $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % SPM directory of canonical anatomy

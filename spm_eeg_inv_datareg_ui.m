@@ -9,10 +9,9 @@ function D = spm_eeg_inv_datareg_ui(varargin)
 %
 % D            - same data struct including the new required files and variables
 %__________________________________________________________________________
-% Copyright (C) 2005-2017 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_inv_datareg_ui.m 7544 2019-03-15 16:20:16Z vladimir $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Initialisation

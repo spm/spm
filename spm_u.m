@@ -1,5 +1,5 @@
 function [u] = spm_u(a,df,STAT)
-% uncorrected critical height threshold at a specified significance level
+% Uncorrected critical height threshold at a specified significance level
 % FORMAT [u] = spm_u(a,df,STAT)
 % a     - critical probability - {alpha}
 % df    - [df{interest} df{error}]
@@ -14,12 +14,11 @@ function [u] = spm_u(a,df,STAT)
 %__________________________________________________________________________
 %
 % spm_u returns the uncorrected critical threshold at a specified 
-% significance
+% significance.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_u.m 2690 2009-02-04 21:44:28Z guillaume $
+% Copyright (C) 1995-2022 Wellcome Centre for Human Neuroimaging
 
 
 if     STAT == 'Z'

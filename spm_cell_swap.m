@@ -1,12 +1,12 @@
-function [y] = spm_cell_swap(x)
+function y = spm_cell_swap(x)
 % Swap columns for cells in matrix arrays
-% FORMAT [y] = spm_cell_swap(x)
+% FORMAT y = spm_cell_swap(x)
 % y{:,i}(:,j) = x{:,j}(:,i);
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_cell_swap.m 5219 2013-01-29 17:07:07Z spm $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
+
 
 % return if empty
 %--------------------------------------------------------------------------

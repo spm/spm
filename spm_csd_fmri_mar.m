@@ -20,13 +20,10 @@ function [y,S,k] = spm_csd_fmri_mar(P,M,U)
 % When the observer function M.g is specified, the CSD response is
 % supplemented with observation noise in sensor space; otherwise the CSD
 % is noiseless.
-%
-%
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_csd_fmri_mar.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2013-2022 Wellcome Centre for Human Neuroimaging
 
 
 % number of nodes and endogenous (neuronal) fluctuations

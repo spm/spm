@@ -31,10 +31,10 @@ function R = spm_searchlight(SPM,searchopt,fun,varargin)
 % [2] Information-based functional brain mapping. Kriegeskorte N, Goebel R,
 % Bandettini P. (2006) PNAS 103: 3863-3868.
 %__________________________________________________________________________
-% Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_searchlight.m 4475 2011-09-09 17:53:14Z guillaume $
+% Copyright (C) 2010-2022 Wellcome Centre for Human Neuroimaging
+
 
 spm('FnBanner',mfilename);                                              %-#
 

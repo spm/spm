@@ -1,14 +1,13 @@
 function U = spm_compact_svd(Y,xyz,nu)
-% local SVD with compact support for large matrices
+% Local SVD with compact support for large matrices
 % FORMAT U = spm_compact_svd(Y,xyz,nu)
 % Y     - matrix
 % xyz   - location
 % nu    - number of vectors
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_compact_svd.m 5219 2013-01-29 17:07:07Z spm $
+% Copyright (C) 2010-2022 Wellcome Centre for Human Neuroimaging
 
 
 % get orders

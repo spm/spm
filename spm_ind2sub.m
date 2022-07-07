@@ -48,6 +48,3 @@ if nout >= 2
 else 
     v1 = double(ndx);
 end
-
-
-

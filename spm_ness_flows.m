@@ -1,5 +1,5 @@
 function spm_ness_flows(P,x,M)
-% nonequilibrium steady-state under a Helmholtz decomposition
+% Nonequilibrium steady-state under a Helmholtz decomposition
 % FORMAT spm_ness_flows(M,x)
 %--------------------------------------------------------------------------
 % M   - model specification structure
@@ -8,10 +8,9 @@ function spm_ness_flows(P,x,M)
 %    M.W  - (n x n) - precision matrix of random fluctuations
 %    M.K  - order of polynomial expansion
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ness_hd.m 8085 2021-03-21 12:27:26Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
                 
 % evaluate flows at sample points 
@@ -41,6 +40,3 @@ quiver3(X(1,:),X(2,:),X(3,:),f3(1,:),f3(2,:),f3(3,:)), hold on
 xlabel('1st state'), ylabel('2nd state'), zlabel('3rd state')
 title('Flow decomposition','Fontsize',16), axis square
 legend({'Gradient flow','Solenoidal flow','Correction'})
-
-return
-

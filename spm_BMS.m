@@ -30,10 +30,10 @@ function [alpha,exp_r,xp,pxp,bor] = spm_BMS (lme, Nsamp, do_plot, sampling, ecp,
 % Bayesian model selection for group studies - Revisited. 
 % NeuroImage 84:971-85. doi: 10.1016/j.neuroimage.2013.08.065
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Klaas Enno Stephan, Will Penny
-% $Id: spm_BMS.m 7679 2019-10-24 15:54:07Z spm $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 if nargin < 2 || isempty(Nsamp)
     Nsamp = 1e6;

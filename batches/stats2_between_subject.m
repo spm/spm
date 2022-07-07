@@ -9,10 +9,9 @@
 % * The details of your design (!)
 % * An explicit mask (for VBM)
 %__________________________________________________________________________
-% Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Ged Ridgway
-% $Id: stats2_between_subject.m 6177 2014-09-16 10:44:55Z guillaume $
+% Copyright (C) 2014-2022 Wellcome Centre for Human Neuroimaging
 
 if exist('stats2_between_subject', 'file') && ~isdeployed
     help stats2_between_subject

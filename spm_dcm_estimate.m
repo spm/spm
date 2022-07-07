@@ -1,5 +1,5 @@
 function [DCM] = spm_dcm_estimate(P)
-% Estimates parameters of a DCM (bilinear or nonlinear) for fMRI data
+% Estimate parameters of a DCM (bilinear or nonlinear) for fMRI data
 % FORMAT [DCM] = spm_dcm_estimate(DCM)
 %   DCM - DCM structure or its filename
 %
@@ -52,10 +52,9 @@ function [DCM] = spm_dcm_estimate(P)
 % DCM.BIC                            % Bayesian Information criterion
 %
 %__________________________________________________________________________
-% Copyright (C) 2002-2012 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_estimate.m 8275 2022-07-06 11:14:02Z guillaume $
+% Copyright (C) 2002-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Load DCM structure

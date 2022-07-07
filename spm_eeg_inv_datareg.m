@@ -30,10 +30,9 @@ function M1 = spm_eeg_inv_datareg(S)
 % this is generalised to a full twelve parameter affine mapping (n.b.
 % this might not be appropriate for MEG data).
 %__________________________________________________________________________
-% Copyright (C) 2005-2020 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_datareg.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 
 if ~isfield(S, 'targetfid')

@@ -1,6 +1,6 @@
 function [x,y] = spm_Markov_blanket(J,z,m,R)
-% FORMAT [x,y] = spm_Markov_blanket(J,z,m,R)
 % Markovian partition
+% FORMAT [x,y] = spm_Markov_blanket(J,z,m,R)
 % J  - Jacobian
 % z  - {1 x N}  partition of states (indices)
 % m  - number of internal states [default: 3]
@@ -17,10 +17,10 @@ function [x,y] = spm_Markov_blanket(J,z,m,R)
 %
 % Partition or Grouping (coarse-scaling) operator
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_Markov_blanket.m 7799 2020-03-12 17:23:14Z karl $
+% Copyright (C) 2019-2022 Wellcome Centre for Human Neuroimaging
+
 
 % preliminaries
 %--------------------------------------------------------------------------
@@ -165,5 +165,3 @@ for i = 1:nz
     end
     
 end
-
-return

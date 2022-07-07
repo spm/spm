@@ -75,10 +75,9 @@ function [SPM] = spm_mfx(SPM,c)
 % See spm_reml.m
 %
 %__________________________________________________________________________
-% Copyright (C) 2002-2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_mfx.m 8275 2022-07-06 11:14:02Z guillaume $
+% Copyright (C) 2002-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Say hello

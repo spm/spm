@@ -14,10 +14,9 @@ function [N,Z,M,A,XYZ] = spm_mesh_max(X,L,G)
 %
 % See also: spm_max.m, spm_mesh_clusters.m and spm_mesh_get_lm.m
 %__________________________________________________________________________
-% Copyright (C) 2012-2016 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_max.m 6860 2016-08-25 12:00:10Z guillaume $
+% Copyright (C) 2012-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Get connected components

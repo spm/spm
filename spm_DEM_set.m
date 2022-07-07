@@ -1,5 +1,5 @@
 function [varargout] = spm_DEM_set(DEM)
-% Performs checks on DEM structures
+% Perform checks on DEM structures
 % FORMAT [DEM] = spm_DEM_set(DEM)
 %
 % DEM.M  - hierarchical model
@@ -7,11 +7,11 @@ function [varargout] = spm_DEM_set(DEM)
 % DEM.U  - explanatory variables, inputs or prior expectation of causes
 % DEM.X  - confounds
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM_set.m 5708 2013-10-22 09:20:59Z karl $
- 
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
+
+
 % check recognition model
 % -------------------------------------------------------------------------
 DEM.M = spm_DEM_M_set(DEM.M);
@@ -94,7 +94,6 @@ end
 %--------------------------------------------------------------------------
 if N < DEM.M(1).E.n
     error('Please ensure time-series is longer than embedding order')
-    return
 end
 
 % unpack DEM if necessary
@@ -107,4 +106,3 @@ if nargout > 1
 else
     varargout{1} = DEM;
 end
-

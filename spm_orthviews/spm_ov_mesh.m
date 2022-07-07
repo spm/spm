@@ -6,10 +6,9 @@ function ret = spm_ov_mesh(varargin)
 %             help spm_orthviews
 % at the MATLAB prompt.
 %__________________________________________________________________________
-% Copyright (C) 2017-2022 Wellcome Trust Centre for Neuroimaging
 
 % Torben Lund, Guillaume Flandin & Christian Gaser
-% $Id: spm_ov_mesh.m 8267 2022-06-20 16:28:27Z guillaume $
+% Copyright (C) 2017-2022 Wellcome Centre for Human Neuroimaging
 
 
 switch lower(varargin{1})

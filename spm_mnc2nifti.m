@@ -15,10 +15,9 @@ function [N,cdf] = spm_mnc2nifti(fname,opts)
 %
 % See: http://en.wikibooks.org/wiki/MINC
 %__________________________________________________________________________
-% Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_mnc2nifti.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 
 if nargin==1

@@ -26,10 +26,10 @@ function [Q] = spm_P_clusterFDR(k,df,STAT,R,n,ui,Ps)
 % J.R. Chumbley, K.J. Worsley, G. Flandin and K.J. Friston, "Topological
 % FDR for NeuroImaging". Under revision.
 %__________________________________________________________________________
-% Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Justin Chumbley & Guillaume Flandin
-% $Id: spm_P_clusterFDR.m 2764 2009-02-19 15:30:03Z guillaume $
+% Copyright (C) 2009-2022 Wellcome Centre for Human Neuroimaging
+
 
 % Compute uncorrected p-values based on k using Random Field Theory
 %--------------------------------------------------------------------------

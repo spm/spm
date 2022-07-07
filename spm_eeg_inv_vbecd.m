@@ -28,10 +28,9 @@ function P = spm_eeg_inv_vbecd(P)
 % (Although this algorithm uses a function for general Bayesian inversion of
 % a non-linear model - see spm_nlsi_gn)
 %__________________________________________________________________________
-% Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Gareth Barnes
-% $Id: spm_eeg_inv_vbecd.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2009-2022 Wellcome Centre for Human Neuroimaging
 
 
 
@@ -61,12 +60,12 @@ y    = y*sc_y;
 Y.y  = y;
 
 U.u  = 1;
-if isfield(P,'chanCov'),
+if isfield(P,'chanCov')
     Y.Q{1}=P.chanCov*sc_y*sc_y;
-end;
+end
 
 outsideflag=1;
-while outsideflag==1, %% don't use sources which end up outside the head
+while outsideflag==1 %% don't use sources which end up outside the head
     
     % set random moment, scaled by prior variances
     %----------------------------------------------------------------------
@@ -82,18 +81,18 @@ while outsideflag==1, %% don't use sources which end up outside the head
     while(outside)
         outside = 0;
         mu_s = mu_s0 + u*diag(sqrt(diag(s+eps)))*v'*randn(size(mu_s0)); %
-        for i=1:3:length(mu_s), %% check each dipole is inside the head
+        for i=1:3:length(mu_s) %% check each dipole is inside the head
             pos     = mu_s(i:i+2);
-            if ~strcmp(P.forward.vol.type,'infinite_magneticdipole'),
-                %% don't check for magnetic phantom
+            if ~strcmp(P.forward.vol.type,'infinite_magneticdipole')
+                % don't check for magnetic phantom
                 if P.forward.siunits
                     outside = outside+ ~ft_inside_headmodel(1e-3*pos',P.forward.vol);
                 else
                     outside = outside+ ~ft_inside_headmodel(pos',P.forward.vol);
                 end
-            end;
-        end;
-    end;
+            end
+        end
+    end
     
     % get lead fields
     %----------------------------------------------------------------------
@@ -113,7 +112,7 @@ while outsideflag==1, %% don't use sources which end up outside the head
     M.sc_y =sc_y;           % pass on scaling factor
     
     
-    %% startguess=[-0.3553  -69.8440    1.0484    0.2545    0.3428    1.8526]'
+    % startguess=[-0.3553  -69.8440    1.0484    0.2545    0.3428    1.8526]'
     
     [starty]=spm_eeg_wrap_dipfit_vbecd(startguess,M,U);
     [Ep,Cp,Eh,F] = spm_nlsi_GN(M,U,Y);
@@ -126,22 +125,22 @@ while outsideflag==1, %% don't use sources which end up outside the head
     
     if outsideflag
         disp('running again, one or more dipoles outside head.');
-    end;
+    end
     
-end; % while
+end % while
 P.post_mu_s = Ep(1:length(mu_s));
 P.post_mu_w = Ep(length(mu_s)+1:end);
 P.post_S_s  = Cp(1:length(mu_s),1:length(mu_s));
 P.post_S_w  = Cp(length(mu_s)+1:end,length(mu_s)+1:end);
 
 
-%% return a weight matrix to map channels to dipoles
+% return a weight matrix to map channels to dipoles
 fulldipmom=[];
 fulllf=[];
 fullforient=[];
 fulldipmomorient=[];
 
-for d=1:Nd,
+for d=1:Nd
     dippos=P.post_mu_s((d-1)*3+1:d*3);
     dipmom=P.post_mu_w((d-1)*3+1:d*3);
     unitmom=dipmom./sqrt(dot(dipmom,dipmom));
@@ -151,7 +150,7 @@ for d=1:Nd,
     fullforient=[fullforient; orientlead]; % *unitmom(d,:)';
     fulldipmom=[fulldipmom ;dipmom];
     fulldipmomorient=[fulldipmomorient ;dot(dipmom,unitmom)];
-end;
+end
 
 D1=fulldipmom*fulldipmom';
 D2=fulldipmomorient*fulldipmomorient';
@@ -164,6 +163,3 @@ D2=fulldipmomorient*fulldipmomorient';
 % rmssignal=sqrt(sum((P.y').^2)./length(P.y));
 % C=corrcoef(P.y',estdipmom2*fullforient)
 % fprintf('\nVar explained %d percent, rms error per chan %d fT\n',round(100*C(2,1).^2),round(rmserrorperchan));
-
-
-

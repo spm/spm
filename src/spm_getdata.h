@@ -1,6 +1,6 @@
 /*
- * $Id: spm_getdata.h 7932 2020-08-18 11:05:19Z john $
  * John Ashburner & Matthew Brett
+ * Copyright (C) 1999-2022 Wellcome Centre for Human Neuroimaging
  */
 
 /* Routines for accessing datatypes for images */

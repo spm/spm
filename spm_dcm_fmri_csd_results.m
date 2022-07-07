@@ -18,10 +18,9 @@ function spm_dcm_fmri_csd_results(DCM,action,fig)
 %     'Location of regions'
 %     'Quit'
 %__________________________________________________________________________
-% Copyright (C) 2013-2018 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_fmri_csd_results.m 7497 2018-11-24 17:00:25Z karl $
+% Copyright (C) 2013-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Input arguments

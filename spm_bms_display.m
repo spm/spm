@@ -9,10 +9,9 @@ function varargout = spm_bms_display(BMS,action)
 %          'save' (save results as NIfTI image)
 %          'overlays' (options overlays menu)
 %__________________________________________________________________________
-% Copyright (C) 2009-2019 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao Rosa
-% $Id: spm_bms_display.m 7577 2019-04-24 08:59:56Z guillaume $
+% Copyright (C) 2009-2022 Wellcome Centre for Human Neuroimaging
 
 
 % Main options (action)

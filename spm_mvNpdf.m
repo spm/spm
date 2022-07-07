@@ -21,10 +21,9 @@ function pdf = spm_mvNpdf(z,Mu,V)
 % z must have column dimension d. Multiple columns can be entered. 
 %
 %__________________________________________________________________________
-% Copyright (C) 1998-2011 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_mvNpdf.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 1998-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Condition arguments

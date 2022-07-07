@@ -22,10 +22,10 @@ function [M0,q0,X,x,f,M1,L] = spm_fp(M,x,u)
 % M1   - 2nd order FP operator
 % L    - output matrix                 <y> = L*q;
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fp.m 8000 2020-11-03 19:04:17Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
  
 % default: first level of hierarchical model
 %--------------------------------------------------------------------------

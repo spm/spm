@@ -1,5 +1,5 @@
 function [SPM] = spm_fMRI_design(SPM,save_SPM)
-% Assembles a design for fMRI studies
+% Assemble a design for fMRI studies
 % FORMAT [SPM] = spm_fMRI_design(SPM)
 %
 % 1st level
@@ -163,10 +163,9 @@ function [SPM] = spm_fMRI_design(SPM,save_SPM)
 % are computed for only the first column of U(u).u.
 %
 %__________________________________________________________________________
-% Copyright (C) 1999-2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_fMRI_design.m 8275 2022-07-06 11:14:02Z guillaume $
+% Copyright (C) 1999-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Say Hello

@@ -59,10 +59,9 @@ function x = spm_invNcdf(F,u,v)
 %        Cambridge
 %
 %__________________________________________________________________________
-% Copyright (C) 1992-2016 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_invNcdf.m 6859 2016-08-24 16:46:16Z guillaume $
+% Copyright (C) 1992-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Format arguments, note & check sizes

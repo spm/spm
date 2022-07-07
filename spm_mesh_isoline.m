@@ -25,10 +25,9 @@ function C = spm_mesh_isoline(M, T, t)
 %   end
 % end
 %__________________________________________________________________________
-% Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_isoline.m 7618 2019-06-17 12:29:46Z guillaume $
+% Copyright (C) 2019-2022 Wellcome Centre for Human Neuroimaging
 
 
 if nargin < 3, t = 0; end

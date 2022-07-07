@@ -30,10 +30,9 @@ function [out] = spm_eeg_render(m,options)
 % clustering on the cortical surface.
 % NB: The texture and the clusters cannot be visualised at the same time.
 %__________________________________________________________________________
-% Copyright (C) 2008-2016 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_render.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 %----------------------------------------------------------------------%
@@ -371,4 +370,3 @@ else
     colormap(col00);
 end
 udd00.cax = caxis;
-

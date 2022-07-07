@@ -69,10 +69,9 @@ function [DCM,PEB,M,HCM] = spm_dcm_peb_fit(GCM,M,field)
 %
 % see also: spm_dcm_fit.m; spm_dcm_peb.m; spm_dcm_bmr.m
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_peb_fit.m 7267 2018-02-27 10:13:43Z peter $
+% Copyright (C) 2015-2022 Wellcome Centre for Human Neuroimaging
 
 
 % set up

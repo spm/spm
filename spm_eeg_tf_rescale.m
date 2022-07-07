@@ -24,10 +24,9 @@ function D = spm_eeg_tf_rescale(S)
 % p_b and outputs (i) p-p_b for 'Diff' (ii) 100*(p-p_b)/p_b for 'Rel'
 %                 (iii) log (p/p_b) for 'LogR'
 %__________________________________________________________________________
-% Copyright (C) 2009-2016 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_eeg_tf_rescale.m 8275 2022-07-06 11:14:02Z guillaume $
+% Copyright (C) 2009-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Startup

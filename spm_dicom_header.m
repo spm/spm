@@ -22,10 +22,9 @@ function Header = spm_dicom_header(DicomFilename, DicomDictionary, Options)
 % This code may not work for all cases of DICOM data, as DICOM is an
 % extremely complicated "standard".
 %__________________________________________________________________________
-% Copyright (C) 2002-2018 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dicom_header.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2002-2022 Wellcome Centre for Human Neuroimaging
 
 
 if nargin < 3

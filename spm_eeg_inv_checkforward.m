@@ -2,10 +2,9 @@ function spm_eeg_inv_checkforward(varargin)
 % Check M/EEG forward model
 % FORMAT spm_eeg_inv_checkforward(D, val, ind)
 %__________________________________________________________________________
-% Copyright (C) 2008-2018 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_inv_checkforward.m 8059 2021-02-10 12:35:02Z vladimir $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-SPM data structure

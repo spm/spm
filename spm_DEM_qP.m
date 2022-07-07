@@ -1,5 +1,5 @@
 function spm_DEM_qP(qP,pP)
-% reports on conditional estimates of parameters
+% Report on conditional estimates of parameters
 % FORMAT spm_DEM_qP(qP,pP)
 %
 % qP.P   - conditional expectations
@@ -7,10 +7,9 @@ function spm_DEM_qP(qP,pP)
 %
 % pP     - optional priors
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DEM_qP.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 
 % unpack conditional covariances

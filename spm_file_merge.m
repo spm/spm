@@ -15,10 +15,10 @@ function V4 = spm_file_merge(V,fname,dt,RT)
 % the range of admissible values. This may lead to quantization error
 % differences between the input and output images values.
 %__________________________________________________________________________
-% Copyright (C) 2009-2021 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_file_merge.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2009-2022 Wellcome Centre for Human Neuroimaging
+
 
 %-Input: V
 %--------------------------------------------------------------------------

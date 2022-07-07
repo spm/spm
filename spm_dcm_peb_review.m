@@ -7,10 +7,10 @@ function spm_dcm_peb_review(PEB, DCM)
 %       enhance the GUI.
 %
 %__________________________________________________________________________
-% Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
 
 % Peter Zeidman
-% $Id: spm_dcm_peb_review.m 8082 2021-03-17 13:17:45Z peter $
+% Copyright (C) 2016-2022 Wellcome Centre for Human Neuroimaging
+
 
 % Prepare input
 % -------------------------------------------------------------------------
@@ -872,4 +872,4 @@ switch tag
 
     otherwise
         txt = '';
-end 
+end

@@ -8,10 +8,9 @@ function out = spm_deformations(job)
 %
 % See spm_cfg_deformations.m for more information.
 %__________________________________________________________________________
-% Copyright (C) 2005-2020 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_deformations.m 7795 2020-03-04 15:48:40Z guillaume $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 
 [Def,mat] = get_comp(job.comp);

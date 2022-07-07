@@ -1,5 +1,5 @@
 function [S,K,s,w,t,dfdx] = spm_dcm_mtf(P,M,U)
-% computes transfer functions using the system's eigenspectrum
+% Compute transfer functions using the system's eigenspectrum
 % FORMAT [S,K,s,w,t,dfdx] = spm_dcm_mtf(P,M,[U])
 %
 % P - model parameters
@@ -22,10 +22,9 @@ function [S,K,s,w,t,dfdx] = spm_dcm_mtf(P,M,U)
 % functions that draws on linear signal processing theory in frequency
 % space.
 %__________________________________________________________________________
-% Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_mtf.m 6856 2016-08-10 17:55:05Z karl $
+% Copyright (C) 2012-2022 Wellcome Centre for Human Neuroimaging
 
 
 % get local linear approximation
@@ -177,16 +176,7 @@ subplot(2,2,1), plot(t,K(:,1,1),t,K1(:,1,1));
 title('kernels','fontsize',16)
 xlabel('peristimulus time')
 
-
 subplot(2,2,2), plot(w,real(S(:,1,1)),    w1,real(S1(:,1,1))); hold on
 subplot(2,2,2), plot(w,imag(S(:,1,1)),':',w1,imag(S1(:,1,1)),':'); hold off
 title('transfer functions','fontsize',16)
 xlabel('frequency');
-
-
-
-
-
-
-
-

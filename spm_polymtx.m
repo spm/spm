@@ -16,10 +16,10 @@ function [b,D,H,o] = spm_polymtx(x,K,FUN)
 % tensor product of each N-dimensional domain. This is useful for dealing
 % with vectorised N-arrays.
 %__________________________________________________________________________
-% Copyright (C) 1996-2015 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dctmtx.m 8000 2020-11-03 19:04:17Z karl $
+% Copyright (C) 1996-2022 Wellcome Centre for Human Neuroimaging
+
 
 % defaults
 %--------------------------------------------------------------------------
@@ -181,6 +181,3 @@ if nargout > 2
             disp('Unknown expansion')
     end
 end
-
-
-

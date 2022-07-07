@@ -49,35 +49,33 @@ function [z,t1,z1] = spm_t2z(t,df,Tol)
 % l0 is then 1/m.  Experience suggests that this underestimates z,
 % especially for ludicrously high t and/or high df, giving conservative
 % (though still significant) results.
-%
 %__________________________________________________________________________
-% Copyright (C) 1994-2015 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_t2z.m 6654 2015-12-22 12:55:36Z spm $
+% Copyright (C) 1994-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Initialisation
-%===========================================================================
+%==========================================================================
 
 % p-value tolerance: t-values with tail probabilities less than Tol are
 %                    `converted' to z by extrapolation
-%---------------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if nargin<3, Tol = 10^(-10); end
 
 %-Argument range and size checks
-%---------------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if nargin<2, error('insufficient arguments'), end
 if length(df)~=1, error('df must be a scalar'), end
 if df<=0, error('df must be strictly positive'), end
 
 %-Computation
-%===========================================================================
+%==========================================================================
 z     = zeros(size(t));
 
 %-Mask out t == 0 (z==0) and t == +/- Inf (z==+/- Inf), where
 % betainc(1,*,*) and betainc(0,*,*) warn "Log of zero"
-%---------------------------------------------------------------------------
+%--------------------------------------------------------------------------
 Qi    = find(isinf(t));
 if ~isempty(Qi), z(Qi)=t(Qi); end
 tmp   = df./(df + t.^2);
@@ -85,12 +83,12 @@ Q     = find(tmp~=1 & ~isinf(t));
 if isempty(Q), return; end
 
 %-Mask out at +/- t1 for interpolation
-%---------------------------------------------------------------------------
+%--------------------------------------------------------------------------
 t1    = -spm_invTcdf(Tol,df);
 mQb   = abs(t(Q)) > t1;
 
 %-t->z using Tcdf & invNcdf for abs(t)<=t1 
-%===========================================================================
+%==========================================================================
 if any(~mQb)
     QQnb = find(~mQb);
 
@@ -112,7 +110,7 @@ end
 %-Use logarithmic function for extrapolation, fitted such that first
 % derivative is continuous. Estimate gradient from the last 0.5 (t) of
 % the (computable) t2z relationship.
-%===========================================================================
+%==========================================================================
 if any(mQb)
     z1          =-sqrt(2)*erfinv(2*Tol-1);
     t2          =t1-[1:5]/10;
@@ -120,29 +118,29 @@ if any(mQb)
     %-least squares line through ([f1,t2],[z1,z2]) : z = m*f + c
     mc          = [[t1,t2]',ones(length([t1,t2]),1)] \ [z1,z2]';
 
-    %-------------------------------------------------------------------
+    %----------------------------------------------------------------------
     %-Logarithmic extrapolation
-    %-------------------------------------------------------------------
+    %----------------------------------------------------------------------
     l0=1/mc(1);
     %-Perform logarithmic extrapolation, negate z for positive t-values
     QQ    = Q(mQb); % positions of t-values left to process
     z(QQ) = - ( log( (2*(t(QQ)>0)-1).*t(QQ) -t1 + l0 ) + (z1-log(l0)) );
-    %-------------------------------------------------------------------
+    %----------------------------------------------------------------------
 
-%   %-------------------------------------------------------------------
+%   %----------------------------------------------------------------------
 %   %-Linear extrapolation
-%   %-------------------------------------------------------------------
+%   %----------------------------------------------------------------------
 %   %-adjust c for line through (t1,z1)
 %   mc(2)       = z1-mc(1)*t1;
 %
 %   %-Perform extrapolation, negate positive t-values
 %   QQ    = Q(mQb); % positions of t-values left to process
 %   z(QQ) = - ( (2*(t(QQ)>0)-1).*t(QQ)*mc(1) + mc(2) );
-%   %-------------------------------------------------------------------
+%   %----------------------------------------------------------------------
 
 end
 
 
 %-Negate (the negative) z-scores corresponding to positive t-values
-%---------------------------------------------------------------------------
+%--------------------------------------------------------------------------
 z(t>0)=-z(t>0);

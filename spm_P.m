@@ -28,10 +28,9 @@ function [P,p,Ec,Ek] = spm_P(c,k,Z,df,STAT,R,n,S)
 %
 % See also: spm_P_RF, spm_P_Bonf
 %__________________________________________________________________________
-% Copyright (C) 2001-2011 Wellcome Trust Centre for Neuroimaging
 
 % Thomas Nichols
-% $Id: spm_P.m 4419 2011-08-03 18:42:35Z guillaume $
+% Copyright (C) 2001-2022 Wellcome Centre for Human Neuroimaging
 
 
 if nargin < 8, S = []; end

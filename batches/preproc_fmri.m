@@ -17,10 +17,9 @@
 % have multiple structurals in one directory, you will need to replace
 % "brain" with a unique filename for each subject.
 %__________________________________________________________________________
-% Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Ged Ridgway
-% $Id: preproc_fmri.m 6177 2014-09-16 10:44:55Z guillaume $
+% Copyright (C) 2014-2022 Wellcome Centre for Human Neuroimaging
 
 if exist('preproc_fmri', 'file') && ~isdeployed
     help preproc_fmri

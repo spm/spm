@@ -59,10 +59,9 @@ function varargout = spm_check_version(tbx,chk)
 %
 % See also VERSION, VER, VERLESSTHAN.
 %__________________________________________________________________________
-% Copyright (C) 2006-2014 Wellcome Trust Centre for Neuroimaging
 
 % Darren Gitelman
-% $Id: spm_check_version.m 6156 2014-09-05 17:34:53Z guillaume $
+% Copyright (C) 2006-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Detect software used

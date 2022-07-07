@@ -1,12 +1,11 @@
 function B = spm_squeeze(A, dim)
-% version of squeeze with the possibility to select the dimensions to remove
+% Version of squeeze with the possibility to select the dimensions to remove
 % FORMAT  B = spm_squeeze(A, dim)
-%
 %__________________________________________________________________________
-% Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_squeeze.m 5794 2013-12-09 12:41:52Z vladimir $
+% Copyright (C) 2010-2022 Wellcome Centre for Human Neuroimaging
+
 
 if nargin == 1
     B = squeeze(A);

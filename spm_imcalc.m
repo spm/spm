@@ -79,10 +79,9 @@ function Vo = spm_imcalc(Vi,Vo,f,flags,varargin)
 % Here we've pre-specified the expression and passed the vector c as an
 % additional variable (you'll be prompted to select the n images).
 %__________________________________________________________________________
-% Copyright (C) 1998-2016 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner & Andrew Holmes
-% $Id: spm_imcalc.m 8275 2022-07-06 11:14:02Z guillaume $
+% Copyright (C) 1998-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Parameters & arguments

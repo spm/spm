@@ -11,10 +11,9 @@
 % * Conditions (not needed for resting-state studies)
 % * Multiple regressors - the realignment parameters from motion correction
 %__________________________________________________________________________
-% Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Ged Ridgway
-% $Id: stats1_within_subject_fmri.m 6177 2014-09-16 10:44:55Z guillaume $
+% Copyright (C) 2014-2022 Wellcome Centre for Human Neuroimaging
 
 if exist('stats1_within_subject_fmri', 'file') && ~isdeployed
     help stats1_within_subject_fmri

@@ -1,5 +1,6 @@
 function res = spm_eeg_regressors_tfphase(S)
 % Generate regressors from phase in TF dataset
+% FORMAT res = spm_eeg_regressors_tfphase(S)
 % S                     - input structure
 % fields of S:
 %    S.D                - M/EEG object
@@ -10,16 +11,16 @@ function res = spm_eeg_regressors_tfphase(S)
 %   If no input is provided the plugin returns a cfg branch for itself
 %
 %   If input is provided the plugin returns
-%______________________________________________________________________________________
-% Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Vladimir Litvak
+% Copyright (C) 2014-2022 Wellcome Centre for Human Neuroimaging
 
 
 if nargin == 0
-    %--------------------------------------------------------------------------
+    %----------------------------------------------------------------------
     % TF power dataset
-    %--------------------------------------------------------------------------
+    %----------------------------------------------------------------------
     Dtf        = cfg_files;
     Dtf.tag    = 'Dtf';
     Dtf.name   = 'TF phase dataset name';
@@ -27,9 +28,9 @@ if nargin == 0
     Dtf.num    = [1 1];
     Dtf.help   = {'Select the M/EEG mat file containing TF phase data'};
     
-    %--------------------------------------------------------------------------
+    %----------------------------------------------------------------------
     % timewin
-    %--------------------------------------------------------------------------
+    %----------------------------------------------------------------------
     timewin         = cfg_entry;
     timewin.tag     = 'timewin';
     timewin.name    = 'Time window';
@@ -38,9 +39,9 @@ if nargin == 0
     timewin.num     = [1 2];
     timewin.val     = {[-Inf Inf]};
     
-    %--------------------------------------------------------------------------
+    %----------------------------------------------------------------------
     % freqwin
-    %--------------------------------------------------------------------------
+    %----------------------------------------------------------------------
     freqwin         = cfg_entry;
     freqwin.tag     = 'freqwin';
     freqwin.name    = 'Frequency window';
@@ -49,9 +50,9 @@ if nargin == 0
     freqwin.num     = [1 2];
     freqwin.val     = {[-Inf Inf]};
     
-    %--------------------------------------------------------------------------
+    %----------------------------------------------------------------------
     % average
-    %--------------------------------------------------------------------------
+    %----------------------------------------------------------------------
     average = cfg_menu;
     average.tag = 'average';
     average.name = 'Average over frequency';
@@ -61,9 +62,9 @@ if nargin == 0
     average.help = {'Average over the frequency window to produce one regressor',...
         'or output each frequency as a separate regressor'};
     
-    %--------------------------------------------------------------------------
+    %----------------------------------------------------------------------
     % standardize
-    %--------------------------------------------------------------------------
+    %----------------------------------------------------------------------
     standardize = cfg_menu;
     standardize.tag = 'standardize';
     standardize.name = 'Standardize';
@@ -207,4 +208,3 @@ end
 
 
 spm('FigName','Time-frequency power regressors: done');
-

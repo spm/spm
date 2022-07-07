@@ -5,22 +5,21 @@ function D = spm_eeg_inv_vbecd_gui(D,val)
 % - launch the B_ECD routine, aka. spm_eeg_inv_vbecd
 % - displays the results.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
-% 
-% $Id: spm_eeg_inv_vbecd_gui.m 7702 2019-11-22 11:32:26Z guillaume $
 
-%%
+% Vladimir Litvak
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
+
 % Load data, if necessary
-%==========
+%==========================================================================
 if nargin<1
     D = spm_eeg_load;
 end
 
 DISTTHRESH=120; %% mm distance from centre of brain classified as inside the head
 
-%%
 % Check if the forward model was prepared & handle the other info bits
-%========================================
+%==========================================================================
 if ~isfield(D,'inv')
     error('Data must have been prepared for inversion procedure...')
 end
@@ -67,15 +66,14 @@ if ~isfield(D.inv{val}, 'date')
     D.inv{val}.date = strvcat(date,clck);
 end
 
-if ~isfield(D.inv{val}, 'comment'), 
+if ~isfield(D.inv{val}, 'comment')
    D.inv{val}.comment = {spm_input('Comment/Label for this analysis', '+1', 's')};
 end
 
 D.inv{val}.method = 'vbecd';
 
-%% Struct that collects the inputs for vbecd code
+% Struct that collects the inputs for vbecd code
 P = [];
-
 
 P.modality = spm_eeg_modality_ui(D, 1, 1);
 
@@ -114,9 +112,8 @@ P.forward.chanunits = D.units(P.Ic);
 
 P.forward.sens.prj = D.coor2D(P.Ic);
 
-%% 
 % Deal with data
-%===============
+%==========================================================================
 
 % time bin or time window
 msg_tb = ['time_bin or average_win [',num2str(round(min(D.time)*1e3)), ...
@@ -158,7 +155,7 @@ end
 
 EEGscale=1;
 
-%% SORT OUT EEG UNITS AND CONVERT VALUES TO VOLTS
+% SORT OUT EEG UNITS AND CONVERT VALUES TO VOLTS
 if strcmpi(P.modality,'EEG')
     allunits  = strvcat('uV','mV','V');   
     allscales = [1, 1e3, 1e6]; %% 
@@ -196,16 +193,15 @@ end % if eeg data
 dat_y = squeeze(mean(D(P.Ic,ltb,ltr)*EEGscale,2));
 
 
-%%
 % Other bits of the P structure, apart for priors and #dipoles
-%==============================
+%==========================================================================
 
 P.ltr          = ltr;
 P.Nc           = length(P.Ic);
 
 
 % Deal with dipoles number and priors
-%====================================
+%==========================================================================
 dip_q = 0; % number of dipole 'elements' added (single or pair)
 dip_c = 0; % total number of dipoles in the model
 adding_dips = 1;
@@ -221,7 +217,7 @@ priormomvardefault=[1, 1, 1]; %%
 
 
 while adding_dips
-    if dip_q>0, 
+    if dip_q>0
         msg_dip =['Add dipoles to ',num2str(dip_c),' or stop?'];
         dip_ch = 'Single|Symmetric Pair|Stop';
         dip_val = [1,2,0];
@@ -240,7 +236,7 @@ while adding_dips
         dip_q = dip_q+1;
         dip_pr(dip_q) = struct( 'a_dip',a_dip, ...
             'mu_w0',[],'mu_s0',[],'S_s0',eye(3),'S_w0',eye(3));
-          %%  'ab20',[],'ab30',[]); %% ,'Tw', [],'Ts', []);
+          %  'ab20',[],'ab30',[]); %% ,'Tw', [],'Ts', []);
         % Location prior
         spr_q = spm_input('Location prior ?',1+tr_q+dip_q+1,'b', ...
                     'Informative|Non-info',[1,0],2);
@@ -265,7 +261,7 @@ while adding_dips
                 S_s0_ctf=orM1*diag(diags_s0_mni)*orM1'; %% transform covariance
             
                 
-                %% need to leave diags(S0) free
+                % need to leave diags(S0) free
               
                 if all(~outside), break, end
                     str = 'Prior location must be inside head';
@@ -298,8 +294,8 @@ while adding_dips
             dip_pr(dip_q).mu_w0 = zeros(3,1);
             S_w0_ctf= diag(nopriormomvardefault);
         end
-        %% set up covariance matrix for orientation with no crosstalk terms (for single
-        %% dip)
+        % set up covariance matrix for orientation with no crosstalk terms (for single
+        % dip)
         dip_pr(dip_q).S_w0=S_w0_ctf;
         dip_c = dip_c+1;
     else
@@ -345,8 +341,8 @@ while adding_dips
             tmp_diags_s0 = [nopriorlocvardefault';nopriorlocvardefault'];
             tmp_diags_s0_mni=[nopriorlocvardefault';nopriorlocvardefault'];
         end %% end of if informative prior
-        %% setting up a covariance matrix where there is covariance between
-        %% the x parameters negatively coupled, y,z positively.
+        % setting up a covariance matrix where there is covariance between
+        % the x parameters negatively coupled, y,z positively.
          mni_dip_pr(dip_q).S_s0 = eye(length(tmp_diags_s0_mni)).*repmat(tmp_diags_s0_mni,1,length(tmp_diags_s0_mni));
          mni_dip_pr(dip_q).S_s0(4,1)=-mni_dip_pr(dip_q).S_s0(4,4); % reflect in x
          mni_dip_pr(dip_q).S_s0(5,2)=mni_dip_pr(dip_q).S_s0(5,5); % maintain y and z 
@@ -355,7 +351,7 @@ while adding_dips
          mni_dip_pr(dip_q).S_s0(1,4)=mni_dip_pr(dip_q).S_s0(4,1);
          mni_dip_pr(dip_q).S_s0(2,5)=mni_dip_pr(dip_q).S_s0(5,2);
          mni_dip_pr(dip_q).S_s0(3,6)=mni_dip_pr(dip_q).S_s0(6,3);
-         %% transform to MEG space   
+         % transform to MEG space   
          
          %dip_pr(dip_q).S_s0(:,1:3)=orM1*mni_dip_pr(dip_q).S_s0(:,1:3)*orM1'; %% NEED TO LOOK AT THIS
          %dip_pr(dip_q).S_s0(:,4:6)=orM1*mni_dip_pr(dip_q).S_s0(:,4:6)*orM1';
@@ -388,7 +384,7 @@ while adding_dips
             tmp_diags_w0 = [nopriormomvardefault'; nopriormomvardefault'];
         end
         %dip_pr(dip_q).S_w0=eye(length(diags_w0)).*repmat(diags_w0,1,length(diags_w0));
-        %% couple all orientations, except x, positively or leave for now...
+        % couple all orientations, except x, positively or leave for now...
           
                 mni_dip_pr(dip_q).S_w0 = eye(length(tmp_diags_w0)).*repmat(tmp_diags_w0,1,length(tmp_diags_w0));
                 
@@ -424,10 +420,8 @@ SNRamp=3;
 str2='Number of iterations';
  Niter = spm_input(str2, 1+tr_q+dip_q+2+2,'e',10)';
               
-%%
 % Get all the priors together and build structure to pass to inv_becd 
-
-%============================
+%==========================================================================
 
 priors = struct('mu_w0',cat(1,dip_pr(:).mu_w0), ...
                 'mu_s0',cat(1,dip_pr(:).mu_s0), ...
@@ -436,9 +430,8 @@ priors = struct('mu_w0',cat(1,dip_pr(:).mu_w0), ...
             
 P.priors = priors;
 
-%%
 % Launch inversion !
-%===================
+%==========================================================================
 
 % Initialise inverse field
 inverse = struct( ...
@@ -461,7 +454,7 @@ for ii=1:length(ltr)
     P.y = dat_y(:,ii);
     P.ii = ii;
     
- %% set up figures 
+ % set up figures 
     P.handles.hfig  = spm_figure('GetWin','Graphics');
     spm_clf(P.handles.hfig)
     P.handles.SPMdefaults.col = get(P.handles.hfig,'colormap');
@@ -513,7 +506,7 @@ for ii=1:length(ltr)
     inverse.cov_j{ii} = P.post_S_w; % cov matrix of source orient/ampl
     inverse.exitflag(ii) = 1; % Converged (1) or not (0)
     inverse.P{ii} = P; % save all kaboodle too.
-    %% show final result
+    % show final result
     pause(1);
     
     
@@ -545,22 +538,17 @@ end
  
 D.inv{val}.inverse = inverse;
 
-%%
 % Save results and display
-%-------------------------
+%--------------------------------------------------------------------------
 save(D)
 
-
 return
-
-
-
 
 
 function [P] = displayVBupdate2(y,pov_iter,F_iter,maxit,dipamp_iter,mu_w,mu_s,diagS_s,P,it,flag,F,yHat,maxind)
 
 
-%% yHat is estimate of y based on dipole position
+% yHat is estimate of y based on dipole position
 if ~exist('flag','var')
     flag = [];
 end
@@ -683,11 +671,11 @@ if isempty(flag) || isequal(flag,'var')
             'box','on');
     end
     plot(P.handles.axesVar1,F_iter,'o-');
-    if ~isempty(maxind),
+    if ~isempty(maxind)
         hold on;
         h=plot(P.handles.axesVar1,maxind,F_iter(maxind),'rd');
         set(h,'linewidth',4);
-        end;
+    end
     set(P.handles.axesVar1,'Xlimmode','manual');
     set(P.handles.axesVar1,'Xlim',[1 maxit]);
     set(P.handles.axesVar1,'Xtick',1:maxit);
@@ -711,11 +699,11 @@ if isempty(flag) || isequal(flag,'var')
     
     
     plot(P.handles.axesVar2,pov_iter,'*-') 
-    if ~isempty(maxind),
+    if ~isempty(maxind)
         hold on;
         h=plot(P.handles.axesVar2,maxind,pov_iter(maxind),'rd');
         set(h,'linewidth',4);
-        end;   
+    end
     set(P.handles.axesVar2,'Xlimmode','manual');
     set(P.handles.axesVar2,'Xlim',[1 maxit]);
     set(P.handles.axesVar2,'Xtick',1:maxit);
@@ -743,11 +731,11 @@ if isempty(flag) || isequal(flag,'var')
             'box','on');
     end
     plot(P.handles.axesVar3,1:it,dipamp_iter','o-');
-      if ~isempty(maxind),
+      if ~isempty(maxind)
         hold on;
         h=plot(P.handles.axesVar3,maxind,dipamp_iter(maxind,:)','rd');
         set(h,'linewidth',4);
-        end;
+      end
     
     set(P.handles.axesVar3,'Xlimmode','manual');
     set(P.handles.axesVar3,'Xlim',[1 maxit]);
@@ -809,6 +797,7 @@ catch
 end
 drawnow
 
+
 function back2defaults(e1,e2)
 hf = spm_figure('FindWin','Graphics');
 P = get(hf,'userdata');
@@ -816,6 +805,3 @@ try
     set(hf,'colormap',P.handles.SPMdefaults.col);
     set(hf,'renderer',P.handles.SPMdefaults.renderer);
 end
-
-
-

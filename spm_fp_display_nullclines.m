@@ -7,10 +7,10 @@ function f = spm_fp_display_nullclines(M,x)
 %
 % f   - derivative of x(2)
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_fp_display_nullclines.m 2494 2008-11-26 20:08:15Z karl $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
+
 
 % evaluation points and equilibria
 %--------------------------------------------------------------------------

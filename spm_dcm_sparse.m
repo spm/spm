@@ -1,6 +1,6 @@
 function [Ep,Cp] = spm_dcm_sparse(DCM,field)
 % Bayesian model reduction of all permutations of model parameters
-% FORMAT [RCM,BMR] = spm_dcm_sparse(DCM,field
+% FORMAT [Ep,Cp] = spm_dcm_sparse(DCM,field)
 %
 % DCM      - A single estimated DCM (or PEB) structure:
 %
@@ -38,10 +38,9 @@ function [Ep,Cp] = spm_dcm_sparse(DCM,field)
 %
 % See also: spm_dcm_bmr and spm_dcm_bmr_all
 %__________________________________________________________________________
-% Copyright (C) 2010-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: spm_dcm_sparse.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2010-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Number of parameters to consider before invoking greedy search
@@ -232,6 +231,3 @@ xlabel(' model','FontSize',12)
 ylabel('probability','FontSize',12)
 axis square
 drawnow
-
-
-

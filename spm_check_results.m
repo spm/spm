@@ -6,10 +6,9 @@ function spm_check_results(SPMs,xSPM)
 %
 % Beware: syntax and features of this function are likely to change.
 %__________________________________________________________________________
-% Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_check_results.m 4660 2012-02-20 17:39:29Z guillaume $
+% Copyright (C) 2012-2022 Wellcome Centre for Human Neuroimaging
 
 
 cwd = pwd;

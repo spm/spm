@@ -14,10 +14,10 @@ function [sig0,alph] = spm_smohist(t0,lam,alph)
 % where: sig = exp(a)/sum(exp(a))
 %   and: G = lam*L'*L - where L is the Laplacian operator.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_smohist.m 7669 2019-09-30 17:45:01Z john $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 sig0 = zeros(size(t0));
 n  = size(t0,1);

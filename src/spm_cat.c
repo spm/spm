@@ -1,6 +1,5 @@
 /*
- * $Id: spm_cat.c 8183 2021-11-04 15:25:19Z guillaume $
- * Copyright 2012 Eduardo Aponte <aponteeduardo@gmail.com>
+ * Copyright (C) 2012 Eduardo Aponte <aponteeduardo@gmail.com>
  */
 
 #include "mex.h"
@@ -636,4 +635,3 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[] )
     return;
     }
 }
- 

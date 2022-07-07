@@ -12,10 +12,9 @@ function [m,C] = spm_ness_cond(n,K,Sp,ni,x)
 % m  - (Conditional) mean
 % C  - (Conditional) covariance
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ness_cond.m 8097 2021-04-24 20:28:27Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % order of expansion (o)
@@ -67,6 +66,3 @@ C21    = C(ni,mi);
 C22    = C(ni,ni);
 m      = m1 + C12*(C22\(x - m2));      % conditional covariance
 C      = C11 - C12*(C22\C21);          % conditional mean
-
-return
-

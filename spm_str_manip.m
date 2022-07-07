@@ -1,5 +1,5 @@
 function [strout,R2] = spm_str_manip(strin,options)
-% miscellaneous string manipulation options
+% Miscellaneous string manipulation options
 % FORMAT string_out = spm_str_manip(string_in,options)
 % string_in    - input string, string matrix, or cell array of strings
 % options      - a string of options flags, see below
@@ -45,10 +45,9 @@ function [strout,R2] = spm_str_manip(strin,options)
 %
 % This function is now deprecated, use spm_file when possible instead.
 %__________________________________________________________________________
-% Copyright (C) 1996-2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_str_manip.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 1996-2022 Wellcome Centre for Human Neuroimaging
 
 
 % persistent runonce

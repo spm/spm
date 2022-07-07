@@ -5,10 +5,9 @@ function spm_eeg_inv_image_display(varargin)
 % Input:
 % D        - input data struct (optional)
 %__________________________________________________________________________
-% Copyright (C) 2007-2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_inv_image_display.m 6405 2015-04-14 15:13:02Z guillaume $
+% Copyright (C) 2007-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Checks

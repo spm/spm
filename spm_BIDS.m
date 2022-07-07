@@ -16,10 +16,9 @@ function varargout = spm_BIDS(varargin)
 %   describing outputs of neuroimaging experiments.
 %   K. J. Gorgolewski et al, Scientific Data, 2016.
 %__________________________________________________________________________
-% Copyright (C) 2016-2018 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_BIDS.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2016-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Validate input arguments

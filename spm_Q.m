@@ -1,5 +1,5 @@
 function [Q] = spm_Q(a,n,q)
-% returns an (n x n) (inverse) autocorrelation matrix for an AR(p) process
+% Return an (n x n) (inverse) autocorrelation matrix for an AR(p) process
 % FORMAT [Q] = spm_Q(a,n,q)
 %
 % a  - vector of (p) AR coefficients
@@ -18,11 +18,11 @@ function [Q] = spm_Q(a,n,q)
 % If called with q ~= 0, a first order process is assumed when evaluating
 % the precision (inverse covariance) matrix; i.e., a = a(1)
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_Q.m 5838 2014-01-18 18:40:37Z karl $
- 
+% Copyright (C) 2003-2022 Wellcome Centre for Human Neuroimaging
+
+
 % default
 %--------------------------------------------------------------------------
 try, q; catch, q = 0; end
@@ -47,4 +47,3 @@ else
     Q    = toeplitz(Q(:,1));
     
 end
-

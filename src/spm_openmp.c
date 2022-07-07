@@ -1,5 +1,6 @@
 /*
- * $Id: spm_openmp.c 7689 2019-11-07 13:25:47Z guillaume $
+ * Yael Balbastre
+ * Copyright (C) 2019-2022 Wellcome Centre for Human Neuroimaging
  */
 
 #include "spm_openmp.h"

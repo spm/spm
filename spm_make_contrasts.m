@@ -23,10 +23,9 @@ function Con = spm_make_contrasts(k)
 % For details of Kronecker operations, see section 5 of
 %     http://www.fil.ion.ucl.ac.uk/~wpenny/publications/rik_anova.pdf
 %__________________________________________________________________________
-% Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_make_contrasts.m 6157 2014-09-05 18:17:54Z guillaume $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Number of factors

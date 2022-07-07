@@ -51,10 +51,9 @@ function str = spm_file(str,varargin)
 %
 % See also: spm_fileparts, spm_select, spm_file_ext, spm_existfile
 %__________________________________________________________________________
-% Copyright (C) 2011-2017 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_file.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2011-2022 Wellcome Centre for Human Neuroimaging
 
 
 needchar = ischar(str);

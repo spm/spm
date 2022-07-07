@@ -1,5 +1,5 @@
 function [f] = spm_fx_hdm(x,u,P,M)
-% state equation for the hemodynamic model
+% State equation for the hemodynamic model
 % FORMAT [f] = spm_fx_hdm(x,u,P,M)
 % x      - state vector
 %   x(1) - vascular signal                                    s
@@ -24,10 +24,9 @@ function [f] = spm_fx_hdm(x,u,P,M)
 % Ref Buxton RB, Wong EC & Frank LR. Dynamics of blood flow and oxygenation
 % changes during brain activation: The Balloon model. MRM 39:855-864 (1998)
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_fx_hdm.m 6856 2016-08-10 17:55:05Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % hemodynamic parameters
@@ -74,5 +73,3 @@ f        = f(:);
 % adjust motion for DEM (that uses time-bins as units of time)
 %--------------------------------------------------------------------------
 try, global dt, f  = f*dt; end
-
-return

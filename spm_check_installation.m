@@ -13,10 +13,10 @@ function varargout = spm_check_installation(action)
 % Build signature of SPM distribution as used by 'full' option.
 % (for developers)
 %__________________________________________________________________________
-% Copyright (C) 2009-2021 Wellcome Centre for Human Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_check_installation.m 8170 2021-10-21 10:25:01Z guillaume $
+% Copyright (C) 2009-2022 Wellcome Centre for Human Neuroimaging
+
 
 if isdeployed, return; end
 

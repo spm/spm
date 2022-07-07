@@ -30,10 +30,9 @@ function [H,R,J,G] = spm_ness(J,G)
 % H              = -(R + G)\J =>
 % J*R + R*J'     = J*G - G*J'
 %__________________________________________________________________________
-% Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ness.m 8000 2020-11-03 19:04:17Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % solve for solenoidal (R) operator J*R + R*J' = J*G - G*J'

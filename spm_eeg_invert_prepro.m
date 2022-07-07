@@ -81,10 +81,9 @@ function [D] = spm_eeg_invert_prepro(D,val)
 % lead field uncertainty.
 % Neuroimage 60(2), 1194-1204 doi:10.1016/j.neuroimage.2012.01.077.
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
  
 % Jose David Lopez, Gareth Barnes, Vladimir Litvak
-% $Id: spm_eeg_invert_prepro.m 7017 2017-02-15 12:50:58Z karl $
+% Copyright (C) 2015-2022 Wellcome Centre for Human Neuroimaging
 
 
 Nl = length(D);

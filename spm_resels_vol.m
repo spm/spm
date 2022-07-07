@@ -1,5 +1,5 @@
 function varargout = spm_resels_vol(varargin)
-% computes the number of resels in a volume - a compiled routine
+% Compute the number of resels in a volume - a compiled routine
 % FORMAT R = spm_resels_vol(V,W)
 % V      -  is a memory mapped image volume.
 %           Finite and non-zero values are considered to be part of
@@ -18,10 +18,9 @@ function varargout = spm_resels_vol(varargin)
 %
 % Reference : Worsley KJ et al 1996, Hum Brain Mapp. 4:58-73
 %_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_resels_vol.m 1143 2008-02-07 19:33:33Z spm $
+% Copyright (C) 1998-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-This is merely the help file for the compiled routine

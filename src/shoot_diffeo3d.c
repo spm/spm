@@ -1,5 +1,7 @@
-/* $Id: shoot_diffeo3d.c 7968 2020-09-30 12:16:15Z john $ */
-/* (c) John Ashburner (2011) */
+/*
+ * John Ashburner
+ * Copyright (C) 2011-2022 Wellcome Centre for Human Neuroimaging
+ */
 
 #include <math.h>
 #include <stdio.h>
@@ -1108,4 +1110,3 @@ void determinant(mwSize dm[], float Jpsi[], float d[])
         d[j] = (float)(j00*(j11*j22-j12*j21)+j10*(j02*j21-j01*j22)+j20*(j01*j12-j02*j11));
     }
 }
-

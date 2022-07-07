@@ -10,10 +10,9 @@ function [Y,alpha] = spm_timeseries_resample(X,alpha)
 %
 % This function operates on rows of a signal matrix.
 %__________________________________________________________________________
-% Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_timeseries_resample.m 6016 2014-05-23 17:34:06Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 N0     = size(X,2);
 N      = floor(N0*alpha);

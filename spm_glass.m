@@ -14,10 +14,10 @@ function fig = spm_glass(X,pos,varargin)
 % Output:
 %   fig             - Handle for generated figure
 %__________________________________________________________________________
-% Copyright (C) 2020-2022 Wellcome Centre for Human Neuroimaging
 
 % George O'Neill & Guillaume Flandin
-% $Id: spm_glass.m 8231 2022-03-09 14:47:42Z george $
+% Copyright (C) 2020-2022 Wellcome Centre for Human Neuroimaging
+
 
 % prep
 %---------------------------------------------------------------------

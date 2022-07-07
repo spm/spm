@@ -19,11 +19,10 @@ function res = spm_eeg_specest_hilbert(S, data, time)
 %      res.fourier - the complex output of wavelet transform
 %      res.time    - time axis
 %      res.freq    - frequency axis
-%______________________________________________________________________________________
-% Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Vladimir Litvak based on the code contributed by Krish Singh
-% $Id: spm_eeg_specest_hilbert.m 4463 2011-09-06 10:53:01Z vladimir $
+% Copyright (C) 2010-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-This part if for creating a config branch that plugs into spm_cfg_eeg_tf

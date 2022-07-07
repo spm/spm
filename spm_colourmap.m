@@ -33,10 +33,9 @@ function varargout = spm_colourmap(varargin)
 % A repository of colourmaps with linearised luminance is available at:
 %   https://github.com/CPernet/brain_colours
 %__________________________________________________________________________
-% Copyright (C) 2018 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_colourmap.m 7428 2018-09-25 13:25:13Z guillaume $
+% Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-FORMAT map = spm_colourmap([map])

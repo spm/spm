@@ -1,5 +1,5 @@
 function [Ep,Cp] = spm_dcm_fmri_mode_gen(Ev,modes,Cv)
-% Generates adjacency matrix for spectral DCM from Lyapunov exponents
+% Generate adjacency matrix for spectral DCM from Lyapunov exponents
 % FORMAT [Ep,Cp] = spm_dcm_fmri_mode_gen(Ev,modes,Cv)
 % Ev    - Lyapunov exponents or eigenvalues of effective connectivity
 % modes - modes or eigenvectors
@@ -10,10 +10,9 @@ function [Ep,Cp] = spm_dcm_fmri_mode_gen(Ev,modes,Cv)
 %
 % This routine computes the connecivity graph for spectral DCM (modes).
 %__________________________________________________________________________
-% Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_fmri_mode_gen.m 5823 2014-01-02 14:01:10Z guillaume $
+% Copyright (C) 2013-2022 Wellcome Centre for Human Neuroimaging
 
     
 % outer product

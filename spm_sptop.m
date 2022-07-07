@@ -6,7 +6,7 @@ function [K] = spm_sptop(sigma,q,c)
 % q     - order of matrix
 % c     - kernel index at t = 0 {default c = length(sigma)/2) 
 % K     - q x q sparse convolution matrix
-%_______________________________________________________________________
+%__________________________________________________________________________
 %
 % Returns a q x q sparse convolution matrix.  If sigma is a scalar then
 % a symmetrical Gaussian convolution matrix is returned with kernel width
@@ -16,20 +16,19 @@ function [K] = spm_sptop(sigma,q,c)
 %
 % Boundary handling: The row-wise sum of K is set to unity (kernel truncation)
 %
-%_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Karl Friston
-% $Id: spm_sptop.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 1996-2022 Wellcome Centre for Human Neuroimaging
 
 
 % if sigma = 0, return identity matrix; if q = 1, return 1.
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if ~any(sigma); K = speye(q); return; end
 if q == 1;      K = 1;        return; end
 
 % otherwise get kernel function
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if length(sigma) == 1
     E  = ceil(3*sigma);
     x  = [-E:E];
@@ -44,13 +43,13 @@ else
 end
 
 % and create convolution matrix
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 K  = k(:)*ones(1,q);
 j  = ones(length(k),1)*[1:q];
 i  = x(:)*ones(1,q) + j;
 
 % setting the row-wise sum to unity
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 Q  = find((i >= 1) & (i <= q));
 K  = sparse(i(Q),j(Q),K(Q));
 Q  = sum(K');

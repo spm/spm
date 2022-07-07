@@ -9,10 +9,9 @@ function D = spm_eeg_inv_forward(varargin)
 % Output:
 % D                - EEG/MEG struct with filenames of Gain matrices)
 %__________________________________________________________________________
-% Copyright (C) 2008-2018 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_forward.m 8275 2022-07-06 11:14:02Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Startup

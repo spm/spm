@@ -9,10 +9,9 @@ function [varargout] = spm_unvec(vX,varargin)
 %
 % See spm_vec
 %__________________________________________________________________________
-% Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_unvec.m 8154 2021-09-24 11:25:10Z karl $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 
 %error('spm_unvec.c not compiled - see Makefile')

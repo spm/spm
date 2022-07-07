@@ -1,6 +1,6 @@
 function [pE,C,x,pC] = spm_dcm_fmri_priors(A,B,C,D,options)
-% Returns the priors for a two-state DCM for fMRI.
-% FORMAT:[pE,pC,x,vC] = spm_dcm_fmri_priors(A,B,C,D,options)
+% Return the priors for a two-state DCM for fMRI
+% FORMAT [pE,pC,x,vC] = spm_dcm_fmri_priors(A,B,C,D,options)
 %
 %   options.two_state:  (0 or 1) one or two states per region
 %   options.stochastic: (0 or 1) exogenous or endogenous fluctuations
@@ -25,10 +25,10 @@ function [pE,C,x,pC] = spm_dcm_fmri_priors(A,B,C,D,options)
 %    Breakspear M, Friston KJ. Nonlinear dynamic causal models for fMRI.
 %    Neuroimage 42:649-662, 2008.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_fmri_priors.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2010-2022 Wellcome Centre for Human Neuroimaging
+
 
 % number of regions
 %--------------------------------------------------------------------------
@@ -138,5 +138,3 @@ end
 % prior covariance matrix
 %--------------------------------------------------------------------------
 C  = diag(spm_vec(pC));
-
-return

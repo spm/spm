@@ -1,5 +1,5 @@
 function [R, RPV] = spm_mesh_resels(M,T,S,ndf)
-% Returns the RESEL counts of a search volume on a surface mesh
+% Return the RESEL counts of a search volume on a surface mesh
 % FORMAT R = spm_mesh_resels(M,T,[S])
 % M        - a patch structure or [nx3] faces array (#faces = n)
 % T        - a [mx1] logical vector (#vertices = m) defining search volume
@@ -18,10 +18,10 @@ function [R, RPV] = spm_mesh_resels(M,T,S,ndf)
 %
 % [2] SurfStat: http://www.math.mcgill.ca/keith/surfstat/, K.J. Worsley.
 %__________________________________________________________________________
-% Copyright (C) 2010-2016 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_resels.m 6678 2016-01-14 18:23:33Z guillaume $
+% Copyright (C) 2010-2022 Wellcome Centre for Human Neuroimaging
+
 
 %-Parse input arguments
 %--------------------------------------------------------------------------

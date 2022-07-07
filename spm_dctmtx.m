@@ -26,10 +26,9 @@ function [C,D] = spm_dctmtx(N,K,n,f)
 % Reference:
 % Fundamentals of Digital Image Processing (p 150-154). Anil K. Jain, 1989.
 %__________________________________________________________________________
-% Copyright (C) 1996-2015 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dctmtx.m 8000 2020-11-03 19:04:17Z karl $
+% Copyright (C) 1996-2022 Wellcome Centre for Human Neuroimaging
 
 
 % Kroneckor form for n-dimensional DCTs

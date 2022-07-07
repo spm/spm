@@ -1,6 +1,6 @@
 /*
- * $Id: spm_dilate_erode.c 4569 2011-11-23 16:11:30Z guillaume $
  * Jesper Andersson
+ * Copyright (C) 2003-2022 Wellcome Centre for Human Neuroimaging
  */
 
 #include <string.h>

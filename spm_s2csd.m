@@ -1,5 +1,5 @@
 function [G,w] = spm_s2csd(s,Hz)
-% Converts eigenspectrum to cross spectral density
+% Convert eigenspectrum to cross spectral density
 % FORMAT [csd,Hz] = spm_s2csd(s,Hz)
 %
 % s    (m x 1}        - eigenspectrum
@@ -7,10 +7,9 @@ function [G,w] = spm_s2csd(s,Hz)
 %
 % csd  (n,m)          - spectral density (of modes)
 %__________________________________________________________________________
-% Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_s2csd.m 5922 2014-03-18 20:10:17Z karl $
+% Copyright (C) 2012-2022 Wellcome Centre for Human Neuroimaging
  
 
 % frequencies of interest
@@ -31,4 +30,3 @@ for i = 1:length(s)
     G(:,i) = S.*conj(S);
     
 end
-

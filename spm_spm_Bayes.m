@@ -62,10 +62,9 @@ function [SPM] = spm_spm_Bayes(SPM)
 % using voxel-wise GLM-AR models that are spatially regularised
 % using the VB framework. This is implemented using spm_spm_vb.m.
 %__________________________________________________________________________
-% Copyright (C) 2002-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_spm_Bayes.m 7793 2020-02-25 16:21:26Z guillaume $
+% Copyright (C) 2002-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Say hello

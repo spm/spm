@@ -1,7 +1,6 @@
 function spm_dcm_HMM_plot(HMM,s)
+% Plot the results of a hidden Markov model of state transitions in the DCM
 % FORMAT spm_dcm_HMM_plot(HMM,s)
-% subroutine for potting the results of a hidden Markov model of state
-% transitions in the DCM
 % 
 % HMM(s)
 %     HMM(s).X  - posterior expectation of hidden states
@@ -18,12 +17,12 @@ function spm_dcm_HMM_plot(HMM,s)
 % s  -  index of HMM structure (number of hidden states)
 %       [default: HMM(end)]
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_HMM_plot.m 7580 2019-05-01 12:48:04Z karl $
+% Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
 
-%  preliminaries: get the hidden Markov model to report
+
+% preliminaries: get the hidden Markov model to report
 %--------------------------------------------------------------------------
 spm_figure('Getwin','HMM'); clf
 if nargin < 2, s = length(HMM); end

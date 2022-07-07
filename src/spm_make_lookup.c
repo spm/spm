@@ -1,6 +1,6 @@
 /*
- * $Id: spm_make_lookup.c 8183 2021-11-04 15:25:19Z guillaume $
  * John Ashburner
+ * Copyright (C) 1997-2022 Wellcome Centre for Human Neuroimaging
  */
 
 /* Generate a lookup table for Lagrange interpolation
@@ -396,4 +396,3 @@ void make_lookup_sinc_grad(double coord, int q, int dim, int *d1, double *table,
     }
     */
 }
-

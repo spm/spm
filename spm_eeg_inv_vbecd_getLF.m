@@ -1,8 +1,8 @@
 function [gmn, gm, dgm] = spm_eeg_inv_vbecd_getLF(s, sens, vol, step) 
 % Estimation of the leadfield matrix and its spatial derivative if required 
 % for a set of dipoles used in the VB-ECD solution
-%% scales non-eeg data up by a fixed factor (1e8) for compatibility of
-%% units
+% Scales non-eeg data up by a fixed factor (1e8) for compatibility of
+% units
 %
 % FORMAT [gmn, gm, dgm] = spm_eeg_inv_vbecd_getLF(s, sens, vol, step)
 % 
@@ -15,10 +15,9 @@ function [gmn, gm, dgm] = spm_eeg_inv_vbecd_getLF(s, sens, vol, step)
 % gm     - vectorized leadfields
 % dgm    - vectorized partials wrt locations
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips & Stefan Kiebel
-% $Id: spm_eeg_inv_vbecd_getLF.m 3833 2010-04-22 14:49:48Z vladimir $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 %%% now does rank reduction (to 2) for non eeg data
@@ -53,7 +52,7 @@ if nargout >= 2
 end
 
 
-if all(step > 0) && nargout == 3,
+if all(step > 0) && nargout == 3
 %     if isempty(step),
 %         step=randn(size(s));
 %     end; % if isempty
@@ -89,4 +88,3 @@ if all(step > 0) && nargout == 3,
     dgm = dgm(:, ind(:));
     dgm = reshape(dgm, Np*Nc, Np);    
 end
-

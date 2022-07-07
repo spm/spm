@@ -21,10 +21,9 @@ function [C] = spm_Ce(t,v,a)
 %
 % See also: spm_Q.m
 %__________________________________________________________________________
-% Copyright (C) 2000-2017 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_Ce.m 7203 2017-11-08 12:49:15Z guillaume $
+% Copyright (C) 2000-2022 Wellcome Centre for Human Neuroimaging
  
  
 %-Defaults (and backward compatibility with spm_Ce(v,a) == spm_Ce('ar',v,a))

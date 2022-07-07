@@ -9,10 +9,10 @@ function spm_plot_convergence(action,varargin)
 % FORMAT spm_plot_convergence('Clear')
 % Clear the 'Interactive' window.
 %__________________________________________________________________________
-% Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_plot_convergence.m 7112 2017-06-16 11:30:37Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 if ~nargin, action = 'Init'; end
 

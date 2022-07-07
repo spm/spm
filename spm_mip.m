@@ -33,10 +33,10 @@ function mip = spm_mip(Z,XYZ,M,units)
 % If M is not specified, it is assumed the XYZ locations are 
 % in Talairach mm.
 %__________________________________________________________________________
-% Copyright (C) 1996-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_mip.m 7654 2019-08-25 20:09:35Z karl $
+% Copyright (C) 1996-2022 Wellcome Centre for Human Neuroimaging
+
 
 %-Get units and grid scaling
 %--------------------------------------------------------------------------

@@ -22,10 +22,9 @@ function S = spm_mesh_contour(M,mat)
 %   end
 % end
 %__________________________________________________________________________
-% Copyright (C) 2017-2019 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_contour.m 7618 2019-06-17 12:29:46Z guillaume $
+% Copyright (C) 2017-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Input and output arguments

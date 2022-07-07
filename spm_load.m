@@ -8,10 +8,9 @@ function x = spm_load(f,v,hdr)
 %
 % x   - corresponding data array or structure
 %__________________________________________________________________________
-% Copyright (C) 1995-2020 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_load.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 1995-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Get a filename if none was passed

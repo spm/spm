@@ -1,5 +1,5 @@
 function [f] = spm_lotka_volterra(x,v,P)
-% equations of motion for Lotka-Volterra dynamics
+% Equations of motion for Lotka-Volterra dynamics
 % FORMAT [f] = spm_lotka_volterra(x,v,P)
 % FORMAT [f] = spm_lotka_volterra(x,v)
 % FORMAT [P] = spm_lotka_volterra(n)
@@ -14,12 +14,10 @@ function [f] = spm_lotka_volterra(x,v,P)
 % where P determines the order of unstable fixed points visited in the
 % stable heteroclinic channel. If P is not specified it will be computed
 % using v. If x is a scalar a matrix of size x (P) is returned (with v = 1).
-%
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_lotka_volterra.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2009-2022 Wellcome Centre for Human Neuroimaging
 
 
 % initialise
@@ -45,5 +43,3 @@ end
 % flow
 %==========================================================================
 f   = P*(1./(1 + exp(-x))) - x/8 + 1;
-    
-

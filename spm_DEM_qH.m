@@ -1,6 +1,6 @@
 function spm_DEM_qH(qH,pH)
-% reports on conditional estimates of hyperparameters
-% FORMAT spm_DEM_qH(qH,pH);
+% Report on conditional estimates of hyperparameters
+% FORMAT spm_DEM_qH(qH,pH)
 %
 % qH.h    - conditional estimate of log-precision (causes)
 % qH.g    - conditional of log-precision (state)
@@ -12,11 +12,11 @@ function spm_DEM_qH(qH,pH)
 %
 % pH      - option true log-precisions
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM_qH.m 4052 2010-08-27 19:22:44Z karl $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
  
+
 % unpack conditional covariances
 %--------------------------------------------------------------------------
 try, qH = qH.qH; end

@@ -1,13 +1,14 @@
 function model = spm_dcm_identify(DCM)
-% Identify the type of DCM. Return an empty string if unknown.
+% Identify the type of DCM. Return an empty string if unknown
 %
 % DCM   - the model to evaluate
 %
 % model - a string identifying the modality
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
-%
-% $Id: spm_dcm_identify.m 6735 2016-03-02 15:40:47Z peter $
+
+% Peter Zeidman
+% Copyright (C) 2016 Wellcome Centre for Human Neuroimaging
+
 
 if ischar(DCM)
     DCM = load(DCM);

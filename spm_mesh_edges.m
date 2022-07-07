@@ -6,10 +6,9 @@ function [E,L] = spm_mesh_edges(M)
 % E        - a [mx2] edges array 
 % L        - a [m,1] edge length vector
 %__________________________________________________________________________
-% Copyright (C) 2010-2021 Wellcome Centre for Human Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_edges.m 8083 2021-03-18 18:52:59Z guillaume $
+% Copyright (C) 2010-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Parse input arguments

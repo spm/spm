@@ -24,11 +24,10 @@ function Vi = spm_get_vc(I,factor)
 % and is more general, because it can cope with different number of
 % observations under different levels of a factor.
 %__________________________________________________________________________
-% Copyright (C) 2006 Freiburg Brain Imaging 
-% Copyright (C) 2008-2013 Wellcome Trust Centre for Neuroimaging
  
 % Volkmar Glauche
-% $Id: spm_get_vc.m 5293 2013-03-01 16:41:46Z guillaume $
+% Copyright (C) 2006 Freiburg Brain Imaging
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
 
 %-Numbers of scans and factors

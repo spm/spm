@@ -1,5 +1,5 @@
 function [P,f] = spm_gn_fmin(fun,Q,C,varargin)
-% objective function minimisation using Gauss-Newton line searches
+% Objective function minimisation using Gauss-Newton line searches
 % FORMAT [P,F] = spm_gn_fmin(fun,Q,C,varargin)
 %
 % fun - function or inline function f - fun(P,varargin)
@@ -11,12 +11,11 @@ function [P,f] = spm_gn_fmin(fun,Q,C,varargin)
 %
 %--------------------------------------------------------------------------
 % spm_fmin is a slow but robust function minimiser that uses a Gauss-Newton
-% method and successive line searches
+% method and successive line searches.
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_gn_fmin.m 6654 2015-12-22 12:55:36Z spm $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
  
  
 % stochastic search

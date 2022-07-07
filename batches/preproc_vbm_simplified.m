@@ -3,10 +3,9 @@
 % Need to specify:
 % * Structural images for all subjects
 %__________________________________________________________________________
-% Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Ged Ridgway
-% $Id: preproc_vbm_simplified.m 6177 2014-09-16 10:44:55Z guillaume $
+% Copyright (C) 2014-2022 Wellcome Centre for Human Neuroimaging
 
 if exist('preproc_vbm_simplified', 'file') && ~isdeployed
     help preproc_vbm_simplified

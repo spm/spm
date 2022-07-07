@@ -29,10 +29,9 @@ function [images, outroot] = spm_eeg_convert2images(S)
 % output:
 %   images     - list of generated image files or objects
 %__________________________________________________________________________
-% Copyright (C) 2005-2017 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, James Kilner, Stefan Kiebel
-% $Id: spm_eeg_convert2images.m 8275 2022-07-06 11:14:02Z guillaume $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Startup

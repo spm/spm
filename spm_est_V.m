@@ -6,11 +6,11 @@ function [h] = spm_est_V(SPM,c)
 %
 % h      - hyperparameter estimates
 %__________________________________________________________________________
-% Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_est_V.m 6958 2016-12-03 12:30:53Z karl $
- 
+% Copyright (C) 2012-2022 Wellcome Centre for Human Neuroimaging
+
+
 % get data and model
 %==========================================================================
 spm_figure('GetWin','Figure');
@@ -127,7 +127,7 @@ legend({'ideal','unwhitened','whitened'})
  
 % correlation functions
 %--------------------------------------------------------------------------
-for i = 1:size(g,2);
+for i = 1:size(g,2)
     f      = ifft(g(:,i));
     r(:,i) = real(fftshift(f));
 end
@@ -200,5 +200,3 @@ res   = Y - sig;
 res   = spm_phase_shuffle(res);
 res   = spm_conv(randn(size(res)),2)*std(res(:));
 Y     = sig + res;
-
-

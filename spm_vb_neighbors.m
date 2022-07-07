@@ -14,10 +14,10 @@ function vxyz = spm_vb_neighbors(xyz,vol)
 %          list) are N1, N2 and N3
 %
 %__________________________________________________________________________
-% Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny, Nelson Trujillo-Barreto and Lee Harrison
-% $Id: spm_vb_neighbors.m 6079 2014-06-30 18:25:37Z spm $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
+
 
 if nargin<2
     vol = 0;
@@ -26,13 +26,13 @@ end
 nearestneighbor = 1;
 N               = size(xyz,1);
 DIM             = max(xyz,[],1);
-if vol,
+if vol
     I               = sub2ind([DIM(1),DIM(2),DIM(3)],xyz(:,1),xyz(:,2),xyz(:,3));
     is              = zeros(DIM(1),DIM(2),DIM(3));
     is(I)           = 1:N; % index voxels in cluster
     [mm,nn,oo]      = deal(DIM(1)+2,DIM(2)+2,DIM(3)+2); % pad is
     iS              = zeros(mm,nn,oo);
-    for i = 1:DIM(3),
+    for i = 1:DIM(3)
         iS(2:DIM(1)+1,2:DIM(2)+1,i+1) = ones(DIM(1),DIM(2));
     end
     Ip          = find(iS);
@@ -69,7 +69,7 @@ end
 Nq          =   size(du,1);
 
 % edge set, from node k to node n
-for j = 1:Nq,
+for j = 1:Nq
     duj         = du(j,:)'; % vector of displacement on graph
     in          = d'*duj; % displacemnet index
     Q           = iS(p+in); % neighbouring nodes, zero if no neighbour

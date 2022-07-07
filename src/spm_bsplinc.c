@@ -1,6 +1,6 @@
 /*
- * $Id: spm_bsplinc.c 4624 2012-01-13 13:27:08Z john $
  * John Ashburner
+ * Copyright (C) 2001-2022 Wellcome Centre for Human Neuroimaging
  */
  
 /*

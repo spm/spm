@@ -14,10 +14,9 @@ function spm_clf(F)
 %
 % This is just a gateway to spm_figure('Clear',F).
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_clf.m 3899 2010-05-25 15:36:40Z guillaume $
+% Copyright (C) 1995-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Call spm_figure

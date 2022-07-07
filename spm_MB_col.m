@@ -1,12 +1,12 @@
 function [col,bol,msz] = spm_MB_col(n)
-% FORMAT [col,bol,msz] = spm_MB_col(n)
 % Return colours and marker size for number of partitions
+% FORMAT [col,bol,msz] = spm_MB_col(n)
 % n  - number of partitions
 %__________________________________________________________________________
-% Copyright (C) 2019-2020 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MB_col.m 7799 2020-03-12 17:23:14Z karl $
+% Copyright (C) 2019-2022 Wellcome Centre for Human Neuroimaging
+
 
 % Marker colour and size
 %--------------------------------------------------------------------------

@@ -1,5 +1,5 @@
 function DCM = spm_dcm_fmri_csd(P)
-% Estimates parameters of a DCM using cross spectral fMRI densities
+% Estimate parameters of a DCM using cross spectral fMRI densities
 % FORMAT DCM = spm_dcm_fmri_csd(DCM)
 %   DCM - DCM structure
 %
@@ -37,15 +37,13 @@ function DCM = spm_dcm_fmri_csd(P)
 %
 % see also: spm_dcm_estimate
 %__________________________________________________________________________
-% Copyright (C) 2013-2015 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_fmri_csd.m 8275 2022-07-06 11:14:02Z guillaume $
+% Copyright (C) 2013-2022 Wellcome Centre for Human Neuroimaging
 
 
 % Load DCM structure
 %--------------------------------------------------------------------------
-
 if isstruct(P)
     DCM = P;
     try, DCM.name; catch, DCM.name = sprintf('DCM_%s',date); end
@@ -309,5 +307,3 @@ DCM.version.DCM.revision = '';
 % and save
 %--------------------------------------------------------------------------
 save(P,'DCM','F','Ep','Cp', spm_get_defaults('mat.format'));
-
-return

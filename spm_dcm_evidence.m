@@ -13,10 +13,9 @@ function evidence = spm_dcm_evidence(DCM)
 %
 % All of the above are in units of NATS (not bits).
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_dcm_evidence.m 6856 2016-08-10 17:55:05Z karl $
+% Copyright (C) 2003-2022 Wellcome Centre for Human Neuroimaging
 
 
 % Only look at those parameters with non-zero posterior covariance

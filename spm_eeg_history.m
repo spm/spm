@@ -19,10 +19,10 @@ function H = spm_eeg_history(S)
 % course, the generated script can also be used as a template for a
 % slightly different analysis or for different subjects.
 %__________________________________________________________________________
-% Copyright (C) 2008-2015 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_history.m 7351 2018-06-18 15:10:01Z vladimir $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 try
     h = S.history;

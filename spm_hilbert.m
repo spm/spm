@@ -2,13 +2,12 @@ function [x] = spm_hilbert(xr)
 % Computes analytic signal
 % FORMAT [x] = spm_hilbert(xr)
 %
-% Returns analytic signal x = xr + i*xi such that 
-% xi is the Hilbert transform of real vector xr.
+% Returns analytic signal x = xr + i*xi such that xi is the Hilbert
+% transform of real vector xr.
 %__________________________________________________________________________
-% Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
  
 % Will Penny
-% $Id: spm_hilbert.m 4024 2010-07-28 18:43:19Z guillaume $
+% Copyright (C) 2009-2022 Wellcome Centre for Human Neuroimaging
 
 if ~isreal(xr)
   xr = real(xr);

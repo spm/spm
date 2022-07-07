@@ -7,10 +7,9 @@ function R = spm_mesh_to_grid(M, V, T)
 %
 % R        - interpolated data on grid defined by V
 %__________________________________________________________________________
-% Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Guillaume Flandin
-% $Id: spm_mesh_to_grid.m 4079 2010-10-07 11:41:54Z guillaume $
+% Copyright (C) 2010-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Precompute interpolation kernel and voxel grid

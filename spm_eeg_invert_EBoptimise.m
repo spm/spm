@@ -10,8 +10,6 @@ function [F,M,Cq,Cp,QE,Qp] = spm_eeg_invert_EBoptimise(AY,UL,opttype,Qp,Qe,Qe0)
 % Qe0 floor of noise power to signal power (posteiror estimate of sensor noise will always be at
 % least this big)
 % opttype- how to optimize 'ARD','GS' or 'REML'
-
-
 %% QE sensor noise posterior
 %% Cp source level posterior (source by source variance)
 %% F free energy
@@ -19,18 +17,14 @@ function [F,M,Cq,Cp,QE,Qp] = spm_eeg_invert_EBoptimise(AY,UL,opttype,Qp,Qe,Qe0)
 %% Cq conditional variance
 %% F free energy
 %% Qp contains the posterior in same form as prior
-
-% Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Gareth Barnes
-% $Id: spm_eeg_invert_EBoptimise.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
-
-if ~iscell(Qe),
+if ~iscell(Qe)
     Qe={Qe};
-end;
-
-
+end
 
 AYYA=AY*AY'; %% covariance over trials
 Q0          = Qe0*trace(AYYA)*Qe{1}; %% fixed (min) level of sensor space variance

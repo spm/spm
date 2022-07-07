@@ -7,13 +7,10 @@ function D = spm_eeg_spatial_confounds(S)
 %   D        - MEEG object or filename of M/EEG mat-file with epoched data
 %   mode     - method for definition of the confounds (EYES, BESA, SVD,
 %              SPMEEG, CLEAR)
-%
-%
-% _______________________________________________________________________
-% Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Vladimir Litvak
-% $Id: spm_eeg_spatial_confounds.m 8275 2022-07-06 11:14:02Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Startup

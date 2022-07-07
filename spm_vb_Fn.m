@@ -14,10 +14,10 @@ function [F,L,KL] = spm_vb_Fn(Y,block)
 % KL.alpha   - Scalar
 % KL.beta    - Scalar
 %__________________________________________________________________________
-% Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_vb_Fn.m 6079 2014-06-30 18:25:37Z spm $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
+
 
 T  = block.T;
 p  = block.p;

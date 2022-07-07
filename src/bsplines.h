@@ -1,6 +1,6 @@
 /*
- * $Id: bsplines.h 7686 2019-11-06 13:18:06Z guillaume $
  * John Ashburner
+ * Copyright (C) 2001-2022 Wellcome Centre for Human Neuroimaging
  */
  
 #ifdef IMAGE_SINGLE
@@ -20,4 +20,3 @@ IMAGE_DTYPE dsample3(IMAGE_DTYPE c[], int m0, int m1, int m2,
     IMAGE_DTYPE x0, IMAGE_DTYPE x1, IMAGE_DTYPE x2,
     int d[], IMAGE_DTYPE *pg0, IMAGE_DTYPE *pg1, IMAGE_DTYPE *pg2,
     int (*bnd[])());
-

@@ -1,5 +1,5 @@
 function C = spm_dftmtx(N,K,a)
-% Creates basis functions for Discrete Cosine Transform.
+% Create basis functions for Discrete Cosine Transform
 % FORMAT C = spm_dftmtx(N,K,a)
 %
 % N - dimension
@@ -12,10 +12,9 @@ function C = spm_dftmtx(N,K,a)
 % See:    Fundamentals of Digital Image Processing (p 150-154).
 %         Anil K. Jain 1989.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dftmtx.m 4170 2011-01-24 18:37:42Z karl $
+% Copyright (C) 2011-2022 Wellcome Centre for Human Neuroimaging
  
  
 % initialise

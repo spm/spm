@@ -8,10 +8,10 @@ function D = spm_mesh_distmtx(M,order)
 %
 % D        - distance matrix
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_distmtx.m 4035 2010-08-05 18:54:32Z guillaume $
+% Copyright (C) 2009-2022 Wellcome Centre for Human Neuroimaging
+
 
 if nargin < 2, order = 1; end
 

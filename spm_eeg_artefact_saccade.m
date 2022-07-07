@@ -20,10 +20,9 @@ function res = spm_eeg_artefact_saccade(S)
 % retinal image slip. Proceedings of the National Academy of Sciences of
 % the United States of America, 103: 7192-7197. 
 %__________________________________________________________________________
-% Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
 
 % Markus Bauer, Laurence Hunt
-% $Id: spm_eeg_artefact_saccade.m 8275 2022-07-06 11:14:02Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-This part if for creating a config branch that plugs into spm_cfg_eeg_artefact

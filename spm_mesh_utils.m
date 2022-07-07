@@ -13,10 +13,10 @@ function varargout = spm_mesh_utils(action,varargin)
 % FORMAT V = spm_mesh_utils('volume',M)
 % Compute the volume of a closed surface mesh
 %__________________________________________________________________________
-% Copyright (C) 2010-2017 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_utils.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2010-2022 Wellcome Centre for Human Neuroimaging
+
 
 %-This is merely the help file for the compiled routine
 error('spm_mesh_utils.c not compiled - see Makefile')

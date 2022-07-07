@@ -3,10 +3,9 @@ function spm_mvb_display(MVB)
 % FORMAT spm_mvb_display(MVB)
 % MVB  - multivariate Bayes structure, select one if not provided
 %__________________________________________________________________________
-% Copyright (C) 2007-2017 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mvb_display.m 7162 2017-08-30 11:47:07Z guillaume $
+% Copyright (C) 2007-2022 Wellcome Centre for Human Neuroimaging
  
 
 if ~nargin

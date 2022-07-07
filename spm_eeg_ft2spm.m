@@ -1,11 +1,11 @@
 function D = spm_eeg_ft2spm(ftdata, filename)
-% Converter from Fieldtrip (http://www.ru.nl/fcdonders/fieldtrip/)
-% data structures to SPM file format
-%_______________________________________________________________________
-% Copyright (C) 2008-2013 Wellcome Trust Centre for Neuroimaging
+% Converter from FieldTrip data structures to SPM file format
+% FORMAT D = spm_eeg_ft2spm(ftdata, filename)
+%__________________________________________________________________________
 
 % Vladimir Litvak
-% $Id: spm_eeg_ft2spm.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 isTF = 0;
 

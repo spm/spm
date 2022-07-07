@@ -1,5 +1,5 @@
 function [y] = spm_int_ode(P,M,U)
-% integrates a MIMO nonlinear system (using classical ODE solvers)
+% Integrate a MIMO nonlinear system (using classical ODE solvers)
 % FORMAT [y] = spm_int_ode(P,M,U)
 % P   - model parameters
 % M   - model structure
@@ -57,10 +57,9 @@ function [y] = spm_int_ode(P,M,U)
 % sparse sampling of the solution and delays in observing outputs
 %
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_int_ode.m 5219 2013-01-29 17:07:07Z spm $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % convert U to U.u if necessary

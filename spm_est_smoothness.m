@@ -50,10 +50,9 @@ function [FWHM,VRpv,R] = spm_est_smoothness(V,VM,ndf)
 % Nonstationary cluster-size inference with random field and permutation
 % methods. NeuroImage, 22:676-687, 2004.
 %__________________________________________________________________________
-% Copyright (C) 2002-2015 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Tom Nichols
-% $Id: spm_est_smoothness.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2002-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Assign input arguments

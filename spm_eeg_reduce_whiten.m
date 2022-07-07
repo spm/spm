@@ -12,11 +12,10 @@ function res = spm_eeg_reduce_whiten(S)
 %
 %   If input is provided:
 %      montage struct implementing data whitening
-%______________________________________________________________________________________
-% Copyright (C) 2021 Wellcome Centre for Human Neuroimaging
+%__________________________________________________________________________
 
 % Vladimir Litvak
-% $Id: spm_eeg_reduce_whiten.m 8059 2021-02-10 12:35:02Z vladimir $
+% Copyright (C) 2021-2022 Wellcome Centre for Human Neuroimaging
 
 
 if nargin == 0

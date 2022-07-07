@@ -10,10 +10,9 @@ function SPM = spm_vb_contrasts(SPM,XYZ,xCon,ic)
 % Get approximate posterior covariance for given contrast ic using 
 % Taylor-series approximation
 %__________________________________________________________________________
-% Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_vb_contrasts.m 5160 2012-12-21 16:58:38Z guillaume $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
         
 %-Get number of sessions, beta's and voxels

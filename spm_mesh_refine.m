@@ -12,10 +12,9 @@ function M = spm_mesh_refine(M)
 % (R. S. Stepleman, ed.), North-Holland (1983), 3-17.
 % https://ccom.ucsd.edu/~reb/reports/a23.pdf.gz
 %__________________________________________________________________________
-% Copyright (C) 2018-2019 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_refine.m 7514 2019-01-16 16:18:52Z guillaume $
+% Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
 
 
 V  = M.vertices;

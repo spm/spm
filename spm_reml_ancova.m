@@ -28,10 +28,9 @@ function [F,df,xX,xCon,beta,V] = spm_reml_ancova(y,P,Fc)
 % estimators of the hyperparamters.
 % If Fc has only one column a T statistic is returned,
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_reml_ancova.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % get ReML hyperparameter estimates

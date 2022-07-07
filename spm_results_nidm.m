@@ -20,10 +20,9 @@ function [nidmfile, prov] = spm_results_nidm(SPM,xSPM,TabDat,opts)
 % PROV-DM: The PROV Data Model:
 %   http://www.w3.org/TR/prov-dm/
 %__________________________________________________________________________
-% Copyright (C) 2013-2017 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_results_nidm.m 8275 2022-07-06 11:14:02Z guillaume $
+% Copyright (C) 2013-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Get input parameters, interactively if needed

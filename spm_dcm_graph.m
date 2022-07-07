@@ -5,10 +5,9 @@ function spm_dcm_graph(xY,A)
 %         or ECD locations xY.Lpos and xY.Sname (EEG)
 % A     - connections of weighted directed graph
 %__________________________________________________________________________
-% Copyright (C) 2010-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_graph.m 6012 2014-05-22 18:21:41Z guillaume $
+% Copyright (C) 2010-2022 Wellcome Centre for Human Neuroimaging
 
 
 % get dimensions, locations and names

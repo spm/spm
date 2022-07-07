@@ -7,10 +7,9 @@ function M = spm_mesh_cube
 % Return a triangle mesh of a unit cube (sides of 1 unit long).
 % See https://www.wikipedia.org/wiki/Unit_cube
 %__________________________________________________________________________
-% Copyright (C) 2022 Wellcome Centre for Human Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_cube.m 8230 2022-03-03 17:50:45Z guillaume $
+% Copyright (C) 2022 Wellcome Centre for Human Neuroimaging
 
 
 M.vertices = [...

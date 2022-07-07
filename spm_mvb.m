@@ -66,10 +66,10 @@ function model = spm_mvb(X,Y,X0,U,V,nG,sG)
 % Friston KJ, Frith CD, Frackowiak RS, Turner R.
 % Neuroimage. 1995 Jun;2(2):166-72.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mvb.m 7679 2019-10-24 15:54:07Z spm $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
  
 % defaults (use splits +/- one standard deviation by default)
 %--------------------------------------------------------------------------

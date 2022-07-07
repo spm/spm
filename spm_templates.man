@@ -555,7 +555,6 @@
 % The images were converted from the .img format of SPM99 to resolve
 % confusion about left- versus right-handedness of co-ordinate systems.
 % _________________________________________________________________________
-% Copyright (C) 1991,1994-2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_templates.man 5990 2014-05-16 16:50:07Z john $
+% Copyright (C) 1991,1994-2022 Wellcome Centre for Human Neuroimaging

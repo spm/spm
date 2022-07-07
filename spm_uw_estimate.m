@@ -80,10 +80,9 @@ function ds = spm_uw_estimate(P,par)
 % .SS          - Sum of squared errors for each iteration.
 %
 %__________________________________________________________________________
-% Copyright (C) 2003-2011 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson
-% $Id: spm_uw_estimate.m 8275 2022-07-06 11:14:02Z guillaume $
+% Copyright (C) 2003-2022 Wellcome Centre for Human Neuroimaging
 
 % This is a major rewrite which uses some new ideas to speed up
 % the estimation of the field. The time consuming part is the
@@ -918,4 +917,3 @@ omsk = omsk(3:end-2,3:end-2,3:end-2);
 omsk = omsk(:);
 return
 %_______________________________________________________________________
-

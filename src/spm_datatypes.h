@@ -1,6 +1,6 @@
-/* 
- * $Id: spm_datatypes.h 7932 2020-08-18 11:05:19Z john $
+/*
  * John Ashburner
+ * Copyright (C) 1999-2022 Wellcome Centre for Human Neuroimaging
  */
 
 /* SPM image data types */

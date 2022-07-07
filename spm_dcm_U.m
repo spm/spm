@@ -20,10 +20,9 @@ function DCM = spm_dcm_U(DCM,SPM,sess,inputs)
 % subject Y's. The model can then be re-estimated without having to go
 % through model specification again.
 %__________________________________________________________________________
-% Copyright (C) 2003-2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Klaas Enno Stephan
-% $Id: spm_dcm_U.m 7654 2019-08-25 20:09:35Z karl $
+% Copyright (C) 2003-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Load DCM and SPM files

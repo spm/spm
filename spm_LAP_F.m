@@ -1,6 +1,6 @@
 function [L] = spm_LAP_F(q,qu,qp,qh,pu,pp,ph,M)
-% returns the Gibbs energy (L) as a function of contitional means
-% FORMAT [L] = spm_LAP_F(q,qu,qp,qh,M)
+% Return the Gibbs energy (L) as a function of contitional means
+% FORMAT [L] = spm_LAP_F(q,qu,qp,qh,pu,pp,ph,M)
 %
 %     q.x: {nx1 cell}
 %     q.v: {dx1 cell}
@@ -11,10 +11,10 @@ function [L] = spm_LAP_F(q,qu,qp,qh,pu,pp,ph,M)
 % for an m-level hierarchy
 % See spm_LAP
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_LAP_F.m 3694 2010-01-22 14:16:51Z karl $
+% Copyright (C) 2010-2022 Wellcome Centre for Human Neuroimaging
+
 
 % Place conditional expecations in qu, qp, qh
 %--------------------------------------------------------------------------

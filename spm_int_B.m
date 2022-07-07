@@ -56,10 +56,9 @@ function [y] = spm_int_B(P,M,U)
 % sparse sampling of the solution and delays in observing outputs. It is
 % used primarily for integrating fMRI models
 %___________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_int_B.m 5219 2013-01-29 17:07:07Z spm $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
  
 % convert U to U.u if necessary

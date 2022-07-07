@@ -1,6 +1,6 @@
 function [Y,x,DCM] = spm_dcm_generate(syn_model,SNR,show_graphics)
 % Generate synthetic data from a DCM specification
-% FORMAT [Y,x,DCM] = spm_dcm_generate(syn_model,SNR)
+% FORMAT [Y,x,DCM] = spm_dcm_generate(syn_model,SNR,show_graphics)
 % 
 % syn_model     - Name of synthetic DCM file
 % SNR           - Signal to noise ratio [default: 1]
@@ -19,10 +19,10 @@ function [Y,x,DCM] = spm_dcm_generate(syn_model,SNR,show_graphics)
 % DCM         - Full generative model
 %
 %__________________________________________________________________________
-% Copyright (C) 2002-2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Klaas Enno Stephan
-% $Id: spm_dcm_generate.m 6716 2016-02-08 18:21:37Z peter $
+% Copyright (C) 2002-2022 Wellcome Centre for Human Neuroimaging
+
 
 % Check parameters and load specified DCM
 %--------------------------------------------------------------------------
@@ -142,7 +142,7 @@ if spm('CmdLine') || ~show_graphics, return; end
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Simulated BOLD time series');
 t     = Y.dt*[1:1:v];
-for i = 1:n,
+for i = 1:n
     subplot(n,1,i);
     plot(t,Y.y(:,i));
     title(sprintf('Region %s', Y.name{i}));
@@ -153,11 +153,10 @@ xlabel('secs');
 spm_figure('GetWin','Simulated Neuronal Activity');
 
 t     = Y.dt*[1:1:v];
-for i = 1:n,
+for i = 1:n
     subplot(n,1,i);
     plot(t,x(:,i));
     title(sprintf('Region %s', Y.name{i}));
-    if i<n set(gca,'XTickLabel',[]); end
+    if i<n, set(gca,'XTickLabel',[]); end
 end
 xlabel('secs');
-

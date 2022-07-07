@@ -83,10 +83,9 @@ function P = spm_realign(P,flags)
 % RSJ (1995) Spatial registration and normalization of images Hum. Brain
 % Map. 2:165-189
 %__________________________________________________________________________
-% Copyright (C) 1994-2017 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_realign.m 8275 2022-07-06 11:14:02Z guillaume $
+% Copyright (C) 1994-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Say hello

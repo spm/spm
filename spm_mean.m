@@ -12,10 +12,9 @@ function spm_mean(P)
 %
 % This is not a "softmean" - zero voxels are treated as zero.
 %__________________________________________________________________________
-% Copyright (C) 1998-2014 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner, Andrew Holmes
-% $Id: spm_mean.m 8275 2022-07-06 11:14:02Z guillaume $
+% Copyright (C) 1998-2022 Wellcome Centre for Human Neuroimaging
 
 
 persistent runonce
@@ -26,7 +25,7 @@ end
 
 %-Say hello
 %--------------------------------------------------------------------------
-SPMid = spm('FnBanner',mfilename);
+spm('FnBanner',mfilename);
 
 %-Select images & check dimensions, orientations and voxel sizes
 %--------------------------------------------------------------------------

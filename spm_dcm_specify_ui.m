@@ -21,10 +21,9 @@ function DCM = spm_dcm_specify_ui(SPM,xY,settings)
 %
 % DCM      - DCM structure (see spm_dcm_ui)
 %__________________________________________________________________________
-% Copyright (C) 2002-2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_specify_ui.m 8263 2022-06-10 09:42:41Z peter $
+% Copyright (C) 2002-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Interactive window

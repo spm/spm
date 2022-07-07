@@ -21,10 +21,9 @@ function res = spm_eeg_specest_morlet(S, data, time)
 %      res.time    - time axis
 %      res.freq    - frequency axis
 %__________________________________________________________________________
-% Copyright (C) 2010-2017 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_specest_morlet.m 7129 2017-07-04 16:24:53Z guillaume $
+% Copyright (C) 2010-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-This part if for creating a config branch that plugs into spm_cfg_eeg_tf

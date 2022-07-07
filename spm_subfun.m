@@ -7,10 +7,10 @@ function varargout = spm_subfun(varargin)
 % of this is used to match the action string with the name of each local
 % function to see which of them to call.
 %__________________________________________________________________________
-% Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % John Ashburner
-% $Id: spm_subfun.m 8259 2022-06-01 12:35:54Z john $
+% Copyright (C) 2020-2022 Wellcome Centre for Human Neuroimaging
+
 
 if nargin <= 1
     [varargout{1:nargout}] = import(varargin{1:nargin});

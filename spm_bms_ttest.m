@@ -1,6 +1,6 @@
-function [logbf,t] = spm_bms_ttest (y,prior)
+function [logbf,t] = spm_bms_ttest(y,prior)
 % Log Bayes Factor against null for one sample t-test
-% FORMAT [logbf,t] = spm_bms_ttest (y,prior)
+% FORMAT [logbf,t] = spm_bms_ttest(y,prior)
 % 
 % y         [N x 1] data vector
 % prior     'jzs' (default), 'unit'
@@ -17,11 +17,10 @@ function [logbf,t] = spm_bms_ttest (y,prior)
 %
 % The (Jeffreys-Zellner-Snow) JZS prior, 'jzs', uses a Cauchy over d 
 % and an inverse chi^2 over sig_d^2.
-%_______________________________________________________________________
-% Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Will Penny
-% $Id: spm_bms_ttest.m 6038 2014-06-04 15:22:42Z will $
+% Copyright (C) 2014-2022 Wellcome Centre for Human Neuroimaging
 
 try 
     pr=prior;
@@ -36,15 +35,14 @@ sem=s/sqrt(N);
 t=m/sem;
 v=N-1;
 
-switch pr,
-    case 'unit',
+switch pr
+    case 'unit'
         rs=1;
-    case 'jzs',
+    case 'jzs'
         logbf = jzs_logbf(t,v,N);
         return
     otherwise
-        disp('Unknown prior in bayes_ttest');
-        return
+        error('Unknown prior in spm_bms_ttest');
 end
 
 % For Unit Information prior, 'unit':
@@ -64,7 +62,7 @@ logbf=log_num-log_denom1-log_denom2;
 logbf=-logbf;
 
 
-%-------------------------------------------------------
+%==========================================================================
 function [logbf] = jzs_logbf(t,v,N)
 % JZS Log Bayes factor 
 %
@@ -80,7 +78,8 @@ denom=quad(@(g)jzs_integrand(g,t2,N,v),0,gmax);
 logbf=log(num/denom);
 logbf=-logbf;
 
-%--------------------------------------------------------
+
+%==========================================================================
 function [j] = jzs_integrand(g,t2,N,v)
 
 ng=1+N*g;

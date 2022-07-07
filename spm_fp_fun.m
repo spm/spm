@@ -1,5 +1,5 @@
 function [y] = spm_fp_fun(P,M,U)
-% returns the predicted diffusion for Fokker Planck optimisation
+% Return the predicted diffusion for Fokker Planck optimisation
 % FORMAT [y] = spm_fp_fun(P,M,U)
 %
 % P = spm_vec(P)
@@ -12,11 +12,11 @@ function [y] = spm_fp_fun(P,M,U)
 %
 % y   - prediction
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fp_fun.m 2030 2008-09-02 18:28:40Z karl $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
  
+
 % default: first level of hierarchical model
 %--------------------------------------------------------------------------
 M   = M(1);
@@ -39,6 +39,3 @@ for i = 1:N
     dpdx   = spm_diff(M.fq,M.X(i,:),1);
     y(i,1) = trace(p*dfdx) + dpdx*f;
 end
-
-
-    

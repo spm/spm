@@ -9,10 +9,9 @@ function [C, N] = spm_mesh_label(M,opt)
 %            in M
 % N        - number of vertices per connected component
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_label.m 8211 2022-01-24 15:35:03Z guillaume $
+% Copyright (C) 2009-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Parse input arguments

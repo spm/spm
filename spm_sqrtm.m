@@ -3,13 +3,13 @@ function [K] = spm_sqrtm(V)
 % FORMAT [K] = spm_sqrtm(V)
 %
 % This routine covers and extends sqrtm functionality by using a
-% computationally expedient approximation that can handle sparse
-% symmetric positive semi-definite matrices.
+% computationally expedient approximation that can handle sparse symmetric
+% positive semi-definite matrices.
 %__________________________________________________________________________
-% Copyright (C) 2005-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_sqrtm.m 5892 2014-02-23 11:00:16Z karl $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
+
 
 %--------------------------------------------------------------------------
 [u,s] = spm_svd(V,0);

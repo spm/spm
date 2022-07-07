@@ -1,6 +1,6 @@
 /*
- * $Id: spm_voronoi.c 7532 2019-02-14 12:03:24Z guillaume $
  * Guillaume Flandin
+ * Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  */
 
 #include <math.h>

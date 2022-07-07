@@ -15,10 +15,10 @@ function [F,P] = spm_MH_reml(YY,X,Q,N,hE);
 %
 % This routine is using MCMC sampling (reverible Metropolis-Hastings)
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MH_reml.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2006-2022 Wellcome Centre for Human Neuroimaging
+
 
 % assume a single sample if not specified
 %--------------------------------------------------------------------------

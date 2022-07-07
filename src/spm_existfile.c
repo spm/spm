@@ -1,6 +1,6 @@
 /*
- * $Id: spm_existfile.c 6428 2015-05-06 14:09:04Z guillaume $
  * Guillaume Flandin
+ * Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  */
 
 #ifndef MATLAB_MEX_FILE

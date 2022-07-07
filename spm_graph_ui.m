@@ -65,10 +65,9 @@ function varargout = spm_graph_ui(action, varargin)
 %
 % is assigned in base workspace for plots of contrasts and their error.
 %__________________________________________________________________________
-% Copyright (C) 1996-2021 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Guillaume Flandin
-% $Id: spm_graph_ui.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 1996-2022 Wellcome Centre for Human Neuroimaging
 
 
 if nargin && ~ischar(action)

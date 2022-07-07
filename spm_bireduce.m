@@ -1,6 +1,6 @@
 function [M0,M1,L1,L2] = spm_bireduce(M,P)
-% reduction of a fully nonlinear MIMO system to Bilinear form
-% FORMAT [M0,M1,L1,L2] = spm_bireduce(M,P);
+% Reduction of a fully nonlinear MIMO system to Bilinear form
+% FORMAT [M0,M1,L1,L2] = spm_bireduce(M,P)
 %
 % M   - model specification structure
 % Required fields:
@@ -33,10 +33,9 @@ function [M0,M1,L1,L2] = spm_bireduce(M,P)
 %       dq/dt = M0*q + u(1)*M1{1}*q + u(2)*M1{2}*q + ....
 %        y(i) = L1(i,:)*q + q'*L2{i}*q/2;
 %__________________________________________________________________________
-% Copyright (C) 2001-2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_bireduce.m 7975 2020-10-06 14:46:56Z spm $
+% Copyright (C) 2000-2022 Wellcome Centre for Human Neuroimaging
 
 
 % set up

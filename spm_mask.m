@@ -18,10 +18,9 @@ function spm_mask(P1, P2, thresh)
 % Images sampled in different orientations and positions can be passed
 % to the routine.
 %__________________________________________________________________________
-% Copyright (C) 1999-2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_mask.m 8275 2022-07-06 11:14:02Z guillaume $
+% Copyright (C) 1999-2022 Wellcome Centre for Human Neuroimaging
 
 
 persistent runonce

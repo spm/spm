@@ -1,8 +1,6 @@
-/* 
- * Copyright (c) 2020 Wellcome Centre for Human Neuroimaging
+/*
  * John Ashburner, Mikael Brudfors & Yael Balbastre
- * $Id: spm_gmmlib.c 8058 2021-02-10 10:38:31Z guillaume $
- *
+ * Copyright (C) 2020-2022 Wellcome Centre for Human Neuroimaging
  */
 
 #include <math.h>

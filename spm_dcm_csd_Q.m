@@ -30,10 +30,9 @@ function Q = spm_dcm_csd_Q(csd)
 % Spectral Density Matrix. Journal of Time Series Analysis, 26(1), 37-48.
 % doi: 10.1111/j.1467-9892.2005.00389.x
 %__________________________________________________________________________
-% Copyright (C) 2018 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_csd_Q.m 7902 2020-07-16 14:26:52Z karl $
+% Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Check for cell arrays
@@ -63,4 +62,3 @@ for Qi  = 1:Qn
     end
 end
 Q       = inv(Q + norm(Q,1)*speye(size(Q))/32);
-

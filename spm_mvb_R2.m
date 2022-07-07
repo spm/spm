@@ -1,14 +1,13 @@
 function [R2,X,P] = spm_mvb_R2(MVB)
-% returns the proportion of variance explained by the (MVB) MAP estimates
+% Return the proportion of variance explained by the (MVB) MAP estimates
 % FORMAT [R2,X,P] = spm_mvb_R2(MVB)
 %
 % MVB - MVB structure
 % R2  - proportion of variance explained
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mvb_R2.m 4402 2011-07-21 12:37:24Z karl $
+% Copyright (C) 2011-2022 Wellcome Centre for Human Neuroimaging
  
 
 % MAP predictions

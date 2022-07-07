@@ -1,6 +1,6 @@
 /*
- * $Id: spm_mesh_utils.c 8078 2021-03-12 22:19:57Z guillaume $
  * Guillaume Flandin
+ * Copyright (C) 2010-2022 Wellcome Centre for Human Neuroimaging
  */
 
 #include <string.h>

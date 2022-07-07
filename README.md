@@ -120,5 +120,4 @@ supplied as is.  No formal support or maintenance is provided or implied.
 
 ```
 Copyright (C) 1991,1994-2022 Wellcome Centre for Human Neuroimaging
-$Id: README.md 8208 2022-01-12 11:10:09Z spm $
 ```

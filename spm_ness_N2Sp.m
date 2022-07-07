@@ -1,5 +1,5 @@
 function Sp = spm_ness_N2Sp(m,C,K)
-% converts a Gaussian density into polynomial potential parameters  
+% Convert a Gaussian density into polynomial potential parameters  
 % FORMAT Sp = spm_ness_N2Sp(m,C,[K])
 %--------------------------------------------------------------------------
 % m  - (Gaussian) mean
@@ -9,10 +9,10 @@ function Sp = spm_ness_N2Sp(m,C,K)
 % Sp - Polynomial coefficients or parameters of log density
 % n  - Dimensionality of state space
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ness_cond.m 8097 2021-04-24 20:28:27Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 % defaults
 %--------------------------------------------------------------------------
@@ -47,6 +47,3 @@ for i = 1:n
         end
     end
 end
-
-return
-

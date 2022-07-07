@@ -16,8 +16,7 @@ function varargout = spm_bsplins(varargin)
 % degree B-splines, and the derivatives of trilinear interpolation are
 % returned instead of those of 1st degree B-splines.  The difference is
 % extremely subtle.
-%
-%_______________________________________________________________________
+%__________________________________________________________________________
 %
 % References:
 %   M. Unser, A. Aldroubi and M. Eden.
@@ -36,13 +35,11 @@ function varargout = spm_bsplins(varargin)
 %   P. Thevenaz and T. Blu and M. Unser.
 %   "Interpolation Revisited"
 %   IEEE Transactions on Medical Imaging 19(7):739-758 (2000).
-%_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % John Ashburner
-% $Id: spm_bsplins.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2001-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-This is merely the help file for the compiled routine
 error('spm_bsplins.c not compiled - see Makefile');
-

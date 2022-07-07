@@ -1,14 +1,14 @@
 function [y,scale] = spm_cond_units(y,n)
-% Scales numeric arrays by a multiple of 10^n to avoid numerical overflow
+% Scale numeric arrays by a multiple of 10^n to avoid numerical overflow
 % FORMAT [y,scale] = spm_cond_units(y,n)
 %   y - y*scale;
 %   n - default 3
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_cond_units.m 6110 2014-07-21 09:36:13Z karl $
- 
+% Copyright (C) 2007-2022 Wellcome Centre for Human Neuroimaging
+
+
 % default n = 1
 %--------------------------------------------------------------------------
 if nargin < 2, n = 1; end

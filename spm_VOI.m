@@ -50,10 +50,9 @@ function [TabDat,xSVC] = spm_VOI(SPM,xSPM,hReg,xY)
 %
 % See also: spm_list
 %__________________________________________________________________________
-% Copyright (C) 1999-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_VOI.m 6080 2014-07-01 16:00:22Z guillaume $
+% Copyright (C) 1999-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Parse arguments

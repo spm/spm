@@ -7,10 +7,10 @@ function [m] = spm_multrnd(p,N)
 % 
 % m    - [N x 1] vector of samples, where each sample is number from 1 to M
 %__________________________________________________________________________
-% Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_multrnd.m 3190 2009-06-08 17:13:36Z guillaume $
+% Copyright (C) 2009-2022 Wellcome Centre for Human Neuroimaging
+
 
 cp = [0; cumsum(p(:))];
 m  = zeros(N,1);

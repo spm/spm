@@ -1,6 +1,6 @@
 function res = spm_eeg_reduce_cva(S)
 % Plugin for data reduction using PCA
-% FORMAT res = spm_eeg_reduce_pca(S)
+% FORMAT res = spm_eeg_reduce_cva(S)
 %
 % S                     - input structure
 % fields of S:
@@ -12,11 +12,10 @@ function res = spm_eeg_reduce_cva(S)
 %
 %   If input is provided:
 %      montage struct implementing projection to PCA subspace
-%______________________________________________________________________________________
-% Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Vladimir Litvak
-% $Id: spm_eeg_reduce_cva.m 5675 2013-10-09 14:27:17Z vladimir $
+% Copyright (C) 2012-2022 Wellcome Centre for Human Neuroimaging
 
 
 if nargin == 0

@@ -14,10 +14,9 @@ function [p,pc,R2] = spm_mvb_cvk2(MVB,k)
 % mixtures of data (from null space of confounds).
 % This version uses the optimised covariance model from spm_mvb.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mvb_cvk2.m 5219 2013-01-29 17:07:07Z spm $
+% Copyright (C) 2007-2022 Wellcome Centre for Human Neuroimaging
  
  
 %-partition order

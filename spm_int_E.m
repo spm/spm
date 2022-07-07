@@ -1,5 +1,5 @@
 function [y] = spm_int_E(P,M,U)
-% integrates a MIMO nonlinear system using a bilinear eigenreduced Jacobian
+% Integrate a MIMO nonlinear system using a bilinear eigenreduced Jacobian
 % FORMAT [y] = spm_int_E(P,M,U)
 % P   - model parameters
 % M   - model structure
@@ -55,10 +55,10 @@ function [y] = spm_int_E(P,M,U)
 % sparse sampling of the solution and delays in observing outputs. It is
 % used primarily for integrating fMRI models
 %___________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_int_E.m 5219 2013-01-29 17:07:07Z spm $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 % convert U to U.u if necessary
 %--------------------------------------------------------------------------

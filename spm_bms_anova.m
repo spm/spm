@@ -1,6 +1,6 @@
-function [logBF,F] = spm_bms_anova (y,group,prior)
+function [logBF,F] = spm_bms_anova(y,group,prior)
 % Log Bayes factor against null for one-way ANOVA
-% FORMAT [logBF,F] = spm_bms_anova (y,group,prior)
+% FORMAT [logBF,F] = spm_bms_anova(y,group,prior)
 %
 % y         [n x 1] data vector
 % group     [n x 1] vector with elements 1,2,3 etc. indicating group
@@ -17,16 +17,16 @@ function [logBF,F] = spm_bms_anova (y,group,prior)
 % for ANOVA designs, American Statistical Association, 66(2), 104-111.
 %
 % For a single group this function calls spm_bms_ttest.m
-%_______________________________________________________________________
-% Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Will Penny
-% $Id: spm_bms_anova.m 6038 2014-06-04 15:22:42Z will $
+% Copyright (C) 2014-2022 Wellcome Centre for Human Neuroimaging
+
 
 try
-    prior=prior;
+    prior = prior;
 catch
-    prior='jzs';
+    prior = 'jzs';
 end
 
 k=length(unique(group));
@@ -39,7 +39,7 @@ end
 % X         [n x k] design matrix for one-way ANOVA (k-levels)
 n=length(y);
 X=zeros(n,k);
-for i=1:n,
+for i=1:n
     X(i,group(i))=1;
 end
 
@@ -51,9 +51,9 @@ R2=1-(std(e)^2/std(y)^2); % proportion of variance explained
 F=((n-k)/(k-1))*(R2/(1-R2));
 
 switch prior
-    case 'jzs',
+    case 'jzs'
         logBF = jzs_logbf_anova(R2,n,k);
-    case 'unit',
+    case 'unit'
         % Unit information prior
         g=n;
         
@@ -65,7 +65,8 @@ switch prior
         disp('Unknown prior in spm_bms_anova');
 end
 
-%-------------------------------------------------------
+
+%==========================================================================
 function [logbf] = jzs_logbf_anova(R2,N,k)
 % JZS Log Bayes factor for one-way ANOVA
 %
@@ -78,7 +79,8 @@ t2=quad(@(g)jzs_integrand_anova(g,R2,N,k),0,gmax);
 
 logbf=logt1+log(t2);
 
-%--------------------------------------------------------
+
+%==========================================================================
 function [j] = jzs_integrand_anova(g,R2,N,k)
 
 t1=(1+g).^(0.5*(N-k-1));

@@ -30,13 +30,12 @@ function spm_dcm_search(P)
 % space.
 %
 % See also: spm_dcm_post_hoc.m
-%
 %__________________________________________________________________________
-% Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
- 
+
 % Karl Friston
-% $Id: spm_dcm_search.m 8183 2021-11-04 15:25:19Z guillaume $
- 
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
+
 % get filenames
 %--------------------------------------------------------------------------
 try

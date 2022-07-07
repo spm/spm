@@ -20,10 +20,9 @@ function RCM = spm_sparse_regression(y,X,X0)
 % optimisation. If the response variable is in the range [0 1] then a logit
 % transform is applied to produce sparse logistic regression.
 %__________________________________________________________________________
-% Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_sparse_regression.m 7454 2018-10-19 19:38:50Z karl $
+% Copyright (C) 2014-2022 Wellcome Centre for Human Neuroimaging
 
 
 % Logit transform

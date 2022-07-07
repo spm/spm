@@ -3,10 +3,9 @@ function F = spm_Welcome
 % FORMAT F = spm_Welcome
 % F        - welcome figure handle
 %__________________________________________________________________________
-% Copyright (C) 2014-2021 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_Welcome.m 8145 2021-08-31 14:26:54Z guillaume $
+% Copyright (C) 2014-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Open startup window, set window defaults

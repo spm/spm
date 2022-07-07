@@ -1,5 +1,5 @@
 function varargout = spm_render_vol(varargin)
-% surface render a memory mapped 8 bit image - a compiled routine
+% Surface render a memory mapped 8 bit image - a compiled routine
 % FORMAT [REN, ZBUF, X, Y, Z] = spm_render_vol(V, A, [i j], [u n])
 % V       -  is the memory mapped volume
 % A       -  {4 x 4} affine transformation matrix
@@ -11,7 +11,7 @@ function varargout = spm_render_vol(varargin)
 % ZBUF    -  distance from the view plane to the object's surface
 % X, Y, Z -  are images containing the coordinates of the voxels on the
 %            surface of the volume.
-%_______________________________________________________________________
+%__________________________________________________________________________
 %
 % [i j] defines the two dimensions of the output image. The coordinates
 % in 3-D space of the voxels in this image are assumed to range from
@@ -24,13 +24,11 @@ function varargout = spm_render_vol(varargin)
 % The threshold at which voxels are assumed to be solid pertains to the
 % 8-bit data i.e. {0 - 255}
 %
-% Illumination is assumed to be from the viewplane
-%
-%_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Illumination is assumed to be from the viewplane.
+%__________________________________________________________________________
 
 % John Ashburner
-% $Id: spm_render_vol.m 1143 2008-02-07 19:33:33Z spm $
+% Copyright (C) 1995-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-This is merely the help file for the compiled routine

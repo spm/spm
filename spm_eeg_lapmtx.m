@@ -1,16 +1,16 @@
 function [T] = spm_eeg_lapmtx(pst)
 % Laplace transform basis set for ERPs
-% [T] = spm_eeg_lapmtx(pst)
+% FORMAT [T] = spm_eeg_lapmtx(pst)
 %
-% pst - perstimulus time in ms.
+% pst - perstimulus time in ms
 %
 % T   - Laplace transform basis set
 % 
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_lapmtx.m 1143 2008-02-07 19:33:33Z spm $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 % assume a single sample if not specified
 %--------------------------------------------------------------------------

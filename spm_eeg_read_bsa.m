@@ -4,10 +4,10 @@ function sconfounds = spm_eeg_read_bsa(bsa)
 % .label - labels of channels
 % .coeff - matrix of coefficients (channels x components)
 % .bad - logical vector - channels marked as bad.
-% _______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Vladimir Litvak
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 sconfounds = [];
 sconfounds.coeff = [];
@@ -99,4 +99,3 @@ if nargin<3 || rep
   % remove empty cells, which occur if the separator is repeated (e.g. multiple spaces)
   tok(find(cellfun('isempty', tok)))=[];
 end
-

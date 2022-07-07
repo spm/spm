@@ -1,10 +1,10 @@
 function data = spm_eeg_fixpnt(data, recurse)
 % Helper function to replace pos by pnt
+% FORMAT data = spm_eeg_fixpnt(data, recurse)
 %__________________________________________________________________________
-% Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_fixpnt.m 6683 2016-01-15 16:15:32Z guillaume $
+% Copyright (C) 2016-2022 Wellcome Centre for Human Neuroimaging
 
 if nargin==1
     recurse = 1;

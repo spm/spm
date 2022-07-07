@@ -6,10 +6,9 @@ function [B,C] = spm_mesh_borders(M)
 % B            - a [mx1] vector of indices of border vertices
 % C            - a cell array of indices of contiguous border vertices
 %__________________________________________________________________________
-% Copyright (C) 2018 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_borders.m 7413 2018-09-07 09:53:34Z guillaume $
+% Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Parse input arguments

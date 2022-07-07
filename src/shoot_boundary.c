@@ -1,5 +1,7 @@
-/* $Id: shoot_boundary.c 7684 2019-10-30 14:21:34Z john $ */
-/* (c) John Ashburner (2011) */
+/*
+ * John Ashburner
+ * Copyright (C) 2011-2022 Wellcome Centre for Human Neuroimaging
+ */
 
 #include "spm_mex.h"
 #include "shoot_boundary.h"
@@ -35,4 +37,3 @@ int get_bound()
 {
     return(bound_type);
 }
-

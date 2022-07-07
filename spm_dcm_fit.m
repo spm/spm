@@ -16,10 +16,10 @@ function [P]   = spm_dcm_fit(P,use_parfor)
 % DCMs inverted under the same model. Each row contains a different data
 % set (or subject).
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_fit.m 7755 2019-12-16 13:19:28Z spm $
+% Copyright (C) 2015-2022 Wellcome Centre for Human Neuroimaging
+
 
 if nargin < 2, use_parfor = false; end
 
@@ -157,4 +157,4 @@ switch model
         catch
             error('unknown DCM');
         end
-end   
+end

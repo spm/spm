@@ -7,10 +7,9 @@ function [X] = spm_vecfun(X,fun)
 %
 % e.g., pE = spm_vecfun(pE,@log)
 %__________________________________________________________________________
-% Copyright (C) 2020 Wellcome Centre for Human Neuroimagings
 
 % Karl Friston
-% $Id: spm_vecfun.m 7975 2020-10-06 14:46:56Z spm $
+% Copyright (C) 2020-2022 Wellcome Centre for Human Neuroimaging
 
 
 % vectorise numerical arrays

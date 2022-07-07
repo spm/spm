@@ -22,10 +22,9 @@ function D = spm_eeg_reduce(S)
 % Output:
 % D                     - M/EEG object 
 %__________________________________________________________________________
-% Copyright (C) 2012-2016 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_reduce.m 8275 2022-07-06 11:14:02Z guillaume $
+% Copyright (C) 2012-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Startup

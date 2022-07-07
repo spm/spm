@@ -1,5 +1,6 @@
-function [Dnew]=spm_eeg_simulate_frominv(D,prefix,val,whitenoise,SNRdB,trialind)
+function [Dnew] = spm_eeg_simulate_frominv(D,prefix,val,whitenoise,SNRdB,trialind)
 % Project a source inversion solution back out to the sensor level plus some noise
+% FORMAT [Dnew] = spm_eeg_simulate_frominv(D,prefix,val,whitenoise,SNRdB,trialind)
 % D          - original dataset
 % prefix     - prefix of new dataset
 % val        - use solution (and lead fields) corresponding to this index
@@ -8,15 +9,13 @@ function [Dnew]=spm_eeg_simulate_frominv(D,prefix,val,whitenoise,SNRdB,trialind)
 % trialind   - trials in which the simulated signal is to appear
 %              (all other trials will be noise)
 %__________________________________________________________________________
-% Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
 % Gareth Barnes
-% $Id: spm_eeg_simulate_frominv.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2013-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Load in original data
 %==========================================================================
-
 
 if nargin<2, prefix     = ''; end
 if nargin<3, val        = []; end

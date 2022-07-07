@@ -11,7 +11,6 @@ function spm_circularGraph(A,varargin)
 % connections. The nodes are laid out along a circle, and the connections
 % are drawn within the circle.
 
-% $Id: spm_circularGraph.m 7801 2020-03-13 10:55:45Z guillaume $
 % https://github.com/paul-kassebaum-mathworks/circularGraph
 
 % Copyright (c) 2016, The MathWorks, Inc.

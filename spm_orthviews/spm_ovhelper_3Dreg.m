@@ -21,10 +21,9 @@ function spm_ovhelper_3Dreg(cmd, varargin)
 % Toggle display of crosshairs in 3D display.
 % h - a graphics handle or a tag of graphics handle 
 %__________________________________________________________________________
-% Copyright (C) 2008-2013 Wellcome Trust Centre for Neuroimaging
 
 % Volkmar Glauche
-% $Id: spm_ovhelper_3Dreg.m 8264 2022-06-10 10:45:49Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 if ishandle(varargin{1})
     h = varargin{1};

@@ -1,5 +1,5 @@
 function [DEM] = spm_DEM_generate(M,U,P,h,g)
-% Generates data for a Hierarchical Dynamic Model (HDM)
+% Generate data for a Hierarchical Dynamic Model (HDM)
 % FORMAT [DEM] = spm_DEM_generate(M,N,P,h,g): N-samples using z
 % FORMAT [DEM] = spm_DEM_generate(M,U,P,h,g): size(U,2) samples using U
 %
@@ -23,11 +23,11 @@ function [DEM] = spm_DEM_generate(M,U,P,h,g)
 % NB: [lower bound on] random fluctuations will default to unit variance if
 % not specified in M(i).V and M(i).W
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM_generate.m 7322 2018-05-31 09:47:15Z karl $
- 
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
+
+
 % please parametric form in model if necessary
 %--------------------------------------------------------------------------
 % m     = numel(M);

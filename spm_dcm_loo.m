@@ -30,10 +30,9 @@ function [qE,qC,Q] = spm_dcm_loo(DCM,M,field)
 % 
 % See also: spm_dcm_peb.m and spm_dcm_ppd.m
 %__________________________________________________________________________
-% Copyright (C) 2015-2017 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_loo.m 8269 2022-06-30 18:53:59Z karl $
+% Copyright (C) 2015-2022 Wellcome Centre for Human Neuroimaging
 
 
 % Set up

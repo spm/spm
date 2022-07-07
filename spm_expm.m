@@ -1,5 +1,5 @@
 function [x] = spm_expm(J,x)
-% approximate matrix exponential using a Taylor expansion
+% Approximate matrix exponential using a Taylor expansion
 % FORMAT [y] = spm_expm(J,x)
 % FORMAT [y] = spm_expm(J)
 % y          = expm(J)*x:
@@ -10,26 +10,26 @@ function [x] = spm_expm(J,x)
 % matrices when dealing with the special case of expm(J)*x, where x
 % is a vector, in an efficient fashion
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_expm.m 5691 2013-10-11 16:53:00Z karl $
+% Copyright (C) 2001-2022 Wellcome Centre for Human Neuroimaging
+
 
 % % standard [eigen]solution
-% %--------------------------------------------------------------------------
+% %------------------------------------------------------------------------
 % [V,D] = eig(full(J));
 % E     = V*diag(exp(diag(D)))/V;
 %
 % % Multiply by x if necessary
-% %--------------------------------------------------------------------------
+% %------------------------------------------------------------------------
 % if nargin > 1, x = E*x; else, x = E; end
 
 
 % expm(J) use Pade approximation
-%======================================================================
+%==========================================================================
 
 % ensure norm is < 1/2 by scaling by power of 2
-%----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 I     = speye(size(J));
 [f,e] = log2(norm(J,'inf'));
 s     = max(0,e + 1);
@@ -70,6 +70,3 @@ if nargin > 1
 else
     x = E;
 end
-
-
-

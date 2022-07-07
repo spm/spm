@@ -8,10 +8,9 @@ function D = spm_eeg_firstlevel(S)
 % Litvak V, Jha A, Flandin G, Friston K. Convolution models for induced
 % electromagnetic responses. Neuroimage. 2013, 64:388-98
 %__________________________________________________________________________
-% Copyright (C) 2013-2019 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_firstlevel.m 8275 2022-07-06 11:14:02Z guillaume $
+% Copyright (C) 2013-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Startup

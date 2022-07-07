@@ -1,16 +1,16 @@
-function [L] = spm_MH_reml_likelihood(h,Y,M);
-% likelihood function for spm_MH_reml
-% FORMAT [L] = spm_MH_reml_likelihood(h,Y,M);
+function [L] = spm_MH_reml_likelihood(h,Y,M)
+% Likelihood function for spm_MH_reml
+% FORMAT [L] = spm_MH_reml_likelihood(h,Y,M)
 %
 % h - hyperparameters
 % Y - residual covariance
 %
 % L - likelihood p(Y,P)
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MH_reml_likelihood.m 1143 2008-02-07 19:33:33Z spm $
+% Copyright (C) 2006-2022 Wellcome Centre for Human Neuroimaging
+
 
 % likelihood function
 %--------------------------------------------------------------------------
@@ -43,4 +43,3 @@ L   = ...
 % p(Y,P|M)
 %--------------------------------------------------------------------------
 L   = exp(L);
-

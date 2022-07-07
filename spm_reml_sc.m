@@ -41,10 +41,9 @@ function [C,h,Ph,F,Fa,Fc,Eh,Ch,hE,hC,Q] = spm_reml_sc(YY,X,Q,N,hE,hC,V)
 %      spm_sp_reml: for sparse patterns (c.f., ARD)
 %
 %__________________________________________________________________________
-% Copyright (C) 2007-2017 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_reml_sc.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2007-2022 Wellcome Centre for Human Neuroimaging
 
  
 % assume a single sample if not specified
@@ -241,4 +240,3 @@ end
 %--------------------------------------------------------------------------
 h  = sY*exp(h)./sh;
 C  = sY*C;
-

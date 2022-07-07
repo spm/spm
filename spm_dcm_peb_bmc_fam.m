@@ -37,10 +37,10 @@ function [BMA,fam] = spm_dcm_peb_bmc_fam(BMA,BMR,families,bma_option)
 %           .family.prior - Prior probability of each family
 %           .famdef       - Input vector of family assignments
 %__________________________________________________________________________
-% Copyright (C) 2010-2016 Wellcome Trust Centre for Neuroimaging
 
 % Peter Zeidman
-% $Id: spm_dcm_peb_bmc_fam.m 6946 2016-11-23 15:26:29Z peter $
+% Copyright (C) 2010-2022 Wellcome Centre for Human Neuroimaging
+
 
 % Model space [models x parameters]
 K      = BMA.K;

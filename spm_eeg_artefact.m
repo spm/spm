@@ -37,10 +37,9 @@ function D = spm_eeg_artefact(S)
 % flat              - detects flat segments in the data
 % (spm_eeg_artefact_flat)
 %__________________________________________________________________________
-% Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_artefact.m 8275 2022-07-06 11:14:02Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Startup

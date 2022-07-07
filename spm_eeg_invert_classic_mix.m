@@ -1,6 +1,6 @@
 function [D] = spm_eeg_invert_classic_mix(D,val,Qpriors,surfind,ugainfiles)
-%function [D] = spm_eeg_invert_classic_mix(D,val,Qpriors,surfind,ugainfiles)
-%%
+% FORMAT [D] = spm_eeg_invert_classic_mix(D,val,Qpriors,surfind,ugainfiles)
+%
 % ReML inversion of multiple posterior current variances from previous
 % iterations spm_eeg_invert_classic or spm_eeg_invert
 % ReML estimation of regularisation hyperparameters using the
@@ -11,27 +11,22 @@ function [D] = spm_eeg_invert_classic_mix(D,val,Qpriors,surfind,ugainfiles)
 % val the inversion index 
 % Qpriors is N solutions of rows by Nd variance estimates
 % surfind is N solutions long and contains indices into ugainfiles to these priors with different lead field structures
-%% ugainfiles are the SPMgain matrices for the different surfaces
+% ugainfiles are the SPMgain matrices for the different surfaces
 %
 % Output D will have a solution which is optimal REML mixture of Qpriors
-%
-% Created by:   
-%               Gareth Barnes - g.barnes@ucl.ac.uk
-%
+%__________________________________________________________________________
+
+% Gareth Barnes
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 % This version is for single subject single modality analysis and therefore
 % contains none of the associated scaling factors.
-%
-% $Id: spm_eeg_invert_classic_mix.m 6077 2014-06-30 16:55:03Z spm $
-
-
 
 Nl = length(D);
 
-
-
-if Nl>1,
+if Nl>1
     error('function only defined for a single subject');
-end;
+end
 
 % D - SPM data structure
 %==========================================================================

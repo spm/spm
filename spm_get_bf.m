@@ -25,10 +25,9 @@ function [xBF] = spm_get_bf(xBF)
 % It is at this point that the distinction between event and epoch-related 
 % responses enters.
 %__________________________________________________________________________
-% Copyright (C) 1999-2011 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_get_bf.m 7654 2019-08-25 20:09:35Z karl $
+% Copyright (C) 1999-2022 Wellcome Centre for Human Neuroimaging
  
  
 %-Length of time bin

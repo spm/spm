@@ -1,6 +1,6 @@
 function [P,p,Ec,Ek] = spm_P_RF(c,k,Z,df,STAT,R,n)
-% Returns the [un]corrected P value using unifed EC theory
-% FORMAT [P p Ec Ek] = spm_P_RF(c,k,z,df,STAT,R,n)
+% Return the [un]corrected P value using unifed EC theory
+% FORMAT [P,p,Ec,Ek] = spm_P_RF(c,k,z,df,STAT,R,n)
 %
 % c     - cluster number 
 % k     - extent {RESELS}
@@ -46,10 +46,9 @@ function [P,p,Ec,Ek] = spm_P_RF(c,k,Z,df,STAT,R,n)
 % Significant Signals in Images of Cerebral Activation
 % Human Brain Mapping 4:58-73
 %__________________________________________________________________________
-% Copyright (C) 1999-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_P_RF.m 5770 2013-11-27 20:12:29Z karl $
+% Copyright (C) 1999-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Get expectations

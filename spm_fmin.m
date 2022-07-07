@@ -11,20 +11,19 @@ function [P,F] = spm_fmin(fun,Q,C,varargin)
 %
 %--------------------------------------------------------------------------
 % spm_fmin is a slow but robust function minimiser that uses a stochastic
-% sampling of the objective function to be minimised (supplemented by a line
-% search along the principal eigenvariate at the current sampling density.
-% The sampling density is approximated with a Gaussian (first and second
-% order moments) using that the sampling density is:
+% sampling of the objective function to be minimised (supplemented by a
+% line search along the principal eigenvariate at the current sampling
+% density. The sampling density is approximated with a Gaussian (first and
+% second order moments) using that the sampling density is:
 %
 %           p(P) = (1/Z)*exp(-fun(P)/T)
 %
 % where the temperature; T is the sample standard deviation of the sampled
 % objective function.
 %__________________________________________________________________________
-% Copyright (C) 2005-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_fmin.m 6801 2016-05-29 19:18:06Z karl $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 
 % stochastic search

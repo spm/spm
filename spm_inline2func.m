@@ -2,10 +2,9 @@ function [h] = spm_inline2func(f)
 % Convert an inline object to a function handle
 % FORMAT [h] = spm_inline2func(f)
 %__________________________________________________________________________
-% Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_inline2func.m 5664 2013-10-01 18:39:05Z spm $
+% Copyright (C) 2013-2022 Wellcome Centre for Human Neuroimaging
 
 
 % input argument list

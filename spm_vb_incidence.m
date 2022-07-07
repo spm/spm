@@ -10,10 +10,10 @@ function A = spm_vb_incidence(edges,N)
 % A(ij,k)  +1 if i=k, -1 if j=k, 0 otherwise, where ij is the edge 
 % connecting nodes i and j, and k is in node set
 %__________________________________________________________________________
-% Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
 
 % Lee Harrison
-% $Id: spm_vb_incidence.m 6079 2014-06-30 18:25:37Z spm $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
+
 
 % Number of edges
 Ne = size(edges,1);

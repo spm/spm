@@ -26,10 +26,9 @@ function spm_vb_ppm_anova(SPM)
 % corresponds to a posterior effect probability of [exp(4.6)] = 0.999. 
 % See paper VB4 for more details.
 %__________________________________________________________________________
-% Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_vb_ppm_anova.m 6079 2014-06-30 18:25:37Z spm $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 
 if numel(SPM.Sess) > 1

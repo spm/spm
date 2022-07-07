@@ -11,10 +11,9 @@ function images = spm_eeg_collapse_timefreq(S)
 %
 % images - cellstr of saved images file names
 %__________________________________________________________________________
-% Copyright (C) 2006-2017 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_collapse_timefreq.m 8275 2022-07-06 11:14:02Z guillaume $
+% Copyright (C) 2006-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Startup

@@ -1,6 +1,6 @@
 /*
- * $Id: spm_jsonread.c 8124 2021-07-12 16:26:10Z guillaume $
  * Guillaume Flandin
+ * Copyright (C) 2015-2022 Wellcome Centre for Human Neuroimaging
  */
 
 #include <stdio.h>

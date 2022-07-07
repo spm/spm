@@ -1,12 +1,11 @@
 function [X] = spm_zeros(X)
-% fills a cell or structure array with zeros
+% Fill a cell or structure array with zeros
 % FORMAT [X] = spm_zeros(X)
 % X  - numeric, cell or structure array[s]
 %__________________________________________________________________________
-% Copyright (C) 2005-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_zeros.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 
 % create zeros structure

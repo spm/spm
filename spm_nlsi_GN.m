@@ -1,6 +1,6 @@
 function [Ep,Cp,Eh,F,L,dFdp,dFdpp] = spm_nlsi_GN(M,U,Y)
 % Bayesian inversion of nonlinear models - Gauss-Newton/Variational Laplace
-% FORMAT [Ep,Cp,Eh,F] = spm_nlsi_GN(M,U,Y)
+% FORMAT [Ep,Cp,Eh,F,L,dFdp,dFdpp] = spm_nlsi_GN(M,U,Y)
 %
 % [Dynamic] MIMO models
 %__________________________________________________________________________
@@ -93,10 +93,10 @@ function [Ep,Cp,Eh,F,L,dFdp,dFdpp] = spm_nlsi_GN(M,U,Y)
 % measurements.
 % J. Phys. D. Appl. Phys 1970 3:1759-1764.
 %__________________________________________________________________________
-% Copyright (C) 2001-2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_nlsi_GN.m 8237 2022-04-03 11:27:36Z karl $
+% Copyright (C) 2001-2022 Wellcome Centre for Human Neuroimaging
+
 
 % options
 %--------------------------------------------------------------------------

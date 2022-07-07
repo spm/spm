@@ -10,10 +10,9 @@ function [vX] = spm_vec(X,varargin)
 % e.g.:
 % spm_vec({eye(2) 3}) = [1 0 0 1 3]'
 %__________________________________________________________________________
-% Copyright (C) 2005-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_vec.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 
 %error('spm_vec.c not compiled - see Makefile')

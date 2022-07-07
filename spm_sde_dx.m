@@ -1,5 +1,5 @@
 function [dx] = spm_sde_dx(dfdx,dfdw,f,t)
-% returns dx(t) = (expm(dfdx*t) - I)*inv(dfdx)*f + w for SDEs
+% Return dx(t) = (expm(dfdx*t) - I)*inv(dfdx)*f + w for SDEs
 % FORMAT [dx] = spm_sde_dx(dfdx,dfdw,f,t)
 % dfdx   = df/dx - x: states
 % dfdw   = df/dw - w: i.i.d. Weiner process 
@@ -26,11 +26,11 @@ function [dx] = spm_sde_dx(dfdx,dfdw,f,t)
 %
 % see also spm_dx
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_sde_dx.m 5932 2014-03-28 10:04:32Z karl $
- 
+% Copyright (C) 2006-2022 Wellcome Centre for Human Neuroimaging
+
+
 % defaults
 %--------------------------------------------------------------------------
 if nargin < 3, t = 1; end

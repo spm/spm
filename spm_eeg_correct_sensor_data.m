@@ -15,10 +15,9 @@ function D = spm_eeg_correct_sensor_data(S)
 %   A multiple source approach to the correction of eye artifacts.
 %   Electroencephalogr Clin Neurophysiol. 1994 Mar;90(3):229-41.
 %__________________________________________________________________________
-% Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_correct_sensor_data.m 8275 2022-07-06 11:14:02Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Startup

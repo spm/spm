@@ -61,34 +61,27 @@ function [D] = spm_eeg_invert_classic(D,val)
 %     inverse.R2     - variance in subspaces accounted for by model (%)
 %     inverse.scale  - scaling of data for each of j modalities
 %__________________________________________________________________________
-%
-% Created by:   Jose David Lopez - ralph82co@gmail.com
-%               Gareth Barnes - g.barnes@fil.ion.ucl.ac.uk
-%               Vladimir Litvak - litvak.vladimir@gmail.com
-%
-%
+
+% Jose David Lopez, Gareth Barnes, Vladimir Litvak
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 % This version is for single subject single modality analysis and therefore
 % contains none of the associated scaling factors.
 % No symmetric priors are used in this implementation (just single patches)
 % There is an option for a Beamforming prior : inversion type 'EBB'
 % also added new beamforming method- using GS rather than ARD- from Juan David Martinez Vargas 'EBBgs'
 
-%%The code was used in
-%% L�pez, J. D., Penny, W. D., Espinosa, J. J., Barnes, G. R. (2012).
+% The code was used in
+% Lopez, J. D., Penny, W. D., Espinosa, J. J., Barnes, G. R. (2012).
 % A general Bayesian treatment for MEG source reconstruction incorporating lead field uncertainty.
 % Neuroimage 60(2), 1194-1204 doi:10.1016/j.neuroimage.2012.01.077.
-
-% $Id: spm_eeg_invert_classic.m 8183 2021-11-04 15:25:19Z guillaume $
-
 
 
 Nl = length(D);
 
-
-
-if Nl>1,
+if Nl>1
     error('function only defined for a single subject');
-end;
+end
 
 % D - SPM data structure
 %==========================================================================

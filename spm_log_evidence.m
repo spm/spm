@@ -26,11 +26,11 @@ function [F,sE,sC] = spm_log_evidence(varargin)
 %
 % See also: spm_log_evidence_reduce
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_log_evidence.m 6856 2016-08-10 17:55:05Z karl $
- 
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
+
+
 % Compute reduced log-evidence
 %==========================================================================
  

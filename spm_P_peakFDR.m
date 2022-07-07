@@ -25,10 +25,10 @@ function [Q] = spm_P_peakFDR(Z,df,STAT,R,n,ui,Ps)
 % J.R. Chumbley, K.J. Worsley, G. Flandin and K.J. Friston, "Topological
 % FDR for NeuroImaging". NeuroImage, 49(4):3057-3064, 2010.
 %__________________________________________________________________________
-% Copyright (C) 2009-2012 Wellcome Trust Centre for Neuroimaging
 
 % Justin Chumbley & Guillaume Flandin
-% $Id: spm_P_peakFDR.m 5160 2012-12-21 16:58:38Z guillaume $
+% Copyright (C) 2009-2022 Wellcome Centre for Human Neuroimaging
+
 
 % Expected Euler characteristic for level ui
 %--------------------------------------------------------------------------

@@ -76,12 +76,10 @@ function DCM = spm_dcm_specify(SPM,xY,settings)
 % s.d          = d;
 % 
 % DCM = spm_dcm_specify(SPM,xY,s);
-%
 %__________________________________________________________________________
-% Copyright (C) 2002-2017 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_specify.m 7966 2020-09-30 08:38:13Z peter $
+% Copyright (C) 2002-2022 Wellcome Centre for Human Neuroimaging
 
 if nargin < 3, settings = struct(); end
 

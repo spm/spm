@@ -1,8 +1,8 @@
 function [varargout] = spm_ddiff(varargin)
-% matrix high-order numerical differentiation (double stencil)
-% FORMAT [dfdx] = spm_diff(f,x,...,n)
-% FORMAT [dfdx] = spm_diff(f,x,...,n,V)
-% FORMAT [dfdx] = spm_diff(f,x,...,n,'q')
+% Matrix high-order numerical differentiation (double stencil)
+% FORMAT [dfdx] = spm_ddiff(f,x,...,n)
+% FORMAT [dfdx] = spm_ddiff(f,x,...,n,V)
+% FORMAT [dfdx] = spm_ddiff(f,x,...,n,'q')
 %
 % f      - [inline] function f(x{1},...)
 % x      - input argument[s]
@@ -25,10 +25,10 @@ function [varargout] = spm_ddiff(varargin)
 %
 % dfdx  = (4*f(x + dx) - f(x + 2*dx) - 3*f(x))/(2*dx)
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ddiff.m 7143 2017-07-29 18:50:38Z karl $
+% Copyright (C) 2017-2022 Wellcome Centre for Human Neuroimaging
+
 
 % step size for numerical derivatives
 %--------------------------------------------------------------------------
@@ -185,5 +185,3 @@ if isvector(J{1})
         J = spm_cat(J')';
     end
 end
-
-

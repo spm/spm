@@ -1,5 +1,6 @@
 function [A,K,k] = spm_dcm_sparse_priors(n)
-% Returns Adjacency matrices for bidirectional coupling
+% Return Adjacency matrices for bidirectional coupling
+% FORMAT  [A,K,k] = spm_dcm_sparse_priors(n)
 %
 % INPUT:
 %    n         - number of nodes
@@ -9,10 +10,9 @@ function [A,K,k] = spm_dcm_sparse_priors(n)
 %    K{1:K}{:} - adjacency matrices (for k - 1 edges)
 %    k         - row vector of edge numbers (size)
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_sparse_priors.m 5219 2013-01-29 17:07:07Z spm $
+% Copyright (C) 2010-2022 Wellcome Centre for Human Neuroimaging
 
 
 %--------------------------------------------------------------------------

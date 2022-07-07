@@ -5,10 +5,10 @@ function [block] = spm_vb_init_block(Y,block)
 % Y      - [T x N] time series with T time points, N voxels
 % block  - data structure (see spm_vb_glmar)
 %__________________________________________________________________________
-% Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny and Nelson Trujillo-Barreto
-% $Id: spm_vb_init_block.m 6079 2014-06-30 18:25:37Z spm $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
+
 
 k = block.k;
 p = block.p;

@@ -1,6 +1,6 @@
 function [E,dE,f,g] = spm_DEM_eval(M,qu,qp)
-% evaluates state equations and derivatives for DEM schemes
-% FORMAT [E dE f g] = spm_DEM_eval(M,qu,qp)
+% Evaluate state equations and derivatives for DEM schemes
+% FORMAT [E,dE,f,g] = spm_DEM_eval(M,qu,qp)
 %
 % M  - model structure
 % qu - conditional mode of states
@@ -35,10 +35,9 @@ function [E,dE,f,g] = spm_DEM_eval(M,qu,qp)
 % M(1).E.linear = 4: full linear - evaluates 1st derivatives (for generalised 
 %                                  filtering, where parameters change)
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM_eval.m 6270 2014-11-29 12:04:48Z karl $
+% Copyright (C) 2006-2022 Wellcome Centre for Human Neuroimaging
  
  
 % get dimensions

@@ -10,10 +10,10 @@ function mesh = spm_eeg_inv_spatnorm(mesh)
 % mesh        - same data struct including the inverse deformation .mat file
 %               and filename of normalised (bias corrected) sMRI
 %__________________________________________________________________________
-% Copyright (C) 2009-2014 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_eeg_inv_spatnorm.m 6217 2014-09-29 17:54:33Z guillaume $
+% Copyright (C) 2009-2022 Wellcome Centre for Human Neuroimaging
+
 
 spm('Pointer','Watch');
 

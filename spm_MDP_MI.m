@@ -1,6 +1,6 @@
 function [E,dEda,dEdA] = spm_MDP_MI(a,C)
-% expected information gain (i.e., mutual information)
-% FORMAT [I,dIda,dIdA] = spm_MDP_MI(a,C)
+% Expected information gain (i.e., mutual information)
+% FORMAT [I,dEda,dEdA] = spm_MDP_MI(a,C)
 %
 % a    - Dirichlet parameters of a joint distribution
 % C    - log preferences
@@ -8,12 +8,11 @@ function [E,dEda,dEdA] = spm_MDP_MI(a,C)
 % E    - expected free energy (information gain minus cost)
 % dEda - derivative with respect to Dirichlet parameters (a)
 % dEdA - derivative with respect to joint density: A = a/sum(a(:));
-%
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_KL_dir.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2022 Wellcome Centre for Human Neuroimaging
+
 
 % deal with tensors
 %--------------------------------------------------------------------------

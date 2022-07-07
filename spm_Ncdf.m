@@ -48,10 +48,9 @@ function F = spm_Ncdf(x,u,v)
 %        Cambridge
 %
 %__________________________________________________________________________
-% Copyright (C) 1995-2019 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_Ncdf.m 7548 2019-03-20 10:08:49Z guillaume $
+% Copyright (C) 1995-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Format arguments, note & check sizes

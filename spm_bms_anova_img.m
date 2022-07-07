@@ -1,6 +1,6 @@
-function [P,g,prior] = spm_bms_anova_img (P,g,prior)
+function [P,g,prior] = spm_bms_anova_img(P,g,prior)
 % Log Bayes Factor against null for ANOVA; functional imaging data
-% FORMAT [P,g,prior] = spm_bms_anova_img (P,g,prior)
+% FORMAT [P,g,prior] = spm_bms_anova_img(P,g,prior)
 %
 % P         Cell array of filenames eg from SPM.xY.P with N cells
 % g         [N x 1] vector with entries 1,2,3 etc denoting group membership
@@ -8,16 +8,16 @@ function [P,g,prior] = spm_bms_anova_img (P,g,prior)
 %           For this case you can specify 'unit' or 'jzs' (default) priors
 %           See spm_bms_ttest.m and spm_bms_anova.m for more details
 %__________________________________________________________________________
-% Copyright (C) 2014-2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_bms_anova_img.m 6654 2015-12-22 12:55:36Z spm $
+% Copyright (C) 2014-2022 Wellcome Centre for Human Neuroimaging
+
 
 % Select files and groups if not provided
 if nargin < 2 || isempty(P) || isempty(g)
     Ng=input('Enter number of groups ');
     P=[];g=[];
-    for j=1:Ng,
+    for j=1:Ng
         str=sprintf('Select images for group %d',j);
         Pj=cellstr(spm_select(Inf,'image',str));
         nj=length(Pj);

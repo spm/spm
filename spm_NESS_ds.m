@@ -1,5 +1,5 @@
 function [dS,G,Q,L] = spm_NESS_ds(Sp,P,x)
-% generates changes in log density (coefficients or at x)
+% Generate changes in log density (coefficients or at x)
 % FORMAT [dS,G,Q,L] = spm_NESS_ds(Sp,P)
 % FORMAT [ds,G,Q,L] = spm_NESS_ds(Sp,P,x)
 %--------------------------------------------------------------------------
@@ -22,13 +22,12 @@ function [dS,G,Q,L] = spm_NESS_ds(Sp,P,x)
 % density are returned. If called with three arguments, the time derivative
 % of the log density at the specified points in state space are returned.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ness_hd.m 8000 2020-11-03 19:04:17QDb karl $
+% Copyright (C) 2021-2022 Wellcome Centre for Human Neuroimaging
 
 
-%% get sample points
+% get sample points
 %==========================================================================
 if nargin < 3
     n    = size(P.G,1);

@@ -12,10 +12,9 @@ function A = spm_clusters(L,n)
 % subsets, returning a list of indices in A, such that the ith location
 % belongs to cluster A(i) (using an 18 connectivity scheme).
 %__________________________________________________________________________
-% Copyright (C) 1994-2012 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson
-% $Id: spm_clusters.m 4929 2012-09-17 14:21:01Z guillaume $
+% Copyright (C) 1994-2022 Wellcome Centre for Human Neuroimaging
 
 
 if isempty(L), A = []; return; end

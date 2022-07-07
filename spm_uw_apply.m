@@ -117,10 +117,9 @@ function varargout = spm_uw_apply(ds,flags)
 %             subdirectory with the same filename but prefixed with an 'u'.
 %             They are all aligned with the first.
 %__________________________________________________________________________
-% Copyright (C) 2003-2015 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson
-% $Id: spm_uw_apply.m 8275 2022-07-06 11:14:02Z guillaume $
+% Copyright (C) 2003-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Say hello

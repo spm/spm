@@ -12,10 +12,9 @@ function [C] = spm_morlet(s,k,wnum)
 % This routine returns a Morlet-like wavelet transform but uses a Hanning
 % window, as opposed to a Gaussian window.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_morlet.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2012-2022 Wellcome Centre for Human Neuroimaging
 
 
 % setup and defaults
@@ -47,5 +46,3 @@ for i = 1:length(k)
     C(:,i,:) = K*s;
     
 end
-
-return

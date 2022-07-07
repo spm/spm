@@ -1,10 +1,10 @@
 function [D] = spm_eeg_review_switchDisplay(D)
 % Switch between displays in the M/EEG Review facility
 %__________________________________________________________________________
-% Copyright (C) 2008-2015 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_switchDisplay.m 7221 2017-11-16 14:25:37Z vladimir $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 try % only if already displayed stuffs
     handles = rmfield(D.PSD.handles,'PLOT');

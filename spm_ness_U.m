@@ -1,5 +1,5 @@
 function U = spm_ness_U(M,x)
-% nonequilibrium steady-state under a Helmholtz decomposition
+% Nonequilibrium steady-state under a Helmholtz decomposition
 % FORMAT U = spm_ness_U(M,x)
 %--------------------------------------------------------------------------
 % M   - model specification structure
@@ -25,12 +25,11 @@ function U = spm_ness_U(M,x)
 % U.dLdp  - gradients of L w.r.t. flow parameters
 % U.nx    - dimensions
 % U.o     - orders
-
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ness_hd.m 8000 2020-11-03 19:04:17QDb karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 % event space: get or create X - coordinates of evaluation grid
 %--------------------------------------------------------------------------
@@ -143,7 +142,7 @@ for i = 1:n
         for k = 1:nb
             
             % initialise partial derivatives
-            %----------------------------------------------------------
+            %--------------------------------------------------------------
             q        = q + 1;
             dq       = dQ;
             dbQdp{q} = dbQ;
@@ -203,7 +202,3 @@ U.dbQdp = dbQdp;                 % gradients of bQ w.r.t. flow parameters
 U.dLdp  = dLdp;                  % gradients of L  w.r.t. flow parameters
 U.nx    = nx;                    % dimensions
 U.o     = o;                     % orders
-
-
-return
-

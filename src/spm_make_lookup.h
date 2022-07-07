@@ -1,6 +1,6 @@
-/* 
- * $Id: spm_make_lookup.h 4452 2011-09-02 10:45:26Z guillaume $
+/*
  * John Ashburner
+ * Copyright (C) 1997-2022 Wellcome Centre for Human Neuroimaging
  */
 
 /* Generate a lookup table for Lagrange interpolation */

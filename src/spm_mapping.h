@@ -1,6 +1,6 @@
-/* 
- * $Id: spm_mapping.h 938 2007-10-12 19:09:31Z john $
+/*
  * John Ashburner
+ * Copyright (C) 1997-2022 Wellcome Centre for Human Neuroimaging
  */
  
 /* Matlab dependent high level data access and map manipulation routines */

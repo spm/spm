@@ -7,10 +7,9 @@ function con = spm_dcm_contrasts(DCM,D)
 %
 % con    - column vector specifying contrast weights
 %__________________________________________________________________________
-% Copyright (C) 2002-2014 Wellcome Trust Centre for Neuroimaging
  
 % Will Penny
-% $Id: spm_dcm_contrasts.m 6031 2014-06-02 12:49:52Z guillaume $
+% Copyright (C) 2002-2022 Wellcome Centre for Human Neuroimaging
  
 
 %-Load DCM if necessary

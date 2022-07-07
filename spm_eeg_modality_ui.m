@@ -1,5 +1,5 @@
 function [mod, chanind]  = spm_eeg_modality_ui(D, scalp, planar)
-% Attempts to determine the main modality of an MEEG object.
+% Attempt to determine the main modality of an MEEG object.
 % If confused, asks the user.
 %
 % FORMAT [mod, chanind]  = spm_eeg_modality_ui(D, scalp, planar)
@@ -11,10 +11,10 @@ function [mod, chanind]  = spm_eeg_modality_ui(D, scalp, planar)
 % modality   - the chosen modality
 % chanind    - indices of the corresponding channels
 %__________________________________________________________________________
-% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_modality_ui.m 5171 2013-01-03 15:52:31Z vladimir $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 if nargin == 1
     scalp = false;

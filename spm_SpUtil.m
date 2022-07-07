@@ -253,10 +253,9 @@ function varargout = spm_SpUtil(varargin)
 % sz  - size
 %
 %_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% Andrew Holmes Jean-Baptiste Poline
-% $Id: spm_SpUtil.m 8183 2021-11-04 15:25:19Z guillaume $
+% Andrew Holmes & Jean-Baptiste Poline
+% Copyright (C) 1998-2022 Wellcome Centre for Human Neuroimaging
 
 % (frobenius norm trick by S. Rouquette)
 

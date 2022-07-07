@@ -51,10 +51,9 @@ function x = spm_invGcdf(F,h,l,tol)
 %       "Numerical Recipes in C"
 %        Cambridge
 %__________________________________________________________________________
-% Copyright (C) 1992-2011 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_invGcdf.m 4182 2011-02-01 12:29:09Z guillaume $
+% Copyright (C) 1992-2022 Wellcome Centre for Human Neuroimaging
 
 
 

@@ -12,10 +12,9 @@ function X = spm_orth(X,OPT)
 % Golub, Gene H. & Van Loan, Charles F. (1996), Matrix Computations (3rd
 % ed.), Johns Hopkins, ISBN 978-0-8018-5414-9.
 %__________________________________________________________________________
-% Copyright (C) 2002-2012 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_orth.m 8045 2021-02-02 18:46:28Z karl $
+% Copyright (C) 2002-2022 Wellcome Centre for Human Neuroimaging
  
 
 %-Default

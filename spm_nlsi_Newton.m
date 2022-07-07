@@ -43,10 +43,10 @@ function [Ep,Cp,F] = spm_nlsi_Newton(M,U,Y)
 % Variational free energy and the Laplace approximation.
 % NeuroImage. 2007 Jan 1;34(1):220-34.
 %__________________________________________________________________________
-% Copyright (C) 2001-2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_nlsi_Newton.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2001-2022 Wellcome Centre for Human Neuroimaging
+
 
 % options
 %--------------------------------------------------------------------------
@@ -291,6 +291,3 @@ M.pC   = eye(spm_length(P));                     % prior variance (parameters)
 %--------------------------------------------------------------------------
 subplot(2,2,4),hold on
 bar(spm_vec(P),1/4)
-
-
-

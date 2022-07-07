@@ -3,10 +3,9 @@ function spm_eeg_prep_ui(callback)
 % for preparation of converted MEEG data for further analysis
 % FORMAT spm_eeg_prep_ui(callback)
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep_ui.m 8275 2022-07-06 11:14:02Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 spm('Pointer','Watch');
@@ -18,6 +17,7 @@ eval(callback);
 spm('Pointer','Arrow');
 
 end
+
 %==========================================================================
 % function CreateMenu
 %==========================================================================

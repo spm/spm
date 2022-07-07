@@ -22,13 +22,11 @@ function [y,w,S,Gu,Gn] = spm_csd_fmri_mtf(P,M,U)
 % When the observer function M.g is specified, the CSD response is
 % supplemented with observation noise in sensor space; otherwise the CSD
 % is noiseless.
-%
-%
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_csd_fmri_mtf.m 7279 2018-03-10 21:22:44Z karl $
+% Copyright (C) 2013-2022 Wellcome Centre for Human Neuroimaging
+
 
 % multiple sessions
 %==========================================================================
@@ -155,5 +153,3 @@ end
 % autoregressive parameterisation
 %--------------------------------------------------------------------------
 y = spm_mar2csd(spm_csd2mar(y,M.Hz,M.p - 1),M.Hz);
-
-

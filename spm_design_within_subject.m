@@ -8,10 +8,10 @@ function [I,P,cov] = spm_design_within_subject(fblock,cov)
 % I        - Nscan x 4 factor matrix
 % P        - List of scans
 %__________________________________________________________________________
-% Copyright (C) 2010-2012 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_design_within_subject.m 4837 2012-08-13 18:10:04Z guillaume $
+% Copyright (C) 2010-2022 Wellcome Centre for Human Neuroimaging
+
 
 %-Specify design subject-by-subject
 %--------------------------------------------------------------------------

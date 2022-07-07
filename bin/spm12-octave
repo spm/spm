@@ -1,12 +1,10 @@
 #!/usr/bin/octave -fqH
 #
 # Command Line Interface for SPM
-# SPM: http://www.fil.ion.ucl.ac.uk/spm/
-#
-# Copyright (C) 2017 Wellcome Trust Centre for Neuroimaging
+# SPM: https://www.fil.ion.ucl.ac.uk/spm/
 #
 # Guillaume Flandin
-# $Id: spm12-octave 7284 2018-03-29 09:42:26Z guillaume $ 
+# Copyright (C) 2017-2022 Wellcome Centre for Human Neuroimaging
 
 
 spm_dir = getenv ("SPM_HOME");

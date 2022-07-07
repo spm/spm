@@ -58,10 +58,9 @@ function F = spm_Tcdf(x,v)
 %        Cambridge
 %
 %__________________________________________________________________________
-% Copyright (C) 1992-2011 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_Tcdf.m 4182 2011-02-01 12:29:09Z guillaume $
+% Copyright (C) 1992-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Format arguments, note & check sizes

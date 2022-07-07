@@ -12,10 +12,10 @@ function [F,Lav,KL] = spm_vb_F(Y,block)
 %
 % This function implements equation 18 in paper VB4.
 %__________________________________________________________________________
-% Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_vb_F.m 6079 2014-06-30 18:25:37Z spm $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
+
 
 if block.verbose
     disp('Updating F');

@@ -1,15 +1,14 @@
 function cdf = spm_read_netcdf(fname)
-% Read the header information from a NetCDF file into a data structure.
+% Read the header information from a NetCDF file into a data structure
 % FORMAT cdf = spm_read_netcdf(fname)
 % fname - name of NetCDF file
 % cdf   - data structure
 %
 % See: http://www.unidata.ucar.edu/packages/netcdf/
-% _________________________________________________________________________
-% Copyright (C) 1999-2011 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % John Ashburner
-% $Id: spm_read_netcdf.m 4182 2011-02-01 12:29:09Z guillaume $
+% Copyright (C) 1999-2022 Wellcome Centre for Human Neuroimaging
 
 
 dsiz     = [1 1 2 4 4 8];

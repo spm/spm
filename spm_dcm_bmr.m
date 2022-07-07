@@ -36,10 +36,9 @@ function [RCM,BMC,BMA] = spm_dcm_bmr(P,field)
 %
 % See also: spm_dcm_post_hoc.m, spm_dcm_bpa, spm_dcm_peb and spm_dcm_bma
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_bmr.m 7809 2020-03-31 11:55:09Z karl $
+% Copyright (C) 2015-2022 Wellcome Centre for Human Neuroimaging
 
 
 % get filenames and set up

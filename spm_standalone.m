@@ -8,10 +8,9 @@ function spm_standalone(varargin)
 %
 % See also: config/spm_make_standalone.m
 %__________________________________________________________________________
-% Copyright (C) 2010-2017 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_standalone.m 7372 2018-07-09 16:50:44Z guillaume $ 
+% Copyright (C) 2010-2022 Wellcome Centre for Human Neuroimaging
 
 
 if ~nargin, action = ''; else action = varargin{1}; end

@@ -1,6 +1,6 @@
 function [post,exp_r,xp,pxp,bor,F] = spm_dcm_bmc(DCM)
 % Bayesian model comparison
-% FORMAT [post,exp_r,xp,pxp,bor] = spm_dcm_bmc(DCM)
+% FORMAT [post,exp_r,xp,pxp,bor,F] = spm_dcm_bmc(DCM)
 %
 % DCM     - {subjects x models} cell array of DCMs
 % ------------------------------------------------
@@ -32,10 +32,9 @@ function [post,exp_r,xp,pxp,bor,F] = spm_dcm_bmc(DCM)
 % Bayesian model selection for group studies - Revisited. 
 % NeuroImage 84:971-85. doi: 10.1016/j.neuroimage.2013.08.065
 %__________________________________________________________________________
-% Copyright (C) 2009-2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_dcm_bmc.m 7479 2018-11-09 14:17:33Z peter $
+% Copyright (C) 2009-2022 Wellcome Centre for Human Neuroimaging
 
 
 % assemble log evidence

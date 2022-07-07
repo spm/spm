@@ -27,10 +27,9 @@ function P = spm_eeg_inv_vbecd_mom(P)
 % (Although this algorithm uses a function for general Bayesian inversion
 % of a non-linear model - see spm_nlsi_gn)
 %__________________________________________________________________________
-% Copyright (C) 2020 Wellcome Trust Centre for Neuroimaging
 
 % Gareth Barnes
-% $Id: spm_eeg_inv_vbecd_mom.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2020-2022 Wellcome Centre for Human Neuroimaging
 
 
 % unpack model, priors, data

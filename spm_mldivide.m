@@ -12,10 +12,10 @@ function D = spm_mldivide(A, B)
 %
 % See also: spm_mrdivide
 %__________________________________________________________________________
-% Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
  
 % Ged Ridgway
-% $Id: spm_mldivide.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2011-2022 Wellcome Centre for Human Neuroimaging
+
 
 % A problem with this (and with original spm_inv) is that negative definite
 % matrices (or those with mixed positive and negative eigenvalues) will not

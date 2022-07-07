@@ -1,8 +1,6 @@
 /*
- * Copyright (c) 2020 Wellcome Centre for Human Neuroimaging
  * John Ashburner, Mikael Brudfors & Yael Balbastre
- * $Id: gmmlib.h 8056 2021-02-09 18:31:42Z john $
- *
+ * Copyright (C) 2020-2022 Wellcome Centre for Human Neuroimaging
  */
 
 #include<math.h>
@@ -35,4 +33,3 @@ int    call_fill_missing(mwSize nf[], float mf[], float vf[], unsigned char labe
     mwSize K, double mu[], double b[], double W[], double nu[], double gam[], double lnP[],
     mwSize nm[], mwSize skip[], mwSize lkp[], float lp[],
     float mf1[]);
-

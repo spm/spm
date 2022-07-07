@@ -1,5 +1,5 @@
 function [BMA,BMR] = spm_dcm_peb_bmc(PEB,models,varargin)
-% hierarchical (PEB) model comparison and averaging (2nd level)
+% Hierarchical (PEB) model comparison and averaging (2nd level)
 % FORMAT [BMA] = spm_dcm_peb_bmc(PEB,models)
 % FORMAT [BMA] = spm_dcm_peb_bmc(PEB)
 %
@@ -95,10 +95,10 @@ function [BMA,BMR] = spm_dcm_peb_bmc(PEB,models,varargin)
 %
 % see also: spm_dcm_peb.m and spm_dcm_bmr
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_peb_bmc.m 8148 2021-09-06 13:55:10Z peter $
+% Copyright (C) 2015-2022 Wellcome Centre for Human Neuroimaging
+
 
 % checks
 %--------------------------------------------------------------------------
@@ -444,7 +444,3 @@ else
     axis([0 (Nb + 1) 0 1]), axis square
     
 end
-
-
-
-

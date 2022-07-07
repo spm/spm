@@ -4,10 +4,9 @@ function [x] = spm_interp(x,r)
 % x - array
 % r - interpolation rate
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_interp.m 5219 2013-01-29 17:07:07Z spm $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 % interpolate
 %--------------------------------------------------------------------------

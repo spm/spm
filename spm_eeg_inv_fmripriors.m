@@ -27,10 +27,10 @@ function D = spm_eeg_inv_fmripriors(S)
 % source reconstruction. Henson R, Flandin G, Friston K & Mattout J.
 % Human Brain Mapping (in press).
 %__________________________________________________________________________
-% Copyright (C) 2008-2015 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin and Rik Henson
-% $Id: spm_eeg_inv_fmripriors.m 6301 2015-01-12 17:23:08Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 %-Get MEEG object
 %--------------------------------------------------------------------------

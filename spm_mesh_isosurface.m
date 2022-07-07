@@ -10,10 +10,9 @@ function M = spm_mesh_isosurface(V, t, s)
 %
 % This is merely a wrapper around isosurface.
 %__________________________________________________________________________
-% Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_isosurface.m 7677 2019-10-24 09:55:24Z guillaume $
+% Copyright (C) 2019-2022 Wellcome Centre for Human Neuroimaging
 
 
 if ischar(V) || isstruct(V)

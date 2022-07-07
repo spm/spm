@@ -17,10 +17,9 @@ function [out] = spm_eeg_displayECD(Pos,Orient,Var,Names,options)
 %   - out: a structure containing the handles of the object in the figure
 %   (including the mesh, the dipoles, the transparency slider, etc...)
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_displayECD.m 5737 2013-11-10 20:23:49Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % checks and defaults

@@ -1,5 +1,5 @@
 function NESS = spm_ness_hd(M,x)
-% nonequilibrium steady-state under a Helmholtz decomposition
+% Nonequilibrium steady-state under a Helmholtz decomposition
 % FORMAT NESS = spm_ness_hd(M,x)
 %--------------------------------------------------------------------------
 % M   - model specification structure
@@ -24,10 +24,9 @@ function NESS = spm_ness_hd(M,x)
 % NESS.bS - p0 = spm_softmax(spm_dctmtx(nx,nb)*bS);
 % NESS.nb - number of basis functions
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ness_hd.m 8179 2021-11-03 19:31:30Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % event space: get or create X - coordinates of evaluation grid
@@ -267,8 +266,3 @@ NESS.p0 = reshape(p0,U.nx);               % nonequilibrium steady-state
 NESS.X  = X;                              % evaluation points of state space
 NESS.F  = F;                              % expected flow
 NESS.f  = f';                             % original flow
-
-
-
-return
-

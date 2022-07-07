@@ -14,10 +14,9 @@ function f = spm_ncTpdf(x,v,d)
 % References:
 % https://en.wikipedia.org/wiki/Noncentral_t-distribution
 %__________________________________________________________________________
-% Copyright (C) 2018 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_ncTpdf.m 7263 2018-02-21 13:30:16Z guillaume $
+% Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Format arguments, note & check sizes

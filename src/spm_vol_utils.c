@@ -1,6 +1,6 @@
 /*
- * $Id: spm_vol_utils.c 7932 2020-08-18 11:05:19Z john $
  * John Ashburner
+ * Copyright (C) 1994-2022 Wellcome Centre for Human Neuroimaging
  */
 
 #define TINY 5e-2
@@ -861,4 +861,3 @@ IMAGE_DTYPE *vol[];
             RESAMPLE_D_POLY(m,vol,out,gradx,grady,gradz,x,y,z,xdim,ydim,zdim, hold+1, background, scale,offset);
     }
 }
-

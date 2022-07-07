@@ -1,6 +1,6 @@
 function [DCM] = spm_dcm_fmri_nmm(P)
 % Estimates parameters of a DCM (neural mass model) for fMRI data
-% FORMAT [DCM] = spm_dcm_estimate(DCM)
+% FORMAT [DCM] = spm_dcm_fmri_nmm(P)
 %   DCM - DCM structure or its filename
 %
 % Expects
@@ -48,10 +48,9 @@ function [DCM] = spm_dcm_fmri_nmm(P)
 % DCM.BIC                            % Bayesian Information criterion
 %
 %__________________________________________________________________________
-% Copyright (C) 2002-2012 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_fmri_nmm.m 8275 2022-07-06 11:14:02Z guillaume $
+% Copyright (C) 2002-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Load DCM structure

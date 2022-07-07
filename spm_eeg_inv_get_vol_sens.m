@@ -1,6 +1,6 @@
 function data = spm_eeg_inv_get_vol_sens(D, val, space, gradsource, modality)
 % Retrieves data for leadfield computation from D.inv structure
-% Format:
+% FORMAT data = spm_eeg_inv_get_vol_sens(D, val, space, gradsource, modality)
 %    D   -  @meeg object
 %    val - inversion index (overrides D.val)
 %    space - one of 'MNI-aligned', 'Head', 'Native' (default 'MNI-aligned')
@@ -9,10 +9,10 @@ function data = spm_eeg_inv_get_vol_sens(D, val, space, gradsource, modality)
 %                 for different runs in the same session)
 %    modality - 'EEG' or 'MEG' to force only one modality for multimodal
 %                datasets
-% Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Vladimir Litvak
-% $Id: spm_eeg_inv_get_vol_sens.m 8059 2021-02-10 12:35:02Z vladimir $
+% Copyright (C) 2013-2022 Wellcome Centre for Human Neuroimaging
 
 data   = [];
 

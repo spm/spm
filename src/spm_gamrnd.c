@@ -1,6 +1,6 @@
 /*
- * $Id: spm_gamrnd.c 7532 2019-02-14 12:03:24Z guillaume $
  * Guillaume Flandin
+ * Copyright (C) 2009-2022 Wellcome Centre for Human Neuroimaging
  */
 
 /*

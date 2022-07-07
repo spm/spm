@@ -15,10 +15,9 @@ function [bor,F0,F1] = spm_BMS_bor(L,posterior,priors,C)
 % Bayesian model selection for group studies - Revisited. 
 % NeuroImage 84:971-85. doi: 10.1016/j.neuroimage.2013.08.065
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_BMS_bor.m 6444 2015-05-21 11:15:48Z guillaume $
+% Copyright (C) 2015-2022 Wellcome Centre for Human Neuroimaging
 
 
 if nargin < 4

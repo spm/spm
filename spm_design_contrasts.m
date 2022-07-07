@@ -16,10 +16,9 @@ function con = spm_design_contrasts(SPM)
 % for the average effect of condition, main effects of factors and
 % interactions.
 %__________________________________________________________________________
-% Copyright (C) 2005-2016 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_design_contrasts.m 6892 2016-09-30 12:56:35Z guillaume $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 
 % Only relevant if factorial design has been specified

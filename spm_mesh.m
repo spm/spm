@@ -4,10 +4,9 @@ function M = spm_mesh(varargin)
 %
 % M        - patch structure array (.faces and .vertices) 
 %__________________________________________________________________________
-% Copyright (C) 2021 Wellcome Centre for Human Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh.m 8155 2021-09-26 16:29:44Z guillaume $
+% Copyright (C) 2021-2022 Wellcome Centre for Human Neuroimaging
 
 
 M = [];

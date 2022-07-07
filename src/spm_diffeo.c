@@ -1,5 +1,7 @@
-/* $Id: spm_diffeo.c 7687 2019-11-07 11:26:02Z guillaume $ */
-/* (c) John Ashburner (2011) */
+/*
+ * John Ashburner
+ * Copyright (C) 2011-2022 Wellcome Centre for Human Neuroimaging
+ */
 
 #include "mex.h"
 #include <math.h>
@@ -1176,4 +1178,3 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         fmg3_mexFunction(nlhs, plhs, nrhs, prhs);
     }
 }
-

@@ -18,10 +18,10 @@ function [LCpL,Q,sumLCpL,QE,Cy,M,Cp,Cq,Lq] = spm_eeg_assemble_priors(L,Qp,Qe,plo
 % Cq      - conditional source covariance - need to implement
 % Lq      - cell array of the L*q (impact of each source component at sensor level)
 %__________________________________________________________________________
-% Copyright (C) 2010-2017 Wellcome Trust Centre for Neuroimaging
 
 % Gareth Barnes
-% $Id: spm_eeg_assemble_priors.m 7132 2017-07-10 16:22:58Z guillaume $
+% Copyright (C) 2010-2022 Wellcome Centre for Human Neuroimaging
+
 
 if nargin < 4
     ploton = ~spm('CmdLine');

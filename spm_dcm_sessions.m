@@ -23,10 +23,9 @@ function spm_dcm_sessions
 % you to make an inference about the population from which the 
 % data (eg. subjects) are drawn.
 %__________________________________________________________________________
-% Copyright (C) 2004-2019 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_dcm_sessions.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2004-2022 Wellcome Centre for Human Neuroimaging
 
 
 Finter = spm_figure('GetWin','Interactive');
@@ -129,4 +128,3 @@ p  = 1 - spm_Tcdf(t,num_models - 1);
 disp(sprintf('Classical Random Effects p-value = %1.4f', p));
 disp('Note: 1-p is equal to Bayesian RFX if threshold is zero');
 spm_input('Thank you',1,'d');
-

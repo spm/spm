@@ -1,18 +1,17 @@
 function [F,p] = spm_DEM_F(DEM,ip)
 % Free-energy as a function of conditional parameters
-% [F,P1,P2] = spm_DEM_F(DEM))
+% FORMAT [F,p] = spm_DEM_F(DEM,ip)
 %
 % DEM    - hierarchical model
 %
-% F(i) - free-energy at <q(P(ip))> = p(i)
+% F(i)   - free-energy at <q(P(ip))> = p(i)
 %
 % where p(i) is the ip-th free-parameter. This is a bound on 
-% the log-likehood (log-evidence) conditioned on the expected parameters
+% the log-likehood (log-evidence) conditioned on the expected parameters.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM_F.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2010-2022 Wellcome Centre for Human Neuroimaging
  
  
 % Find parameter ranges (using prior covariance)
@@ -67,4 +66,3 @@ xlabel('Parameter expectation','FontSize',12)
 ylabel('Free-energy','FontSize',12)
 title('Free-energy profile','FontSize',16)
 axis square, box off
-

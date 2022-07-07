@@ -119,10 +119,9 @@ function [D] = spm_eeg_invert(D, val)
 %   1. Optimisation of spatial source priors over subjects
 %   2. Re-inversion of each subject, fusing across all modalities
 %__________________________________________________________________________
-% Copyright (C) 2006-2017 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_invert.m 8275 2022-07-06 11:14:02Z guillaume $
+% Copyright (C) 2006-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Say hello

@@ -1,5 +1,6 @@
 function res = spm_eeg_regressors_chandata(S)
 % Generate regressors from channel data
+% FORMAT res = spm_eeg_regressors_chandata(S)
 % S                     - input structure
 % fields of S:
 %    S.D                - M/EEG object
@@ -11,16 +12,15 @@ function res = spm_eeg_regressors_chandata(S)
 %
 %   If input is provided the plugin returns
 %__________________________________________________________________________
-% Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_regressors_chandata.m 8275 2022-07-06 11:14:02Z guillaume $
+% Copyright (C) 2014-2022 Wellcome Centre for Human Neuroimaging
 
 
 if nargin == 0
-    %--------------------------------------------------------------------------
+    %----------------------------------------------------------------------
     % TF power dataset
-    %--------------------------------------------------------------------------
+    %----------------------------------------------------------------------
     Dr        = cfg_files;
     Dr.tag    = 'Dr';
     Dr.name   = 'Regressor dataset name';
@@ -28,9 +28,9 @@ if nargin == 0
     Dr.num    = [1 1];
     Dr.help   = {'Select the M/EEG mat file containing regressor data'};
     
-    %--------------------------------------------------------------------------
+    %----------------------------------------------------------------------
     % timewin
-    %--------------------------------------------------------------------------
+    %----------------------------------------------------------------------
     timewin         = cfg_entry;
     timewin.tag     = 'timewin';
     timewin.name    = 'Time window';

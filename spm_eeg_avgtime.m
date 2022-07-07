@@ -13,10 +13,9 @@ function D = spm_eeg_avgtime(S)
 % D        - MEEG object 
 %
 %__________________________________________________________________________
-% Copyright (C) 2012-2017 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_avgtime.m 8275 2022-07-06 11:14:02Z guillaume $
+% Copyright (C) 2012-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Startup

@@ -10,10 +10,9 @@ function [n] = spm_length(X)
 % e.g.:
 % spm_length({eye(2) 3}) = 5
 %__________________________________________________________________________
-% Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_length.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2014-2022 Wellcome Centre for Human Neuroimaging
 
 
 % vectorise numerical arrays

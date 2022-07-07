@@ -121,10 +121,9 @@ function varargout = spm_results_ui(varargin)
 % specifications for embedded CallBack functions are given in the main
 % body of the code.
 %__________________________________________________________________________
-% Copyright (C) 1996-2018 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston & Andrew Holmes
-% $Id: spm_results_ui.m 8275 2022-07-06 11:14:02Z guillaume $
+% Copyright (C) 1996-2022 Wellcome Centre for Human Neuroimaging
  
  
 %==========================================================================

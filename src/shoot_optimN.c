@@ -1,5 +1,7 @@
-/* $Id: shoot_optimN.c 7815 2020-04-06 12:58:21Z yael $ */
-/* (c) John Ashburner (2007) */
+/*
+ * John Ashburner
+ * Copyright (C) 2011-2022 Wellcome Centre for Human Neuroimaging
+ */
 
 #include<math.h>
 extern double log(double x);

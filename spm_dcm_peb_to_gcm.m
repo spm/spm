@@ -1,5 +1,6 @@
 function [GCM,PEB] = spm_dcm_peb_to_gcm(PEB, GCM_template, options)
-% Generate an array of DCMs based on parameters from a PEB model.
+% Generate an array of DCMs based on parameters from a PEB model
+% FORMAT [GCM,PEB] = spm_dcm_peb_to_gcm(PEB, GCM_template, options)
 % 
 % Any parameters not included in the PEB model will be fixed at their 
 % prior means (alternative fixed values can be selected).
@@ -46,15 +47,11 @@ function [GCM,PEB] = spm_dcm_peb_to_gcm(PEB, GCM_template, options)
 %
 % GCM  - DCM array populated with simulated data
 % PEB  - PEB structure updated with PEB.Ce if not already present
-%
-% -------------------------------------------------------------------------
-% Example:
-% GCM = spm_dcm_peb_to_gcm(PEB, DCM);
 %__________________________________________________________________________
-% Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
 
 % Peter Zeidman
-% $Id: spm_dcm_peb_to_gcm.m 6877 2016-09-15 14:09:36Z vladimir $
+% Copyright (C) 2016-2022 Wellcome Centre for Human Neuroimaging
+
 
 % Set defaults
 try options.gen_idx;   catch, options.gen_idx = 1; end

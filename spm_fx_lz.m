@@ -5,10 +5,9 @@ function [y] = spm_fx_lz(x,u,P)
 % u - input
 % P - parameters
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_fx_lz.m 1961 2008-07-26 09:38:46Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % flow for Lorenz attractor

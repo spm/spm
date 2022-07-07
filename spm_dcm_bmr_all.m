@@ -65,10 +65,9 @@ function [DCM,BMR,BMA] = spm_dcm_bmr_all(DCM,field,OPT)
 % See also: spm_dcm_post_hoc - this routine is essentially a simplified
 % version of spm_dcm_post_hoc
 %__________________________________________________________________________
-% Copyright (C) 2010-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: spm_dcm_bmr_all.m 8271 2022-07-01 10:35:53Z peter $
+% Copyright (C) 2010-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-specification of null prior covariance
@@ -461,4 +460,3 @@ DCM.Pp    = Pp;        % Model posterior over parameters (with and without)
 if isfield(DCM,'F')
     DCM = rmfield(DCM,'F');
 end
-

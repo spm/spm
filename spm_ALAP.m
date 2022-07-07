@@ -1,6 +1,6 @@
-function [DEM] = spm_ALAP(DEM)
+function DEM = spm_ALAP(DEM)
 % Laplacian model inversion (see also spm_LAP) with action
-% FORMAT DEM   = spm_ALAP(DEM)
+% FORMAT DEM = spm_ALAP(DEM)
 %
 % DEM.G  - generative process
 % DEM.M  - recognition  model
@@ -146,10 +146,9 @@ function [DEM] = spm_ALAP(DEM)
 % This enables active inference (c.f., action-perception) or embodied
 % inference.
 %__________________________________________________________________________
-% Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ALAP.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2012-2022 Wellcome Centre for Human Neuroimaging
 
 
 % check model, data and priors

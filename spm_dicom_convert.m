@@ -1,6 +1,6 @@
 function out = spm_dicom_convert(Headers,opts,RootDirectory,format,OutputDirectory,meta)
 % Convert DICOM images into something that SPM can use (e.g. NIfTI)
-% FORMAT out = spm_dicom_convert(Headers,opts,RootDirectory,format,OutputDirectory)
+% FORMAT out = spm_dicom_convert(Headers,opts,RootDirectory,format,OutputDirectory,meta)
 % Inputs:
 % Headers      - a cell array of DICOM headers from spm_dicom_headers
 % opts     - options:
@@ -33,10 +33,9 @@ function out = spm_dicom_convert(Headers,opts,RootDirectory,format,OutputDirecto
 %            cellstring with filenames of created files. If no files are
 %            created, a cell with an empty string {''} is returned.
 %__________________________________________________________________________
-% Copyright (C) 2002-2019 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dicom_convert.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2002-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Input parameters
@@ -1984,4 +1983,3 @@ catch Problem
     fprintf('\nUnable to load the file "%s".\n', DictionaryFile);
     rethrow(Problem);
 end
-

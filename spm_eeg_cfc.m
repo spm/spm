@@ -17,10 +17,9 @@ function spm_eeg_cfc(S)
 % References:
 % van Wijk et al. 2015 J Neurosci Methods
 %__________________________________________________________________________
-% Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Bernadette van Wijk, Vladimir Litvak
-% $Id: spm_eeg_cfc.m 8275 2022-07-06 11:14:02Z guillaume $
+% Copyright (C) 2014-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Startup

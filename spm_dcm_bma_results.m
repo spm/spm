@@ -4,10 +4,9 @@ function spm_dcm_bma_results(BMS,method)
 % BMS        - BMS.mat file
 % method     - inference method (FFX or RFX)
 %__________________________________________________________________________
-% Copyright (C) 2009-2014 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao
-% $Id: spm_dcm_bma_results.m 6067 2014-06-26 15:33:30Z guillaume $
+% Copyright (C) 2009-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Load BMS file

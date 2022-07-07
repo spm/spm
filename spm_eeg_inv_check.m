@@ -10,10 +10,9 @@ function [D,val] = spm_eeg_inv_check(varargin)
 % D              - data structure
 % val            - model of interest D.val
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout, Karl Friston
-% $Id: spm_eeg_inv_check.m 2861 2009-03-11 18:41:03Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % Check - prompt for file if necessary

@@ -4,10 +4,9 @@ function spm_unlink(varargin)
 %
 % Remove the specified file(s) using a system call to unlink().
 %__________________________________________________________________________
-% Copyright (C) 1996-2020 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_unlink.m 7840 2020-04-26 23:11:25Z spm $
+% Copyright (C) 1996-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-This is merely the help file for the compiled routine

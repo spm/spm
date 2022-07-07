@@ -22,10 +22,10 @@ function [Y, xY] = spm_summarise(V,xY,fhandle,keepNaNs)
 %               struct('def','sphere', 'spec',8, 'xyz',[10 20 30]'),...
 %               @mean)
 %__________________________________________________________________________
-% Copyright (C) 2010-2015 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin, Ged Ridgway
-% $Id: spm_summarise.m 7384 2018-07-31 13:36:15Z guillaume $
+% Copyright (C) 2010-2022 Wellcome Centre for Human Neuroimaging
+
 
 %-Argument checks
 %--------------------------------------------------------------------------

@@ -9,10 +9,9 @@ function F = spm_ncFcdf(x,df,d)
 % Reference:
 % https://en.wikipedia.org/wiki/Noncentral_F-distribution
 %__________________________________________________________________________
-% Copyright (C) 2018 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_ncFcdf.m 7354 2018-06-22 10:44:22Z guillaume $
+% Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Format arguments, note & check sizes

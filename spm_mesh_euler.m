@@ -13,10 +13,9 @@ function X = spm_mesh_euler(M)
 % See https://www.wikipedia.org/wiki/Euler_characteristic
 %     https://www.wikipedia.org/wiki/Genus_(mathematics)
 %__________________________________________________________________________
-% Copyright (C) 2018 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_euler.m 8081 2021-03-16 16:12:27Z guillaume $
+% Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
 
 
 X = size(M.vertices,1) - size(spm_mesh_edges(M),1) + size(M.faces,1);

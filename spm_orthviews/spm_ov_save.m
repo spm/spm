@@ -6,10 +6,9 @@ function ret = spm_ov_save(varargin)
 %             help spm_orthviews
 % at the MATLAB prompt.
 %__________________________________________________________________________
-% Copyright (C) 2013-2015 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_ov_save.m 6416 2015-04-21 15:34:10Z guillaume $
+% Copyright (C) 2013-2022 Wellcome Centre for Human Neuroimaging
 
 
 if ~nargin, varargin = {'ui'}; end

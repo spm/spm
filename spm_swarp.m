@@ -10,12 +10,10 @@ function that = spm_swarp(this,def,M)
 % def  - a deformation field (nx*ny*nz*1*3)
 % M    - mapping from voxels to world, for deformation field
 % that - the warped gifti object
-%
 %__________________________________________________________________________
-% Copyright (C) 2009-2015 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_swarp.m 6349 2015-02-26 12:15:06Z guillaume $
+% Copyright (C) 2009-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Input arguments

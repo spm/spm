@@ -18,10 +18,9 @@ function varargout = spm_update(update)
 %        n   - new revision <n> is available for download
 % msg  - string describing outcome, that would otherwise be displayed.
 %__________________________________________________________________________
-% Copyright (C) 2010-2020 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_update.m 7770 2020-01-13 11:26:14Z guillaume $
+% Copyright (C) 2010-2022 Wellcome Centre for Human Neuroimaging
 
 
 vspm = spm('Ver');

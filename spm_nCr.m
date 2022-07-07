@@ -57,10 +57,9 @@ function c = spm_nCr(n,r)
 %    Cambridge
 %
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_nCr.m 5219 2013-01-29 17:07:07Z spm $
+% Copyright (C) 2007-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Format arguments, note & check sizes
@@ -86,10 +85,6 @@ if xa(2), Qr=Q; else Qr=1; end
 
 %-Compute
 c(Q) = round(exp(gammaln(n(Qn)+1) -gammaln(r(Qr)+1) - gammaln(n(Qn)-r(Qr)+1)));
-
-%-Return
-%--------------------------------------------------------------------------
-return
 
 
 %==========================================================================

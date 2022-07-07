@@ -30,12 +30,11 @@ function [DCM] = spm_dcm_mdp(DCM)
 % probability. This is used to optimise the MDP (hyper) parameters in
 % DCM.field using variational Laplace (with numerical evaluation of the
 % curvature).
-%
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_mdp.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2015-2022 Wellcome Centre for Human Neuroimaging
+
 
 % OPTIONS
 %--------------------------------------------------------------------------
@@ -133,9 +132,8 @@ n          = numel(j);
 %--------------------------------------------------------------------------
 MDP   = spm_MDP_VB(MDP);
 L     = 0;
-for i = 1:numel(Y);
-    for j = 1:numel(Y{1});
+for i = 1:numel(Y)
+    for j = 1:numel(Y{1})
         L = L + log(MDP(k(i)).P(Y{i}(j),j));
     end
 end
-

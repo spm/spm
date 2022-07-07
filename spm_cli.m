@@ -1,10 +1,9 @@
 function spm_cli(varargin)
 % Command line interface for SPM
 %__________________________________________________________________________
-% Copyright (C) 2016-2021 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_cli.m 8185 2021-11-08 14:11:51Z guillaume $ 
+% Copyright (C) 2016-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Input arguments

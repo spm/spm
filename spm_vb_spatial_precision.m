@@ -9,10 +9,10 @@ function [S] = spm_vb_spatial_precision(prior_type,vxyz,img)
 %
 % S          - spatial precision matrix
 %__________________________________________________________________________
-% Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny, Nelson Trujillo-Barreto and Lee Harrison
-% $Id: spm_vb_spatial_precision.m 6079 2014-06-30 18:25:37Z spm $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
+
 
 switch prior_type
     

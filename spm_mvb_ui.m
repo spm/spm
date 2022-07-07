@@ -74,10 +74,9 @@ function [MVB] = spm_mvb_ui(xSPM,SPM,MVB)
 % Friston KJ, Frith CD, Frackowiak RS, Turner R.
 % Neuroimage. 1995 Jun;2(2):166-72.
 %__________________________________________________________________________
-% Copyright (C) 2007-2017 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mvb_ui.m 7162 2017-08-30 11:47:07Z guillaume $
+% Copyright (C) 2007-2022 Wellcome Centre for Human Neuroimaging
  
  
 %-Get figure handles and set title

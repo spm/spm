@@ -31,10 +31,10 @@ function [f,dfdx,D,dfdu] = spm_fx_fmri(x,u,P,M)
 %    fMRI: a two-state model.
 %    Neuroimage. 2008 Jan 1;39(1):269-78.
 %__________________________________________________________________________
-% Copyright (C) 2002-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston & Klaas Enno Stephan
-% $Id: spm_fx_fmri.m 7525 2019-02-05 16:47:50Z peter $
+% Copyright (C) 2002-2022 Wellcome Centre for Human Neuroimaging
+
 
 % options
 %--------------------------------------------------------------------------

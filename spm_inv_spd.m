@@ -7,10 +7,10 @@ function X = spm_inv_spd(A, TOL)
 %
 % TOL - tolerance: default = exp(-32)
 %__________________________________________________________________________
-% Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
  
 % Ged Ridgway
-% $Id: spm_inv_spd.m 5219 2013-01-29 17:07:07Z spm $
+% Copyright (C) 2011-2022 Wellcome Centre for Human Neuroimaging
+
 
 % if ~all(isfinite(A(:))), error('Matrix has non-finite elements!'); end
 

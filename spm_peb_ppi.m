@@ -44,10 +44,9 @@ function PPI = spm_peb_ppi(varargin)
 % conforms to Wiener filtering. The neuronal process is then used to form 
 % PPIs. See help text within function for more details.
 %__________________________________________________________________________
-% Copyright (C) 2002-2014 Wellcome Trust Centre for Neuroimaging
 
 % Darren Gitelman
-% $Id: spm_peb_ppi.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2002-2022 Wellcome Centre for Human Neuroimaging
 
 
 % SETTING UP A PPI THAT ACCOUNTS FOR THE HRF

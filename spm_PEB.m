@@ -1,5 +1,5 @@
 function [C,P,F] = spm_PEB(y,P,HP,OPT)
-% parametric empirical Bayes (PEB) for hierarchical linear models
+% Parametric empirical Bayes (PEB) for hierarchical linear models
 % FORMAT [C,P,F] = spm_PEB(y,P,[hP],OPT))
 %
 % y       - (n x 1)     response variable
@@ -55,10 +55,10 @@ function [C,P,F] = spm_PEB(y,P,HP,OPT)
 % Ref: Dempster A.P., Rubin D.B. and Tsutakawa R.K. (1981) Estimation in
 % covariance component models.  J. Am. Stat. Assoc. 76;341-353
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_PEB.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
+
 
 % set defaults
 %--------------------------------------------------------------------------
@@ -373,4 +373,3 @@ end
 % warning
 %--------------------------------------------------------------------------
 if k == M, warning('maximum number of iterations exceeded'), end
-

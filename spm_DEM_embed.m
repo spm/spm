@@ -1,5 +1,5 @@
 function [y] = spm_DEM_embed(Y,n,t,dt,d)
-% temporal embedding into derivatives
+% Temporal embedding into derivatives
 % FORMAT [y] = spm_DEM_embed(Y,n,t,dt,d)
 %__________________________________________________________________________
 % Y    - (v x N) matrix of v time-series of length N
@@ -9,11 +9,11 @@ function [y] = spm_DEM_embed(Y,n,t,dt,d)
 % d    - delay (bins) for each row of Y
 %
 % y    - {n,1}(v x 1) temporal derivatives   y[:] <- E*Y(t)
-%==========================================================================
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Karl Friston
-% $Id: spm_DEM_embed.m 4663 2012-02-27 11:56:23Z karl $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
+
 
 % defaults
 %--------------------------------------------------------------------------

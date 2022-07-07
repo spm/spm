@@ -23,10 +23,9 @@ function varargout = spm_filter(K,Y)
 % spm_filter also configures the filter structure in accord with the
 % specification fields if called with one argument.
 %__________________________________________________________________________
-% Copyright (C) 1999-2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_filter.m 6416 2015-04-21 15:34:10Z guillaume $
+% Copyright (C) 1999-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Configure filter

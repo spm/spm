@@ -1,5 +1,5 @@
 function [MVB] = spm_mvb_estimate(MVB)
-% [re]esimates a multivariate Bayes model (Bayesian decoding of a contrast)
+% [re]estimate a multivariate Bayes model (Bayesian decoding of a contrast)
 % FORMAT [MVB] = spm_mvb_estimate(MVB)
 %
 % Sets up, evaluates and saves an MVB structure:
@@ -64,10 +64,10 @@ function [MVB] = spm_mvb_estimate(MVB)
 % Friston KJ, Frith CD, Frackowiak RS, Turner R.
 % Neuroimage. 1995 Jun;2(2):166-72.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mvb_estimate.m 3656 2009-12-23 20:17:30Z karl $
+% Copyright (C) 2007-2022 Wellcome Centre for Human Neuroimaging
+
 
 %-Figure
 %--------------------------------------------------------------------------

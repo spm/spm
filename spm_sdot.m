@@ -13,10 +13,10 @@ function [Y] = spm_sdot(X,x,k)
 %
 % See also: spm_dot, spm_cross
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_sdot.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2015-2022 Wellcome Centre for Human Neuroimaging
+
 
 % initialise dimensions
 %--------------------------------------------------------------------------
@@ -38,6 +38,3 @@ for i  = 1:numel(j)
     end
     Y(I{k}(i)) = Y(I{k}(i)) + p;
 end
-
-
-

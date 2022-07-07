@@ -2,10 +2,9 @@ function s = spm_cat_struct(s1, s2, varargin)
 % Concatenates structure arrays with possibly different fields
 % FORMAT s = spm_cat_struct(s1, s2, ...)
 %__________________________________________________________________________
-% Copyright (C) 2013-2017 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cat_struct.m 7074 2017-05-05 10:51:08Z guillaume $
+% Copyright (C) 2013-2022 Wellcome Centre for Human Neuroimaging
 
 
 if ~nargin

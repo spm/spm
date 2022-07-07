@@ -9,11 +9,11 @@ function [M1] = spm_eeg_inv_rigidreg(data1, data2)
 % data2      - locations of the second set of points corresponding to the
 %            second 3D surface to be registered 
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_inv_rigidreg.m 8183 2021-11-04 15:25:19Z guillaume $
- 
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
+
 M       = spm_detrend(data1');
 S       = spm_detrend(data2');
 [U,A,V] = svd(S'*M);

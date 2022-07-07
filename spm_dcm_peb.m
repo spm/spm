@@ -93,12 +93,10 @@ function [PEB,P]   = spm_dcm_peb(P,M,field)
 %
 % If called with a cell array, each column is assumed to contain 1st
 % level DCMs inverted under the same model.
-%
 %__________________________________________________________________________
-% Copyright (C) 2015-2016 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_peb.m 8269 2022-06-30 18:53:59Z karl $
+% Copyright (C) 2015-2022 Wellcome Centre for Human Neuroimaging
  
 
 % get filenames and set up
@@ -695,4 +693,3 @@ end
 % check for DEM structures
 %--------------------------------------------------------------------------
 try, P   = spm_dem2dcm(DEM,P); end
-

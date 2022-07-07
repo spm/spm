@@ -1,6 +1,6 @@
 /*
- * $Id: spm_brainwarp.c 8183 2021-11-04 15:25:19Z guillaume $
  * John Ashburner
+ * Copyright (C) 1995-2022 Wellcome Centre for Human Neuroimaging
  */
 
 #include <math.h>
@@ -684,4 +684,3 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     if (mapw != (MAPTYPE *)0)
         free_maps(mapw,  i);
 }
-

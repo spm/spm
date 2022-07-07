@@ -1,5 +1,6 @@
 /*
- * $Id: spm_matfuns.c 4452 2011-09-02 10:45:26Z guillaume $
+ * John Ashburner
+ * Copyright (C) 1997-2022 Wellcome Centre for Human Neuroimaging
  */
 
 #include <math.h>

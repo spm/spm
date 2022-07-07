@@ -85,10 +85,10 @@ function bma = spm_dcm_bma(post,post_indx,subj,Nsamp,oddsr)
 % and A Leff. Comparing Families of Dynamic Causal Models. 
 % PLoS Computational Biology, Mar 2010, 6(3), e1000709.
 %__________________________________________________________________________
-% Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_dcm_bma.m 8113 2021-06-22 14:58:08Z peter $
+% Copyright (C) 2009-022 Wellcome Centre for Human Neuroimaging
+
 
 % defaults
 %--------------------------------------------------------------------------

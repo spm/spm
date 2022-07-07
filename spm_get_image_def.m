@@ -37,13 +37,10 @@ function [def,jac] = spm_get_image_def(P,ds,defa,ddefa)
 %              for dx'/dx, dy'/dy, dy'/dx etc where x', y'... are
 %              transformed coordinates and x, y... are original
 %              coordinates.
-%
-%_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Jesper Andersson
-% $Id: spm_get_image_def.m 8183 2021-11-04 15:25:19Z guillaume $
-
+% Copyright (C) 2003-2022 Wellcome Centre for Human Neuroimaging
 
 
 if nargin > 2 && ~isempty(defa)

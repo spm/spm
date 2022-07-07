@@ -17,10 +17,10 @@ function [mat, dim] = spm_get_matdim(img, vx, bb)
 %       if either or both bb and vx are specified (finite), but otherwise
 %       will keep the orientation of the reference image.
 %__________________________________________________________________________
-% Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
 % Ged Ridgway
-% $Id: spm_get_matdim.m 5374 2013-03-29 17:26:24Z ged $
+% Copyright (C) 2013-2022 Wellcome Centre for Human Neuroimaging
+
 
 if nargin < 3, vx  = nan(1, 3); end
 if nargin < 2, bb  = nan(2, 3); end

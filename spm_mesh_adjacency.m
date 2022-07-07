@@ -5,10 +5,10 @@ function A = spm_mesh_adjacency(F)
 % 
 % A        - adjacency matrix as a sparse [vxv] array
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_adjacency.m 4035 2010-08-05 18:54:32Z guillaume $
+% Copyright (C) 2009-2022 Wellcome Centre for Human Neuroimaging
+
 
 if ~isnumeric(F) && isfield(F,'vertices')
     N = size(F.vertices,1);

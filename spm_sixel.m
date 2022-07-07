@@ -14,10 +14,9 @@ function spm_sixel(img,col,filename)
 % [img,col] = rgb2ind(cat(3,r(:,:,50),g(:,:,50),b(:,:,50)),64);
 % spm_sixel(img,col);
 %__________________________________________________________________________
-% Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_sixel.m 7875 2020-06-18 15:33:09Z guillaume $
+% Copyright (C) 2020-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Input arguments

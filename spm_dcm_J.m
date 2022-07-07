@@ -65,10 +65,9 @@ function [J,K] = spm_dcm_J(Y,U,X0,dt,R,I,D)
 % panel zooms in on the first 32 particles, to show local connections that
 % were retained (red) or removed (blue).
 %__________________________________________________________________________
-% Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_J.m 7799 2020-03-12 17:23:14Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % preliminaries
@@ -404,7 +403,3 @@ spy(FR(k(1:m),k(1:m)) < 0,'.b'), hold off
 title(str,'fontsize',16)
 xlabel('parcel'), ylabel('parcel')
 box off, axis square
-
-
-
-

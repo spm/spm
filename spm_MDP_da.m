@@ -5,10 +5,10 @@ function spm_MDP_da(MDP)
 % See also: spm_MDP_game, which generalises this scheme and replaces prior
 % beliefs about KL control with minimisation of expected free energy.
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_da.m 6451 2015-05-26 09:26:03Z karl $
+% Copyright (C) 2015-2022 Wellcome Centre for Human Neuroimaging
+
 
 % deconvolve to simulate dopamine responses
 %--------------------------------------------------------------------------

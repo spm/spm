@@ -9,10 +9,10 @@ function [sts, str] = spm_check_orientations(V, verbose)
 %
 % When used without LHS, this function throws an error accordingly.
 %__________________________________________________________________________
-% Copyright (C) 2005-2022 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_check_orientations.m 8234 2022-03-24 10:43:45Z tibor $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
+
 
 sts = true;
 str = '';

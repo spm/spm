@@ -4,10 +4,10 @@ function varargout = spm_eeg_inv_imag_api(varargin)
 %    FIG = SPM_EEG_INV_IMAG_API launch spm_eeg_inv_imag_api GUI.
 %    SPM_EEG_INV_IMAG_API('callback_name', ...) invoke the named callback.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_imag_api.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 spm('Clear');
 

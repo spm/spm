@@ -1,5 +1,5 @@
 function [DX] = spm_diff_dx(varargin)
-% optimisation of finite difference for numerical differentiation
+% Optimisation of finite difference for numerical differentiation
 % FORMAT [dx] = spm_diff_dx(f,x,...,n)
 % FORMAT [dx] = spm_diff_dx(f,x,...,n,V)
 % FORMAT [dx] = spm_diff_dx(f,x,...,n,'q')
@@ -10,10 +10,9 @@ function [DX] = spm_diff_dx(varargin)
 %
 % dx     - 'best' step size
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_diff_dx.m 7143 2017-07-29 18:50:38Z karl $
+% Copyright (C) 2017-2022 Wellcome Centre for Human Neuroimaging
 
 
 % Stability of numerical gradients
@@ -68,6 +67,3 @@ if iscell(varargin{end})
     title('Paramter modes','Fontsize',16), xlabel('Paramter mode')
     axis square, ylabel('parameter')
 end
-
-
-

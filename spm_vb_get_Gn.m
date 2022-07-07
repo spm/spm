@@ -6,10 +6,10 @@ function [G,G1,G2,G3] = spm_vb_get_Gn(Y,slice,n)
 % slice  - data structure (see spm_vb_glmar) 
 % n      - voxel number
 %__________________________________________________________________________
-% Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny and Nelson Trujillo-Barreto
-% $Id: spm_vb_get_Gn.m 6079 2014-06-30 18:25:37Z spm $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
+
 
 p = slice.p;
 k = slice.k;

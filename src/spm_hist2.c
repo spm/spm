@@ -1,6 +1,6 @@
 /*
- * $Id: spm_hist2.c 7783 2020-02-13 12:57:30Z john $
  * John Ashburner
+ * Copyright (C) 1999-2022 Wellcome Centre for Human Neuroimaging
  */
 
 #include <math.h>
@@ -58,4 +58,3 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     hist2(mxGetPr(prhs[2]), (unsigned char *)mxGetData(prhs[0]), (unsigned char *)mxGetData(prhs[1]),
         dimsg, dimsf, mxGetPr(plhs[0]), s);
 }
-

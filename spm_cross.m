@@ -10,10 +10,10 @@ function [Y] = spm_cross(X,x,varargin)
 %
 % See also: spm_dot
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_cross.m 7838 2020-04-23 17:40:45Z karl $
+% Copyright (C) 2015-2022 Wellcome Centre for Human Neuroimaging
+
 
 % handle single inputs
 %--------------------------------------------------------------------------

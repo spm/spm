@@ -1,5 +1,5 @@
 function [pE,pC] = spm_hdm_priors(m,h)
-% returns priors for a hemodynamic dynamic causal model
+% Return priors for a hemodynamic dynamic causal model
 % FORMAT [pE,pC] = spm_hdm_priors(m,[h])
 % m   - number of inputs
 % h   - number of hemodynamic modes (default = 3)
@@ -21,11 +21,9 @@ function [pE,pC] = spm_hdm_priors(m,h)
 %    P(7) - ....
 %
 %___________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_hdm_priors.m 4579 2011-12-02 20:21:07Z karl $
-
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % default: 3 hemodynamic [eigen]modes

@@ -8,10 +8,10 @@ function x = spm_normrnd(m, C, N)
 %
 % x        - [d x N] matrix of samples
 %__________________________________________________________________________
-% Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_normrnd.m 3603 2009-11-30 18:56:50Z guillaume $
+% Copyright (C) 2009-2022 Wellcome Centre for Human Neuroimaging
+
 
 if iscell(C)
     deig = C{1};

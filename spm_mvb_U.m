@@ -1,5 +1,5 @@
 function U = spm_mvb_U(Y,priors,X0,xyz,vox,nu)
-% Constructs patterns U for Multivariate Bayesian inversion of a linear model
+% Construct patterns U for Multivariate Bayesian inversion of a linear model
 % FORMAT U = spm_mvb_U(Y,priors,X0,xyz,vox,nu)
 % Y      - data-feature matrix
 % priors - 'null'      % no patterns
@@ -16,10 +16,10 @@ function U = spm_mvb_U(Y,priors,X0,xyz,vox,nu)
 %
 % U      - pattern or mode weights
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mvb_U.m 7654 2019-08-25 20:09:35Z karl $
+% Copyright (C) 2007-2022 Wellcome Centre for Human Neuroimaging
+
  
 % defaults
 %--------------------------------------------------------------------------
@@ -142,6 +142,5 @@ switch priors
         end
         
     otherwise
-        disp('unknown prior')
-        return
+        error('Unknown prior')
 end

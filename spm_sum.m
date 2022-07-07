@@ -4,10 +4,10 @@ function S = spm_sum(varargin)
 %
 % Compatibility layer for SUM for MATLAB < R2018b
 %__________________________________________________________________________
-% Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_sum.m 7814 2020-04-06 11:47:47Z guillaume $
+% Copyright (C) 2020-2022 Wellcome Centre for Human Neuroimaging
+
 
 persistent usebuiltin
 if isempty(usebuiltin)

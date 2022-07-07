@@ -81,10 +81,10 @@ function [Ep,Eg,Cp,Cg,S,F,L] = spm_nlsi_N(M,U,Y)
 % of [Re]ML point estimators of the log-precisions.
 % An optional feature selection can be specified with parameters M.FS
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_N.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2009-2022 Wellcome Centre for Human Neuroimaging
+
  
 % options
 %--------------------------------------------------------------------------
@@ -623,5 +623,3 @@ warning(sw);
 % diagnostic
 %--------------------------------------------------------------------------
 % save('spm_nlsi_N_Ep','EP')
-
-return

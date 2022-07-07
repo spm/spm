@@ -25,10 +25,9 @@ function [varargout] = spm_diff(varargin)
 %
 % dfdx  = (f(x + dx)- f(x))/dx
 %__________________________________________________________________________
-% Copyright (C) 2003-2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_diff.m 7977 2020-10-07 15:29:54Z guillaume $
+% Copyright (C) 2003-2022 Wellcome Centre for Human Neuroimaging
 
 
 % step size for numerical derivatives

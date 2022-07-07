@@ -1,5 +1,5 @@
 function [y] = spm_int_sde(P,M,U)
-% integrates a stochastic MIMO nonlinear system using the Jacobian
+% Integrate a stochastic MIMO nonlinear system using the Jacobian
 % FORMAT [y] = spm_int_sde(P,M,U)
 % P   - model parameters
 % M   - model structure
@@ -58,10 +58,9 @@ function [y] = spm_int_sde(P,M,U)
 % sparse sampling of the solution and delays in observing outputs. It is
 % used primarily for integrating fMRI models
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_int_sde.m 7799 2020-03-12 17:23:14Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % convert U to U.u if necessary and M(1) to M

@@ -11,10 +11,9 @@ function Y = spm_padarray(X, padsize, method, direction)
 %
 % If padsize < 0, it is set to 0 instead.
 %__________________________________________________________________________
-% Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
 % Yael Balbastre
-% $Id: spm_padarray.m 7856 2020-05-19 22:54:41Z spm $
+% Copyright (C) 2019-2022 Wellcome Centre for Human Neuroimaging
 
 
 % Possible extensions:

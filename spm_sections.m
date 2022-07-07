@@ -11,10 +11,9 @@ function spm_sections(xSPM,hReg,img)
 % create three orthogonal sections through a background image.
 % Regional foci from the selected xSPM are rendered on this image.
 %__________________________________________________________________________
-% Copyright (C) 1994-2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_sections.m 4199 2011-02-10 20:07:17Z guillaume $
+% Copyright (C) 1994-2022 Wellcome Centre for Human Neuroimaging
 
 
 if ~nargin, [SPM,xSPM] = spm_getSPM; end

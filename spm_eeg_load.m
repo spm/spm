@@ -9,10 +9,9 @@ function D = spm_eeg_load(P)
 % spm_eeg_load loads an M/EEG file using the SPM MEEG format. Importantly,
 % the data array is memory-mapped and the struct is converted to MEEG object.
 %__________________________________________________________________________
-% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_load.m 6102 2014-07-14 09:19:09Z vladimir $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Bypass if the input is already an MEEG object

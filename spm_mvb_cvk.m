@@ -13,10 +13,9 @@ function [p,pc,R2] = spm_mvb_cvk(MVB,k)
 % the target variable using training and test partitions on orthogonal 
 % mixtures of data (from null space of confounds)
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mvb_cvk.m 5219 2013-01-29 17:07:07Z spm $
+% Copyright (C) 2007-2022 Wellcome Centre for Human Neuroimaging
  
  
 %-partition order

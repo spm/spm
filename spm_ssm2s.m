@@ -1,6 +1,6 @@
 function [s,u] = spm_ssm2s(P,M,TOL)
-% Converts state-space (M) representation to eigenspectrum
-% FORMAT [s,u] = spm_ssm2s(P,M)
+% Convert state-space (M) representation to eigenspectrum
+% FORMAT [s,u] = spm_ssm2s(P,M,TOL)
 %
 % P    - model parameters
 % M    - model (with flow M.f and expansion point M.x and M.u)
@@ -11,15 +11,14 @@ function [s,u] = spm_ssm2s(P,M,TOL)
 %
 % csd  - cross spectral density
 %__________________________________________________________________________
-% Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_ssm2s.m 6233 2014-10-12 09:43:50Z karl $
+% Copyright (C) 2012-2022 Wellcome Centre for Human Neuroimaging
+
 
 % preliminaries
 %--------------------------------------------------------------------------
 if nargin < 3, TOL = -4; end
-
 
 % Steady state solution
 %--------------------------------------------------------------------------
@@ -69,6 +68,3 @@ j      = find(~imag(s));
 [d,i]  = sort(real(s(j)),'descend');
 u(:,j) = u(:,j(i));
 s(j)   = s(j(i));
-
-
-

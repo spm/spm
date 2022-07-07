@@ -72,10 +72,9 @@ function DCM = spm_dcm_post_hoc(P,fun,field,write_all)
 %
 % See also: spm_dcm_search
 %__________________________________________________________________________
-% Copyright (C) 2010-2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: spm_dcm_post_hoc.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2010-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Number of parameters to consider before invoking greedy search

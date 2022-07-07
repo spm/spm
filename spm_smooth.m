@@ -19,10 +19,9 @@ function spm_smooth(P,Q,s,dtype)
 % image.  It must already be defined with the same number of elements
 % as the image.
 %__________________________________________________________________________
-% Copyright (C) 1994-2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner & Tom Nichols
-% $Id: spm_smooth.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 1994-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Parameters & Arguments

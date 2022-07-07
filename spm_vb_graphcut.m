@@ -22,10 +22,10 @@ function labels = spm_vb_graphcut(labels,index,I,W,depth,grnd_type,CUTOFF,DIM)
 % graph partitioning for image segmentation",
 % IEEE Trans Pattern Anal Mach Intell, 28(3),pp469-75
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Lee Harrison
-% $Id: spm_vb_graphcut.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
+
 
 try, grnd_type; catch, grnd_type = 'random'; end
 

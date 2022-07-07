@@ -10,10 +10,9 @@ function s = spm_existfile(filename)
 % and was written for speed purposes. The differences in behaviour is that
 % spm_existfile does not look in MATLAB's search path.
 %__________________________________________________________________________
-% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_existfile.m 4901 2012-09-05 15:10:48Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-This is merely the help file for the compiled routine

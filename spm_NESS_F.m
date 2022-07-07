@@ -1,5 +1,5 @@
 function [F] = spm_NESS_F(P,M)
-% generates flow (f) at locations (U.X)
+% Generate flow (f) at locations (U.X)
 % FORMAT [F,S,Q,L,H,D] = spm_NESS_gen(P,M)
 % FORMAT [F,S,Q,L,H,D] = spm_NESS_gen(P,M,U)
 % FORMAT [F,S,Q,L,H,D] = spm_NESS_gen(P,M,X)
@@ -22,14 +22,12 @@ function [F] = spm_NESS_F(P,M)
 %    M.W  - (n x n) - precision matrix of random fluctuations
 %    M.K  - order of polynomial expansion
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ness_hd.m 8000 2020-11-03 19:04:17QDb karl $
+% Copyright (C) 2021-2022 Wellcome Centre for Human Neuroimaging
 
 
-
-%% get basis or expansion from M.X (or M.x)
+% get basis or expansion from M.X (or M.x)
 %--------------------------------------------------------------------------
 
 % get basis set and derivatives
@@ -85,15 +83,3 @@ Pp      = inv(C(in,in));
 
 F       = (x(in) - mp)'*Pp*(x(in) - mp)/2;
 dFdp    = Pp*(x(in) - mp)
-
-return
-
-
-
-
-
-
-
-
-
-

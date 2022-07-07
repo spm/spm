@@ -1,16 +1,15 @@
 function [D] = spm_speye(m,n,k,c)
-% sparse leading diagonal matrix
+% Sparse leading diagonal matrix
 % FORMAT [D] = spm_speye(m,n,k,c)
 %
 % returns an m x n matrix with ones along the k-th leading diagonal. If
 % call with an optional fourth argument c = 1, a wraparound sparse matrix
 % is returned. If c = 2, then empty rows or columns are filled in on the
-% leading diagonal
+% leading diagonal.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_speye.m 8172 2021-10-25 10:20:42Z karl $
+% Copyright (C) 2007-2022 Wellcome Centre for Human Neuroimaging
 
 
 % default k = 0

@@ -29,13 +29,12 @@ function [DCM] = spm_dcm_average(P,name,nocond,graphics)
 % A Bayesian random effects analysis can be implemented for a particular
 % contrast using the spm_dcm_sessions.m function.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Klaas Enno Stephan
-% $Id: spm_dcm_average.m 7271 2018-03-04 13:11:54Z karl $
+% Copyright (C) 2006-2022 Wellcome Centre for Human Neuroimaging
 
 
-% Preiminaries
+% Preliminaries
 %--------------------------------------------------------------------------
 try
     P;
@@ -194,4 +193,3 @@ end
 % disp('Please note that this file only contains average parameter estimates');
 % disp('and their posterior probabilities, but NOT averaged time series.');
 % disp('Also, note that this file can NOT be used for model comparisons.');
-

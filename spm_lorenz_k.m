@@ -7,6 +7,9 @@ function [f] = spm_lorenz_k(x,v,P)
 %     P.t = N x 1
 %     P.k = 1 x 1
 %__________________________________________________________________________
+
+% Karl Friston
+% Copyright (C) 2010-2022 Wellcome Centre for Human Neuroimaging
  
 % take expectations and unpack
 %--------------------------------------------------------------------------

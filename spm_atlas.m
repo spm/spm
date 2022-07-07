@@ -14,10 +14,9 @@ function varargout = spm_atlas(action,varargin)
 % FORMAT labels = spm_atlas('import_labels',labelfile,fmt)
 % FORMAT spm_atlas('save_labels',labelfile,labels)
 %__________________________________________________________________________
-% Copyright (C) 2013-2015 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_atlas.m 6656 2015-12-24 16:49:52Z guillaume $
+% Copyright (C) 2013-2022 Wellcome Centre for Human Neuroimaging
 
 
 if ~nargin, action = 'load'; end

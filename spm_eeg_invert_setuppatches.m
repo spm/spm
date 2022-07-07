@@ -15,10 +15,9 @@ function [Qp,Qe,allpriornames] = spm_eeg_invert_setuppatches(allIp,mesh,base,pri
 % Qp  - prior source covariances from prior created in last row of allIp
 % Qe  - prior sensor covariances
 %__________________________________________________________________________
-% Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Gareth Barnes
-% $Id: spm_eeg_invert_setuppatches.m 7989 2020-10-19 13:04:37Z george $
+% Copyright (C) 2010-2022 Wellcome Centre for Human Neuroimaging
 
 
 Npatchiter=size(allIp,1);
@@ -44,17 +43,17 @@ if isfield(base,'FWHMmm')
 else
     smoothm=5;
     fprintf('\nSmoothness of all patches is set to %3.2fmm\n',smoothm(1)*1000);
-end;
-if length(smoothm)==1,
+end
+if length(smoothm)==1
     smoothm=ones(Np,1).*smoothm; %% turn it into a vector
-end;
+end
 
 
 [priorfiles] = spm_select('FPListRec',priordir,'.*\.mat$');
 priorcount=size(priorfiles,1);
 allpriornames=[];
 
-for k=1:Npatchiter,
+for k=1:Npatchiter
     Ip=allIp(k,:);
     Qp={};
     
@@ -70,21 +69,21 @@ for k=1:Npatchiter,
         q=q.*nAm(j);
         
         Qp{j}.q   = q';
-        if length(dist)>1, %% more than 1 vertex in fwhm
+        if length(dist)>1 %% more than 1 vertex in fwhm
             areamm2=pi*(max(dist*1000)/2).^2;
         else
             areamm2=areapervertex*1e6; % take approx area per vertex in this region
-        end;
+        end
         
         mompervertex=mean(q(useind));
         peakmom=max(q(useind));
         mompermm2(j)=full(mompervertex*length(dist)/(areamm2)); %% nAm/mm2
         peakmompermm2(j)=full(peakmom*length(dist)/(areamm2));%% nAm/mm2
-        if k==Npatchiter,
+        if k==Npatchiter
             fprintf('\n In last iteration...setting up patch %d with  %3.2f nAm , FWHM %3.2fmm, mean moment density %3.2f pAm/mm2, peak momemnt density %3.2f pAm/mm2 \n',j,nAm(j),smoothm(j)*1000,mompermm2(j)*1000,peakmompermm2(j)*1000);
-        end;
+        end
         
-    end; % for j
+    end % for j
     
     fprintf('Prior %d. Average Mean (over dist of FWHM from centre) moment density %3.2f, sd %3.2f pAm/mm2\n',k,mean(mompermm2)*1000,std(mompermm2)*1000);
     fprintf('Prior %d. Average Peak (max vertex) moment density %3.2f, sd %3.2f pAm/mm2\n',k,mean(peakmompermm2)*1000,std(peakmompermm2)*1000);
@@ -98,7 +97,7 @@ for k=1:Npatchiter,
     F=[]; % no associated free energy value
     allpriornames=strvcat(allpriornames,priorfname);
     save(priorfname,'Qp','Qe','UL','F', spm_get_defaults('mat.format'));
-end; % for k
+end % for k
 
 
 %==========================================================================

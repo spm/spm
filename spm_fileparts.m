@@ -8,10 +8,9 @@ function [pth,nam,ext,num] = spm_fileparts(fname)
 % ext    - extension
 % num    - comma separated list of values
 %__________________________________________________________________________
-% Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_fileparts.m 4439 2011-08-25 17:47:07Z guillaume $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 
 num = '';

@@ -56,10 +56,9 @@ function spm_reslice(P,flags)
 % The routine uses information in their headers and writes the realigned 
 % image files to the same subdirectory with a prefix.
 %__________________________________________________________________________
-% Copyright (C) 1999-2017 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_reslice.m 8275 2022-07-06 11:14:02Z guillaume $
+% Copyright (C) 1999-2022 Wellcome Centre for Human Neuroimaging
 
 %__________________________________________________________________________
 %

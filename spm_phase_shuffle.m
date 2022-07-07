@@ -1,13 +1,12 @@
 function [y] = spm_phase_shuffle(x,n)
-% phase-shuffling of a vector
+% Phase-shuffling of a vector
 % FORMAT [y] = spm_phase_shuffle(x,[n])
 % x   - data matrix (time-series in columns)
 % n   - optional window length for windowed shuffling
 %__________________________________________________________________________
-% Copyright (C) 2007-2015 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_phase_shuffle.m 6654 2015-12-22 12:55:36Z spm $
+% Copyright (C) 2007-2022 Wellcome Centre for Human Neuroimaging
  
  
 try
@@ -15,7 +14,7 @@ try
     % randomise phase - WFT
     %----------------------------------------------------------------------
     k     = 1:fix(n/2);
-    for i = 1:size(x,2);
+    for i = 1:size(x,2)
         C      = spm_wft(x(:,i),k,n);
         W      = abs(C).*exp(1i*angle(C(randperm(size(C,1)),:)));
         y(:,i) = spm_iwft(W,k,n)';

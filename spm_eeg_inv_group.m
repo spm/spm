@@ -25,10 +25,9 @@ function spm_eeg_inv_group(S)
 % Electromagnetic source reconstruction for group studies. V. Litvak and
 % K.J. Friston. NeuroImage, 42:1490-1498, 2008.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_inv_group.m 8275 2022-07-06 11:14:02Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Startup
@@ -233,4 +232,3 @@ end
 % Cleanup
 %==========================================================================
 cd(swd);
-

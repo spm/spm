@@ -1,15 +1,15 @@
-function p = spm_LAP_pg(x,v,h,M);
-% default precision function for LAP models (hidden states)
-% FORMAT p = spm_LAP_pg(x,v,h,M);
+function p = spm_LAP_pg(x,v,h,M)
+% Default precision function for LAP models (hidden states)
+% FORMAT p = spm_LAP_pg(x,v,h,M)
 %
 % x  - hidden states
 % v  - causal states
 % h  - precision parameters
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_LAP_pg.m 3694 2010-01-22 14:16:51Z karl $
+% Copyright (C) 2010-2022 Wellcome Centre for Human Neuroimaging
+
 
 % fixed components
 %--------------------------------------------------------------------------

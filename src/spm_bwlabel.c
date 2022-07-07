@@ -1,6 +1,6 @@
 /*
- * $Id: spm_bwlabel.c 8183 2021-11-04 15:25:19Z guillaume $
  * Jesper Andersson
+ * Copyright (C) 2003-2022 Wellcome Centre for Human Neuroimaging
  */
 
 /****************************************************************

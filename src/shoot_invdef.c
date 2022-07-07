@@ -1,6 +1,6 @@
 /*
- * $Id: shoot_invdef.c 8183 2021-11-04 15:25:19Z guillaume $
  * John Ashburner
+ * Copyright (C) 2011-2022 Wellcome Centre for Human Neuroimaging
  */
 
 /*  Invert a deformation field.
@@ -484,4 +484,3 @@ void invdef(mwSize *dim_y,  float  y0[],
         }
     }
 }
-

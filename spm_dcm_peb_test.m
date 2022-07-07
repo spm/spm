@@ -43,10 +43,9 @@ function [BMC,M] = spm_dcm_peb_test(DCM,M,field)
 %
 % See also: spm_dcm_bmc_peb.m and spm_dcm_loo.m
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_peb_test.m 6561 2015-09-23 20:41:57Z karl $
+% Copyright (C) 2015-2022 Wellcome Centre for Human Neuroimaging
 
 
 % Set up
@@ -105,4 +104,3 @@ title('Threshold under null','FontSize',16)
 % Bayesian model comparison (at first and second levels)
 %--------------------------------------------------------------------------
 BMC   = spm_dcm_bmc_peb(DCM,M,field);
-

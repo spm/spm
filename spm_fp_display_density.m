@@ -8,11 +8,11 @@ function [F,X] = spm_fp_display_density(M,x)
 % F   - flow
 % X   - evaluation points
 %__________________________________________________________________________
-% Copyright (C) 2005-2013 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fp_display_density.m 5219 2013-01-29 17:07:07Z spm $
- 
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
+
+
 % evaluation points and equilibria
 %--------------------------------------------------------------------------
 n             = length(x);

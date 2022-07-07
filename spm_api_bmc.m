@@ -12,10 +12,10 @@ function out=spm_api_bmc(F,N,exp_r,xp,family)
 % OUTPUT:
 % out    - conditional probability of DCMs (when using fixed effect method)
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_api_bmc.m 4832 2012-08-08 14:28:00Z will $
+% Copyright (C) 2007-2022 Wellcome Centre for Human Neuroimaging
+
 
 if nargin < 4 || isempty(xp)
     inf_method = 'FFX';

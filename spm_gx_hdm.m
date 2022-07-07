@@ -1,5 +1,5 @@
 function [y] = spm_gx_hdm(x,u,P,M)
-% Simulated BOLD response to input.
+% Simulated BOLD response to input
 % FORMAT [y] = spm_gx_hdm(x,u,P,M)
 % y    - BOLD response (%)
 % x    - state vector     (see spm_fx_fmri)
@@ -11,10 +11,9 @@ function [y] = spm_gx_hdm(x,u,P,M)
 % Stephan KE, Weiskopf N, Drysdale PM, Robinson PA, Friston KJ (2007)
 % Comparing hemodynamic models with DCM. NeuroImage 38: 387-401.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston & Klaas Enno Stephan
-% $Id: spm_gx_hdm.m 6856 2016-08-10 17:55:05Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % biophysical constants for 1.5 T: 

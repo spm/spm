@@ -15,10 +15,9 @@ function [F_samp,F_bound] = spm_BMS_F(alpha,lme,alpha0)
 % Stephan KE, Penny WD, Daunizeau J, Moran RJ, Friston KJ
 % Bayesian Model Selection for Group Studies. Neuroimage 2009 46(4):1004-17
 %__________________________________________________________________________
-% Copyright (C) 2008-2021 Wellcome Centre for Human Neuroimaging
 
 % Will Penny
-% $Id: spm_BMS_F.m 8160 2021-10-01 09:42:13Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 alpha0 = sort(alpha0);

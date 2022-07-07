@@ -7,10 +7,9 @@ function [C, N] = spm_mesh_clusters(M,T)
 % C        - a [nx1] vector of cluster indices
 % N        - a [px1] size of connected components {in vertices}
 %__________________________________________________________________________
-% Copyright (C) 2010-2012 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_clusters.m 5065 2012-11-16 20:00:21Z guillaume $
+% Copyright (C) 2010-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Input parameters

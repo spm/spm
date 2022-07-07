@@ -1,6 +1,6 @@
 /*
- * $Id: spm_global.c 4921 2012-09-13 11:16:21Z guillaume $
  * John Ashburner
+ * Copyright (C) 1996-2022 Wellcome Centre for Human Neuroimaging
  */
 
 #include "mex.h"

@@ -1,7 +1,6 @@
 /*
- * Copyright (c) 2020 Wellcome Centre for Human Neuroimaging
  * John Ashburner, Mikael Brudfors & Yael Balbastre
- * $Id: gmmlib.c 8065 2021-02-15 12:42:04Z john $
+ * Copyright (C) 2020-2022 Wellcome Centre for Human Neuroimaging
  */
 #include "spm_mex.h"
 #include<math.h>
@@ -1282,4 +1281,3 @@ int call_fill_missing(mwSize nf[], float mf[], float vf[], unsigned char label[]
     (void)free((void *)missinf);
     return sts;
 }
-

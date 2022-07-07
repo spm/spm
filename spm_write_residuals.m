@@ -7,10 +7,9 @@ function VRes = spm_write_residuals(SPM,Ic)
 %
 % VRes   - struct array of residual image handles
 %__________________________________________________________________________
-% Copyright (C) 2012-2013 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_write_residuals.m 6656 2015-12-24 16:49:52Z guillaume $
+% Copyright (C) 2012-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Get SPM.mat

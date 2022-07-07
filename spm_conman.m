@@ -234,10 +234,9 @@ function varargout=spm_conman(varargin)
 % "delete" function is provided (as yet).
 %
 %__________________________________________________________________________
-% Copyright (C) 1999-2021 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_conman.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 1999-2022 Wellcome Centre for Human Neuroimaging
 
 
 %==========================================================================

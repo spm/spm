@@ -21,10 +21,10 @@ function [M,R] = spm_get_closest_affine(x,y,w)
 %
 % If W is empty or not passed, then it is assumed to be all ones.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_get_closest_affine.m 7505 2018-12-11 11:45:51Z john $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 XX = zeros(4);
 XY = zeros(4);
@@ -58,5 +58,3 @@ if nargout>1
     T2  = [eye(4,3) -XY(4,:)'/XY(4,4)]; % Final translation of origin to centre of mass.
     R   = T2 * R * T1;
 end
-
-

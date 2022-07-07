@@ -1,15 +1,14 @@
 function N = spm_ecat2nifti(fname,opts)
 % Import ECAT 7 images from CTI PET scanners
-% FORMAT N = spm_ecat2nifti(fname)
+% FORMAT N = spm_ecat2nifti(fname,opts)
 % fname    - name of ECAT file
 % opts     - options structure
 %
 % N        - NIfTI object (written in current directory)
 %__________________________________________________________________________
-% Copyright (C) 2005-2015 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner & Roger Gunn
-% $Id: spm_ecat2nifti.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 
 if nargin==1
@@ -19,7 +18,7 @@ else
 end
 
 fp = fopen(fname,'r','ieee-be');
-if fp == -1,
+if fp == -1
     error(['Cannot open "' fname '".']);
 end
 

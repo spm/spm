@@ -10,10 +10,10 @@ function [I,P,H,Hnames] = spm_design_factorial(fd)
 % H        - Component of design matrix describing conditions
 % Hnames   - Condition names
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny, Guillaume Flandin
-% $Id: spm_design_factorial.m 3860 2010-05-04 15:59:25Z guillaume $
+% Copyright (C) 2010-2022 Wellcome Centre for Human Neuroimaging
+
 
 % Get number of factors, levels and cells
 %--------------------------------------------------------------------------

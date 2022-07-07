@@ -29,10 +29,9 @@ function [hrf,p] = spm_hrf(RT,P,T)
 % parameters the peak of the heamodynamic response function will be around
 % 5 seconds.
 %__________________________________________________________________________
-% Copyright (C) 1996-2019 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_hrf.m 7721 2019-11-27 13:03:32Z guillaume $
+% Copyright (C) 1996-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Parameters of the response function

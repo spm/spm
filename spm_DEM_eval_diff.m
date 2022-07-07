@@ -1,6 +1,6 @@
 function [D] = spm_DEM_eval_diff(x,v,qp,M,bilinear)
-% evaluates derivatives for DEM schemes
-% FORMAT [D]       = spm_DEM_eval_diff(x,v,qp,M,bilinear)
+% Evaluate derivatives for DEM schemes
+% FORMAT [D] = spm_DEM_eval_diff(x,v,qp,M,bilinear)
 % v{i} - casual states
 % x(i) - hidden states
 % qp - conditional density of parameters
@@ -14,10 +14,10 @@ function [D] = spm_DEM_eval_diff(x,v,qp,M,bilinear)
 %   D.dgdv
 %   ...
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DEM_eval_diff.m 6734 2016-03-02 12:02:46Z peter $
+% Copyright (C) 2009-2022 Wellcome Centre for Human Neuroimaging
+
 
 % check for evaluation of bilinear terms
 %--------------------------------------------------------------------------

@@ -36,10 +36,9 @@ function varargout = spm_platform(varargin)
 % Subsequent calls use the information from this persistent variable, if
 % it exists.
 %__________________________________________________________________________
-% Copyright (C) 1999-2021 Wellcome Centre for Human Neuroimaging
 
 % Matthew Brett
-% $Id: spm_platform.m 8186 2021-11-08 14:49:32Z guillaume $
+% Copyright (C) 1999-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Initialise

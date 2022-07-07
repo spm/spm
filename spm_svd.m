@@ -9,10 +9,9 @@ function [U,S,V] = spm_svd(X,U)
 % V    - {m x p} singular variates
 % S    - {p x p} singular values
 %__________________________________________________________________________
-% Copyright (C) 1994-2011 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_svd.m 6110 2014-07-21 09:36:13Z karl $
+% Copyright (C) 1994-2022 Wellcome Centre for Human Neuroimaging
 
 
 % default thresholds - preclude singular vectors with small singular values

@@ -1,6 +1,6 @@
 function [J,z,v,s] = spm_A_reduce(J,x,T,N)
+% Reduction of Markovian partition
 % FORMAT [J,z,v,s] = spm_A_reduce(J,x,T,N)
-% reduction of Markovian partition
 % J  - Jacobian (x)
 % x  - {3 x n}  particular partition of states
 % T  - eigenvalue threshold to retain eigenvectors [default: 8]
@@ -13,10 +13,10 @@ function [J,z,v,s] = spm_A_reduce(J,x,T,N)
 %
 % Adiabatic reduction operator (R)
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_A_reduce.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2019-2022 Wellcome Centre for Human Neuroimaging
+
 
 % preliminaries
 %--------------------------------------------------------------------------

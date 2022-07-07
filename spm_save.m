@@ -5,10 +5,9 @@ function spm_save(f,var,varargin)
 % var   - data array or structure
 % opts  - optional inputs to be passed on to lower level function
 %__________________________________________________________________________
-% Copyright (C) 2018-2020 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_save.m 8032 2020-12-11 15:45:45Z guillaume $
+% Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
 
 
 ext = lower(spm_file(f,'ext'));

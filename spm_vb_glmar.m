@@ -72,10 +72,9 @@ function [block] = spm_vb_glmar (Y,block)
 %
 %          There are other fields that are used internally
 %__________________________________________________________________________
-% Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny and Nelson Trujillo-Barreto
-% $Id: spm_vb_glmar.m 5219 2013-01-29 17:07:07Z spm $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 
 t0 = clock;

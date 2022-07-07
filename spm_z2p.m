@@ -13,10 +13,9 @@ function P = spm_z2p(Z,df,STAT,n)
 %
 % P     - p-value  - P(STAT > Z)
 %__________________________________________________________________________
-% Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_z2p.m 5824 2014-01-02 14:50:13Z guillaume $
+% Copyright (C) 2014-2022 Wellcome Centre for Human Neuroimaging
 
 
 if nargin < 4, n    = 1;   end

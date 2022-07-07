@@ -19,10 +19,10 @@ function res = spm_eeg_specest_mtmfft(S, data, time)
 %      res.pow     - power (in case of multiple tapers, phase is not computed)
 %      res.time    - time axis
 %      res.freq    - frequency axis
-%______________________________________________________________________________________
-% Copyright (C) 2011-2014 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
-% $Id: spm_eeg_specest_mtmfft.m 6021 2014-05-27 16:41:37Z vladimir $
+% Vladimir Litvak
+% Copyright (C) 2013-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-This part if for creating a config branch that plugs into spm_cfg_eeg_tf

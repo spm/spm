@@ -1,15 +1,15 @@
 function [A] = spm_psi(A)
-% normalisation of a probability transition rate matrix (columns)
+% Normalisation of a probability transition rate matrix (columns)
 % FORMAT [A] = spm_psi(A)
 %
 % A  - numeric array
 %
 % See also: psi.m
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_psi.m 7300 2018-04-25 21:14:07Z karl $
+% Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
+
 
 % normalisation of a probability transition rate matrix (columns)
 %--------------------------------------------------------------------------

@@ -1,6 +1,6 @@
 function varargout = spm_field(varargin)
-% A compiled routine for various spatially regularised inverse problems.
-%_______________________________________________________________________
+% A compiled routine for various spatially regularised inverse problems
+%__________________________________________________________________________
 %
 % FORMAT v = spm_field(H, g, param)
 % v     - the solution (n1*n2*n3*n4, single)
@@ -38,7 +38,7 @@ function varargout = spm_field(varargin)
 % is included.  This means that the solution is not identical to that
 % computed using other methods, it is still appropriate for use in
 % Gauss-Newton type optimisation schemes.
-% _______________________________________________________________________
+%__________________________________________________________________________
 %
 % FORMAT u = spm_field('vel2mom', v, param)
 % v     - A field (n1*n2*n3*n4, single).
@@ -48,7 +48,7 @@ function varargout = spm_field(varargin)
 % u       - Result of applying differential operator (n1*n2*n3*n4, single).
 %
 % This generates u = A*v, where A is computed as described above.
-% _______________________________________________________________________
+%__________________________________________________________________________
 %
 % FORMAT b = spm_field('boundary')
 % Get the current boundary condition.
@@ -59,19 +59,19 @@ function varargout = spm_field(varargin)
 %     1 - Neumann boundary condition.
 %     Note that after a `clear functions' in MATLAB, the boundary
 %     condition is reset to 0.
-% _______________________________________________________________________
+%__________________________________________________________________________
 %
 % FORMAT spm_field('boundary',b)
 % Set the boundary condition.
 % b - boundary condition (0 or 1, see above). 
-% _______________________________________________________________________
-% _______________________________________________________________________
+%==========================================================================
+%==========================================================================
 %
 % L1: The following functions are dedicated to L1 types of penalties
 %     (total-variation, etc.), when solved using a reweighted least 
 %     squares algorithm.
 %     Currently, only membrane energy is implemented.
-% _______________________________________________________________________
+%__________________________________________________________________________
 %
 % FORMAT u = spm_field('vel2mom1', v, w, param)
 % v     - A field (n1*n2*n3*n4, single).
@@ -84,7 +84,7 @@ function varargout = spm_field(varargin)
 % This is a generalisation of vel2mom for differential operators that are
 % locally weighted. w contains a map of positive weights that are shared
 % across channels.
-% _______________________________________________________________________
+%__________________________________________________________________________
 %
 % FORMAT u = spm_field('diaginv1', H, w, param)
 % H     - Parameterisation of a Hessian at each voxel
@@ -99,7 +99,7 @@ function varargout = spm_field(varargin)
 % (u = diag(inv(H + L))). To make the inversion tractable, L is 
 % approximated by its diagonal. It allows to approximate the posterior
 % uncertainty  in a (Bayesian) reweighted least-squares setting. 
-% _______________________________________________________________________
+%__________________________________________________________________________
 %
 % FORMAT u = spm_field('trinv1', H, w, param)
 % H     - Parameterisation of a Hessian at each voxel
@@ -114,7 +114,7 @@ function varargout = spm_field(varargin)
 % (u = trace(inv(H + L))). To make the inversion tractable, L is 
 % approximated by its diagonal. It allows to approximate the posterior
 % uncertainty  in a (Bayesian) reweighted least-squares setting. 
-% _______________________________________________________________________
+%__________________________________________________________________________
 %
 % FORMAT Ap = spm_field('Atimesp', A, p)
 % A     - A field of symmetric matrices (n1*n2*n3*(n4*(n4-1)), single)
@@ -122,11 +122,10 @@ function varargout = spm_field(varargin)
 % Ap    - A*p.
 %
 % This function computes efficiently a lot of matrix-vector products.
-%_______________________________________________________________________
-% Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % John Ashburner
-% $Id: spm_field.m 7776 2020-01-30 15:24:01Z yael $
+% Copyright (C) 2012-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-This is merely the help file for the compiled routine

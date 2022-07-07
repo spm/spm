@@ -10,10 +10,9 @@ function D = spm_eeg_inv_forward_ui(varargin)
 % Call the forward computation for either EEG or MEG data using various
 % types of solutions using FieldTrip.
 %__________________________________________________________________________
-% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_forward_ui.m 6059 2014-06-19 11:57:31Z vladimir $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 %-Initialisation
 %--------------------------------------------------------------------------

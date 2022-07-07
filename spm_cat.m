@@ -18,10 +18,9 @@ function [x] = spm_cat(x,d)
 %
 % If called with a dimension argument, a cell array is returned.
 %__________________________________________________________________________
-% Copyright (C) 2005-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_cat.m 8045 2021-02-02 18:46:28Z karl $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 
 %error('spm_cat.c not compiled - see Makefile')

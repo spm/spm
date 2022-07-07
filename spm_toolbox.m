@@ -5,10 +5,9 @@ function varargout = spm_toolbox(action,varargin)
 %
 % See https://www.fil.ion.ucl.ac.uk/spm/ext/
 %__________________________________________________________________________
-% Copyright (C) 2012-2014 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_toolbox.m 7372 2018-07-09 16:50:44Z guillaume $
+% Copyright (C) 2012-2022 Wellcome Centre for Human Neuroimaging
 
 
 if ~nargin, action = 'Display'; end

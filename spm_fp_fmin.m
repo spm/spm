@@ -1,5 +1,5 @@
 function [P] = spm_fp_fmin(M)
-% optimises the parameters with respect to an equilibrium density
+% Optimise the parameters with respect to an equilibrium density
 % FORMAT [P] = spm_fp_fmin(M)
 %
 % M   - model structure with desired density specified by M(1).fq and
@@ -12,10 +12,9 @@ function [P] = spm_fp_fmin(M)
 % minimise the difference between the flow and dispersion terms induced by
 % the free parameters of the flow (M(1),f).
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fp_fmin.m 4136 2010-12-09 22:22:28Z guillaume $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
  
  
 % specify function returning the flow-dependent part of dp/dt 'spm_fp_fun'
@@ -37,5 +36,3 @@ end
 % Optimise
 %--------------------------------------------------------------------------
 P     = spm_nlsi_GN(M,U,Y);
-
-

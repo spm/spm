@@ -34,10 +34,9 @@ function [u, Ps, ue] = spm_uc_clusterFDR(q,df,STAT,R,n,Z,XYZ,V2R,ui,G)
 % J.R. Chumbley, K.J. Worsley, G. Flandin and K.J. Friston, "Topological
 % FDR for NeuroImaging". NeuroImage, 49(4):3057-3064, 2010.
 %__________________________________________________________________________
-% Copyright (C) 2009-2013 Wellcome Trust Centre for Neuroimaging
 
 % Justin Chumbley & Guillaume Flandin
-% $Id: spm_uc_clusterFDR.m 5809 2013-12-20 14:30:22Z guillaume $
+% Copyright (C) 2009-2022 Wellcome Centre for Human Neuroimaging
 
 
 % Read statistical value from disk if needed

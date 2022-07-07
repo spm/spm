@@ -1,14 +1,14 @@
 function mesh = spm_eeg_inv_transform_mesh(M, mesh)
-% Applies affine transformation to surface mesh
+% Apply affine transformation to surface mesh
 % FORMAT mesh = spm_eeg_inv_transform_mesh(M, mesh)
 %
 % M           - affine transformation matrix [4 x 4]
 % mesh        - patch structure
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_inv_transform_mesh.m 7962 2020-09-25 12:06:47Z vladimir $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 fn = fieldnames(mesh);
 

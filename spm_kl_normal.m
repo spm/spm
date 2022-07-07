@@ -1,6 +1,6 @@
-function [d] = spm_kl_normal (m_q,c_q,m_p,c_p)
+function [d] = spm_kl_normal(m_q,c_q,m_p,c_p)
 % KL divergence between two multivariate normal densities
-% FORMAT [d] = spm_kl_normal (m_q,c_q,m_p,c_p)
+% FORMAT [d] = spm_kl_normal(m_q,c_q,m_p,c_p)
 %
 % KL (Q||P) = <log Q/P> where avg is wrt Q
 %
@@ -8,11 +8,11 @@ function [d] = spm_kl_normal (m_q,c_q,m_p,c_p)
 %
 % m_q, c_q    Mean and covariance of first Normal density
 % m_p, c_p    Mean and covariance of second Normal density
-%___________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Will Penny 
-% $Id: spm_kl_normal.m 2696 2009-02-05 20:29:48Z guillaume $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
+
 
 d=length(m_q);
 m_q=m_q(:);
@@ -24,6 +24,3 @@ inv_c_p=inv(c_p);
 Term2=0.5*trace(inv_c_p*c_q)+0.5*(m_q-m_p)'*inv_c_p*(m_q-m_p);
 
 d=Term1+Term2-0.5*d;
-
-
-

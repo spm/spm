@@ -20,10 +20,9 @@ function [u] = spm_uc(a,df,STAT,R,n,S)
 %
 % See also: spm_uc_RF, spm_uc_Bonf
 %__________________________________________________________________________
-% Copyright (C) 2001-2011 Wellcome Trust Centre for Neuroimaging
 
 % Thomas Nichols
-% $Id: spm_uc.m 4419 2011-08-03 18:42:35Z guillaume $
+% Copyright (C) 2001-2022 Wellcome Centre for Human Neuroimaging
 
 
 if nargin < 6, S = []; end

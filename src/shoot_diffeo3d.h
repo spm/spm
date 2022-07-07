@@ -1,5 +1,8 @@
-/* $Id: shoot_diffeo3d.h 7629 2019-06-27 12:35:45Z john $ */
-/* (c) John Ashburner (2007) */
+/*
+ * John Ashburner
+ * Copyright (C) 2007-2022 Wellcome Centre for Human Neuroimaging
+ */
+
 extern void composition(mwSize ma[], mwSize mm, float *A, float *B, float *C);
 extern void composition_jacobian(mwSize ma[], mwSize mm,
                                  float *A, float * JA, float *B, float *JB,
@@ -23,4 +26,3 @@ extern void def2det(mwSize dm[], float *Y, float *J, mwSignedIndex s);
 extern void def2jac(mwSize dm[], float *Y, float *J, mwSignedIndex s);
 extern void invdef(mwSize dim_y[3], float y[], mwSize dim_iy[3], float iy[], float M1[4][3], float M2[4][3]);
 extern void grad(mwSize dm[], mwSize N, float F[], float D[]);
-

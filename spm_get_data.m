@@ -10,10 +10,9 @@ function [Y] = spm_get_data(V,XYZ,check)
 %
 % See also spm_sample_vol
 %__________________________________________________________________________
-% Copyright (C) 2002-2018 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_get_data.m 7385 2018-08-01 15:58:24Z guillaume $
+% Copyright (C) 2002-2022 Wellcome Centre for Human Neuroimaging
 
 
 if nargin < 3, check = true; end

@@ -1,5 +1,5 @@
 function varargout = spm_nlsi(M,U,Y)
-% nonlinear system identification of a MIMO system
+% Nonlinear system identification of a MIMO system
 % FORMAT [Ep,Cp,Eh,K0,K1,K2,M0,M1,L1,L2] = spm_nlsi(M,U,Y)
 % FORMAT [K0,K1,K2,M0,M1,L1,L2]          = spm_nlsi(M)
 %
@@ -86,10 +86,10 @@ function varargout = spm_nlsi(M,U,Y)
 %
 % SEE NOTES AT THE END OF THIS SCRIPT FOR EXAMPLES
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_nlsi.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 % check integrator
 %--------------------------------------------------------------------------

@@ -122,10 +122,10 @@ function [MB] = spm_mb_ui(action,varargin)
 %--------------------------------------------------------------------------
 % spm_mb_ui('results',MB,'inputs');
 %__________________________________________________________________________
-% Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_mb_ui.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 OPT.d    = 32;                         % maximum connection length (mm)
 OPT.np   = 1024;                       % number of parcels (particles)
@@ -317,7 +317,7 @@ switch lower(action)
         
         
         
-        %% Save results
+        % Save results
         %==================================================================
         
         %-Save
@@ -1127,7 +1127,8 @@ switch lower(action)
         
 end
 
-%% subroutines
+
+% subroutines
 %==========================================================================
 
 % functional anatomy - distance (R)
@@ -1261,4 +1262,3 @@ for j = 1:nn
     str{2} = sprintf('%d eigenmodes',numel(MB.z{j}));
     title(str,'FontWeight','Bold')
 end
-

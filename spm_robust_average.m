@@ -7,10 +7,10 @@ function [Y,W] = spm_robust_average(X, dim, ks)
 %
 % W      - estimated weights
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % James Kilner
-% $Id: spm_robust_average.m 6650 2015-12-17 14:48:43Z vladimir $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 if nargin < 3 || isempty(ks)
     ks = 3;
@@ -135,6 +135,3 @@ else
         Y(i) = median(X(~isnan(X(:, i)), i));
     end
 end
-
-
-

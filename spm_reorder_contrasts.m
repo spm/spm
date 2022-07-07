@@ -6,10 +6,9 @@ function batch = spm_reorder_contrasts(SPM,order)
 %
 % batch - batch job
 %__________________________________________________________________________
-% Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_reorder_contrasts.m 5827 2014-01-02 16:06:52Z guillaume $
+% Copyright (C) 2014-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Get SPM

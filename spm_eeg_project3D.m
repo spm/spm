@@ -2,11 +2,10 @@ function [xy,label] = spm_eeg_project3D(sens, modality)
 % Wrapper function to a fieldtrip function to project 3D locations 
 % onto a 2D plane. 
 % FORMAT [xy,label] = spm_eeg_project3D(sens, modality)
-% _______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Stefan Kiebel, Vladimir Litvak
-% $Id: spm_eeg_project3D.m 8104 2021-05-18 14:45:42Z vladimir $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 cfg = [];
 
@@ -43,5 +42,3 @@ xy =(xy-repmat(min(xy), nchan, 1));
 xy = xy./repmat(max(xy), nchan, 1);
 xy = xy*0.9+0.05;
 xy = xy';
-
-

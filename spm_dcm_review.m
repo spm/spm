@@ -16,10 +16,9 @@ function spm_dcm_review(DCM,action)
 %          'estimates of precisions'
 %          ['   hidden states: ' DCM.Y.name{i}]
 %__________________________________________________________________________
-% Copyright (C) 2008-2018 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_review.m 7296 2018-04-18 10:36:49Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Get DCM structure

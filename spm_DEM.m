@@ -1,5 +1,5 @@
 function [DEM] = spm_DEM(DEM)
-% Dynamic expectation maxmisation (Variational Laplacian filtering)
+% Dynamic expectation maximisation (Variational Laplacian filtering)
 % FORMAT DEM   = spm_DEM(DEM)
 %
 % DEM.M  - hierarchical model
@@ -87,10 +87,9 @@ function [DEM] = spm_DEM(DEM)
 % M(1).E.linear = 4: full linear - evaluates 1st derivatives (for generalised 
 %                                  filtering, where parameters change)
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 
 % check model, data, priors and confounds and unpack

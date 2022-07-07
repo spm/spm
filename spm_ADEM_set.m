@@ -1,16 +1,15 @@
-function [DEM] = spm_ADEM_set(DEM)
+function DEM = spm_ADEM_set(DEM)
 % Perform checks on DEM structures for active inversion
-% FORMAT [DEM] = spm_ADEM_set(DEM)
+% FORMAT DEM = spm_ADEM_set(DEM)
 %
 % DEM.G  - generative model
 % DEM.M  - recognition model
 % DEM.C  - exogenous causes
 % DEM.U  - prior expectation of causes
 %__________________________________________________________________________
-% Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ADEM_set.m 5962 2014-04-17 12:47:43Z spm $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % check recognition model

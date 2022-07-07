@@ -6,10 +6,10 @@ function [B,Wf] = spm_eeg_robust_averaget(data,ks)
 %
 % Wf     - estimated weights
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % James Kilner
-% $Id: spm_eeg_robust_averaget.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 if nargin==1
     ks = 3;

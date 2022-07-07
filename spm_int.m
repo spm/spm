@@ -1,5 +1,5 @@
 function [y] = spm_int(P,M,U)
-% integrates a MIMO bilinear system dx/dt = f(x,u) = A*x + B*x*u + Cu + D;
+% Integrate a MIMO bilinear system dx/dt = f(x,u) = A*x + B*x*u + Cu + D;
 % FORMAT [y] = spm_int(P,M,U)
 % P   - model parameters
 % M   - model structure
@@ -52,10 +52,9 @@ function [y] = spm_int(P,M,U)
 % sparse sampling of the solution and delays in observing outputs. It is
 % used primarily for integrating fMRI models (see also spm_int_D)
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_int.m 6856 2016-08-10 17:55:05Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
  
 % convert U to U.u if necessary

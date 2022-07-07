@@ -86,10 +86,9 @@ function spm_slice_timing(P, sliceorder, refslice, timing, prefix)
 % Modified by A. Hoffmann, M. Woletz and C. Windischberger from Medical
 % University of Vienna, Austria, to handle multi-band EPI sequences.
 %__________________________________________________________________________
-% Copyright (C) 1998-2014 Wellcome Trust Centre for Neuroimaging
 
 % Darren Gitelman et al.
-% $Id: spm_slice_timing.m 8275 2022-07-06 11:14:02Z guillaume $
+% Copyright (C) 1998-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Say hello

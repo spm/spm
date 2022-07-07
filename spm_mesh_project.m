@@ -13,10 +13,10 @@ function P = spm_mesh_project(M, dat, method, varargin)
 %
 % P        - a [mxn] projected data array
 %__________________________________________________________________________
-% Copyright (C) 2009-2019 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_project.m 7543 2019-03-15 12:56:04Z guillaume $
+% Copyright (C) 2009-2022 Wellcome Centre for Human Neuroimaging
+
 
 if ishandle(M)
     V = get(M,'Vertices');

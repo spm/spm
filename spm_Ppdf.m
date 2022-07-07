@@ -49,12 +49,10 @@ function f = spm_Ppdf(x,l)
 % Press WH, Teukolsky SA, Vetterling AT, Flannery BP (1992)
 %       "Numerical Recipes in C"
 %        Cambridge
-%
 %__________________________________________________________________________
-% Copyright (C) 1996-2011 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_Ppdf.m 4182 2011-02-01 12:29:09Z guillaume $
+% Copyright (C) 1996-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Format arguments, note & check sizes

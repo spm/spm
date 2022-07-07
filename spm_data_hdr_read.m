@@ -5,10 +5,9 @@ function V = spm_data_hdr_read(P)
 %
 % V        - a structure array containing data information
 %__________________________________________________________________________
-% Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_data_hdr_read.m 4940 2012-09-20 17:27:54Z guillaume $
+% Copyright (C) 2012-2022 Wellcome Centre for Human Neuroimaging
 
 
 if ~nargin

@@ -22,10 +22,9 @@ function krn = spm_smoothkern(fwhm,x,t)
 % The fact that SPM does it differently from other software does not mean
 % that it is wrong.
 %__________________________________________________________________________
-% Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_smoothkern.m 7460 2018-10-29 15:55:12Z john $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 
 if nargin<3, t = 1; end
@@ -63,4 +62,3 @@ else
     %     Notices of the Royal Astronomical Society. 2016 Sep 14;463(4):4223-38.
     % (thanks for the pointer Guillaume).
 end
-

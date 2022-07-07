@@ -6,10 +6,9 @@
 %   module of the created batch)
 % * The structural image volume (in the "Segment" module)
 %__________________________________________________________________________
-% Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Ged Ridgway
-% $Id: preproc_fmri_simplified.m 6177 2014-09-16 10:44:55Z guillaume $
+% Copyright (C) 2014-2022 Wellcome Centre for Human Neuroimaging
 
 if exist('preproc_fmri_simplified', 'file') && ~isdeployed
     help preproc_fmri_simplified

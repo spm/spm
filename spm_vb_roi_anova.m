@@ -15,10 +15,9 @@ function [post,model] = spm_vb_roi_anova (VOI_fname,SPM,factor)
 %               .interaction    interaction
 %               .average        average
 %__________________________________________________________________________
-% Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_vb_roi_anova.m 6079 2014-06-30 18:25:37Z spm $     
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging  
 
 
 if nargin < 2

@@ -81,10 +81,9 @@ function [Ep] = spm_nlsi_AI(M,Y,U)
 % of [Re]ML point estimators of the log-precisions.
 % An optional feature selection can be specified with parameters M.FS
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_AI.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
 
 % setup and initialise
@@ -331,11 +330,7 @@ function G  = spm_G(p,n)
 % p   - parameter vector
 % n   - expansion order
 %__________________________________________________________________________
-% Copyright (C) 2013-2015 Wellcome Trust Centre for Neuroimaging
 
-% Karl Friston
-% $Id: spm_nlsi_AI.m 8183 2021-11-04 15:25:19Z guillaume $
-%--------------------------------------------------------------------------
 G{1}  = 1;
 for i = 2:n
     G{i} = spm_cross(G{i - 1},p)/factorial(i - 1);
@@ -353,11 +348,7 @@ function H  = spm_H(p,B)
 % p   - parameter vector
 % b   - functional parameters (cell format)
 %__________________________________________________________________________
-% Copyright (C) 2013-2015 Wellcome Trust Centre for Neuroimaging
 
-% Karl Friston
-% $Id: spm_nlsi_AI.m 8183 2021-11-04 15:25:19Z guillaume $
-%--------------------------------------------------------------------------
 H     = B{3};
 x     = {p};
 for i = 4:numel(B)
@@ -378,30 +369,13 @@ function K  = spm_sigma(n)
 % 
 % n   - number of parameters
 %__________________________________________________________________________
-% Copyright (C) 2013-2015 Wellcome Trust Centre for Neuroimaging
 
-% Karl Friston
-% $Id: spm_nlsi_AI.m 8183 2021-11-04 15:25:19Z guillaume $
-%--------------------------------------------------------------------------
 k     = [0 1 -1];
 K     = k;
 for i = 2:n
     K = [kron(K,ones(1,n));kron(ones(1,n^(i - 1)),k)];
 end
 return
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -947,5 +921,3 @@ warning(sw);
 % diagnostic
 %--------------------------------------------------------------------------
 % save('spm_nlsi_N_Ep','EP')
-
-return

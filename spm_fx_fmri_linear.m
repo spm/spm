@@ -1,6 +1,5 @@
 function [y] = spm_fx_fmri_linear(x,u,P,M)
-% state equation for a dynamic model of fMRI (linear version)
-% responses
+% State equation for a dynamic model of fMRI (linear version) responses
 % FORMAT [y] = spm_fx_fmri_linear(x,u,P,M)
 % x      - state vector
 %   x(:,1) - excitatory neuronal activity             ue
@@ -12,7 +11,7 @@ function [y] = spm_fx_fmri_linear(x,u,P,M)
 %
 % y      - dx/dt
 %
-%___________________________________________________________________________
+%__________________________________________________________________________
 %
 % References for hemodynamic & neuronal state equations:
 % 1. Buxton RB, Wong EC & Frank LR. Dynamics of blood flow and oxygenation
@@ -29,10 +28,8 @@ function [y] = spm_fx_fmri_linear(x,u,P,M)
 %    Neuroimage. 2008 Jan 1;39(1):269-78.
 %__________________________________________________________________________
 
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
-
 % Karl Friston & Klaas Enno Stephan
-% $Id: spm_fx_fmri_linear.m 4052 2010-08-27 19:22:44Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % Neuronal motion

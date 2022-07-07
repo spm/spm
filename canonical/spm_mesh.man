@@ -46,7 +46,6 @@
 % activations in spm using a macroscopic anatomical parcellation of the MNI 
 % MRI single subject brain. Neuroimage 15, 273-289.
 %__________________________________________________________________________
-% Copyright (C) 2009-2012 Wellcome Trust Centre for Neuroimaging
 
 % Rik Henson, Daniel Wakeman and John Ashburner
-% $Id: spm_mesh.man 5039 2012-11-06 20:39:58Z guillaume $
+% Copyright (C) 2009-2022 Wellcome Centre for Human Neuroimaging

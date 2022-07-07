@@ -17,10 +17,9 @@ function [M,ll,h] = spm_maff8(varargin)
 %           'subj'    - inter-subject registration
 %           'none'    - no regularisation
 %__________________________________________________________________________
-% Copyright (C) 2008-2018 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_maff8.m 7377 2018-07-23 13:56:24Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 [buf,MG,x,ff] = loadbuf(varargin{1:3});

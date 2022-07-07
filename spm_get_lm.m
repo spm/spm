@@ -18,10 +18,9 @@ function idx = spm_get_lm(vol,list,n)
 % idx      - Index into list such that list(:,idx) returns those
 %            coordinates that are truly local maxima.
 %__________________________________________________________________________
-% Copyright (C) 2002-2015 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson 
-% $Id: spm_get_lm.m 6534 2015-08-24 16:02:56Z guillaume $
+% Copyright (C) 2002-2022 Wellcome Centre for Human Neuroimaging
 
 %-This is merely the help file for the compiled routine
 error('spm_get_lm.c not compiled - see Makefile');

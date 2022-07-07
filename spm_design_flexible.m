@@ -10,10 +10,10 @@ function [H,Hnames,B,Bnames] = spm_design_flexible(fblock,I)
 % B        - Component of design matrix describing blocks
 % Bnames   - Block names
 %__________________________________________________________________________
-% Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_design_flexible.m 6280 2014-12-05 14:52:06Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 %-Sort main effects and interactions
 %--------------------------------------------------------------------------

@@ -1,14 +1,14 @@
 function spm_bms_display_vox(BMS,xyz)
-% display results from BMS Maps at current voxel
-% FORMAT spm_bms_display_vox(xyz)
+% Display results from BMS Maps at current voxel
+% FORMAT spm_bms_display_vox(BMS,xyz)
 %
 % Input:
 % xyz - voxel coordinates [1,3] (voxel)
-%_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Maria Joao Rosa
-% $Id: spm_bms_display_vox.m 3288 2009-07-27 09:23:54Z maria $
+% Copyright (C) 2009-2022 Wellcome Centre for Human Neuroimaging
+
 
 % Find graphics window
 % -------------------------------------------------------------------------
@@ -31,7 +31,7 @@ switch method
                 ppm_vox = zeros(nmodels,1);
         
                 % Get values
-                for i = 1:nmodels,
+                for i = 1:nmodels
                     tmp_ppm_vox   = spm_vol(BMS.map.ffx.ppm{i});
                     ppm_vox(i,:)  = spm_get_data(tmp_ppm_vox,xyz);
                     models        = [models; sprintf('model %d',i)];
@@ -83,7 +83,7 @@ switch method
             if  epm_exists,   xp_vox    = zeros(nmodels,1); end
         
             % Get values
-            for i = 1:nmodels,
+            for i = 1:nmodels
                 tmp_exp_r_vox   = spm_vol(BMS.map.rfx.ppm{i});
                 exp_r_vox(i,:)  = spm_get_data(tmp_exp_r_vox,xyz);
                 if epm_exists

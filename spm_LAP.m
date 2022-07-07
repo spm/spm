@@ -1,6 +1,6 @@
-function [DEM] = spm_LAP(DEM)
+function DEM = spm_LAP(DEM)
 % Laplacian model inversion (see also spm_LAPS)
-% FORMAT DEM   = spm_LAP(DEM)
+% FORMAT DEM = spm_LAP(DEM)
 %
 % DEM.M  - hierarchical model
 % DEM.Y  - response variable, output or data
@@ -86,10 +86,9 @@ function [DEM] = spm_LAP(DEM)
 % L is the ln p(y,u,p,h,g|M) under the model M. The conditional covariances
 % obtain analytically from the curvature of L with respect to the unknowns.
 %__________________________________________________________________________
-% Copyright (C) 2010-2013 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_LAP.m 8171 2021-10-25 10:14:50Z karl $
+% Copyright (C) 2010-2022 Wellcome Centre for Human Neuroimaging
  
  
 % find or create a DEM figure

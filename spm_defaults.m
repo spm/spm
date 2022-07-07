@@ -5,7 +5,7 @@ function spm_defaults
 % If you want to customise some defaults for your installation, do not
 % modify this file directly, but create a file named spm_my_defaults.m
 % instead, accessible from MATLAB search path; e.g., it can be saved in
-% MATLAB Startup Folder: userhome/Documents/MATLAB.
+% MATLAB Startup Folder: <userhome>/Documents/MATLAB.
 %
 % Example: create the following file to change the image file extension:
 % ----------- file /home/karl/Documents/MATLAB/spm_my_defaults.m -----------
@@ -20,10 +20,9 @@ function spm_defaults
 %
 %                 ** This file should not be edited **
 %__________________________________________________________________________
-% Copyright (C) 1994-2022 Wellcome Trust Centre for Neuroimaging
 
 % SPM
-% $Id: spm_defaults.m 8234 2022-03-24 10:43:45Z tibor $
+% Copyright (C) 1994-2022 Wellcome Centre for Human Neuroimaging
 
 
 global defaults

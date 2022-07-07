@@ -8,10 +8,9 @@ function names = spm_deface(job)
 % This is a little routine for attempting to strip the face from images,
 % so individuals are more difficult to identify from surface renderings.
 %__________________________________________________________________________
-% Copyright (C) 2013-2014 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_deface.m 8002 2020-11-04 12:15:38Z john $ 
+% Copyright (C) 2013-2022 Wellcome Centre for Human Neuroimaging
 
 
 if ~nargin
@@ -56,13 +55,12 @@ Noo.intent      = Nii.intent;
 Noo.cal         = Nii.cal;
 
 create(Noo);
-for k=1:size(Noo.dat,6),
-    for j=1:size(Noo.dat,5),
-        for i=1:size(Noo.dat,4), 
+for k=1:size(Noo.dat,6)
+    for j=1:size(Noo.dat,5)
+        for i=1:size(Noo.dat,4)
             F       = Nii.dat(:,:,:,i,j,k);
             F(msk)  = NaN;
             Noo.dat(:,:,:) = F;
         end
     end
 end
-

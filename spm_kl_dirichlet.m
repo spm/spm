@@ -1,6 +1,6 @@
-function [d] = spm_kl_dirichlet (lambda_q,lambda_p,log_tilde_pi)
+function [d] = spm_kl_dirichlet(lambda_q,lambda_p,log_tilde_pi)
 % KL divergence between two Dirichlet densities
-% FORMAT [d] = spm_kl_dirichlet (lambda_q,lambda_p,log_tilde_pi)
+% FORMAT [d] = spm_kl_dirichlet(lambda_q,lambda_p,log_tilde_pi)
 %
 % Calculate KL (Q||P) = <log Q/P> where avg is wrt Q
 % between two Dirichlet densities Q and P
@@ -9,11 +9,11 @@ function [d] = spm_kl_dirichlet (lambda_q,lambda_p,log_tilde_pi)
 % lambda_p      Parameter vector of second density
 % log_tilde_pi  <log (pi)> where avg is over Q. If this argument
 %               isn't passed the routine will calculate it
-%___________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Will Penny 
-% $Id: spm_kl_dirichlet.m 8262 2022-06-03 14:15:28Z karl $
+% Copyright (C) 2007-2022 Wellcome Centre for Human Neuroimaging
+
 
 if nargin < 3
     m    =length(lambda_q);

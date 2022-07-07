@@ -20,10 +20,10 @@ function [N,Z,M,A,XYZ] = spm_max(X,L)
 %
 % See also: spm_bwlabel.m and spm_clusters.m
 %__________________________________________________________________________
-% Copyright (C) 2003-2011 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson
-% $Id: spm_max.m 4384 2011-07-06 17:00:20Z guillaume $
+% Copyright (C) 2003-2022 Wellcome Centre for Human Neuroimaging
+
 
 if isempty(L)
     N = []; Z = []; M = []; A = []; XYZ = [];

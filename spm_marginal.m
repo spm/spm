@@ -7,10 +7,9 @@ function [Y] = spm_marginal(X)
 %
 % See also: spm_dot
 %__________________________________________________________________________
-% Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_marginal.m 7894 2020-07-12 09:34:25Z karl $
+% Copyright (C) 2020-2022 Wellcome Centre for Human Neuroimaging
 
 
 % evaluate marginals

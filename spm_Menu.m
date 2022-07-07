@@ -11,10 +11,9 @@ function Fmenu = spm_Menu(action, varargin)
 % FORMAT spm_Menu('Close')
 % Close the SPM Menu window
 %__________________________________________________________________________
-% Copyright (C) 2018-2019 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_Menu.m 7755 2019-12-16 13:19:28Z spm $
+% Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
 
 
 if nargin < 1, action = 'Create'; end

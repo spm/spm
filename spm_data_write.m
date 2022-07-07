@@ -9,10 +9,9 @@ function V = spm_data_write(V,Y,varargin)
 % Y        - an array of data values
 % I        - linear index to data values
 %__________________________________________________________________________
-% Copyright (C) 2012-2014 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_data_write.m 5916 2014-03-13 13:15:02Z guillaume $
+% Copyright (C) 2012-2022 Wellcome Centre for Human Neuroimaging
 
 
 if isfield(V,'private')

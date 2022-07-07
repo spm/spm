@@ -12,10 +12,9 @@ function DCM = spm_dcm_voi(DCM,VOIs)
 % subject Y's. The model can then be re-estimated without having to go 
 % through model specification again.
 %__________________________________________________________________________
-% Copyright (C) 2002-2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_dcm_voi.m 6400 2015-04-07 18:19:20Z guillaume $
+% Copyright (C) 2002-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Get input arguments

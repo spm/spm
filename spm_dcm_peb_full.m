@@ -70,10 +70,9 @@ function [PEB,P]   = spm_dcm_peb_full(P,M,field)
 % If called with a cell array, each column is assumed to contain 1st level
 % DCMs inverted under the same model.
 %__________________________________________________________________________
-% Copyright (C) 2015-2016 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_peb_full.m 6778 2016-04-22 11:51:29Z guillaume $
+% Copyright (C) 2015-2022 Wellcome Centre for Human Neuroimaging
  
 
 % get filenames and set up
@@ -95,10 +94,10 @@ end
 if isempty(M)
     M.X   = ones(length(P),1);
 end
-if nargin < 3;
+if nargin < 3
     field = {'A','B'};
 end
-if strcmpi(field,'all');
+if strcmpi(field,'all')
     field = fieldnames(DCM.M.pE);
 end
 if ischar(field)

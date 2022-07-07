@@ -7,10 +7,9 @@ function M = spm_mesh_inflate(M,T,S)
 % T        - number of time steps [default: Inf (auto)]
 % S        - update display every S time steps [default: 0 (never)]
 %__________________________________________________________________________
-% Copyright (C) 2009-2011 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin & Jean Daunizeau
-% $Id: spm_mesh_inflate.m 6535 2015-08-25 11:45:26Z vladimir $
+% Copyright (C) 2009-2022 Wellcome Centre for Human Neuroimaging
 
 
 if nargin < 3, S = 0; end

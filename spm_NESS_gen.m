@@ -1,5 +1,5 @@
 function [F,S,Q,L,H,DS] = spm_NESS_gen(P,M,U)
-% generates flow (f) at locations (U.X)
+% Generate flow (f) at locations (U.X)
 % FORMAT [F,S,Q,L,H,D] = spm_NESS_gen(P,M)
 % FORMAT [F,S,Q,L,H,D] = spm_NESS_gen(P,M,U)
 % FORMAT [F,S,Q,L,H,D] = spm_NESS_gen(P,M,X)
@@ -35,20 +35,19 @@ function [F,S,Q,L,H,DS] = spm_NESS_gen(P,M,U)
 % U.dbQdp - gradients of bQ w.r.t. flow parameters
 % U.dLdp  - gradients of L w.r.t. flow parameters
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ness_hd.m 8000 2020-11-03 19:04:17QDb karl $
+% Copyright (C) 2021-2022 Wellcome Centre for Human Neuroimaging
 
 
-%% model specification
+% model specification
 %--------------------------------------------------------------------------
 if nargin > 2
     if ~isstruct(U), M.X = U; U = []; end
 end
 
 
-%% use M.fs if specified
+% use M.fs if specified
 %--------------------------------------------------------------------------
 if nargout < 3 && isfield(M,'fs')
     w     = {M.W(1)};
@@ -72,7 +71,7 @@ if nargout < 3 && isfield(M,'fs')
 end
 
 
-%% get basis or expansion from M.X (or M.x)
+% get basis or expansion from M.X (or M.x)
 %--------------------------------------------------------------------------
 if nargin < 3 || ~isstruct(U)
     if isfield(M,'f')
@@ -150,15 +149,3 @@ for i = 1:n
         end
     end
 end
-
-return
-
-
-
-
-
-
-
-
-
-

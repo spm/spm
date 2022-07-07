@@ -1,6 +1,6 @@
 /*
- * $Id: spm_render_vol.c 8183 2021-11-04 15:25:19Z guillaume $
  * John Ashburner
+ * Copyright (C) 1994-2022 Wellcome Centre for Human Neuroimaging
  */
 
 #include <math.h>

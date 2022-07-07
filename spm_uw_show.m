@@ -1,18 +1,15 @@
 function spm_uw_show(mode,p1,p2,p3,p4,p5,p6)
 % Manage graphical output for spm_uw_estimate
-%
 % FORMAT spm_uw_show(mode,p1,...)
 %
 % mode      - Verb specifying action.
 % p1-p6     - Depends on mode.
 %
 % FORMAT spm_uw_show('FinIter',SS,beta,fot,sot,ref,q)
-%
 %__________________________________________________________________________
-% Copyright (C) 2002-2013 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson
-% $Id: spm_uw_show.m 5645 2013-09-19 17:58:45Z guillaume $
+% Copyright (C) 2002-2022 Wellcome Centre for Human Neuroimaging
 
 
 persistent iter;
@@ -170,6 +167,6 @@ switch mode
       spm_progress_bar('Clear');
    otherwise         % Ignore unknown actions.
 
-drawnow;
-
+      drawnow;
+      
 end

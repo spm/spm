@@ -43,10 +43,9 @@ function f = spm_Tpdf(x,v)
 %        Cambridge
 %
 %__________________________________________________________________________
-% Copyright (C) 1993-2011 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_Tpdf.m 4182 2011-02-01 12:29:09Z guillaume $
+% Copyright (C) 1993-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Format arguments, note & check sizes

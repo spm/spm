@@ -20,10 +20,9 @@ function [X,Xname,Fc] = spm_Volterra(U,bf,V)
 % assemble the second order kernel in spm_graph.m. Second order effects are
 % computed for only the first column of U.u.
 %__________________________________________________________________________
-% Copyright (C) 1999-2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_Volterra.m 7800 2020-03-12 17:25:34Z karl $
+% Copyright (C) 1999-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Order of Volterra expansion
@@ -82,7 +81,7 @@ for i = 1:numel(U)
                 X = [X x.*y];
                 
                 %-Indices and regressor names
-                %------------------------------------------------------------------
+                %----------------------------------------------------------
                 Xname{end + 1} = sprintf('%s*bf(%i)x%s*bf(%i)',...
                     U(i).name{1}, p,...
                     U(j).name{1}, q);

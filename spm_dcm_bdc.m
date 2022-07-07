@@ -1,5 +1,6 @@
 function [d,BMA,PEBs] = spm_dcm_bdc(GCMs,field,M,ynames,models,noplot)
 % Compare datasets using DCM and PEB (Bayesian data comparison)
+% FORMAT [d,BMA,PEBs] = spm_dcm_bdc(GCMs,field,M,ynames,models,noplot)
 %
 % Performs the following procedure:
 %
@@ -41,11 +42,11 @@ function [d,BMA,PEBs] = spm_dcm_bdc(GCMs,field,M,ynames,models,noplot)
 % BMA        - Bayesian model average across all datasets
 % PEBs       - [1 x ny] PEB for each dataset
 %__________________________________________________________________________
-% Copyright (C) 2018 Wellcome Trust Centre for Neuroimaging
  
 % Peter Zeidman & Samira Kazan
-% $Id: spm_dcm_bdc.m 7495 2018-11-22 15:52:07Z peter $
- 
+% Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
+
+
 if nargin < 5
     models = [];
 end

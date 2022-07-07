@@ -1,5 +1,5 @@
 function [ix] = spm_fieldindices(X,varargin)
-% Returns the indices of fields in a structure (and vice versa)
+% Return the indices of fields in a structure (and vice versa)
 % FORMAT [i]     = spm_fieldindices(X,field1,field2,...)
 % FORMAT [field] = spm_fieldindices(X,i)
 %
@@ -12,10 +12,9 @@ function [ix] = spm_fieldindices(X,varargin)
 % of fields specified in the input.
 %
 %__________________________________________________________________________
-% Copyright (C) 2010-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_fieldindices.m 7031 2017-02-27 19:46:48Z karl $
+% Copyright (C) 2010-2022 Wellcome Centre for Human Neuroimaging
 
 
 % if varargin is a vector simply return fieldnames

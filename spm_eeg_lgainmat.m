@@ -6,10 +6,9 @@ function [L,D] = spm_eeg_lgainmat(D,Is,channels)
 %
 % L    - Lead-field or gain matrix L(:,Is)
 %__________________________________________________________________________
-% Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_lgainmat.m 8275 2022-07-06 11:14:02Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Get gain or lead-field matrix

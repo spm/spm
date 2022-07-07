@@ -32,10 +32,9 @@ function spm_transverse(varargin)
 % Although the SPM{.} adopts the neurological convention (left = left)
 % the rendered images follow the same convention as the original data.
 %__________________________________________________________________________
-% Copyright (C) 1994-2018 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston & John Ashburner
-% $Id: spm_transverse.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 1994-2022 Wellcome Centre for Human Neuroimaging
 
 
 switch lower(varargin{1})
@@ -55,8 +54,6 @@ switch lower(varargin{1})
     %----------------------------------------------------------------------
     clear_global;
 end
-
-return;
 
 
 %==========================================================================
@@ -138,12 +135,12 @@ end
 mx     = max([max(T2(:)) eps]);
 mn     = min([min(T2(:)) 0]);
 D2     = (D2-minD)/(maxD-minD);
-if transv.blob.dim(3) > 1,
+if transv.blob.dim(3) > 1
     D1 = (D1-minD)/(maxD-minD);
     D3 = (D3-minD)/(maxD-minD);
     mx = max([mx ; T1(:) ; T3(:) ; eps]);
     mn = min([mn ; T1(:) ; T3(:) ; 0]);
-end;
+end
 
 %-Configure {128 level} colormap
 %--------------------------------------------------------------------------
@@ -262,21 +259,21 @@ end
 
 spm_XYZreg('Add2Reg',transv.hReg,transv.h(1), 'spm_transverse');
 
-for h=transv.h,
+for h=transv.h
     set(h,'DeleteFcn',@clear_global);
 end
 
 %-Reset pointer
 %--------------------------------------------------------------------------
 spm('Pointer','Arrow')
-return;
+
 
 %==========================================================================
 % function reposition(xyzmm)
 %==========================================================================
 function reposition(xyzmm)
 global transv
-if ~isstruct(transv), return; end;
+if ~isstruct(transv), return; end
 
 spm('Pointer','Watch');
 
@@ -331,12 +328,12 @@ end
 mx     = max([max(T2(:)) eps]);
 mn     = min([min(T2(:)) 0]);
 D2     = (D2-minD)/(maxD-minD);
-if transv.blob.dim(3) > 1,
+if transv.blob.dim(3) > 1
     D1 = (D1-minD)/(maxD-minD);
     D3 = (D3-minD)/(maxD-minD);
     mx = max([mx ; T1(:) ; T3(:) ; eps]);
     mn = min([mn ; T1(:) ; T3(:) ; 0]);
-end;
+end
 
 %-Configure {128 level} colormap
 %--------------------------------------------------------------------------
@@ -400,21 +397,20 @@ end
 %-Reset pointer
 %--------------------------------------------------------------------------
 spm('Pointer','Arrow')
-return;
+
 
 %==========================================================================
 % function clear_global(varargin)
 %==========================================================================
 function clear_global(varargin)
 global transv
-if isstruct(transv),
-    for h = transv.h,
-        if ishandle(h), set(h,'DeleteFcn',''); end;
+if isstruct(transv)
+    for h = transv.h
+        if ishandle(h), set(h,'DeleteFcn',''); end
     end
-    for h = transv.h,
-        if ishandle(h), delete(h); end;
+    for h = transv.h
+        if ishandle(h), delete(h); end
     end
     transv = [];
     clear global transv;
 end
-return;

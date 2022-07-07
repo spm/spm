@@ -12,9 +12,9 @@ function D = spm_mrdivide(A, B)
 %
 % See also: spm_mldivide
 %__________________________________________________________________________
-% Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
  
 % Ged Ridgway
-% $Id: spm_mrdivide.m 4360 2011-06-14 16:46:37Z ged $
+% Copyright (C) 2011-2022 Wellcome Centre for Human Neuroimaging
+
 
 D = spm_mldivide(B', A')';

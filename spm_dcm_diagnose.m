@@ -31,14 +31,11 @@ function DCM = spm_dcm_diagnose(DCM,varargin)
 % (optimisation). Red means weak evidence; blue strong evidence (> 3) and 
 % cyan very strong evidence (> 5)
 %__________________________________________________________________________
-% Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_diagnose.m 7679 2019-10-24 15:54:07Z spm $
- 
- 
- 
- 
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
+
 %-Get priors and posteriors
 %==========================================================================
 qE      = DCM.Ep;
@@ -243,5 +240,3 @@ else
     axis square
     
 end
-
-

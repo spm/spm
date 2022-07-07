@@ -1,6 +1,6 @@
-function [M] = spm_ADEM_M_set(M)
+function M = spm_ADEM_M_set(M)
 % Set indices and perform checks on hierarchical action models
-% FORMAT [M] = spm_ADEM_M_set(M)
+% FORMAT M = spm_ADEM_M_set(M)
 %
 % for each level (i); required fields
 %
@@ -40,10 +40,9 @@ function [M] = spm_ADEM_M_set(M)
 % If the highest level involves any dynamic or static transformation
 % of its inputs a further level is added with flat priors
 %__________________________________________________________________________
-% Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_ADEM_M_set.m 5962 2014-04-17 12:47:43Z spm $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % order

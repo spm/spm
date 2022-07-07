@@ -6,10 +6,9 @@ function Vo = spm_file_split(V, odir)
 %
 % Vo        - spm_vol struct array of output files
 %__________________________________________________________________________
-% Copyright (C) 2009-2018 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_file_split.m 7391 2018-08-13 09:55:17Z guillaume $
+% Copyright (C) 2009-2022 Wellcome Centre for Human Neuroimaging
 
 
 if ~nargin

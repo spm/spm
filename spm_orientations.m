@@ -43,14 +43,13 @@ function spm_orientations(P)
 %       (anterior) of the head at the left and the top of the
 %       head shown at the top. This is as if the subject is
 %       viewed from the left.
-
-%_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % John Ashburner
-% $Id: spm_orientations.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
-if nargin<1,
+
+if nargin<1
     P = spm_select(Inf,'image','Select the images...');
 end
 
@@ -60,7 +59,7 @@ else
     fprintf('SPM is assuming right-handed storage when handedness is not indicated by the .hdr or .mat (flip=0)\n');
 end
 
-for i=1:size(P,1),
+for i=1:size(P,1)
     Nii = nifti(P(i,:));
     M   = Nii.mat;
     [U,S,V] = svd(M(1:3,1:3));
@@ -71,15 +70,15 @@ for i=1:size(P,1),
          0  0  0  0  1 -1];
     dp = M\d;
     c  = '   ';
-    for j=1:3,
+    for j=1:3
         [unused,ind] = max(dp(j,:));
         c(j)         = lab(ind);
     end;
 
-    if det(M)>0,
+    if det(M)>0
         h = 'Right';
     else
         h = ' Left';
-    end;
+    end
     fprintf('%s  %s-handed  %s\n',c,h,P(i,:));
 end

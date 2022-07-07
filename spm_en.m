@@ -1,17 +1,16 @@
 function [X] = spm_en(X,p)
 % Euclidean normalization
-% FORMAT [X] = spm_en(X,[p]);
+% FORMAT [X] = spm_en(X,[p])
 % X   - matrix
-% p   - optional polynomial detrend [default = []]
+% p   - optional polynomial detrend [default: []]
 %__________________________________________________________________________
 %
 % spm_en performs a Euclidean normalization setting the column-wise sum of
-% squares to unity (leaving columns of zeros as zeros)
+% squares to unity (leaving columns of zeros as zeros).
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_en.m 3901 2010-05-27 16:14:36Z karl $
+% Copyright (C) 1996-2022 Wellcome Centre for Human Neuroimaging
 
 
 % detrend

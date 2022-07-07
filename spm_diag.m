@@ -4,10 +4,10 @@ function D = spm_diag(varargin)
 % SPM_DIAG generalises the function "diag" to also work with cell arrays.
 % See DIAG's help for syntax.
 %__________________________________________________________________________
-% Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_diag.m 7809 2020-03-31 11:55:09Z karl $
+% Copyright (C) 2009-2022 Wellcome Centre for Human Neuroimaging
+
 
 try
     X = varargin{1};

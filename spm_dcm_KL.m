@@ -1,5 +1,5 @@
 function [D,C,K] = spm_dcm_KL(M)
-% Computes the distance between two models based on prior responses
+% Compute the distance between two models based on prior responses
 % FORMAT [D,C,K] = spm_dcm_KL(Mi,Mj)
 %
 % M{1:n}   - structure array of models
@@ -8,10 +8,9 @@ function [D,C,K] = spm_dcm_KL(M)
 % C{1:n}   - response covariances
 % K{1:n}   - response means
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_KL.m 5219 2013-01-29 17:07:07Z spm $
+% Copyright (C) 2009-2022 Wellcome Centre for Human Neuroimaging
  
  
 % Volterra kernels
@@ -88,4 +87,3 @@ end
 % ensure D is symmetric
 %--------------------------------------------------------------------------
 D   = (D + D')/2;
-

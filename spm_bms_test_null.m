@@ -7,10 +7,9 @@ function spm_bms_test_null(logbf_file)
 % Call this function when SPM is already running
 % or set SPM to appropriate modality eg. spm('defaults','FMRI');
 %__________________________________________________________________________
-% Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_bms_test_null.m 6038 2014-06-04 15:22:42Z will $
+% Copyright (C) 2013-2022 Wellcome Centre for Human Neuroimaging
 
 
 if nargin < 1 || isempty(logbf_file)

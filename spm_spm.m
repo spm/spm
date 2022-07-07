@@ -265,10 +265,9 @@ function SPM = spm_spm(SPM)
 % Analysis of fMRI Time-Series Revisited - Again. Worsley KJ, Friston KJ.
 % (1995) NeuroImage 2:173-181.
 %__________________________________________________________________________
-% Copyright (C) 1994-2021 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston & Guillaume Flandin
-% $Id: spm_spm.m 8275 2022-07-06 11:14:02Z guillaume $
+% Copyright (C) 1994-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Say hello

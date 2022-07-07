@@ -1,11 +1,11 @@
 function new = spm_eeg_inv_transform_points(M, old)
-% Applies homogeneous transformation to a set of 3D points
+% Apply homogeneous transformation to a set of 3D points
 % FORMAT new = spm_eeg_inv_transform_points(M, old)
-% _________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Vladimir Litvak
-% $Id: spm_eeg_inv_transform_points.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 old(:,4) = 1;
 new = old * M';

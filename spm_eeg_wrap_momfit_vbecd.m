@@ -12,10 +12,9 @@ function [y,outside,leads] = spm_eeg_wrap_momfit_vbecd(P,M,U)
 % At the momnent reduces the rank of the MEG leadfield 2 dimensions.
 % leads are the lead fields of the dipoles fit
 %__________________________________________________________________________
-% Copyright (C) 2020 Wellcome Trust Centre for Neuroimaging
 
 % Gareth Barnes
-% $Id: spm_eeg_wrap_momfit_vbecd.m 7953 2020-09-21 11:33:07Z gareth $
+% Copyright (C) 2020-2022 Wellcome Centre for Human Neuroimaging
 
 
 x = U.u; % input , unused

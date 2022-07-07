@@ -1,6 +1,6 @@
 function [z,w] = spm_DEM_z(M,N)
-% creates hierarchical innovations for generating data
-% FORMAT [z w] = spm_DEM_z(M,N)
+% Create hierarchical innovations for generating data
+% FORMAT [z,w] = spm_DEM_z(M,N)
 % M    - model structure
 % N    - length of data sequence
 %
@@ -11,10 +11,10 @@ function [z,w] = spm_DEM_z(M,N)
 % created. It is assumed that this will be later modulated by state
 % dependent terms, specified by M.ph and M.pg in spm_DEM_int
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DEM_z.m 7540 2019-03-11 10:44:51Z karl $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
+
 
 % temporal convolution matrix (with unit variance)
 %--------------------------------------------------------------------------
@@ -42,7 +42,7 @@ for i = 1:length(M)
     
     % create causes: assume i.i.d. if precision is zero
     %----------------------------------------------------------------------
-    if norm(P,1) == 0;
+    if norm(P,1) == 0
         z{i}  = randn(M(i).l,N)*K;
     elseif norm(P,1) >= exp(16)
         z{i}  = sparse(M(i).l,N);
@@ -65,7 +65,7 @@ for i = 1:length(M)
     % create states: assume i.i.d. if precision (P) is zero
     %----------------------------------------------------------------------
     if ~isempty(P)
-        if norm(P,1) == 0;
+        if norm(P,1) == 0
             w{i} = randn(M(i).n,N)*K*dt; 
         elseif norm(P,1) >= exp(16)
             w{i} = sparse(M(i).n,N);
@@ -77,5 +77,3 @@ for i = 1:length(M)
     end
     
 end
-
-

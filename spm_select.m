@@ -58,10 +58,9 @@ function varargout = spm_select(varargin)
 % FORMAT [dirs] = spm_select('FPListRec',direc,'dir',filt)
 % Return directory names matching filter 'filt' within 'direc'
 %__________________________________________________________________________
-% Copyright (C) 2005-2015 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_select.m 6530 2015-08-21 14:43:52Z guillaume $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 
 % For developers:

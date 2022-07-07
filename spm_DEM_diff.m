@@ -1,6 +1,6 @@
 function [u,dg,df] = spm_DEM_diff(M,u)
 % Evaluate an active model given innovations z{i} and w{i}
-% FORMAT [u dgdv dgdx dfdv dfdx] = spm_DEM_diff(M,u);
+% FORMAT [u,dg,df] = spm_DEM_diff(M,u)
 %
 % M    - generative model
 %
@@ -14,10 +14,9 @@ function [u,dg,df] = spm_DEM_diff(M,u)
 %
 % The system is evaluated at the prior expectation of the parameters
 %__________________________________________________________________________
-% Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DEM_diff.m 6132 2014-08-06 19:59:46Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % Check for action (ADEM)

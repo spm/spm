@@ -76,10 +76,9 @@ function [u,Ps,Ts] = spm_uc_FDR(q,df,STAT,n,Vs,Vm)
 % in multiple testing under dependency". To appear, Annals of Statistics.
 % Available at http://www.math.tau.ac.il/~benja
 %__________________________________________________________________________
-% Copyright (C) 2002-2015 Wellcome Trust Centre for Neuroimaging
 
 % Thomas Nichols
-% $Id: spm_uc_FDR.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2002-2022 Wellcome Centre for Human Neuroimaging
 
 
 if (nargin<6), Vm = []; end

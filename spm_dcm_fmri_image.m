@@ -4,10 +4,9 @@ function spm_dcm_fmri_image(P)
 %
 % P.A, P.B{1}, ...     - connections of weighted directed graph
 %__________________________________________________________________________
-% Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_fmri_image.m 4627 2012-01-24 20:56:30Z karl $
+% Copyright (C) 2012-2022 Wellcome Centre for Human Neuroimaging
 
 
 % A and C - matrices

@@ -25,10 +25,9 @@ function [Q,J] = spm_dcm_delay(P,M,J,N)
 % If the delay matrix is not specified it is computed from its parameters in
 % P.D (and M.pF.D if specified).
 %__________________________________________________________________________
-% Copyright (C) 2011-2017 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_delay.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2011-2022 Wellcome Centre for Human Neuroimaging
 
 
 % order of Taylor approximation

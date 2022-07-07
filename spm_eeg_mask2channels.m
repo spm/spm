@@ -1,6 +1,6 @@
 function chanind = spm_eeg_mask2channels(D, mask)
 % Make a list of channel labels based on scalp mask
-% FORMAT chanind = spm_eeg_firstlevel(D, mask)
+% FORMAT chanind = spm_eeg_mask2channels(D, mask)
 %
 % D - M/EEG object (or filename)
 % mask - mask (numeric array, nifti object or image file name)
@@ -9,10 +9,10 @@ function chanind = spm_eeg_mask2channels(D, mask)
 % Output:
 % chanind - indices of channels in D which correspond to blobs in the mask
 %__________________________________________________________________________
-% Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_mask2channels.m 5640 2013-09-18 12:02:29Z vladimir $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 %-Check inputs
 %--------------------------------------------------------------------------
@@ -62,4 +62,3 @@ for i = 1:length(Cind)
         end
     end
 end
-

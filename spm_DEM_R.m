@@ -1,5 +1,5 @@
 function [R,V] = spm_DEM_R(n,s,form)
-% returns the precision of the temporal derivatives of a Gaussian process
+% Precision of the temporal derivatives of a Gaussian process
 % FORMAT [R,V] = spm_DEM_R(n,s,form)
 %__________________________________________________________________________
 % n    - truncation order
@@ -15,18 +15,16 @@ function [R,V] = spm_DEM_R(n,s,form)
 % R    - (n x n)     E*V*E: precision of n derivatives
 % V    - (n x n)     V:    covariance of n derivatives
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DEM_R.m 4278 2011-03-31 11:48:00Z karl $
+% Copyright (C) 2006-2022 Wellcome Centre for Human Neuroimaging
+
 
 % if no serial dependencies 
 %--------------------------------------------------------------------------
 if ~n,         R = sparse(0,0); V = R; return, end
 if isempty(s), R = sparse(n,n); V = R; return, end
 if ~s,         s = exp(-8);                    end
-
-
 
 % temporal correlations (assuming known form) - V
 %--------------------------------------------------------------------------
@@ -94,16 +92,10 @@ title({'precision';'time (secs)'})
 
 return
 
+
 % NB: temporal correlations (assuming stationary Gaussian form)
 %--------------------------------------------------------------------------
 t     = ((1:n) - 1)*dt;
 v     = 2*(s^2);
 V     = exp(-t.^2/(2*v));
 V     = toeplitz(V);
-
-
-
-
-
-
-

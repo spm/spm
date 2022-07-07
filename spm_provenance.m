@@ -32,10 +32,9 @@ classdef spm_provenance < handle
 % p.hadMember(collection,entity)
 % p.bundle(id,b)
 %__________________________________________________________________________
-% Copyright (C) 2013-2017 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_provenance.m 7057 2017-04-13 16:45:49Z guillaume $
+% Copyright (C) 2013-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Properties

@@ -7,12 +7,12 @@ function [Sp] = spm_ness_m2S(m,C)
 %
 % Sp - Polynomial coefficients or parameters of log density
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ness_cond.m 8080 2021-03-14 13:32:56Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
-P   = inv(-C);                          % covariance
+
+P   = inv(-C);                             % covariance
 E   = -P*m(:);                             % mean
 n   = numel(m);
 
@@ -43,8 +43,3 @@ for i = 1:n
         end
     end
 end
-
-
-
-return
-

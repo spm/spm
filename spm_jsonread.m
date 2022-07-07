@@ -15,10 +15,9 @@ function json = spm_jsonread(filename, opts)
 %   JSMN C parser: https://zserge.com/jsmn/
 %   jsondecode: https://www.mathworks.com/help/matlab/ref/jsondecode.html
 %__________________________________________________________________________
-% Copyright (C) 2015-2021 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_jsonread.m 8124 2021-07-12 16:26:10Z guillaume $
+% Copyright (C) 2015-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-This is merely the help file for the compiled routine

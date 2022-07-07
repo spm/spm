@@ -9,10 +9,9 @@
 % * The slice timing acquisition details (if you're unsure, don't use STC!)
 % * The functional images for each session (only in the first module)
 %__________________________________________________________________________
-% Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Ged Ridgway
-% $Id: preproc_fmri_without_anat.m 6177 2014-09-16 10:44:55Z guillaume $
+% Copyright (C) 2014-2022 Wellcome Centre for Human Neuroimaging
 
 if exist('preproc_fmri_without_anat', 'file') && ~isdeployed
     help preproc_fmri_without_anat

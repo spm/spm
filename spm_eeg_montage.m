@@ -49,10 +49,9 @@ function [D, montage] = spm_eeg_montage(S)
 % correctly when no sensors are specified or when data and sensors are
 % consistent (which is ensured by spm_eeg_prep_ui).
 %__________________________________________________________________________
-% Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld, Stefan Kiebel, Christophe Phillips
-% $Id: spm_eeg_montage.m 8275 2022-07-06 11:14:02Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Startup

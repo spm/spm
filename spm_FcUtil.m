@@ -122,12 +122,10 @@ function varargout = spm_FcUtil(varargin)
 %- NB : for the "null" part, checks if the contrast is in the null space 
 %- of sX (completely non estimable !)
 %=======================================================================
-%
 %_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean-Baptiste Poline
-% $Id: spm_FcUtil.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 1999-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Format arguments

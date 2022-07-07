@@ -2,10 +2,9 @@ function DCM = spm_dcm_reduce(DCM,rE,rC)
 % Reduce the posterior of DCM given new priors (rE,rC)
 % FORMAT RCM = spm_dcm_reduce(DCM,rE,rC)
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_reduce.m 6458 2015-05-27 16:22:09Z spm $
+% Copyright (C) 2015-2022 Wellcome Centre for Human Neuroimaging
 
 
 % deal with cell arrays

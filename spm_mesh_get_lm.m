@@ -7,10 +7,9 @@ function L = spm_mesh_get_lm(M,T)
 %
 % L        - indices of vertices that are local maxima
 %__________________________________________________________________________
-% Copyright (C) 2010-2016 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_get_lm.m 6867 2016-09-12 15:04:44Z guillaume $
+% Copyright (C) 2010-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Get adjacency matrix

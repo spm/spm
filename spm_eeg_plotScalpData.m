@@ -17,10 +17,9 @@ function [ZI,f] = spm_eeg_plotScalpData(Z,pos,ChanLabel,in)
 % This function creates a figure whose purpose is to display an
 % interpolation of the sensor data on the scalp (as an image).
 %__________________________________________________________________________
-% Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_plotScalpData.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 ChanLabel  = char(ChanLabel);
@@ -225,7 +224,7 @@ try delete(D.PSD.handles.hli); end
 %==========================================================================
 function dosp(btn,evd)
 d = get(btn,'userdata');
-switch get(d.hp,'visible');
+switch get(d.hp,'visible')
     case 'on'
         set(d.hp,'visible','off');
     case 'off'

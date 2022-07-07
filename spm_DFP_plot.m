@@ -1,15 +1,15 @@
 function spm_DFP_plot(QU,pU)
-% plots particles for spm_DFP
+% Plot particles for spm_DFP
 % FORMAT spm_DFP_plot(QU,Nt)
 % FORMAT spm_DFP_plot(QU,pU)
 %--------------------------------------------------------------------------
 % QU{t}(p).x{d}  - ensemble of hidden states
 % QU{t}(p).v{d}  - ensemble of causal states
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DFP_plot.m 6540 2015-09-05 10:06:42Z karl $
+% Copyright (C) 2006-2022 Wellcome Centre for Human Neuroimaging
+
 
 % defaults for plotting
 %--------------------------------------------------------------------------

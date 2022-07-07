@@ -12,11 +12,10 @@ function res = spm_eeg_reduce_pca(S)
 %
 %   If input is provided:
 %      montage struct implementing projection to PCA subspace
-%______________________________________________________________________________________
-% Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Vladimir Litvak
-% $Id: spm_eeg_reduce_pca.m 6813 2016-06-18 18:41:31Z vladimir $
+% Copyright (C) 2012-2022 Wellcome Centre for Human Neuroimaging
 
 
 if nargin == 0

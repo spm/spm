@@ -53,10 +53,9 @@ function varargout = spm_jobman(varargin)
 % jobs        - char or cell array of filenames, or
 %               'jobs'/'matlabbbatch' variable
 %__________________________________________________________________________
-% Copyright (C) 2005-2016 Wellcome Trust Centre for Neuroimaging
 
 % Volkmar Glauche
-% $Id: spm_jobman.m 7744 2019-12-03 12:38:47Z guillaume $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 
 %__________________________________________________________________________

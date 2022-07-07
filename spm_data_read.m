@@ -19,10 +19,9 @@ function Y = spm_data_read(V,varargin)
 % I1,I2,...- subscript arrays
 % Y        - an array of data values with dimensions (v,m)
 %__________________________________________________________________________
-% Copyright (C) 2012-2019 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_data_read.m 7577 2019-04-24 08:59:56Z guillaume $
+% Copyright (C) 2012-2022 Wellcome Centre for Human Neuroimaging
 
 
 if ~isstruct(V)

@@ -1,5 +1,5 @@
 function [M] = spm_DEM_M_set(M)
-% sets indices and performs checks on hierarchical models
+% Set indices and performs checks on hierarchical models
 % FORMAT [M] = spm_DEM_M_set(M)
 %
 % for each level (i); required fields
@@ -45,10 +45,10 @@ function [M] = spm_DEM_M_set(M)
 % If the highest level involves any dynamic or static transformation
 % of its inputs a further level is added with flat priors
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DEM_M_set.m 7322 2018-05-31 09:47:15Z karl $
+% Copyright (C) 2006-2022 Wellcome Centre for Human Neuroimaging
+
 
 % order
 %--------------------------------------------------------------------------

@@ -25,10 +25,9 @@ function varargout = spm_preproc_run(job,action)
 %
 % See also spm_preproc8.m amd spm_preproc_write8.m
 %__________________________________________________________________________
-% Copyright (C) 2008-2015 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc_run.m 8275 2022-07-06 11:14:02Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 if nargin == 1, action = 'run'; end

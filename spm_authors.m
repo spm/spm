@@ -4,10 +4,9 @@ function [current, previous] = spm_authors
 % current  - cell array of SPM coauthors of the current release
 % previous - cell array of SPM coauthors of previous releases
 %__________________________________________________________________________
-% Copyright (C) 2010-2012 Wellcome Trust Centre for Neuroimaging
 
 % SPM
-% $Id: spm_authors.m 5039 2012-11-06 20:39:58Z guillaume $
+% Copyright (C) 2010-2022 Wellcome Centre for Human Neuroimaging
 
 
 fid = fopen(fullfile(spm('Dir'),'AUTHORS.txt'),'rt');

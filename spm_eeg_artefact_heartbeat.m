@@ -16,10 +16,9 @@ function res = spm_eeg_artefact_heartbeat(S)
 %
 % See http://fsl.fmrib.ox.ac.uk/eeglab/fmribplugin/
 %__________________________________________________________________________
-% Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_artefact_heartbeat.m 8275 2022-07-06 11:14:02Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-This part if for creating a config branch that plugs into spm_cfg_eeg_artefact

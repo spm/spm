@@ -9,10 +9,10 @@ function spm_bms_partition(BMS)
 % PPM (images) for each of the subsets defined
 % xppm_subsetn.img (RFX) and ppm_subsetn.img (FFX)
 %__________________________________________________________________________
-% Copyright (C) 2009-2011 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao Rosa
-% $Id: spm_bms_partition.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2009-2022 Wellcome Centre for Human Neuroimaging
+
 
 % Contrast vector
 % -------------------------------------------------------------------------
@@ -134,7 +134,7 @@ n    = numel(Vi);
 Y    = zeros(Vo(j).dim(1:3));
 f    = ftmp{j};
 
-for p = 1:Vo(j).dim(3),
+for p = 1:Vo(j).dim(3)
     B = spm_matrix([0 0 -p 0 0 0 1 1 1]);
 
     if dmtx, X=zeros(n,prod(Vo(j).dim(1:2))); end
@@ -151,7 +151,7 @@ for p = 1:Vo(j).dim(3),
     catch
         error(['Cannot evaluate "',f,'".']);
     end
-    if prod(Vo(j).dim(1:2)) ~= numel(Yp),
+    if prod(Vo(j).dim(1:2)) ~= numel(Yp)
        error(['"',f,'" produced incompatible image.']); end
     if (mask<0), Yp(isnan(Yp))=0; end
     Y(:,:,p) = reshape(Yp,Vo(j).dim(1:2));

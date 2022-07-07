@@ -1,5 +1,5 @@
 function [BMC,PEB] = spm_dcm_bmc_peb(DCM,M,field)
-% hierarchical (PEB) model comparison and averaging (1st and 2nd level)
+% Hierarchical (PEB) model comparison and averaging (1st and 2nd level)
 % FORMAT [BMC,PEB] = spm_dcm_bmc_peb(DCM,[M,field])
 %
 % DCM    - {N [x M]} structure array of DCMs from N subjects
@@ -67,10 +67,9 @@ function [BMC,PEB] = spm_dcm_bmc_peb(DCM,M,field)
 %
 % see also: spm_dcm_peb.m and spm_dcm_bmr_peb
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_bmc_peb.m 6473 2015-06-04 19:05:05Z karl $
+% Copyright (C) 2015-2022 Wellcome Centre for Human Neuroimaging
 
 
 % set up
@@ -82,7 +81,7 @@ function [BMC,PEB] = spm_dcm_bmc_peb(DCM,M,field)
 
 % % second level model
 %--------------------------------------------------------------------------
-if nargin < 2;
+if nargin < 2
     M.X   = ones(Ns,1);
 end
 if ~isstruct(M)
@@ -91,10 +90,10 @@ end
 
 % fields that specify which parameters are random effects
 %--------------------------------------------------------------------------
-if nargin < 3;
+if nargin < 3
     field = {'A','B'};
 end
-if strcmpi(field,'all');
+if strcmpi(field,'all')
     field = fieldnames(DCM{1}.M.pE);
 end
 if ischar(field)
@@ -244,5 +243,3 @@ else
     
     
 end
-
-

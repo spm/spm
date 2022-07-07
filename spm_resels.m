@@ -1,5 +1,5 @@
 function [R] = spm_resels(FWHM,L,SPACE)
-% Returns the RESEL counts of a search volume
+% Return the RESEL counts of a search volume
 % FORMAT [R] = spm_resels(FWHM,L,SPACE)
 % FWHM       - smoothness of the component fields {FWHM - voxels}
 % L          - space definition            {in voxels}
@@ -16,16 +16,15 @@ function [R] = spm_resels(FWHM,L,SPACE)
 % R          - RESEL counts {adimensional}
 %
 %__________________________________________________________________________
+%
 % For one or two dimensional spaces the appropriate manifold is
 % used (e.g. sphere -> disc -> line).  
 %
 % Reference : Worsley KJ et al 1996, Hum Brain Mapp. 4:58-73
-%
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston & Matthew Brett
-% $Id: spm_resels.m 3899 2010-05-25 15:36:40Z guillaume $
+% Copyright (C) 1998-2022 Wellcome Centre for Human Neuroimaging
 
 
 % Dimensionality

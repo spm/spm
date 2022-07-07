@@ -12,10 +12,9 @@ function DCM = spm_dcm_fmri_csd_data(DCM)
 %
 %    DCM.U.csd     - cross spectral density of inputs
 %__________________________________________________________________________
-% Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_fmri_csd_data.m 8228 2022-02-26 13:54:27Z karl $
+% Copyright (C) 2013-2022 Wellcome Centre for Human Neuroimaging
 
 
 % check for cell array data

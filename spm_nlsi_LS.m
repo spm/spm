@@ -81,12 +81,11 @@ function [Ep,qC,qh,F] = spm_nlsi_LS(M,U,Y)
 % Least squares analysis of complex data with applications to permittivity
 % measurements.
 % J. Phys. D. Appl. Phys 1970 3:1759-1764.
-%
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_nlsi_LS.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2010-2022 Wellcome Centre for Human Neuroimaging
+
 
 % figure (unless disabled)
 %--------------------------------------------------------------------------

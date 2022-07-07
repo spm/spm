@@ -4,10 +4,9 @@ function spm_dcm_compare(P)
 %
 % P  - a char or cell array of DCM filenames
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Klaas Enno Stephan
-% $Id: spm_dcm_compare.m 3363 2009-09-04 15:11:19Z christophe $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % Get DCM filenames

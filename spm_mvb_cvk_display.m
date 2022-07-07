@@ -1,12 +1,12 @@
 function spm_mvb_cvk_display(MVB)
-% model display for MVB with cross-validation
+% Model display for MVB with cross-validation
 % FORMAT spm_mvb_cvk_display(MVB)
 % MVB  - multivariate Bayes structure, select one if not provided
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Christophe Phillips
-% $Id: spm_mvb_cvk_display.m 3806 2010-04-06 14:42:32Z ged $
+% Copyright (C) 2007-2022 Wellcome Centre for Human Neuroimaging
+
 
 if nargin<1
     load(spm_select(1,'^MVB.*\.mat','Select MVB to display'))

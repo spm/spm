@@ -8,10 +8,9 @@ function spm_dcm_graph_functional(A,V)
 % If V is not specified the Weighted Graph Laplacian of A is used with
 % metric MDS to define the functional space.
 %__________________________________________________________________________
-% Copyright (C) 2013-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_graph_functional.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2013-2022 Wellcome Centre for Human Neuroimaging
 
 
 % colours and number of nodes

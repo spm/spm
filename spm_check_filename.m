@@ -1,13 +1,12 @@
 function V = spm_check_filename(V)
-% Checks paths are valid and tries to restore path names
+% Check paths are valid and try to restore path names
 % FORMAT V = spm_check_filename(V)
 %
 % V - struct array of file handles
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_check_filename.m 3934 2010-06-17 14:58:25Z guillaume $
+% Copyright (C) 2009-2022 Wellcome Centre for Human Neuroimaging
 
 if isdeployed, return; end
 

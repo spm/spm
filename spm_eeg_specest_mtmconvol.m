@@ -1,6 +1,6 @@
 function res = spm_eeg_specest_mtmconvol(S, data, time)
 % Plugin for spm_eeg_tf implementing spectral estimation using Fieldtrip's freqanalysis_mtmconvol
-% FORMAT res = spm_eeg_specest_ft_mtmconvol(S, data, time)
+% FORMAT res = spm_eeg_specest_mtmconvol(S, data, time)
 %
 % S                     - input structure
 % fields of S:
@@ -22,10 +22,10 @@ function res = spm_eeg_specest_mtmconvol(S, data, time)
 %      res.pow     - power (in case of multiple tapers, phase is not computed)
 %      res.time    - time axis
 %      res.freq    - frequency axis
-%______________________________________________________________________________________
-% Copyright (C) 2011-2013 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
-% $Id: spm_eeg_specest_mtmconvol.m 6612 2015-11-27 18:43:15Z vladimir $
+% Vladimir Litvak
+% Copyright (C) 2013-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-This part if for creating a config branch that plugs into spm_cfg_eeg_tf

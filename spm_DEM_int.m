@@ -1,6 +1,6 @@
 function [V,X,Z,W] = spm_DEM_int(M,z,w,c)
-% Integrates/evaluates a hierarchical model given innovations z{i} and w{i}
-% FORMAT [V,X,Z,W] = spm_DEM_int(M,z,w,c);
+% Integrate/evaluate a hierarchical model given innovations z{i} and w{i}
+% FORMAT [V,X,Z,W] = spm_DEM_int(M,z,w,c)
 %
 % M{i}    - model structure
 % z{i}    - innovations (causes)
@@ -14,10 +14,10 @@ function [V,X,Z,W] = spm_DEM_int(M,z,w,c)
 %
 % The system is evaluated at the prior expectation of the parameters
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DEM_int.m 6132 2014-08-06 19:59:46Z karl $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
+
 
 % set model indices and missing fields
 %--------------------------------------------------------------------------

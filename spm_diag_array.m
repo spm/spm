@@ -1,13 +1,13 @@
 function D = spm_diag_array(X)
-% Extracts diagonal from 3-D arrays
+% Extract diagonal from 3-D arrays
 % FORMAT D = spm_diag_array(X)
 %
 % X(:,i,i) -> D(:,i);
 %__________________________________________________________________________
-% Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_diag_array.m 5956 2014-04-16 14:34:25Z guillaume $
+% Copyright (C) 2014-2022 Wellcome Centre for Human Neuroimaging
+
 
 % extract diagnonals
 %--------------------------------------------------------------------------

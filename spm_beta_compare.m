@@ -14,10 +14,10 @@ function xp = spm_beta_compare(alpha1,alpha2,Nsamp)
 % p(r2)=Beta(r2|alpha2). Uses sampling. 
 % Useful for comparing groups in RFX model inference
 %__________________________________________________________________________
-% Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_beta_compare.m 3458 2009-10-13 10:05:35Z maria $
+% Copyright (C) 2009-2022 Wellcome Centre for Human Neuroimaging
+
 
 if nargin < 3
     Nsamp = 1e4;

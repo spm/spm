@@ -1,5 +1,5 @@
 function [F,df,beta,xX,xCon] = spm_ancova(xX,V,Y,c)
-% estimation and inference of a linear model
+% Estimation and inference of a linear model
 % FORMAT [F,df,beta,xX,xCon] = spm_ancova(xX,V,Y,c);
 %
 % xX    - (m x p) Design matrix or structure
@@ -22,10 +22,10 @@ function [F,df,beta,xX,xCon] = spm_ancova(xX,V,Y,c)
 % where V = K*K' represents the correlation structure. If c has only one
 % column T statistics are returned, otherwise F ratios are computed.
 %__________________________________________________________________________
-% Copyright (C) 2002-2011 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ancova.m 7033 2017-03-05 11:19:18Z karl $
+% Copyright (C) 2002-2022 Wellcome Centre for Human Neuroimaging
+
 
 % assume V = I (i.i.d.) if empty
 %--------------------------------------------------------------------------

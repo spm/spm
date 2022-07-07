@@ -7,10 +7,9 @@ function spm_dcm_display(varargin)
 % c     - node-specific inputs
 % h     - axis handle [default: gca from 'Graphics' window]
 %__________________________________________________________________________
-% Copyright (C) 2002-2018 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_display.m 7497 2018-11-24 17:00:25Z karl $
+% Copyright (C) 2002-2022 Wellcome Centre for Human Neuroimaging
  
   
 % get dimensions

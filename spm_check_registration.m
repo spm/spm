@@ -9,10 +9,9 @@ function spm_check_registration(varargin)
 % the bottom right. The fastest increment is in the left-to-right
 % direction (the same as you are reading this).
 %__________________________________________________________________________
-% Copyright (C) 1997-2019 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_check_registration.m 8275 2022-07-06 11:14:02Z guillaume $
+% Copyright (C) 1997-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Get input

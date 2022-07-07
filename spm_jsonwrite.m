@@ -21,10 +21,9 @@ function varargout = spm_jsonwrite(varargin)
 %   JSON Standard: https://www.json.org/
 %   jsonencode: https://www.mathworks.com/help/matlab/ref/jsonencode.html
 %__________________________________________________________________________
-% Copyright (C) 2015-2020 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_jsonwrite.m 8031 2020-12-10 13:37:00Z guillaume $
+% Copyright (C) 2015-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Input parameters

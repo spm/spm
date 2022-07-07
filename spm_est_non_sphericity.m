@@ -27,10 +27,9 @@ function [xVi, mask] = spm_est_non_sphericity(SPM)
 % array of non-sphericity components (xVi.Vi), providing a high precise
 % estimate of the non-sphericity matrix (xVi.V).
 %__________________________________________________________________________
-% Copyright (C) 1994-2019 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston & Guillaume Flandin
-% $Id: spm_est_non_sphericity.m 8275 2022-07-06 11:14:02Z guillaume $
+% Copyright (C) 1994-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Say hello

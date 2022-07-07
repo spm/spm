@@ -15,10 +15,10 @@ function [Cel, x, y] = spm_eeg_locate_channels(D, n, Cind)
 % Locates channels and generates mask for converting M/EEG data to NIfTI
 % format ('analysis at sensor level'). 
 %__________________________________________________________________________
-% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_locate_channels.m 5177 2013-01-07 11:36:08Z vladimir $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 % put into n x n grid
 %--------------------------------------------------------------------------

@@ -1,27 +1,28 @@
 function [Dnew,meshsourceind]=spm_eeg_simulate(D,prefix,patchmni,simsignal,ormni,woi,whitenoise,SNRdB,trialind,mnimesh,dipfwhm,nAmdipmom);
-%function [Dnew,meshsourceind]=spm_eeg_simulate(D,prefix,patchmni,simsignal,woi,whitenoise,SNRdB,trialind,mnimesh,dipfwhm);
-%% Simulate a number of MSP patches at specified locations on existing mesh
+% Simulate a number of MSP patches at specified locations on existing mesh
+% FORMAT [Dnew,meshsourceind]=spm_eeg_simulate(D,prefix,patchmni,simsignal,woi,whitenoise,SNRdB,trialind,mnimesh,dipfwhm);
+% D dataset
+% prefix : prefix of new simulated dataset
+% patchmni : patch centres in mni space or patch indices
+% simsignal : Nsources x time series in nAm within woi
+% woi: window of interest in seconds
+% whitenoise level in rms femto Tesla or micro volts
+% SNRdB power signal to noise ratio in dBs
+% trialind: trials on which the simulated data will be added to the noise
+% mnimesh : a new mesh with vertices in mni space
+% dipfwhm - patch smoothness in mm
 %
-% Created by:   Jose David Lopez - ralph82co@gmail.com
-%               Gareth Barnes - g.barnes@ucl.ac.uk
-%               Vladimir Litvak - litvak.vladimir@gmail.com
-%
-%% D dataset
-%% prefix : prefix of new simulated dataset
-%% patchmni : patch centres in mni space or patch indices
-%% simsignal : Nsources x time series in nAm within woi
-%% woi: window of interest in seconds
-%% whitenoise level in rms femto Tesla or micro volts
-%% SNRdB power signal to noise ratio in dBs
-%% trialind: trials on which the simulated data will be added to the noise
-%% mnimesh : a new mesh with vertices in mni space
-%% dipfwhm - patch smoothness in mm
-%% Outputs
-%% Dnew- new dataset
-%% meshsourceind- vertex indices of sources on the mesh
-% $Id: spm_eeg_simulate.m 8183 2021-11-04 15:25:19Z guillaume $
+% Outputs
+% Dnew- new dataset
+% meshsourceind- vertex indices of sources on the mesh
+%__________________________________________________________________________
 
-%% LOAD IN ORIGINAL DATA
+% Jose David Lopez, Gareth Barnes, Vladimir Litvak
+% Copyright (C) 2013-2022 Wellcome Centre for Human Neuroimaging
+
+
+% LOAD IN ORIGINAL DATA
+%==========================================================================
 useind=1; % D to use
 if nargin<2,
     prefix='';
@@ -426,4 +427,3 @@ xlabel('Time in sec');
 Dnew.save;
 
 fprintf('\n Finish\n')
-

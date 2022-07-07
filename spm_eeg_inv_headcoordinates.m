@@ -3,18 +3,18 @@ function M1 = spm_eeg_inv_headcoordinates(nas, lpa, rpa)
 % that converts the specified fiducials in any coordinate system (e.g. MRI)
 % into the rotated and translated headccordinate system.
 %
-% M1 = headcoordinates(nas, lpa, rpa)
+% FORMAT M1 = spm_eeg_inv_headcoordinates(nas, lpa, rpa)
 %
 % The headcoordinate system in CTF is defined as follows:
 % the origin is exactly between lpa and rpa
 % the X-axis goes towards nas
 % the Y-axis goes approximately towards lpa, orthogonal to X and in the plane spanned by the fiducials
 % the Z-axis goes approximately towards the vertex, orthogonal to X and Y
-%_______________________________________________________________________
-% Copyright (C) 2003 Robert Oostenveld
+%__________________________________________________________________________
 
 % Robert Oostenveld
-% $Id: spm_eeg_inv_headcoordinates.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 % ensure that they are row vectors
 lpa = lpa(:)';

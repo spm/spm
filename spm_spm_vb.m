@@ -31,7 +31,7 @@
 % The space to be analysed is a 'Volume', 'Slices' or 'Clusters'.
 % For 'Slices' the numbers of the slices to be analysed are then entered.
 % For 'Clusters' a mask specifying the volume to be analysed is entered.
-% ______________________________________________________________________ 
+%__________________________________________________________________________ 
 %
 % Required fields of SPM:
 %
@@ -60,7 +60,7 @@
 %       - Note that voxels with constant data (i.e. the same value 
 %         across scans) are also automatically masked out.
 %         
-% ______________________________________________________________________
+%__________________________________________________________________________
 %
 % spm_spm_vb adds the following fields to SPM:
 %
@@ -108,7 +108,7 @@
 %   SPM.PPM.Vcon_sd(ic)
 %
 % where ic is the contrast index. 
-% ______________________________________________________________________
+%__________________________________________________________________________
 %    
 %
 % The following images are written to file:
@@ -152,15 +152,14 @@
 % The image files are numbered according to the order of the 
 % corresponding AR coefficient.
 % Voxels outside the analysis mask (mask.<ext>) are given value NaN.
-%_______________________________________________________________________
-% Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Will Penny, Nelson Trujillo-Barreto and Lee Harrison
-% $Id: spm_spm_vb.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Get SPM.mat if necessary
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if ~nargin
     [Pf, sts] = spm_select(1,'^SPM\.mat$','Select SPM.mat');
     if ~sts, return; end
@@ -170,7 +169,7 @@ if ~nargin
 end
 
 %-Change to SPM.swd if specified
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 try
     cd(SPM.swd);
 catch
@@ -179,11 +178,11 @@ end
 
 %-Let later functions (spm_contrasts, spm_graph) know that estimation
 % was with Variational Bayes
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 SPM.PPM.VB = 1;
 
 %-Display
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 try 
     SPM.PPM.window;
 catch
@@ -192,13 +191,13 @@ end
 
 if SPM.PPM.window
     %-Say hello
-    %-------------------------------------------------------------------
+    %----------------------------------------------------------------------
     Finter = spm('FigName','Stats: Bayesian Estimation ...'); 
     spm('Pointer','Arrow');
 end
 
 %-Delete files from previous analyses
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if SPM.PPM.window
     if ~isempty(spm_select('List',SPM.swd,'^mask\..{3}$'))
         str   = {'Current directory contains SPM estimation files:',...
@@ -233,23 +232,23 @@ for i=1:length(files)
     end
 end
 
-%=======================================================================
+%==========================================================================
 % - A N A L Y S I S   P R E L I M I N A R I E S
-%=======================================================================
+%==========================================================================
 
 %-Get number of sessions
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 nsess  = length(SPM.Sess);
 
 %-Get image dimensions and data
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 VY     = SPM.xY.VY;
 M      = VY(1).mat;
 DIM    = VY(1).dim(1:3)';
 xdim   = DIM(1); ydim = DIM(2); zdim = DIM(3);
 
 %-Get design matrix
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 xX     = SPM.xX;
 [nScan,nBeta] = size(xX.X);
 nPsd   = nBeta;
@@ -263,16 +262,16 @@ catch
 end
 
 %-Initialise output images
-%=======================================================================
+%==========================================================================
 fprintf('%-40s: %30s','Output images','...initialising');               %-#
 
 %-Initialise XYZ matrix of in-mask voxel coordinates (real space)
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 XYZ   = zeros(3,xdim*ydim*zdim);
 labels = zeros(1,xdim*ydim*zdim);
 
 %-Initialise conditional estimate image files
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 Vbeta(1:nBeta) = deal(struct(...
             'fname',    '',...
             'dim',      DIM',...
@@ -288,7 +287,7 @@ end
 Vbeta = spm_create_vol(Vbeta);
 
 %-Initialise Posterior SD image files
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 VPsd(1:nPsd) = deal(struct(...
     'fname',    '',...
     'dim',      DIM',...
@@ -304,7 +303,7 @@ end
 VPsd = spm_create_vol(VPsd);
 
 %-Initialise Error SD image(s)
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 for s = 1:nsess
     SPM.PPM.Sess(s).VHp = struct(...
         'fname',    [],...
@@ -320,7 +319,7 @@ for s = 1:nsess
 end
 
 %-Initialise hyperparameter (AR 1..p and noise variance) image files
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 
 %-Set number of AR coefficients
 try 
@@ -352,7 +351,7 @@ end
 
 %-Initialise contribution map
 % (voxel-wise contribution to log evidence)
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 
 %-Compute evidence at each iteration ?
 try
@@ -374,7 +373,7 @@ if SPM.PPM.update_F
 end
 
 %-Initialise contrast and contrast SD images
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 for ic = 1:ncon
     SPM.xCon(ic).Vcon = struct(...
         'fname',   [sprintf('con_%04d',ic) spm_file_ext],...
@@ -399,7 +398,7 @@ end
 
 % Set up masking details
 %-If xM is not a structure then assume it's a vector of thresholds
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 try
     xM = SPM.xM;
 catch
@@ -416,7 +415,7 @@ if ~isstruct(xM)
 end
 
 %-Initialise the name of the new mask : current mask & conditions on voxels
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 VM = struct(...
     'fname',    ['mask' spm_file_ext],...
     'dim',      DIM',...
@@ -426,11 +425,11 @@ VM = struct(...
     'descrip',  'spm_spm:resultant analysis mask');
 VM = spm_create_vol(VM);
 
-%=======================================================================
+%==========================================================================
 fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...initialised');        %-#
 
 %-Specify type of prior for regression coefficients
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 try
     SPM.PPM.priors.W;
 catch
@@ -438,7 +437,7 @@ catch
 end
 
 %-Specify type of prior for AR coefficients
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 try
     SPM.PPM.priors.A;
 catch
@@ -450,7 +449,7 @@ if  ~isdeployed && strcmp(SPM.PPM.priors.A,'Robust')
 end
 
 %-Get structural info if necessary
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if strcmp(SPM.PPM.priors.A,'Discrete')
     try
         SPM.PPM.priors.SY;
@@ -465,7 +464,7 @@ if strcmp(SPM.PPM.priors.A,'Discrete')
 end
 
 %-Analysis space (volume/slices/clusters)
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 try 
     SPM.PPM.space_type;
 catch
@@ -483,7 +482,7 @@ switch lower(SPM.PPM.space_type)
         end
     case {'clusters'}
         %-Cluster mask 
-        %-----------------------------------------------------------------------
+        %-------------------------------------------------------------------
         CM = spm_vol(SPM.PPM.clustermask{1});
         SPM.PPM.AN_slices = [1:zdim];
     otherwise
@@ -491,7 +490,7 @@ switch lower(SPM.PPM.space_type)
 end
 
 %-Initialise image containing labels of each block (slice or subvolume) 
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 VLabel = struct(...
     'fname',    ['labels' spm_file_ext],...
     'dim',      DIM',...
@@ -508,7 +507,7 @@ S     = 0;          % Number of in-mask voxels
 s     = 0;          % Volume (voxels > UF)
 
 %-Initialise aspects of block variables common to all blocks
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if nsess > 1
     for s=1:nsess
         X = SPM.xX.X(SPM.Sess(s).row,SPM.Sess(s).col);
@@ -521,7 +520,7 @@ end
 
 %-Get matrices that will remove low-frequency drifts 
 % if high pass filters have been specified
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 for s=1:nsess
     sess_nScan = length(SPM.xX.K(s).row);
     if size(SPM.xX.K(s).X0,2) > 0
@@ -533,7 +532,7 @@ for s=1:nsess
 end
 
 %-Set maximum number of VB iterations per block
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 try
     SPM.PPM.maxits;
 catch
@@ -561,42 +560,42 @@ for s=1:nsess
 end
 
 %-Compute mask volume - before analysis
-%-----------------------------------------------------------------------
-fprintf('%-40s: %30s','Calculating mask',' ')                     %-#
+%--------------------------------------------------------------------------
+fprintf('%-40s: %30s','Calculating mask',' ')                           %-#
 for z = 1:zdim
 
     % current plane-specific parameters
-    %-------------------------------------------------------------------
+    %----------------------------------------------------------------------
     zords = repmat(z,1,xdim*ydim); %-plane Z coordinates
     Q          = [];  %-in mask indices for this plane
 
     if ismember(z,SPM.PPM.AN_slices)
 
         %-Print progress information in command window
-        %---------------------------------------------------------------
+        %------------------------------------------------------------------
         fprintf('%s%30s',repmat(sprintf('\b'),1,30),sprintf('%4d/%-4d',z,zdim)) %-#
 
         %-Construct list of voxels
-        %---------------------------------------------------------------
+        %------------------------------------------------------------------
         I     = [1:xdim*ydim];
         xyz   = [xords(I); yords(I); zords(I)];      %-voxel coordinates
         nVox  = size(xyz,2);
 
         %-Get data & construct analysis mask
-        %---------------------------------------------------------------
+        %------------------------------------------------------------------
         Cm    = true(1,nVox);                        %-current mask
 
         %-Compute explicit mask
         % (note that these may not have same orientations)
-        %---------------------------------------------------------------
+        %------------------------------------------------------------------
         for i = 1:length(xM.VM)
 
             %-Coordinates in mask image
-            %-----------------------------------------------------------
+            %--------------------------------------------------------------
             j      = xM.VM(i).mat\M*[xyz;ones(1,nVox)];
 
             %-Load mask image within current mask & update mask
-            %-----------------------------------------------------------
+            %--------------------------------------------------------------
 
             Cm(Cm) = spm_get_data(xM.VM(i),j(:,Cm)) > 0;
 
@@ -604,22 +603,22 @@ for z = 1:zdim
 
         if strcmp(SPM.PPM.space_type,'clusters')
             %-Coordinates in cluster mask image
-            %-----------------------------------------------------------
+            %--------------------------------------------------------------
             j      = CM.mat\M*[xyz;ones(1,nVox)];
 
             %-Load mask image within current mask & update mask
-            %-----------------------------------------------------------
+            %--------------------------------------------------------------
 
             Cm(Cm) = spm_get_data(CM,j(:,Cm)) > 0;
         end
 
         %-Get the data in mask, compute threshold & implicit masks
-        %---------------------------------------------------------------
+        %------------------------------------------------------------------
         Y     = zeros(nScan,nVox);
         for i = 1:nScan
 
             %-Load data in mask
-            %-----------------------------------------------------------
+            %--------------------------------------------------------------
             if ~any(Cm), break, end             %-Break if empty mask
             Y(i,Cm)  = spm_get_data(VY(i),xyz(:,Cm));
 
@@ -630,7 +629,7 @@ for z = 1:zdim
         end
 
         %-Mask out voxels where data is constant
-        %---------------------------------------------------------------
+        %------------------------------------------------------------------
         Cm(Cm) = any(diff(Y(:,Cm),1));
 
         CrS = sum(Cm);
@@ -638,7 +637,7 @@ for z = 1:zdim
         if CrS,
             %-Remove isolated nodes (mask is then the same for slice 
             % and graph-partitioned analyses)
-            %-----------------------------------------------------------
+            %--------------------------------------------------------------
             vxyz = spm_vb_neighbors(xyz(:,Cm)',0);
             if any(sum(vxyz,2)==0)
                 Cm(Cm) = (sum(vxyz,2)>0);
@@ -646,13 +645,13 @@ for z = 1:zdim
         end       
         
         %-Append new inmask voxel locations and volumes
-        %---------------------------------------------------------------
+        %------------------------------------------------------------------
         Q                  = I(Cm);   %-InMask XYZ voxel indices
 
     end
 
     %-Write Mask image
-    %-------------------------------------------------------------------
+    %----------------------------------------------------------------------
     j  = sparse(xdim,ydim);
     if length(Q), j(Q) = 1; end
     VM = spm_write_plane(VM, j, z);
@@ -661,7 +660,7 @@ end
 fprintf('\n')
 
 %-Remove small clusters - removes clusters containing < 16 voxels 
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 mask        = spm_read_vols(spm_vol(VM));
 [Cl,nCl]    = spm_bwlabel(mask,6);
 ncl         = histc(Cl(:),[1:max(Cl(:))])';
@@ -676,7 +675,7 @@ if any(ncl < 16)
 end
 
 %-Compute labels
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 nLb = 0;
 Lb = zeros(size(Cl));
 if strcmp(SPM.PPM.block_type,'subvolumes') % using graph partitioning
@@ -720,35 +719,35 @@ end
 nlb     = histc(Lb(:),[1:max(Lb(:))])';
 
 %-Write VLabel
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 VLabel  = spm_write_plane(VLabel,Lb,':'); 
     
-%=======================================================================
+%==========================================================================
 % - F I T   M O D E L   &   W R I T E   P A R A M E T E R    I M A G E S
-%=======================================================================
+%==========================================================================
 if SPM.PPM.window
     spm_progress_bar('Init',100,'VB estimation','');
     spm('Pointer','Watch')
 end
 
 %-Block-wise analysis (a block is either a slice or sub-volume)
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 for z = 1:nLb
 
     %-Print progress information in command window
-    %-------------------------------------------------------------------
+    %----------------------------------------------------------------------
     str   = sprintf('Block %3d/%-3d',z,nLb);
-    fprintf('\r%-40s: %30s',str,' ')                                %-#
+    fprintf('\r%-40s: %30s',str,' ')                                    %-#
 
     %-Construct list of voxels
-    %-------------------------------------------------------------------
+    %----------------------------------------------------------------------
     Q           = find(Lb==z);
     [xx,yy,zz]  = ind2sub(size(mask),Q);
     xyz         = [xx,yy,zz]';                      %-voxel coordinates
     nVox        = size(xyz,2);
 
     %-Get data
-    %-------------------------------------------------------------------
+    %----------------------------------------------------------------------
     fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...read & mask data');%-#
 
     Y     = zeros(nScan,nVox);
@@ -761,7 +760,7 @@ for z = 1:nLb
     vxyz = spm_vb_neighbors(xyz',vol);
 
     %-Conditional estimates (per partition, per voxel)
-    %-------------------------------------------------------------------
+    %----------------------------------------------------------------------
     beta  = zeros(nBeta,nVox);
     Psd   = zeros(nPsd, nVox);
     LogEv = zeros(1,nVox);
@@ -777,7 +776,7 @@ for z = 1:nLb
     end
 
     %-Get structural info for that block
-    %-------------------------------------------------------------------
+    %----------------------------------------------------------------------
     if strcmp(SPM.PPM.priors.A,'Discrete')
         sxyz = xDiscrete(1).mat\M*[xyz;ones(1,nVox)];
         gamma = [];
@@ -817,7 +816,7 @@ for z = 1:nLb
     end
 
     %-Estimate model for each session separately
-    %-------------------------------------------------------------------
+    %----------------------------------------------------------------------
     for s = 1:nsess
 
         fprintf('Session %d',s);                                %-#
@@ -825,11 +824,11 @@ for z = 1:nLb
         block = spm_vb_set_priors(block,SPM.PPM.priors,vxyz);
 
         %-Filter data to remove low frequencies
-        %---------------------------------------------------------------
+        %------------------------------------------------------------------
         R0Y = hpf(s).R0*Y(SPM.Sess(s).row,:);
 
         %-Fit model
-        %---------------------------------------------------------------
+        %------------------------------------------------------------------
         switch SPM.PPM.priors.A
             case 'Robust',
                 %k=SPM.PPM.priors.k;
@@ -839,7 +838,7 @@ for z = 1:nLb
         end
 
         %-Report AR values
-        %---------------------------------------------------------------
+        %------------------------------------------------------------------
         if SPM.PPM.AR_P > 0
             % session specific
             Sess(s).AR(1:SPM.PPM.AR_P,:) = block.ap_mean;
@@ -859,7 +858,7 @@ for z = 1:nLb
         end
 
         %-Update regression coefficients
-        %---------------------------------------------------------------
+        %------------------------------------------------------------------
         ncols=length(SPM.Sess(s).col);
         beta(SPM.Sess(s).col,:) = block.wk_mean(1:ncols,:);
         if ncols==0
@@ -871,16 +870,16 @@ for z = 1:nLb
         beta(mean_col_index,:) = block.wk_mean(ncols+1,:); % Session mean
 
         %-Report session-specific noise variances
-        %---------------------------------------------------------------
+        %------------------------------------------------------------------
         Sess(s).Hp(1,:)        = sqrt(1./block.mean_lambda');
 
         %-Store regression coefficient posterior standard deviations
-        %---------------------------------------------------------------
+        %------------------------------------------------------------------
         Psd (SPM.Sess(s).col,:) = block.w_dev(1:ncols,:);
         Psd (mean_col_index,:) = block.w_dev(ncols+1,:);
 
         %-Update contrast variance
-        %---------------------------------------------------------------
+        %------------------------------------------------------------------
         if ncon > 0
             for ic=1:ncon,
                 CC=SPM.xCon(ic).c;
@@ -920,19 +919,19 @@ for z = 1:nLb
                 SPM.PPM.Sess(s).block(z).mean_alpha=block.mean_alpha;
                 
                 %-Get block-wise Taylor approximation to posterior correlation
-                %-------------------------------------------------------
+                %----------------------------------------------------------
                 block = spm_vb_taylor_R(R0Y,block);
                 SPM.PPM.Sess(s).block(z).mean=block.mean;
                 SPM.PPM.Sess(s).block(z).elapsed_seconds=block.elapsed_seconds;
 
                 %-Save Coefficient RESELS and number of voxels
-                %-------------------------------------------------------
+                %----------------------------------------------------------
                 SPM.PPM.Sess(s).block(z).gamma_tot=block.gamma_tot;
                 SPM.PPM.Sess(s).block(z).N=block.N;
         end
 
         %-Save typical structure-specific AR coeffs
-        %---------------------------------------------------------------
+        %------------------------------------------------------------------
         if strcmp(SPM.PPM.priors.A,'Discrete')
             SPM.PPM.Sess(s).block(z).as_mean=block.as;
             SPM.PPM.Sess(s).block(z).as_dev=sqrt(1./block.mean_beta);
@@ -942,7 +941,7 @@ for z = 1:nLb
     end % loop over sessions
 
     %-Get contrasts
-    %-------------------------------------------------------------------
+    %----------------------------------------------------------------------
     if ncon > 0
         for ic=1:ncon
             CC=SPM.xCon(ic).c;
@@ -951,13 +950,13 @@ for z = 1:nLb
     end
 
     %-Append new inmask voxel locations and volumes
-    %-------------------------------------------------------------------
+    %----------------------------------------------------------------------
     XYZ(:,S + [1:nVox]) = xyz;          %-InMask XYZ voxel coords
     labels(1,S + [1:nVox]) = ones(1,nVox)*z;   %-InMask labels
     S                   = S + nVox;     %-Volume analysed (voxels)
 
     %-Write conditional beta images
-    %-------------------------------------------------------------------
+    %----------------------------------------------------------------------
     if z == 1, j  = NaN(xdim,ydim,zdim); end
     for i = 1:nBeta
         if z > 1, j = spm_read_vols(spm_vol(Vbeta(i))); end
@@ -968,7 +967,7 @@ for z = 1:nLb
 
 
     %-Write SD error images
-    %-------------------------------------------------------------------
+    %----------------------------------------------------------------------
     for s=1:nsess
         if z == 1, j  = NaN(xdim,ydim,zdim); end
         if z > 1, j = spm_read_vols(spm_vol(SPM.PPM.Sess(s).VHp)); end
@@ -977,7 +976,7 @@ for z = 1:nLb
     end
 
     %-Write posterior standard-deviation of beta images
-    %-------------------------------------------------------------------
+    %----------------------------------------------------------------------
     if z == 1, j  = NaN(xdim,ydim,zdim); end
     for i = 1:nPsd
         if z > 1, j = spm_read_vols(spm_vol(VPsd(i))); end
@@ -986,7 +985,7 @@ for z = 1:nLb
     end
 
     %-Write AR images
-    %-------------------------------------------------------------------
+    %----------------------------------------------------------------------
     for s = 1:nsess
         if z == 1, j  = NaN(xdim,ydim,zdim); end
         for i = 1:SPM.PPM.AR_P
@@ -997,7 +996,7 @@ for z = 1:nLb
     end
 
     %-Write contribution image
-    %-------------------------------------------------------------------
+    %----------------------------------------------------------------------
     if SPM.PPM.update_F
         if z == 1, j  = NaN(xdim,ydim,zdim); end
         if z > 1, j = spm_read_vols(spm_vol(SPM.PPM.LogEv)); end
@@ -1006,7 +1005,7 @@ for z = 1:nLb
     end
 
     %-Write contrast and contrast SD images
-    %-------------------------------------------------------------------
+    %----------------------------------------------------------------------
     if ncon > 0
         if z == 1, j  = NaN(xdim,ydim,zdim); end
         for ic=1:ncon
@@ -1024,28 +1023,28 @@ for z = 1:nLb
 
     if SPM.PPM.window
         %-Report progress
-        %---------------------------------------------------------------
+        %------------------------------------------------------------------
         spm_progress_bar('Set',100*z/nLb);
     end
 
 end % (for z = 1:nLb)
 
 %-Done!
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 fprintf('\n')                                                           %-#
 if SPM.PPM.window
     spm_progress_bar('Clear')
     spm('Pointer','Arrow');
 end
 
-%=======================================================================
+%==========================================================================
 % - P O S T   E S T I M A T I O N
-%=======================================================================
+%==========================================================================
 
 if S == 0, warning('No inmask voxels - empty analysis!'), end
 
 %-Create 1st contrast for 'effects of interest' (all if not specified)
-%=======================================================================
+%==========================================================================
 Fcname     = 'effects of interest';
 try
     iX0    = [xX.iB xX.iG];
@@ -1062,15 +1061,15 @@ xX.W= eye(size(xX.X,1)); % Set whitening matrix to identity -
 xCon       = spm_FcUtil('Set',Fcname,'F','iX0',iX0,xX.xKXs);
 
 %-Compute scaled design matrix for display purposes
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 xX.nKX     = spm_DesMtx('sca',xX.xKXs.X,xX.name);
 
 %-Save remaining results files and analysis parameters
-%=======================================================================
+%==========================================================================
 fprintf('%-40s: %30s','Saving results','...writing')                    %-#
 
 %-place fields in SPM
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 SPM.xVol.XYZ   = XYZ(:,1:S);    %-InMask XYZ coords (voxels)
 SPM.xVol.labels= labels(:,1:S); %-InMask labels (voxels)
 SPM.xVol.M     = M;             %-voxels -> mm
@@ -1101,7 +1100,7 @@ end
 SPM.xVol.VRpv=[];
 
 %-Save analysis parameters in SPM.mat file
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 fmt = spm_get_defaults('mat.format');
 s = whos('SPM');
 if s.bytes > 2147483647, fmt = '-v7.3'; end
@@ -1110,9 +1109,9 @@ save('SPM.mat', 'SPM', fmt);
 fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...done')                %-#
 
 if SPM.PPM.window
-    %===================================================================
+    %======================================================================
     %- E N D: Cleanup GUI
-    %===================================================================
+    %======================================================================
     spm('FigName','Stats: done',Finter); spm('Pointer','Arrow')
     fprintf('%-40s: %30s\n','Completed',spm('time'))                    %-#
     fprintf('...use the results section for assessment\n\n')            %-#

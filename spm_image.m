@@ -45,10 +45,9 @@ function spm_image(action,varargin)
 % or images can be superimposed and the intensity windowing can also be
 % changed.
 %__________________________________________________________________________
-% Copyright (C) 1994-2019 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_image.m 8275 2022-07-06 11:14:02Z guillaume $
+% Copyright (C) 1994-2022 Wellcome Centre for Human Neuroimaging
 
 
 global st

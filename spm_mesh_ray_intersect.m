@@ -27,10 +27,9 @@ function [I, P, t] = spm_mesh_ray_intersect(M, R)
 %     [R.orig(3) R.orig(3)+R.vec(3)],'-r','LineWidth',4);
 % plot3(P(:,1),P(:,2),P(:,3),'*g','LineWidth',4);
 %__________________________________________________________________________
-% Copyright (C) 2020-2022 Wellcome Centre for Human Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_ray_intersect.m 8230 2022-03-03 17:50:45Z guillaume $
+% Copyright (C) 2020-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Default outputs

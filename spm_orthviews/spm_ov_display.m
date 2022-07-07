@@ -6,10 +6,9 @@ function ret = spm_ov_display(varargin)
 %             help spm_orthviews
 % at the MATLAB prompt.
 %__________________________________________________________________________
-% Copyright (C) 2013-2020 Wellcome Centre for Human Neuroimaging
 
 % Guillaume Flandin and Torben Lund
-% $Id: spm_ov_display.m 7948 2020-09-17 15:30:24Z guillaume $
+% Copyright (C) 2013-2022 Wellcome Centre for Human Neuroimaging
 
 
 switch lower(varargin{1})

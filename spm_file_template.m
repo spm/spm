@@ -14,10 +14,9 @@ classdef spm_file_template
 % >> D = fullfile(spm('Dir'),'@spm_file_template'); mkdir(D);
 % >> movefile(fullfile(spm('Dir'),'spm_file_template.m'),D)
 %__________________________________________________________________________
-% Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_file_template.m 7312 2018-05-16 11:22:53Z guillaume $
+% Copyright (C) 2012-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Properties

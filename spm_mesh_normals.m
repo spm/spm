@@ -7,10 +7,9 @@ function [Nv, Nf] = spm_mesh_normals(M, unit)
 % Nv     - a [nx3] array of (unit) normals on vertices
 % Nf     - a [mx3] array of (unit) normals on faces
 %__________________________________________________________________________
-% Copyright (C) 2008-2018 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_normals.m 7383 2018-07-31 10:53:37Z guillaume $
+% Copyright (C) 2009-2022 Wellcome Centre for Human Neuroimaging
 
 
 if nargin < 2, unit = false; end

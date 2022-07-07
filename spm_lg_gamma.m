@@ -10,10 +10,9 @@ function [lng] = spm_lg_gamma(p,b)
 % * Bayesian Inference in Statistical Analysis, Box & Tiao, 1992, p. 427.
 % * Aspects of Multivariate Statistical Theory, R.J. Muirhead, p. 62.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_lg_gamma.m 2784 2009-02-24 19:11:20Z guillaume $
+% Copyright (C) 2009-2022 Wellcome Centre for Human Neuroimaging
 
 if b <= (p-1)/2
    warning('Parameter out of range');

@@ -1,6 +1,6 @@
 /*
- * $Id: spm_mesh_reduce.cpp 8183 2021-11-04 15:25:19Z guillaume $
  * Guillaume Flandin
+ * Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
  */
 
 #include "mex.h"

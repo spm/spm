@@ -8,10 +8,10 @@ function [N,D] = spm_mesh_neighbours(M,order)
 % D        - a [nxp] distance array to neighbours
 % N & D contain 0 when number of neighbours is smaller than p.
 %__________________________________________________________________________
-% Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_neighbours.m 4081 2010-10-07 14:04:44Z guillaume $
+% Copyright (C) 2010-2022 Wellcome Centre for Human Neuroimaging
+
 
 if nargin < 2, order = 0; end
 

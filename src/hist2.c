@@ -1,6 +1,6 @@
 /*
- * $Id: hist2.c 7783 2020-02-13 12:57:30Z john $
  * John Ashburner
+ * Copyright (C) 1999-2022 Wellcome Centre for Human Neuroimaging
  */
 
 #include <math.h>

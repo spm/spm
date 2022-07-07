@@ -40,10 +40,9 @@ function [BPA] = spm_dcm_bpa(P,nocd)
 %
 % See also spm_dcm_bma.m, spm_dcm_bmr.m and spm_dcm_peb.m
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Klaas Enno Stephan
-% $Id: spm_dcm_bpa.m 7866 2020-05-30 09:57:38Z karl $
+% Copyright (C) 2015-2022 Wellcome Centre for Human Neuroimaging
 
  
 % Preiminaries

@@ -3,10 +3,9 @@ function V = spm_data_hdr_write(V)
 % FORMAT V = spm_data_hdr_write(V)
 % V        - a structure array (see spm_data_hdr_read)
 %__________________________________________________________________________
-% Copyright (C) 2012-2016 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_data_hdr_write.m 6752 2016-03-24 16:17:25Z guillaume $
+% Copyright (C) 2012-2022 Wellcome Centre for Human Neuroimaging
 
 
 switch lower(spm_file(V(1).fname,'ext'))

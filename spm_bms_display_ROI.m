@@ -1,5 +1,5 @@
 function spm_bms_display_ROI (BMS,mask,method)
-% display results from BMS in a region of interest (ROI)
+% Display results from BMS in a region of interest (ROI)
 % FORMAT spm_bms_display_ROI (BMS,mask,method)
 %
 % Input:
@@ -7,10 +7,10 @@ function spm_bms_display_ROI (BMS,mask,method)
 % mask   - region of interest image
 % method - inference method (FFX or RFX)
 %__________________________________________________________________________
-% Copyright (C) 2009-2011 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao Rosa
-% $Id: spm_bms_display_ROI.m 5219 2013-01-29 17:07:07Z spm $
+% Copyright (C) 2009-2022 Wellcome Centre for Human Neuroimaging
+
 
 % Find graphics window
 % -------------------------------------------------------------------------

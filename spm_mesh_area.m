@@ -12,10 +12,9 @@ function A = spm_mesh_area(M,P)
 % Computed using numerically stable version of Heron's formula:
 % See https://www.wikipedia.org/wiki/Heron%27s_formula
 %__________________________________________________________________________
-% Copyright (C) 2010-2021 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_area.m 8078 2021-03-12 22:19:57Z guillaume $
+% Copyright (C) 2010-2022 Wellcome Centre for Human Neuroimaging
 
 
 if nargin < 2
