@@ -13,7 +13,7 @@ function DEMO_Lindley_paradox(pC,hE,hC)
 % Copyright (C) 2010-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: DEMO_Lindley_paradox.m 7679 2019-10-24 15:54:07Z spm $
+% $Id: DEMO_Lindley_paradox.m 8280 2022-07-08 09:50:45Z karl $
 
 
 % set up
@@ -49,7 +49,7 @@ rC(1) = sigma_r^2;
 
 
 k     = (1:Ns) < Ns/2;            % null and alternative (prevalence)
-N     = 2.^(3:10);                % umber of subjects
+N     = 2.^(3:10);                % number of subjects
 for n = 1:length(N)
     
     % design matrix and contrast
@@ -82,7 +82,7 @@ for n = 1:length(N)
         
     end
     
-
+    
     % classical threshold and PPV
     %----------------------------------------------------------------------
     u      = spm_invFcdf(0.95,df);
@@ -100,19 +100,16 @@ for n = 1:length(N)
     
     fpr(n) = sum(F(j) > 0)/length(j);
     ppv(n) = sum(F(i) > 0)/sum(F > 0);
-   
+    
     i      = find(T > u);
     Ep(n)  = mean(P(i));
     Cp(n)  = var(P(i));
     i      = find(F > 0);
     ep(n)  = mean(P(i));
     cp(n)  = var(P(i));
-
+    
     
 end
-
-
-
 
 % show results
 %==========================================================================
@@ -162,4 +159,59 @@ xlabel('Free energy difference'), ylabel('Classical F-ratio')
 title('Classical and Bayesian statistics','FontSize',16)
 axis([-8 8 0 16])
 axis square
+
+return
+
+%% illustration of the behaviour of log evidence with shrinkage priors
+%==========================================================================
+pC = 1/4;
+hE = 0;
+hC = 1;
+
+% setup general linear model
+%--------------------------------------------------------------------------
+M.IS = @(P,M,U) U*P;
+M.pE = [0; 0];
+M.pC = eye(2,2)*pC;
+M.hE = hE;
+M.hC = hC;
+
+% design matrix
+%--------------------------------------------------------------------------
+N    = 64;                        % number of subjects
+X    = [randn(N,1) ones(N,1)];
+
+% parameters and parametric errors
+%------------------------------------------------------------------
+B    = [rand(1); 0];
+E    = randn(N,1)*exp(-hE/2);
+
+% Bayesian analysis (with and without effects)
+%-----------------------------------------------------------------------
+[qE,qC] = spm_nlsi_GN(M,X,X*beta + E);
+[nE,nC] = spm_nlsi_GN(M,X,E);
+
+% Bayesian model reduction over shrinkage priors
+%--------------------------------------------------------------------------
+pE    = M.pE;                     % full prior expectations
+pC    = M.pC;                     % full prior covariance
+for i = 1:64
+    rC     = pC*i/32;
+    F(i,1) = spm_log_evidence(qE,qC,pE,pC,pE,rC);
+    F(i,2) = spm_log_evidence(nE,nC,pE,pC,pE,rC);
+end
+
+% show results
+%==========================================================================
+clf, subplot(2,1,1)
+plot(F)
+xlabel('Prior covariance'), ylabel('log evidence')
+title('The effect of shrinkage priors','FontSize',16)
+axis square
+
+
+
+
+
+
 

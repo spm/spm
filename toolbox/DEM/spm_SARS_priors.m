@@ -37,7 +37,7 @@ function [P,C,str] = spm_SARS_priors(nN)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_priors.m 8266 2022-06-20 09:05:48Z karl $
+% $Id: spm_SARS_priors.m 8280 2022-07-08 09:50:45Z karl $
 
 % sources and background
 %--------------------------------------------------------------------------
@@ -419,7 +419,7 @@ P.trn = 0.2;                  % (15) transmission strength (secondary attack rat
 P.trm = 0.04;                 % (16) seasonality
 P.Tin = 3;                    % (17) infected period (days)
 P.Tcn = 4;                    % (18) infectious period (days)
-P.Tim = 256;                  % (19) seropositive immunity: natural (days)
+P.Tim = 128;                  % (19) seropositive immunity: natural (days)
 P.res = 0.2;                  % (20) seronegative proportion (resistance)
 
 % clinical parameters
@@ -462,13 +462,15 @@ P.con = 0.2;                  % (47) LFD confirmation
 P.iso = 8.0;                  % (48) self-isolation (days)
 P.Tnn = 256;                  % (49) loss of T-cell immunity (days)
 
+i     = ceil((datenum(date) - datenum('01-02-2020'))/64);
+
 P.lnr = 0.46;                 % (50) LFD sensitivity
 P.lpr = 0.0002;               % (51) LFD specificity
 P.rel = 1;                    % (52) PCR testing of fatalities
 P.pro = [1 1];                % (53) contact rate decay (days)
 P.oth = 0.1;                  % (54) relative survival outside hospital
 P.iad = [1 1];                % (55) exponent: transfer to CCU
-P.tra = ones(1,14);           % (56) transmissibility parameters
+P.tra = ones(1,i)/16;         % (56) transmissibility parameters
 P.dps = [2 1];                % (57) doses per seroconversion
 P.abs = 1;                    % (58) Sensitivity to contact fluctuations
 

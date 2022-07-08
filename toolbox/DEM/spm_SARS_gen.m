@@ -16,7 +16,7 @@ function [y,x,z,W] = spm_SARS_gen(P,M,U,NPI,age)
 % Y(:,3)  - Mechanical ventilation
 % Y(:,4)  - Reproduction ratio (R)
 % Y(:,5)  - Seroprevalence {%}
-% Y(:,6)  - PCR testing rate
+% Y(:,6)  - testing rate (PCR and LFD)
 % Y(:,7)  - Risk of infection (%)
 % Y(:,8)  - Prevalence (true) {%}
 % Y(:,9)  - Daily contacts
@@ -84,7 +84,7 @@ function [y,x,z,W] = spm_SARS_gen(P,M,U,NPI,age)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_gen.m 8279 2022-07-08 09:46:47Z karl $
+% $Id: spm_SARS_gen.m 8280 2022-07-08 09:50:45Z karl $
 
 
 % The generative model:
@@ -362,15 +362,15 @@ for i = 1:M.T
                 Ppcr = Ppcr + log(R{n}.pcr(j)) * exp(-(i - j*dt).^2./((dt/2)^2));
             end
         end
-        Q{n}.pcr = exp(erf(Ppcr)/4);
+        Q{n}.pcr = exp(Ppcr);
         
         % fluctuations in contact rates (mobility): Gaussian basis functions
         %------------------------------------------------------------------
         Rout = 0;
-        dt   = 64;
+        dt   = 32;
         if isfield(R{n},'mob')
             for j = 1:numel(R{n}.mob)
-                Rout = Rout + log(R{n}.mob(j)) * exp(-(i - j*dt).^2/((dt/2)^2))/8;
+                Rout = Rout + log(R{n}.mob(j)) * exp(-(i - j*dt).^2/((dt/2)^2));
             end
         end
         
@@ -379,7 +379,7 @@ for i = 1:M.T
         Ptra  = 1;
         dt    = 64;
         for j = 1:numel(R{n}.tra)
-            Ptra  = Ptra + R{n}.tra(j) * spm_phi((i - j*dt)/(dt/2))/16;
+            Ptra  = Ptra + R{n}.tra(j) * spm_phi((i - j*dt)/(dt/2));
         end
         
         % (pillar 1, 2 and LFD) phases of testing: Growth curves
@@ -394,12 +394,12 @@ for i = 1:M.T
         Q{n}.Tin = R{n}.Tin*Ptra^(-R{n}.s(1)/16);  % infected time
         Q{n}.Tic = R{n}.Tic*Ptra^(-R{n}.s(2)/16);  % incubation time
         
-        Q{n}.Tim = R{n}.Tim*Ptra^(log(R{n}.s(3))); % antibody immunity
-        Q{n}.Tnn = R{n}.Tnn*Ptra^(log(R{n}.s(4))); % T-cell immunity
-        Q{n}.Trd = R{n}.Trd*Ptra^(log(R{n}.s(5))); % duration of ARDS
+        Q{n}.Tim = R{n}.Tim*Ptra^(-R{n}.s(3)/4);   % antibody immunity
+        Q{n}.Tnn = R{n}.Tnn*Ptra^(-R{n}.s(4)/4);   % T-cell immunity
+        Q{n}.Trd = R{n}.Trd*Ptra^(-R{n}.s(5)/4);   % duration of ARDS
         
-        Q{n}.tes = R{n}.tes*Ptra^(log(R{n}.s(6))); % testing bias PCR
-        Q{n}.tts = R{n}.tts*Ptra^(log(R{n}.s(7))); % testing bias LFD
+        Q{n}.tes = R{n}.tes*Ptra^(-R{n}.s(6)/4);   % testing bias PCR
+        Q{n}.tts = R{n}.tts*Ptra^(-R{n}.s(7)/4);   % testing bias LFD
         
         Q{n}.sev = R{n}.sev*Ptra^(-R{n}.lat(1));   % P(ARDS | infected)
         Q{n}.sev = Q{n}.sev*exp(-i/(256*R{n}.lat(2)));

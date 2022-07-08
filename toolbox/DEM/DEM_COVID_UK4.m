@@ -14,7 +14,7 @@ function DCM = DEM_COVID_UK4
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_UK4.m 8266 2022-06-20 09:05:48Z karl $
+% $Id: DEM_COVID_UK4.m 8280 2022-07-08 09:50:45Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -217,13 +217,13 @@ end
 
 % Vaccine ONS age bands
 %--------------------------------------------------------------------------
-%12_15 16_17 18_24 25_29 30_34 35_39 40_44 45_49 50_54 55_59 60_64 65_69 70_74 75_79 80_84 85_89 90+
+% 1     2     3     4     5     6     7     8     9     10    11    12    13    14    15  16    17    18    19 
+% 05_11 12_15 16_17 18_24 25_29 30_34 35_39 40_44 45_49 50_54 55_59 60_64 65_69 70_74 75+ 75_79 80_84 85_89 90+
+iv2     = 2:6;                                          % 15-35
+iv3     = 7:13;                                         % 35-70
+iv4     = 16:19;                                        % >70
 
-iv2     = 2:5;                                          % 15-35
-iv3     = 6:12;                                         % 35-70
-iv4     = 13:16;                                        % >70
-
-vons{1} = [N(4)*2/5 N(5)*7/5 N(6) N(7)];                                       % 15_34
+vons{1} = [N(4)*4/5 N(5)*1/5 N(5)*6/4 N(6) N(7)];                                       % 15_34
 vons{2} = N(8:14);                                      % 35_69
 vons{3} = N(15:18);                                     % >70
 for i = 1:numel(vons)
@@ -426,11 +426,12 @@ Y(14).Y  = (mobility.data(:,1) + mobility.data(:,2))/2 + 100;
 
 % scaling for data from England and Wales 
 %--------------------------------------------------------------------------
-EngWale    = sum(sum(place.data(1:end - 8,1:4),2));
-UK         = sum(certified.data(:,1));
-EngWaleUK  = UK/EngWale;
+% EngWale    = sum(sum(place.data(1:(64*7),1:4),2));
+% UK         = sum(certified.data((end-64):end,1));
+% EngWaleUK  = UK/EngWale;
+EngWaleUK  = 1.0853;
 
-Y(15).type = 'Hospital deaths (PHE)'; % hospital deaths
+Y(15).type = 'Hospital deaths (PHE)';       % hospital deaths
 Y(15).unit = 'number';
 Y(15).U    = 17;
 Y(15).date = datenum(place.textdata(2:end - 8,1),'dd/mm/yyyy');
@@ -447,7 +448,7 @@ Y(16).date = datenum(place.textdata(2:end - 8,1),'dd/mm/yyyy');
 Y(16).Y    = sum(place.data(1:end - 8,1:3),2)*EngWaleUK;
 Y(16).h    = 0;
 Y(16).lag  = 1;
-Y(16).age  = 4;                             % in older cohort
+Y(16).age  = 4;                             % assume from older age group
 Y(16).hold = 0;
 
 % age-specific data
@@ -749,13 +750,13 @@ pC.gd   = ones(j,2)/8;         % prior variance
 
 % augment priors with fluctuations
 %--------------------------------------------------------------------------
-i       = ceil((datenum(date) - datenum(M.date))/64);
+i       = ceil((datenum(date) - datenum(M.date))/32);
 j       = ceil((datenum(date) - datenum(M.date))/64);
 
-pE.pcr  = zeros(1,j);          % testing
-pC.pcr  = ones(1,j);           % prior variance
 pE.mob  = zeros(1,i);          % mobility
 pC.mob  = ones(1,i)/128;       % prior variance
+pE.pcr  = zeros(1,j);          % testing
+pC.pcr  = ones(1,j)/8;         % prior variance
 
 % reporting lags
 %--------------------------------------------------------------------------
@@ -888,8 +889,9 @@ ylabel('percent'), title('Infection fatality ratio','FontSize',14)
 % transmission risk
 %--------------------------------------------------------------------------
 j    = j + 1;
-subplot(4,2,j), hold on
-plot([R{1}.Ptrn]), spm_axis tight
+subplot(4,2,j), hold off
+plot([R{1}.Ptrn]), hold on
+plot(erf([R{1}.Ptra]*exp(Ep.trn))), spm_axis tight
 title('Transmission risk','FontSize',14)
 xlabel('days'),ylabel('probability')
 hold on, plot([1,1]*size(DCM.Y,1),[0,1/2],':'), box off
@@ -1452,9 +1454,9 @@ spm_figure('GetWin','states'); clf;
 %--------------------------------------------------------------------------
 M.T    = datenum(date) - datenum(DCM.M.date,'dd-mm-yyyy');
 M.T    = M.T + 360;                          % forecast dates
-u      = 23;                             % empirical outcome
-a      = 0;                              % age cohort (0 for everyone)
-Ep.Tnn = DCM.Ep.Tnn + 0;                     % adjusted (log) parameter
+u      = [17 18];                             % empirical outcome
+a      = [0 0];                              % age cohort (0 for everyone)
+% Ep.Tnn = DCM.Ep.Tnn + 0;                     % adjusted (log) parameter
 
 [Z,X]  = spm_SARS_gen(Ep,M,u,[],a); % posterior prediction
 
