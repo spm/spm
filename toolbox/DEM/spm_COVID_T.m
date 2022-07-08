@@ -22,7 +22,7 @@ function [T,R] = spm_COVID_T(P,I)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_T.m 8266 2022-06-20 09:05:48Z karl $
+% $Id: spm_COVID_T.m 8279 2022-07-08 09:46:47Z karl $
 
 % setup
 %==========================================================================
@@ -97,7 +97,12 @@ b{4} = eye(6,6);
 
 % kroneckor form (taking care to get the order of factors right)
 %--------------------------------------------------------------------------
-b    = spm_cat(spm_diag(b));
+if strcmp(class(Pout),'sym')
+    spm_cat_T = @spm_cat_sym;
+else
+    spm_cat_T = @spm_cat;
+end
+b    = spm_cat_T(spm_diag(b));
 b    = spm_kron({b,I{2},I{4}});
 B{1} = spm_permute_kron(b,dim([1,3,2,4]),[1,3,2,4]);
 
@@ -106,7 +111,7 @@ B{1} = spm_permute_kron(b,dim([1,3,2,4]),[1,3,2,4]);
 % for i = 1:numel(b)
 %     b{i} = kron(I{2},b{i});
 % end
-% b    = spm_cat(spm_diag(b));
+% b    = spm_cat_T(spm_diag(b));
 % B{1} = kron(I{4},b);
 
 % stop isolating if asymptomatic and PCR- : third order dependencies
@@ -218,7 +223,7 @@ b{6} = b{3};
 %--------------------------------------------------------------------------
 if max(spm_vec(b)) > 1; keyboard, end
 
-b    = spm_cat(spm_diag(b));
+b    = spm_cat_T(spm_diag(b));
 b    = spm_kron({b,I{3},I{4}});
 B{2} = spm_permute_kron(b,dim([2,1,3,4]),[2,1,3,4]);
 
@@ -291,7 +296,7 @@ b{8} = b{7};
 
 % kroneckor form
 %--------------------------------------------------------------------------
-b    = spm_cat(spm_diag(b));
+b    = spm_cat_T(spm_diag(b));
 b    = spm_kron({b,I{1}});
 b    = spm_permute_kron(b,dim([3,2,1]),[3,2,1]);
 B{3} = spm_kron({b,I{4}});
@@ -387,7 +392,7 @@ b{8} = b{3};
 
 % kroneckor form
 %--------------------------------------------------------------------------
-b    = spm_cat(spm_diag(b));
+b    = spm_cat_T(spm_diag(b));
 b    = spm_kron({b,I{1},I{3}});
 B{4} = spm_permute_kron(b,dim([4,2,1,3]),[3,2,4,1]);
 
@@ -404,8 +409,10 @@ for i = 1:4
     T = T*B{i};
 end
 
-if min(T(:)) < 0; keyboard, end
-if max(T(:)) > 1; keyboard, end
+try
+    if min(T(:)) < 0; keyboard, end
+    if max(T(:)) > 1; keyboard, end
+end
 
 
 % time-dependent parameters
@@ -443,4 +450,107 @@ z  = zeros(dim); z(i{1},i{2},i{3},i{4}) = 1; i = find(z);
 ij = i + (j-1)*prod(dim);
 
 return
+
+
+function [x] = spm_cat_sym(x,d)
+% Convert a cell array into a matrix - a compiled routine
+% FORMAT [x] = spm_cat_sym(x,d)
+% x - cell array
+% d - dimension over which to concatenate [default - both]
+%__________________________________________________________________________
+% Empty array elements are replaced by sparse zero partitions and single 0
+% entries are expanded to conform to the non-empty non zero elements.
+%
+% e.g.:
+% > x       = spm_cat_T({eye(2) []; 0 [1 1; 1 1]})
+% > full(x) =
+%
+%     1     0     0     0
+%     0     1     0     0
+%     0     0     1     1
+%     0     0     1     1
+%
+% If called with a dimension argument, a cell array is returned.
+%__________________________________________________________________________
+% Copyright (C) 2005-2013 Wellcome Trust Centre for Neuroimaging
+
+% Karl Friston
+% $Id: spm_COVID_T.m 8279 2022-07-08 09:46:47Z karl $
+
+
+%error('spm_cat.c not compiled - see Makefile')
+
+% check x is not already a matrix
+%--------------------------------------------------------------------------
+if ~iscell(x), return, end
+ 
+% if concatenation over a specific dimension
+%--------------------------------------------------------------------------
+[n,m] = size(x);
+if nargin > 1
+ 
+    % concatenate over first dimension
+    %----------------------------------------------------------------------
+    if d == 1
+        y = cell(1,m);
+        for i = 1:m
+            y{i} = spm_cat_sym(x(:,i));
+        end
+ 
+    % concatenate over second
+    %----------------------------------------------------------------------
+    elseif d == 2
+ 
+        y = cell(n,1);
+        for i = 1:n
+            y{i} = spm_cat_sym(x(i,:));
+        end
+ 
+    % only viable for 2-D arrays
+    %----------------------------------------------------------------------
+    else
+        error('uknown option')
+    end
+    x      = y;
+    return
+ 
+end
+ 
+% find dimensions to fill in empty partitions
+%--------------------------------------------------------------------------
+for i = 1:n
+    for j = 1:m
+        if iscell(x{i,j})
+            x{i,j} = spm_cat_sym(x{i,j});
+        end
+        [u,v]  = size(x{i,j});
+        I(i,j) = u;
+        J(i,j) = v;
+    end
+end
+I     = max(I,[],2);
+J     = max(J,[],1);
+ 
+% sparse and empty partitions
+%--------------------------------------------------------------------------
+[n,m] = size(x);
+for i = 1:n
+    for j = 1:m
+        if isempty(x{i,j})
+            x{i,j} = sparse(I(i),J(j));
+        end
+    end
+end
+ 
+% concatenate
+%--------------------------------------------------------------------------
+for i = 1:n
+    y{i,1} = cat(2,x{i,:});
+end
+try
+    x = sparse(cat(1,y{:}));
+catch
+    x = cat(1,y{:});
+end
+
 

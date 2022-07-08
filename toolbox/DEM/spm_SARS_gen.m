@@ -84,7 +84,7 @@ function [y,x,z,W] = spm_SARS_gen(P,M,U,NPI,age)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_gen.m 8270 2022-07-01 09:58:38Z karl $
+% $Id: spm_SARS_gen.m 8279 2022-07-08 09:46:47Z karl $
 
 
 % The generative model:
@@ -795,4 +795,24 @@ end
 
 return
 
+
+% Notes for symbolic maths
+%==========================================================================
+
+% create symbolic structure array of parameters
+%--------------------------------------------------------------------------
+field = fieldnames(P);
+Q     = P;
+for i = 1:numel(field)
+    [n,m]        = size(P.(field{i}));
+    Q.(field{i}) = sym(field{i},[n,m]);
+end
+
+% create symbolic transition matrix
+%--------------------------------------------------------------------------
+[T,V]   = spm_COVID_T(Q,I);
+
+%  convert to Matlab function
+%--------------------------------------------------------------------------
+matlabFunction(T,'file','MyFile','sparse',true);
 
