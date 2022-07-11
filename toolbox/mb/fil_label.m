@@ -22,7 +22,7 @@ function files = fil_label(fil,mbsett,mbdat,iterations,vsett_scale,odir,df,Mf)
 % Copyright (C) 2019-2021 Wellcome Centre for Human Neuroimaging
 
 % John Ashburner
-% $Id: fil_label.m 8253 2022-05-19 09:14:05Z john $
+% $Id: fil_label.m 8282 2022-07-11 08:03:39Z john $
 
 if nargin<4, iterations  = [6 10 10]; end
 if nargin<5, vsett_scale = 1/4; end
@@ -99,7 +99,7 @@ for it=1:niter(1)
     mu    = reconmu(fil.model,ind,Z);       % Reconstruct label-space mu
     spm_diffeo('boundary',1);               % Zero gradient at edges
     G0    = spm_diffeo('grad',mu);          % Gradients of label-space mu
-    H0    = sh.velocity_hessian(mu,G0,0.8); % Label-space Hessian
+    H0    = sh.velocity_hessian(mu,G0,Inf,0.8); % Label-space Hessian
    %f     = classes(fl,mu1);
 
 
