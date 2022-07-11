@@ -4,10 +4,8 @@ function initialise(fa)
 % This creates a file on disk with the appropriate size by explicitly
 % writing data to prevent a sparse file.
 %__________________________________________________________________________
-% Copyright (C) 2013-2017 Wellcome Trust Centre for Neuroimaging
 
-%
-% $Id: initialise.m 7147 2017-08-03 14:07:01Z spm $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 
 % first approach

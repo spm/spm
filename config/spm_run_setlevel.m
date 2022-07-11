@@ -5,9 +5,9 @@ function out = spm_run_setlevel(job)
 %  Set-level threshold-free tests on the intrinsic volumes of SPMs.
 %   Barnes GR, Ridgway GR, Flandin G, Woolrich M, Friston K. Neuroimage. 2013
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_setlevel.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
+
 
 %-Load SPM.mat file
 %--------------------------------------------------------------------------
@@ -23,7 +23,7 @@ out.spmmat = job.spmmat;
 
 cindex=job.cindex; %% contrast of interest
 
-%% First we need to redo the residual images - these have normally been cleaned up.
+% First we need to redo the residual images - these have normally been cleaned up.
 
 Ic=NaN; %% adjust for everything
 disp('Writing new residual images');
@@ -54,7 +54,7 @@ VResI = spm_data_hdr_write(VResI);
 ResMS=spm_read_vols(SPM.VResMS); %% residual mean square ( ResSS divided by tr(RV))
 
 ResSS=ResMS.*SPM.xX.trRV; %%  residual sum of squares
-%% now write out standardized residuals for each subject/observation
+% now write out standardized residuals for each subject/observation
 outvol            = NaN(size(ResSS));
 cmask=find(isfinite(ResSS));
 
@@ -72,14 +72,14 @@ maskind=intersect(cmask,find(mask));
 
 datatrial1d=zeros(nSres,length(maskind));
 
-%% disp read back in standardised residuals
-for t=1:nSres,
+% disp read back in standardised residuals
+for t=1:nSres
     [sigvoldata,XYZ]=spm_read_vols(VResI(t));
     datatrial1d(t,:)=sigvoldata(maskind);
 end % for t
 
 
-%% read in statistical image
+% read in statistical image
 [Teststat,XYZ]=spm_read_vols(SPM.xCon(cindex).Vspm);
 test_STAT=SPM.xCon(cindex).STAT;
 
@@ -101,7 +101,7 @@ for tr=1:nSres+1, % last extra trial is for Teststat
     binpoints(find(vol_data))=1;
     R0 = spm_resels_vol(binpoints,SPM.xVol.FWHM);
     ec_R0(tr)=R0(1);
-    %% now get EC at each threshold and each observation
+    % now get EC at each threshold and each observation
     for threshind=1:length(threshlevels),
         
         useind=find(vol_data>=threshlevels(threshind));
@@ -110,16 +110,16 @@ for tr=1:nSres+1, % last extra trial is for Teststat
         R0 = spm_resels_vol(binpoints,SPM.xVol.FWHM);
         ec_spm=R0(1);
         ECcount(tr,threshind)=ec_spm;
-    end; % for threshind
-end; % for tr
+    end % for threshind
+end % for tr
 
 if max(ec_R0)~=min(ec_R0)
     error('subjects have different topology');
-end;
+end
 R0_set=ec_R0(1);
 
 
-%% GET EC DENSITIES FOR INDIVIDUAL TRIAL RESIDUALS (Z DIST) AND FOR TEST OF INTEREST (independent of data)
+% GET EC DENSITIES FOR INDIVIDUAL TRIAL RESIDUALS (Z DIST) AND FOR TEST OF INTEREST (independent of data)
 allpju_trial=[]; %% independent of data
 allpju_test=[]; %% independent of data
 df=[1 nSres-size(SPM.xX.X,2)];
@@ -156,41 +156,41 @@ end;
 
 
 
-for tbase=1:nSres+2,
+for tbase=1:nSres+2
     allpju=[];
     Y=[];
-    if tbase<=nSres,
+    if tbase<=nSres
         epochtype=0; %% residual from trial
     else
-        if tbase==nSres+1, %% test statistic
+        if tbase==nSres+1 %% test statistic
             epochtype=1;
         else
             epochtype=2; %% mean of ECs over trials
-        end;
-    end;
+        end
+    end
     
     
     
     
-    switch epochtype,
-        case 0, %% single residual trial
+    switch epochtype
+        case 0 %% single residual trial
             Y=squeeze(ECcount(tbase,fitind))'; %% get LKC based on single residual image for these N trials
             allpju=allpju_trial; %% density for trial
         case 1 % single t stat
             Y=squeeze(ECcount(nSres+1,fitind))'; %% get LKC based on single Teststat image for these N trials
             allpju=allpju_test; %% density for test
-        case 2, %% mean of all trials
+        case 2 %% mean of all trials
             Y=squeeze(mean(ECcount(1:nSres,fitind),1))'; %% get LKC based on average EC over trials in iteration k
             %allaverageY(k,:)=Y;
             allpju=allpju_trial; %% density for trial
-    end;
+    end
     
     
    
     dimension_test=max_resel_dimension;
     
-    %% LKC based on average EC through basic regression
-    if ~ESTZEROLKC, %% do not estimate 0th LKC
+    % LKC based on average EC through basic regression
+    if ~ESTZEROLKC %% do not estimate 0th LKC
         LKC0=R0_set; %% TAKE THIS AS FIXED
         Ydash=Y-LKC0*allpju(:,1);
         useLKCind=2:dimension_test+1; 
@@ -200,7 +200,7 @@ for tbase=1:nSres+2,
     else %% estimate allLKCs
         useLKCind=1:dimension_test+1;
         LKC=pinv(allpju(:,useLKCind))*Ydash; %% get least squares estimate of all LKC coeffs
-    end; % if
+    end % if
     
     
     
@@ -217,15 +217,15 @@ gC = [1 -1]';
 [CVA] = spm_cva(gY,gX,[],gC); %% do multivariate test
 
 
-%% get empirical mean and sd of EC over subjects / observations.
+% get empirical mean and sd of EC over subjects / observations.
 
 meanECtest_regtrial=mean(squeeze(allLKCregress(1:nSres,:)))*allpju_test'; %% unweighted based on mean Euler
 sdECtest_regtrial=std(squeeze(allLKCregress(1:nSres,:)))*allpju_test'; %% unweighted based on mean Euler
 
-%% estimate what EC profile should be based on smoothness of image
+% estimate what EC profile should be based on smoothness of image
 meanECtest_resel=LKCresel*allpju_test';
 
-%% PLOT RESULTS
+% PLOT RESULTS
 
 Fgraph  = spm_figure('GetWin','Graphics'); spm_figure('Clear',Fgraph);
 
@@ -259,4 +259,3 @@ cd(fileparts(job.spmmat{:}));
 cd(original_dir);
 
 fprintf('Done\n')
-return

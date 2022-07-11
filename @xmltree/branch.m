@@ -9,13 +9,9 @@ function subtree = branch(tree,uid)
 %
 % Return a subtree from a tree.
 %__________________________________________________________________________
-% Copyright (C) 2002-2011  http://www.artefact.tk/
 
-% Guillaume Flandin
-% $Id: branch.m 4460 2011-09-05 14:52:16Z guillaume $
+% Copyright (C) 2002-2022 Guillaume Flandin
 
-
-%error(nargchk(2,2,nargin));
 
 if uid > length(tree) || ...
    numel(uid)~=1 || ...

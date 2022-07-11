@@ -8,11 +8,11 @@ function [res, list] = modality(this, scalp, planar)
 %          0 (default) do not distinguish
 % If more than one modality is found the function returns 'Multimodal'
 % in res and a cell array of modalities in list.
-% _______________________________________________________________________
-% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Vladimir Litvak
-% $Id: modality.m 6542 2015-09-09 11:48:34Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 if nargin == 1
     scalp = 1;

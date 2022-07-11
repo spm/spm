@@ -1,10 +1,10 @@
 function varargout = subsref(this,subs)
 % Subscript referencing for GIfTI objects
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: subsref.m 7577 2019-04-24 08:59:56Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 if length(this) > 1 && ~strcmp(subs(1).type,'()')
     warning('Not implemented.');

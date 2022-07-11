@@ -1,10 +1,9 @@
 function review = spm_cfg_model_review
 % SPM Configuration file for Model Review
 %__________________________________________________________________________
-% Copyright (C) 2014-2021 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_cfg_model_review.m 8119 2021-07-06 13:51:43Z guillaume $
+% Copyright (C) 2014-2022 Wellcome Centre for Human Neuroimaging
 
 
 %--------------------------------------------------------------------------

@@ -1,9 +1,9 @@
 function tests = test_spm_dcm_post_hoc
 % Unit Tests for spm_dcm_post_hoc
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
-% $Id: test_spm_dcm_post_hoc.m 6492 2015-06-26 14:27:40Z guillaume $
+% Copyright (C) 2015-2022 Wellcome Centre for Human Neuroimaging
+
 
 tests = functiontests(localfunctions);
 

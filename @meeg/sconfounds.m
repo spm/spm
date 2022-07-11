@@ -1,11 +1,11 @@
 function res = sconfounds(this, newsconfounds, append)
 % Method for getting/setting spatial confounds
 % FORMAT res = sconfounds(this, newsconfounds)
-% _______________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Vladimir Litvak
-% $Id: sconfounds.m 7962 2020-09-25 12:06:47Z vladimir $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 if nargin >= 2
     meegind = indchantype(this, 'MEEG', 'GOOD');

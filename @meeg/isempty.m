@@ -1,10 +1,10 @@
 function out = isempty(this)
 % True if the object is empty 
 % FORMAT out = isempty(this)
-% _________________________________________________________________________
-% Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Vladimir Litvak
-% $Id: isempty.m 5025 2012-10-31 14:44:13Z vladimir $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 out = all(size(this)==0);

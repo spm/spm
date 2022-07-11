@@ -4,10 +4,10 @@ function res = isfield(this, varargin)
 % FORMAT res = isfield(this,fieldname)
 %
 % An overloaded function...
-% _______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
-% Christophe Phillips
-% $Id: isfield.m 2720 2009-02-09 19:50:46Z vladimir $
+% Vladimir Litvak
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 res = isfield(this.other, varargin{:});

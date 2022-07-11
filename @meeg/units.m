@@ -1,11 +1,11 @@
 function res = units(this, varargin)
 % Method for setting/getting all units, over channels
 % FORMAT res = units(this, ind)
-% _______________________________________________________________________
-% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
-% Stefan Kiebel
-% $Id: units.m 5933 2014-03-28 13:22:28Z vladimir $
+% Vladimir Litvak
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 if this.montage.Mind == 0
     res = getset(this, 'channels', 'units', varargin{:});

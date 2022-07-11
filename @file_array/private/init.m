@@ -10,10 +10,9 @@ function init(fname, nbytes, opts)
 %
 % This function is normally called by file_array/initialise
 %__________________________________________________________________________
-% Copyright (C) 2005-2017 Wellcome Trust Centre for Neuroimaging
 
-% Guillaume Flandin
-% $Id: init.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
+
 
 %-This is merely the help file for the compiled routine
 error('init.c not compiled - see Makefile');

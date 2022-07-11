@@ -1,9 +1,9 @@
 function tests = test_spm_jsonwrite
 % Unit Tests for spm_jsonwrite
 %__________________________________________________________________________
-% Copyright (C) 2016-2020 Wellcome Trust Centre for Neuroimaging
 
-% $Id: test_spm_jsonwrite.m 8031 2020-12-10 13:37:00Z guillaume $
+% Copyright (C) 2016-2022 Wellcome Centre for Human Neuroimaging
+
 
 tests = functiontests(localfunctions);
 

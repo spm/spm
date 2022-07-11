@@ -5,7 +5,8 @@ function E = ROBOT_DCM_EEG
 %   options.model        - 'ERP','SEP','LFP','CMC','CMM','NMM' or 'MFM'
 %   options.spatial      - 'ECD','LFP' or 'IMG'
 
-% $Id: ROBOT_DCM_EEG.m 7149 2017-08-08 13:14:36Z karl $
+% Copyright (C) 2017-2022 Wellcome Centre for Human Neuroimaging
+
 
 % tests of spatial models: 'ECD', 'LFP' or 'IMG'
 %==========================================================================
@@ -385,7 +386,7 @@ function spm_demo_print
 drawnow
 
 H     = sort(get(0,'Children'));
-for j = 1:length(H);
+for j = 1:length(H)
     
     figure(H(j))
     axes('position',[.05 .98 .9 .02]);
@@ -396,5 +397,3 @@ for j = 1:length(H);
     
 end
 delete(H)
-
-return

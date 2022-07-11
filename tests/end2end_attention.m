@@ -1,9 +1,9 @@
 function tests = end2end_attention
 % End-to-end test for attention dataset
 %__________________________________________________________________________
-% Copyright (C) 2018 Wellcome Centre for Human Neuroimaging
 
-% $Id: end2end_attention.m 7264 2018-02-22 14:43:47Z peter $
+% Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
+
 
 tests = functiontests(localfunctions);
 

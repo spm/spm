@@ -1,11 +1,11 @@
 function raw = ftraw(this, chanind, timeind, trialind)
 % Method for converting meeg object to Fieldtrip raw struct
 % FORMAT raw  =  ftraw(this, chanind, timeind, trialind)
-% _______________________________________________________________________
-% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Vladimir Litvak
-% $Id: ftraw.m 8130 2021-08-05 13:15:12Z vladimir $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 if ~islinked(this)
     error('There is no data linked to the object');

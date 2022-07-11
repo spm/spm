@@ -1,9 +1,8 @@
 #!/usr/bin/env make -f
 # Makefile called by {SPM}/src/Makefile to compile SPM external's
 #
-# Copyright (C) 2009-2013 Wellcome Trust Centre for Neuroimaging
-#
-# $Id: Makefile 5914 2014-03-12 12:17:21Z guillaume $
+# Copyright (C) 2009-2022 Wellcome Centre for Human Neuroimaging
+
 
 include ../src/Makefile.var
 

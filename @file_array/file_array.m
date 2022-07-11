@@ -10,10 +10,8 @@ function a = file_array(varargin)
 % scl_inter  - DC offset, such that dat = raw*scale + inter (default = 0)
 % permission - Write permission, either 'rw' or 'ro' (default = 'rw')
 %__________________________________________________________________________
-% Copyright (C) 2005-2017 Wellcome Trust Centre for Neuroimaging
 
-%
-% $Id: file_array.m 7147 2017-08-03 14:07:01Z spm $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 
 if nargin==1

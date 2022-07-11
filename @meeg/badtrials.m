@@ -1,11 +1,10 @@
 function res = badtrials(this, varargin)
 % Method for getting/setting bad trials
 % FORMAT res = badtrials(this)
-% _______________________________________________________________________
-% Copyright (C) 2011-2012 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Christophe Phillips
-% $Id: badtrials.m 5592 2013-07-24 16:25:55Z vladimir $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 if length(varargin) == 2 && ~isempty(varargin{1})

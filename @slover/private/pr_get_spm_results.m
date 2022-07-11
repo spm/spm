@@ -8,8 +8,8 @@ function [XYZ, Z, M] = pr_get_spm_results
 % M      - 4x4 voxel -> world transformation matrix
 %__________________________________________________________________________
 
-% Matthew Brett
-% $Id: pr_get_spm_results.m 6623 2015-12-03 18:38:08Z guillaume $
+% Copyright (C) 2005-2022 Matthew Brett
+
 
 errstr = '''Cannot find SPM results in workspace''';
 [XYZ,Z,M] = deal([]);

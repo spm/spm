@@ -1,10 +1,9 @@
 function delete = spm_cfg_eeg_delete
 % Configuration file for deleting M/EEG datasets
 %__________________________________________________________________________
-% Copyright (C) 2009-2021 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_delete.m 8119 2021-07-06 13:51:43Z guillaume $
+% Copyright (C) 2009-2022 Wellcome Centre for Human Neuroimaging
 
 
 %--------------------------------------------------------------------------

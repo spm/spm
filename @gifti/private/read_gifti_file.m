@@ -4,10 +4,10 @@ function this = read_gifti_file(filename, this)
 % filename    - XML GIfTI filename
 % this        - structure with fields 'metaData', 'label' and 'data'.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: read_gifti_file.m 7632 2019-07-03 09:05:24Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 % Import XML-based GIfTI file
 %--------------------------------------------------------------------------

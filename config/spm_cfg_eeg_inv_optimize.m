@@ -2,10 +2,9 @@ function optsetup = spm_cfg_eeg_inv_optimize
 % Configuration file to set up optimization routines for M/EEG source
 % inversion
 %__________________________________________________________________________
-% Copyright (C) 2010-2021 Wellcome Trust Centre for Neuroimaging
 
 % Gareth Barnes
-% $Id: spm_cfg_eeg_inv_optimize.m 8119 2021-07-06 13:51:43Z guillaume $
+% Copyright (C) 2010-2022 Wellcome Centre for Human Neuroimaging
 
 
 optsetup      = cfg_exbranch;
@@ -284,5 +283,3 @@ dep.sname = 'M/EEG dataset(s) after imaging source reconstruction';
 dep.src_output = substruct('.','D');
 % this can be entered into any evaluated input
 dep.tgt_spec   = cfg_findspec({{'filter','mat'}});
-
-

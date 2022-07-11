@@ -6,10 +6,10 @@ function res = indfrequency(this, f)
 %
 % res        - vector of sample indices matching indices
 %__________________________________________________________________________
-% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
-% Stefan Kiebel
-% $Id: indfrequency.m 5212 2013-01-26 13:16:36Z vladimir $
+% Vladimir Litvak
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 if ~strncmpi(transformtype(this), 'TF',2)
     error('Only TF datasets are supported');

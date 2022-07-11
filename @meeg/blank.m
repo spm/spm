@@ -5,11 +5,11 @@ function this = blank(this, fnamedat)
 %   Will create the datafile using fname and path     
 % FORMAT this = blank(this, fnamedat) 
 %   Will create the datafile using the provided name and path
-% _________________________________________________________________________
-% Copyright (C) 2011-2012 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Vladimir Litvak
-% $Id: blank.m 5648 2013-09-23 12:40:40Z vladimir $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 if nargin == 1
     [p, f] = fileparts(fullfile(this));

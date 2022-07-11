@@ -12,8 +12,8 @@ function obj = add_matrix(obj, mat3d, mat, imgno)
 % obj          - modified object
 %__________________________________________________________________________
 
-% Matthew Brett
-% $Id: add_matrix.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2005-2022 Matthew Brett
+
 
 if nargin < 2
     return

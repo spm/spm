@@ -1,9 +1,9 @@
 function tests = test_spm_openmp
 % Unit Tests for OpenMP
 %__________________________________________________________________________
-% Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
-% $Id: test_spm_openmp.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2019-2022 Wellcome Centre for Human Neuroimaging
+
 
 tests = functiontests(localfunctions);
 tests(1:end) = []; % ALL TESTS ARE DISABLED

@@ -1,10 +1,9 @@
 function correct = spm_cfg_eeg_correct_sensor_data
 % Configuration file for coorecting sensor data
 %__________________________________________________________________________
-% Copyright (C) 2014-2021 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_correct_sensor_data.m 8119 2021-07-06 13:51:43Z guillaume $
+% Copyright (C) 2014-2022 Wellcome Centre for Human Neuroimaging
 
 
 correct = cfg_exbranch;

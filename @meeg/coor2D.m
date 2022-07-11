@@ -1,11 +1,10 @@
 function [res, plotind] = coor2D(this, ind, val, mindist)
-% returns x and y coordinates of channels in 2D plane
+% x and y coordinates of channels in 2D plane
 % FORMAT coor2D(this)
-% _______________________________________________________________________
-% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Vladimir Litvak, Laurence Hunt
-% $Id: coor2D.m 7445 2018-10-12 13:24:48Z vladimir $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 megind = indchantype(this, {'MEG', 'MEGPLANAR', 'MEGCOMB'});

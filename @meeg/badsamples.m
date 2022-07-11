@@ -1,11 +1,11 @@
 function res = badsamples(this, chanind, sampind, trialind)
 % Returns an array of 0/1 marking bad data based on artefact events and bad flags
 % FORMAT res = badsamples(this, chanind, sampind, trialind)
-% _______________________________________________________________________
-% Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Vladimir Litvak
-% $Id: badsamples.m 7199 2017-11-01 16:42:12Z vladimir $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 if ischar(chanind) && isequal(chanind, ':')
     chanind = 1:nchannels(this);

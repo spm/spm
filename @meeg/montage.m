@@ -19,12 +19,11 @@ function [res] = montage(this,action,varargin)
 % - getmontage -> returning the current or any other montage structure, 
 %                 depending on list provided (current one by default if 
 %                 no list passed).
-% _______________________________________________________________________
-% Copyright (C) 2011-2017 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Remy Lehembre & Christophe Phillips
-% Cyclotron Research Centre, University of Liege, Belgium
-% $Id: montage.m 7111 2017-06-16 09:01:09Z guillaume $
+% Copyright (C) 2011-2022 Cyclotron Research Centre, University of Liege, Belgium
+
 
 % Montage definition in the object structure by simply adding a 'montage'
 % field in the object structure:

@@ -4,10 +4,9 @@ function momentfit = spm_cfg_eeg_momentfit
 % estimate dipole moments given priors and return a model evidence for
 % these priors.
 %__________________________________________________________________________
-% Copyright (C) 2019-2021 Wellcome Trust Centre for Neuroimaging
 
 % Gareth Barnes
-% $Id: spm_cfg_eeg_momentfit.m 8119 2021-07-06 13:51:43Z guillaume $
+% Copyright (C) 2019-2022 Wellcome Centre for Human Neuroimaging
 
 
 momentfit      = cfg_exbranch;
@@ -328,4 +327,3 @@ dep.sname = 'M/EEG dataset(s) after imaging source reconstruction';
 dep.src_output = substruct('.','D');
 % this can be entered into any evaluated input
 dep.tgt_spec   = cfg_findspec({{'filter','mat'}});
-

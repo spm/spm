@@ -1,9 +1,8 @@
 function job = spm_rewrite_job(job)
 % Rewrite a batch job for SPM12
 %__________________________________________________________________________
-% Copyright (C) 2012-2017 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_rewrite_job.m 7063 2017-04-19 10:49:44Z guillaume $
+% Copyright (C) 2012-2022 Wellcome Centre for Human Neuroimaging
 
 
 try

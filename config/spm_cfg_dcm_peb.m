@@ -1,10 +1,9 @@
 function second_level = spm_cfg_dcm_peb
 % SPM Configuration file for second-level DCM (PEB)
 %__________________________________________________________________________
-% Copyright (C) 2016-2017 Wellcome Trust Centre for Neuroimaging
 
 % Peter Zeidman
-% $Id: spm_cfg_dcm_peb.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2016-2022 Wellcome Centre for Human Neuroimaging
 
 
 %==========================================================================

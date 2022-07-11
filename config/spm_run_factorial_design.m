@@ -5,10 +5,10 @@ function out = spm_run_factorial_design(job)
 % Output:
 % out    - struct variable containing the path of the saved SPM.mat
 %__________________________________________________________________________
-% Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_run_factorial_design.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
+
 
 %--------------------------------------------------------------------------
 % This function configures the design matrix (describing the general

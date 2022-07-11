@@ -1,11 +1,11 @@
 function res = fsample(this, value)
 % Method for getting and setting the sampling rate
 % FORMAT res = fsample(this)
-% _______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Vladimir Litvak
-% $Id: fsample.m 3200 2009-06-12 17:29:40Z vladimir $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 if nargin == 1
     res = this.Fsample;

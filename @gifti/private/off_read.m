@@ -9,10 +9,9 @@ function M = off_read(filename)
 % OFF Format Specification:
 % https://en.wikipedia.org/wiki/OFF_(file_format)
 %__________________________________________________________________________
-% Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: off_read.m 7676 2019-10-22 10:19:29Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 fid = fopen(filename,'rt');

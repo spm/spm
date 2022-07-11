@@ -3,10 +3,9 @@ function coregshift = spm_cfg_eeg_inv_coregshift
 % reconstruction. This is to add deterministic or random displacements to
 % simulate coregistration error.
 %__________________________________________________________________________
-% Copyright (C) 2013-2021 Wellcome Trust Centre for Neuroimaging
 
 % Gareth Barnes
-% $Id: spm_cfg_eeg_inv_coregshift.m 8119 2021-07-06 13:51:43Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 coregshift          = cfg_exbranch;

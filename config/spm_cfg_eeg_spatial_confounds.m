@@ -1,10 +1,9 @@
 function sconfounds = spm_cfg_eeg_spatial_confounds
 % Configuration file for reading montage files
 %__________________________________________________________________________
-% Copyright (C) 2014-2021 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_spatial_confounds.m 8119 2021-07-06 13:51:43Z guillaume $
+% Copyright (C) 2014-2022 Wellcome Centre for Human Neuroimaging
 
 
 sconfounds          = cfg_exbranch;

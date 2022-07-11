@@ -1,10 +1,8 @@
 function a = reshape(b,varargin)
 % Overloaded reshape function for file_array objects
 %__________________________________________________________________________
-% Copyright (C) 2005-2017 Wellcome Trust Centre for Neuroimaging
 
-%
-% $Id: reshape.m 7147 2017-08-03 14:07:01Z spm $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 
 if length(struct(b))~=1, error('Can only reshape simple file_array objects.'); end

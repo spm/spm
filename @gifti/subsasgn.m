@@ -1,10 +1,10 @@
 function this = subsasgn(this, subs, A)
 % Subscript assignment for GIfTI objects
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: subsasgn.m 6513 2015-08-05 17:52:13Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 switch subs(1).type
     case '.'

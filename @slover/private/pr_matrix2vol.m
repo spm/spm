@@ -10,8 +10,8 @@ function vol = pr_matrix2vol(mat3d, mat)
 % vol     - kind of SPM vol struct with matrix data added
 %__________________________________________________________________________
 
-% Matthew Brett
-% $Id: pr_matrix2vol.m 6623 2015-12-03 18:38:08Z guillaume $
+% Copyright (C) 2005-2022 Matthew Brett
+
 
 if nargin < 1
     error('Need matrix to add to vol');

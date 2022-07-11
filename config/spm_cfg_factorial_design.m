@@ -1,10 +1,9 @@
 function factorial_design = spm_cfg_factorial_design
 % SPM Configuration file for second-level models
 %__________________________________________________________________________
-% Copyright (C) 2005-2021 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_cfg_factorial_design.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 
 %==========================================================================

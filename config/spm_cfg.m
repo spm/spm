@@ -1,9 +1,9 @@
 function spmjobs = spm_cfg
 % SPM Configuration file for MATLABBATCH
 %__________________________________________________________________________
-% Copyright (C) 2008-2021 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg.m 8119 2021-07-06 13:51:43Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 %--------------------------------------------------------------------------
 % Temporal

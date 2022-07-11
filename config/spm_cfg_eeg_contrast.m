@@ -1,10 +1,9 @@
 function S = spm_cfg_eeg_contrast
 % Configuration file for computing contrast over epochs
 %__________________________________________________________________________
-% Copyright (C) 2008-2021 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_contrast.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 S          = cfg_exbranch;

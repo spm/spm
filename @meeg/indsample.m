@@ -6,10 +6,10 @@ function res = indsample(this, t)
 %
 % res        - vector of sample indices matching time points
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: indsample.m 3742 2010-03-02 15:15:43Z vladimir $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 res = NaN(1,length(t));
 if this.Nsamples > 0

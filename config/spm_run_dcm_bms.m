@@ -14,10 +14,9 @@ function out = spm_run_dcm_bms(job)
 % Note: All functions use the negative free energy (F) as an approximation
 % to the log model evidence.
 %__________________________________________________________________________
-% Copyright (C) 2009-2015 Wellcome Trust Centre for Neuroimaging
 
 % CC Chen & Maria Joao Rosa
-% $Id: spm_run_dcm_bms.m 8275 2022-07-06 11:14:02Z guillaume $
+% Copyright (C) 2009-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Say hello

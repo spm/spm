@@ -1,9 +1,7 @@
-#ifndef lint
-static char svnid[] = "$Id: nifti_stats_mex.c 7147 2017-08-03 14:07:01Z spm $";
-#endif
 /* 
  * This is a MATLAB MEX interface for Bob Cox's extensive nifti_stats.c
  * functionality.  See nifti_stats.m for documentation.
+ * Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
  */
 
 #include <stdio.h>
@@ -121,4 +119,3 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
          p[i] = nifti_stat2hzscore(val[i], code,p1,p2,p3 ) ;
    }
 }
-

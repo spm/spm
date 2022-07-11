@@ -1,6 +1,6 @@
 /*
- * $Id: zstream.c 8044 2021-01-21 15:08:54Z guillaume $
  * Guillaume Flandin
+ * Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  */
 
 /* mex -O CFLAGS='$CFLAGS -std=c99' -largeArrayDims zstream.c */

@@ -1,9 +1,7 @@
 #!/usr/bin/env make -f
 # @file_array Makefile called by {SPM}/src/Makefile
 #
-# Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
-#
-# $Id: Makefile 7532 2019-02-14 12:03:24Z guillaume $
+# Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 include ../../src/Makefile.var
 

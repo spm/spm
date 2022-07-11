@@ -1,11 +1,11 @@
 function res = chanlabels(this, varargin)
 % Method for getting/setting the channel labels
 % FORMAT res = chanlabels(this, ind, label)
-% _______________________________________________________________________
-% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Vladimir Litvak
-% $Id: chanlabels.m 5933 2014-03-28 13:22:28Z vladimir $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 if this.montage.Mind == 0
     if nargin == 3

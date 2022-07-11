@@ -1,11 +1,11 @@
 function res = fname(this, newname)
 % Method for getting/setting file name
 % FORMAT res = fname(this, name)
-% _______________________________________________________________________
-% Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Stefan Kiebel
-% $Id: fname.m 5025 2012-10-31 14:44:13Z vladimir $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 if  nargin == 1
     res = this.fname;

@@ -20,10 +20,8 @@ function varargout = add(tree,uid,type,parameter)
 % deal with the attributes of an element node (initialized empty).
 % The tree parameter must be in input AND in output.
 %__________________________________________________________________________
-% Copyright (C) 2002-2011  http://www.artefact.tk/
 
-% Guillaume Flandin
-% $Id: add.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2002-2022 Guillaume Flandin
 
 
 if ~isa(uid,'double')

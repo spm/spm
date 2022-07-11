@@ -17,8 +17,8 @@ function obj = paint(obj, params)
 % the figure handle, unless instructed not to with 0 in userdata flag
 %__________________________________________________________________________
 
-% Matthew Brett
-% $Id: paint.m 6623 2015-12-03 18:38:08Z guillaume $
+% Copyright (C) 2005-2022 Matthew Brett
+
 
 fig_struct_fields = {'Position', 'Units'};
 

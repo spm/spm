@@ -1,9 +1,8 @@
 function st = spm_cfg_st
 % SPM Configuration file for Slice Timing Correction
 %__________________________________________________________________________
-% Copyright (C) 2005-2021 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_st.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 
 %--------------------------------------------------------------------------

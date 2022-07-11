@@ -1,11 +1,11 @@
 function res = frequencies(this, ind, f)
 % Method for getting/setting frequencies of TF data
 % FORMAT res = frequencies(this, ind, values)
-% _________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Stefan Kiebel
-% $Id: frequencies.m 5079 2012-11-25 18:38:18Z vladimir $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 if nargin >1        
     if ~isnumeric(ind)

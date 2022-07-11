@@ -1,10 +1,9 @@
 function results = spm_cfg_eeg_inv_results
 % Configuration file for exporting results of source reconstruction
 %__________________________________________________________________________
-% Copyright (C) 2010-2021 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_results.m 8119 2021-07-06 13:51:43Z guillaume $
+% Copyright (C) 2010-2022 Wellcome Centre for Human Neuroimaging
 
 
 results          = cfg_exbranch;

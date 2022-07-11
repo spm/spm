@@ -1,9 +1,9 @@
 function tests = test_spm_dcm_specify
 % Unit Tests for spm_dcm_specify_ui
 %__________________________________________________________________________
-% Copyright (C) 2018 Wellcome Trust Centre for Neuroimaging
 
-% $Id: test_spm_dcm_specify.m 7264 2018-02-22 14:43:47Z peter $
+% Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
+
 
 tests = functiontests(localfunctions);
 

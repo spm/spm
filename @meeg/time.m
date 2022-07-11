@@ -1,11 +1,11 @@
 function res = time(this, ind, format)
 % Method for getting the time axis
 % FORMAT res = time(this, ind, format)
-% _______________________________________________________________________
-% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Vladimir Litvak, Stefan Kiebel
-% $Id: time.m 5025 2012-10-31 14:44:13Z vladimir $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 if this.Nsamples>0
     res = (0:(this.Nsamples-1))./this.Fsample + this.timeOnset;

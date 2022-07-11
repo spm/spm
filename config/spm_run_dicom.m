@@ -7,9 +7,8 @@ function out = spm_run_dicom(job)
 % Output:
 % out    - computation results, usually a struct variable.
 %__________________________________________________________________________
-% Copyright (C) 2005-2017 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_dicom.m 7201 2017-11-08 11:13:25Z guillaume $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 
 if ~isempty(job.outdir{1})

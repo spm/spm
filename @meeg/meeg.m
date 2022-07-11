@@ -115,10 +115,10 @@ function D = meeg(varargin)
 %           original and new channels (+ new channels definition)
 %       .Mind indicates which montage to use
 %__________________________________________________________________________
-% Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: meeg.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 switch nargin
     case 0
@@ -142,6 +142,3 @@ end
 if ~isa(D, 'meeg')
     D = class(checkmeeg(D), 'meeg');
 end
-
-
-

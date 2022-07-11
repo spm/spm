@@ -2,10 +2,8 @@ function Q = M2Q(M)
 % Convert from rotation matrix to quaternion form
 % See: http://skal.planet-d.net/demo/matrixfaq.htm
 %__________________________________________________________________________
-% Copyright (C) 2005-2017 Wellcome Trust Centre for Neuroimaging
 
-%
-% $Id: M2Q.m 7147 2017-08-03 14:07:01Z spm $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 
 d = diag(M(1:3,1:3));

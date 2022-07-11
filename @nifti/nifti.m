@@ -1,10 +1,8 @@
 function h = nifti(varargin)
 % Create a NIFTI-1 object
 %__________________________________________________________________________
-% Copyright (C) 2005-2017 Wellcome Trust Centre for Neuroimaging
 
-%
-% $Id: nifti.m 7758 2019-12-16 16:04:25Z guillaume $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 
 switch nargin

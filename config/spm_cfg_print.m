@@ -1,9 +1,8 @@
 function cfg_print = spm_cfg_print
 % SPM Configuration file for 'Print figure'
 %__________________________________________________________________________
-% Copyright (C) 2005-2021 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_print.m 8119 2021-07-06 13:51:43Z guillaume $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 
 %--------------------------------------------------------------------------

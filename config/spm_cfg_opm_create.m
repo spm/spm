@@ -1,10 +1,10 @@
 function create = spm_cfg_opm_create
-% configuration file for creating OPM objects
+% Configuration file for creating OPM objects
 %__________________________________________________________________________
-% Copyright (C) 2018-2021 Wellcome Trust Centre for Neuroimaging
 
 % Tim Tierney
-% $Id: spm_cfg_opm_create.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
+
 
 %--------------------------------------------------------------------------
 % Create OPM object

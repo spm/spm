@@ -10,8 +10,8 @@ function [mx,mn] = pr_volmaxmin(vol)
 % mn       - minimum
 %__________________________________________________________________________
 
-% Matthew Brett
-% $Id: pr_volmaxmin.m 6623 2015-12-03 18:38:08Z guillaume $
+% Copyright (C) 2005-2022 Matthew Brett
+
 
 if nargin < 1
     error('Need volume to process');
@@ -28,7 +28,7 @@ if mars_struct('isthere', vol, 'imgdata')
     mn = min(tmp);
 else
     mx = -Inf;mn=Inf;
-    for i=1:vol.dim(3),
+    for i=1:vol.dim(3)
         tmp = spm_slice_vol(vol,spm_matrix([0 0 i]),vol.dim(1:2),[0 NaN]);
         tmp = tmp(find(isfinite(tmp(:))));
         if ~isempty(tmp)

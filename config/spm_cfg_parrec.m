@@ -1,10 +1,9 @@
 function parrec = spm_cfg_parrec
 % SPM Configuration file for Philips PAR/REC Import
 %__________________________________________________________________________
-% Copyright (C) 2015-2021 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_cfg_parrec.m 8119 2021-07-06 13:51:43Z guillaume $
+% Copyright (C) 2015-2022 Wellcome Centre for Human Neuroimaging
 
 
 %--------------------------------------------------------------------------

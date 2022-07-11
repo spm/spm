@@ -12,8 +12,8 @@ function obj = add_blobs(obj, xyz, vals, mat, imgno)
 % obj   - modified object
 %__________________________________________________________________________
 
-% Matthew Brett
-% $Id: add_blobs.m 6623 2015-12-03 18:38:08Z guillaume $
+% Copyright (C) 2005-2022 Matthew Brett
+
 
 if nargin < 4
     error('Need all of object, xyz, vals, mat');

@@ -1,14 +1,13 @@
 function sendmail = spm_cfg_sendmail
 % SPM Configuration file for sendmail
-%_______________________________________________________________________
-% Copyright (C) 2008-2021 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
-% $Id: spm_cfg_sendmail.m 8119 2021-07-06 13:51:43Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 % Sendmail
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 sendmail       = cfg_exbranch;
 sendmail.tag   = 'sendmail';
 sendmail.name  = 'Sendmail';

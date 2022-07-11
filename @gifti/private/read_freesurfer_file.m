@@ -6,10 +6,9 @@ function this = read_freesurfer_file(filename)
 % Read ASCII triangle surface file and part of binary mgh file.
 % See https://surfer.nmr.mgh.harvard.edu/fswiki/FileFormats
 %__________________________________________________________________________
-% Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: read_freesurfer_file.m 8069 2021-02-26 18:23:02Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 [p,n,e] = fileparts(filename);

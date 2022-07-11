@@ -1,11 +1,11 @@
 function res = badchannels(this, varargin)
 % Method for getting/setting bad channels
 % FORMAT res = badchannels(this)
-% _______________________________________________________________________
-% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Stefan Kiebel
-% $Id: badchannels.m 5933 2014-03-28 13:22:28Z vladimir $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 if length(varargin) == 2 && isnumeric(varargin{1})
     % make sure that the two inputs for set are the same length
@@ -14,13 +14,13 @@ if length(varargin) == 2 && isnumeric(varargin{1})
     end
 end
 
-if numel(varargin) >= 1  && (isnumeric(varargin{1})  && ~isempty(varargin{1})) 
+if numel(varargin) >= 1  && (isnumeric(varargin{1})  && ~isempty(varargin{1}))
     if ~(all(varargin{1} >= 1) && all(varargin{1} <= nchannels(this)))
         error('Channel number out of range.');
     end
 end
 
-if numel(varargin) >= 2 && (isnumeric(varargin{1})  && ~isempty(varargin{1})) 
+if numel(varargin) >= 2 && (isnumeric(varargin{1})  && ~isempty(varargin{1}))
     ubad = unique(varargin{2});
     if isempty(ubad) || ~all(ismember(ubad, [0 1]))
         error('Illegal bad flags (should be 0 or 1)');
@@ -46,4 +46,3 @@ if numel(varargin) <= 1 % get
         res = find(res);
     end
 end
-    

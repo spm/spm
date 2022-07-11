@@ -16,8 +16,8 @@ function [cmap, warnstr] = pr_getcmap(acmapname)
 % warnstr     - warning message if fails
 %__________________________________________________________________________
 
-% Matthew Brett
-% $Id: pr_getcmap.m 6623 2015-12-03 18:38:08Z guillaume $
+% Copyright (C) 2005-2022 Matthew Brett
+
 
 cmap = []; warnstr = [];
 if nargin < 1

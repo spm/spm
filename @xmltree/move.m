@@ -9,13 +9,9 @@ function tree = move(tree,uida, uidb)
 % Move a subtree inside a tree from A to B.
 % The tree parameter must be in input AND in output.
 %__________________________________________________________________________
-% Copyright (C) 2002-2015  http://www.artefact.tk/
 
-% Guillaume Flandin
-% $Id: move.m 6480 2015-06-13 01:08:30Z guillaume $
+% Copyright (C) 2002-2022 Guillaume Flandin
 
-
-%error(nargchk(3,3,nargin));
 
 p = tree.tree{uida}.parent;
 tree.tree{p}.contents(find(tree.tree{p}.contents==uida)) = [];

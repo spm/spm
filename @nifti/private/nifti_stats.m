@@ -23,14 +23,11 @@ function varargout = nifti_stats(varargin)
 %   These default to zero if unspecified.
 %
 %   P is an array with the same dimensions as VAL.
-%
 %__________________________________________________________________________
-% 99.99% of the work by RW Cox - SSCC/NIMH/NIH/DHHS/USA/EARTH - March 2004
-%  0.01% of the work (the mex wrapper) by John Ashburner - FIL/ION/UCL
-% Copyright (C) 2005-2017 Wellcome Trust Centre for Neuroimaging
 
-%
-% $Id: nifti_stats.m 7147 2017-08-03 14:07:01Z spm $
+% 99.99% of the work by RW Cox - SSCC/NIMH/NIH/DHHS/USA/EARTH - March 2004
+% 0.01% of the work (the mex wrapper) by John Ashburner - FIL/ION/UCL
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 
 fprintf('******************************************\n');

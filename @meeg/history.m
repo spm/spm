@@ -2,11 +2,10 @@ function res = history(this, varargin)
 % Method for getting or adding to the history of function calls of some
 % M/EEG data
 % FORMAT res = history(this, varargin)
-% _______________________________________________________________________
-% Copyright (C) 2008-2016 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Stefan Kiebel
-% $Id: history.m 6883 2016-09-19 13:42:05Z vladimir $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 if isempty(varargin)

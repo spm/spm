@@ -1,10 +1,8 @@
 function d = getdict
 % Dictionary of NIFTI stuff
 %__________________________________________________________________________
-% Copyright (C) 2005-2019 Wellcome Trust Centre for Neuroimaging
 
-%
-% $Id: getdict.m 7620 2019-06-19 15:44:39Z guillaume $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 
 persistent dict;

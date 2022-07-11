@@ -6,10 +6,10 @@ function res = copy(this, newname)
 % - path\filename -> data copied and renamed
 % - path          -> data copied only
 %__________________________________________________________________________
-% Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: copy.m 7962 2020-09-25 12:06:47Z vladimir $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 [p, f] = fileparts(newname);
 

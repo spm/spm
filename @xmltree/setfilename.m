@@ -8,9 +8,8 @@ function tree = setfilename(tree,filename)
 %
 % Set the filename linked to the XML tree as filename.
 %__________________________________________________________________________
-% Copyright (C) 2002-2011  http://www.artefact.tk/
 
-% Guillaume Flandin
-% $Id: setfilename.m 4460 2011-09-05 14:52:16Z guillaume $
+% Copyright (C) 2002-2022 Guillaume Flandin
+
 
 tree.filename = filename;

@@ -1,9 +1,9 @@
 function tests = test_spm_mesh_area
 % Unit Tests for spm_mesh_area
 %__________________________________________________________________________
-% Copyright (C) 2021 Wellcome Centre for Human Neuroimaging
 
-% $Id: test_spm_mesh_area.m 8078 2021-03-12 22:19:57Z guillaume $
+% Copyright (C) 2021-2022 Wellcome Centre for Human Neuroimaging
+
 
 tests = functiontests(localfunctions);
 

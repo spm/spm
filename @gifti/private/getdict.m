@@ -1,10 +1,10 @@
 function d = getdict
 % Dictionary of GIfTI/NIfTI stuff
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: getdict.m 7379 2018-07-25 09:11:24Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 persistent dict;
 if ~isempty(dict)

@@ -1,9 +1,9 @@
 function tests = test_spm_mesh_ray_intersect
 % Unit Tests for spm_mesh_ray_intersect
 %__________________________________________________________________________
-% Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: test_spm_mesh_ray_intersect.m 7879 2020-06-29 21:13:52Z guillaume $
+% Copyright (C) 2020-2022 Wellcome Centre for Human Neuroimaging
+
 
 tests = functiontests(localfunctions);
 

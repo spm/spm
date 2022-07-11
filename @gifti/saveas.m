@@ -8,10 +8,9 @@ function saveas(this,filename,format)
 %             (.obj), JavaScript (.js), JSON (.json), FreeSurfer
 %             (.surf,.curv), MZ3 (.mz3) [Default: VTK]
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: saveas.m 7676 2019-10-22 10:19:29Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % Check filename and file format

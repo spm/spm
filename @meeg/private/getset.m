@@ -1,11 +1,11 @@
 function res = getset(this, parent, fieldname, ind, values)
 % Generic method for getting and setting multiple fields of meeg struct
 % FORMAT res = getset(this, parent, fieldname, ind, values)
-% _______________________________________________________________________
-% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Vladimir Litvak
-% $Id: getset.m 6535 2015-08-25 11:45:26Z vladimir $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 this = struct(this);
 

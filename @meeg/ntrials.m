@@ -1,10 +1,10 @@
 function res = ntrials(this)
 % Method for getting the number of trials in the file
 % FORMAT res = ntrials(this)
-% _______________________________________________________________________
-% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Vladimir Litvak
-% $Id: ntrials.m 5025 2012-10-31 14:44:13Z vladimir $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 res = length(this.trials);

@@ -20,12 +20,9 @@ function k = xml_findstr(s,p,i,n)
 %
 %   See also STRFIND, FINDSTR
 %__________________________________________________________________________
-% Copyright (C) 2002-2020  https://www.artefact.tk/
 
-% Guillaume Flandin
-% $Id: xml_findstr.m 7836 2020-04-22 10:29:14Z guillaume $
+% Copyright (C) 2002-2022 Guillaume Flandin
 
-%warning('xml_findstr.c not compiled');
 
 if nargin < 3, i = 1;   end
 if nargin < 4, n = Inf; end

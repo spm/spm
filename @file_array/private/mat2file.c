@@ -1,6 +1,6 @@
 /*
- * $Id: mat2file.c 7930 2020-08-17 16:11:21Z john $
  * John Ashburner
+ * Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
  */
 
 #define _LARGEFILE_SOURCE

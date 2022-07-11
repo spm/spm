@@ -1,11 +1,11 @@
 function varargout=subsref(this,subs)
 % SUBSREF Subscripted reference
 % An overloaded function...
-% _________________________________________________________________________
-% Copyright (C) 2008-2013 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Vladimir Litvak, Stefan Kiebel
-% $Id: subsref.m 6600 2015-11-12 13:07:41Z christophe $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 if isempty(subs)
     return;

@@ -5,10 +5,8 @@ function [hdr,be] = read_hdr_raw(hname)
 % hdr   - a structure containing header info
 % be    - whether big-endian or not
 %__________________________________________________________________________
-% Copyright (C) 2005-2017 Wellcome Trust Centre for Neuroimaging
 
-%
-% $Id: read_hdr_raw.m 6995 2017-01-27 15:57:40Z guillaume $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 
 hdr = [];

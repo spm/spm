@@ -1,9 +1,9 @@
 function tests = test_spm_Ce
 % Unit Tests for spm_Ce
 %__________________________________________________________________________
-% Copyright (C) 2017 Wellcome Trust Centre for Neuroimaging
 
-% $Id: test_spm_Ce.m 7018 2017-02-15 13:36:48Z guillaume $
+% Copyright (C) 2017-2022 Wellcome Centre for Human Neuroimaging
+
 
 tests = functiontests(localfunctions);
 

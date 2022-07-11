@@ -7,9 +7,8 @@ function out = spm_run_norm(job)
 % Output:
 % out    - computation results, usually a struct variable.
 %__________________________________________________________________________
-% Copyright (C) 2005-2018 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_norm.m 7406 2018-08-21 17:29:53Z john $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 
 for i=1:numel(job.subj)

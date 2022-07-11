@@ -1,10 +1,9 @@
 function spm_make_manual(c)
 % Convert a job configuration tree into a series of LaTeX documents
 %__________________________________________________________________________
-% Copyright (C) 2005-2021 Wellcome Centre for Human Neuroimaging
 
 % John Ashburner
-% $Id: spm_make_manual.m 8166 2021-10-15 16:45:08Z guillaume $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 
 if ~nargin, c = spm_cfg; end

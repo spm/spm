@@ -2,10 +2,8 @@ function obj = subsasgn(obj,subs,varargin)
 % Subscript assignment
 % See subsref for meaning of fields.
 %__________________________________________________________________________
-% Copyright (C) 2005-2017 Wellcome Trust Centre for Neuroimaging
 
-%
-% $Id: subsasgn.m 7744 2019-12-03 12:38:47Z guillaume $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 
 switch subs(1).type

@@ -2,8 +2,8 @@ function mmpos = get_pos(obj)
 % Return point location from last click, in mm
 %__________________________________________________________________________
 
-% Matthew Brett
-% $Id: get_pos.m 6623 2015-12-03 18:38:08Z guillaume $
+% Copyright (C) 2005-2022 Matthew Brett
+
 
 mmpos=[];
 pos = get(gca, 'CurrentPoint');

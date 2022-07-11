@@ -1,10 +1,10 @@
 function labview = spm_cfg_opm_read_lvm
-% configuration file for reading lab view file
+% Configuration file for reading lab view file
 %__________________________________________________________________________
-% Copyright (C) 2018-2021 Wellcome Trust Centre for Neuroimaging
 
 % Tim Tierney
-% $Id: spm_cfg_opm_read_lvm.m 8119 2021-07-06 13:51:43Z guillaume $
+% Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
+
 
 %--------------------------------------------------------------------------
 % Read LabView Files

@@ -4,10 +4,10 @@ function names = fieldnames(this)
 % this   -  GIfTI object
 % names  -  field names
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: fieldnames.m 6507 2015-07-24 16:48:02Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 if numel(this) > 1, warning('Only handle scalar objects yet.'); end
 

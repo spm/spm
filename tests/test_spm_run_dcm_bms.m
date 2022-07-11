@@ -4,9 +4,9 @@ function tests = test_spm_run_dcm_bms
 % energies. Additionally, tests are included using real DCM files for
 % software testing.
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
-% $Id: test_spm_run_dcm_bms.m 7103 2017-06-08 14:39:32Z peter $
+% Copyright (C) 2015-2022 Wellcome Centre for Human Neuroimaging
+
 
 tests = functiontests(localfunctions);
 

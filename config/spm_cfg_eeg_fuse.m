@@ -1,10 +1,9 @@
 function fuse = spm_cfg_eeg_fuse
-% configuration file for fusing M/EEG files
-%_______________________________________________________________________
-% Copyright (C) 2008-2021 Wellcome Trust Centre for Neuroimaging
+% Configuration file for fusing M/EEG files
+%__________________________________________________________________________
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_fuse.m 8119 2021-07-06 13:51:43Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 fuse          = cfg_exbranch;

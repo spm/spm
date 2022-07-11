@@ -4,10 +4,10 @@ function this = save(this)
 %
 % Converts an meeg object to struct and saves it.
 %__________________________________________________________________________
-% Copyright (C) 2008-2019 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: save.m 7619 2019-06-19 14:13:18Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 D = struct(this);
 try

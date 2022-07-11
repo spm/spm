@@ -1,14 +1,14 @@
 function setlevel = spm_cfg_setlevel
 % SPM Configuration file for Set level tests based on Barnes et al. NIMG
 % 2012
-%_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
-% $Id: spm_cfg_setlevel.m 5554 2013-06-13 09:13:56Z gareth $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
-% ---------------------------------------------------------------------
+
+% -------------------------------------------------------------------------
 % spmmat Select SPM.mat
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 spmmat         = cfg_files;
 spmmat.tag     = 'spmmat';
 spmmat.name    = 'Select SPM.mat';
@@ -29,9 +29,9 @@ cindex.help = {'Index of the contrast of interest'};
 cindex.val = {1};
 
 
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 % Set level test 
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 setlevel          = cfg_exbranch;
 setlevel.tag      = 'setlevel';
 setlevel.name     = 'Set Level test';
@@ -40,5 +40,3 @@ setlevel.help     = {'A set level test how likely the statistical image is a ran
 setlevel.prog     = @spm_run_setlevel;
 %setlevel.vout     = @vout_stats;
 setlevel.modality = {'FMRI' 'PET' 'EEG'};
-
-

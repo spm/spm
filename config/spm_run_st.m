@@ -7,10 +7,8 @@ function out = spm_run_st(job)
 % Output:
 % out    - computation results, usually a struct variable.
 %__________________________________________________________________________
-% Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_st.m 4479 2011-09-12 11:28:04Z guillaume $
-
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 Seq = job.so;
 TR  = job.tr;

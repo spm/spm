@@ -1,10 +1,9 @@
 function voi = spm_cfg_voi
 % SPM Configuration file for VOIs
 %__________________________________________________________________________
-% Copyright (C) 2008-2021 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_cfg_voi.m 8263 2022-06-10 09:42:41Z peter $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % -------------------------------------------------------------------------

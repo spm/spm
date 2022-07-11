@@ -1,9 +1,9 @@
 function tests = test_spm_get_data
 % Unit Tests for spm_get_data
 %__________________________________________________________________________
-% Copyright (C) 2018 Wellcome Trust Centre for Neuroimaging
 
-% $Id: test_spm_get_data.m 7385 2018-08-01 15:58:24Z guillaume $
+% Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
+
 
 tests = functiontests(localfunctions);
 

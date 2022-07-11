@@ -9,8 +9,8 @@ function obj = fill_defaults(obj)
 % obj    - object filled
 %__________________________________________________________________________
 
-% Matthew Brett
-% $Id: fill_defaults.m 6623 2015-12-03 18:38:08Z guillaume $
+% Copyright (C) 2005-2022 Matthew Brett
+
 
 % Some default structures
 def_labs = struct('colour',[1 1 1],'size',0.075,'format', '%+3.0f');

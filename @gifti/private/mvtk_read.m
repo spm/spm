@@ -11,10 +11,9 @@ function M = mvtk_read(filename)
 % 
 % Requirements: zstream, base64decode
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: mvtk_read.m 7354 2018-06-22 10:44:22Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 [pth,name,ext] = fileparts(filename);

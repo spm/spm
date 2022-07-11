@@ -1,9 +1,9 @@
 function tests = test_spm_mesh_laplacian
 % Unit Tests for spm_mesh_laplacian
 %__________________________________________________________________________
-% Copyright (C) 2021 Wellcome Centre for Human Neuroimaging
 
-% $Id: test_spm_mesh_laplacian.m 8081 2021-03-16 16:12:27Z guillaume $
+% Copyright (C) 2021-2022 Wellcome Centre for Human Neuroimaging
+
 
 tests = functiontests(localfunctions);
 

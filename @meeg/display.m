@@ -1,11 +1,11 @@
 function str = display(this)
 % Method for displaying information about an meeg object
 % FORMAT display(this)
-% _______________________________________________________________________
-% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Vladimir Litvak
-% $Id: display.m 5025 2012-10-31 14:44:13Z vladimir $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 str = ['SPM M/EEG data object\n'...
     'Type: ' type(this) '\n'...

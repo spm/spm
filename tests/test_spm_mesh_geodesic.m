@@ -1,9 +1,9 @@
 function tests = test_spm_mesh_geodesic
 % Unit Tests for spm_mesh_geodesic
 %__________________________________________________________________________
-% Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: test_spm_mesh_geodesic.m 7886 2020-07-03 16:06:55Z guillaume $
+% Copyright (C) 2020-2022 Wellcome Centre for Human Neuroimaging
+
 
 tests = functiontests(localfunctions);
 

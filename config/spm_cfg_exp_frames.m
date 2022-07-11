@@ -1,9 +1,8 @@
 function exp_frames = spm_cfg_exp_frames
 % SPM Configuration file for Expand Image Frames
 %__________________________________________________________________________
-% Copyright (C) 2009-2021 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_exp_frames.m 8147 2021-09-06 09:51:29Z guillaume $
+% Copyright (C) 2009-2022 Wellcome Centre for Human Neuroimaging
 
 
 %--------------------------------------------------------------------------

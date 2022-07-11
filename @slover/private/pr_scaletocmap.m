@@ -20,8 +20,8 @@ function [img, badvals]=pr_scaletocmap(inpimg,mn,mx,cmap,lrn)
 %              specified by lrn vector above
 %__________________________________________________________________________
 
-% Matthew Brett
-% $Id: pr_scaletocmap.m 6623 2015-12-03 18:38:08Z guillaume $
+% Copyright (C) 2005-2022 Matthew Brett
+
 
 if nargin <  4
     error('Need inpimg, mn, mx, and cmap');

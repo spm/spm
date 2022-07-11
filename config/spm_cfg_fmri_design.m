@@ -1,14 +1,13 @@
 function fmri_design = spm_cfg_fmri_design
 % SPM Configuration file for fMRI model specification (design only)
-%_______________________________________________________________________
-% Copyright (C) 2005-2021 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
-% $Id: spm_cfg_fmri_design.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 % fmri_design fMRI model specification (design only)
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 fmri_design         = cfg_exbranch;
 fmri_design.tag     = 'fmri_design';
 fmri_design.name    = 'fMRI model specification (design only)';

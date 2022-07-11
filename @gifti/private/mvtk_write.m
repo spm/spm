@@ -13,10 +13,9 @@ function mvtk_write(M,filename,format)
 % 
 % Requirements: zstream, base64encode
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: mvtk_write.m 6601 2015-11-19 13:55:32Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Input parameters

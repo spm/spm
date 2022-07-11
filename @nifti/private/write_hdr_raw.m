@@ -7,10 +7,8 @@ function sts = write_hdr_raw(fname,hdr,be)
 %
 % sts        - status (1=good, 0=bad)
 %__________________________________________________________________________
-% Copyright (C) 2005-2017 Wellcome Trust Centre for Neuroimaging
 
-%
-% $Id: write_hdr_raw.m 7370 2018-07-09 10:44:51Z guillaume $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 
 [pth,nam] = fileparts(fname);

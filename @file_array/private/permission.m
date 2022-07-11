@@ -6,10 +6,8 @@ function varargout = permission(varargin)
 % For setting the value
 % obj = permission(obj,dat)
 %__________________________________________________________________________
-% Copyright (C) 2005-2017 Wellcome Trust Centre for Neuroimaging
 
-%
-% $Id: permission.m 7147 2017-08-03 14:07:01Z spm $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 
 if nargin==2

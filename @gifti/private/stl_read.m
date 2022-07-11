@@ -9,10 +9,9 @@ function M = stl_read(filename)
 % STL Format Specification:
 % https://en.wikipedia.org/wiki/STL_%28file_format%29
 %__________________________________________________________________________
-% Copyright (C) 2018 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: stl_read.m 7254 2018-02-05 17:51:37Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 M = struct('vertices',[],'faces',[]);

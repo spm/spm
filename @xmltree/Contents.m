@@ -49,7 +49,4 @@
 %   xmldemo2    - Read an XML file and access fields.
 %   xmldemo3    - Read an XML file, modify some fields and save it.
 
-% Copyright 2002-2015  http://www.artefact.tk/
-
-% Guillaume Flandin <Guillaume@artefact.tk>
-% $Id: Contents.m 6480 2015-06-13 01:08:30Z guillaume $
+% Copyright (C) 2002-2022 Guillaume Flandin

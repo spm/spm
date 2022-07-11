@@ -1,10 +1,10 @@
 function bms = spm_cfg_bms_map
 % Configuration file for BMS interface
 %__________________________________________________________________________
-% Copyright (C) 2008-2021 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao Rosa
-% $Id: spm_cfg_bms_map.m 8119 2021-07-06 13:51:43Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 %--------------------------------------------------------------------------
 % bms_map_inf BMS: Maps (Inference), output is BMS map 

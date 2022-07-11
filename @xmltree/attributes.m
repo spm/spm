@@ -22,10 +22,8 @@ function varargout = attributes(varargin)
 % The tree parameter must be in input AND in output for 'set', 'add' and
 % 'del' methods.
 %__________________________________________________________________________
-% Copyright (C) 2002-2011  http://www.artefact.tk/
 
-% Guillaume Flandin
-% $Id: attributes.m 4460 2011-09-05 14:52:16Z guillaume $
+% Copyright (C) 2002-2022 Guillaume Flandin
 
 
 %error(nargchk(3,6,nargin));

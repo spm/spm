@@ -1,10 +1,9 @@
 function dcm_meeg_spec = spm_cfg_dcm_meeg
 % Invert multiple DCMs specified in GUI.
 %__________________________________________________________________________
-% Copyright (C) 2013-2021 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_dcm_meeg.m 8119 2021-07-06 13:51:43Z guillaume $
+% Copyright (C) 2013-2022 Wellcome Centre for Human Neuroimaging
 
 
 %--------------------------------------------------------------------------

@@ -1,10 +1,9 @@
 function artefact = spm_cfg_eeg_artefact
 % Configuration file for M/EEG artefact detection
 %__________________________________________________________________________
-% Copyright (C) 2008-2021 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_artefact.m 8119 2021-07-06 13:51:43Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 %--------------------------------------------------------------------------

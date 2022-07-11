@@ -7,9 +7,8 @@ function out = spm_run_coreg(job)
 % Output:
 % out    - computation results, usually a struct variable.
 %__________________________________________________________________________
-% Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_coreg.m 5956 2014-04-16 14:34:25Z guillaume $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 
 if ~isfield(job,'other') || isempty(job.other{1}), job.other = {}; end

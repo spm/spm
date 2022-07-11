@@ -9,10 +9,9 @@ function M = obj_read(filename)
 % Wavefront OBJ Format Specification:
 % https://en.wikipedia.org/wiki/Wavefront_.obj_file
 %__________________________________________________________________________
-% Copyright (C) 2017 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: obj_read.m 7390 2018-08-13 09:51:20Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 fid = fopen(filename,'rt');

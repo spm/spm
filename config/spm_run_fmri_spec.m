@@ -8,9 +8,8 @@ function out = spm_run_fmri_spec(job)
 % Output:
 % out    - computation results, usually a struct variable.
 %__________________________________________________________________________
-% Copyright (C) 2005-2021 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_fmri_spec.m 8169 2021-10-19 12:56:56Z guillaume $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Check presence of previous analysis

@@ -6,10 +6,10 @@ function res = trialtag(this, varargin)
 % the respective trial. This is useful e.g. to make sure the
 % relation between regressors and data is not broken when
 % removing bad trials or merging files.
-% _______________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Vladimir Litvak
-% $Id: trialtag.m 6618 2015-12-01 16:25:38Z spm $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 res = getset(this, 'trials', 'tag', varargin{:});

@@ -7,10 +7,10 @@ function res = move(this, fname)
 % - path          -> data moved only
 % - filename      -> data renamed only
 %__________________________________________________________________________
-% Copyright (C) 2011-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: move.m 5025 2012-10-31 14:44:13Z vladimir $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 res = copy(this, fname);
 delete(this);

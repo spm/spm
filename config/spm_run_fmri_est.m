@@ -8,9 +8,8 @@ function out = spm_run_fmri_est(job)
 % Output:
 % out    - computation results, usually a struct variable.
 %__________________________________________________________________________
-% Copyright (C) 2005-2021 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_fmri_est.m 8200 2021-12-21 14:49:44Z guillaume $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Load SPM.mat file

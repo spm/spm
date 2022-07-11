@@ -146,8 +146,8 @@ function [o, others] = slover(params, others, varargin)
 % If optional dispf parameter = 0, suppresses display
 %__________________________________________________________________________
 
-% Matthew Brett
-% $Id: slover.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2005-2022 Matthew Brett
+
 
 myclass = 'slover';
 

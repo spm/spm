@@ -9,10 +9,10 @@ function ind = indchantype(this, types, flag)
 %              
 % ind        - vector of channel indices matching labels
 %__________________________________________________________________________
-% Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: indchantype.m 6446 2015-05-22 14:10:56Z vladimir $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 if ischar(types)    
     types = {types};

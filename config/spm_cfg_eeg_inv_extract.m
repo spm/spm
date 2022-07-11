@@ -2,10 +2,9 @@ function extract = spm_cfg_eeg_inv_extract
 % Configuration file for extracting source data from imaging source
 % reconstruction
 %__________________________________________________________________________
-% Copyright (C) 2011-2021 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_extract.m 8119 2021-07-06 13:51:43Z guillaume $
+% Copyright (C) 2011-2022 Wellcome Centre for Human Neuroimaging
 
 
 extract          = cfg_exbranch;

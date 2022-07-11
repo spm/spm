@@ -1,9 +1,9 @@
 function results = spm_cfg_results
 % SPM Configuration file for Results Report
 %__________________________________________________________________________
-% Copyright (C) 2005-2021 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_results.m 8119 2021-07-06 13:51:43Z guillaume $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
+
 
 %--------------------------------------------------------------------------
 % results Results Report

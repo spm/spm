@@ -9,8 +9,8 @@ function obj = pr_basic_ui(imgs, dispf)
 % dispf - optional flag: if set, displays overlay (default = 1)
 %__________________________________________________________________________
 
-% Matthew Brett
-% $Id: pr_basic_ui.m 6623 2015-12-03 18:38:08Z guillaume $
+% Copyright (C) 2005-2022 Matthew Brett
+
 
 if nargin < 1
     imgs = '';

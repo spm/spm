@@ -1,9 +1,8 @@
 function realignunwarp = spm_cfg_realignunwarp
 % SPM Configuration file for Realign & Unwarp
 %__________________________________________________________________________
-% Copyright (C) 2005-2021 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_realignunwarp.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 
 %--------------------------------------------------------------------------

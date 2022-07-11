@@ -1,11 +1,11 @@
 function res = nchannels(this)
 % returns number of channels
 % FORMAT res = nchannels(this)
-% _______________________________________________________________________
-% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Vladimir Litvak
-% $Id: nchannels.m 5025 2012-10-31 14:44:13Z vladimir $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 if this.montage.Mind==0
     res = length(this.channels);

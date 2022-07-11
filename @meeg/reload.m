@@ -4,9 +4,9 @@ function this = reload(this)
 %
 % Useful to update the object e.g. after running a batch.
 %__________________________________________________________________________
-% Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: reload.m 5385 2013-04-03 16:24:05Z vladimir $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 this = meeg(getfield(load(fullfile(this)), 'D'));

@@ -1,9 +1,9 @@
 function tests = test_spm_mesh_euler
 % Unit Tests for spm_mesh_euler
 %__________________________________________________________________________
-% Copyright (C) 2018 Wellcome Trust Centre for Neuroimaging
 
-% $Id: test_spm_mesh_euler.m 7397 2018-08-15 11:04:26Z guillaume $
+% Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
+
 
 tests = functiontests(localfunctions);
 

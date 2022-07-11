@@ -7,13 +7,9 @@ function editor(tree)
 %
 %  See also XMLTREE
 %__________________________________________________________________________
-% Copyright (C) 2002-2015  http://www.artefact.tk/
 
-% Guillaume Flandin
-% $Id: editor.m 7621 2019-06-20 16:58:59Z guillaume $
+% Copyright (C) 2002-2022 Guillaume Flandin
 
-
-%error(nargchk(1,1,nargin));
 
 if ~isempty(getfilename(tree))
     title = getfilename(tree);

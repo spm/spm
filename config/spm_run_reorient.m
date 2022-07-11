@@ -7,10 +7,10 @@ function out = spm_run_reorient(varargin)
 % Output:
 % out    - computation results, usually a struct variable.
 %__________________________________________________________________________
-% Copyright (C) 2006-2014 Wellcome Trust Centre for Neuroimaging
 
 % Volkmar Glauche
-% $Id: spm_run_reorient.m 6078 2014-06-30 18:10:33Z guillaume $
+% Copyright (C) 2006-2022 Wellcome Centre for Human Neuroimaging
+
 
 job = varargin{1};
 if isfield(job.transform,'transprm')

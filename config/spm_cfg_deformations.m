@@ -1,10 +1,10 @@
 function conf = spm_cfg_deformations
 % Configuration file for deformation jobs
 %_______________________________________________________________________
-% Copyright (C) 2008-2016 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_cfg_deformations.m 8119 2021-07-06 13:51:43Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 conf      = cfg_exbranch;
 conf.name = 'Deformations';

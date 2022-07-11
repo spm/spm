@@ -6,11 +6,11 @@ function this = link(this, fnamedat, dtype, slope, offset)
 %   Will find the datafile using the provided name and path
 % FORMAT this = link(this, fnamedat, dtype, slope, offset)
 %   Additional parameters for non-float data files
-% _________________________________________________________________________
-% Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Vladimir Litvak
-% $Id: link.m 6437 2015-05-14 12:27:21Z vladimir $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 if isempty(this)
    error('All header dimensions should be >0');

@@ -1,9 +1,8 @@
 function disp = spm_cfg_disp
 % SPM Configuration file for Image Display
 %__________________________________________________________________________
-% Copyright (C) 2008-2016 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_disp.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-------------------------------------------------------------------------

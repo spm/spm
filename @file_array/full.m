@@ -3,10 +3,8 @@ function out = full(fa)
 % FORMAT full(fa)
 % fa - a file_array
 %__________________________________________________________________________
-% Copyright (C) 2018 Wellcome Trust Centre for Neuroimaging
 
-%
-% $Id: full.m 7501 2018-11-30 12:16:58Z guillaume $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 
 [vo{1:ndims(fa)}] = deal(':');

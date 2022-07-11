@@ -1,9 +1,9 @@
 function tests = end2end_restingfMRI
 % End-to-end test for resting dataset
 %__________________________________________________________________________
-% Copyright (C) 2018 Wellcome Centre for Human Neuroimaging
 
-% $Id: end2end_restingfMRI.m 7481 2018-11-09 15:36:57Z peter $
+% Copyright (C) 2017-2022 Wellcome Centre for Human Neuroimaging
+
 
 tests = functiontests(localfunctions);
 

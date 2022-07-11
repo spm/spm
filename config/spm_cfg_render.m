@@ -1,9 +1,8 @@
 function rendering = spm_cfg_render
 % SPM Configuration file for Render
 %__________________________________________________________________________
-% Copyright (C) 2013-2021 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_render.m 8119 2021-07-06 13:51:43Z guillaume $
+% Copyright (C) 2013-2022 Wellcome Centre for Human Neuroimaging
 
 
 %--------------------------------------------------------------------------

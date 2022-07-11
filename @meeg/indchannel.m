@@ -6,10 +6,10 @@ function res = indchannel(this, label)
 %
 % res        - vector of channel indices matching labels
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: indchannel.m 3254 2009-07-07 15:18:54Z vladimir $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 if ischar(label)
     label = {label};

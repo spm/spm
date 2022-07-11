@@ -1,10 +1,10 @@
 function epoch = spm_cfg_opm_epoch_trigger
-% configuration file for epoching OPM data
+% Configuration file for epoching OPM data
 %__________________________________________________________________________
-% Copyright (C) 2018-2021 Wellcome Trust Centre for Neuroimaging
 
 % Tim Tierney
-% $Id: spm_cfg_opm_epoch_trigger.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
+
 
 %--------------------------------------------------------------------------
 % simulation parameters

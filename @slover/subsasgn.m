@@ -3,7 +3,7 @@ function result = subsasgn(this, Struct, rhs)
 % . assignment works directly on object fields
 %__________________________________________________________________________
 
-% Matthew Brett
-% $Id: subsasgn.m 6623 2015-12-03 18:38:08Z guillaume $
+% Copyright (C) 2005-2022 Matthew Brett
+
 
 result = builtin('subsasgn', this, Struct, rhs);

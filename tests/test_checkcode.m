@@ -1,9 +1,9 @@
 function tests = test_checkcode
 % Test for possible problems in all of MATLAB code files
 %__________________________________________________________________________
-% Copyright (C) 2017 Wellcome Trust Centre for Neuroimaging
 
-% $Id: test_checkcode.m 7111 2017-06-16 09:01:09Z guillaume $
+% Copyright (C) 2017-2022 Wellcome Centre for Human Neuroimaging
+
 
 tests = functiontests(localfunctions);
 

@@ -1,9 +1,8 @@
 function fmri_data = spm_cfg_fmri_data
 % SPM Configuration file for fMRI data specification
 %__________________________________________________________________________
-% Copyright (C) 2005-2016 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_fmri_data.m 8119 2021-07-06 13:51:43Z guillaume $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 
 %--------------------------------------------------------------------------

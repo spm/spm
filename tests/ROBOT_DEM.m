@@ -2,6 +2,9 @@ function E = ROBOT_DEM
 % Tests routines in DEM GUI
 %__________________________________________________________________________
 
+% Copyright (C) 2017-2022 Wellcome Centre for Human Neuroimaging
+
+
 % close and clear everything
 %--------------------------------------------------------------------------
 try

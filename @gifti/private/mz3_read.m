@@ -9,10 +9,9 @@ function M = mz3_read(filename)
 % MZ3 Format Specification:
 % https://github.com/neurolabusc/surf-ice/tree/master/mz3
 %__________________________________________________________________________
-% Copyright (C) 2018 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: mz3_read.m 7428 2018-09-25 13:25:13Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 M = struct();

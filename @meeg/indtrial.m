@@ -10,10 +10,10 @@ function res = indtrial(this, label, flag)
 %
 % res        - vector of trial indices matching condition labels
 %__________________________________________________________________________
-% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: indtrial.m 6998 2017-01-31 16:48:27Z vladimir $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 if ischar(label)
     label = {label};

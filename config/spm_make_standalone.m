@@ -26,10 +26,9 @@ function spm_make_standalone(outdir, gateway, contentsver, tbxs)
 % 
 % See spm_standalone.m and https://en.wikibooks.org/wiki/SPM/Standalone
 %__________________________________________________________________________
-% Copyright (C) 2010-2021 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_make_standalone.m 8224 2022-02-18 11:27:42Z lars $
+% Copyright (C) 2010-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Check startup.m

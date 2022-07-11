@@ -1,10 +1,9 @@
 function crop = spm_cfg_eeg_crop
 % configuration file for cropping M/EEG data
 %__________________________________________________________________________
-% Copyright (C) 2009-2021 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_crop.m 8119 2021-07-06 13:51:43Z guillaume $
+% Copyright (C) 2009-2022 Wellcome Centre for Human Neuroimaging
 
 
 %--------------------------------------------------------------------------

@@ -10,11 +10,11 @@ function new = clone(this, fnamedat, dim, reset, forcefloat)
 % Note that when fnamedat comes with a path, the cloned meeg object uses
 % it. Otherwise, its path is by definition that of the meeg object to be
 % cloned.
-% _________________________________________________________________________
-% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Stefan Kiebel, Vladimir Litvak
-% $Id: clone.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 if nargin < 5
     forcefloat = 0;

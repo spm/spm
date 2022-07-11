@@ -2,11 +2,11 @@ function res = events(this, varargin)
 % Method for getting/setting events per trial
 % FORMAT res = events(this, ind, event)
 %   ind = indices of trials
-% _______________________________________________________________________
-% Copyright (C) 2008-2013 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Vladimir Litvak
-% $Id: events.m 5613 2013-08-15 11:56:07Z vladimir $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 if nargin == 2
     res = getset(this, 'trials', 'events', varargin{:});

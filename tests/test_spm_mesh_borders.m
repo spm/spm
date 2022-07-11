@@ -1,9 +1,9 @@
 function tests = test_spm_mesh_borders
 % Unit Tests for spm_mesh_borders
 %__________________________________________________________________________
-% Copyright (C) 2018 Wellcome Trust Centre for Neuroimaging
 
-% $Id: test_spm_mesh_borders.m 7413 2018-09-07 09:53:34Z guillaume $
+% Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
+
 
 tests = functiontests(localfunctions);
 

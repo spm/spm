@@ -1,9 +1,9 @@
 function tests = test_spm_mesh_normals
 % Unit Tests for spm_mesh_normals
 %__________________________________________________________________________
-% Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
 
-% $Id: test_spm_mesh_normals.m 6955 2016-11-30 11:40:52Z guillaume $
+% Copyright (C) 2016-2022 Wellcome Centre for Human Neuroimaging
+
 
 tests = functiontests(localfunctions);
 

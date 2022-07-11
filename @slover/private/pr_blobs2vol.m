@@ -11,11 +11,11 @@ function vol = pr_blobs2vol(xyz,vals,mat)
 % vol      - vol struct, with matrix data 'imgdata' field
 %__________________________________________________________________________
 
-% Matthew Brett
-% $Id: pr_blobs2vol.m 6623 2015-12-03 18:38:08Z guillaume $
+% Copyright (C) 2005-2022 Matthew Brett
+
 
 vol = [];
-if ~isempty(xyz),
+if ~isempty(xyz)
     rcp      = round(xyz);
     vol.dim  = max(rcp,[],2)';
     off      = rcp(1,:) + vol.dim(1)*(rcp(2,:)-1+vol.dim(2)*(rcp(3,:)-1));

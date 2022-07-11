@@ -1,9 +1,9 @@
 function tests = test_spm_dcm_bmr_all
 % Unit Tests for test_spm_dcm_bmr_all
 %__________________________________________________________________________
-% Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
 
-% $Id: test_spm_dcm_bmr_all.m 6915 2016-11-01 17:38:08Z peter $
+% Copyright (C) 2016-2022 Wellcome Centre for Human Neuroimaging
+
 
 tests = functiontests(localfunctions);
 

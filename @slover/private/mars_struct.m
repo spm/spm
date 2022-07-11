@@ -71,8 +71,8 @@ function varargout = mars_struct(action, varargin)
 % Useful for printing text description of structure
 %__________________________________________________________________________
 
-% Matthew Brett
-% $Id: mars_struct.m 6623 2015-12-03 18:38:08Z guillaume $
+% Copyright (C) 2005-2022 Matthew Brett
+
 
 if nargin < 1
     error('Action needed');

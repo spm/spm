@@ -1,10 +1,9 @@
 function S = spm_cfg_eeg_review
 % Configuration file for M/EEG reviewing tool
 %__________________________________________________________________________
-% Copyright (C) 2010-2021 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_review.m 8119 2021-07-06 13:51:43Z guillaume $
+% Copyright (C) 2010-2022 Wellcome Centre for Human Neuroimaging
 
 
 D        = cfg_files;

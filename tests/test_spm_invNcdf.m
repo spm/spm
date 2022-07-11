@@ -1,9 +1,9 @@
 function tests = test_spm_invNcdf
 % Unit Tests for spm_invNcdf
 %__________________________________________________________________________
-% Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
 
-% $Id: test_spm_invNcdf.m 6860 2016-08-25 12:00:10Z guillaume $
+% Copyright (C) 2016-2022 Wellcome Centre for Human Neuroimaging
+
 
 tests = functiontests(localfunctions);
 

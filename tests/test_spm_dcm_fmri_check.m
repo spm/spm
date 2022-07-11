@@ -1,9 +1,9 @@
 function tests = test_spm_dcm_fmri_check
 % Unit Tests for spm_dcm_fmri_check
 %__________________________________________________________________________
-% Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
 
-% $Id: test_spm_dcm_fmri_check.m 6790 2016-04-28 14:30:27Z guillaume $
+% Copyright (C) 2016-2022 Wellcome Centre for Human Neuroimaging
+
 
 tests = functiontests(localfunctions);
 

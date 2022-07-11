@@ -1,11 +1,10 @@
 function res = size(this, dim)
 % returns the dimensions of the data matrix
 % FORMAT res = size(this, dim))
-% _______________________________________________________________________
-% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Vladimir Litvak
-% $Id: size.m 5078 2012-11-25 15:08:05Z vladimir $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 if ~strncmpi(transformtype(this), 'TF', 2)

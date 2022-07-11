@@ -1,9 +1,9 @@
 function tests = test_gifti
 % Unit Tests for gifti
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
-% $Id: test_gifti.m 6516 2015-08-07 17:28:33Z guillaume $
+% Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
+
 
 tests = functiontests(localfunctions);
 

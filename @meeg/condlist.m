@@ -2,11 +2,11 @@ function res = condlist(this, newcondlist)
 % Method for getting a list of unique condition labels sorted according to
 % the trial order in the file
 % FORMAT res = condlist(this)
-% _______________________________________________________________________
-% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Vladimir Litvak
-% $Id: condlist.m 5472 2013-05-08 00:24:36Z vladimir $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 res = getset(this, 'trials', 'label');
 
@@ -49,5 +49,3 @@ else
     end
     res = this;
 end
-
-

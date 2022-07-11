@@ -1,9 +1,9 @@
 function tests = test_spm_dcm_peb_bmc_fam
-% Unit Tests for test_spm_dcm_peb_bmc
+% Unit Tests for test_spm_dcm_peb_bmc_fam
 %__________________________________________________________________________
-% Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
 
-% $Id: test_spm_dcm_peb_bmc_fam.m 6946 2016-11-23 15:26:29Z peter $
+% Copyright (C) 2016-2022 Wellcome Centre for Human Neuroimaging
+
 
 tests = functiontests(localfunctions);
 

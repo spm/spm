@@ -1,9 +1,9 @@
 function meeg = spm_cfg_eeg
 % SPM M/EEG Configuration file for MATLABBATCH
 %__________________________________________________________________________
-% Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_eeg.m 7745 2019-12-03 14:55:56Z gareth $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 %--------------------------------------------------------------------------
 % M/EEG preprocessing

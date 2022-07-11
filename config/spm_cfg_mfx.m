@@ -1,10 +1,10 @@
 function mfx = spm_cfg_mfx
 % SPM Configuration file for MFX
 %__________________________________________________________________________
-% Copyright (C) 2010-2021 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_cfg_mfx.m 8119 2021-07-06 13:51:43Z guillaume $
+% Copyright (C) 2010-2022 Wellcome Centre for Human Neuroimaging
+
 
 %--------------------------------------------------------------------------
 % ffx Create first-level design

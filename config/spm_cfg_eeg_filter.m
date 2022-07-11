@@ -1,10 +1,9 @@
 function filter = spm_cfg_eeg_filter
 % configuration file for EEG filtering
-%_______________________________________________________________________
-% Copyright (C) 2008-2021 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_filter.m 8119 2021-07-06 13:51:43Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 filter          = cfg_exbranch;

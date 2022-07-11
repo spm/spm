@@ -2,10 +2,9 @@ function inv_post = spm_cfg_eeg_inv_post
 % Configuration file for taking a number of previous inversion results
 % (maybe based on different data), smoothing and creating an approximate posterior
 %__________________________________________________________________________
-% Copyright (C) 2010-2021 Wellcome Trust Centre for Neuroimaging
 
 % Gareth Barnes
-% $Id: spm_cfg_eeg_inv_post.m 8119 2021-07-06 13:51:43Z guillaume $
+% Copyright (C) 2010-2022 Wellcome Centre for Human Neuroimaging
 
 
 inv_post          = cfg_exbranch;

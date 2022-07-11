@@ -1,10 +1,9 @@
 function downsample = spm_cfg_eeg_downsample
 % Configuration file for M/EEG downsampling
 %__________________________________________________________________________
-% Copyright (C) 2008-2021 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_downsample.m 8119 2021-07-06 13:51:43Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 downsample      = cfg_exbranch;

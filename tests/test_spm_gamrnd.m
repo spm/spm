@@ -1,9 +1,9 @@
 function tests = test_spm_gamrnd
 % Unit Tests for spm_gamrnd
 %__________________________________________________________________________
-% Copyright (C) 2018 Wellcome Trust Centre for Neuroimaging
 
-% $Id: test_spm_gamrnd.m 7313 2018-05-17 13:25:51Z guillaume $
+% Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
+
 
 tests = functiontests(localfunctions);
 

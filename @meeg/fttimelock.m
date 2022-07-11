@@ -5,11 +5,11 @@ function timelock = fttimelock(this, chanind, timeind, trialind, freqind)
 % The method support both time and TF data and outputs different variants
 % of timelock or freq FT struct depending on the dataset type and requested
 % data dimensions.
-% _______________________________________________________________________
-% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Vladimir Litvak
-% $Id: fttimelock.m 8130 2021-08-05 13:15:12Z vladimir $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 if ~islinked(this)
     error('There is no data linked to the object');

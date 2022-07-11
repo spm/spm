@@ -1,4 +1,8 @@
 function tests = test_spm_dcm_fmri_csd
+% Unit Tests for spm_dcm_fmri_csd
+%__________________________________________________________________________
+
+% Copyright (C) 2017-2022 Wellcome Centre for Human Neuroimaging
 
 tests = functiontests(localfunctions);
 

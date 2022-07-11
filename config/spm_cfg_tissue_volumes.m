@@ -3,10 +3,9 @@ function tvol = spm_cfg_tissue_volumes
 %
 % See also: spm_run_tissue_volumes, spm_summarise
 %__________________________________________________________________________
-% Copyright (C) 2013-2021 Wellcome Trust Centre for Neuroimaging
 
 % Ged Ridgway
-% $Id: spm_cfg_tissue_volumes.m 8119 2021-07-06 13:51:43Z guillaume $
+% Copyright (C) 2013-2022 Wellcome Centre for Human Neuroimaging
 
 
 tvol        = cfg_exbranch;

@@ -18,10 +18,8 @@ function s = convert(tree,uid,varargin)
 % tree = convert(xmltree(xml));
 % <=> tree = struct('b',{{'field1', 'field3'}},'c','field2')
 %__________________________________________________________________________
-% Copyright (C) 2002-2020  https://www.artefact.tk/
 
-% Guillaume Flandin
-% $Id: convert.m 7781 2020-02-07 12:26:25Z guillaume $
+% Copyright (C) 2002-2022 Guillaume Flandin
 
 
 % Get the root uid of the output structure

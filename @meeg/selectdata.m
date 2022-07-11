@@ -8,11 +8,11 @@ function res = selectdata(this, varargin)
 %  timeborders - [start end] in sec or [] for all times
 %  freqborders - [start end] in Hz or [] for all frequencis (for TF datasets only)
 %  condition   - condition label, cell array of labels or [] (for all conditions)
-% ________________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Vladimir Litvak
-% $Id: selectdata.m 5025 2012-10-31 14:44:13Z vladimir $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 if this.Nsamples == 0
     res = [];

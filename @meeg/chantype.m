@@ -6,11 +6,11 @@ function res = chantype(this, varargin)
 %
 % FORMAT chantype(this, ind), chantype(this)
 % Sets channel types to default using Fieldtrip channelselection
-% _______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Vladimir Litvak
-% $Id: chantype.m 5933 2014-03-28 13:22:28Z vladimir $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 if this.montage.Mind==0
     res = getset(this, 'channels', 'type', varargin{:});

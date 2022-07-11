@@ -1,10 +1,9 @@
 function prepare = spm_cfg_eeg_prepare
 % Configuration file for the prepare tool
 %__________________________________________________________________________
-% Copyright (C) 2012-2021 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_prepare.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2012-2022 Wellcome Centre for Human Neuroimaging
 
 prepare          = cfg_exbranch;
 prepare.tag      = 'prepare';

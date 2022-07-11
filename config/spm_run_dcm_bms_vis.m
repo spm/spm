@@ -1,10 +1,9 @@
 function out = spm_run_dcm_bms_vis(job)
 % Review BMS results
 %__________________________________________________________________________
-% Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % CC Chen and Maria Joao Rosa
-% $Id: spm_run_dcm_bms_vis.m 6005 2014-05-21 16:46:26Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 if ~nargin || isempty(job.bmsmat{1})

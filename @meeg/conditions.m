@@ -1,11 +1,11 @@
 function res = conditions(this, varargin)
 % Method for getting condition labels, over trials
 % FORMAT res = conditions(this, ind, conditionlabels)
-% _______________________________________________________________________
-% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Vladimir Litvak
-% $Id: conditions.m 5025 2012-10-31 14:44:13Z vladimir $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 res = getset(this, 'trials', 'label', varargin{:});
 

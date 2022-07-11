@@ -1,10 +1,9 @@
 function rescale = spm_cfg_eeg_tf_rescale
-% configuration file for rescaling spectrograms
+% Configuration file for rescaling spectrograms
 %__________________________________________________________________________
-% Copyright (C) 2009-2021 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_cfg_eeg_tf_rescale.m 8119 2021-07-06 13:51:43Z guillaume $
+% Copyright (C) 2009-2022 Wellcome Centre for Human Neuroimaging
 
 
 %--------------------------------------------------------------------------

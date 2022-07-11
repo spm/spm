@@ -1,10 +1,10 @@
 function res = nconditions(this)
 % Method for getting the number of unique conditions in the file
 % FORMAT res = nconditions(obj)
-% _______________________________________________________________________
-% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Vladimir Litvak
-% $Id: nconditions.m 5025 2012-10-31 14:44:13Z vladimir $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 res = numel(condlist(this));

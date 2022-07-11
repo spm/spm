@@ -5,10 +5,10 @@ function s = export(this,target)
 % target - string describing target output [default: MATLAB]
 % s      - a structure containing public fields of the object
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: export.m 7383 2018-07-31 10:53:37Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 if nargin <= 1, target = 'MATLAB'; end
 

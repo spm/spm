@@ -9,11 +9,11 @@ function [this, ok] = check(this, option)
 %
 % OUT
 % ok - 1 - OK, 0- failed
-% _______________________________________________________________________
-% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Vladimir Litvak
-% $Id: check.m 7962 2020-09-25 12:06:47Z vladimir $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 if nargin == 1
     option = 'basic';

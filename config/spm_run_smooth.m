@@ -7,9 +7,9 @@ function out = spm_run_smooth(varargin)
 % Output:
 % out    - computation results, usually a struct variable.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_smooth.m 3915 2010-06-02 17:09:10Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 job       = varargin{1};
 out.files = cell(size(job.data));

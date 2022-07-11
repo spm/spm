@@ -1,10 +1,9 @@
 function job = spm_cfg_deface
 % SPM Configuration file for toolbox 'De-Face'
 %__________________________________________________________________________
-% Copyright (C) 2013-2016 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_cfg_deface.m 6952 2016-11-25 16:03:13Z guillaume $
+% Copyright (C) 2013-2022 Wellcome Centre for Human Neuroimaging
 
 
 %--------------------------------------------------------------------------

@@ -1,6 +1,3 @@
-#ifndef lint
-static char sccsid[] = "%W% R.W. Cox %E%";
-#endif
  /************************************************************************/
  /**  Functions to compute cumulative distributions and their inverses  **/
  /**  for the NIfTI-1 statistical types.  Much of this code is taken    **/

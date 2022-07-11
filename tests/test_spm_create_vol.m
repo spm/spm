@@ -1,9 +1,9 @@
 function tests = test_spm_create_vol
 % Unit Tests for spm_create_vol
 %__________________________________________________________________________
-% Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
 
-% $Id: test_spm_create_vol.m 6908 2016-10-21 11:29:25Z guillaume $
+% Copyright (C) 2016-2022 Wellcome Centre for Human Neuroimaging
+
 
 tests = functiontests(localfunctions);
 

@@ -1,9 +1,8 @@
 function tests = test_spm_z2p
 % Unit Tests for spm_z2p
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
-% $Id: test_spm_z2p.m 6778 2016-04-22 11:51:29Z guillaume $
+% Copyright (C) 2015-2022 Wellcome Centre for Human Neuroimaging
 
 tests = functiontests(localfunctions);
 

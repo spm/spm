@@ -1,9 +1,9 @@
 function tests = test_spm_mesh_label
 % Unit Tests for spm_mesh_label
 %__________________________________________________________________________
+
 % Copyright (C) 2022 Wellcome Centre for Human Neuroimaging
 
-% $Id: test_spm_mesh_label.m 8211 2022-01-24 15:35:03Z guillaume $
 
 tests = functiontests(localfunctions);
 

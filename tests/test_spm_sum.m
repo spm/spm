@@ -1,9 +1,9 @@
 function tests = test_spm_sum
 % Unit Tests for spm_sum
 %__________________________________________________________________________
-% Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: test_spm_sum.m 7814 2020-04-06 11:47:47Z guillaume $
+% Copyright (C) 2020-2022 Wellcome Centre for Human Neuroimaging
+
 
 tests = functiontests(localfunctions);
 

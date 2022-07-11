@@ -1,10 +1,8 @@
 function hdr = encode_qform0(M,hdr)
 % Encode an affine transform into qform
 %__________________________________________________________________________
-% Copyright (C) 2005-2017 Wellcome Trust Centre for Neuroimaging
 
-%
-% $Id: encode_qform0.m 7147 2017-08-03 14:07:01Z spm $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 
 % Convert from first voxel at [1,1,1] to first voxel at [0,0,0]

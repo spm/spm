@@ -1,9 +1,9 @@
 function cdir = spm_cfg_cdir
 % SPM Configuration file for Change Directory
 %__________________________________________________________________________
-% Copyright (C) 2008-2021 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_cdir.m 8119 2021-07-06 13:51:43Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 % -------------------------------------------------------------------------
 % directory Select a directory

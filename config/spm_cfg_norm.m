@@ -1,10 +1,9 @@
 function normalise = spm_cfg_norm
 % SPM Configuration file for Spatial Normalisation
 %__________________________________________________________________________
-% Copyright (C) 2012-2021 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_cfg_norm.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2012-2022 Wellcome Centre for Human Neuroimaging
 
 
 %--------------------------------------------------------------------------

@@ -3,10 +3,9 @@ function out = spm_run_tissue_volumes(cmd, job)
 %
 % See also: spm_cfg_tissue_volumes, spm_summarise
 %__________________________________________________________________________
-% Copyright (C) 2013-2021 Wellcome Trust Centre for Neuroimaging
 
 % Ged Ridgway
-% $Id: spm_run_tissue_volumes.m 8116 2021-06-30 21:10:11Z guillaume $
+% Copyright (C) 2013-2022 Wellcome Centre for Human Neuroimaging
 
 
 switch lower(cmd)

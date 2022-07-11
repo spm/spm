@@ -1,11 +1,11 @@
 function warning_flexible(varargin)
 % Function allowing to have better control over the warnings
 % that might not be necessary at some point
-% _______________________________________________________________________
-% Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Vladimir Litvak
-% $Id: warning_flexible.m 5467 2013-05-05 20:03:50Z vladimir $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 warning off backtrace
 warning(varargin{:});

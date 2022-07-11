@@ -1,10 +1,10 @@
 function reorient = spm_cfg_reorient
 % SPM Configuration file for Reorient Images
 %__________________________________________________________________________
-% Copyright (C) 2006-2021 Wellcome Trust Centre for Neuroimaging
 
 % Volkmar Glauche
-% $Id: spm_cfg_reorient.m 8119 2021-07-06 13:51:43Z guillaume $
+% Copyright (C) 2006-2022 Wellcome Centre for Human Neuroimaging
+
 
 %--------------------------------------------------------------------------
 % reorient Reorient Images

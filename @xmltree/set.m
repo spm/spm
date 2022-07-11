@@ -11,13 +11,9 @@ function tree = set(tree,uid, parameter, value)
 % Set object properties given its uid and pairs parameter/value
 % The tree parameter must be in input AND in output
 %__________________________________________________________________________
-% Copyright (C) 2002-2011  http://www.artefact.tk/
 
-% Guillaume Flandin
-% $Id: set.m 4460 2011-09-05 14:52:16Z guillaume $
+% Copyright (C) 2002-2022 Guillaume Flandin
 
-
-%error(nargchk(4,4,nargin));
 
 if iscell(uid), uid = [uid{:}]; else uid = uid(:); end
 

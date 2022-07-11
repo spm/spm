@@ -10,13 +10,9 @@ function l = length(tree,r)
 %
 % Return the number of nodes of an XMLTree object.
 %__________________________________________________________________________
-% Copyright (C) 2002-2011  http://www.artefact.tk/
 
-% Guillaume Flandin
-% $Id: length.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2002-2022 Guillaume Flandin
 
-
-%error(nargchk(1,2,nargin));
 
 % Return the full number of nodes once allocated
 l = length(tree.tree);

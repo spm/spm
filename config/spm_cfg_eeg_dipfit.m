@@ -1,9 +1,9 @@
 function dipfit = spm_cfg_eeg_dipfit
 % Configuration file for Bayesian dipole fitting
 %__________________________________________________________________________
-% Copyright (C) 2010-2021 Wellcome Trust Centre for Neuroimaging
 
 % Gareth Barnes
+% Copyright (C) 2010-2022 Wellcome Centre for Human Neuroimaging
 
 
 dipfit       = cfg_exbranch;

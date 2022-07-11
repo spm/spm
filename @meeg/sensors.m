@@ -3,11 +3,11 @@ function res = sensors(this, type, newsens)
 % returns empty matrix if no sensors are defined.
 % FORMAT res = sensors(this, type, newsens)
 %   type - 'EEG' or 'MEG'
-% _______________________________________________________________________
-% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Vladimir Litvak
-% $Id: sensors.m 6829 2016-07-07 10:16:46Z vladimir $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 if nargin<2
     error('Sensor type (EEG or MEG) must be specified');

@@ -19,10 +19,9 @@ function Z = zstream(action,D)
 % * dzip/dunzip, by Michael Kleder
 %   https://www.mathworks.com/matlabcentral/fileexchange/8899
 %__________________________________________________________________________
-% Copyright (C) 2015-2018 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: zstream.m 7399 2018-08-16 12:04:14Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 if exist('OCTAVE_VERSION','builtin')

@@ -1,15 +1,15 @@
 function [a, b] = isintent(this,intent)
-% Correspondance between fieldnames and NIfTI intent codes
+% Correspondence between fieldnames and NIfTI intent codes
 % FORMAT ind = isintent(this,intent)
 % this    -  GIfTI object
 % intent  -  fieldnames
 % a       -  indices of found intent(s)
 % b       -  indices of dataarrays of found intent(s)
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: isintent.m 6345 2015-02-20 12:25:50Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 a = [];
 b = [];

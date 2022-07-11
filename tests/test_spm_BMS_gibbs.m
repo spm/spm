@@ -1,9 +1,9 @@
 function tests = test_spm_BMS_gibbs
 % Unit Tests for spm_BMS_gibbs
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
-% $Id: test_spm_BMS_gibbs.m 6865 2016-08-31 16:49:57Z guillaume $
+% Copyright (C) 2015-2022 Wellcome Centre for Human Neuroimaging
+
 
 tests = functiontests(localfunctions);
 

@@ -1,9 +1,9 @@
 function tests = test_spm_mesh_smooth
 % Unit Tests for spm_mesh_smooth
 %__________________________________________________________________________
-% Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: test_spm_mesh_smooth.m 7890 2020-07-06 17:26:06Z guillaume $
+% Copyright (C) 2020-2022 Wellcome Centre for Human Neuroimaging
+
 
 tests = functiontests(localfunctions);
 

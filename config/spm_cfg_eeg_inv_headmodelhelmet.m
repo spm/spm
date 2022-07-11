@@ -2,10 +2,9 @@ function headmodelhelmet = spm_cfg_eeg_inv_headmodelhelmet
 % Configuration file for specifying the head model for source reconstruction
 % This is for registration using new helmet design.
 %__________________________________________________________________________
-% Copyright (C) 2012-2021 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_headmodelhelmet.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2012-2022 Wellcome Centre for Human Neuroimaging
 
 
 headmodelhelmet          = cfg_exbranch;

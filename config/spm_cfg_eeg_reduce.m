@@ -1,10 +1,9 @@
 function reduce = spm_cfg_eeg_reduce
 % Configuration file for M/EEG data reduction
 %__________________________________________________________________________
-% Copyright (C) 2010-2021 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_reduce.m 8119 2021-07-06 13:51:43Z guillaume $
+% Copyright (C) 2010-2022 Wellcome Centre for Human Neuroimaging
 
 
 reduce          = cfg_exbranch;

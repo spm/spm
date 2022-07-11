@@ -1,9 +1,9 @@
 function md = spm_cfg_md
 % SPM Configuration file for making directory function
 %_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_md.m 1827 2008-06-16 13:54:37Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 % ----------------------------------------------------------------------
 % basedir Select a base directory

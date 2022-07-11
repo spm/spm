@@ -5,8 +5,8 @@ function obj = add_spm(obj,xSPM)
 % SPM results are fetched from the workspace
 %__________________________________________________________________________
 
-% Matthew Brett
-% $Id: add_spm.m 6623 2015-12-03 18:38:08Z guillaume $
+% Copyright (C) 2005-2022 Matthew Brett
+
 
 if nargin == 2
     XYZ = xSPM.XYZ;

@@ -3,10 +3,10 @@ function display(this)
 % FORMAT display(this)
 % this   -  GIfTI object
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: display.m 4182 2011-02-01 12:29:09Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 display_name = inputname(1);
 if isempty(display_name)

@@ -3,10 +3,10 @@ function res = getfield(this, varargin)
 % FORMAT res = getfield(this, varargin)
 %
 % An overloaded function...
-% _______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Vladimir Litvak
-% $Id: getfield.m 3228 2009-06-26 17:43:19Z vladimir $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 res = getfield(this.other, varargin{:});

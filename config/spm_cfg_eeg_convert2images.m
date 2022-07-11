@@ -2,10 +2,9 @@ function convert2images = spm_cfg_eeg_convert2images
 % Configuration file for writing voxel-based images from SPM M/EEG format,
 % as a time-series of 2Dimages
 %__________________________________________________________________________
-% Copyright (C) 2008-2021 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_convert2images.m 8119 2021-07-06 13:51:43Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 convert2images          = cfg_exbranch;

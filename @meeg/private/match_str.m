@@ -16,7 +16,7 @@ function [sel1, sel2] = match_str(a, b, fullout)
 % in the output, in this case. This can be convenient in rare cases if the
 % size of the input lists is meaningful.
 
-% Copyright (C) 2000-2021, Robert Oostenveld
+% Copyright (C) 2000-2022, Robert Oostenveld
 %
 % This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
@@ -33,8 +33,7 @@ function [sel1, sel2] = match_str(a, b, fullout)
 %
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
-%
-% $Id: match_str.m 8183 2021-11-04 15:25:19Z guillaume $
+
 
 % ensure that both are cell-arrays
 if isempty(a)

@@ -1,10 +1,8 @@
 function d = size(a,varargin)
 % Method 'size' for file_array objects
 %__________________________________________________________________________
-% Copyright (C) 2005-2017-2012 Wellcome Trust Centre for Neuroimaging
 
-%
-% $Id: size.m 7440 2018-10-10 17:28:26Z john $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 
 sa  = struct(a);

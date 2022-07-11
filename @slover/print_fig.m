@@ -11,8 +11,8 @@ function print_fig(obj, filename, printstr)
 % printing
 %__________________________________________________________________________
 
-% Matthew Brett
-% $Id: print_fig.m 6623 2015-12-03 18:38:08Z guillaume $
+% Copyright (C) 2005-2022 Matthew Brett
+
 
 if nargin < 2
     filename = [];

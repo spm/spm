@@ -1,10 +1,9 @@
 function split = spm_cfg_split
 % SPM Configuration file for 4D to 3D volumes conversion
 %__________________________________________________________________________
-% Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_cfg_split.m 6929 2016-11-14 13:07:31Z guillaume $
+% Copyright (C) 2014-2022 Wellcome Centre for Human Neuroimaging
 
 
 %--------------------------------------------------------------------------

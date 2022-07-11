@@ -1,10 +1,9 @@
 function preproc = spm_cfg_preproc8
 % Configuration file for 'Combined Segmentation and Spatial Normalisation'
 %__________________________________________________________________________
-% Copyright (C) 2008-2021 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_cfg_preproc8.m 8119 2021-07-06 13:51:43Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 %--------------------------------------------------------------------------

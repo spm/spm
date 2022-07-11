@@ -20,13 +20,12 @@
 %      https://www.artefact.tk/software/matlab/mvtk/
 %      https://www.artefact.tk/software/matlab/jsonio/
 %__________________________________________________________________________
-% Copyright (C) 2008-2018 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: Contents.m 7379 2018-07-25 09:11:24Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 % GIfTI library for MATLAB
-% Copyright (C) 2008-2018 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 %
 % This program is free software; you can redistribute it and/or
 % modify it under the terms of the GNU General Public License

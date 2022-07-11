@@ -1,8 +1,7 @@
 #include "mex.h"
 
 /*
- * $Id: xml_findstr.c 8183 2021-11-04 15:25:19Z guillaume $
- * Guillaume Flandin <guillaume@artefact.tk>
+ * Copyright (C) 2002-2022 Guillaume Flandin
  */
 
 /*

@@ -9,10 +9,9 @@ function M = ply_read(filename)
 % Stanford Triangle Format Specification:
 % https://en.wikipedia.org/wiki/PLY_%28file_format%29
 %__________________________________________________________________________
-% Copyright (C) 2017-2019 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: ply_read.m 7676 2019-10-22 10:19:29Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 fid = fopen(filename,'rt');

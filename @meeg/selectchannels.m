@@ -7,10 +7,10 @@ function chanind = selectchannels(this, channels)
 %
 % res        - vector of channel indices matching labels
 %__________________________________________________________________________
-% Copyright (C) 2010-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: selectchannels.m 7253 2018-02-04 17:20:57Z vladimir $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 if ischar(channels)
     channels = {channels};

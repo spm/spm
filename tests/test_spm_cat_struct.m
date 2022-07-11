@@ -1,9 +1,9 @@
 function tests = test_spm_cat_struct
 % Unit Tests for spm_cat_struct
 %__________________________________________________________________________
-% Copyright (C) 2017 Wellcome Trust Centre for Neuroimaging
 
-% $Id: test_spm_cat_struct.m 7074 2017-05-05 10:51:08Z guillaume $
+% Copyright (C) 2017-2022 Wellcome Centre for Human Neuroimaging
+
 
 tests = functiontests(localfunctions);
 

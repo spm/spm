@@ -1,7 +1,8 @@
 function [C,OutputFiles] = cifti(obj)
 % Extract CIFTI-2 extension from a NIfTI-2 file and export data
 %__________________________________________________________________________
-% Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
+
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 
 C = [];

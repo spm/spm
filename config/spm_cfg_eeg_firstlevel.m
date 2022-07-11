@@ -1,14 +1,13 @@
 function convmodel = spm_cfg_eeg_firstlevel
 % SPM Configuration file for M/EEG convolution modelling
-%_______________________________________________________________________
-% Copyright (C) 2013-2021 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
-% $Id: spm_cfg_eeg_firstlevel.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 % convmodel M/EEG convolution modelling
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 convmodel      = cfg_exbranch;
 convmodel.tag  = 'convmodel';
 convmodel.name = 'Convolution modelling';
@@ -19,15 +18,15 @@ convmodel.vout = @vout_eeg;
 convmodel.modality = {'EEG'};
 
 
-%======================================================================
+%==========================================================================
 function varargout = convmodel_cfg
 
 persistent cfg
 if ~isempty(cfg), varargout = {cfg}; return; end
 
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 % units Units for design
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 units         = cfg_menu;
 units.tag     = 'units';
 units.name    = 'Units for design';
@@ -40,18 +39,18 @@ units.values = {
                 'samples'
                 'secs'
 }';
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 % Time window
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 timewin         = cfg_entry;
 timewin.tag     = 'timewin';
 timewin.name    = 'Time window';
 timewin.strtype = 'r';
 timewin.num     = [1 2];
 timewin.help    = {'Start and end of epoch [ms].'};
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 % Microtime resolution
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 utime         = cfg_entry;
 utime.tag     = 'utime';
 utime.name    = 'Microtime resolution';
@@ -63,18 +62,18 @@ utime.strtype = 'r';
 utime.num     = [1 1];
 utime.val     = {1};
 
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 % timing Timing parameters
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 timing         = cfg_branch;
 timing.tag     = 'timing';
 timing.name    = 'Timing parameters';
 timing.val     = {timewin units utime};
 timing.help    = {'Timing parameters'};
 
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 % D M/EEG datasets
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 
 D = cfg_files;
 D.tag = 'D';
@@ -83,27 +82,27 @@ D.filter = 'mat';
 D.num = [1 1];
 D.help = {'Select the M/EEG mat file.'};
 
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 % name Name
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 name         = cfg_entry;
 name.tag     = 'name';
 name.name    = 'Name';
 name.help    = {'Condition Name.'};
 name.strtype = 's';
 name.num     = [1 Inf];
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 % onset Onsets
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 onset         = cfg_entry;
 onset.tag     = 'onset';
 onset.name    = 'Onsets';
 onset.help    = {'Specify a vector of onset times for this condition type. '};
 onset.strtype = 'r';
 onset.num     = [Inf 1];
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 % duration Durations
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 duration         = cfg_entry;
 duration.tag     = 'duration';
 duration.name    = 'Durations';
@@ -112,9 +111,9 @@ duration.strtype = 'r';
 duration.num     = [Inf 1];
 %
 
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 % manual Specification
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 manual         = cfg_branch;
 manual.tag     = 'manual';
 manual.name    = 'Specify manually';
@@ -148,9 +147,9 @@ event.name = 'Event';
 event.val  = {eventtype eventvalue trlshift};
 event.help = {''};
 
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 % 
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 fromdata         = cfg_repeat;
 fromdata.tag     = 'fromdata';
 fromdata.name    = 'Take from dataset';
@@ -158,9 +157,9 @@ fromdata.values  = {event};
 fromdata.num     = [1 Inf];
 fromdata.help    = {''};
 
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 % bases How to define events
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 define         = cfg_choice;
 define.tag     = 'define';
 define.name    = 'How to define events';
@@ -168,9 +167,9 @@ define.val     = {fromdata};
 define.help    = {'Choose the way to specify events for building regressors.'};
 define.values  = {manual fromdata};
 
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 % tmod Time Modulation
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 tmod         = cfg_menu;
 tmod.tag     = 'tmod';
 tmod.name    = 'Time Modulation';
@@ -190,27 +189,27 @@ tmod.labels = {
 }';
 tmod.values = {0 1 2 3 4 5 6};
 tmod.val    = {0};
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 % name Name
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 name1         = cfg_entry;
 name1.tag     = 'name';
 name1.name    = 'Name';
 name1.help    = {'Enter a name for this parameter.'};
 name1.strtype = 's';
 name1.num     = [1 Inf];
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 % param Values
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 param         = cfg_entry;
 param.tag     = 'param';
 param.name    = 'Values';
 param.help    = {'Enter a vector of values, one for each occurrence of the event.'};
 param.strtype = 'r';
 param.num     = [Inf 1];
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 % poly Polynomial Expansion
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 poly         = cfg_menu;
 poly.tag     = 'poly';
 poly.name    = 'Polynomial Expansion';
@@ -224,9 +223,9 @@ poly.labels = {
                '6th order'
 }';
 poly.values = {1 2 3 4 5 6};
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 % pmod Parameter
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 pmod         = cfg_branch;
 pmod.tag     = 'pmod';
 pmod.name    = 'Parameter';
@@ -236,18 +235,18 @@ pmod.help    = {
                 ''
                 'Interactions or response modulations can enter at two levels.  Firstly the stick function itself can be modulated by some parametric variate (this can be time or some trial-specific variate like reaction time) modeling the interaction between the trial and the variate or, secondly interactions among the trials themselves can be modeled using a Volterra series formulation that accommodates interactions over time (and therefore within and between trial types).'
 }';
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 % generic Parametric Modulations
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 generic2         = cfg_repeat;
 generic2.tag     = 'generic';
 generic2.name    = 'Parametric Modulations';
 generic2.help    = {'The stick function itself can be modulated by some parametric variate (this can be time or some trial-specific variate like reaction time) modeling the interaction between the trial and the variate. The events can be modulated by zero or more parameters.'};
 generic2.values  = {pmod };
 generic2.num     = [0 Inf];
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 % porth Orthogonalise modulations
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 porth         = cfg_menu;
 porth.tag     = 'orth';
 porth.name    = 'Orthogonalise modulations';
@@ -255,26 +254,26 @@ porth.help    = {'Orthogonalise regressors within trial types.'};
 porth.labels  = {'Yes' 'No'};
 porth.values  = {1 0};
 porth.val     = {1};
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 % cond Condition
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 cond         = cfg_branch;
 cond.tag     = 'cond';
 cond.name    = 'Condition';
 cond.val     = {name define tmod generic2 porth};
 cond.help    = {'An array of input functions is constructed, specifying occurrence events or epochs (or both). These are convolved with a basis set at a later stage to give regressors that enter into the design matrix. Interactions of evoked responses with some parameter (time or a specified variate) enter at this stage as additional columns in the design matrix with each trial multiplied by the [expansion of the] trial-specific parameter. The 0th order expansion is simply the main effect in the first column.'};
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 % generic Conditions
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 generic1         = cfg_repeat;
 generic1.tag     = 'generic';
 generic1.name    = 'Conditions';
 generic1.help    = {'You are allowed to combine both event- and epoch-related responses in the same model and/or regressor. Any number of condition (event or epoch) types can be specified.  Epoch and event-related responses are modeled in exactly the same way by specifying their onsets [in terms of onset times] and their durations.  Events are specified with a duration of 0.  If you enter a single number for the durations it will be assumed that all trials conform to this duration.For factorial designs, one can later associate these experimental conditions with the appropriate levels of experimental factors. '};
 generic1.values  = {cond };
 generic1.num     = [0 Inf];
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 % multi Multiple conditions
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 multi         = cfg_files;
 multi.tag     = 'multi';
 multi.name    = 'Multiple conditions';
@@ -312,44 +311,44 @@ multi.help    = {
 multi.filter = 'mat';
 multi.ufilter = '.*';
 multi.num     = [0 1];
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 % name Name
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 name         = cfg_entry;
 name.tag     = 'name';
 name.name    = 'Name';
 name.help    = {'Enter name of regressor eg. First movement parameter'};
 name.strtype = 's';
 name.num     = [1 Inf];
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 % val Value
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 val         = cfg_entry;
 val.tag     = 'val';
 val.name    = 'Value';
 val.help    = {'Enter the vector of regressor values'};
 val.strtype = 'r';
 val.num     = [Inf 1];
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 % convregress Convolution Regressor
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 convregress         = cfg_branch;
 convregress.tag     = 'convregress';
 convregress.name    = 'Regressor';
 convregress.val     = {name val };
 convregress.help    = {'Specification for convolution regressor'};
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 % generic Regressors
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 generic3         = cfg_repeat;
 generic3.tag     = 'generic';
 generic3.name    = 'Convolution regressors';
 generic3.help    = {'Convolution regressors are continuous variables that are convolved with a basis set to estimate an impulse-response pattern.'};
 generic3.values  = {convregress};
 generic3.num     = [0 Inf];
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 % multi_conv_reg Multiple convolution regressors
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 multi_conv_reg         = cfg_files;
 multi_conv_reg.tag     = 'multi_conv_reg';
 multi_conv_reg.name    = 'Multiple convolution regressors';
@@ -364,26 +363,26 @@ multi_conv_reg.help    = {
 multi_conv_reg.filter = 'mat';
 multi_conv_reg.ufilter = '.*';
 multi_conv_reg.num     = [0 1];
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 % regress Regressor
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 regress         = cfg_branch;
 regress.tag     = 'regress';
 regress.name    = 'Regressor';
 regress.val     = {name val };
 regress.help    = {'regressor'};
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 % generic Regressors
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 generic2         = cfg_repeat;
 generic2.tag     = 'generic';
 generic2.name    = 'Regressors';
 generic2.help    = {'Regressors are additional columns included in the design matrix, which may model effects that would not be convolved with the haemodynamic response.  One such example would be the estimated movement parameters, which may confound the data.'};
 generic2.values  = {regress };
 generic2.num     = [0 Inf];
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 % multi_reg Multiple regressors
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 multi_reg         = cfg_files;
 multi_reg.tag     = 'multi_reg';
 multi_reg.name    = 'Multiple regressors';
@@ -398,9 +397,9 @@ multi_reg.help    = {
 multi_reg.filter = 'mat';
 multi_reg.ufilter = '.*';
 multi_reg.num     = [0 1];
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 % Save regressor coefficients
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 savereg         = cfg_menu;
 savereg.tag     = 'savereg';
 savereg.name    = 'Save regressor coefficients';
@@ -410,9 +409,9 @@ savereg.help    = {'Choose ''yes'' to save the coefficients for regressors as a 
 savereg.labels = {'yes', 'no'};
 savereg.values = {true, false};
 savereg.val    = {false};
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 % hpf High-pass filter
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 hpf         = cfg_entry;
 hpf.tag     = 'hpf';
 hpf.name    = 'High-pass filter';
@@ -420,9 +419,9 @@ hpf.help    = {'The default high-pass filter cutoff is 10 seconds.Slow signal dr
 hpf.strtype = 'r';
 hpf.num     = [1 1];
 hpf.val     = {10};
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 % sess Subject/Session
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 sess         = cfg_branch;
 sess.tag     = 'sess';
 sess.name    = 'Subject/Session';
@@ -438,61 +437,61 @@ order.help    = {'Number of basis functions'};
 order.strtype = 'n';
 order.val     = {12};
 order.num     = [1 1];
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 % fourier Fourier Set
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 fourier         = cfg_branch;
 fourier.tag     = 'fourier';
 fourier.name    = 'Fourier Set';
 fourier.val     = {order};
 fourier.help    = {'Fourier basis functions.'};
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 % order Order
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 order         = cfg_entry;
 order.tag     = 'order';
 order.name    = 'Order';
 order.help    = {'Number of basis functions'};
 order.strtype = 'n';
 order.num     = [1 1];
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 % fourier_han Fourier Set (Hanning)
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 fourier_han         = cfg_branch;
 fourier_han.tag     = 'fourier_han';
 fourier_han.name    = 'Fourier Set (Hanning)';
 fourier_han.val     = {order};
 fourier_han.help    = {'Fourier basis functions with Hanning Window'};
 
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 % order Order
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 order         = cfg_entry;
 order.tag     = 'order';
 order.name    = 'Order';
 order.help    = {'Number of basis functions'};
 order.strtype = 'n';
 order.num     = [1 1];
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 % fir Finite Impulse Response
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 fir         = cfg_branch;
 fir.tag     = 'fir';
 fir.name    = 'Finite Impulse Response';
 fir.val     = {order};
 fir.help    = {'Finite impulse response.'};
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 % bases Basis Functions
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 bases         = cfg_choice;
 bases.tag     = 'bases';
 bases.name    = 'Basis Functions';
 bases.val     = {fourier};
 bases.help    = {'Choose the basis set'};
 bases.values  = {fourier fourier_han fir};
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 % volt Model Interactions (Volterra)
-% ---------------------------------------------------------------------
+% -------------------------------------------------------------------------
 volt         = cfg_menu;
 volt.tag     = 'volt';
 volt.name    = 'Model Interactions (Volterra)';

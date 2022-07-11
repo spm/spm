@@ -1,10 +1,9 @@
 function eegreg = spm_cfg_eeg_regressors
 % Configuration file for generating regressors for GLM analysis of M/EEG data
 %__________________________________________________________________________
-% Copyright (C) 2014-2021 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_regressors.m 8119 2021-07-06 13:51:43Z guillaume $
+% Copyright (C) 2014-2022 Wellcome Centre for Human Neuroimaging
 
 
 %--------------------------------------------------------------------------

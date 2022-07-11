@@ -1,11 +1,11 @@
 function res = transformtype(this, newtype)
 % Method for getting/setting type of transform
 % FORMAT res = transformtype(this, name)
-% _______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
-% Stefan Kiebel
-% $Id: transformtype.m 3350 2009-09-03 13:19:20Z vladimir $
+% Vladimir Litvak
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 if nargin == 1
     res = this.transform.ID;

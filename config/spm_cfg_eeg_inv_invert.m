@@ -1,10 +1,9 @@
 function invert = spm_cfg_eeg_inv_invert
 % Configuration file for running imaging source reconstruction
 %__________________________________________________________________________
-% Copyright (C) 2010-2021 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_invert.m 8119 2021-07-06 13:51:43Z guillaume $
+% Copyright (C) 2010-2022 Wellcome Centre for Human Neuroimaging
 
 
 invert          = cfg_exbranch;

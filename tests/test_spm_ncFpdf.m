@@ -1,9 +1,9 @@
 function tests = test_spm_ncFpdf
 % Unit Tests for spm_ncFpdf
 %__________________________________________________________________________
-% Copyright (C) 2018 Wellcome Trust Centre for Neuroimaging
 
-% $Id: test_spm_ncFpdf.m 7263 2018-02-21 13:30:16Z guillaume $
+% Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
+
 
 tests = functiontests(localfunctions);
 

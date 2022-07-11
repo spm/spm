@@ -1,10 +1,9 @@
 function tf = spm_cfg_eeg_tf
 % Configuration file for M/EEG time-frequency analysis
 %__________________________________________________________________________
-% Copyright (C) 2010-2021 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_tf.m 8119 2021-07-06 13:51:43Z guillaume $
+% Copyright (C) 2010-2022 Wellcome Centre for Human Neuroimaging
 
 
 %--------------------------------------------------------------------------

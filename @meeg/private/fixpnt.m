@@ -1,8 +1,11 @@
 function data = fixpnt(data, recurse)
+% Rename point structure fields (backward compatibility)
+% FORMAT data = fixpnt(data, recurse)
+%__________________________________________________________________________
 
-% helper function to replace pos by pnt
+% Vladimir Litvak
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
-% $Id: fixpnt.m 6682 2016-01-15 15:52:00Z vladimir $
 
 if nargin==1
   recurse = 1;

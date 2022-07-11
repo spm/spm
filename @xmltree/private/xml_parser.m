@@ -13,13 +13,12 @@ function tree = xml_parser(xmlstr)
 % A description of the tree structure provided in output is detailed in 
 % the header of this m-file.
 %__________________________________________________________________________
-% Copyright (C) 2002-2019  https://www.artefact.tk/
 
-% Guillaume Flandin
-% $Id: xml_parser.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2002-2022 Guillaume Flandin
 
-% XML Processor for GNU Octave and MATLAB (The Mathworks, Inc.)
-% Copyright (C) 2002-2019 Guillaume Flandin <Guillaume@artefact.tk>
+
+% XML Processor for GNU Octave and MATLAB
+% Copyright (C) 2002-2022 Guillaume Flandin <Guillaume@artefact.tk>
 %
 % This program is free software; you can redistribute it and/or
 % modify it under the terms of the GNU General Public License

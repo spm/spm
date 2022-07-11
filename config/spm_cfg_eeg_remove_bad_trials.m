@@ -1,10 +1,9 @@
 function remove = spm_cfg_eeg_remove_bad_trials
 % configuration file for removing bad trials
 %__________________________________________________________________________
-% Copyright (C) 2009-2021 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_remove_bad_trials.m 8119 2021-07-06 13:51:43Z guillaume $
+% Copyright (C) 2009-2022 Wellcome Centre for Human Neuroimaging
 
 
 %--------------------------------------------------------------------------

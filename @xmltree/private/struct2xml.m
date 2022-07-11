@@ -14,10 +14,9 @@ function tree = struct2xml(s,rootname)
 %
 % See also XMLTREE.
 %__________________________________________________________________________
-% Copyright (C) 2002-2019  https://www.artefact.tk/
 
-% Guillaume Flandin
-% $Id: struct2xml.m 7781 2020-02-07 12:26:25Z guillaume $
+% Copyright (C) 2002-2022 Guillaume Flandin
+
 
 % Define root tag
 if nargin == 1

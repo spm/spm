@@ -1,10 +1,9 @@
 function headmodel = spm_cfg_eeg_inv_headmodel
 % Configuration file for specifying the head model for source reconstruction
 %__________________________________________________________________________
-% Copyright (C) 2010-2021 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_headmodel.m 8119 2021-07-06 13:51:43Z guillaume $
+% Copyright (C) 2010-2022 Wellcome Centre for Human Neuroimaging
 
 
 headmodel          = cfg_exbranch;

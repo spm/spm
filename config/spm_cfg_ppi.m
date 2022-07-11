@@ -1,10 +1,9 @@
 function ppis = spm_cfg_ppi
 % SPM Configuration file for PPIs
 %__________________________________________________________________________
-% Copyright (C) 2008-2021 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_cfg_ppi.m 8119 2021-07-06 13:51:43Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % ---------------------------------------------------------------------

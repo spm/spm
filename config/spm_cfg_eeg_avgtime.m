@@ -1,10 +1,9 @@
 function avgtime = spm_cfg_eeg_avgtime
 % Configuration file for averaging over time
 %__________________________________________________________________________
-% Copyright (C) 2012-2021 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_avgtime.m 8119 2021-07-06 13:51:43Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 %--------------------------------------------------------------------------

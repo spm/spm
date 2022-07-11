@@ -1,10 +1,9 @@
 function setup = spm_cfg_eeg_opmsetup
 % Configuration file for M/EEG OPM set up
 %__________________________________________________________________________
-% Copyright (C) 2017-2021 Wellcome Trust Centre for Neuroimaging
 
 % Tim Tierney, Gareth Barnes
-% $Id: spm_cfg_eeg_opmsetup.m 8119 2021-07-06 13:51:43Z guillaume $
+% Copyright (C) 2017-2022 Wellcome Centre for Human Neuroimaging
 
 
 setup      = cfg_exbranch;

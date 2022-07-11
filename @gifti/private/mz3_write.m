@@ -10,10 +10,9 @@ function mz3_write(M,filename,fmt)
 % MZ3 Format Specification:
 % https://github.com/neurolabusc/surf-ice/tree/master/mz3
 %__________________________________________________________________________
-% Copyright (C) 2018 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: mz3_write.m 7470 2018-11-01 17:40:18Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 if nargin < 3, fmt = false; end

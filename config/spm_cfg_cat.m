@@ -1,10 +1,10 @@
 function cat = spm_cfg_cat
 % SPM Configuration file for 3D to 4D volumes conversion
 %__________________________________________________________________________
-% Copyright (C) 2008-2021 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_cfg_cat.m 8119 2021-07-06 13:51:43Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 %--------------------------------------------------------------------------
 % cat 3D to 4D File Conversion

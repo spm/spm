@@ -2,10 +2,9 @@ function inv_mix = spm_cfg_eeg_inv_mix
 % Configuration file for merging (using a new inversion) a number of
 % imaging source inversion reconstructions
 %__________________________________________________________________________
-% Copyright (C) 2010-2021 Wellcome Trust Centre for Neuroimaging
 
 % Gareth Barnes
-% $Id: spm_cfg_eeg_inv_mix.m 8119 2021-07-06 13:51:43Z guillaume $
+% Copyright (C) 2010-2022 Wellcome Centre for Human Neuroimaging
 
 
 inv_mix          = cfg_exbranch;
@@ -58,7 +57,7 @@ if numel(job.D)<1
 end
 
 
-%% first compile multiple inversions
+% first compile multiple inversions
 disp('Loading inversions');
 allID=[];
 allJ=[];
@@ -66,14 +65,14 @@ allqC=[];
 allF=[];
 
 surfdir=[];
-for j=1:numel(job.D), %% move through files- assume that changing directory means surface(i.e. lead field also changes)
+for j=1:numel(job.D) %% move through files- assume that changing directory means surface(i.e. lead field also changes)
     [a1,b1,c1]=fileparts(job.D{j});
     surfdir=strvcat(surfdir,a1);
-end;
+end
 
 
 gainfiles=[];
-for j=1:numel(job.D), %% move through files- assume that changing directory means surface(i.e. lead field also changes)
+for j=1:numel(job.D) %% move through files- assume that changing directory means surface(i.e. lead field also changes)
     
     try
         spmfilename=job.D{j};
@@ -86,15 +85,15 @@ for j=1:numel(job.D), %% move through files- assume that changing directory mean
         [a1,b0,c0]=fileparts(job.D{j});
         D=spm_eeg_load([a1 filesep b1 c1]);
         inv=dum.inv;
-    end;
+    end
     
     allF(j)=inv.inverse.F;
     allqC(j,:)=inv.inverse.qC;
     
     allmesh{j}.M   = inv.mesh.tess_mni;
     allcortex{j}=inv.mesh.tess_ctx;
-    %% transform back to temporal subspace of original data
-    %% (as Us will be different for different surfaces- but just rotations)
+    % transform back to temporal subspace of original data
+    % (as Us will be different for different surfaces- but just rotations)
     check_data(j,:)=inv.inverse.U{1}'*inv.inverse.Y(:,1);
     
     disp('Loading SPM gain matrices from surface directories');
@@ -109,12 +108,12 @@ for j=1:numel(job.D), %% move through files- assume that changing directory mean
 end;
 
 
-%% check original data was the same
-if numel(job.D)>1,
-    if max(std(check_data))>max(std(check_data'))/1e6,
+% check original data was the same
+if numel(job.D)>1
+    if max(std(check_data))>max(std(check_data'))/1e6
         error('data is not the same for these files');
-    end;
-end;
+    end
+end
 
 
 %%NB OCCAMS RAZOR AT 3
@@ -124,7 +123,7 @@ allmesh=allmesh(useind);
 allcortex=allcortex(useind);
 gainfiles=gainfiles(useind,:);
 allL1=allL1(useind,:);
-%% only take unique lead fields out
+% only take unique lead fields out
 [dum,fileind,surfind]=unique(allL1,'rows');
 ugainfiles=gainfiles(fileind,:);
 
@@ -136,7 +135,7 @@ disp(sprintf('Copying and renaming original SPM file to %s',outfilename));
 
 D2=copy(D,outfilename);
 
-if ~isfield(D2.inv{D2.val},'inverse'),
+if ~isfield(D2.inv{D2.val},'inverse')
     disp('No inversion parameters in file, taking from last inversion');
     D2.inv{D2.val}.inverse=inv.inverse;
 end;
@@ -147,7 +146,7 @@ vert=[];
 face=[];
 cmap1=[];
 cortexstr='';
-for j=1:length(fileind),
+for j=1:length(fileind)
     offset=uint32(size(vert,1).*ones(size(allmesh{fileind(j)}.M.face)));
     col=j*10;
     vert=[vert ;allmesh{fileind(j)}.M.vert];
@@ -155,12 +154,12 @@ for j=1:length(fileind),
     cmap1=[cmap1 ;repmat(col,size(allmesh{fileind(j)}.M.face,1),1)];
  
     cortexstr=[cortexstr sprintf('%s',allcortex{fileind(j)})];
-    if j<length(fileind),
+    if j<length(fileind)
         cortexstr=[cortexstr ';'];
-    end;
-end;
+    end
+end
 figure;
-h=trisurf(face,vert(:,1),vert(:,2),vert(:,3),cmap1)
+h=trisurf(face,vert(:,1),vert(:,2),vert(:,3),cmap1);
 set(h,'Linestyle','none');
 alpha(0.1);
 
@@ -200,4 +199,3 @@ dep.sname = 'M/EEG dataset(s) after imaging source reconstruction';
 dep.src_output = substruct('.','D');
 % this can be entered into any evaluated input
 dep.tgt_spec   = cfg_findspec({{'filter','mat'}});
-

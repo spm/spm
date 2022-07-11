@@ -2,9 +2,9 @@ function tests = test_spm_dcm_peb_review
 % Unit Tests for test_spm_dcm_peb_review. Simply ensures that the GUI
 % doesn't crash with different inputs.
 %__________________________________________________________________________
-% Copyright (C) 2018 Wellcome Trust Centre for Neuroimaging
 
-% $Id: test_spm_dcm_peb_review.m 7474 2018-11-07 12:45:06Z peter $
+% Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
+
 
 tests = functiontests(localfunctions);
 

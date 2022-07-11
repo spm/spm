@@ -10,13 +10,9 @@ function varargout = save(tree, filename)
 % Convert an XML tree into a well-formed XML string and write it into
 % a file or return it as a string if no filename is provided.
 %__________________________________________________________________________
-% Copyright (C) 2002-2011  http://www.artefact.tk/
 
-% Guillaume Flandin
-% $Id: save.m 4460 2011-09-05 14:52:16Z guillaume $
+% Copyright (C) 2002-2022 Guillaume Flandin
 
-
-%error(nargchk(1,2,nargin));
 
 prolog = '<?xml version="1.0" ?>\n';
 

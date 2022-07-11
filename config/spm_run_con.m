@@ -5,9 +5,8 @@ function out = spm_run_con(job)
 % Output:
 % out    - struct containing contrast and SPM{.} images filename
 %__________________________________________________________________________
-% Copyright (C) 2005-2017 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_con.m 7738 2019-12-02 12:45:37Z guillaume $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 
 spm('FnBanner','spm_contrasts.m');

@@ -2,11 +2,10 @@ function this = checkmeeg(this)
 % Check the internal structure of meeg objects
 % FORMAT this = checkmeeg(this)
 % this  - the struct to check (is returned modified if necessary)
-% _________________________________________________________________________
-% Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Vladimir Litvak
-% $Id: checkmeeg.m 8195 2021-12-13 10:17:55Z vladimir $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Initialise data dimensions

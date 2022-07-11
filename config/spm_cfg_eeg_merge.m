@@ -1,10 +1,9 @@
 function merge = spm_cfg_eeg_merge
 % Configuration file for merging M/EEG files
 %__________________________________________________________________________
-% Copyright (C) 2008-2021 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Volkmar Glauche
-% $Id: spm_cfg_eeg_merge.m 8119 2021-07-06 13:51:43Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 merge          = cfg_exbranch;

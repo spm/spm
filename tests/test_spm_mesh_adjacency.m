@@ -1,9 +1,9 @@
 function tests = test_spm_mesh_adjacency
 % Unit Tests for spm_mesh_adjacency
 %__________________________________________________________________________
-% Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
 
-% $Id: test_spm_mesh_adjacency.m 6694 2016-01-26 17:09:11Z guillaume $
+% Copyright (C) 2016-2022 Wellcome Centre for Human Neuroimaging
+
 
 tests = functiontests(localfunctions);
 

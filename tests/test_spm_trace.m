@@ -1,9 +1,9 @@
 function tests = test_spm_trace
 % Unit Tests for spm_trace
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
-% $Id: test_spm_trace.m 6352 2015-02-27 18:30:35Z guillaume $
+% Copyright (C) 2015-2022 Wellcome Centre for Human Neuroimaging
+
 
 tests = functiontests(localfunctions);
 

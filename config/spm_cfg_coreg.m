@@ -1,9 +1,8 @@
 function coreg = spm_cfg_coreg
 % SPM Configuration file for Coregister
 %__________________________________________________________________________
-% Copyright (C) 2005-2021 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_coreg.m 8249 2022-05-11 12:25:32Z john $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 
 %--------------------------------------------------------------------------

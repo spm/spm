@@ -6,11 +6,8 @@ function varargout = scl_slope(varargin)
 % For setting the value
 % obj = scl_slope(obj,dat)
 %__________________________________________________________________________
-% Copyright (C) 2005-2017 Wellcome Trust Centre for Neuroimaging
 
-%
-% $Id: scl_slope.m 7147 2017-08-03 14:07:01Z spm $
-
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 
 if nargin==2

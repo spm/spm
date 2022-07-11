@@ -4,10 +4,8 @@ function vol = read_hdr(fname)
 % fname      - filename of image
 % vol        - various bits of information
 %__________________________________________________________________________
-% Copyright (C) 2005-2018 Wellcome Trust Centre for Neuroimaging
 
-%
-% $Id: read_hdr.m 7504 2018-12-03 13:17:49Z guillaume $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 
 persistent d

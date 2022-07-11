@@ -42,10 +42,10 @@ function out = spm_run_bms_map (job)
 % NeuroImage.
 % [3] Penny et al., 2004, Comparing Dynamic Causal Models, NeuroImage.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao Rosa
-% $Id: spm_run_bms_map.m 8183 2021-11-04 15:25:19Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 % Input
 % -------------------------------------------------------------------------

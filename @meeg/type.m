@@ -1,11 +1,11 @@
 function res = type(this, value)
 % Method for and getting/setting EEG file type
 % FORMAT res = type(this, value)
-% _______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Vladimir Litvak
-% $Id: type.m 1267 2008-03-28 12:12:14Z vladimir $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 if nargin == 1
     res = this.type;

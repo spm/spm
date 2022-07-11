@@ -13,8 +13,8 @@ function vals = point_vals(obj, XYZmm, holdlist)
 % vals        - IxN vector of values in images
 %__________________________________________________________________________
 
-% Matthew Brett
-% $Id: point_vals.m 6623 2015-12-03 18:38:08Z guillaume $
+% Copyright (C) 2005-2022 Matthew Brett
+
 
 if nargin < 2
     error('Need XYZmm');

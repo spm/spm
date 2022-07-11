@@ -7,10 +7,9 @@ function save(this,filename,encoding)
 %             ASCII, Base64Binary, GZipBase64Binary, ExternalFileBinary.
 %             [Default: 'GZipBase64Binary']
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: save.m 6516 2015-08-07 17:28:33Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % Check filename

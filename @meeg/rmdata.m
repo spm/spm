@@ -1,11 +1,11 @@
 function this = rmdata(this)
 % Deletes the data file and unlinks the header
 % FORMAT this = rmdata(this)
-% _________________________________________________________________________
-% Copyright (C) 2011-2012 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Vladimir Litvak
-% $Id: rmdata.m 6976 2016-12-22 11:04:45Z vladimir $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 if islinked(this)
     try

@@ -16,10 +16,9 @@ function tree = xmltree(varargin)
 % See http://www.w3.org/TR/REC-xml for details about XML 1.0.
 % See http://www.w3.org/DOM/ for details about DOM platform.
 %__________________________________________________________________________
-% Copyright (C) 2002-2019  https://www.artefact.tk/
 
-% Guillaume Flandin
-% $Id: xmltree.m 7781 2020-02-07 12:26:25Z guillaume $
+% Copyright (C) 2002-2022 Guillaume Flandin
+
 
 if nargin == 0
     tree.tree{1} = struct(...

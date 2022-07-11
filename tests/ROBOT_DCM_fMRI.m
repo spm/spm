@@ -12,7 +12,8 @@ function E = ROBOT_DCM_fMRI
 % DCM.options.P                      % starting estimates for parameters
 % DCM.options.hidden                 % indices of hidden regions
 
-% $Id: ROBOT_DCM_fMRI.m 7497 2018-11-24 17:00:25Z karl $
+% Copyright (C) 2017-2022 Wellcome Centre for Human Neuroimaging
+
 
 % tests of spatial models: 'ECD', 'LFP' or 'IMG'
 %==========================================================================
