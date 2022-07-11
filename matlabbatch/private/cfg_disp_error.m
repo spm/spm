@@ -11,33 +11,19 @@ function varargout = cfg_disp_error(l)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_disp_error.m 6574 2015-10-15 13:18:30Z volkmar $
+% $Id: cfg_disp_error.m 8286 2022-07-11 18:40:33Z guillaume $
 
-rev = '$Rev: 6574 $'; %#ok
+rev = '$Rev: 8286 $'; %#ok
 
-if isfield(l,'stack'), % Does not always exist
+if isfield(l,'stack') % Does not always exist
     estr = cell(numel(l.stack)+1,1);
-    for m = 1:numel(l.stack),
-        try
-            fp  = fopen(l.stack(m).file,'r');
-            str = fread(fp,Inf,'*uchar');
-            fclose(fp);
-            str = char(str(:)');
-            re  = regexp(str,'\$Id: \w+\.\w+ ([0-9]+) [0-9][0-9][0-9][0-9].*\$','tokens');
-            if numel(re)>0 && numel(re{1})>0,
-                id = [' (v', re{1}{1}, ')'];
-            else
-                id = ' (???)';
-            end
-        catch
-            id = '';
-        end
+    for m = 1:numel(l.stack)
         if usejava('desktop')
-            estr{m+1} = sprintf('In file "%s"%s, function "%s" at <a href="matlab:opentoline(''%s'', %d, 0)">line %d</a>.', ...
-                               l.stack(m).file, id, l.stack(m).name, l.stack(m).file, l.stack(m).line, l.stack(m).line);
+            estr{m+1} = sprintf('In file "%s", function "%s" at <a href="matlab:opentoline(''%s'', %d, 0)">line %d</a>.', ...
+                               l.stack(m).file, l.stack(m).name, l.stack(m).file, l.stack(m).line, l.stack(m).line);
         else
-            estr{m+1} = sprintf('In file "%s"%s, function "%s" at line %d.', ...
-                               l.stack(m).file, id, l.stack(m).name, l.stack(m).line);
+            estr{m+1} = sprintf('In file "%s", function "%s" at line %d.', ...
+                               l.stack(m).file, l.stack(m).name, l.stack(m).line);
         end
     end
 end
