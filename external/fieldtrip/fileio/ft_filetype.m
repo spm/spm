@@ -45,6 +45,7 @@ function [type] = ft_filetype(filename, desired, varargin)
 %  - EDF
 %  - EEProbe
 %  - Elektra/Neuromag
+%  - EEGsynth *.tsv
 %  - FreeSurfer
 %  - LORETA
 %  - Localite
@@ -72,7 +73,7 @@ function [type] = ft_filetype(filename, desired, varargin)
 %  - NIRx *.tpl, *.wl1 and *.wl2
 %  - York Instruments *.meghdf5
 
-% Copyright (C) 2003-2020, Robert Oostenveld
+% Copyright (C) 2003-2022, Robert Oostenveld
 %
 % This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
@@ -562,10 +563,10 @@ elseif filetype_check_extension(filename, '.slor')
   content = 'source reconstruction';
   
   % known AFNI file types
-elseif filetype_check_extension(filename, '.brik') || filetype_check_extension(filename, '.BRIK')
+elseif filetype_check_extension(lower(filename), '.brik')
   type = 'afni_brik';
   content = 'MRI image data';
-elseif filetype_check_extension(filename, '.head') || filetype_check_extension(filename, '.HEAD')
+elseif filetype_check_extension(lower(filename), '.head')
   type = 'afni_head';
   content = 'MRI header data';
   
@@ -1430,6 +1431,14 @@ elseif filetype_check_extension(filename, '.csv') && filetype_check_header(filen
   type = 'liberty_csv';
   manufacturer = 'Polhemus Liberty';
   content = 'motion capture data';
+elseif filetype_check_extension(filename, '.csv') && filetype_check_header(filename, '"Date",')
+  type = 'sensys_csv';
+  manufacturer = 'Sensys';
+  content = 'fluxgate magnetometer data';
+elseif filetype_check_extension(filename, '.csv') && filetype_check_header(filename, 'EEG')
+  type = 'unicorn_csv';
+  manufacturer = 'Gtec/Unicorn';
+  content = 'EEG data';
 elseif filetype_check_extension(filename, '.csv')
   type = 'csv';
   manufacturer = 'Generic';
@@ -1559,6 +1568,10 @@ elseif filetype_check_extension(filename, '.bnii')
   type = 'openjdata_bnii';
   manufacturer = 'OpenJData'; % See http://openjdata.org
   content = 'MRI';
+elseif filetype_check_extension(filename, '.tsv') && filetype_check_header(filename, sprintf('event\tvalue\ttimestamp'))
+  type = 'eegsynth_tsv';
+  manufacturer = 'EEGsynth recordtrigger';
+  content = 'events';
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
