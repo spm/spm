@@ -61,27 +61,34 @@ function [D] = spm_eeg_invert_classic(D,val)
 %     inverse.R2     - variance in subspaces accounted for by model (%)
 %     inverse.scale  - scaling of data for each of j modalities
 %__________________________________________________________________________
-
-% Jose David Lopez, Gareth Barnes, Vladimir Litvak
-% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
-
+%
+% Created by:   Jose David Lopez - ralph82co@gmail.com
+%               Gareth Barnes - g.barnes@fil.ion.ucl.ac.uk
+%               Vladimir Litvak - litvak.vladimir@gmail.com
+%
+%
 % This version is for single subject single modality analysis and therefore
 % contains none of the associated scaling factors.
 % No symmetric priors are used in this implementation (just single patches)
 % There is an option for a Beamforming prior : inversion type 'EBB'
 % also added new beamforming method- using GS rather than ARD- from Juan David Martinez Vargas 'EBBgs'
 
-% The code was used in
-% Lopez, J. D., Penny, W. D., Espinosa, J. J., Barnes, G. R. (2012).
+%%The code was used in
+%% L�pez, J. D., Penny, W. D., Espinosa, J. J., Barnes, G. R. (2012).
 % A general Bayesian treatment for MEG source reconstruction incorporating lead field uncertainty.
 % Neuroimage 60(2), 1194-1204 doi:10.1016/j.neuroimage.2012.01.077.
+
+% $Id: spm_eeg_invert_classic.m 8288 2022-07-12 14:40:42Z gareth $
+
 
 
 Nl = length(D);
 
-if Nl>1
+
+
+if Nl>1,
     error('function only defined for a single subject');
-end
+end;
 
 % D - SPM data structure
 %==========================================================================
@@ -120,8 +127,7 @@ try, Ip   = inverse.Ip;     catch, Ip   = [];       end
 try, QE    = inverse.QE;     catch,  QE=1;          end         %  empty room noise measurement
 try, Qe0   = inverse.Qe0;     catch, Qe0   = exp(-5);       end  %% set noise floor at 1/100th signal power i.e. assume amplitude SNR of 10
 try, inverse.A;     catch, inverse.A   = [];       end %% orthogonal channel modes
-
-try, SHUFFLELEADS=inverse.SHUFFLELEADS;catch, SHUFFLELEADS=0;end; %% ONLY FOR TESTING - destroys correspondence between geometry and data
+try, SHUFFLELEADS=inverse.SHUFFLELEADS;catch, SHUFFLELEADS=0;end; %% ONLY FOR TESTING - destroyes correspondence between geometry and data
 
 
 % defaults
@@ -151,7 +157,10 @@ end;
 
 persistent permind;
 
+
+rand(2)
 if SHUFFLELEADS,
+    rng('shuffle')
     if isempty(permind),
         permind=randperm(size(L,1));
     end;
@@ -175,6 +184,10 @@ if s>=1,
     smoothtype='mesh_smooth',
 else
     smoothtype='msp_smooth'
+end;
+if s<0,
+    smoothtype='mm_smooth',
+    s=-s;
 end;
 vert  = D.inv{val}.mesh.tess_mni.vert;
 face  = D.inv{val}.mesh.tess_mni.face;
@@ -214,6 +227,22 @@ switch smoothtype,
         
         QG    = QG.*(QG > exp(-8));
         QG    = QG*QG;
+        
+    case 'mm_smooth',
+        
+         kernelname=spm_eeg_smoothmesh_mm(D.inv{val}.mesh.tess_ctx,s);
+         asmth=load(kernelname,'QG','M');
+         if max(int32(asmth.M.faces)-int32(face))~=0,
+             error('Smoothing kernel used different mesh');
+         end;
+         QG=asmth.QG;
+         if D.inv{val}.forward.loc
+            QG=repmat(QG,2,2);
+         end
+         clear asmth;
+        
+        
+        
 end;
 
 
@@ -518,14 +547,63 @@ switch(type)
             q               = QG(:,bk);
             
             smthlead = UL*q;     %% THIS IS WHERE THE SMOOTHNESS GETS ADDED
-            normpower = 1/(smthlead'*smthlead);
-            Sourcepower(bk) = 1/(smthlead'*InvCov*smthlead);
-            allsource(bk) = Sourcepower(bk)./normpower;
+            if ~all(smthlead==0)
+                normpower = 1/(smthlead'*smthlead);
+                Sourcepower(bk) = 1/(smthlead'*InvCov*smthlead);
+                allsource(bk) = Sourcepower(bk)./normpower;
+            end
         end
         allsource = allsource/max(allsource);   % Normalise
         
         Qp{1} = diag(allsource);
         LQpL{1} = UL*diag(allsource)*UL';
+
+case {'EBBcorr'}
+        
+        disp('NB smooth correlated source EBB algorithm !');
+        %------------------------------------------------------------------
+        InvCov = spm_inv(AYYA);
+        halfNs=ceil(Ns/2); %% include a set of lead fields which are symmetrical
+        allsource = sparse(Ns,1);
+        Sourcepower = sparse(Ns,1);
+        DualSourcepower=sparse(halfNs,1);
+        alldualsource=sparse(Ns,1);
+        for bk = 1:Ns
+            q               = QG(:,bk);
+            
+            smthlead = UL*q;     %% THIS IS WHERE THE SMOOTHNESS GETS ADDED
+            normpower = 1/(smthlead'*smthlead);
+            Sourcepower(bk) = 1/(smthlead'*InvCov*smthlead);
+            allsource(bk) = Sourcepower(bk)./normpower;
+        end;
+        leftbrainind=find(vert(:,1)<0);
+        
+        for bk=1:length(vert), %% inefficient to run this over whole brain but otherwise have some unused pairs
+            vertind=bk;
+            
+            reflectpos=[-vert(vertind,1) vert(vertind,2) vert(vertind,3)];
+            d1=vert- repmat(reflectpos,length(vert),1);
+            dist1=dot(d1',d1');
+            [d1,reflectind]=min(dist1);
+            q               = QG(:,vertind)+QG(:,reflectind);
+            smthlead = UL*q;     %% THIS IS WHERE THE SMOOTHNESS GETS ADDED
+            normpower = 1/(smthlead'*smthlead);
+            DualSourcepower(vertind) = 1/(smthlead'*InvCov*smthlead);
+            alldualsource(vertind) = alldualsource(vertind)+DualSourcepower(vertind)./(normpower*4); %% divide by 2 as will pass this vertex twice, divide by two again to split power estimate between 2 points
+            alldualsource(reflectind)=alldualsource(reflectind)+DualSourcepower(vertind)./(normpower*4); %% reflect to other vertex
+            %newUL(bk,:)=UL(vertind,:)+UL(reflectind,:);
+            %vert(reflectind,:)
+            %plot3(vert(vertind,1),vert(vertind,2),vert(vertind,3),'b.',vert(reflectind,1),vert(reflectind,2),vert(reflectind,3),'ro');
+            %pause(0.1); hold on;
+        end;
+           
+        allsource=allsource+alldualsource;
+        allsource = allsource/max(allsource);   % Normalise
+        
+        Qp{1} = diag(allsource);
+        LQpL{1} = UL*diag(allsource)*UL';
+    
+
         
     case {'EBBgs'}  % NEW BEAMFORMER PRIOR!!
         % create beamforming prior- Juan David- Martinez Vargas
@@ -637,7 +715,7 @@ end
 
 switch(type)
     
-    case {'IID','MMN','LOR','COH','EBB'}
+    case {'IID','MMN','LOR','COH','EBB','EBBcorr'}
         
         % or ReML - ARD (Here is performed the inversion)
         %------------------------------------------------------------------
