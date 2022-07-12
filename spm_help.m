@@ -25,7 +25,7 @@ function varargout = spm_help(varargin)
 %       references to further information.
 %
 %       Many of the buttons in the help menu window lead to such "man"
-%       pages.  These are contained in ASCII files named spm_*.man.
+%       pages.  These are contained in Markdown files named spm_*.md.
 %       These can be viewed on the MATLAB command line with the `help`
 %       command, e.g. `help spm_help` prints out this manual file in
 %       the MATLAB command window.

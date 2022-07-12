@@ -1,9 +1,8 @@
 #!/usr/bin/env make -f
 # Manual Makefile called by {SPM}/src/Makefile
 #
-# Copyright (C) 2016-2018 Wellcome Trust Centre for Neuroimaging
-#
-# $Id: Makefile 7485 2018-11-14 10:31:57Z guillaume $
+# Copyright (C) 2016-2022 Wellcome Centre for Human Neuroimaging
+
 
 include ../src/Makefile.var
 

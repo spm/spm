@@ -3,7 +3,7 @@ function fieldmap = tbx_cfg_fieldmap
 %__________________________________________________________________________
 % Copyright (C) 2008-2021 Wellcome Trust Centre for Neuroimaging
 
-% $Id: tbx_cfg_fieldmap.m 8119 2021-07-06 13:51:43Z guillaume $
+% $Id: tbx_cfg_fieldmap.m 8290 2022-07-12 14:41:54Z guillaume $
 
 
 if ~isdeployed, addpath(fullfile(spm('dir'),'toolbox','FieldMap')); end
@@ -45,7 +45,7 @@ applyvdm.vout = @vout_applyvdm;
 fieldmap        = cfg_choice;
 fieldmap.tag    = 'fieldmap';
 fieldmap.name   = 'FieldMap';
-fieldmap.help   = {'The FieldMap toolbox generates unwrapped field maps which are converted to voxel displacement maps (VDM) that can be used to unwarp geometrically distorted EPI images. For references and an explanation of the theory behind the field map based unwarping, see FieldMap_principles.man. The resulting VDM files are saved with the prefix vdm and can be applied to images using Apply VDM or in combination with Realign & Unwarp to calculate and correct for the combined effects of static and movement-related susceptibility induced distortions.'};
+fieldmap.help   = {'The FieldMap toolbox generates unwrapped field maps which are converted to voxel displacement maps (VDM) that can be used to unwarp geometrically distorted EPI images. For references and an explanation of the theory behind the field map based unwarping, see FieldMap_principles.md. The resulting VDM files are saved with the prefix vdm and can be applied to images using Apply VDM or in combination with Realign & Unwarp to calculate and correct for the combined effects of static and movement-related susceptibility induced distortions.'};
 fieldmap.values = {calculatevdm applyvdm};
 
 

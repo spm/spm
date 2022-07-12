@@ -10,12 +10,12 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Chloe Hutton and Jesper Andersson
-% $Id: pm_defaults.m 7892 2020-07-10 16:39:18Z john $
+% $Id: pm_defaults.m 8290 2022-07-12 14:41:54Z guillaume $
 
 global pm_def
 
 % Defaults for creating field map. (See pm_make_fieldmap.m and
-%                                   FieldMap.man for more info.)
+%                                   FieldMap.md for more info.)
 %==========================================================================
 pm_def.INPUT_DATA_FORMAT = 'PM';      % 'RI' = load two real and
                                       % imaginary image pairs
@@ -28,7 +28,7 @@ pm_def.MASKBRAIN = 0;                 % Do brain masking (1 or 0,
                                       % 0 for EPI fieldmaps)
 
 % Defaults for unwrapping options. (See pm_make_fieldmap.m and
-%                                   FieldMap.man for more info.)
+%                                   FieldMap.md for more info.)
 %==========================================================================
 pm_def.UNWRAPPING_METHOD = 'Mark3D';  % Unwrapping options are:
                                       % 'Huttonish', 'Mark3D' or 'Mark2D'

@@ -10,15 +10,15 @@ function [VDM,IPcell]=FieldMap_create(fm_imgs,epi_img,pm_defs)
 % file with name extension 'session' or a user-specified name.
 % 4) Each selected EPI is unwarped and written out with the prefix 'u'.
 %
-% For details about the FieldMap toolbox, see FieldMap.man. For a
+% For details about the FieldMap toolbox, see FieldMap.md. For a
 % description of the components of the structure IP, see FieldMap.m.
 % For an introduction to the theoretcial and practical principles behind
-% the toolbox, see principles.man.
+% the toolbox, see FieldMap_principles.md.
 %__________________________________________________________________________
 % Copyright (C) 2006-2015 Wellcome Trust Centre for Neuroimaging
 
 % Chloe Hutton
-% $Id: FieldMap_create.m 7892 2020-07-10 16:39:18Z john $
+% $Id: FieldMap_create.m 8290 2022-07-12 14:41:54Z guillaume $
 
 if nargin < 3
     error('field map images, epi image and defaults');

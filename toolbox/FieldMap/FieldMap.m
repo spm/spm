@@ -1,14 +1,14 @@
 function varargout = FieldMap(varargin)
 % FieldMap is an SPM Toolbox for creating field maps and unwarping EPI.
 % A full description of the toolbox and a usage manual can be found in
-% FieldMap.man. This can launched by the toolbox help button or using
-% `spm_help FieldMap.man`. The theoretical and practical principles behind
-% the toolbox are described in FieldMap_principles.man.
+% FieldMap.md. This can launched by the toolbox help button or using
+% `spm_help FieldMap.md`. The theoretical and practical principles behind
+% the toolbox are described in FieldMap_principles.md.
 %
 % FORMAT FieldMap
 %
 % FieldMap launches the GUI-based toolbox. Help is available via the help
-% button (which calls spm_help FieldMap.man). FieldMap is a multi function
+% button (which calls spm_help FieldMap.md). FieldMap is a multi function
 % function so that the toolbox routines can also be accessed without using
 % the GUI. A description of how to do this can be found in FieldMap_ngui.m
 %
@@ -41,7 +41,7 @@ function varargout = FieldMap(varargin)
 % IP.maskbrain      : Flag indicating whether to mask the brain for fieldmap creation
 % IP.uflags         : Struct containing parameters guiding the unwrapping.
 %                     Further explanations of these parameters are in
-%                     FieldMap.man and pm_make_fieldmap.m
+%                     FieldMap.md and pm_make_fieldmap.m
 % .iformat          : 'RI' or 'PM'
 % .method           : 'Huttonish', 'Mark3D' or 'Mark2D'
 % .fwhm             : FWHM (mm) of Gaussian filter for field map smoothing
@@ -106,7 +106,7 @@ function varargout = FieldMap(varargin)
 % Copyright (C) 2006-2016 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson and Chloe Hutton
-% $Id: FieldMap.m 7892 2020-07-10 16:39:18Z john $
+% $Id: FieldMap.m 8290 2022-07-12 14:41:54Z guillaume $
 
 
 persistent PF FS WS PM   % GUI related constants
@@ -2215,7 +2215,7 @@ case 'loadstructural'
 %=======================================================================
 
    case 'help'
-      spm_help('FieldMap.man');
+      spm_help('FieldMap.md');
    return
 end
 

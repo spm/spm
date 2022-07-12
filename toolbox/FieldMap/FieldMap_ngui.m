@@ -11,15 +11,15 @@
 % to unwarp it. A structural image is loaded and matched to the unwarped
 % EPI.
 %
-% For details about the FieldMap toolbox, see FieldMap.man. For a
+% For details about the FieldMap toolbox, see FieldMap.md. For a
 % description of the components of the structure IP, see FieldMap.m.
 % For an introduction to the theoretcial and practical principles behind
-% the toolbox, see principles.man.
+% the toolbox, see FieldMap_principles.md.
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson and Chloe Hutton
-% $Id: FieldMap_ngui.m 7892 2020-07-10 16:39:18Z john $
+% $Id: FieldMap_ngui.m 8290 2022-07-12 14:41:54Z guillaume $
 
 %----------------------------------------------------------------------
 % Set up default parameters and structures
