@@ -1,4 +1,4 @@
-% example script for using the generic DCM routine
+% Example script for using the generic DCM routine
 % based on an inversion of a MMC-BGT DCM as in van Wijk et al. 2018 Neuroimage
 % using spectral densities as data feature
 % 2 data channels: 1 beamformed MEG source, 1 LFP channel from STN
@@ -6,6 +6,9 @@
 % condition-related modulations allowed in all synaptic connections
 % optional: taking posteriors from grand average inversion as mean prior values for G, T, and A
 % van Wijk et al. 2018 Neuroimage
+
+% Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
+
 
 clear all, close all
 

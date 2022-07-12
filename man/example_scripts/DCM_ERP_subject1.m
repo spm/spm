@@ -1,9 +1,12 @@
-% analyse some ERP data (mismatch negativity ERP SPM file from SPM-webpages)
+% Analyse some ERP data (mismatch negativity ERP SPM file from SPM-webpages)
 % This is an example batch script to analyse two evoked responses with an
 % assumed 5 sources.
 % To try this out on your data (the date of this example don't exist in your SPM8 distribution), 
 % you have to change 'Pbase' to your own analysis-directory, and choose a name ('DCM.xY.Dfile') 
 % of an existing SPM for M/EEG-file with at least two evoked responses. 
+
+% Copyright (C) 2009-2022 Wellcome Centre for Human Neuroimaging
+
 
 % Please replace filenames etc. by your own.
 %--------------------------------------------------------------------------

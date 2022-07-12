@@ -1,3 +1,6 @@
+% Copyright (C) 2009-2022 Wellcome Centre for Human Neuroimaging
+
+
 spm('defaults', 'eeg');
 
 %% Basic definitions

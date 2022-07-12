@@ -1,6 +1,8 @@
 % These are some examples of how to convert data between SPM and FieldTrip
 % Tested on SPM EEG MMN example with headmodel specified.
 
+% Copyright (C) 2021-2022 Wellcome Centre for Human Neuroimaging
+
 spm('defaults', 'eeg');
 
 D = spm_eeg_load('maeafdfMspmeeg_subject1.mat');
@@ -27,5 +29,3 @@ Dnew = spm_eeg_ft2spm(data, 'ft2spm_example');
 [vol_sens] = spm_eeg_inv_get_vol_sens(D);
 headmodel = vol_sens.EEG.vol;
 sens =  vol_sens.EEG.sens;
-
-

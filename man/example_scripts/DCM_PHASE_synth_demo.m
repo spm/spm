@@ -1,4 +1,3 @@
-
 % DCM for phase coupling: 
 % Finger movement demo eg. Haken et al. 1985
 %
@@ -6,6 +5,9 @@
 %
 % - if 1st order, sync is stable
 % - if 2nd order, anti-sync (and sync) are stable
+
+% Copyright (C) 2009-2022 Wellcome Centre for Human Neuroimaging
+
 
 sim.m=1; % first order PIF
 sim.do_plot=1;

@@ -1,3 +1,5 @@
+% Copyright (C) 2009-2022 Wellcome Centre for Human Neuroimaging
+
 spm('defaults', 'eeg');
 
 S = [];
@@ -95,5 +97,3 @@ S.robust.removebad = true;
 S.circularise = false;
 S.prefix = 'm';
 D = spm_eeg_average(S);
-
-

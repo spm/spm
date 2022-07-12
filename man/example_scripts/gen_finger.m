@@ -1,6 +1,6 @@
-function [yy,P,M,U] = gen_finger (sim)
+function [yy,P,M,U] = gen_finger(sim)
 % Generate finger movement data
-% FORMAT [yy,P,M,U] = gen_finger (sim)
+% FORMAT [yy,P,M,U] = gen_finger(sim)
 %
 % sim       Simulation data structure:
 %
@@ -17,6 +17,10 @@ function [yy,P,M,U] = gen_finger (sim)
 % P         model parameters
 % M         model structure
 % U         input structure
+%__________________________________________________________________________
+
+% Copyright (C) 2009-2022 Wellcome Centre for Human Neuroimaging
+
 
 Nr=2; % Number of regions
 Nu=0; % Number of between-trial effects
@@ -33,9 +37,9 @@ U.tims=[1:N]'*dt;
 
 a=0.5;
 switch sim.m
-    case 1,
+    case 1
         b=0;
-    case 2,
+    case 2
         b=0.75*a;
 end
 P.As(:,:,1)=[0 0; a 0];
@@ -46,10 +50,10 @@ P.df=zeros(Nr,1);
 P.L=[1 1]';
 
 % Loop over trials
-for n=1:Nt,
+for n=1:Nt
     % Initial phases
     switch sim.init
-        case 'full',
+        case 'full'
             phi_0=2*pi*rand(Nr,1);
         case 'partial'
             phi_0(1)=2*pi*rand(1,1);
@@ -82,7 +86,7 @@ for n=1:Nt,
 end
 
 % Noisy data
-for n=1:Nt,
+for n=1:Nt
     yy{n}=y{n}+sim.noise_dev*randn(N,Nr);
 end
 
@@ -91,7 +95,7 @@ M.x=zeros(Nr,1);
 
 if sim.do_plot
     figure;
-    for n=1:Nt,
+    for n=1:Nt
         subplot(Nt,1,n);
         plot(sin(yy{n}));
         title(sprintf('Generated data, trial %d',n));

@@ -1,10 +1,10 @@
 % Example script for running source reconstruction on a single subject from
 % Wakeman & Henson dataset as used in SPM MEEG demos.
 %__________________________________________________________________________
-% Copyright (C) 2022 Wellcome Centre for Human Neuroimaging
 
 % Stephanie Mellor
-% $Id:  $
+% Copyright (C) 2022 Wellcome Centre for Human Neuroimaging
+
 
 clear
 

@@ -1,4 +1,3 @@
-
 % Fit DCM-phase model to MEG data
 %
 % With the DCM-GUI one is restricted to models 
@@ -9,6 +8,9 @@
 % Additionally with the DCM-GUI one is 
 % restricted to only one or two experimental conditions
 % This is relaxes in a script
+
+% Copyright (C) 2009-2022 Wellcome Centre for Human Neuroimaging
+
 
 % MEG data file
 DCM.xY.Dfile='DIRECTORY\fdas_delay_run1.mat';

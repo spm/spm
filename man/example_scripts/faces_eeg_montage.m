@@ -1,3 +1,6 @@
+% Copyright (C) 2009-2022 Wellcome Centre for Human Neuroimaging
+
+
 D = spm_eeg_load('dspm8_faces_run1.mat');
 
 montage.labelorg = D.chanlabels;

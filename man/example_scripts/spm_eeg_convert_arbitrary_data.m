@@ -1,4 +1,4 @@
-% demo for creating an SPM M/EEG dataset from arbitrary data using 
+% Demo for creating an SPM M/EEG dataset from arbitrary data using 
 % conversion of simple Fieldtrip raw data struct. 
 % SPM8 internal format is quite complex but is transparent to the user
 % as meeg object's methods take care of maintaining its consistency. 
@@ -15,10 +15,9 @@
 % .label - cell array of strings, list of channel labels. Same length as
 %         the first dimension of the data.
 %__________________________________________________________________________
-% Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak 
-% $Id: spm_eeg_convert_arbitrary_data.m 5404 2013-04-12 15:08:57Z vladimir $
+% Copyright (C) 2010-2022 Wellcome Centre for Human Neuroimaging
 
 
 % Initialize SPM
@@ -83,4 +82,3 @@ D = conditions(D, 1:Ntrials, 'Condition 1');  % Sets the condition label
 % save
 %--------------------------------------------------------------------------
 save(D);
-

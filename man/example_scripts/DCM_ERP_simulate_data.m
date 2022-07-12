@@ -1,3 +1,5 @@
+% Copyright (C) 2012-2022 Wellcome Centre for Human Neuroimaging
+
 spm('defaults', 'eeg');
 
 load(spm_select(1, 'mat', 'Select DCM mat file'));
