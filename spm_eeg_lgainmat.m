@@ -19,7 +19,7 @@ forward = D.inv{val}.forward;
 
 for ind = 1:numel(forward)
     modality = forward(ind).modality;
-    
+
     %-Channels
     %----------------------------------------------------------------------
     if isequal(modality, 'MEG')
@@ -27,7 +27,7 @@ for ind = 1:numel(forward)
     else
         chanind = D.indchantype(modality, 'GOOD');
     end
-    
+
     if ~isempty(chanind)
         forward(ind).channels = D.chanlabels(chanind);
     else
@@ -42,7 +42,7 @@ end
 try
     fname = D.inv{val}.gainmat;
     G = load(fullfile(D.path, fname)); % Relative path
-    
+
     label = G.label;
     G     = G.G;
     if numel(label) ~= size(G, 1) || ~all(ismember(channels, label))
@@ -51,31 +51,45 @@ try
 catch
     spm('sFnBanner', mfilename);
     spm('Pointer', 'Watch');
-    
+
     G     = {};
     label = {};
-    
+
     for ind = 1:numel(forward)
         %-Create a new lead-field matrix
         %==================================================================
-        
+
         %-Head Geometry (create tessellation file)
         %------------------------------------------------------------------
         vert = forward(ind).mesh.vert;
         face = forward(ind).mesh.face;
-        
+
         %-Normals
         %------------------------------------------------------------------
-        norm = spm_mesh_normals(struct('faces',face,'vertices',vert),true);
-        
+
+        ctx=gifti(D.inv{val}.mesh.tess_ctx);
+        if isfield(ctx,'normals'),  %%  option to supply normals
+            % Transform normal vectors into right space
+            M=D.inv{val}.forward(ind).fromMNI*D.inv{val}.mesh.Affine;
+            norm=[ctx.normals ones(size(ctx.normals,1),1)]*inv(M')';
+            norm=norm(:,1:3);
+            normN = sqrt(sum(norm.^2,2));
+            bad_idx=find(normN < eps);
+            normN(bad_idx)=1;
+            norm = bsxfun(@rdivide,norm,normN);
+            norm=double(norm);
+        else
+            norm = spm_mesh_normals(struct('faces',face,'vertices',vert),true);
+        end;
+
         vol  = forward(ind).vol;
-        
+
         if ischar(vol)
             vol = ft_read_headmodel(vol);
         end
-        
+
         modality = forward(ind).modality;
-        
+
         if isfield(forward, 'siunits') && forward(ind).siunits
             units = D.units(D.indchannel(forward(ind).channels));
             sens  = forward(ind).sensors;
@@ -84,16 +98,16 @@ catch
             siunits = false;
             sens = D.inv{val}.datareg(ind).sensors;
         end
-        
+
         %-Forward computation
         %------------------------------------------------------------------
         [vol, sens] = ft_prepare_vol_sens(vol, sens, 'channel', forward(ind).channels);
         nvert = size(vert, 1);
-        
+
         spm_progress_bar('Init', nvert, ['Computing ' modality ' leadfields']);
         if nvert > 100, Ibar = floor(linspace(1, nvert,100));
         else Ibar = [1:nvert]; end
-        
+
         if ~isequal(ft_headmodeltype(vol), 'interpolate')
             Gxyz = zeros(length(forward(ind).channels), 3*nvert);
             for i = 1:nvert
@@ -103,7 +117,7 @@ catch
                 else
                     Gxyz(:, (3*i - 2):(3*i))  = ft_compute_leadfield(vert(i, :), sens, vol);
                 end
-                
+
                 if any(Ibar == i)
                     spm_progress_bar('Set', i);
                 end
@@ -115,51 +129,51 @@ catch
                 Gxyz = ft_compute_leadfield(vert, sens, vol);
             end
         end
-        
+
         spm_progress_bar('Clear');
-        
+
         spm_progress_bar('Init', nvert, ['Orienting ' modality ' leadfields']);
-        
+
         G{ind} = zeros(size(Gxyz, 1), size(Gxyz, 2)/3);
         for i = 1:nvert
             G{ind}(:, i) = Gxyz(:, (3*i- 2):(3*i))*norm(i, :)';
             if ismember(i,Ibar)
                 spm_progress_bar('Set', i);
             end
-            
+
         end
-        
+
         spm_progress_bar('Clear');
-        
+
         %-Condition the scaling of the lead-field
         %------------------------------------------------------------------
         [Gs, scale] = spm_cond_units(G{ind});
-        
+
         if siunits && abs(log10(scale))>2
             warning(['Scaling expected to be 1 for SI units, actual scaling ' num2str(scale)]);
             G{ind} = Gs;
         else
             scale = 1;
         end
-        
+
         label = [label; forward(ind).channels(:)];
-        
+
         forward(ind).scale = scale;
     end
-    
+
     if numel(G) > 1
         G = cat(1, G{:});
     else
         G = G{1};
     end
-    
+
     %-Save
     %----------------------------------------------------------------------
     D.inv{val}.gainmat = ['SPMgainmatrix_' spm_file(D.fname, 'basename') '_' num2str(val) '.mat'];
     save(fullfile(D.path, D.inv{val}.gainmat), 'G', 'label', spm_get_defaults('mat.format'));
     D.inv{val}.forward = forward;
     save(D);
-    
+
     spm('Pointer', 'Arrow');
 end
 
