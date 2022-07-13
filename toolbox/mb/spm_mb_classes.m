@@ -13,7 +13,7 @@ function varargout = spm_mb_classes(varargin)
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_classes.m 8253 2022-05-19 09:14:05Z john $
+% $Id: spm_mb_classes.m 8293 2022-07-13 15:11:52Z john $
 
 if isa(varargin{1},'char')
     [varargout{1:nargout}] = spm_subfun(localfunctions,varargin{:});
@@ -26,7 +26,9 @@ end
 function [P,dat] = get_classes(dat,mu,sett)
 
 % Memory hungry. Needs to be addressed later.
-mu = add_delta(mu,dat.delta);
+if isfield(dat,'delta')
+    mu = add_delta(mu,dat.delta);
+end
 
 if isfield(dat.model,'cat')
     % Categorical model
@@ -44,7 +46,7 @@ elseif isfield(dat.model,'gmm')
 else
     error('This should not happen');
 end
-if ~isempty(dat.delta)
+if isfield(dat,'delta') && ~isempty(dat.delta)
     [dat.delta,tmp] = update_delta(dat.delta,mu,P,sett.del_settings,sett.accel);
     dat.E(1) = dat.E(1)+tmp;
 end
