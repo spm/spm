@@ -1,8 +1,7 @@
 function [D] = spm_eeg_invert_classic(D,val)
-%
-%% A trimmed down version of the spm_eeg_invert() routine
-%% this version only handles single subject single modality data
-%% the removal of many scaling factors makes it easier to compare between forward models
+% A trimmed down version of the spm_eeg_invert() routine
+% This version only handles single subject single modality data
+% The removal of many scaling factors makes it easier to compare between forward models
 % ReML inversion of multiple forward models for EEG-MEG
 % FORMAT [D] = spm_eeg_invert_classic(D)
 % ReML estimation of regularisation hyperparameters using the
@@ -61,34 +60,29 @@ function [D] = spm_eeg_invert_classic(D,val)
 %     inverse.R2     - variance in subspaces accounted for by model (%)
 %     inverse.scale  - scaling of data for each of j modalities
 %__________________________________________________________________________
-%
-% Created by:   Jose David Lopez - ralph82co@gmail.com
-%               Gareth Barnes - g.barnes@fil.ion.ucl.ac.uk
-%               Vladimir Litvak - litvak.vladimir@gmail.com
-%
-%
+
+% Jose David Lopez, Gareth Barnes, Vladimir Litvak
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 % This version is for single subject single modality analysis and therefore
 % contains none of the associated scaling factors.
 % No symmetric priors are used in this implementation (just single patches)
 % There is an option for a Beamforming prior : inversion type 'EBB'
 % also added new beamforming method- using GS rather than ARD- from Juan David Martinez Vargas 'EBBgs'
 
-%%The code was used in
-%% L�pez, J. D., Penny, W. D., Espinosa, J. J., Barnes, G. R. (2012).
+% The code was used in
+% Lopez, J. D., Penny, W. D., Espinosa, J. J., Barnes, G. R. (2012).
 % A general Bayesian treatment for MEG source reconstruction incorporating lead field uncertainty.
 % Neuroimage 60(2), 1194-1204 doi:10.1016/j.neuroimage.2012.01.077.
-
-% $Id: spm_eeg_invert_classic.m 8288 2022-07-12 14:40:42Z gareth $
-
 
 
 Nl = length(D);
 
 
 
-if Nl>1,
+if Nl>1
     error('function only defined for a single subject');
-end;
+end
 
 % D - SPM data structure
 %==========================================================================
@@ -153,51 +147,51 @@ if ~isempty(Ip)
     Np   = length(Ip);              % Number of priors/3 for GS, ARD, MSP
 else
     Ip=ceil([1:Np]*Nd/Np);
-end;
+end
 
 persistent permind;
 
 
 rand(2)
-if SHUFFLELEADS,
+if SHUFFLELEADS
     rng('shuffle')
-    if isempty(permind),
+    if isempty(permind)
         permind=randperm(size(L,1));
-    end;
+    end
     L=L(permind,:);
     warning('PERMUTING LEAD FIELDS !');
     permind(1:3)
-end;
+end
 
 % Check gain or lead-field matrices
-%------------------------------------------------------------------
+%--------------------------------------------------------------------------
 
-if size(modalities,1)>1,
+if size(modalities,1)>1
     error('not defined for multiple modalities');
-end;
+end
 Ic  = setdiff(D.indchantype(modalities), badchannels(D));
 Nd    = size(L,2);      % Number of dipoles
 
 fprintf(' - done\n')
 
-if s>=1,
-    smoothtype='mesh_smooth',
+if s>=1
+    smoothtype='mesh_smooth';
 else
-    smoothtype='msp_smooth'
-end;
-if s<0,
-    smoothtype='mm_smooth',
+    smoothtype='msp_smooth';
+end
+if s<0
+    smoothtype='mm_smooth';
     s=-s;
-end;
+end
 vert  = D.inv{val}.mesh.tess_mni.vert;
 face  = D.inv{val}.mesh.tess_mni.face;
 M1.faces=face;
 M1.vertices=vert;
 
-switch smoothtype,
-    case 'mesh_smooth',
+switch smoothtype
+    case 'mesh_smooth'
         fprintf('Using SPM smoothing for priors:')
-        %--------------------------------------------------------------------------
+        %------------------------------------------------------------------
         
         Qi    = speye(Nd,Nd);
         [QG]=spm_mesh_smooth(M1,Qi,round(s));
@@ -211,7 +205,7 @@ switch smoothtype,
         
     case 'msp_smooth'
         fprintf('Computing Green function from graph Laplacian to smooth priors:')
-        %--------------------------------------------------------------------------
+        %------------------------------------------------------------------
         
         A     = spm_mesh_distmtx(struct('vertices',vert,'faces',face),0);
         
@@ -228,22 +222,20 @@ switch smoothtype,
         QG    = QG.*(QG > exp(-8));
         QG    = QG*QG;
         
-    case 'mm_smooth',
+    case 'mm_smooth'
         
          kernelname=spm_eeg_smoothmesh_mm(D.inv{val}.mesh.tess_ctx,s);
          asmth=load(kernelname,'QG','M');
-         if max(int32(asmth.M.faces)-int32(face))~=0,
+         if max(int32(asmth.M.faces)-int32(face))~=0
              error('Smoothing kernel used different mesh');
-         end;
+         end
          QG=asmth.QG;
          if D.inv{val}.forward.loc
             QG=repmat(QG,2,2);
          end
          clear asmth;
-        
-        
-        
-end;
+          
+end
 
 
 clear Qi A GL
@@ -265,42 +257,42 @@ fprintf('Optimising and aligning spatial modes ...\n')
 % eliminate low SNR spatial modes
 %------------------------------------------------------------------
 
-if isempty(inverse.A), % no spatial modes prespecified
-    if isempty(Nm), %% number of modes not specifiedd
+if isempty(inverse.A) % no spatial modes prespecified
+    if isempty(Nm) %% number of modes not specifiedd
         [U,ss,vv]    = spm_svd((L*L'),exp(-16));
         A     = U';                 % spatial projector A
         UL    = A*L;
         
     else % number of modes pre-specified
         [U,ss,vv]    = spm_svd((L*L'),0);
-        if length(ss)<Nm,
+        if length(ss)<Nm
             disp('number available');
             length(ss)
             error('Not this many spatial modes in lead fields');
             
-        end;
+        end
         
         ss=ss(1:Nm);
         disp('using preselected number spatial modes !');
         A     = U(:,1:Nm)';                 % spatial projector A
         UL    = A*L;
-    end;
+    end
 else %% U was specified in input
     disp('Using pre-specified spatial modes');
-    if isempty(Nm),
+    if isempty(Nm)
         error('Need to specify number of spatial modes if U is prespecified');
-    end;
+    end
     %
     A=inverse.A;
     UL=A*L;
-end;
+end
 
 Nm    = size(UL,1);         % Number of spatial projectors
 
 clear ss vv
 
 % Report
-%----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 fprintf('Using %d spatial modes',Nm)
 
 % None dipole is eliminated
@@ -361,7 +353,7 @@ if Han
     W  = sparse(1:Nb,1:Nb,spm_hanning(Nb)); %% use hanning unless specified
 else
     W=1;
-end;
+end
 
 
 
@@ -382,7 +374,7 @@ N=0;
 
 badtrialind=D.badtrials;
 Ik=[]; %% keep a record of trials used
-for j = 1:Ntrialtypes,                          % pool over conditions
+for j = 1:Ntrialtypes                          % pool over conditions
     c     = D.indtrial(trial{j});     % and trials
     [c1,ib]=intersect(c,badtrialind); %% remove bad trials ib if there are any
     c=c(setxor(1:length(c),ib));
@@ -406,21 +398,21 @@ YTY         = T'*YY*T;     % Filter
 
 %======================================================================
 
-if isempty(Nt), %% automatically assign appropriate number of temporal modes    
-    [U E]  = spm_svd(YTY,exp(-8));          % get temporal modes
-    if isempty(U), %% fallback
+if isempty(Nt) %% automatically assign appropriate number of temporal modes    
+    [U, E]  = spm_svd(YTY,exp(-8));          % get temporal modes
+    if isempty(U) %% fallback
         warning('nothing found using spm svd, using svd');
         [U E]  = svd(YTY);          % get temporal modes
-    end;
+    end
     E      = diag(E)/trace(YTY);            % normalise variance
     Nr     = min(length(E),Nmax);           % number of temporal modes
     Nr=max(Nr,1); %% use at least one mode
 else %% use predefined number of modes
-    [U E]  = svd(YTY);          % get temporal modes
+    [U, E]  = svd(YTY);          % get temporal modes
     E      = diag(E)/trace(YTY);            % normalise variance
     disp('Fixed number of temporal modes');
     Nr=Nt;
-end;
+end
 
 V      = U(:,1:Nr);                     % temporal modes
 VE     = sum(E(1:Nr));                  % variance explained
@@ -865,5 +857,3 @@ D.inv{val}.method  = 'Imaging';
 %======================================================================
 spm_eeg_invert_display(D);
 drawnow
-
-return
