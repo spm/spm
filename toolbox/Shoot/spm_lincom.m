@@ -1,14 +1,14 @@
 function out = spm_lincom(job)
-% Generate linear combinations of images.
+% Generate linear combinations of images
 % FORMAT spm_lincom(job)
 % job.images   - Images to use
 % job.weights  - Matrix of weights
 % job.basename - Part of filename for results
-%_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % John Ashburner
-% $Id: spm_lincom.m 7387 2018-08-03 15:13:57Z john $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 P      = strvcat(job.images);
 [pth,nam,ext] = fileparts(job.basename);
@@ -70,4 +70,3 @@ for k=1:nblock
     spm_progress_bar('Set',k/nblock*100);
 end
 spm_progress_bar('Clear');
-

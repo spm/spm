@@ -18,9 +18,8 @@ function varargout = pm_pad(varargin)
 % wmap   : Same as wmap in, but where values that was replaced
 %          by weighted average in pm have now been set.
 %__________________________________________________________________________
-% Copyright (C) 2008-2015 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson
-% $Id: pm_pad.m 7892 2020-07-10 16:39:18Z john $
+% Copyright (C) 2003-2022 Wellcome Centre for Human Neuroimaging
 
 error('mex-function pm_pad.c not compiled');

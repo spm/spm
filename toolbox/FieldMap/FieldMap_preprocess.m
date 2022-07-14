@@ -62,10 +62,9 @@ function VDM = FieldMap_preprocess(fm_dir,epi_dir,pm_defs,sessname)
 % This function generates session specific versions of the vdm file that
 % have been matched to the first image of each session.
 %__________________________________________________________________________
-% Copyright (C) 2006-2014 Wellcome Trust Centre for Neuroimaging
 
 % Chloe Hutton
-% $Id: FieldMap_preprocess.m 7892 2020-07-10 16:39:18Z john $
+% Copyright (C) 2006-2022 Wellcome Centre for Human Neuroimaging
 
 
 if nargin < 3

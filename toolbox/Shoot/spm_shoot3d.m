@@ -52,12 +52,11 @@ function varargout = spm_shoot3d(v0,prm,args, F)
 % Multigrid is currently used to obtain v_t = L^{-1} m_t, but
 % this could also be done by convolution with the Greens function
 % K = L^{-1} (see e.g. Bro-Nielson).
-%
-%________________________________________________________
-% (c) Wellcome Trust Centre for NeuroImaging (2009)
+%__________________________________________________________________________
 
 % John Ashburner
-% $Id: spm_shoot3d.m 7387 2018-08-03 15:13:57Z john $
+% Copyright (C) 2009-2022 Wellcome Centre for Human Neuroimaging
+
 
 spm_diffeo('boundary',0); % Set boundary condition
 args0 = [8 4 4];
@@ -142,6 +141,3 @@ if nargout>=3
 end
 if nargout>=4, varargout{4} = theta; end
 if nargout>=5, varargout{5} = Jtheta;   end
-%__________________________________________________________________________________
-
-

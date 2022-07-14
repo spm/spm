@@ -7,10 +7,10 @@
 % This file is intended for site and/or scanner and/or
 % sequence-specific customisations.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Chloe Hutton and Jesper Andersson
-% $Id: pm_defaults.m 8290 2022-07-12 14:41:54Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 global pm_def
 

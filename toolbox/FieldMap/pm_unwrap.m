@@ -72,10 +72,9 @@ function varargout = pm_unwrap(varargin)
 % Jenkinson M. 2003. Fast, automated, N-dimensional phase-
 % unwrapping algorithm. MRM 49:193-197.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson
-% $Id: pm_unwrap.m 7892 2020-07-10 16:39:18Z john $
+% Copyright (C) 2003-2022 Wellcome Centre for Human Neuroimaging
 
 %
 % The following are a set of parameters that

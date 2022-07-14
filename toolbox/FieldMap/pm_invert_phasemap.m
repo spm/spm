@@ -25,19 +25,10 @@ function varargout = pm_invert_phasemap(varargin)
 % This is a gateway function to invert_phasemap_dtj (do the job)
 % which is a mex-file. The job of this routine is to handle some of
 % the basic book-keeping regarding format and file creation.
-%_______________________________________________________________________
-% Jesper Andersson 10/1-02
-%
-% Added the possibility to specify along which direction
-% the field should be inverted.
-%_______________________________________________________________________
-% Jesper Andersson 17/3-05
-%
-%_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Jesper Andersson
-% $Id: pm_invert_phasemap.m 7892 2020-07-10 16:39:18Z john $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 %
 % Decode first input parameter.
@@ -130,5 +121,3 @@ if length(varargin) == 2 && exist('P','var') == 1
                'descrip',   'Inverted displacements from phase map');
    spm_write_vol(oP,ipm);
 end
-
-return

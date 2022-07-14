@@ -5,12 +5,10 @@ function d = spm_shoot_defaults
 % according to taste.  Some of them will influence the speed/accuracy
 % tradeoff, whereas others are various regularisation settings
 % (registration and template blurring)...
-
-%_______________________________________________________________________
-% Copyright (C) Wellcome Trust Centre for Neuroimaging (2009)
+%__________________________________________________________________________
 
 % John Ashburner
-% $Id: spm_shoot_defaults.m 6489 2015-06-26 11:46:29Z john $
+% Copyright (C) 2009-2022 Wellcome Centre for Human Neuroimaging
 
 
 %_______________________________________________________________________
@@ -42,5 +40,3 @@ d.smits   = 16;                         % No. smoothing iterations
 d.scale   = 0.8;                        % Fraction of Gauss-Newton update step to use
 
 d.bs_args = [2 2 2  1 1 1];             % B-spline settings for interpolation
-%_______________________________________________________________________
-

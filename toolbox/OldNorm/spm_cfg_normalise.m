@@ -1,9 +1,8 @@
 function normalise = spm_cfg_normalise
 % SPM Configuration file for toolbox 'Old Normalise'
 %__________________________________________________________________________
-% Copyright (C) 2005-2021 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_normalise.m 8119 2021-07-06 13:51:43Z guillaume $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 
 if ~isdeployed, addpath(fullfile(spm('dir'),'toolbox','OldNorm')); end

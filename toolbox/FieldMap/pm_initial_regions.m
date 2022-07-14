@@ -1,5 +1,4 @@
 function [irima,cn] = pm_initial_regions(pm,mask,nstep)
-%
 % Divides 2 or 3D phasemap (pm) into nstep equally wide
 % angle ranges and returns the connected components
 % of those.
@@ -29,13 +28,12 @@ function [irima,cn] = pm_initial_regions(pm,mask,nstep)
 %
 % N.B. The interval > phi <= is based on the observation that
 % angle(-1) returns pi (rather than -pi).
-%
-% Jesper Andersson 1/10-03
-%_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Jesper Andersson
-% $Id: pm_initial_regions.m 7892 2020-07-10 16:39:18Z john $
+% Copyright (C) 2003-2022 Wellcome Centre for Human Neuroimaging
+
+
 if max(abs(pm(:))) > pi
    nstep = round(nstep * (max(pm(:))-min(pm(:))) / (2*pi));
    bins = linspace(min(pm(:))-eps,max(pm(:)),nstep+1);
@@ -51,5 +49,3 @@ for i=1:nstep
    irima = irima+((lltmp+cn).*(lltmp~=0));
    cn = max(irima(:));
 end
-
-return

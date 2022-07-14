@@ -15,10 +15,10 @@ function out = spm_shoot_scalmom(job)
 % Medical Image Computing and Computer-Assisted Intervention-MICCAI
 % 2012 (2012): 132-140.
 %__________________________________________________________________________
-% Copyright (C) 2013-2015 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_shoot_scalmom.m 7461 2018-10-29 15:59:58Z john $
+% Copyright (C) 2013-2022 Wellcome Centre for Human Neuroimaging
+
 
 Pt = strvcat(job.template);
 Nt = nifti(Pt);
@@ -136,9 +136,11 @@ end
 spm_progress_bar('Clear');
 
 
+%==========================================================================
+
+%==========================================================================
 function y1 = affind(y0,M)
 y1 = zeros(size(y0),'single');
 for d=1:3
     y1(:,:,:,d) = y0(:,:,:,1)*M(d,1) + y0(:,:,:,2)*M(d,2) + y0(:,:,:,3)*M(d,3) + M(d,4);
 end
-

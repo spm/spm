@@ -1,10 +1,10 @@
 function dartel = tbx_cfg_dartel
 % Configuration file for toolbox 'Dartel Tools'
-%_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % John Ashburner
-% $Id: tbx_cfg_dartel.m 8049 2021-02-05 11:27:16Z john $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 if ~isdeployed, addpath(fullfile(spm('dir'),'toolbox','DARTEL')); end
 
@@ -1175,7 +1175,7 @@ dartel.values  = {initial warp warp1 nrm crt_warped jacdet crt_iwarped popnorm k
 function dep = vout_initial_import(job)
 cls = {'GM', 'WM', 'CSF'};
 kk = 1;
-for k=1:3,
+for k=1:3
     if isnumeric(job.(cls{k})) && job.(cls{k})
         dep(kk)            = cfg_dep;
         dep(kk).sname      = sprintf('Imported Tissue (%s)', cls{k});
@@ -1197,12 +1197,12 @@ function chk = check_dartel_template(job)
 n1 = numel(job.images);
 n2 = numel(job.images{1});
 chk = '';
-for i=1:n1,
-    if numel(job.images{i}) ~= n2,
+for i=1:n1
+    if numel(job.images{i}) ~= n2
         chk = 'Incompatible number of images';
         break;
-    end;
-end;
+    end
+end
 %_______________________________________________________________________
 
 %_______________________________________________________________________
@@ -1210,7 +1210,7 @@ function dep = vout_dartel_template(job)
 
 if isa(job.settings.template,'cfg_dep') || ~ ...
         isempty(deblank(job.settings.template))
-    for it=0:numel(job.settings.param),
+    for it=0:numel(job.settings.param)
         tdep(it+1)            = cfg_dep;
         tdep(it+1).sname      = sprintf('Template (Iteration %d)', it);
         tdep(it+1).src_output = substruct('.','template','()',{it+1});
@@ -1249,8 +1249,8 @@ chk = '';
 PU = job.flowfields;
 PI = job.images;
 n1 = numel(PU);
-for i=1:numel(PI),
-    if numel(PI{i}) ~= n1,
+for i=1:numel(PI)
+    if numel(PI{i}) ~= n1
         chk = 'Incompatible number of images';
         break;
     end
@@ -1264,8 +1264,8 @@ if isfield(job.data,'subjs')
     PU = job.data.subjs.flowfields;
     PI = job.data.subjs.images;
     n1 = numel(PU);
-    for i=1:numel(PI),
-        if numel(PI{i}) ~= n1,
+    for i=1:numel(PI)
+        if numel(PI{i}) ~= n1
             chk = 'Incompatible number of images';
             break;
         end
@@ -1275,14 +1275,14 @@ end
 
 %_______________________________________________________________________
 function dep = vout_norm(job)
-if job.jactransf,
+if job.jactransf
     sname = 'Warped Images - Jacobian Transformed';
 else
     sname = 'Warped Images';
 end
 PU    = job.flowfields;
 PI    = job.images;
-for m=1:numel(PI),
+for m=1:numel(PI)
     dep(m)            = cfg_dep;
     dep(m).sname      = sprintf('%s (Image %d)',sname,m);
     dep(m).src_output = substruct('.','files','()',{':',m});
@@ -1295,14 +1295,14 @@ function dep = vout_invnorm(job)
 PU    = job.flowfields;
 PI    = job.images;
 
-for m=1:numel(PI),
+for m=1:numel(PI)
     dep(m)            = cfg_dep;
     dep(m).sname      = sprintf('Inverse Warped Images (Image %d)',m);
     dep(m).src_output = substruct('.','files','()',{':',m});
     dep(m).tgt_spec   = cfg_findspec({{'filter','nifti'}});
 end
 n = numel(PI);
-for m=1:numel(PU),
+for m=1:numel(PU)
     dep(m+n)            = cfg_dep;
     dep(m+n).sname      = sprintf('Inverse Warped Images (Deformation %d)',m);
     dep(m+n).src_output = substruct('.','files','()',{m,':'});
@@ -1320,7 +1320,7 @@ dep.tgt_spec   = cfg_findspec({{'filter','nifti'}});
 
 %_______________________________________________________________________
 function dep = vout_norm_fun(job)
-if job.preserve,
+if job.preserve
     sname = 'MNI Smo. Warped - Amount';
 else
     sname = 'MNI Smo. Warped - Concentrations';
@@ -1338,7 +1338,7 @@ if isfield(job.data,'subj')
 end
 
 if isfield(job.data,'subjs')
-    for m=1:numel(job.data.subjs.images),
+    for m=1:numel(job.data.subjs.images)
         dep(m)            = cfg_dep;
         dep(m).sname      = sprintf('%s (Image %d)',sname,m);
         dep(m).src_output = substruct('()',{':',m});
@@ -1353,8 +1353,8 @@ chk = '';
 PU = job.flowfields;
 PI = job.images;
 n1 = numel(PU);
-for i=1:numel(PI),
-    if numel(PI{i}) ~= n1,
+for i=1:numel(PI)
+    if numel(PI{i}) ~= n1
         chk = 'Incompatible number of images';
         break;
     end
@@ -1368,7 +1368,3 @@ dep.sname      = 'Residual Files';
 dep.src_output = substruct('.','files','()',{':'});
 dep.tgt_spec   = cfg_findspec({{'filter','nifti'}});
 %_______________________________________________________________________
-
-
-
-

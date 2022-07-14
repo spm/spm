@@ -15,10 +15,10 @@ function [VDM,IPcell]=FieldMap_create(fm_imgs,epi_img,pm_defs)
 % For an introduction to the theoretcial and practical principles behind
 % the toolbox, see FieldMap_principles.md.
 %__________________________________________________________________________
-% Copyright (C) 2006-2015 Wellcome Trust Centre for Neuroimaging
 
 % Chloe Hutton
-% $Id: FieldMap_create.m 8290 2022-07-12 14:41:54Z guillaume $
+% Copyright (C) 2006-2022 Wellcome Centre for Human Neuroimaging
+
 
 if nargin < 3
     error('field map images, epi image and defaults');

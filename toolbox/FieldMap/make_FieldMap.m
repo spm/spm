@@ -3,10 +3,10 @@
 %
 % See also: mex, Makefile
 %__________________________________________________________________________
-% Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
 
 % Chloe Hutton
-% $Id: make_FieldMap.m 7892 2020-07-10 16:39:18Z john $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 mex -O pm_invert_phasemap_dtj.c
 mex -O pm_merge_regions.c

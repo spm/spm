@@ -1,10 +1,10 @@
 function slice2vol = spm_slice2vol_config
 % Configuration file for toolbox 'Spatial Tools'
 %__________________________________________________________________________
-% Copyright (C) 2021 Wellcome Centre for Human Neuroimaging
 
 % John Ashburner
-% $Id: spm_slice2vol_config.m 8119 2021-07-06 13:51:43Z guillaume $
+% Copyright (C) 2021-2022 Wellcome Centre for Human Neuroimaging
+
 
 if ~isdeployed, addpath(fullfile(spm('dir'),'toolbox','Spatial')); end
 
@@ -98,9 +98,8 @@ fwhm.val     = {0};
 
 
 %==========================================================================
-
-%==========================================================================
 function dep = vout_slice2vol(job)
+%==========================================================================
 dep(1)            = cfg_dep;
 dep(1).sname      = 'Mean Image';
 dep(1).src_output = substruct('.','rmean');
@@ -110,7 +109,3 @@ dep(2)            = cfg_dep;
 dep(2).sname      = 'Resliced Images';
 dep(2).src_output = substruct('.','rfiles');
 dep(2).tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});
-%==========================================================================
-
-%==========================================================================
-

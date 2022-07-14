@@ -1,5 +1,5 @@
 function [u0,ll1,ll2] = spm_shoot_update(g,f,u0,phi,dt,prm, bs_args,scale)
-% Shooting Of Diffeomorphisms (Spawn Of Dartel).
+% Shooting Of Diffeomorphisms (Spawn Of Dartel)
 % FORMAT u0 = spm_shoot_update(g,f,u0,phi,dt,prm, bs_args)
 % g        - template
 % f        - individual
@@ -15,11 +15,11 @@ function [u0,ll1,ll2] = spm_shoot_update(g,f,u0,phi,dt,prm, bs_args,scale)
 % ll2      - regularisation part of objective function
 %
 % The easiest way to figure out what this function does is to read the code.
-%________________________________________________________
-% (c) Wellcome Trust Centre for NeuroImaging (2009)
+%__________________________________________________________________________
 
 % John Ashburner
-% $Id: spm_shoot_update.m 7461 2018-10-29 15:59:58Z john $
+% Copyright (C) 2009-2022 Wellcome Centre for Human Neuroimaging
+
 
 if nargin<8, scale = 1.0; end
 scale = max(min(scale,1.0),0.0);
@@ -43,9 +43,9 @@ fprintf('%-10.5g %-10.5g %-10.5g %-10.5g\n',...
         ll1/prod(d), ll2/prod(d), (ll1+ll2)/prod(d), var2/(var1+eps));
 u0      = u0 - scale*spm_diffeo('fmg',A, b, [prm 3 2]);
 clear A b
-%=======================================================================
+%==========================================================================
 
-%=======================================================================
+%==========================================================================
 function [ll,b,A] = mnom_derivs(g,f,phi,dt, bs_args)
 % Compute log-likelihood, first and second derivatives for multi-nomial matching
 % FORMAT [ll,b,A] = mnom_derivs(g,f,phi,dt,bs_args)
@@ -60,8 +60,7 @@ function [ll,b,A] = mnom_derivs(g,f,phi,dt, bs_args)
 % b       - first derivatives
 % A       - (approx) second derivatives (Fisher information)
 %
-%_______________________________________________________________________
-% Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 if nargin<4
     bs_args = [2 2 2  1 1 1];
@@ -120,4 +119,3 @@ for z=1:d(3)
         end
     end
 end
-

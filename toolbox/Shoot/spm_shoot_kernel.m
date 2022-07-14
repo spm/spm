@@ -14,11 +14,11 @@ function out = spm_shoot_kernel(job)
 % field would be decomposed by J = (J+J')/2 + (J-J')/2.
 % The elements of the symetric part (along with its trace)
 % would then be used to generate the kernel.
-%_______________________________________________________________________
-% Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % John Ashburner
-% $Id: spm_shoot_kernel.m 7387 2018-08-03 15:13:57Z john $
+% Copyright (C) 2009-2022 Wellcome Centre for Human Neuroimaging
+
 
 defs   = spm_shoot_defaults;
 rparam = defs.rparam;
@@ -54,4 +54,3 @@ for i=1:n
     save(ofname,'K','input','typ', spm_get_defaults('mat.format'));
 end
 spm_progress_bar('Clear');
-

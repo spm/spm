@@ -1,12 +1,9 @@
 % Script to scale a phase map so that max = pi and min =-pi radians.
 % Writes out scaled image prepended with 'sc'.
-% Chloe Hutton 25/02/04
-% SPM Update - 13/11/06
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Chloe Hutton
-% $Id: pm_scale_phase.m 4446 2011-08-30 10:50:29Z guillaume $
+% Copyright (C) 2004-2022 Wellcome Centre for Human Neuroimaging
 
 
 V   = spm_vol(spm_select(1,'image','Select phase image to scale'));

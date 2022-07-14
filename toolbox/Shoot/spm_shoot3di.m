@@ -46,12 +46,11 @@ function varargout = spm_shoot3di(v0,prm,args)
 % Multigrid is currently used to obtain v_t = L^{-1} m_t, but
 % this could also be done by convolution with the Greens function
 % N = L^{-1} (see e.g. Bro-Nielson).
-%
-%________________________________________________________
-% (c) Wellcome Trust Centre for NeuroImaging (2009)
+%__________________________________________________________________________
 
 % John Ashburner
-% $Id: spm_shoot3di.m 7461 2018-10-29 15:59:58Z john $
+% Copyright (C) 2009-2022 Wellcome Centre for Human Neuroimaging
+
 
 args0 = [8 4 4];
 if nargin<3
@@ -127,9 +126,11 @@ if nargout>=3
 end
 if nargout>=4, varargout{4} = phi;  end
 if nargout>=5, varargout{5} = Jphi; end
-%__________________________________________________________________________________
 
-%__________________________________________________________________________________
+
+%==========================================================================
+
+%==========================================================================
 function mt = pullg(m0,phi,J)
 % The Ad* operation
 mt = zeros(size(m0),'single');
@@ -147,7 +148,3 @@ for i=1:size(m0,3)
     mt(:,:,i,2) = (J(:,:,i,1,2).*mr1 + J(:,:,i,2,2).*mr2 + J(:,:,i,3,2).*mr3).*dj;
     mt(:,:,i,3) = (J(:,:,i,1,3).*mr1 + J(:,:,i,2,3).*mr2 + J(:,:,i,3,3).*mr3).*dj;
 end
-%__________________________________________________________________________________
-
-%__________________________________________________________________________________
-

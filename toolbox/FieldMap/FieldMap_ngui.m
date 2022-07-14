@@ -16,10 +16,10 @@
 % For an introduction to the theoretcial and practical principles behind
 % the toolbox, see FieldMap_principles.md.
 %_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson and Chloe Hutton
-% $Id: FieldMap_ngui.m 8290 2022-07-12 14:41:54Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 %----------------------------------------------------------------------
 % Set up default parameters and structures
@@ -32,7 +32,7 @@ IP = FieldMap('Initialise'); % Gets default params from pm_defaults
 % Load measured field map data - phase and magnitude or real and imaginary
 %----------------------------------------------------------------------
 
-if IP.uflags.iformat=='PM'
+if strcmp(IP.uflags.iformat,'PM')
    for index=1:4
       IP.P{index} = FieldMap('LoadFilePM',index);
    end

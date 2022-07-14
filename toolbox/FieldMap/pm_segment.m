@@ -49,10 +49,10 @@ function [VO,M] = pm_segment(VF,PG,flags)
 % removed from the main spm distribution, but copied into the FieldMap
 % toolbox where it is still used.
 %_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: pm_segment.m 4873 2012-08-30 19:06:26Z john $
+% Copyright (C) 2003-2022 Wellcome Centre for Human Neuroimaging
+
 
 % Create some suitable default values
 %-----------------------------------------------------------------------

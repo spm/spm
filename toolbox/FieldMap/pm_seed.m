@@ -26,13 +26,10 @@ function seed = pm_seed(angvar,mask,pxs)
 % (i.e. we pick a neighbourhood) and then pick the location
 % of those that has the lowest variance in the original
 % variance map.
-%___________________________________________________________
-% Jesper Andersson 1/10-03
-%_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Jesper Andersson
-% $Id: pm_seed.m 7892 2020-07-10 16:39:18Z john $
+% Copyright (C) 2003-2022 Wellcome Centre for Human Neuroimaging
 
 if nargin < 3
    mask = ones(size(angvar));
@@ -78,5 +75,3 @@ indx = find(svol(:)>thres);
 [mv,mi] = min(angvar(indx));
 seed = zeros(1,3);
 [seed(1),seed(2),seed(3)] = ind2sub(size(angvar),indx(mi));
-
-return

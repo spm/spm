@@ -11,10 +11,9 @@ function [E,dE] = spm_dexpm(A,dA)
 % to use eg scaling and squaring (see Moler's dubious matrix exponentials
 % paper).
 %__________________________________________________________________________
-% Copyright (C) 2012-2019 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dexpm.m 7563 2019-04-01 10:39:24Z guillaume $
+% Copyright (C) 2012-2022 Wellcome Centre for Human Neuroimaging
 
 
 if nargin < 2

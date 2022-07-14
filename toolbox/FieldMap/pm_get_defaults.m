@@ -1,5 +1,4 @@
 function varargout = pm_get_defaults(defstr, varargin)
-
 % FORMAT defval = pm_get_defaults(defstr)
 % Return the defaults value associated with identifier "defstr".
 % Currently, this is a '.' subscript reference into the global
@@ -13,19 +12,19 @@ function varargout = pm_get_defaults(defstr, varargin)
 % This value will not be saved for future sessions of SPM. To make
 % persistent changes, edit spm_defaults.m.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Chloe Hutton
-% $Id: pm_get_defaults.m 7892 2020-07-10 16:39:18Z john $
-% ---------------------------------------------------------------------
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
+
 global pm_def
 if isempty(pm_def)
     pm_defaults;
     pm_def.sessname='session';
     pm_def.pedir=2;
-elseif ~isfield(pm_def,'pedir');
+elseif ~isfield(pm_def,'pedir')
     pm_def.pedir=2;
-elseif ~isfield(pm_def,'sessname');
+elseif ~isfield(pm_def,'sessname')
     pm_def.sessname='session';
 end
 
@@ -47,4 +46,3 @@ if nargin == 1
 else
     pm_def = subsasgn(pm_def, subs, varargin{1});
 end
-

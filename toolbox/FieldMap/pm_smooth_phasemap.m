@@ -1,7 +1,6 @@
 function pm = pm_smooth_phasemap(pm,angvar,vxs,fwhm)
-% Performs a weighted (by 1/angvar) gaussian smoothing
-% of a phasemap.
-% FORMAT: pm = pm_smooth_phasemap(pm,angvar,vxs,fwhm)
+% Performs a weighted (by 1/angvar) gaussian smoothing of a phasemap
+% FORMAT pm = pm_smooth_phasemap(pm,angvar,vxs,fwhm)
 %
 % Input:
 % pm         : Phase-map
@@ -9,13 +8,10 @@ function pm = pm_smooth_phasemap(pm,angvar,vxs,fwhm)
 % vxs        : Voxel sizes (mm) in the three directions.
 % fwhm       : FWHM (mm) of gaussian kernel for the three
 %              directions (or scalar for isotropic kernel).
-%__________________________________________________________
-% Jesper Andersson 16/10-03
-%_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Jesper Andersson
-% $Id: pm_smooth_phasemap.m 7892 2020-07-10 16:39:18Z john $
+% Copyright (C) 2003-2022 Wellcome Centre for Human Neuroimaging
 
 if nargin ~= 4 || nargout ~= 1
    help pm_smooth_phasemap
@@ -53,6 +49,3 @@ q2 = zeros(size(pm));
 spm_conv_vol(pm./angvar,q1,x,y,z,-[i,j,k]);
 spm_conv_vol( 1./angvar,q2,x,y,z,-[i,j,k]);
 pm = q1./q2;
-
-return
-

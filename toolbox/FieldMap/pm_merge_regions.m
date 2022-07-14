@@ -68,12 +68,9 @@ function pm = pm_merge_regions(pm,rima,ii,jj,nn,pp,rs)
 %
 % Jenkinson M. 2003. Fast, automated, N-dimensional phase-unwrapping
 % algorithm. MRM 49:193-197.
-%_________________________________________________________________________
-% Jesper Andersson 2/10-03
-%_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Jesper Andersson
-% $Id: pm_merge_regions.m 7892 2020-07-10 16:39:18Z john $
+% Copyright (C) 2003-2022 Wellcome Centre for Human Neuroimaging
 
 error('pm_merge_regions.c has not been compiled');

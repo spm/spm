@@ -1,10 +1,10 @@
 function out = spm_slice2vol(job)
 % Slice-to-volume alignment job
 %__________________________________________________________________________
-% Copyright (C) 2021 Wellcome Centre for Human Neuroimaging
 
 % John Ashburner
-% $Id: spm_slice2vol.m 8119 2021-07-06 13:51:43Z guillaume $
+% Copyright (C) 2021-2022 Wellcome Centre for Human Neuroimaging
+
 
 % Define the output filenames
 if job.fwhm>0, prefix = 'sr'; else, prefix = 'r'; end
@@ -21,9 +21,7 @@ sd     = job.sd;
 images = char(job.images);
 save(out.rparams, 'Q','slice_o','sd','images');
 
-
 plot_parameters(Q,slice_o);
-
 
 % Write out the mean
 dat = file_array(out.rmean{1},size(mu),'int16',0,max(mu(:))/32767,0.0);
@@ -39,10 +37,11 @@ nii.dat(:,:,:)  = mu;
 
 % Reslice the images
 spm_slice2vol_reslice(char(job.images),Q, job.fwhm);
-%==========================================================================
+
 
 %==========================================================================
 function plot_parameters(Q,slice_o)
+%==========================================================================
 fg = spm_figure('FindWin','Graphics');
 if isempty(fg), return; end
 

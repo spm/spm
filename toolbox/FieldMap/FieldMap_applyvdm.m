@@ -33,10 +33,10 @@ function out = FieldMap_applyvdm(job)
 % Outputs:
 % The resampled and resliced images resliced to the same subdirectory with a prefix.
 %__________________________________________________________________________
-% Copyright (C) 2011-2014 Wellcome Trust Centre for Neuroimaging
 
 % Chloe Hutton
-% $Id: FieldMap_applyvdm.m 7892 2020-07-10 16:39:18Z john $
+% Copyright (C) 2006-2022 Wellcome Centre for Human Neuroimaging
+
 
 tiny = 5e-2;
 
@@ -84,7 +84,7 @@ xyz = [x(:) y(:) z(:) ones(prod(ds(1).P(1).dim(1:3)),1)]; clear x y z;
 
 % Create mask if required (usually default and required to create mean)
 %--------------------------------------------------------------------------
-if flags.mask || flags.mean,
+if flags.mask || flags.mean
     spm_progress_bar('Init',ntot,'Computing available voxels',...
         'volumes completed');
 

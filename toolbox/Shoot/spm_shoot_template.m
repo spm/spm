@@ -11,10 +11,10 @@ function out = spm_shoot_template(job)
 % The outputs are flow fields (v_*.nii), deformation fields (y_*.nii),
 % Jacobian determinants (j_*.nii) and a series of Template images.
 %__________________________________________________________________________
-% Copyright (C) 2009-2020 Wellcome Centre for Human Neuroimaging
 
 % John Ashburner
-% $Id: spm_shoot_template.m 7999 2020-11-03 15:02:01Z guillaume $
+% Copyright (C) 2009-2022 Wellcome Centre for Human Neuroimaging
+
 
 %__________________________________________________________________________
 d       = spm_shoot_defaults;

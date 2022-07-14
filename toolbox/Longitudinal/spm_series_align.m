@@ -2,10 +2,9 @@ function out = spm_series_align(job)
 % Longitudinal registration of image series
 % FORMAT out = spm_series_align(job)
 %__________________________________________________________________________
-% Copyright (C) 2012-2019 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_series_align.m 7563 2019-04-01 10:39:24Z guillaume $
+% Copyright (C) 2012-2022 Wellcome Centre for Human Neuroimaging
 
 
 N = numel(job.vols);

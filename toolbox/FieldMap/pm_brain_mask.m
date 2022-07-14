@@ -24,10 +24,10 @@ function bmask = pm_brain_mask(P,flags)
 % A morphological opening is performed to get rid of stuff left outside of
 % the brain. Any leftover holes are filled.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Chloe Hutton
-% $Id: pm_brain_mask.m 7892 2020-07-10 16:39:18Z john $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 if nargin < 2 || isempty(flags)
 %  flags.template=fullfile(spm('Dir'),'toolbox','FieldMap','T1.nii');
@@ -43,7 +43,7 @@ disp('Segmenting and extracting brain...');
 %seg_flags.estimate.reg=flags.reg;
 %seg_flags.graphics = flags.graphics;
 
-%% Updated to use renamed version of spm_segment
+% Updated to use renamed version of spm_segment
 %VO    = pm_segment(P.fname,flags.template,seg_flags);
 %bmask = double(VO(1).dat)+double(VO(2).dat)+double(VO(3).dat)>0;
 bmask = get_bmask(P.fname);

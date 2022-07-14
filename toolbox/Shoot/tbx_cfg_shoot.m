@@ -1,7 +1,10 @@
 function shoot = tbx_cfg_shoot
 % MATLABBATCH Configuration file for toolbox 'Shoot Tools'
+%__________________________________________________________________________
 
-% $Id: tbx_cfg_shoot.m 7389 2018-08-06 13:35:48Z john $
+% John Ashburner
+% Copyright (C) 2009-2022 Wellcome Centre for Human Neuroimaging
+
 
 if ~isdeployed, addpath(fullfile(spm('dir'),'toolbox','Shoot')); end
 
@@ -681,4 +684,3 @@ dep.sname      = 'Image Kernel';
 dep.src_output = substruct('.','fname','()',{':'});
 dep.tgt_spec   = cfg_findspec({{'filter','mat'}});
 %_______________________________________________________________________
-

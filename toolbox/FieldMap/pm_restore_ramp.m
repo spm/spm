@@ -21,12 +21,9 @@ function varargout = pm_restore_ramp(varargin)
 % I haven't actually found it particularly helpful, and it may
 % simply have been a sneaky fMRIB attempt to delay the SPM
 % phasemap toolbox.
-%__________________________________________________________________
-% Jesper Andersson 30/9-03
-%_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Jesper Andersson
-% $Id: pm_restore_ramp.m 7892 2020-07-10 16:39:18Z john $
+% Copyright (C) 2003-2022 Wellcome Centre for Human Neuroimaging
 
 error('mex-function pm_restore_ramp.c not compiled');

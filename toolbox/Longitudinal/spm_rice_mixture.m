@@ -19,10 +19,10 @@ function [mg,nu,sig,info] = spm_rice_mixture(h,x,K)
 % from the sample means and standard deviations. This is described at
 % https://en.wikipedia.org/wiki/Rician_distribution
 %__________________________________________________________________________
-% Copyright (C) 2012-2022 Wellcome Centre for Human Neuroimaging
 
 % John Ashburner
-% $Id: spm_rice_mixture.m 8255 2022-05-27 17:37:59Z guillaume $
+% Copyright (C) 2012-2022 Wellcome Centre for Human Neuroimaging
+
 
 mg  = ones(K,1)/K;
 nu  = (0:(K-1))'*max(x)/(K+1);

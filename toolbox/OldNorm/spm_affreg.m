@@ -34,10 +34,9 @@ function [M,scal] = spm_affreg(VG,VF,flags,M,scal)
 % J. Ashburner, P. Neelin, D. L. Collins, A. C. Evans & K. J. Friston.
 % NeuroImage 6:344-352 (1997).
 %__________________________________________________________________________
-% Copyright (C) 2002-2018 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_affreg.m 7377 2018-07-23 13:56:24Z guillaume $
+% Copyright (C) 2002-2022 Wellcome Centre for Human Neuroimaging
 
 
 if nargin<5, scal = ones(length(VG),1); end

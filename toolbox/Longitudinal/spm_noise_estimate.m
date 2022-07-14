@@ -11,10 +11,9 @@ function [noise,mu_val,info] = spm_noise_estimate(scans,K)
 %                   info.h/sum(info.h)/info.md,'b.', ...
 %                   info.x(:),info.lse,'r');
 %__________________________________________________________________________
-% Copyright (C) 2012-2022 Wellcome Centre for Human Neuroimaging
 
 % John Ashburner
-% $Id: spm_noise_estimate.m 8255 2022-05-27 17:37:59Z guillaume $
+% Copyright (C) 2012-2022 Wellcome Centre for Human Neuroimaging
 
 
 if ~isa(scans,'nifti'), scans = nifti(scans); end

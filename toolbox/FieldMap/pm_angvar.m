@@ -12,11 +12,11 @@ function angvar = pm_angvar(cmap)
 % Output:
 % angvar   : Map with an estimate of the variance of a phasemap
 %            estimated using cmap as one of its constituents.
-%_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Jesper Andersson
-% $Id: pm_angvar.m 7892 2020-07-10 16:39:18Z john $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 % Get mutual histogram of Re and Im part of all voxels.
 %
@@ -68,9 +68,3 @@ angvar = reshape(interp1(avals,variance,abs(cmap(:)),'linear'),size(cmap));
 %spm_smooth(angvar,angvar,1.5);
 %angvar(1,:,:) = 1.2*angvar(1,:,:); angvar(end,:,:) = 1.2*angvar(end,:,:);
 %angvar(:,1,:) = 1.2*angvar(:,1,:); angvar(:,end,:) = 1.2*angvar(:,end,:);
-
-return;
-
-
-
-

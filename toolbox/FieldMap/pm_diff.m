@@ -6,10 +6,10 @@ function D = pm_diff(V,dir)
 %
 % D    - 3D array of derivatives
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Chloe Hutton
-% $Id: pm_diff.m 7120 2017-06-20 11:30:30Z spm $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 if ischar(V)
    V   = spm_vol(V);

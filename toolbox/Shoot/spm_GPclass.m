@@ -19,10 +19,10 @@ function [varargout] = spm_GPclass(varargin)
 % ISBN 026218253X. c 2006 Massachusetts Institute of Technology. www.GaussianProcess.org/gpml
 % or Bishop (2006) "Pattern Recognition and Machine Learning"
 %__________________________________________________________________________
-% Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_GPclass.m 7387 2018-08-03 15:13:57Z john $
+% Copyright (C) 2011-2022 Wellcome Centre for Human Neuroimaging
+
 
 if nargin>1 && isa(varargin{1},'char')
     switch lower(varargin{1})
@@ -453,5 +453,3 @@ for i=find(~o)'
 end
 %__________________________________________________________________________
 %__________________________________________________________________________
-
-

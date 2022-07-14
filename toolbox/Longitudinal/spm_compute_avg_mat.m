@@ -5,12 +5,10 @@ function [M_avg,d] = spm_compute_avg_mat(Mat0,dims)
 % dims  - image dimensions (Nx3)
 % M_avg - voxel-to-world mapping
 % d     - dimensions for average image
-%
 %__________________________________________________________________________
-% Copyright (C) 2012-2019 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_compute_avg_mat.m 7652 2019-08-07 11:30:35Z john $
+% Copyright (C) 2012-2022 Wellcome Centre for Human Neuroimaging
 
 
 % Rigid-body matrices computed from exp(p(1)*B(:,:,1)+p(2)+B(:,:,2)...)
@@ -106,9 +104,11 @@ mx    = ceil(mx);
 mn    = floor(mn);
 d     = (mx-mn+7)';
 M_avg = M_avg * [eye(3) mn-4; 0 0 0 1];
-%__________________________________________________________________________
 
-%__________________________________________________________________________
+
+%==========================================================================
+
+%==========================================================================
 function B = se3_basis
 % Basis functions for the lie algebra of the special Euclidean group
 % (SE(3)).
@@ -119,7 +119,3 @@ B(3,4,3) = 1;
 B([1,2],[1,2],4) = [0 1;-1 0];
 B([3,1],[3,1],5) = [0 1;-1 0];
 B([2,3],[2,3],6) = [0 1;-1 0];
-%__________________________________________________________________________
-
-%__________________________________________________________________________
-

@@ -47,16 +47,14 @@ function varargout = pm_create_connectogram(rima,pm)
 %
 % A very valid question would be "If you are going to return the
 % vectors ii, jj, nn and pp, why on earth do you go via the Matlab
-% sparse function? Dimwits!".
+% sparse function?".
 % It's just because it allows us to write a very sloppy C-routine
 % to create the vectors, and then use Matlab sparse to identify
 % and remove any duplicate connections in there.
-% We're lazy, not neccesarily stupid.
-%_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Jesper Andersson
-% $Id: pm_create_connectogram.m 7892 2020-07-10 16:39:18Z john $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 if exist('pm_create_connectogram_dtj')~=3
@@ -84,7 +82,3 @@ elseif nargout == 4
 else
    help pm_create_connectogram
 end
-
-return
-
-

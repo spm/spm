@@ -1,10 +1,9 @@
 function cfg = tbx_cfg_longitudinal
 % MATLABBATCH Configuration file for toolbox 'Longitudinal'
 %__________________________________________________________________________
-% Copyright (C) 2012-2021 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: tbx_cfg_longitudinal.m 8119 2021-07-06 13:51:43Z guillaume $
+% Copyright (C) 2012-2022 Wellcome Centre for Human Neuroimaging
 
 
 if ~isdeployed

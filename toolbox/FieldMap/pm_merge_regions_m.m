@@ -1,5 +1,4 @@
 function [varargout] = pm_merge_regions_m(opm,N,P,rima,gd)
-%
 % Merges regions as defined in connectogram to minimise
 % total costfunction (sum of phase-differences across
 % region borders).
@@ -88,9 +87,10 @@ function [varargout] = pm_merge_regions_m(opm,N,P,rima,gd)
 %
 % [N,P] = pm_create_connectogram(rima,pm);
 % upm = pm_merge_regions_m(pm,N,P,rima);
-%
 %_________________________________________________________________________
-% Jesper Andersson 2/10-03
+
+% Jesper Andersson
+% Copyright (C) 2003-2022 Wellcome Centre for Human Neuroimaging
 
 if nargin < 5
    gd = 0;
@@ -207,5 +207,3 @@ varargout{1} = upm;
 if nargout > 1
    varargout{2} = rima;
 end
-
-return

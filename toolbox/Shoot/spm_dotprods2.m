@@ -3,11 +3,10 @@ function out = spm_dotprods2(job)
 % FORMAT spm_dotprods(job)
 % job.images  - Images to use
 % job.dotprod - Part of filename for results
-%_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % John Ashburner
-% $Id: spm_dotprods2.m 7387 2018-08-03 15:13:57Z john $
+% Copyright (C) 2011-2022 Wellcome Centre for Human Neuroimaging
 
 P      = strvcat(job.images);
 
@@ -102,4 +101,3 @@ if isfield(job,'dotprod')
 else
     out = K;
 end
-

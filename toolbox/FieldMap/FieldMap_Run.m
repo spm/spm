@@ -28,10 +28,9 @@ function vdm = FieldMap_Run(job)
 %         shortimag - name of short imaginary image for real/imaginary job
 %         longimag  - name of long imaginary image for real/imaginary job
 %__________________________________________________________________________
-% Copyright (C) 2007-2015 Wellcome Trust Centre for Neuroimaging
 
 % Chloe Hutton & Jesper Andersson
-% $Id: FieldMap_Run.m 7892 2020-07-10 16:39:18Z john $
+% Copyright (C) 2007-2022 Wellcome Centre for Human Neuroimaging
 
 
 %--------------------------------------------------------------------------

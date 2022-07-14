@@ -6,7 +6,7 @@ function [K1,lambda] = covLin(lambda0,settings,args,lab)
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: covLin.m 7387 2018-08-03 15:13:57Z john $
+% Copyright (C) 2011-2022 Wellcome Centre for Human Neuroimaging
 
 if ischar(lambda0) && strcmpi(lambda0,'init')
     K            = settings;

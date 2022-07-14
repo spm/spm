@@ -3,10 +3,9 @@ function out = spm_pairwise(job)
 % FORMAT out = spm_pairwise(job)
 % See tbx_cfg_longitudinal.m for a description of the various fields. 
 %__________________________________________________________________________
-% Copyright (C) 2012-2019 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_pairwise.m 7563 2019-04-01 10:39:24Z guillaume $
+% Copyright (C) 2012-2022 Wellcome Centre for Human Neuroimaging
 
 
 N = numel(job.vols1);

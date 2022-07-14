@@ -3,11 +3,11 @@ function [Phi,dim1,dim2] = spm_def2sparse(PY,PI)
 % [Phi,dim1,dim2] = spm_def2sparse(PY,PI)
 % PY - Filename of deformation field
 % PI - Filename of image defining field of view etc
-%_______________________________________________________________________
-% Copyright (C) Wellcome Trust Centre for Neuroimaging (2009)
+%__________________________________________________________________________
 
 % John Ashburner
-% $Id: spm_def2sparse.m 4861 2012-08-24 15:56:39Z john $
+% Copyright (C) 2011-2022 Wellcome Centre for Human Neuroimaging
+
 
 NY=nifti(PY);
 NI=nifti(PI);
@@ -90,4 +90,3 @@ else
     S   = S(I);
     Phi = Phi + sparse(I,J,S,prod(dim1),prod(dim2));
 end
-

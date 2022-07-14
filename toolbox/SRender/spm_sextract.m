@@ -1,10 +1,9 @@
 function out = spm_sextract(job)
 % Surface extraction
 %__________________________________________________________________________
-% Copyright (C) 2008-2016 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_sextract.m 7892 2020-07-10 16:39:18Z john $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 images = job.images;
@@ -51,10 +50,11 @@ for k=1:numel(job.surface)
     spm_progress_bar('Clear');
 end
 
+
 %==========================================================================
 function y = efun(im,f)
+%==========================================================================
 for i=1:numel(im)
     eval(['i' num2str(i) '= im{i};']);
 end
 y = eval(f);
-

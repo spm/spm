@@ -31,10 +31,10 @@ function out = spm_shoot_norm(job)
 % normalised fMRI/PET, and dividing by the smoothed Jacobian determinants.
 %
 %__________________________________________________________________________
-% Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_shoot_norm.m 7496 2018-11-23 11:14:43Z john $
+% Copyright (C) 2009-2022 Wellcome Centre for Human Neuroimaging
+
 
 % Hard coded stuff, that should maybe be customisable
 tpm  = fullfile(spm('Dir'),'tpm','TPM.nii');
@@ -294,5 +294,3 @@ for m=1:numel(PI)
     end
     fprintf('\n'); drawnow;
 end
-%__________________________________________________________________________
-

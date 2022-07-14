@@ -66,13 +66,11 @@ function fm = pm_make_fieldmap(P,flags)
 % P(2)        : magnitude of short echo time image
 % P(3)        : real part of long echo time image
 % P(4)        : imaginary part of long echo time image
-%__________________________________________________________
-% Chloe Hutton, Jesper Andersson 05/08/22
-%_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Jesper Andersson and Chloe Hutton
-% $Id: pm_make_fieldmap.m 7892 2020-07-10 16:39:18Z john $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
+
 
 % The default values below will be used if any flags haven't been defined
 % or are empty.
@@ -217,5 +215,3 @@ if isfield(fm,'fpm')
 end
 
 fm.upm = fm.upm/(2*pi*flags.etd*1e-3);
-
-return

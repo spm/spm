@@ -103,10 +103,9 @@ function varargout = FieldMap(varargin)
 %
 % Wellcome Trust and IBIM Consortium
 %__________________________________________________________________________
-% Copyright (C) 2006-2016 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson and Chloe Hutton
-% $Id: FieldMap.m 8290 2022-07-12 14:41:54Z guillaume $
+% Copyright (C) 2006-2022 Wellcome Centre for Human Neuroimaging
 
 
 persistent PF FS WS PM   % GUI related constants

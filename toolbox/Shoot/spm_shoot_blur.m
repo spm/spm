@@ -16,11 +16,11 @@ function [sig,a] = spm_shoot_blur(t,prm,its,sig)
 %
 % However, there is an additional modification such that the the null space
 % of the parameters is rotated out.
-%________________________________________________________
-% (c) Wellcome Trust Centre for NeuroImaging (2009)
+%__________________________________________________________________________
 
 % John Ashburner
-% $Id: spm_shoot_blur.m 7848 2020-05-11 11:44:22Z john $
+% Copyright (C) 2009-2022 Wellcome Centre for Human Neuroimaging
+
 
 d   = [size(t),1,1,1];
 if nargin<3, its = 16;                         end % Maximum no. iterations
@@ -159,9 +159,11 @@ for i=1:its
 end
 
 sig = sftmax(a,R);
-%________________________________________________________
 
-%________________________________________________________
+
+%==========================================================================
+
+%==========================================================================
 function [sig,ll] = sftmax(a,R,t,s)
 % Softmax function
 
@@ -199,5 +201,3 @@ for j=1:size(a,3) % Loop over planes
         sig(:,:,j,i) = single(ej(:,:,i)./s);
     end
 end
-%________________________________________________________
-

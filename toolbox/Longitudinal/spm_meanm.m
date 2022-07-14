@@ -8,10 +8,9 @@ function M = spm_meanm(A)
 % procedure fails.
 % See http://hal.archives-ouvertes.fr/hal-00699361/
 %__________________________________________________________________________
-% Copyright (C) 2012-2019 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_meanm.m 7563 2019-04-01 10:39:24Z guillaume $
+% Copyright (C) 2012-2022 Wellcome Centre for Human Neuroimaging
 
 
 N = size(A,3);

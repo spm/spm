@@ -1,7 +1,6 @@
 function mask = pm_mask(angvar,mthres,ndil)
-% Creating a mask that will determine how far
-% we should proceed with phase unwrapping.
-% FORMAT: mask = pm_mask(angvar,mthrea,ndil)
+% Create a mask that will determine how far to proceed with phase unwrapping
+% FORMAT mask = pm_mask(angvar,mthrea,ndil)
 %
 % Input:
 % angvar     : Map of variance of angle estimate.
@@ -19,12 +18,11 @@ function mask = pm_mask(angvar,mthres,ndil)
 % Output:
 % mask       : Well...
 %
-% Jesper Andersson 26/9-03.
-%_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Jesper Andersson
-% $Id: pm_mask.m 7892 2020-07-10 16:39:18Z john $
+% Copyright (C) 2003-2022 Wellcome Centre for Human Neuroimaging
+
 
 if nargin < 2
    mthres = (pi^2)/6;
@@ -59,6 +57,3 @@ if ndil
    end
    mask = mask.*dmask;
 end
-
-return
-

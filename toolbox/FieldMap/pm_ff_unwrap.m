@@ -33,14 +33,9 @@ function varargout = pm_ff_unwrap(varargin)
 %
 % where the later would be slightly slower but would allow
 % reporting of progress to some GUI.
-%_________________________________________________________________
-% Jesper Andersson 30/9-03
 %_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson
-% $Id: pm_ff_unwrap.m 7892 2020-07-10 16:39:18Z john $
+% Copyright (C) 2003-2022 Wellcome Centre for Human Neuroimaging
 
 error('mex-function pm_ff_unwrap.c not compiled');
-
-

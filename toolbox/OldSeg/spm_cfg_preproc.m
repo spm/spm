@@ -1,9 +1,9 @@
 function preproc = spm_cfg_preproc
 % SPM Configuration file for toolbox 'Old Segment'
-%______________________________________________________________________
-% Copyright (C) 2005-2021 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
-% $Id: spm_cfg_preproc.m 8119 2021-07-06 13:51:43Z guillaume $
+% John Ashburner
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 
 if ~isdeployed, addpath(fullfile(spm('dir'),'toolbox','OldSeg')); end

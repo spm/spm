@@ -16,12 +16,11 @@ function varargout = spm_shoot_greens(varargin)
 %        - either size n1*n2*n3 or n1*n2*n3*3*3
 % ld(1)  - Log determinant of operator
 % ld(2)  - Number of degrees of freedom
-%
-%________________________________________________________
-% (c) Wellcome Trust Centre for NeuroImaging (2012)
+%__________________________________________________________________________
 
 % John Ashburner
-% $Id: spm_shoot_greens.m 8248 2022-04-28 12:24:12Z john $
+% Copyright (C) 2012-2022 Wellcome Centre for Human Neuroimaging
+
 
 if nargin==3 && isa(varargin{1},'char') && strcmp(varargin{1},'kernel')
     d   = varargin{2};
@@ -118,5 +117,3 @@ else
     end
     varargout{1} = v;
 end
-%__________________________________________________________________________________
-

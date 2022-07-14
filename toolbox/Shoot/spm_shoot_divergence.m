@@ -2,11 +2,11 @@ function out = spm_shoot_divergence(job)
 % Compute divergences from velocity fields
 % FORMAT spm_shoot_divergence(job)
 % job.velocities - Filenames of initial velocity fields
-%
-% Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % John Ashburner
-% $Id: spm_shoot_divergence.m 7387 2018-08-03 15:13:57Z john $
+% Copyright (C) 2009-2022 Wellcome Centre for Human Neuroimaging
+
 
 P = strvcat(job.velocities);
 out = cell(size(P,1),1);
@@ -30,4 +30,3 @@ for i=1:size(P,1)
     Nio.dat(:,:,:) = dv;
     out{i}         = Nio.dat.fname;
 end
-

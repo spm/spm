@@ -1,10 +1,9 @@
 function render = tbx_cfg_render
 % Configuration file for toolbox 'Rendering'
 %__________________________________________________________________________
-% Copyright (C) 2008-2021 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: tbx_cfg_render.m 8119 2021-07-06 13:51:43Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 if ~isdeployed, addpath(fullfile(spm('dir'),'toolbox','SRender')); end

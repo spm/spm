@@ -24,10 +24,9 @@ function out = spm_groupwise_ls(Nii, output, prec, w_settings, b_settings, s_set
 % This function requires an obscene amount of memory.  If it crashes
 % with an "Out of memory" error, then do not be too surprised.
 %__________________________________________________________________________
-% Copyright (C) 2012-2019 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_groupwise_ls.m 7652 2019-08-07 11:30:35Z john $
+% Copyright (C) 2012-2022 Wellcome Centre for Human Neuroimaging
 
 
 % Get handles to NIfTI data
