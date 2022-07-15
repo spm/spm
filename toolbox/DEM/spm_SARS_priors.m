@@ -37,7 +37,7 @@ function [P,C,str] = spm_SARS_priors(nN)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_priors.m 8280 2022-07-08 09:50:45Z karl $
+% $Id: spm_SARS_priors.m 8297 2022-07-15 10:02:58Z karl $
 
 % sources and background
 %--------------------------------------------------------------------------
@@ -66,7 +66,7 @@ if nargin
     %----------------------------------------------------------------------
     [P,C,str] = spm_SARS_priors;
     free  = {'N'  ,'Nin','Nou',...
-             'abs','qua','pro',...
+             'qua','pro',...
              'hos','ccu',...
              'sev','fat',...
              'rol','fol','lnk'};
@@ -301,7 +301,7 @@ names{54} = 'survival risk in care homes';
 names{55} = 'changes in transfer to CCU';  
 names{56} = 'transmissibility parameters';
 names{57} = 'doses per seroconversion';
-names{58} = 'sensitivity to contact fluctuations';
+names{58} = 'not used';
 
 % latent or hidden factors
 %--------------------------------------------------------------------------
@@ -470,9 +470,9 @@ P.rel = 1;                    % (52) PCR testing of fatalities
 P.pro = [1 1];                % (53) contact rate decay (days)
 P.oth = 0.1;                  % (54) relative survival outside hospital
 P.iad = [1 1];                % (55) exponent: transfer to CCU
-P.tra = ones(1,i)/16;         % (56) transmissibility parameters
+P.tra = ones(1,i)*64/800;     % (56) transmissibility parameters
 P.dps = [2 1];                % (57) doses per seroconversion
-P.abs = 1;                    % (58) Sensitivity to contact fluctuations
+P.abs = 1;                    % (58) not used
 
 % infection fatality (for susceptible population)
 %--------------------------------------------------------------------------
@@ -561,7 +561,7 @@ C.oth = W;                    % (54) relative survival outside hospital
 C.iad = V;                    % (55) exponent: transfer to CCU
 C.tra = X;                    % (56) transmissibility parameters
 C.dps = X;                    % (57) doses per seroconversion
-C.abs = X;                    % (58) Sensitivity to contact fluctuations
+C.abs = 0;                    % (58) not used
 
 % check prior expectations and covariances are consistent
 %--------------------------------------------------------------------------

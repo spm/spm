@@ -84,7 +84,7 @@ function [y,x,z,W] = spm_SARS_gen(P,M,U,NPI,age)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_gen.m 8280 2022-07-08 09:50:45Z karl $
+% $Id: spm_SARS_gen.m 8297 2022-07-15 10:02:58Z karl $
 
 
 % The generative model:
@@ -367,7 +367,7 @@ for i = 1:M.T
         % fluctuations in contact rates (mobility): Gaussian basis functions
         %------------------------------------------------------------------
         Rout = 0;
-        dt   = 32;
+        dt   = 48;
         if isfield(R{n},'mob')
             for j = 1:numel(R{n}.mob)
                 Rout = Rout + log(R{n}.mob(j)) * exp(-(i - j*dt).^2/((dt/2)^2));
@@ -421,8 +421,8 @@ for i = 1:M.T
         r{n} = [(1 - k1) (1 - k2);
                      k1,      k2]*r{n};
         
-        Pout     = r{n}(1)*exp(Q{n}.abs*Rout);     % P(going out) with fluctuations
-        Pout     = erf(Pout);
+        Pout     = r{n}(1)*exp(Rout);              % P(going out) 
+        Pout     = erf(Pout);                      % with fluctuations
         Q{n}.out = Pout*R{n}.out;                  % scale by baseline
         
         % seasonal variation in transmission risk

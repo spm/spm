@@ -22,7 +22,7 @@ function [T,R] = spm_COVID_T(P,I)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_T.m 8279 2022-07-08 09:46:47Z karl $
+% $Id: spm_COVID_T.m 8297 2022-07-15 10:02:58Z karl $
 
 % setup
 %==========================================================================
@@ -97,7 +97,7 @@ b{4} = eye(6,6);
 
 % kroneckor form (taking care to get the order of factors right)
 %--------------------------------------------------------------------------
-if strcmp(class(Pout),'sym')
+if isa(class(Pout),'sym')
     spm_cat_T = @spm_cat_sym;
 else
     spm_cat_T = @spm_cat;
@@ -475,7 +475,7 @@ function [x] = spm_cat_sym(x,d)
 % Copyright (C) 2005-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_T.m 8279 2022-07-08 09:46:47Z karl $
+% $Id: spm_COVID_T.m 8297 2022-07-15 10:02:58Z karl $
 
 
 %error('spm_cat.c not compiled - see Makefile')

@@ -14,7 +14,7 @@ function DCM = DEM_COVID_UK4
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_UK4.m 8280 2022-07-08 09:50:45Z karl $
+% $Id: DEM_COVID_UK4.m 8297 2022-07-15 10:02:58Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -51,11 +51,11 @@ options.Timeout = 40;
 
 % download data and write to CSV files
 %--------------------------------------------------------------------------
-url = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=overview&metric=newCasesBySpecimenDate&format=csv';
+url = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=nation&areaCode=E92000001&metric=newCasesBySpecimenDate&format=csv';
 writetable(webread(url,options),'cases.csv');
 url = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=overview&metric=newDeaths28DaysByDeathDate&format=csv';
 writetable(webread(url,options),'deaths.csv');
-url = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=overview&metric=covidOccupiedMVBeds&format=csv';
+url = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=nation&areaCode=E92000001&metric=covidOccupiedMVBeds&format=csv';
 writetable(webread(url,options),'critical.csv');
 url = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=nation&areaCode=E92000001&metric=newTestsByPublishDate&format=csv';
 writetable(webread(url,options),'tests.csv');
@@ -154,17 +154,10 @@ writetable(cumAdmiss,'cumAdmiss.csv')
 
 % mobility and transport
 %--------------------------------------------------------------------------
-url  = 'https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/947572/COVID-19-transport-use-statistics.ods.ods';
-tab  = webread(url,options);
-try
-    if isempty(table2array(tab{1,3}))
-        writetable(tab(8:end,1:4),'transport.csv');
-    else
-        writetable(tab(:,1:4),'transport.csv');
-    end
-catch
-    writetable(tab(:,1:4),'transport.csv');
-end
+% url  = 'https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/947572/COVID-19-transport-use-statistics.ods.ods';
+% tab  = webread(url,options);
+% writetable(tab(:,1:4),'transport.csv');
+
 
 % Google mobility
 %--------------------------------------------------------------------------
@@ -271,6 +264,7 @@ ratio      = importdata('ratio.csv');
 gdp        = importdata('gdp.csv');
 
 d          = find(ismember(cases.textdata(1,1:end),'date'));
+EnglandUK  = 6708/5655;
 
 % create data structure
 %--------------------------------------------------------------------------
@@ -278,7 +272,7 @@ Y(1).type = 'Positive virus tests (ONS)'; % daily positive cases
 Y(1).unit = 'number/day';
 Y(1).U    = 2;
 Y(1).date = datenum(cases.textdata(2:end,d),'yyyy-mm-dd');
-Y(1).Y    = cases.data(:,1);
+Y(1).Y    = cases.data(:,1)*EnglandUK;
 Y(1).h    = 0;
 Y(1).lag  = 1;
 Y(1).age  = 0;
@@ -288,7 +282,7 @@ Y(2).type = 'Virus tests (ONS)'; % newVirusTests (England)
 Y(2).unit = 'number/day';
 Y(2).U    = 6;
 Y(2).date = datenum(tests.textdata(2:end,d),'yyyy-mm-dd');
-Y(2).Y    = tests.data(:,1)*6708/5655;
+Y(2).Y    = tests.data(:,1)*EnglandUK;
 Y(2).h    = 0;
 Y(2).lag  = 0;
 Y(2).age  = 0;
@@ -298,7 +292,7 @@ Y(3).type = 'Virus/LFD tests (GOV)'; % newLFDTests (England)
 Y(3).unit = 'number/day';
 Y(3).U    = 24;
 Y(3).date = datenum(lateralft.textdata(2:end,d),'yyyy-mm-dd');
-Y(3).Y    = lateralft.data(:,1)*6708/5655;
+Y(3).Y    = lateralft.data(:,1)*EnglandUK;
 Y(3).h    = 0;
 Y(3).lag  = 0;
 Y(3).age  = 0;
@@ -358,7 +352,7 @@ Y(9).type = 'Ventilated patients (ONS)'; % CCU occupancy (mechanical)
 Y(9).unit = 'number';
 Y(9).U    = 3;
 Y(9).date = datenum(ccu.textdata(2:end,d),'yyyy-mm-dd');
-Y(9).Y    = ccu.data(:,1);
+Y(9).Y    = ccu.data(:,1)*EnglandUK;
 Y(9).h    = 0;
 Y(9).lag  = 0;
 Y(9).age  = 0;
@@ -523,8 +517,8 @@ ig2        = [5 6 7 8];                              % 15-35
 ig3        = [9 10 11 12 13 15 16];                  % 35-70
 ig4        = [17 18 19 20 21];                       % >70
 ig         = [ig1 ig2 ig3 ig4];
-England    = sum(sum(agedeaths.data(:,ig),2));
-UK         = sum(deaths.data(4:end,1));
+England    = sum(sum(agedeaths.data((end - 800:end),ig),2));
+UK         = sum(deaths.data((end - 800:end),1));
 EnglandUK  = UK/England;
 
 
@@ -657,7 +651,7 @@ England    = sum(max(cumAdmiss.data));
 UK         = sum(admissions.data);
 EnglandUK  = UK/England;
 
-Y(35).type = 'Cumulative admissions <15 (ONS)';  % Cumulative admissions (England)
+Y(35).type = 'Admissions <15 (ONS)';  % Cumulative admissions (England)
 Y(35).unit = 'number';
 Y(35).U    = 16;
 Y(35).date = datenum(cumAdmiss.textdata(2:end,1),'yyyy-mm-dd');
@@ -667,7 +661,7 @@ Y(35).lag  = 0;
 Y(35).age  = 1;
 Y(35).hold = 1;
 
-Y(36).type = 'Cumulative admissions 15-35 (ONS)'; % Cumulative admissions (England)
+Y(36).type = 'Admissions 15-35 (ONS)'; % Cumulative admissions (England)
 Y(36).unit = 'number';
 Y(36).U    = 16;
 Y(36).date = datenum(cumAdmiss.textdata(2:end,1),'yyyy-mm-dd');
@@ -677,7 +671,7 @@ Y(36).lag  = 0;
 Y(36).age  = 2;
 Y(36).hold = 1;
 
-Y(37).type = 'Cumulative admissions 35-70 (ONS)'; % Cumulative admissions (England)
+Y(37).type = 'Admissions 35-70 (ONS)'; % Cumulative admissions (England)
 Y(37).unit = 'number';
 Y(37).U    = 16;
 Y(37).date = datenum(cumAdmiss.textdata(2:end,1),'yyyy-mm-dd');
@@ -687,7 +681,7 @@ Y(37).lag  = 0;
 Y(37).age  = 3;
 Y(37).hold = 1;
 
-Y(38).type = 'Cumulative admissions -15-35-70- (ONS)'; % Cumulative admissions (England)
+Y(38).type = 'Admissions -15-35-70- (ONS)'; % Cumulative admissions (England)
 Y(38).unit = 'number';
 Y(38).U    = 16;
 Y(38).date = datenum(cumAdmiss.textdata(2:end,1),'yyyy-mm-dd');
@@ -750,11 +744,11 @@ pC.gd   = ones(j,2)/8;         % prior variance
 
 % augment priors with fluctuations
 %--------------------------------------------------------------------------
-i       = ceil((datenum(date) - datenum(M.date))/32);
+i       = ceil((datenum(date) - datenum(M.date))/48);
 j       = ceil((datenum(date) - datenum(M.date))/64);
 
 pE.mob  = zeros(1,i);          % mobility
-pC.mob  = ones(1,i)/128;       % prior variance
+pC.mob  = ones(1,i)/512;       % prior variance
 pE.pcr  = zeros(1,j);          % testing
 pC.pcr  = ones(1,j)/8;         % prior variance
 
