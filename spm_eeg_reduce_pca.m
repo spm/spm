@@ -84,10 +84,10 @@ for f = 1:numel(S.D)
                 end
             else
                 if isTF
-                    Y  = squeeze(D(S.chanind, :, ((i-1)*np+1):end, 1));
+                    Y  = squeeze(D(S.chanind, :, ((i-1)*np+1):D.nsamples, 1));
                     Y  = reshape(Y, size(Y, 1), []);
                 else
-                    Y  = squeeze(D(S.chanind, ((i-1)*np+1):end, 1));
+                    Y  = squeeze(D(S.chanind, ((i-1)*np+1):D.nsamples, 1));
                 end
             end
         else
