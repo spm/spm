@@ -30,7 +30,7 @@ function FEP_Manifold
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: FEP_Manifold.m 8194 2021-12-12 16:40:20Z karl $
+% $Id: FEP_Manifold.m 8298 2022-07-15 10:06:28Z karl $
  
  
 % default settings (GRAPHICS sets movies)
@@ -301,10 +301,10 @@ end
 
 % normalise and retain principal eigenvariates
 %--------------------------------------------------------------------------
-Xq        = spm_en(diff(spm_cat(XQ),1));
-[Xq,S,UX] = spm_svd(Xq,1);
-Xq        = Xq(:,1:32);
-X0        = ones(size(Xq,1),1);
+Xq    = spm_en(diff(spm_cat(XQ),1));
+Xq    = spm_svd(Xq,1);
+Xq    = Xq(:,1:32);
+X0    = ones(size(Xq,1),1);
 
 subplot(3,2,1)
 imagesc(Xq')
@@ -399,21 +399,21 @@ for i = 1:n
     
     % parameters (energy and state-dependent forces)
     %------------------------------------------------------------------
-    Pp.e    = exp(Pe(i));
+    Pp.e  = exp(Pe(i));
     
     % entropy of dynamics
     %------------------------------------------------------------------
-    [Q,X]   = spm_Manifold_solve(x,u,Pp,T,1/32,0);
+    [Q,X] = spm_Manifold_solve(x,u,Pp,T,1/32,0);
     
     
     % entropy of dynamics
     %------------------------------------------------------------------
-    q       = squeeze(Q(1,:,t));
+    q     = squeeze(Q(1,:,t));
     Hq(i) = spm_logdet(cov(q'));
     
     % configuration entropy
     %------------------------------------------------------------------
-    p       = squeeze(X(1,:,t));
+    p     = squeeze(X(1,:,t));
     Hp(i) = spm_logdet(cov(p'));
     
     % update with graphics

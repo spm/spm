@@ -1,5 +1,5 @@
-function [dx] = spm_dx(dfdx,f,t)
-% Return dx(t) = (expm(dfdx*t) - I)*inv(dfdx)*f
+function [dx] = spm_dx(dfdx,f,t,Q)
+% Returns dx(t) = (expm(dfdx*t) - I)*inv(dfdx)*f
 % FORMAT [dx] = spm_dx(dfdx,f,[t])
 % dfdx   = df/dx
 % f      = dx/dt
@@ -29,11 +29,10 @@ function [dx] = spm_dx(dfdx,f,t)
 %                      expm(0*k*dfdx)*inv(dfdx)*f(0)
 %
 % When f = dF/dx (and dfdx = dF/dxdx), dx represents the update from a
-% Gauss-Newton ascent on F.  This can be regularised by specifying {t}.
-% A heavy regularization corresponds to t = -4 and a light
-% regularization would be t = 4. This version of spm_dx uses an augmented
-% system and the Pade approximation to compute requisite matrix
-% exponentials.
+% Gauss-Newton ascent on F.  This can be regularised by specifying {t}. A
+% heavy regularization corresponds to t = -4 and a light regularization
+% would be t = 4. This version of spm_dx uses an augmented system and the
+% Pade approximation to compute requisite matrix exponentials.
 %
 % References:
 %
@@ -73,6 +72,23 @@ if iscell(t)
     
 end
 warning(sw);
+
+% solenoidal mixing (disabled)
+%--------------------------------------------------------------------------
+if nargin > 4
+    
+    % solenoidal flow
+    %----------------------------------------------------------------------
+    L    = tril(dfdx);
+    Q    = L - L';
+    Q    = Q/norm(Q);
+
+    % augment flow and Jacobian
+    %----------------------------------------------------------------------
+    f    = f    - Q*f;
+    dfdx = dfdx - Q*dfdx;
+    
+end
 
 % use a [pseudo]inverse if all t > TOL
 %==========================================================================
