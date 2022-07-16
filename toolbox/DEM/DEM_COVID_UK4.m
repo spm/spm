@@ -14,7 +14,7 @@ function DCM = DEM_COVID_UK4
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_UK4.m 8297 2022-07-15 10:02:58Z karl $
+% $Id: DEM_COVID_UK4.m 8300 2022-07-16 10:23:45Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -263,12 +263,15 @@ symptoms   = importdata('symptoms.csv');
 ratio      = importdata('ratio.csv');
 gdp        = importdata('gdp.csv');
 
+% scaling for data from England and Wales 
+%--------------------------------------------------------------------------
 d          = find(ismember(cases.textdata(1,1:end),'date'));
-EnglandUK  = 6708/5655;
+EngWaleUK  = 67081234/(56550138 + 3169586);
+EnglandUK  = 67081234/(56550138);
 
 % create data structure
 %--------------------------------------------------------------------------
-Y(1).type = 'Positive virus tests (ONS)'; % daily positive cases
+Y(1).type = 'Positive virus tests (ONS)'; % positive cases (England)
 Y(1).unit = 'number/day';
 Y(1).U    = 2;
 Y(1).date = datenum(cases.textdata(2:end,d),'yyyy-mm-dd');
@@ -328,7 +331,7 @@ Y(6).lag  = 0;
 Y(6).age  = 0;
 Y(6).hold = 0;
 
-Y(7).type = 'Admissions (ONS)'; % admissions to hospital
+Y(7).type = 'Admissions (ONS)'; % admissions to hospital (United Kingdom)
 Y(7).unit = 'number';
 Y(7).U    = 16;
 Y(7).date = datenum(admissions.textdata(2:end,d),'yyyy-mm-dd');
@@ -338,7 +341,7 @@ Y(7).lag  = 0;
 Y(7).age  = 0;
 Y(7).hold = 0;
 
-Y(8).type = 'Occupancy (ONS)'; % Hospital cases
+Y(8).type = 'Occupancy (ONS)'; % Hospital cases (United Kingdom)
 Y(8).unit = 'number';
 Y(8).U    = 27;
 Y(8).date = datenum(occupancy.textdata(2:end,d),'yyyy-mm-dd');
@@ -348,7 +351,7 @@ Y(8).lag  = 1;
 Y(8).age  = 0;
 Y(8).hold = 0;
 
-Y(9).type = 'Ventilated patients (ONS)'; % CCU occupancy (mechanical)
+Y(9).type = 'Ventilated patients (ONS)'; % CCU occupancy (England)
 Y(9).unit = 'number';
 Y(9).U    = 3;
 Y(9).date = datenum(ccu.textdata(2:end,d),'yyyy-mm-dd');
@@ -378,7 +381,7 @@ Y(11).lag  = 1;
 Y(11).age  = 0;
 Y(11).hold = 0;
 
-Y(12).type = 'R-ratio (WHO/GOV)'; % the production ratio
+Y(12).type = 'R-ratio (WHO/GOV)'; % production ratio
 Y(12).unit = 'ratio';
 Y(12).U    = 4;
 Y(12).date = datenum(ratio.textdata(2:end,1),'dd/mm/yyyy') - 16;
@@ -417,15 +420,7 @@ else
 end
 Y(14).Y  = (mobility.data(:,1) + mobility.data(:,2))/2 + 100;
 
-
-% scaling for data from England and Wales 
-%--------------------------------------------------------------------------
-% EngWale    = sum(sum(place.data(1:(64*7),1:4),2));
-% UK         = sum(certified.data((end-64):end,1));
-% EngWaleUK  = UK/EngWale;
-EngWaleUK  = 1.0853;
-
-Y(15).type = 'Hospital deaths (PHE)';       % hospital deaths
+Y(15).type = 'Hospital deaths (PHE)';       % hospital deaths(England and Wales)
 Y(15).unit = 'number';
 Y(15).U    = 17;
 Y(15).date = datenum(place.textdata(2:end - 8,1),'dd/mm/yyyy');
@@ -516,11 +511,6 @@ ig1        = [1 3 4];                                % <15
 ig2        = [5 6 7 8];                              % 15-35
 ig3        = [9 10 11 12 13 15 16];                  % 35-70
 ig4        = [17 18 19 20 21];                       % >70
-ig         = [ig1 ig2 ig3 ig4];
-England    = sum(sum(agedeaths.data((end - 800:end),ig),2));
-UK         = sum(deaths.data((end - 800:end),1));
-EnglandUK  = UK/England;
-
 
 Y(23).type = 'Deaths <15(PHE)'; % deaths (English hospitals)
 Y(23).unit = 'number';
@@ -562,10 +552,6 @@ Y(26).lag  = 0;
 Y(26).age  = 4;
 Y(26).hold = 0;
 
-England    = sum(sum(agecases.data(:,ig),2));
-UK         = sum(cases.data(4:end,1));
-EnglandUK  = UK/England;
-
 Y(27).type = 'New cases <15 (PHE)';  % New notifications (England)
 Y(27).unit = 'number';
 Y(27).U    = 2;
@@ -576,7 +562,7 @@ Y(27).lag  = 1;
 Y(27).age  = 1;
 Y(27).hold = 1;
 
-Y(28).type = 'New cases 15-35 (PHE)'; % New notifications  (England)
+Y(28).type = 'New cases 15-35 (PHE)'; % New notifications (England)
 Y(28).unit = 'number';
 Y(28).U    = 2;
 Y(28).date = datenum(agecases.textdata(2:end,1),'yyyy-mm-dd');
@@ -586,7 +572,7 @@ Y(28).lag  = 1;
 Y(28).age  = 2;
 Y(28).hold = 1;
 
-Y(29).type = 'New cases 35-70 (PHE)'; % New notifications  (England)
+Y(29).type = 'New cases 35-70 (PHE)'; % New notifications (England)
 Y(29).unit = 'number';
 Y(29).U    = 2;
 Y(29).date = datenum(agecases.textdata(2:end,1),'yyyy-mm-dd');
@@ -596,7 +582,7 @@ Y(29).lag  = 1;
 Y(29).age  = 3;
 Y(29).hold = 1;
 
-Y(30).type = 'New cases -15-35-70- (PHE)'; % New notifications  (England)
+Y(30).type = 'New cases -15-35-70- (PHE)'; % New notifications (England)
 Y(30).unit = 'number';
 Y(30).U    = 2;
 Y(30).date = datenum(agecases.textdata(2:end,1),'yyyy-mm-dd');
@@ -646,10 +632,6 @@ Y(34).h    = 2;
 Y(34).lag  = 0;
 Y(34).age  = 4;
 Y(34).hold = 0;
-
-England    = sum(max(cumAdmiss.data));
-UK         = sum(admissions.data);
-EnglandUK  = UK/England;
 
 Y(35).type = 'Admissions <15 (ONS)';  % Cumulative admissions (England)
 Y(35).unit = 'number';
