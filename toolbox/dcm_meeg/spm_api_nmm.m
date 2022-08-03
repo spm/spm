@@ -196,7 +196,7 @@ ylabel('voltage and conductance')
 %--------------------------------------------------------------------------
 clear g
 for i = 1:size(x,2)
-    g(:,i) = fft(x(:,i));
+    g(:,i) = fft(full(x(:,i)));
     g(:,i) = abs(g(:,i).*conj(g(:,i)));
 end
 i   = [1:M.ns/2];
