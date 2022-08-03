@@ -364,9 +364,8 @@ switch lower(S.task)
                         D = chantype(D, setdiff(eegind, sel1), 'Other');
                     end
                     
-                    if any(any(coor2D(D, sel1) - xy(:, sel2)))
-                        D = coor2D(D, sel1, num2cell(xy(:, sel2)));
-                    end
+                   
+                    D = coor2D(D, sel1, num2cell(xy(:, sel2)));                   
                 end
                 
                 if strcmp(D.modality(1, 0), 'Multimodal') && ~isempty(D.fiducials)...
