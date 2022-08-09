@@ -108,8 +108,11 @@ if ispc && strcmpi(spm_check_version,'matlab')
     try
         %M   = getframe(Fmenu);
         %col = double(M.cdata(floor(size(M.cdata,1)/3),floor(size(M.cdata,2)/2),:));
-        col = [204 204 204];
-        set(findobj(Fmenu,'UserData','LABEL'),'BackgroundColor',col/255);
+        panelcol  = [204 204 204]/255;
+        buttoncol = [220 220 220]/255;
+        set(findobj(Fmenu,'Style','pushbutton'),'BackgroundColor',buttoncol);
+        set(findobj(Fmenu,'UserData','LABEL'),'BackgroundColor',panelcol);
+        set(findobj(Fmenu,'Style','pushbutton','Enable','off','Callback',[]),'BackgroundColor',panelcol);
     end
 elseif ismac
     set(findobj(Fmenu,'UserData','LABEL'),'Visible','off','Tag','');
