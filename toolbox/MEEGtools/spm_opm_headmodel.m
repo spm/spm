@@ -94,7 +94,7 @@ if do.identity || do.coreg
     args.iskull = S.iskull;
     args.oskull = S.oskull;
     args.template = S.template;
-    S.D = opm_customMeshes(args);
+    D = opm_customMeshes(args);
     save(D);
 end
 

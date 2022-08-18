@@ -29,7 +29,7 @@ function [D,L] = spm_opm_create(S)
 % Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
 
 % Tim Tierney
-% $Id: spm_opm_create.m 8241 2022-04-12 11:01:42Z george $
+% $Id: spm_opm_create.m 8305 2022-08-18 09:57:46Z george $
 spm('FnBanner', mfilename);
 
 %-Set default values
@@ -74,7 +74,9 @@ try % work out if data is a matrix or a file
         end
         Data = read_cMEG_data(args);
         S.channels = Data.channels;
+        if isfield(Data,'position')
         S.positions = Data.position;
+        end
         S.fs=Data.meg.SamplingFrequency;
         binData=0;
         S.data=Data.data;
@@ -338,7 +340,7 @@ function [bids] = read_cMEG_data(S)
 % Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
 
 % Tim Tierney
-% $Id: spm_opm_create.m 8241 2022-04-12 11:01:42Z george $
+% $Id: spm_opm_create.m 8305 2022-08-18 09:57:46Z george $
 
 if strcmpi(num2str(S.filename(end-4:end)),'.cMEG')
     filename = S.filename(1:end-5);
@@ -381,6 +383,7 @@ for j = 1:I
         temp = sum(Adim_conv.*temp);
         dims = [dims,temp];
     end
+        
     clear temp n
     temp = fread(fid,prod(dims),'double',0,'ieee-be');
     

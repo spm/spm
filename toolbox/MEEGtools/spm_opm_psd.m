@@ -19,7 +19,7 @@ function [po,freq] = spm_opm_psd(S)
 % Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
 
 % Tim Tierney
-% $Id: spm_opm_psd.m 8201 2021-12-22 14:11:18Z george $
+% $Id: spm_opm_psd.m 8305 2022-08-18 09:57:46Z george $
 
 %-ArgCheck
 %--------------------------------------------------------------------------
@@ -33,6 +33,7 @@ if ~isfield(S, 'plot'),          S.plot = 0; end
 if ~isfield(S, 'D'),             error('D is required'); end
 if ~isfield(S, 'trials'),        S.trials=0; end
 if ~isfield(S, 'wind'),          S.wind=@hanning; end
+if ~isfield(S, 'interact'),      S.interact=1; end
 
 
 %-channel Selection
@@ -48,7 +49,7 @@ for i = 1:length(labs)
     end
 end
 chans = [S.D.selectchannels(regex), indchantype(S.D,labs)];
-
+labs = chanlabels(S.D,chans);
 %- set window
 %--------------------------------------------------------------------------
 fs = S.D.fsample();
@@ -124,13 +125,18 @@ po = psdx;
 
 if(S.plot)
     f= figure();
-    semilogy(freq,po,'LineWidth',2);
     hold on
+    for i = 1:size(po,2)
+        tag = [labs{i}, ', Index: ' num2str(indchannel(S.D,labs{i}))];
+        plot(freq,po(:,i)','LineWidth',2,'tag',tag);
+    end
+    set(gca,'yscale','log')
+    
     xp2 =0:round(freq(end));
     yp2=ones(1,round(freq(end))+1)*S.constant;
     p2 =plot(xp2,yp2,'--k');
     p2.LineWidth=2;
-    p3=semilogy(freq,median(po,2),'LineWidth',2);
+    p3=semilogy(freq,median(po,2),'LineWidth',2,'tag','Median');
     p3.Color='k';
     xlabel('Frequency (Hz)')
     labY = ['$$PSD (' S.units ' \sqrt[-1]{Hz}$$)'];
@@ -141,6 +147,20 @@ if(S.plot)
     ax.TickLength = [0.02 0.02];
     fig= gcf;
     fig.Color=[1,1,1];
+    xlim([0,100]);
+    if(S.interact)
+        datacursormode on
+        dcm = datacursormode(gcf);
+        set(dcm,'UpdateFcn',@getLabel)
+    end
 end
 
+end
+
+function txt = getLabel(trash,event)
+pos = get(event,'Position');
+dts = get(event.Target,'Tag');
+txt = {dts,...
+       ['Frequency: ',num2str(pos(1))],...
+     ['RMS: ',num2str(pos(2))]};
 end

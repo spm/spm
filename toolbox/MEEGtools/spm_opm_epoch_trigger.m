@@ -1,4 +1,4 @@
-function D = spm_opm_epoch_trigger(S)
+function [D, trl] = spm_opm_epoch_trigger(S)
 % Epoch M/EEG data based on supplied triggers or triggers in file;
 % FORMAT D = spm_opm_epoch_trigger(S)
 %   S               - input structure
@@ -12,24 +12,43 @@ function D = spm_opm_epoch_trigger(S)
 %                     labels
 %   S.bc            - boolean option to baseline         -Default: 0
 %                     correct data   
+%   S.triggerChannels   - n x 1 cell containing trigger  - Default: all TRIG channels
+%                         channel names
 % Output:
 %  D           - epoched MEEG object (also written to disk)
+% trl          - the trial matrix used to epoch the data
 %__________________________________________________________________________
 % Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
 
 % Tim Tierney
-% $Id: spm_opm_epoch_trigger.m 8201 2021-12-22 14:11:18Z george $
+% $Id: spm_opm_epoch_trigger.m 8305 2022-08-18 09:57:46Z george $
 
 
 %-Set Defaults
 %--------------------------------------------------------------------------
 if ~isfield(S, 'D'),       error('D is required'); end
-cTypes= chantype(S.D);
-trigInds= strmatch('TRIG',cTypes);
-nTrigs =length(trigInds);
-trigs=S.D(trigInds,:);
 
-if ~isfield(S, 'condLabels')
+if isfield(S, 'triggerChannels')
+    trigInds = indchannel(S.D, S.triggerChannels);
+else
+    cTypes= chantype(S.D);
+    trigInds= strmatch('TRIG',cTypes);
+end
+nTrigs =length(trigInds);
+
+% assume trigger is in first frequency of TF object
+if (strcmp(transformtype(S.D),'TF'))
+    trigs=squeeze(S.D(trigInds,1,:));
+else
+trigs=squeeze(S.D(trigInds,:,:));
+end
+fprintf('%-40s: %30s\n',[num2str(nTrigs) ' Triggers channels identified'],spm('time'));
+
+if isfield(S, 'condLabels')
+    if length(S.condLabels) ~= nTrigs
+        error('Number of conditions must equal number of trigger channels selected');
+    end
+else
     args =[];
     args.base='Cond';
     args.n=nTrigs;
@@ -53,11 +72,11 @@ for i=1:nTrigs
     
     tChan=trigs(i,:);                                  % Get ith trigger
 
-if(~isfield(S, 'thresh'))
-    thresh=std(tChan)*2;
-else
-    thresh = S.thresh;% Threshold it
-end
+    if(~isfield(S, 'thresh'))
+        thresh=std(tChan)*2;
+    else
+        thresh = S.thresh;% Threshold it
+    end
     evSamples=find(diff(tChan>thresh)==1)+1;           % Find 1st sample exceeding threshold
     offsetTime=S.timewin(i,1)/1000;                    % Offset in seconds
     offsetSamples=round(offsetTime.*S.D.fsample);      % Offset in samples
@@ -70,12 +89,17 @@ end
     
     trlTemp=round([begSample'  endSample'  offset']);  % Construct temporary trial matrix
     nevents(i)=size(trlTemp,1);                        % Compute number of events per Condition
+    triglab = chanlabels(S.D,trigInds(i));
+    msg=[num2str(nevents(i)) ' Trials identified on ' triglab{:}];
+    fprintf('%-40s: %30s\n',msg,spm('time'));
+
     trl = [trl;trlTemp];                               % Combine trl matrices accross conditions
     
     condTemp =repmat({S.condLabels{i}},nevents(i),1);  % Replicate codition lable accross events
     cond = {cond{:,:},condTemp{:,1}}';                 % Combine condition labels accross conditions
     
 end
+
 
 
 % Actually do the epoching now

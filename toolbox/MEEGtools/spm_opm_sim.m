@@ -29,7 +29,7 @@ function [D,L] = spm_opm_sim(S)
 % Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
 
 % Tim Tierney
-% $Id: spm_opm_sim.m 8241 2022-04-12 11:01:42Z george $
+% $Id: spm_opm_sim.m 8305 2022-08-18 09:57:46Z george $
 spm('FnBanner', mfilename);
 
 %-Set default values
@@ -445,7 +445,7 @@ if(S.axis>2)
     
 end
 
-
+ori = ori./ repmat(sqrt(sum(ori.^2,2)),1,3);
 
 end
 
