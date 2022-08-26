@@ -4,7 +4,7 @@ function out = bf_sources
 % Copyright (C) 2015-2021 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: bf_sources.m 8119 2021-07-06 13:51:43Z guillaume $
+% $Id: bf_sources.m 8307 2022-08-26 11:00:54Z george $
 
 
 out = cfg_exbranch;
@@ -90,6 +90,11 @@ plugin_name = cell2mat(fieldnames(job.plugin));
 
 field_name  = strtok(plugin_name, '_');
 
+% odd case for scalp, rename to mesh
+if strcmpi(field_name,'scalp')
+    field_name = 'mesh';
+end
+
 BF.sources = [];
 BF.sources.(field_name) = feval(['bf_sources_' plugin_name], BF, job.plugin.(plugin_name));
 BF.sources.pos = BF.sources.(field_name).pos;
@@ -104,14 +109,34 @@ siunits = isfield(BF.data, 'siunits') & BF.data.siunits;
 
 nvert = size(BF.sources.pos, 1);
 modalities = {'MEG', 'EEG'};
-reduce_rank=job.reduce_rank; 
+reduce_rank=job.reduce_rank;
 
 for m = 1:numel(modalities)
     
     if isfield(BF.data, modalities{m})
         
         if isequal(modalities{m}, 'MEG')
+            
             chanind = indchantype(BF.data.D, {'MEG', 'MEGPLANAR'}, 'GOOD');
+            
+            % OPM data can have a case where a sensor is selected above, 
+            % but does not have a physical location in the sens structure, 
+            % find those channels and remove from the list.
+            [sel1, ~] = match_str(BF.data.D.chanlabels(chanind),...
+                BF.data.(modalities{m}).sens.label);
+            missing = setdiff(chanind,chanind(sel1));
+            if ~isempty(missing)
+                warning(['Sensors below missing location information:'...
+                    ' ignoring and setting to a different type'])
+                missing_names = BF.data.D.chanlabels(missing);
+                for ii = 1:numel(missing)
+                    fprintf('\t\t%s',missing_names{ii});
+                end
+                fprintf('\n');
+                BF.data.D = BF.data.D.chantype(missing,'OPM');
+                chanind = chanind(sel1);
+            end
+            
         elseif isequal(modalities{m}, 'EEG')
             chanind = indchantype(BF.data.D, 'EEG', 'GOOD');
         end
@@ -120,18 +145,17 @@ for m = 1:numel(modalities)
             error(['No good ' modalities{m} ' channels were found.']);
         end
         
-        if ischar(BF.data.(modalities{m}).vol)           
+        if ischar(BF.data.(modalities{m}).vol)
             BF.data.(modalities{m}).vol = ft_read_vol(BF.data.(modalities{m}).vol);
         end
-               
-        chanunits = units(BF.data.D, chanind);
         
+        chanunits = units(BF.data.D, chanind);
         
         [vol, sens] = ft_prepare_vol_sens(BF.data.(modalities{m}).vol, BF.data.(modalities{m}).sens, 'channel', ...
             chanlabels(BF.data.D, chanind));
         
         pos = BF.sources.pos;
-                
+        
         if isfield(BF.data.(modalities{m}), 'mesh_correction') && ~isempty(BF.data.(modalities{m}).mesh_correction)
             disp(['Adjusting source points for volume type ' ft_voltype(vol)]);
             cfg     = BF.data.(modalities{m}).mesh_correction;
@@ -175,7 +199,7 @@ for m = 1:numel(modalities)
         if nvert > 100, Ibar = floor(linspace(1, nvert,100));
         else Ibar = 1:nvert; end
         
-        L = cell(1, nvert);       
+        L = cell(1, nvert);
         
         for i = 1:nvert
             if siunits
@@ -184,11 +208,11 @@ for m = 1:numel(modalities)
                 L{i}  = ft_compute_leadfield(BF.sources.pos(i, :), sens, vol, 'reducerank', reduce_rank(m));
             end
             
-            if ~isempty(BF.sources.ori) && any(BF.sources.ori(i, :))               
+            if ~isempty(BF.sources.ori) && any(BF.sources.ori(i, :))
                 L{i}  = L{i}*BF.sources.ori(i, :)';
             elseif ~job.keep3d &&  reduce_rank(m) < 3
-                 [U_, S_, V] = svd(L{i}, 'econ');
-                 L{i} = L{i}*V(:,1:reduce_rank(m));
+                [U_, S_, V] = svd(L{i}, 'econ');
+                L{i} = L{i}*V(:,1:reduce_rank(m));
             end
             
             if job.normalise_lf
@@ -199,13 +223,13 @@ for m = 1:numel(modalities)
                 spm_progress_bar('Set', i); drawnow;
             end
         end
-         
+        
         spm_progress_bar('Clear');
         
         BF.sources.reduce_rank.(modalities{m})=reduce_rank(m); %MWW
         BF.sources.L.(modalities{m}) = L;
         BF.sources.channels.(modalities{m}) = chanlabels(BF.data.D, chanind);
-    end       
+    end
 end
 
 bf_save_path(BF,fullfile(outdir, 'BF.mat'));

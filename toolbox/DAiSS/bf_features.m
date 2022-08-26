@@ -4,7 +4,7 @@ function out = bf_features
 % Copyright (C) 2015-2021 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: bf_features.m 8119 2021-07-06 13:51:43Z guillaume $
+% $Id: bf_features.m 8307 2022-08-26 11:00:54Z george $
 
 
 out          = cfg_exbranch;
@@ -285,7 +285,33 @@ for m = 1:numel(modalities)
         S1.chanind  = S.channels;
         
         BF.features.(modality_name) = feval(['bf_regularise_' reg_name], BF, S1);
-               
+        
+        if job.visualise
+            switch reg_name
+                case {'clifftrunc','minkatrunc','mantrunc'}
+                    switch reg_name
+                        case {'clifftrunc','minkatrunc'}
+                            plt = 1;
+                            dof = size(BF.features.(modality_name).C,1);
+                            str = sprintf('Estimated Rank: %03d',dof);
+                        case {'mantrunc'}
+                            plt = 1;
+                            dof = size(BF.features.(modality_name).C,1);
+                            str = sprintf('Specified Rank: %03d',dof);
+                    end
+                    if plt
+                        if ~isempty(which('xline'))
+                            xline(dof,'--',str);
+                        else
+                            try
+                                hx = graph2d.constantline(dof, 'LineStyle',':', 'Color',[0 0 0]);
+                                changedependvar(hx,'x');
+                            end
+                        end
+                    end
+                    
+            end
+        end
         
         %%%%%%%%%%%%
         % MWW 19/11/2014

@@ -8,6 +8,14 @@ function res = bf_view_surface(BF, S)
 %--------------------------------------------------------------------------
 if nargin == 0
     
+    imageno           = cfg_entry;
+    imageno.tag       = 'imageno';
+    imageno.name      = 'Image Number';
+    imageno.strtype   = 'r';
+    imageno.num       = [1 1];
+    imageno.val       = {[1]};
+    imageno.help      = {'Which image from output to show'};
+    
     cmap            = cfg_entry;
     cmap.tag        = 'cmap';
     cmap.name       = 'Colormap';
@@ -50,13 +58,18 @@ if nargin == 0
     surface           = cfg_branch;
     surface.tag       = 'surface';
     surface.name      = 'Cortical Surface';
-    surface.val       = {cmap,cbar,dock,inflate,threshold};
+    surface.val       = {imageno,cmap,cbar,dock,inflate,threshold};
     
     res             = surface;
     
     return
 elseif nargin < 2
     error('Two input arguments are required');
+end
+
+% Imageno option may have been unspecified
+if ~isfield(S,'imageno')
+    S.imageno = 1;
 end
 
 % if BF is a path rather than stucture, import
@@ -95,7 +108,7 @@ tmp = BF.sources.mesh.individual;
 source.faces = tmp.face;
 source.vertices = tmp.vert;
 
-o = BF.output.image(end).val;
+o = BF.output.image(S.imageno).val;
 % S.threshold = 0.1;
 if S.threshold
     o(abs(o) < S.threshold*max(abs(o))) = 0;

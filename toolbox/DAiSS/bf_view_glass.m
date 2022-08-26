@@ -3,7 +3,7 @@ function res = bf_view_glass(BF, S)
 % Copyright (C) 2020 Wellcome Trust Centre for Neuroimaging
 
 % George O'Neill
-% $Id: bf_view_glass.m 8213 2022-01-27 15:33:26Z george $
+% $Id: bf_view_glass.m 8307 2022-08-26 11:00:54Z george $
 
 %--------------------------------------------------------------------------
 if nargin == 0
@@ -32,6 +32,14 @@ if nargin == 0
     cmap.val        = {'gray'};
     cmap.help       = {'Colormap of the glass brain'};
     
+    cbar            = cfg_menu;
+    cbar.tag        = 'cbar';
+    cbar.name       = 'Colourbar';
+    cbar.help       = {['Add colourbar to plot']};
+    cbar.labels     = {'yes','no'};
+    cbar.values     = {true, false};
+    cbar.val        = {true};
+    
     dock            = cfg_menu;
     dock.tag        = 'dock';
     dock.name       = 'Dock figure into SPM window';
@@ -40,10 +48,18 @@ if nargin == 0
     dock.values     = {true, false};
     dock.val        = {true};
     
+    threshold           = cfg_entry;
+    threshold.tag       = 'threshold';
+    threshold.name      = 'Threshold fraction';
+    threshold.strtype   = 'r';
+    threshold.num       = [1 1];
+    threshold.val       = {[0]};
+    threshold.help      = {'Threshold to a fraction of maximum (between 0 and 1)'};
+    
     glass           = cfg_branch;
     glass.tag       = 'glass';
     glass.name      = 'Glass Brain';
-    glass.val       = {classic,ndips,cmap,dock};
+    glass.val       = {classic,ndips,cmap,cbar,dock,threshold};
     
     res             = glass;
     
@@ -57,6 +73,11 @@ if isa(BF,'string')
     BF = bf_load(BF);
 end
 
+% cbar option may have been unspecified
+if ~isfield(S,'cbar')
+    S.dock = false;
+end
+
 % Dock option may have been unspecified
 if ~isfield(S,'dock')
     S.dock = true;
@@ -66,14 +87,24 @@ if ~isfield(BF.sources, 'pos')
     error('Source space snafu, email george!')
 end
 
+% cbar option may have been unspecified
+if ~isfield(S,'thresohld')
+    S.threshsold = 0;
+end
+
 S.ndips = min(S.ndips,length(BF.sources.pos));
 if iscell(S.cmap); S.cmap = cell2mat(S.cmap); end
 
 pos = ft_warp_apply(BF.data.transforms.toMNI, BF.sources.pos);
 
 X = BF.output.image(end).val;
-[~, id] = sort(X,'descend');
-id = id(1:S.ndips);
+[~, id] = sort(abs(X),'descend');
+if S.threshold > 0
+    ndips = sum(abs(X) >= S.threshold*max(abs(X)));
+    id = id(1:ndips);
+else
+    id = id(1:S.ndips);
+end
 
 if S.dock
     F = spm_figure('GetWin','MEG');clf;
@@ -93,6 +124,7 @@ else
     opt = [];
     opt.brush = 2;
     opt.cmap = S.cmap;
+    opt.colourbar = S.cbar;
     spm_glass(X(id),pos(id,:),opt);
 end
 axis image
