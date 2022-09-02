@@ -12,7 +12,7 @@ function [T] = spm_DEM_T(n,dt)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DEM_T.m 4925 2012-09-14 11:17:01Z guillaume $
+% $Id: spm_DEM_T.m 8308 2022-09-02 10:15:40Z karl $
 
 % Delay operator
 %--------------------------------------------------------------------------
@@ -22,7 +22,7 @@ return
 
 % NOTES
 
-% Delay operator (based on Taylor's theorem
+% Delay operator (based on Taylor's theorem)
 %--------------------------------------------------------------------------
 T     = zeros(n,n);
 for i = 1:n

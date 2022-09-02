@@ -12,27 +12,31 @@ function [MDP] = spm_MDP_VB_update(MDP,PDP,OPTIONS)
 % BMR.g - Bayesian model reduction of modality g [default: 1]
 % BMR.f - hidden factors to contract over [default: 0]
 % BMR.o - outcomes - that induce REM [default: {}]
+% BMR.T - Occams threshold [default: 2]
 %
 % MDP  - (updated) model structure: with updated MDP.a
 %
-% This routine optimises the hyperparameters of a MDP model (i.e.,
-% concentration parameters encoding likelihoods. It uses Bayesian model
-% reduction to evaluate the evidence for models with and without an
-% increase in a particular parameter in the columns of MDP.a (c.f., SWS)
+% This routine optimises the hyperparameters of a POMDP model (i.e.,
+% concentration parameters encoding likelihoods). It uses Bayesian model
+% reduction to evaluate the evidence for models with and without an changes
+% in Dirichlet counts (c.f., SWS or introspection)
 %
 % If specified, the scheme will then recompute posterior beliefs about the
 % model parameters based upon (fictive) outcomes generated under its
 % (reduced) generative model.(c.f., REM sleep)
 %
-% This version compares models (i.e., prior concentration parameters) in
-% which one unique outcome is much more likely than any other outcome.
-% Furthermore, it will then reduce posterior concentration parameters to
-% prior concentration parameters for all likelihood mappings, to and from
-% the parameter in question, if the reduced prior exceeds the specified
-% Occams window. effectively, this implements the structural hyperprior
-% that likelihood mappings with a high mutual information are plausible.
-%
-% See also: spm_MDP_log_evidence.m, spm_MDP_VB and spm_MDP_VB_X.m
+% This version compares models (i.e., prior concentration parameters) that
+% change in the direction of maximising expected free energy; namely,
+% maximising the mutual information entailed by a likelihood mapping or
+% transition matrix (plus the log preference over outcomes or states). If
+% the reduced prior exceeds the specified Occams window, in terms of the
+% reduced free energy, the reduced  priors and posteriors replace the full
+% priors and posteriors. Effectively, this implements the structural
+% hyperprior that likelihood mappings with a high mutual information are
+% plausible and accepts these new priors if there is sufficient evidence
+% for them. This can be regarded as a generic form of structure learning.
+% 
+% See also: spm_MDP_log_evidence.m, spm_MDP_VB and spm_MDP_VB_sleep.m
 %__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
@@ -41,8 +45,8 @@ function [MDP] = spm_MDP_VB_update(MDP,PDP,OPTIONS)
 
 % defaults
 %--------------------------------------------------------------------------
-try, OPTIONS.d;   catch, OPTIONS.d = [];  end
-try, OPTIONS.eta; catch, OPTIONS.eta = 1; end
+try, OPTIONS.d;   catch, OPTIONS.d   = []; end
+try, OPTIONS.eta; catch, OPTIONS.eta = 1;  end
 
 % deal with multiple agents
 %==========================================================================
@@ -69,14 +73,16 @@ if isfield(OPTIONS,'BMR')
     try, BMR.g; catch, BMR.g = 1;  end       % outcome modality
     try, BMR.f; catch, BMR.f = 0;  end       % factors to contract over
     try, BMR.o; catch, BMR.o = {}; end       % outcomes for empirical BMS
+    try, BMR.T; catch, BMR.T = 2;  end       % outcomes for empirical BMS
 
     % Baysian model reduction - likelihood parameters
     %----------------------------------------------------------------------
     for g = BMR.g
         
-        [qa,pa] = spm_MDP_VB_prune(PDP.a{g},MDP.a{g},MDP.C{g},BMR.f);
-        
-        
+        % structue learning with BMR
+        %==================================================================
+        [qa,pa] = spm_MDP_VB_prune(PDP.a{g},MDP.a{g},BMR.f,BMR.T,MDP.C{g});
+                
         % Dirichlet accumulation under reduced model and outcomes
         % (c.f., consolidation during rapid eye movement sleep)
         %==================================================================
@@ -144,93 +150,6 @@ try,  MDP.MDP(1).b = PDP.mdp(end).b; end
 try,  MDP.MDP(1).c = PDP.mdp(end).c; end
 try,  MDP.MDP(1).d = PDP.mdp(end).d; end
 try,  MDP.MDP(1).e = PDP.mdp(end).e; end
-
-return
-
-
-
-% Bayesian model reduction subroutine
-%==========================================================================
-function [qA,pA] = spm_MDP_VB_prune(qA,pA,C,f)
-% FORMAT [sA,rA] = spm_MDP_VB_prune(qA,pA,C,f)
-% qA - posterior expectations
-% pA - prior expectations
-% C  - log preferences
-% f  - hidden factor to contract over [default: 0]
-%
-% sA - reduced posterior expectations
-% rA - reduced prior expectations
-%__________________________________________________________________________
-
-% defaults
-%--------------------------------------------------------------------------
-nd  = size(qA);                         % size of tensor
-
-if nargin < 3, f = 0;              end  % no contraction
-if nargin < 3, C = zeros(1,nd(1)); end  % no preferences
-
-% some Dirichlet parameters over conditionally independent factors
-%--------------------------------------------------------------------------
-s   = prod(nd(f + 1));                  % contraction scaling
-if f
-    pA  = spm_sum(pA,f + 1);
-    qA  = spm_sum(qA,f + 1);
-end
-
-% Bayesian model reduction (starting with the largest posterior)
-%--------------------------------------------------------------------------
-qA    = qA(:,:);
-pA    = pA(:,:);
-
-% gradients of expected information gain (i.e., expected free energy)
-%--------------------------------------------------------------------------
-rA    = pA;
-n     = size(rA,2);
-for i = 1:1
-    
-    % evaluate gradients of expected free energy
-    %----------------------------------------------------------------------
-    [E,dEdA] = spm_MDP_MI(rA,C);   
-    dA       = rA + n*dEdA/16;
-    j        = dA < 0 | ~isfinite(dA);
-    dA(j)    = 0;
-    
-    % evaluate free energy (negative log evidence)
-    %----------------------------------------------------------------------
-    [F,sA]   = spm_MDP_log_evidence(qA,pA,dA);
-    j        = F < -3;
-    rA(:,j)  = dA(:,j);
-    G(i)     = sum(F);
-        
-    % terminate if free energy converges
-    %----------------------------------------------------------------------   
-    if ~any(j)
-        disp(i)
-        break
-    end
-        
-    % illustrate structure learning
-    %----------------------------------------------------------------------
-    if false
-        
-        spm_figure('GetWin','structure learning');
-        %------------------------------------------------------------------
-        subplot(2,2,1), imagesc(64*spm_norm(rA)), title('likelihood mapping'), axis image
-        subplot(2,2,2), plot(rA), title('Prior Dirichlet counts'), axis square
-        subplot(2,2,3), plot(G), title('reduced free energy'), axis square, drawnow
-    end
-    
-end
-
-
-% redistribute scaled parameters over contracted dimensions
-%--------------------------------------------------------------------------
-pA  = rA;
-qA  = sA;
-if f
-    pA = bsxfun(@plus,zeros(nd),pA/s);
-    qA = bsxfun(@plus,zeros(nd),qA/s);
-end
 
 return
 

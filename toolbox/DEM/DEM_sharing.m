@@ -109,8 +109,8 @@ for i = 1:los
     Attribute{1}{i} = sprintf('%i',i);
 end
 Attribute{2} = {'close','near','gone'};
-Attribute{3} = {'still','right','left','going ','approaching'};
-Attribute{4} = {'Yes','No'};
+Attribute{3} = {'slowly','right','left','away','closer'};
+Attribute{4} = {'Girl','Boy'};
 
 % number of levels for each attribute
 %--------------------------------------------------------------------------
@@ -119,12 +119,12 @@ for i = 1:numel(Attribute)
 end
 
 for j = 1:prod(N)
-    
+
     % Unpack object attributes
     %----------------------------------------------------------------------
     [a1,a2,a3,a4]    = spm_ind2sub(N,j);    % attributes of object
     label.name{1}{j} = [Attribute{4}{a4} ', ' ...
-        Attribute{2}{a2} ' and ' ...
+        Attribute{2}{a2} ' moving ' ...
         Attribute{3}{a3} ' at ' ...
         Attribute{1}{a1}];
 end
@@ -195,33 +195,33 @@ end
 %--------------------------------------------------------------------------
 disp('specifying generative model (c.f., training)'), disp(' ')
 for f = 1:size(N,1)
-    
+
     % for each head motion (disabled in this demo), shift the scene
     %----------------------------------------------------------------------
     for u = 1
-        
+
         % transitions along lines of sight that depend up (angular) movement
         %------------------------------------------------------------------
         b     = cell(N(f,3),N(f,3));
         c     = 0;                            % head movements
         d     = [0 -1  1  0  0];              % object movements
-        
+
         % shift angle appropriately by combining head and object movements
         %------------------------------------------------------------------
         for i = 1:N(f,3)
             b{i,i} = spm_speye(N(f,1),N(f,1),d(i) + c(u),1);
         end
-        
+
         % and place in a Kronecker tensor product
         %------------------------------------------------------------------
         b     = spm_kron({spm_cat(b),I{f,2},I{f,4}});
         B{1}  = spm_permute_kron(b,N(f,[1,3,2,4]),[1,3,2,4]);
-        
+
         % transitions between depth that depend upon (radial) movement
         %------------------------------------------------------------------
         b     = cell(N(f,3),N(f,3));
         d     = [0  0  0 -1  1];
-        
+
         % shift depth appropriately (see spm_speye.m)
         %------------------------------------------------------------------
         for i = 1:N(f,3)
@@ -229,7 +229,7 @@ for f = 1:size(N,1)
         end
         b     = spm_kron({I{f,1}, spm_cat(b),I{f,4}});
         B{2}  = spm_permute_kron(b,N(f,[1 2 3 4]),[1 2 3 4]);
-        
+
         % transitions between movement that depend upon depth
         %------------------------------------------------------------------
         b      = cell(3,3);
@@ -251,7 +251,7 @@ for f = 1:size(N,1)
             0 0 4 0 0;
             0 0 0 0 0;
             4 0 0 0 0];
-        
+
         for i = 1:3
             b{i,i} = b{i,i}(1:N(f,3),1:N(f,3));
         end
@@ -259,23 +259,23 @@ for f = 1:size(N,1)
         b     = spm_kron({I{f,1}, spm_cat(b),I{f,4}});
         b     = bsxfun(@rdivide,b,sum(b));
         B{3}  = spm_permute_kron(b,N(f,[1 3 2 4]),[1 3 2 4]);
-        
-        
+
+
         % transitions between disposition
         %------------------------------------------------------------------
         B{4}  = spm_kron({I{f,1},I{f,2},I{f,3},I{f,4}});
-        
+
         % compose transitions over object attributes
         %------------------------------------------------------------------
         b  = 1;
         for i = 1:numel(B)
             b = full(b*B{i});
         end
-        
+
         % transitions for this object and head motion
         %------------------------------------------------------------------
         T{f}(:,:,u) = b;
-        
+
     end
 end
 
@@ -327,20 +327,20 @@ for m = 1:nm
     A      = mA;                      % reset likelihood denser
     for o1 = 1:Nf(1)
         for u = 1:Nf(2)
-            
+
             % agent's line of sight
             %==============================================================
             c        = cm(m) - 2 + u;
-            
+
             % object attributes
             %==============================================================
-            
+
             % Unpack object attributes
             %--------------------------------------------------------------
             [a1,a2,a3,a4] = spm_ind2sub(N,o1);   % attributes of object
             a        = [a1,a2,a3,a4];            % object x attribute array
-            
-            
+
+
             % {'what'}: outcomes
             %--------------------------------------------------------------
             %     'person-near-right-yes',...1
@@ -356,54 +356,54 @@ for m = 1:nm
             %     'person-far-back',...     11
             %     'distance',...            12
             %--------------------------------------------------------------
-            
-            
+
+
             % generate outcome from i-th object
             %--------------------------------------------------------------
             o            = spm_what(a,c);
             A{1}(o,o1,u) = 1;
-            
-            
+
+
             % {'contrast-left'}:
             %--------------------------------------------------------------
             % near...1
             % far... 2
             % none...3
             %--------------------------------------------------------------
-            
+
             % and get contrast and motion energy
             %--------------------------------------------------------------
             o     = spm_contrast_energy(a,c - 1);
             A{2}(o,o1,u) = 1;
             o     = spm_motion_energy(a,c - 1);
             A{5}(o,o1,u) = 1;
-            
+
             % and get contrast and motion energy
             %--------------------------------------------------------------
             o     = spm_contrast_energy(a,c);
             A{3}(o,o1,u) = 1;
             o     = spm_motion_energy(a,c);
             A{6}(o,o1,u) = 1;
-            
+
             % and get contrast energy
             %--------------------------------------------------------------
             o     = spm_contrast_energy(a,c + 1);
             A{4}(o,o1,u) = 1;
             o     = spm_motion_energy(a,c + 1);
             A{7}(o,o1,u) = 1;
-            
+
             % add linguistic likelihood model
             %--------------------------------------------------------------
             A{8}(o1,o1,u) = 1;
-            
+
         end
-        
+
     end
-    
+
     % save this agent's likelihood tensor
     %----------------------------------------------------------------------
     Am{m} = A;
-    
+
 end
 
 
@@ -512,7 +512,7 @@ NDP  = spm_MDP_VB_XX(NDP);
 spm_figure('GetWin','comparison'); clf
 
 for m = 1:numel(MDP)
-    
+
     % illustrate posterior beliefs and action selection
     %----------------------------------------------------------------------
     for t = 1:T
@@ -526,7 +526,7 @@ for m = 1:numel(MDP)
     i   = find(MDP(m).s(2,:) ~= NDP(m).s(2,:));
     plot(1:T,MDP(m).s(2,:) + cm(m) - 2,'.c','MarkerSize',16)
     plot(i,  MDP(m).s(2,i) + cm(m) - 2,'.r','MarkerSize',16)
-    
+
     % repeat for naïve agent
     %----------------------------------------------------------------------
     for t = 1:T
@@ -538,12 +538,12 @@ for m = 1:numel(MDP)
     xlabel('time'), ylabel('location')
     hold on
     plot(1:T,NDP(m).s(2,:) + cm(m) - 2,'.c','MarkerSize',16)
-    
+
     subplot(4,1,3)
     i   = find(MDP(m).s(2,:) == NDP(m).s(2,:));
-    
+
     plot(i,MDP(m).F(i) - NDP(m).F(i)), hold on
-    
+
 end
 
 subplot(4,1,3)
@@ -597,12 +597,12 @@ ndp   = rmfield(ndp,'A');                  % remove likelihood array
 
 BMR.g = 8;                    % - modality [default: 1]
 BMR.f = 2;                    % - hidden factors to sum over [default: 0]
-BMR.T = 2;                    % - Occam's window [default: 2]
+BMR.T = 1;                    % - Occam's window [default: 2]
 
 % set up parents
 %--------------------------------------------------------------------------
 for m = 1:3                                % for each agent
-    
+
     % likelihood mappings
     %----------------------------------------------------------------------
     MDP(m,1) = ndp;                        % initialise
@@ -611,27 +611,29 @@ for m = 1:3                                % for each agent
     end
 end
 
-for g = 1:NG                               % for each generation
-    
+for g = 1:0%NG                               % for each generation
+
     % add a child of agent 1 + rem(g,3)
     %======================================================================
     parent   = 1 + rem(g,3);
     MDP(4,1) = MDP(parent,1);
-    
+
     % initialise learnable language mapping for the child
     %----------------------------------------------------------------------
-    MDP(4).a{8}  = MDP(4).a{8}*0 + 1;
+    MDP(4).a{8}  = MDP(4).a{8}*0 + 1/256;
     MDP(4).a0{8} = MDP(4).a{8};
-    
+
     % experience-dependent learning over NT exposures
     %======================================================================
     KL    = [];
+    FQ    = [];
+    FA    = [];
     for t = 1:NT                           % for each exposure
-        
+
         % active inference and learning
         %------------------------------------------------------------------
         PDP  = spm_MDP_VB_XX(MDP);
-        
+
         % illustrate belief updating and learning
         %------------------------------------------------------------------
         if g == 1 && t < 4
@@ -641,7 +643,7 @@ for g = 1:NG                               % for each generation
                 spm_MDP_VB_game(DDP);
             end
         end
-        
+
         spm_figure('GetWin','language acquisition');
         %------------------------------------------------------------------
         for j = 1:numel(N)
@@ -652,9 +654,9 @@ for g = 1:NG                               % for each generation
                 imagesc(a), axis image
             end
         end, drawnow
-        
+
         PDP(4) = spm_MDP_VB_sleep(PDP(4),BMR);
-        
+
         % update Dirichlet parameters
         %------------------------------------------------------------------
         MDP(4).a{8}  = PDP(4).a{8};
@@ -664,15 +666,36 @@ for g = 1:NG                               % for each generation
         %------------------------------------------------------------------
         q     = MDP(4).a{8}(:,:);
         p     = MDP(parent).a{8}(:,:);
-        kl(t) = spm_KL_cat(q,p);
-        KL(t) = spm_KL_dir(q,p);
-        
-        subplot(6,1,3), plot(1:t,kl), set(gca,'XLim',[1,NT])
-        subplot(6,1,4), plot(1:t,KL), set(gca,'XLim',[1,NT])
- 
-        
+
+
+        % report acquisition in terms of correlations and free energies
+        %----------------------------------------------------------------------
+        subplot(3,3,7)
+        q     = MDP(4).a{8}(:,:);
+        p     = MDP(parent).a{8}(:,:);
+        c     = corrcoef(q(:),p(:));
+        KL(t) = c(1,2);
+        plot(1:t,KL), set(gca,'XLim',[1,NT]);
+        title({'Correlations','(likelihood)'}),xlabel('time'),ylabel('correlation')
+        box off, axis square
+
+        FQ(:,t) = sum(spm_cat({PDP.F}'),2);
+        FA(:,t) = sum(spm_cat({PDP.Fa}'),2);
+        FQ      = spm_conv(FQ,0,16);
+        FA      = spm_conv(FA,0,16);
+
+        subplot(3,3,8)
+        plot(min(FQ(:)) - FQ'), set(gca,'XLim',[1,NT])
+        title({'Free energy','(inference)'}),xlabel('time'),ylabel('natural units')
+        box off, axis square
+
+        subplot(3,3,9)
+        plot(min(FA(:)) - FA'), set(gca,'XLim',[1,NT])
+        title({'Free energy','(learning)'}),xlabel('time'),ylabel('natural units')
+        box off, axis square
+
     end
-    
+
     % illustrate language conservation over parents
     %----------------------------------------------------------------------
     spm_figure('GetWin','generations');
@@ -684,89 +707,175 @@ for g = 1:NG                               % for each generation
             imagesc(a), axis image
         end
     end, drawnow
-    
+
     % replace parent with a child and continue the next generation
     %----------------------------------------------------------------------
     MDP(parent,1) = MDP(4,1);
-    
+
 end
+
+
 
 %% finally, see if a language emerges via free energy minimisation
 %==========================================================================
 rng('default')
 spm_figure('GetWin','language emergence'); clf
-clear MDP
+
 ndp    = mdp;
-NT     = 64;                                % number of games
-ndp.T  = 64;                                % number of epochs per game
+NT     = 1024;                               % number of games
+ndp.T  = 32;                                % number of epochs per game
 ndp.a  = ndp.A;                             % initialise Dirichlet likelihood
 ndp.a0 = ndp.A;                             % initialise Dirichlet likelihood
 ndp    = rmfield(ndp,'A');                  % remove likelihood array
 
-BMR.g  = 8;                    % - modality [default: 1]
-BMR.f  = 2;                    % - hidden factors to sum over [default: 0]
+BMR.g  = 8;                                 % modality [default: 1]
+BMR.f  = 2;                                 % hidden factors to sum over
+BMR.T  = 2;
 clear OPTIONS
-OPTIONS.eta = 1;
 OPTIONS.BMR = BMR;
+OPTIONS.eta = 1;
 
 % set up naïve population
 %--------------------------------------------------------------------------
-for m = 1:2                                % for each agent
-    
+clear MDP
+for m = 1:3                                 % for each agent
+
     % likelihood mappings
     %----------------------------------------------------------------------
-    MDP(m,1) = ndp;                        % initialise
+    MDP(m,1) = ndp;                         % initialise
     for i = 1:numel(Am{m})
-        MDP(m,1).a{i}  = Am{1}{i}*128;
+        MDP(m,1).a{i} = Am{m}{i}*128;
     end
-    
+
     % initialise learnable language mapping for all agents
     %----------------------------------------------------------------------
-    MDP(m,1).a{8}  = rand(size(MDP(m).a{8}))/32;
-    
+    dA            = 1/32;
+    MDP(m,1).a{8} = abs(randn(size(MDP(m).a{8}))*dA/4 + dA);
+
 end
+
+
+% illustrate language conservation over parents
+%----------------------------------------------------------------------
+spm_figure('GetWin','emergence'); clf
+for i = 1:numel(MDP)
+    for j = 1:numel(N)
+        subplot(12,8,(j - 1)*8 + i)
+        a = spm_contract_a(MDP(i).a{8},N,j);
+        a = spm_norm(a);
+        imagesc(a), axis image
+    end
+end, drawnow
+
 
 %% experience-dependent learning over NT exposures
 %==========================================================================
-kl    = [];
+k     = 1:64;
 KL    = [];
-for t = 1:NT                           % for each exposure
-    
-    
+FQ    = [];
+FA    = [];
+EF    = [];
+for t = 1:NT                                 % for each exposure
+
     spm_figure('GetWin','language emergence');
     %----------------------------------------------------------------------
+    [a,j,n] = spm_dir_sort(MDP(1).a{8}(:,:,1));
     for i = 1:numel(MDP)
-        subplot(6,4,(i - 1)*4 + min(1 + fix(t/16),4))
-        a = spm_dir_norm(MDP(i).a{8});
-        imagesc(64*a), axis image
+
+        % plot likelihood tensor (unfolded)
+        %------------------------------------------------------------------
+        subplot(6,4,(i - 1)*4 + min(t,4))
+        a = spm_dir_norm(MDP(i).a{8}(:,:,1));
+        a = a(j,n);
+        imagesc(a(k,k)), axis image
+
+        % plot correlations among Dirichlet counts
+        %------------------------------------------------------------------
+        subplot(6,4,numel(MDP)*4 + min(t,4))
+        for m = (i + 1):numel(MDP)
+            plot(MDP(i).a{8}(:),MDP(m).a{8}(:),'.'), axis square, hold on
+        end
+
     end, drawnow
-    
+    set(gca,'ColorOrderIndex',1);
+
     % active inference and learning; i.e., exposure
     %----------------------------------------------------------------------
     PDP = spm_MDP_VB_XX(MDP);
-    
+
     % update Dirichlet parameters
     %----------------------------------------------------------------------
     MDP = spm_MDP_VB_update(MDP,PDP,OPTIONS);
 
-    % report acquisition in terms of divergence
+    % report acquisition in terms of correlations and free energies
     %----------------------------------------------------------------------
+    subplot(3,4,9), hold off
     for i = 1:numel(MDP)
         for j = (i + 1):numel(MDP)
             q         = MDP(i).a{8}(:,:);
             p         = MDP(j).a{8}(:,:);
-            kl(t,i,j) = spm_KL_cat(q,p);
-            KL(t,i,j) = spm_KL_dir(q,p);
-            subplot(6,1,3), plot(1:t,kl(:,i,j)), set(gca,'XLim',[1,NT]);
-            subplot(6,1,4), plot(1:t,KL(:,i,j)), set(gca,'XLim',[1,NT]);
+            c         = corrcoef(q(:),p(:));
+            KL(t,i,j) = c(1,2);
+            plot(1:t,KL(:,i,j)), set(gca,'XLim',[1,NT]); hold on
         end
+        EF(t,i) = spm_MDP_MI(MDP(i).a{8}(:,:));
     end
-    
-    subplot(3,1,3),plot(MDP(1).a{8}(:),MDP(end).a{8}(:),'.'),axis square
-    
+    title({'Correlations','(likelihood)'}),xlabel('time'),ylabel('correlation')
+    box off, axis square
+
+    FQ(:,t) = sum(spm_cat({PDP.F}'),2);
+    FA(:,t) = sum(spm_cat({PDP.Fa}'),2);
+    FQ      = spm_conv(FQ,0,16);
+    FA      = spm_conv(FA,0,16);
+
+    subplot(3,4,10)
+    plot(min(FQ(:)) - FQ'), set(gca,'XLim',[1,NT])
+    title({'Free energy','(inference)'}),xlabel('time'),ylabel('natural units')
+    box off, axis square
+
+    subplot(3,4,11)
+    plot(min(FA(:)) - FA'), set(gca,'XLim',[1,NT])
+    title({'Free energy','(learning)'}),xlabel('time'),ylabel('natural units')
+    box off, axis square
+
+    subplot(3,4,12)
+    plot(EF), set(gca,'XLim',[1,NT])
+    title({'expected Free energy','(learning)'}),xlabel('time'),ylabel('natural units')
+    box off, axis square
+
 end
 
+%% illustrate language conservation over parents
+%--------------------------------------------------------------------------
+spm_figure('GetWin','emergence');
+for i = 1:numel(MDP)
+    for j = 1:numel(N)
+        subplot(12,8,(j - 1)*8 + i + 5)
+        a = spm_contract_a(MDP(i).a{8},N,j);
+        a = spm_norm(a);
+        imagesc(a), axis image
+    end
+end, drawnow
 
+% repeat but align with original syntax
+%--------------------------------------------------------------------------
+a     = 0;
+for i = 1:numel(MDP)
+    a = a + MDP(i).a{8};
+end
+a     = spm_dir_norm(a);
+K     = a(:,:)*A{8}(:,:)';
+[m,k] = max(K');
+for i = 1:numel(MDP)
+    for j = 1:numel(N)
+        subplot(12,8,(j - 1)*8 + i + 3 + 40)
+        a = MDP(i).a{8};
+        k = 1:size(a,1);
+        a = spm_contract_a(a(k,:,:,:,:),N,j);
+        a = spm_norm(a);
+        imagesc(a), axis image
+    end
+end, drawnow
 
 return
 
@@ -803,7 +912,7 @@ function o = spm_what(a,c)
 % if there is an object or natural kind
 %--------------------------------------------------------------------------
 if a(1) == c
-    
+
     % animate object:
     %      depth        direction    disposition
     %----------------------------------------------------------------------
@@ -830,18 +939,18 @@ if a(1) == c
     elseif a(2) == 2 && a(3) == 4
         o = 11;
     else
-        
+
         %  background object
         %------------------------------------------------------------------
         o = 12;
     end
-    
+
 else
-    
+
     % nothing to see
     %----------------------------------------------------------------------
     o = 12;
-    
+
 end
 
 
@@ -946,11 +1055,11 @@ spoken = MDP(1).label.outcome{end};
 %--------------------------------------------------------------------------
 Nm    = size(MDP,1);
 for m = 1:Nm
-    
+
     % loop over time
     %----------------------------------------------------------------------
     for t = 1:MDP(m).T
-        
+
         % what the agent actually sees
         %==================================================================
         % peripheral vision, or magnocellular (contrast energy)
@@ -962,29 +1071,29 @@ for m = 1:Nm
             outcomes{1}(:,:,end)           outcomes{1}(:,:,MDP(m).o(1,t)) outcomes{1}(:,:,end);
             outcomes{2}(:,:,MDP(m).o(5,t)) outcomes{2}(:,:,MDP(m).o(6,t)) outcomes{2}(:,:,MDP(m).o(7,t))};
         seen  = spm_cat(seen);
-        
+
         subplot(4,Nm,m)
         image(spm_cat(seen))
         axis image, box off
         text(32,32,spoken{MDP(m).o(8,t)},'Color','r','FontSize',10)
         vision{m}(t) = getframe(gca);
-        
+
         % actual scene
         %==================================================================
         subplot(4,1,2)
-        
+
         % Unpack object attributes for this combination of objects
         %------------------------------------------------------------------
         [a1,a2,a3,a4] = spm_ind2sub(N,MDP(m).s(1,t)); % attributes of ith object
         a             = [a1,a2,a3,a4];                % attribute array
-        
+
         % nearest (foreground or background) object in line of sight
         %------------------------------------------------------------------
         for j = 1:N(1)
             o    = spm_what(a,j);
             scene{j} = outcomes{1}(:,:,o);
         end
-        
+
         % add direction of gaze and display
         %------------------------------------------------------------------
         s    = MDP(m).s(end,t);
@@ -993,29 +1102,29 @@ for m = 1:Nm
         text(l*(s - 1/2),k/2,'+','FontSize',32,'Color','r')
         axis image, box off
         actual(t) = getframe(gca);
-        
-        
+
+
         % what the agent thinks she sees
         %==================================================================
         subplot(2*Nm,1,Nm + m)
-        
+
         % find the most likely state of each object
         %------------------------------------------------------------------
         [q,s] = max(MDP(m).X{1}(:,t));
-        
-        
+
+
         % Unpack object attributes for this combination of objects
         %------------------------------------------------------------------
         [a1,a2,a3,a4] = spm_ind2sub(N,s);         % attributes of ith object
         a             = [a1,a2,a3,a4];            % object attribute array
-        
+
         % nearest (foreground or background) object in line of sight
         %------------------------------------------------------------------
         for j = 1:N(1)
             o    = spm_what(a,j);
             scene{j} = outcomes{1}(:,:,o);
         end
-        
+
         % add direction of gaze and display
         %------------------------------------------------------------------
         [q,s] = max(MDP(m).X{end}(:,t));
@@ -1024,7 +1133,7 @@ for m = 1:Nm
         text(l*(s - 1/2),k/2,'+','FontSize',32,'Color','r')
         axis image, box off
         percept{m}(t) = getframe(gca);
-        
+
     end
 end
 
@@ -1064,6 +1173,8 @@ for i = 1:size(A,2)
 end
 
 return
+
+
 
 function A  = spm_norm(A)
 % normalisation of a probability transition matrix (columns)

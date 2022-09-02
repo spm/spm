@@ -22,12 +22,13 @@ function [F,sA,dFdA] = spm_MDP_log_evidence(qA,pA,rA)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_log_evidence.m 8262 2022-06-03 14:15:28Z karl $
+% $Id: spm_MDP_log_evidence.m 8308 2022-09-02 10:15:40Z karl $
 
 
 % change in free energy or log model evidence
 %--------------------------------------------------------------------------
 sA = qA + rA - pA;
+sA = max(sA,0);
 F  = spm_betaln(qA) + spm_betaln(rA) - spm_betaln(pA) - spm_betaln(sA);
 
 if nargout < 3, return, end
