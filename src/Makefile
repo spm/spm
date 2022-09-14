@@ -1,9 +1,7 @@
 #!/usr/bin/env make -f
 # General Makefile to compile SPM C-MEX files
 #
-# Copyright (C) 1991-2021 Wellcome Centre for Human Neuroimaging
-#
-# $Id: Makefile 8253 2022-05-19 09:14:05Z john $
+# Copyright (C) 1991-2022 Wellcome Centre for Human Neuroimaging
 #
 ###############################################################################
 #

@@ -1,4 +1,8 @@
 /*
+ * Copyright (C) 1999-2022 Christophe Phillips
+ */
+
+/*
   Direct potential for a vertex approach
 
   Input : XYZ_v, XYZ_d, weight

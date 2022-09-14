@@ -1,8 +1,7 @@
 #!/usr/bin/env make -f
 # EEG-BEM Makefile called by {SPM}/external/Makefile
 #
-# Christophe Phillips
-# $Id: Makefile 7532 2019-02-14 12:03:24Z guillaume $
+# Copyright (C) 1999-2022 Christophe Phillips
 
 include ../../src/Makefile.var
 

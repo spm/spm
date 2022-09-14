@@ -1,8 +1,6 @@
 # Makefile default variables
 #
-# Copyright (C) 1991-2020 Wellcome Centre for Human Neuroimaging
-#
-# $Id: Makefile.var 8159 2021-09-29 11:31:55Z guillaume $
+# Copyright (C) 1991-2022 Wellcome Centre for Human Neuroimaging
 #
 ###############################################################################
 #

@@ -1,4 +1,8 @@
 /*
+ * Copyright (C) 1999-2022 Christophe Phillips
+ */
+
+/*
   Input : ind_tr, XYZv, weight, defl
   Output : Cii_cog
 

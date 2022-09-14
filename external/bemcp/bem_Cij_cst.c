@@ -1,4 +1,8 @@
 /*
+ * Copyright (C) 1999-2022 Christophe Phillips
+ */
+
+/*
   Input : XYZva, XYZvb, trib, weight, defl
   Output : Cii
 

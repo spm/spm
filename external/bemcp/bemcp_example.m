@@ -1,4 +1,3 @@
-
 function bemcp_example
 % Simple function to test/demonstrate how the Boundary element functions are
 % used in combination with Fildtrip/Forwinv routines.
@@ -20,8 +19,7 @@ function bemcp_example
 % Be aware that this way of programming is generally NOT advisable!
 % I used it only to ensure a quick & dirty check of the BEM module...
 
-% Christophe Phillips
-% $Id: bemcp_example.m 4793 2012-07-19 11:35:24Z spm $
+% Copyright (C) 1999-2022 Christophe Phillips
 
 % create volume conductor starting from unit sphere
 [pnt, tri] = icosahedron162;

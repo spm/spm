@@ -1,4 +1,8 @@
 /*
+ * Copyright (C) 1999-2022 Christophe Phillips
+ */
+
+/*
   Input : XYZva, ind_tra, XYZvb, ind_trb, weight, defl
   Output : Cij_cog
 
