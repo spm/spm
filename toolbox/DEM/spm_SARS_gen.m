@@ -84,7 +84,7 @@ function [y,x,z,W] = spm_SARS_gen(P,M,U,NPI,age)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_gen.m 8297 2022-07-15 10:02:58Z karl $
+% $Id: spm_SARS_gen.m 8312 2022-09-30 18:21:14Z karl $
 
 
 % The generative model:
@@ -387,7 +387,7 @@ for i = 1:M.T
         for j = 1:numel(R{n}.lim)
             Q{n}.pil(j) = R{n}.lim(j)*spm_phi((i - R{n}.ons(j))/R{n}.rat(j));
         end
-        
+        Q{n}.pil = Q{n}.pil*Q{n}.abs;              % age dependent testing
         
         % fluctuations in epidemiological parameters NB Ptra > 1
         %------------------------------------------------------------------
@@ -401,15 +401,11 @@ for i = 1:M.T
         Q{n}.tes = R{n}.tes*Ptra^(-R{n}.s(6)/4);   % testing bias PCR
         Q{n}.tts = R{n}.tts*Ptra^(-R{n}.s(7)/4);   % testing bias LFD
         
-        Q{n}.sev = R{n}.sev*Ptra^(-R{n}.lat(1));   % P(ARDS | infected)
-        Q{n}.sev = Q{n}.sev*exp(-i/(256*R{n}.lat(2)));
-        Q{n}.fat = R{n}.fat*Ptra^(-R{n}.sur(1));   % P(fatality | ARDS)
-        Q{n}.fat = Q{n}.fat*exp(-i/(256*R{n}.sur(2)));
-        Q{n}.ccu = R{n}.ccu*Ptra^(-R{n}.iad(1));   % P(CCU | ARDS)
-        Q{n}.ccu = Q{n}.ccu*exp(-i/(256*R{n}.iad(2)));
+        Q{n}.sev = R{n}.sev*Ptra^(-R{n}.lat);      % P(ARDS | infected)
+        Q{n}.fat = R{n}.fat*Ptra^(-R{n}.sur);      % P(fatality | ARDS)
+        Q{n}.ccu = R{n}.ccu*Ptra^(-R{n}.iad);      % P(CCU | ARDS)
         
-        Q{n}.sde = R{n}.sde*Ptra^(-R{n}.pro(1));   % prevalence sensitivity
-        Q{n}.sde = Q{n}.sde*exp(-i/(256*R{n}.pro(2)));
+        Q{n}.sde = R{n}.sde*Ptra^(-R{n}.pro);      % prevalence sensitivity
         
         % probability of lockdown (a function of prevalence)
         %------------------------------------------------------------------

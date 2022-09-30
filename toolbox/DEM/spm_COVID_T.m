@@ -22,7 +22,7 @@ function [T,R] = spm_COVID_T(P,I)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_T.m 8297 2022-07-15 10:02:58Z karl $
+% $Id: spm_COVID_T.m 8312 2022-09-30 18:21:14Z karl $
 
 % setup
 %==========================================================================
@@ -55,7 +55,7 @@ Pdis = P.m*Pexp;                     % P(leaving effective population)
 %--------------------------------------------------------------------------
 Phos = erf(P.hos);                   % P(hospital | ARDS)
 Pccu = erf(P.ccu);                   % P(transfer to CCU | ARDS)
-Piss = erf(2);                       % probability of self-isolation
+Piss = erf(P.iss);                   % probability of self-isolation
 Piso = exp(-1/P.iso);                % period of self-isolation
 
 Ph2h = (1 - Pdis)*(1 - Pout);
@@ -74,8 +74,8 @@ b{1} = [Ph2h       1          0          Pexp      (1 - Piso) 1;
 
 % marginal: location {1}  | symptoms {3}(2)
 %--------------------------------------------------------------------------
-b{2} = [(1 - Piss) 0          (1 - Piss) 0         (1 - Piss) (1 - Piss);
-        0          (1 - Piss) 0          0          0         0;
+b{2} = [(1 - Piss) (1 - Piss) (1 - Piss) 0         (1 - Piss) (1 - Piss);
+        0          0          0          0          0         0;
         0          0          0          0          0         0;
         0          0          0          (1 - Piss) 0         0;
         Piss       Piss       Piss       Piss       Piss      Piss;
@@ -475,7 +475,7 @@ function [x] = spm_cat_sym(x,d)
 % Copyright (C) 2005-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_T.m 8297 2022-07-15 10:02:58Z karl $
+% $Id: spm_COVID_T.m 8312 2022-09-30 18:21:14Z karl $
 
 
 %error('spm_cat.c not compiled - see Makefile')

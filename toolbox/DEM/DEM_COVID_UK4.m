@@ -14,7 +14,7 @@ function DCM = DEM_COVID_UK4
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_UK4.m 8300 2022-07-16 10:23:45Z karl $
+% $Id: DEM_COVID_UK4.m 8312 2022-09-30 18:21:14Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -271,7 +271,7 @@ EnglandUK  = 67081234/(56550138);
 
 % create data structure
 %--------------------------------------------------------------------------
-Y(1).type = 'Positive virus tests (ONS)'; % positive cases (England)
+Y(1).type = 'New cases (ONS)'; % positive cases (England)
 Y(1).unit = 'number/day';
 Y(1).U    = 2;
 Y(1).date = datenum(cases.textdata(2:end,d),'yyyy-mm-dd');
@@ -321,7 +321,7 @@ Y(5).lag  = 1;
 Y(5).age  = 0;
 Y(5).hold = 1;
 
-Y(6).type = 'Certified deaths (ONS)'; % weekly covid related deaths
+Y(6).type = '28-day and certified deaths (ONS)'; % weekly covid related deaths
 Y(6).unit = 'number';
 Y(6).U    = 15;
 Y(6).date = datenum(certified.textdata(2:end,d),'yyyy-mm-dd') - 10;
@@ -386,7 +386,7 @@ Y(12).unit = 'ratio';
 Y(12).U    = 4;
 Y(12).date = datenum(ratio.textdata(2:end,1),'dd/mm/yyyy') - 16;
 Y(12).Y    = (ratio.data(:,1) + ratio.data(:,2))/2;
-Y(12).h    = 2;
+Y(12).h    = 4;
 Y(12).lag  = 1;
 Y(12).age  = 0;
 Y(12).hold = 0;
@@ -480,7 +480,7 @@ Y(20).unit = 'percent';
 Y(20).U    = 22;
 Y(20).date = datenum(agevaccine.textdata(2:end,1),'yyyy-mm-dd');
 Y(20).Y    = agevaccine.data(:,iv2)*vons{1};
-Y(20).h    = 2;
+Y(20).h    = 0;
 Y(20).lag  = 0;
 Y(20).age  = 2;
 Y(20).hold = 1;
@@ -490,7 +490,7 @@ Y(21).unit = 'percent';
 Y(21).U    = 22;
 Y(21).date = datenum(agevaccine.textdata(2:end,1),'yyyy-mm-dd');
 Y(21).Y    = agevaccine.data(:,iv3)*vons{2};
-Y(21).h    = 2;
+Y(21).h    = 0;
 Y(21).lag  = 0;
 Y(21).age  = 3;
 Y(21).hold = 1;
@@ -500,7 +500,7 @@ Y(22).unit = 'percent';
 Y(22).U    = 22;
 Y(22).date = datenum(agevaccine.textdata(2:end,1),'yyyy-mm-dd');
 Y(22).Y    = agevaccine.data(:,iv4)*vons{3};
-Y(22).h    = 2;
+Y(22).h    = 0;
 Y(22).lag  = 0;
 Y(22).age  = 4;
 Y(22).hold = 0;
@@ -557,7 +557,7 @@ Y(27).unit = 'number';
 Y(27).U    = 2;
 Y(27).date = datenum(agecases.textdata(2:end,1),'yyyy-mm-dd');
 Y(27).Y    = sum(agecases.data(:,ig1),2)*EnglandUK;
-Y(27).h    = 2;
+Y(27).h    = 0;
 Y(27).lag  = 1;
 Y(27).age  = 1;
 Y(27).hold = 1;
@@ -567,7 +567,7 @@ Y(28).unit = 'number';
 Y(28).U    = 2;
 Y(28).date = datenum(agecases.textdata(2:end,1),'yyyy-mm-dd');
 Y(28).Y    = sum(agecases.data(:,ig2),2)*EnglandUK;
-Y(28).h    = 2;
+Y(28).h    = 0;
 Y(28).lag  = 1;
 Y(28).age  = 2;
 Y(28).hold = 1;
@@ -577,7 +577,7 @@ Y(29).unit = 'number';
 Y(29).U    = 2;
 Y(29).date = datenum(agecases.textdata(2:end,1),'yyyy-mm-dd');
 Y(29).Y    = sum(agecases.data(:,ig3),2)*EnglandUK;
-Y(29).h    = 2;
+Y(29).h    = 0;
 Y(29).lag  = 1;
 Y(29).age  = 3;
 Y(29).hold = 1;
@@ -587,7 +587,7 @@ Y(30).unit = 'number';
 Y(30).U    = 2;
 Y(30).date = datenum(agecases.textdata(2:end,1),'yyyy-mm-dd');
 Y(30).Y    = sum(agecases.data(:,ig4),2)*EnglandUK;
-Y(30).h    = 2;
+Y(30).h    = 0;
 Y(30).lag  = 1;
 Y(30).age  = 4;
 Y(30).hold = 0;
@@ -598,7 +598,7 @@ Y(31).unit = 'percent';
 Y(31).U    = 11;
 Y(31).date = datenum(surveyage.textdata(2:end,1),'dd/mm/yyyy');
 Y(31).Y    = surveyage.data(:,j(1:2))*phe{1};
-Y(31).h    = 2;
+Y(31).h    = 4;
 Y(31).lag  = 0;
 Y(31).age  = 1;
 Y(31).hold = 1;
@@ -608,7 +608,7 @@ Y(32).unit = 'percent';
 Y(32).U    = 11;
 Y(32).date = datenum(surveyage.textdata(2:end,1),'dd/mm/yyyy');
 Y(32).Y    = surveyage.data(:,j(3:4))*phe{2};
-Y(32).h    = 2;
+Y(32).h    = 4;
 Y(32).lag  = 0;
 Y(32).age  = 2;
 Y(32).hold = 1;
@@ -618,7 +618,7 @@ Y(33).unit = 'percent';
 Y(33).U    = 11;
 Y(33).date = datenum(surveyage.textdata(2:end,1),'dd/mm/yyyy');
 Y(33).Y    = surveyage.data(:,j(5:6))*phe{3};
-Y(33).h    = 2;
+Y(33).h    = 4;
 Y(33).lag  = 0;
 Y(33).age  = 3;
 Y(33).hold = 1;
@@ -628,7 +628,7 @@ Y(34).unit = 'percent';
 Y(34).U    = 11;
 Y(34).date = datenum(surveyage.textdata(2:end,1),'dd/mm/yyyy');
 Y(34).Y    = surveyage.data(:,j(7))*phe{4};
-Y(34).h    = 2;
+Y(34).h    = 4;
 Y(34).lag  = 0;
 Y(34).age  = 4;
 Y(34).hold = 0;
@@ -680,7 +680,7 @@ Y(39).unit = 'percent';
 Y(39).U    = 32;
 Y(39).date = datenum(gdp.textdata(2:end,1),'dd/mm/yyyy');
 Y(39).Y    = gdp.data;
-Y(39).h    = 4;
+Y(39).h    = 0;
 Y(39).lag  = 0;
 Y(39).age  = 3;
 Y(39).hold = 0;
@@ -692,7 +692,7 @@ Y(40).unit = 'million';
 Y(40).U    = 36;
 Y(40).date = datenum(vaccines.textdata(2:end,d),'yyyy-mm-dd');
 Y(40).Y    = vaccines.data/1e6;
-Y(40).h    = 2;
+Y(40).h    = 0;
 Y(40).lag  = 0;
 Y(40).age  = 0;
 Y(40).hold = 0;
@@ -753,7 +753,7 @@ hE    = spm_vec(Y.h);
 
 % model specification
 %==========================================================================
-M.Nmax = 16;                   % maximum number of iterations
+M.Nmax = 32;                   % maximum number of iterations
 M.G    = @spm_SARS_gen;        % generative function
 M.FS   = @(Y)real(sqrt(Y));    % feature selection  (link function)
 M.pE   = pE;                   % prior expectations (parameters)
@@ -817,6 +817,7 @@ spm_SARS_plot(H,X,S(:,u),[1 2 3])
 
 spm_figure('GetWin','outcomes (1)');
 %--------------------------------------------------------------------------
+Y     = DCM.M.T;
 j     = 0;
 k     = 1;
 for i = 1:numel(Y)
@@ -857,7 +858,7 @@ end
 %--------------------------------------------------------------------------
 j     = j + 1;
 subplot(4,2,j)
-for i = 1:numel(N)
+for i = 1:numel(R)
     spm_SARS_ci(Ep,Cp,[],21,M,[],i); hold on
 end
 ylabel('percent'), title('Infection fatality ratio','FontSize',14)
@@ -1430,9 +1431,9 @@ spm_figure('GetWin','states'); clf;
 %--------------------------------------------------------------------------
 M.T    = datenum(date) - datenum(DCM.M.date,'dd-mm-yyyy');
 M.T    = M.T + 360;                          % forecast dates
-u      = [17 18];                             % empirical outcome
-a      = [0 0];                              % age cohort (0 for everyone)
-% Ep.Tnn = DCM.Ep.Tnn + 0;                     % adjusted (log) parameter
+u      = [11];                               % empirical outcome
+a      = 1;                                  % age cohort (0 for everyone)
+Ep.out = DCM.Ep.out + 1/4;                   % adjusted (log) parameter
 
 [Z,X]  = spm_SARS_gen(Ep,M,u,[],a); % posterior prediction
 

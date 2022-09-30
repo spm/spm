@@ -37,7 +37,7 @@ function [P,C,str] = spm_SARS_priors(nN)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_priors.m 8297 2022-07-15 10:02:58Z karl $
+% $Id: spm_SARS_priors.m 8312 2022-09-30 18:21:14Z karl $
 
 % sources and background
 %--------------------------------------------------------------------------
@@ -62,14 +62,16 @@ function [P,C,str] = spm_SARS_priors(nN)
 %==========================================================================
 if nargin
     
-    % priors for single group
+    % priors for single group              % age-dependent variability in:
     %----------------------------------------------------------------------
     [P,C,str] = spm_SARS_priors;
-    free  = {'N'  ,'Nin','Nou',...
-             'qua','pro',...
-             'hos','ccu',...
-             'sev','fat',...
-             'rol','fol','lnk'};
+    free  = {'N'  ,...                     % Population size
+             'Nin','Nou','iss'...          % numbers and contact rates
+             'qua','pro',...               % social distancing
+             'hos','ccu',...               % hospitalisation
+             'sev','fat',...               % vulnerability
+             'abs','tts',...               % testing
+             'rol','fol','lnk'};           % vaccination and efficacy
 
     if nN == 1
         
@@ -165,9 +167,9 @@ if nargin
                      0.200]);
         % mortality
         %------------------------------------------------------------------
-        P.fat = log([0.0001;
-                     0.001;
-                     0.02;
+        P.fat = log([0.000001;
+                     0.0001;
+                     0.1;
                      0.4]);
         
         % vaccination link (pathogenicity)
@@ -301,7 +303,8 @@ names{54} = 'survival risk in care homes';
 names{55} = 'changes in transfer to CCU';  
 names{56} = 'transmissibility parameters';
 names{57} = 'doses per seroconversion';
-names{58} = 'not used';
+names{58} = 'age-related testing';
+names{59} = 'self-isolation';
 
 % latent or hidden factors
 %--------------------------------------------------------------------------
@@ -429,9 +432,9 @@ P.Tsy = 5;                    % (22) symptomatic period  (days)
 P.Trd = 16;                   % (23) severe symptoms     (days)
 
 P.sev = 0.01;                 % (24) P(ARDS | symptoms)
-P.lat = [1 1];                % (25) changes in severity
+P.lat = 1;                    % (25) changes in severity
 P.fat = 0.5;                  % (26) P(fatality | ARDS)
-P.sur = [1 1];                % (27) changes in severity
+P.sur = 1;                    % (27) changes in severity
 
 % testing parameters
 %--------------------------------------------------------------------------
@@ -467,12 +470,14 @@ i     = ceil((datenum(date) - datenum('01-02-2020'))/64);
 P.lnr = 0.46;                 % (50) LFD sensitivity
 P.lpr = 0.0002;               % (51) LFD specificity
 P.rel = 1;                    % (52) PCR testing of fatalities
-P.pro = [1 1];                % (53) contact rate decay (days)
+P.pro = 1;                    % (53) contact rate decay (days)
 P.oth = 0.1;                  % (54) relative survival outside hospital
-P.iad = [1 1];                % (55) exponent: transfer to CCU
+P.iad = 1;                    % (55) exponent: transfer to CCU
 P.tra = ones(1,i)*64/800;     % (56) transmissibility parameters
 P.dps = [2 1];                % (57) doses per seroconversion
-P.abs = 1;                    % (58) not used
+P.abs = 1;                    % (58) age-related testing
+P.iss = 1;                    % (59) probability of self-isolation
+
 
 % infection fatality (for susceptible population)
 %--------------------------------------------------------------------------
@@ -561,7 +566,8 @@ C.oth = W;                    % (54) relative survival outside hospital
 C.iad = V;                    % (55) exponent: transfer to CCU
 C.tra = X;                    % (56) transmissibility parameters
 C.dps = X;                    % (57) doses per seroconversion
-C.abs = 0;                    % (58) not used
+C.abs = X;                    % (58) age-related testing
+C.iss = X;                    % (59) probability of self-isolation
 
 % check prior expectations and covariances are consistent
 %--------------------------------------------------------------------------

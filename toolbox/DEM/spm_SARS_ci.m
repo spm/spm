@@ -34,7 +34,7 @@ function [S,CS,Y,C,t] = spm_SARS_ci(Ep,Cp,Z,U,M,NPI,age)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_ci.m 8242 2022-04-18 11:44:38Z karl $
+% $Id: spm_SARS_ci.m 8312 2022-09-30 18:21:14Z karl $
 
 % default: number of outcomes to evaluate
 %--------------------------------------------------------------------------
@@ -95,19 +95,26 @@ end
 
 % graphics
 %==========================================================================
-outcome  = str.outcome(U);
+outcome = str.outcome(U);
+col     = get(gca,'ColorOrder');
 if isfield(M,'date')
-    t  = (1:M.T) + datenum(M.date,'dd-mm-yyyy');
+    t   = (1:M.T) + datenum(M.date,'dd-mm-yyyy');
 else
-    t  = (1:M.T)/7;
+    t   = (1:M.T)/7;
 end
+
+
 
 % single outcome
 %--------------------------------------------------------------------------
 if numel(U) == 1
     
+    coli = get(gca,'ColorOrderIndex');
     spm_plot_ci(Y',C{1},t), hold on
-    try, plot(t(1:numel(Z)),Z,'.k'), end
+    try
+        plot(t(1:numel(Z)),Z,'.','color',col(coli,:))
+        set(gca,'ColorOrderIndex',coli + 1);
+    end
     ylabel('number of cases/day')
     title(outcome,'FontSize',14)
     
