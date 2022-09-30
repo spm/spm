@@ -75,7 +75,7 @@ function MDP = DEM_surveillance
 % Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_surveillance.m 8175 2021-11-01 15:46:35Z guillaume $
+% $Id: DEM_surveillance.m 8313 2022-09-30 18:33:43Z karl $
 
 
 rng('default')
@@ -279,7 +279,7 @@ for f = 1:size(N,1)
     end
 end
 
-% Finally, specify with controllable transitions among case directions
+% Finally, specify with controllable transitions among gaze directions
 %--------------------------------------------------------------------------
 nx    = numel(label.name{end});
 nu    = numel(label.action{end});
@@ -294,7 +294,7 @@ B     = [T b];
 for f = 1:numel(B)
     Nf(f) = size(B{f},1);
 end
-
+clear T
 
 
 %% outcome probabilities: A
@@ -304,7 +304,7 @@ end
 % order interactions among the causes of outcomes (e.g., occlusion).
 %--------------------------------------------------------------------------
 for i = 1:numel(label.modality)
-    A{i} = zeros([numel(label.outcome{i}),Nf]);
+    A{i} = false([numel(label.outcome{i}),Nf]);
 end
 
 % loop over every combination of object attributes to specify outcomes
@@ -365,7 +365,7 @@ for o1 = 1:Nf(1)
                 % generate outcome from i-th object
                 %----------------------------------------------------------
                 o     = spm_what(a(i,:),i);
-                A{1}(o,o1,o2,o3,u) = 1;
+                A{1}(o,o1,o2,o3,u) = true;
                 
                 
                 % {'contrast-left'}:
@@ -384,9 +384,9 @@ for o1 = 1:Nf(1)
                 % and get contrast and motion energy
                 %----------------------------------------------------------
                 o     = spm_contrast_energy(a(i,:));
-                A{2}(o,o1,o2,o3,u) = 1;
+                A{2}(o,o1,o2,o3,u) = true;
                 o     = spm_motion_energy(a(i,:));
-                A{5}(o,o1,o2,o3,u) = 1;
+                A{5}(o,o1,o2,o3,u) = true;
                 
                 
                 % {'contrast-centre'}
@@ -398,9 +398,9 @@ for o1 = 1:Nf(1)
                 % and get contrast and motion energy
                 %----------------------------------------------------------
                 o     = spm_contrast_energy(a(i,:));
-                A{3}(o,o1,o2,o3,u) = 1;
+                A{3}(o,o1,o2,o3,u) = true;
                 o     = spm_motion_energy(a(i,:));
-                A{6}(o,o1,o2,o3,u) = 1;
+                A{6}(o,o1,o2,o3,u) = true;
                 
                 % {'contrast-right'}
                 %----------------------------------------------------------
@@ -411,20 +411,16 @@ for o1 = 1:Nf(1)
                 % and get contrast energy
                 %----------------------------------------------------------
                 o     = spm_contrast_energy(a(i,:));
-                A{4}(o,o1,o2,o3,u) = 1;
+                A{4}(o,o1,o2,o3,u) = true;
                 o     = spm_motion_energy(a(i,:));
-                A{7}(o,o1,o2,o3,u) = 1;
+                A{7}(o,o1,o2,o3,u) = true;
                 
             end  
         end
     end
 end
 
-% add a little uncertainty to the likelihood tensors
-%--------------------------------------------------------------------------
-for i = 1:numel(A)
-    A{i} = A{i} + 1/128;
-end
+
 
 %% priors: (utility) C
 %--------------------------------------------------------------------------

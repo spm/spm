@@ -44,7 +44,7 @@ function MDP = DEM_demo_MDP_XX
 % Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_MDP_XX.m 7766 2020-01-05 21:37:39Z karl $
+% $Id: DEM_demo_MDP_XX.m 8313 2022-09-30 18:33:43Z karl $
  
 % set up and preliminaries
 %==========================================================================
@@ -181,24 +181,13 @@ spm_MDP_VB_LFP(MDP(1:8));
 spm_figure('GetWin','Figure 5'); clf
 u  = spm_cat({MDP.u}');
 i  = find(ismember(u(:,1:2),[4,2],'rows')); i = (i + 1)/2;
-spm_MDP_VB_LFP(MDP([i(1),i(end)]),[1;2],2)
+spm_MDP_VB_LFP(MDP([i(1),i(end)]),[1;2],2);
 subplot(4,1,1), title('Repetition suppression and DA transfer','FontSize',16)
 
 % focus on the second epoch with and without precise prior expectations
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Figure 6'); clf
-n  = size(MDP(1).xn{1},1);
-v  = spm_MDP_VB_LFP(MDP([i(1),i(end)]),[1;2],2);
-t  = ((1:n)*16 + 80)*16/n;
-subplot(2,1,1),plot(t,v{1}{2,1},'b-.',t,v{2}{2,1},'b:',t,v{2}{2,1} - v{1}{2,1})
-xlabel('Time (ms)'),ylabel('LFP'),title('Difference waveform (MMN)','FontSize',16)
-legend({'oddball','standard','MMN'}), grid on, axis square
-
-% illustrate transfer of dopamine responses from US to CS
-%--------------------------------------------------------------------------
-w  = [MDP(i(1)).dn MDP(i(end)).dn];
-subplot(2,1,2),bar(w)
-xlabel('Time (bins)'),ylabel(''),title('Phasic DA responses','FontSize',16)
-legend({'oddball','standard'}), grid on
+spm_MDP_VB_LFP(MDP([i(1),i(end)]),[1;1]);
+subplot(4,1,1), title('With and without precise prior expectations','FontSize',16)
 
 

@@ -29,7 +29,7 @@ function Q = spm_MDP_VB_game(MDP)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_game.m 8262 2022-06-03 14:15:28Z karl $
+% $Id: spm_MDP_VB_game.m 8313 2022-09-30 18:33:43Z karl $
 
 % numbers of transitions, policies and states
 %--------------------------------------------------------------------------
@@ -107,7 +107,11 @@ for i = 1:Nt
             U = spm_softmax(MDP(i).C);
         end
         for t = 1:Ne
-            p(i) = p(i) + log(U(MDP(i).o(g,t),t))/Ne;
+            try
+                p(i) = p(i) + log(U(MDP(i).o(g,t),t))/Ne;
+            catch
+                p(i) = p(i) + log(U(MDP(i).o(g,t),1))/Ne;
+            end
         end
     end
     

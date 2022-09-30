@@ -30,7 +30,7 @@ function [MDP] = spm_MDP_check(MDP)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_check.m 8172 2021-10-25 10:20:42Z karl $
+% $Id: spm_MDP_check.m 8313 2022-09-30 18:33:43Z karl $
 
 
 % deal with a sequence of trials
@@ -76,7 +76,7 @@ for f = 1:Nf
 end
 for g = 1:Ng
     No(g)    = size(MDP.A{g},1);    % number of outcomes
-    if ~issparse(MDP.A{g})
+    if ~(issparse(MDP.A{g}) || islogical(MDP.A{g}))
         MDP.A{g} = double(MDP.A{g});
     end
 end

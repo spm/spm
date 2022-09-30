@@ -129,7 +129,7 @@ function [MDP] = spm_MDP_VB_XX(MDP,OPTIONS)
 % Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_XX.m 8308 2022-09-02 10:15:40Z karl $
+% $Id: spm_MDP_VB_XX.m 8313 2022-09-30 18:33:43Z karl $
 
 
 % deal with a sequence of trials
@@ -259,9 +259,9 @@ for m = 1:size(MDP,1)
         % parameters (concentration parameters): a
         %------------------------------------------------------------------
         if isfield(MDP,'a')
-            A{m,g}  = spm_norm(MDP(m).a{g});
+            A{m,g}  = spm_norm(sparse(MDP(m).a{g}(:,:)));
         else
-            A{m,g}  = spm_norm(MDP(m).A{g});
+            A{m,g}  = sparse(MDP(m).A{g}(:,:));
         end
         
         % prior concentration parameters and novelty (W)
@@ -269,15 +269,14 @@ for m = 1:size(MDP,1)
         if isfield(MDP,'a')
             pA{m,g} = MDP(m).a{g};
             W{m,g}  = spm_wnorm(pA{m,g}).*(pA{m,g} > 0);
-            W{m,g}  = W{m,g}(:,:);
+            W{m,g}  = sparse(W{m,g}(:,:));
         else
-            W{m,g}  = spm_zeros(A{m,g});
-            W{m,g}  = W{m,g}(:,:);
+            W{m,g}  = sparse(No(g),prod(Ns));
         end
         
         % and ambiguity (H) (for computation of expected free energy: G)
         %------------------------------------------------------------------
-        fA          = full(A{m,g}(:,:));
+        fA          = A{m,g}(:,:);
         H{m,g}      = spm_vec(sum(fA.*spm_log(fA),1));
  
     end
@@ -392,8 +391,9 @@ for m = 1:size(MDP,1)
         S{m,f} = zeros(Ns(m,f),T,T) + 1/Ns(m,f);
         X{m,f} = repmat(D{m,f},1,T);
     end
+    q0    = spm_kron(D(m,:));
     for t = 1:T
-        Q{m,t} = spm_kron(D(m,:));
+        Q{m,t} = q0;
     end
     
     % initialise posteriors over polices and action
@@ -803,7 +803,7 @@ for t = 1:T
         % save marginal posteriors over hidden states: c.f., working memory
         %------------------------------------------------------------------
         for i = 1:T
-            qx    = spm_unvec(Q{m,i},zeros([Ns(m,:),1]));
+           qx     = reshape(full(Q{m,i}),[Ns(m,:),1]);
             for f = 1:Nf(m)
                 S{m,f}(:,i,t) = spm_margin(qx,f);
             end
@@ -900,6 +900,13 @@ for t = 1:T
     
 end % end of loop over time
 
+n     = 16;
+for m = 1:size(MDP,1)
+    for f = 1:Nf(m)
+        xn{m,f} = zeros(n,Ns(m,f),T,T);
+    end
+end
+
 % loop over models to accumulate Dirichlet parameters and prepare outputs
 %==========================================================================
 for m = 1:size(MDP,1)
@@ -909,7 +916,7 @@ for m = 1:size(MDP,1)
     if any(isfield(MDP,{'b','d'}))
         for t = 1:T
             L     = spm_backwards(O{m},Q(m,:),A(m,:),B(m,:),K(m,:),t,T);
-            L     = spm_unvec(L,zeros([Ns(m,:),1]));
+            L     = reshape(L,[Ns(m,:),1]);
             for f = 1:Nf(m)
                 X{m,f}(:,t) = spm_margin(L,f);
             end
@@ -1016,7 +1023,6 @@ for m = 1:size(MDP,1)
     % simulated dopamine (or cholinergic) responses: assuming a
     % monoexponential kernel
     %----------------------------------------------------------------------
-    n     = 16;
     h     = exp(-(0:(n - 1))/2);
     h     = h/sum(h);
     wn{m} = kron(w{m},ones(1,n));
@@ -1144,7 +1150,7 @@ COUNT = COUNT + 1;
 G     = E;                                % log priors over actions
 L     = 1;
 for g = 1:numel(A)
-    L = L.*spm_dot(A{g},O{g});            % likelihood over modalities
+    L = L.*(O{g}'*A{g});                  % likelihood over modalities
 end
 U     = L(:).*P{t};                       % posterior unnormalised
 P{t}  = spm_norm(U);                      % posterior normalised 
@@ -1157,34 +1163,28 @@ if t == T, return, end
 % Expected free energy of subsequent action
 %==========================================================================
 for k = 1:size(B,2)                       % search over actions
-    
+
     % (negative) expected free energy
     %----------------------------------------------------------------------
-    Q{k}   = B{k}*P{t};                  % predictive posterior Q{k}
+    Q{k}   = B{k}*P{t};                   % predictive posterior Q{k}
     for g  = 1:numel(A)                   % for all modalities
-        
+
         % predictive posterior and prior over outcomes
         %--------------------------------------------------------------
-        qo   = full(A{g}(:,:)*Q{k});      % predictive outcomes
-        po   = full(C{g}(:,t));           % predictive log prior
-        
-        if false
-            
-            % Bayesian risk only (expected utility)
-            %--------------------------------------------------------------
-            G(k) = G(k) + qo'*po;
-            
-        else
-            
-            % G(k)      = ambiguity  +        risk
-            %--------------------------------------------------------------
-            G(k) = G(k) + Q{k}'*H{g} - qo'*(spm_log(qo) - po);
-            
-            % Bayesian surprise about parameters (i.e., novelty)
-            %--------------------------------------------------------------
-            G(k) = G(k) - qo'*W{g}*Q{k};
-            
+        qo   = A{g}*Q{k};                 % predictive outcomes
+        po   = C{g}(:,t);                 % predictive log prior
+
+
+        % G(k)      = ambiguity  +        risk
+        %--------------------------------------------------------------
+        G(k) = G(k) + Q{k}'*H{g} - qo'*(spm_log(qo) - po);
+
+        % Bayesian surprise about parameters (i.e., novelty)
+        %--------------------------------------------------------------
+        if nnz(W{g})
+            G(k) = G(k) - (qo'*W{g})*Q{k};
         end
+
     end
 end
 
@@ -1219,11 +1219,11 @@ if t < N
                 % prior over subsequent action under this hidden state
                 %----------------------------------------------------------
                 P{t + 1} = Q{k};
-                E        = spm_forwards(O,P,A,B,C,E,H,W,t + 1,T,N);
+                EF       = spm_forwards(O,P,A,B,C,E,H,W,t + 1,T,N);
                 
                 % expected free energy marginalised over subsequent action
                 %----------------------------------------------------------
-                K(i)     = spm_softmax(E)'*E;
+                K(i)     = spm_softmax(EF)'*EF;
                 
             end
             

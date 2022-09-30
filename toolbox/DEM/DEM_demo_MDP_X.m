@@ -38,7 +38,7 @@ function MDP = DEM_demo_MDP_X
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_MDP_X.m 7679 2019-10-24 15:54:07Z spm $
+% $Id: DEM_demo_MDP_X.m 8313 2022-09-30 18:33:43Z karl $
  
 % set up and preliminaries
 %==========================================================================
@@ -166,7 +166,7 @@ spm_MDP_VB_LFP(MDP(1),[2 3;3 3],1);
 spm_figure('GetWin','Figure 4'); clf
 spm_MDP_VB_LFP(MDP(1:8));
 
- 
+
 % illustrate familiarity (c.f., MMN) and context learning
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Figure 5'); clf
@@ -174,18 +174,3 @@ i = find(ismember(spm_cat({MDP.u}'),[4 2],'rows')); i = (i + 1)/2;
 spm_MDP_VB_LFP(MDP([i(1),i(end)]),[1;1],2)
 subplot(4,1,1), title('Repetition suppression and DA transfer','FontSize',16)
  
-spm_figure('GetWin','Figure 6'); clf
-n  = size(MDP(1).xn{1},1);
-v  = spm_MDP_VB_LFP(MDP([i(1),i(end)]),[1;1],2);
-t  = ((1:n)*16 + 80)*16/n;
-subplot(2,1,1),plot(t,v{1}{2,1},'b-.',t,v{2}{2,1},'b:',t,v{2}{2,1} - v{1}{2,1})
-xlabel('Time (ms)'),ylabel('LFP'),title('Difference waveform (MMN)','FontSize',16)
-legend({'oddball','standard','MMN'}), grid on, axis square
-
-w  = [MDP(i(1)).dn MDP(i(end)).dn];
-
-subplot(2,1,2),bar(w)
-xlabel('Time (bins)'),ylabel(''),title('Phasic DA responses','FontSize',16)
-legend({'oddball','standard'}), grid on
-
-

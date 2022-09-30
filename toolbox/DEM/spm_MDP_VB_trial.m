@@ -21,7 +21,7 @@ function spm_MDP_VB_trial(MDP,gf,gg)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_trial.m 8262 2022-06-03 14:15:28Z karl $
+% $Id: spm_MDP_VB_trial.m 8313 2022-09-30 18:33:43Z karl $
 
 % graphics
 %==========================================================================
@@ -56,13 +56,13 @@ ng    = numel(gg);
 % posterior beliefs about hidden states
 %--------------------------------------------------------------------------
 for f = 1:nf
-    subplot(3*nf,2,(f - 1)*2 + 1)
+    subplot(3*nf,2,(f - 1)*2 + 1), hold off
     image(64*(1 - X{gf(f)})), hold on
     if size(X{gf(f)},1) > 128
-        % spm_spy(X{gf(f)},16,1);
+        spm_spy(X{gf(f)},12,1);
     end
     a = axis; hold on
-    plot(MDP.s(gf(f),:),'.r','MarkerSize',16), axis(a), hold off
+    plot(MDP.s(gf(f),:),'.r','MarkerSize',8), axis(a), hold off
     if f < 2
         title(sprintf('Hidden states - %s',MDP.label.factor{gf(f)}));
     else
@@ -155,10 +155,14 @@ end
 for g  = 1:ng
     
     subplot(3*ng,2,(2*ng + g - 1)*2 + 1), hold off
-    if size(C{gg(g)},1) > 128
-        spm_spy(C{gg(g)},16,1), hold on
+    c     = C{gg(g)};
+    if size(c,2) < size(MDP.o,2)
+        c = repmat(c(:,1),1,size(MDP.o,2));
+    end
+    if size(c,1) > 128
+        spm_spy(c,16,1), hold on
     else
-        imagesc(1 - C{gg(g)}),  hold on
+        imagesc(1 - c),  hold on
     end
     plot(MDP.o(gg(g),:),'.c','MarkerSize',16), hold off
     if g < 2

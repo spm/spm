@@ -37,7 +37,7 @@ function MDP = DEM_demo_MDP_habits
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_MDP_habits.m 7679 2019-10-24 15:54:07Z spm $
+% $Id: DEM_demo_MDP_habits.m 8313 2022-09-30 18:33:43Z karl $
  
 % set up and preliminaries
 %==========================================================================
@@ -156,19 +156,11 @@ subplot(4,1,1), title('Violation response (P300)','FontSize',16)
  
 % illustrate oddball responses (MMN)  - CS and dopamine transfer
 %--------------------------------------------------------------------------
-spm_figure('GetWin','Figure 6a'); clf
+spm_figure('GetWin','Figure 6'); clf
 i  = find(ismember(spm_cat({MDP.u}'),[4 2],'rows'));
 spm_MDP_VB_LFP(MDP([i(1),i(end)]),[1;1]);
 subplot(4,1,1), title('Repetition suppression and DA transfer','FontSize',16)
  
-spm_figure('GetWin','Figure 6b');clf
-v  = spm_MDP_VB_LFP(MDP([i(1),i(end)]),[1;1]);
-t  = (1:16)*16 + 80;
-subplot(2,1,1),plot(t,v{1}{2,1},'b-.',t,v{2}{2,1},'b:',t,v{2}{2,1} - v{1}{2,1})
-xlabel('Time (ms)'),ylabel('LFP'),title('Difference waveform (MMN)','FontSize',16)
-legend({'oddball','standard','MMN'}), grid on, axis square
-
-% return
 
 % illustrate reversal learning - after trial 32
 %==========================================================================
@@ -284,7 +276,7 @@ C = [0 0 0  0 0  0 0 0;
 % habitual (non-sequential) policy
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Figure 12'); clf
-M = spm_MDP_VB(MDP,OPTIONS); spm_MDP_VB_game(M);
+M   = spm_MDP_VB(MDP,OPTIONS); spm_MDP_VB_game(M);
 h   = M(end).c;
 h   = h*diag(1./sum(h));
  
@@ -314,7 +306,7 @@ col = {'r','g','b','m','c'};
 for t = 1:length(MDP)
     for j = 1:size(UNITS,2)
         
-        [~,v] = spm_MDP_VB_LFP(MDP(t),UNITS(:,j));
+        v     = spm_MDP_VB_LFP(MDP(t),UNITS(:,j));
         qu    = spm_cat(v);
         qe    = randn(2,size(qu,1))/4;
         L     = [0 0 -1 -1 1 1  0  0;

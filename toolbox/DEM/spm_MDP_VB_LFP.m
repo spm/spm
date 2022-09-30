@@ -1,6 +1,6 @@
-function [u,v] = spm_MDP_VB_LFP(MDP,UNITS,f,SPECTRAL)
+function [v] = spm_MDP_VB_LFP(MDP,UNITS,f,SPECTRAL)
 % auxiliary routine for plotting simulated electrophysiological responses
-% FORMAT [u,v] = spm_MDP_VB_LFP(MDP,UNITS,FACTOR,SPECTRAL)
+% FORMAT [v] = spm_MDP_VB_LFP(MDP,UNITS,FACTOR,SPECTRAL)
 %
 % MDP        - structure (see spm_MDP_VB_X.m)
 %  .xn       - neuronal firing
@@ -12,7 +12,6 @@ function [u,v] = spm_MDP_VB_LFP(MDP,UNITS,f,SPECTRAL)
 % FACTOR     - hidden factor to plot                  [default: 1]
 % SPECTRAL   - replace raster with spectral responses [default: 0]
 %
-% u - selected unit rate of change of firing (simulated voltage)
 % v - selected unit responses {number of trials, number of units}
 %
 % This routine plots simulated electrophysiological responses. Graphics are
@@ -23,7 +22,7 @@ function [u,v] = spm_MDP_VB_LFP(MDP,UNITS,f,SPECTRAL)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_VB_LFP.m 8262 2022-06-03 14:15:28Z karl $
+% $Id: spm_MDP_VB_LFP.m 8313 2022-09-30 18:33:43Z karl $
  
  
 % defaults

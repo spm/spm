@@ -41,7 +41,7 @@ function MDP = DEMO_MDP_maze
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEMO_MDP_maze.m 7766 2020-01-05 21:37:39Z karl $
+% $Id: DEMO_MDP_maze.m 8313 2022-09-30 18:33:43Z karl $
 
 % set up and preliminaries: first level
 %--------------------------------------------------------------------------
@@ -205,7 +205,7 @@ end
 % Here, we return to the exploratory simulation above and probe each level
 % of experience by asking the subject to execute a path to target. The
 % behaviour is then assessed in terms of the latency with which the target
-% will go is required  - and the number of mistakes or exploratory
+% will go is required - and the number of mistakes or exploratory
 % excursions into closed locations.
 %--------------------------------------------------------------------------
 N     = [];
@@ -243,7 +243,7 @@ spm_MDP_VB_LFP(SDP(1:8))
 
 % extract simulated responses
 %--------------------------------------------------------------------------
-[u,v] = spm_MDP_VB_LFP(SDP);               % responses
+v     = spm_MDP_VB_LFP(SDP);               % responses
 E     = kron(eye(32*3),pinv(ones(16,1)));  % expectation matrix
 v     = E*spm_cat(v);                      % firing rates (hidden states)
 u     = E*spm_cat({SDP.un})';              % firing rates (policies)
