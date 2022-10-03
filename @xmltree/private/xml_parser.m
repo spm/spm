@@ -18,7 +18,7 @@ function tree = xml_parser(xmlstr)
 
 
 % XML Processor for GNU Octave and MATLAB
-% Copyright (C) 2002-2022 Guillaume Flandin <Guillaume@artefact.tk>
+% Copyright (C) 2002-2022 Guillaume Flandin
 %
 % This program is free software; you can redistribute it and/or
 % modify it under the terms of the GNU General Public License
@@ -37,9 +37,8 @@ function tree = xml_parser(xmlstr)
 
 % Suggestions for improvement and fixes are always welcome, although no
 % guarantee is made whether and when they will be implemented.
-% Send requests to <Guillaume@artefact.tk>
 % Check also the latest developments on the following webpage:
-%           <https://www.artefact.tk/software/matlab/xml/>
+%           <https://www.github.com/gllmflndn/xmltree>
 %--------------------------------------------------------------------------
 
 % The implementation of this XML parser is much inspired from a 

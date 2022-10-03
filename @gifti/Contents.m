@@ -15,10 +15,9 @@
 %      https://github.com/richgel999/miniz
 %   dzip, by Michael Kleder:
 %      https://www.mathworks.com/matlabcentral/fileexchange/8899
-%   XMLTree, mVTK and JSONio, by Guillaume Flandin:
-%      https://www.artefact.tk/software/matlab/xml/
-%      https://www.artefact.tk/software/matlab/mvtk/
-%      https://www.artefact.tk/software/matlab/jsonio/
+%   XMLTree and JSONio, by Guillaume Flandin:
+%      https://www.github.com/gllmflndn/xmltree
+%      https://www.github.com/gllmflndn/JSONio
 %__________________________________________________________________________
 
 % Guillaume Flandin
