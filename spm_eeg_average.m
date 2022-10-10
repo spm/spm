@@ -10,6 +10,7 @@ function D = spm_eeg_average(S)
 %                 .bycondition - compute the weights by condition (1,
 %                                default) or from all trials (0)
 %                 .ks     - offset of the weighting function (default: 3)
+% S.trim       - trim mean by a percentile (e.g 10% trim: S.trim=10) default =0
 % S.prefix     - prefix for the output file (default - 'm')
 %
 % Output:
@@ -29,6 +30,7 @@ spm('FigName','M/EEG averaging'); spm('Pointer','Watch');
 %--------------------------------------------------------------------------
 if ~isfield(S, 'prefix'),       S.prefix = 'm';           end
 if ~isfield(S, 'robust'),       S.robust = 0;             end
+if ~isfield(S, 'trim'),         S.trim = 0;             end
 
 %-Configure robust averaging
 %--------------------------------------------------------------------------
@@ -191,6 +193,9 @@ else
 
             if ~robust || ~ismember(j, chanind)
                 Dnew(j, :, i) = mean(D(j, :, w), 3);
+                if S.trim > 0
+                    Dnew(j, :, i) = trimmean(D(j, :, w),S.trim ,3);
+                end
             else
                 if bycondition
                     Y       = D(j, :, w);
