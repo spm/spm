@@ -8,21 +8,21 @@
 % Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_plot_interactive.m 7096 2017-06-07 10:42:58Z vladimir $
+% $Id: spm_eeg_plot_interactive.m 8315 2022-10-10 13:29:48Z tim $
 
 
-D = spm_eeg_load;
+iD = spm_eeg_load;
 
-data = D.fttimelock;
+data = iD.fttimelock;
 
-if D.ntrials > 1
-    clb = D.conditions;
-    ind = spm_input('Select trial',1, 'm', sprintf('%s|', clb{:}),1:D.ntrials);
+if iD.ntrials > 1
+    clb = iD.conditions;
+    ind = spm_input('Select trial',1, 'm', sprintf('%s|', clb{:}),1:iD.ntrials);
 else
     ind = 1;
 end
 
-modality = spm_eeg_modality_ui(D, 1, 1);
+modality = spm_eeg_modality_ui(iD, 1, 1);
 
 %-Configure
 %--------------------------------------------------------------------------
@@ -32,17 +32,17 @@ cfg.interactive    = 'yes';
 
 switch modality
     case 'EEG'
-        cfg.elec   = D.sensors('EEG');
+        cfg.elec   = iD.sensors('EEG');
         cfg.rotate = 0;
         data.elec  = cfg.elec;
     case 'MEG'
-        cfg.grad   = D.sensors('MEG');
+        cfg.grad   = iD.sensors('MEG');
         data.grad  = cfg.grad;
     case 'MEGCOMB'
         cfg.layout = 'CTF275.lay';
 end
 
-cfg.channel = data.label(D.indchantype(modality, 'GOOD'));
+cfg.channel = data.label(iD.indchantype(modality, 'GOOD'));
 
 %-Display
 %--------------------------------------------------------------------------
