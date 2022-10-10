@@ -12,6 +12,7 @@ function D = spm_eeg_average_TF(S)
 %                 .bycondition - compute the weights by condition (1,
 %                                default) or from all trials (0)
 %                 .ks     - offset of the weighting function (default: 3)
+% S.trim       - trim mean by a percentile (e.g 10% trim: S.trim=10) default =0
 %
 % Output:
 % D         - MEEG object (also written to disk).
@@ -126,6 +127,9 @@ for j = 1:D.nsamples
         if ~strcmp(D.transformtype, 'TFphase')
             if ~robust
                 Dnew(:, :, j, i) = mean(D(:, :, j, w), 4);
+                 if S.trim > 0
+                    Dnew(:,: ,j, i) = trimmean(D(:,:, j, w),S.trim ,4);
+                end
              else
                  if bycondition
                      Y      = D(:, :, j, w);
