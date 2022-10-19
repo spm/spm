@@ -126,9 +126,10 @@ for j = 1:D.nsamples
         %------------------------------------------------------------------
         if ~strcmp(D.transformtype, 'TFphase')
             if ~robust
-                Dnew(:, :, j, i) = mean(D(:, :, j, w), 4);
-                 if S.trim > 0
-                    Dnew(:,: ,j, i) = trimmean(D(:,:, j, w),S.trim ,4);
+                if S.trim > 0
+                    Dnew(:,: ,j, i)  = trimmean(D(:,:, j, w),S.trim ,4);
+                else
+                    Dnew(:, :, j, i) = mean(D(:, :, j, w), 4);
                 end
              else
                  if bycondition

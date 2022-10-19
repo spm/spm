@@ -192,9 +192,10 @@ else
             end
 
             if ~robust || ~ismember(j, chanind)
-                Dnew(j, :, i) = mean(D(j, :, w), 3);
                 if S.trim > 0
                     Dnew(j, :, i) = trimmean(D(j, :, w),S.trim ,3);
+                else
+                    Dnew(j, :, i) = mean(D(j, :, w), 3);
                 end
             else
                 if bycondition
