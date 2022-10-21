@@ -5,7 +5,7 @@
 #
 ###############################################################################
 #
-# This Makefile has been tested under Linux, Windows and MacOS.
+# This Makefile has been tested under Linux, Windows and macOS.
 #
 # If you have to tweak this Makefile or Makefile.var to compile the SPM
 # mex-files for your platform, please send the details to <fil.spm@ucl.ac.uk>
@@ -362,26 +362,20 @@ verb.install:
 verb.tarball:
 	$(call verb, "Creating archive spm_mex.tar.gz")
 
-verb.mexw32:
-	$(call verb, "Windows compilation (32 bit)")
-
 verb.mexw64:
 	$(call verb, "Windows compilation (64 bit)")
-
-verb.mexglx:
-	$(call verb, "Linux compilation (x86-32)")
 
 verb.mexa64:
 	$(call verb, "Linux compilation (x86-64)")
 
-verb.mexmaci:
-	$(call verb, "MacOS compilation (Intel 32 bit)")
-
 verb.mexmaci64:
-	$(call verb, "MacOS compilation (Intel 64 bit)")
+	$(call verb, "macOS compilation (Intel 64 bit)")
+
+verb.mexmaca64:
+	$(call verb, "macOS compilation (ARM 64 bit)")
 
 verb.mex:
-	$(call verb, "${PLATFORM} compilation (`${MEXBIN} -v | head -n 1`)")
+	$(call verb, "${PLATFORM} compilation ($$(${MEXBIN} -v | head -n 1))")
 
 verb.all.end:
 	$(call verb, "Compilation: done")

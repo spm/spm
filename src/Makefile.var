@@ -49,9 +49,15 @@ ifeq (Linux,$(PLATFORM))
   #MEXOPTS   += CFLAGS='$$CFLAGS $(WARNFLAG)'
 endif
 
-##### MacOS #####
+##### macOS #####
 ifeq (Darwin,$(PLATFORM))
   MEXEXT     = mexmaci64
+  MEXBIN    ?= mex
+  # https://stackoverflow.com/questions/37362414/
+  OMPFLAG    = -fopenmp=libiomp5
+endif
+ifeq (arm64,$(PLATFORM))
+  MEXEXT     = mexmaca64
   MEXBIN    ?= mex
   # https://stackoverflow.com/questions/37362414/
   OMPFLAG    = -fopenmp=libiomp5
