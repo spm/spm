@@ -375,7 +375,7 @@ verb.mexmaca64:
 	$(call verb, "macOS compilation (ARM 64 bit)")
 
 verb.mex:
-	$(call verb, "${PLATFORM} compilation ($$(${MEXBIN} -v | head -n 1))")
+	$(call verb, "${PLATFORM} compilation ($(shell ${MEXBIN} -v | head -n 1))")
 
 verb.all.end:
 	$(call verb, "Compilation: done")
