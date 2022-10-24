@@ -25,7 +25,7 @@ function varargout = spm_mb_shape(varargin)
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_shape.m 8273 2022-07-04 12:44:57Z john $
+% $Id: spm_mb_shape.m 8323 2022-10-24 15:36:09Z john $
 [varargout{1:nargout}] = spm_subfun(localfunctions,varargin{:});
 %==========================================================================
 
@@ -580,7 +580,7 @@ function x = relax_mu2(x,s,g,w,mu_settings,accel)
 
 if isempty(x), x = zeros(size(g),'single'); end
 spm_field('boundary',1);
-d = size(g);
+d = [size(g) 1 1];
 K = d(4);
 for k=1:K
 
@@ -611,7 +611,7 @@ function x = relax_mu1(x,s,g,w,mu_settings,accel)
 if isempty(x), x = zeros(size(g),'single'); end
 L  = operator(mu_settings);
 dc = L(1,1,1);
-d  = size(g);
+d  = [size(g) 1 1];
 K  = d(4);
 spm_field('boundary',1);
 

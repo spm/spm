@@ -5,18 +5,38 @@ P        = spm_select(Inf,'nifti','Select scans to label');
 % https://figshare.com/projects/Factorisation-based_Image_Labelling/128189
 
 datadir = fullfile(spm('dir'),'toolbox','mb','data'); % Suggested location for data files
-%datadir  = '.'; % Edit to indicate location of various files
-
-mufile   = fullfile(datadir,'mu_X.nii'); % Head Tissue Template
-%filfile = fullfile(datadir,'fil15-nuNaN-v1-d4-K24-r3-sd2.mat');   % Trained FIL Model (15 training subjects)
-filfile  = fullfile(datadir,'fil30-nuNaN-v1-d4-K24-r2-sd1.5.mat'); % Trained FIL Model (15 training + 15 test subjects)
-if ~exist(mufile,'file') || ~exist(filfile) error('Can''t find the template and labelling files.'); end
-if false
-    nw_priors = fullfile(datadir,'prior_X_2.mat'); % MRI Intensity Priors for T1w 
-    if ~exist(nw_priors),  error('Can''t find the Normal-Wishart priors.'); end
-else
-    nw_priors = ''; % Any data
+if ~exist(datadir,'dir')
+    try
+        fprintf('Attempting to make %s directory.\n', datadir);
+        mkdir(datadir);
+    catch
+        fprintf('Failed to make directory %s\n', datadir);
+        datadir = spm_select(1,'dir','Select directory for labelling data');
+        %error(['Failed to make a directory for the template and labelling files (' datadir ').']);
+    end
 end
+
+%datadir  = '.'; % Edit to indicate location of various files
+mufname  = 'mu_X.nii';
+filfname = 'fil30-nuNaN-v1-d4-K24-r2-sd1.5.mat';
+%filfname = 'fil15-nuNaN-v1-d4-K24-r3-sd2.mat';
+mufile   = fullfile(datadir,mufname);  % Head Tissue Template
+filfile  = fullfile(datadir,filfname); % Trained FIL Model (15 training + 15 test subjects)
+if ~exist(mufile,'file') || ~exist(filfile,'file')
+    try
+        fprintf('Attempting to download %s and %s files.\n', mufile, filfile);
+        websave(mufile, 'https://figshare.com/ndownloader/files/31699187');
+        websave(filfile,'https://figshare.com/ndownloader/files/31784579');
+    catch
+        error('Failed to download the template and labelling data.');
+    end
+end
+% Could use Normal-Wishart priors for intensities. The following might help for
+% labelling T1w scans.
+%   nw_priors = fullfile(datadir,'prior_X_2.mat'); % MRI Intensity Priors for T1w
+%   if ~exist(nw_priors,file),  error('Can''t find the Normal-Wishart priors.'); end
+
+nw_priors = ''; % Any data
 
 % Settings for MB alignment and tissue classification
 clear chan
