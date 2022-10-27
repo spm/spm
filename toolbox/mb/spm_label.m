@@ -1,5 +1,15 @@
-% Select images to label
-P        = spm_select(Inf,'nifti','Select scans to label');
+function out = spm_label(cfg)
+
+if nargin==0
+    % Select images to label
+    P        = spm_select(Inf,'nifti','Select scans to label');
+else
+    if isa(cfg,'char')
+        P = cfg;
+    else
+        P = strvcat(cfg.images);
+    end
+end
 
 % Needs some files uploaded from:
 % https://figshare.com/projects/Factorisation-based_Image_Labelling/128189
@@ -75,6 +85,7 @@ addpath(fullfile(spm('dir'),'toolbox','Shoot'));
 addpath(fullfile(spm('dir'),'toolbox','Longitudinal'));
 fil = load(filfile);
 
+out.labels = cell(size(P,1),1);
 for n=1:size(P,1)
     cfg.gmm.chan.images = {deblank(P(n,:))};
     [odir,onam,ext] = fileparts(cfg.gmm.chan.images{1}); % Output directory and filename
@@ -84,5 +95,6 @@ for n=1:size(P,1)
     dat(1).onam = onam;
     [dat,sett]  = spm_mb_fit(dat,sett);              % Run Multi-Brain fitting
     Plab        = fil_label(fil,sett,dat,[6 10 10],0.25,odir); % Label the image
+    out.labels{n} = Plab;
 end
 

@@ -3,7 +3,7 @@ function cfg = tbx_cfg_mb
 %__________________________________________________________________________
 % Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: tbx_cfg_mb.m 8273 2022-07-04 12:44:57Z john $
+% $Id: tbx_cfg_mb.m 8324 2022-10-27 14:34:55Z john $
 
 
 if ~isdeployed, addpath(fileparts(mfilename('fullpath'))); end
@@ -677,10 +677,31 @@ out.help = {[...
 % ---------------------------------------------------------------------
 
 % ---------------------------------------------------------------------
+images        = cfg_files;                                                                                              images.tag    = 'images';
+images.name   = 'Scans';
+images.filter = 'nifti';
+images.num    = [1 Inf];
+images.help   = {['Select one NIfTI format scan for each subject.'],''};
+
+fil      = cfg_exbranch;
+fil.tag  = 'fil';
+fil.name = 'Image Labelling';
+fil.val  = {images};
+fil.prog = @spm_label;
+fil.vout = @vout_fil;
+fil.help = {...
+    'Factorisation-based Image Labelling.', ...
+    ['Label brains according to the Neuromorphometrics protocol using the method '...
+     'of Yan et al/* \cite{yan2021factorisation} */. Note that the algorithm '...
+     'may need to download additional data from Figshare'...
+     '/* \footnote{\url{https://figshare.com/articles/dataset/Trained_FIL_model/17143370/2} \& \url{https://figshare.com/articles/dataset/Head_Tissue_Template/17143289}.}*/.'],''};
+% ---------------------------------------------------------------------
+
+% ---------------------------------------------------------------------
 cfg        = cfg_choice;
 cfg.tag    = 'mb';
 cfg.name   = 'Multi-Brain toolbox';
-cfg.values = {mb,mrg,out};
+cfg.values = {mb,mrg,out,fil};
 cfg.help   = {[...
 'The Multi-Brain (MB) toolbox has the general aim of integrating a number of disparate ' ...
 'image analysis components within a single unified generative modelling framework ' ...
@@ -862,5 +883,9 @@ dep = [mudep, matdep];
 %_______________________________________________________________________
 %
 %_______________________________________________________________________
-
+function dep = vout_fil(cfg)
+dep            = cfg_dep;
+dep.sname      = 'Labelled brains';
+dep.src_output = substruct('.','labels','()',{':'});
+dep.tgt_spec   = cfg_findspec({{'filter','nifti'}});
 
