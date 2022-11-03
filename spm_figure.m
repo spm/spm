@@ -102,7 +102,6 @@ function varargout = spm_figure(varargin)
 %
 % FORMAT spm_figure('Close',F)
 % Closes figures (deletion without confirmation)
-% Also closes the docking container if empty.
 % F - 'Tag' string or figure number of figure to clear, defaults to gcf
 %
 % FORMAT spm_figure('Print',F)
@@ -289,14 +288,12 @@ F = spm_figure('FindWin',F);
 if isempty(F), return, end
 
 %-Clear figure
-isdocked = strcmp(get(F,'WindowStyle'),'docked');
 if isempty(Tags)
     %-Clear figure of objects with 'HandleVisibility' 'on'
     pos = get(F,'Position');
     delete(findall(allchild(F),'flat','HandleVisibility','on'));
     drawnow;
     pause(0.05);
-    if ~isdocked, set(F,'Position',pos); end
     %-Reset figures callback functions
     zoom(F,'off');
     pan(F,'off');
@@ -324,7 +321,6 @@ set(F,'Pointer','Arrow');
 sw = warning('off','MATLAB:Figure:UnableToSetRendererToOpenGL');
 set(F,'Renderer',spm_get_defaults('renderer'));
 warning(sw);
-%if ~isdocked && ~spm('CmdLine'), movegui(F); end
 
 %==========================================================================
 case 'close'
@@ -336,22 +332,8 @@ if nargin < 2, F = gcf; else F = varargin{2}; end
 F = spm_figure('FindWin',F);
 if isempty(F), return, end
 
-%-Detect if SPM windows are in docked mode
-hMenu = spm_figure('FindWin','Menu');
-isdocked = strcmp(get(hMenu,'WindowStyle'),'docked');
-
 %-Close figures (and deleted without confirmation)
 delete(F);
-
-%-If in docked mode and closing SPM, close the container as well
-if isdocked && ismember(hMenu,F)
-    try
-        desktop = com.mathworks.mde.desk.MLDesktop.getInstance;
-        group   = ['Statistical Parametric Mapping (' spm('Ver') ')'];
-        hContainer = desktop.getGroupContainer(group);
-        hContainer.getTopLevelAncestor.hide;
-    end
-end
 
 %==========================================================================
 case 'print'
@@ -700,15 +682,6 @@ end
 set(F,'Visible',Visible)
 varargout = {F};
 
-isdocked = strcmp(get(spm_figure('FindWin','Menu'),'WindowStyle'),'docked');
-if isdocked
-    try
-        desktop = com.mathworks.mde.desk.MLDesktop.getInstance;
-        group   = ['Statistical Parametric Mapping (' spm('Ver') ')'];
-        set(getJFrame(F),'GroupName',group);
-        set(F,'WindowStyle','docked');
-    end
-end
 
 %==========================================================================
  case 'createsatwin'
@@ -819,10 +792,6 @@ if strcmpi(spm_check_version,'matlab')
         uimenu(t0, 'Label','Show &MATLAB Window', 'HandleVisibility','off',...
             'CallBack','commandwindow;');
     end
-
-    %-Dock SPM Figures
-    uimenu(t0, 'Label','&Dock SPM Windows', 'HandleVisibility','off',...
-        'CallBack',@mydockspm);
 end
 
 %-Print Menu
@@ -959,30 +928,6 @@ function mysatfig(obj,evt)
 return;
 
 %==========================================================================
-function mydockspm(obj,evt)
-%==========================================================================
-% Largely inspired by setFigDockGroup from Yair Altman
-% http://www.mathworks.com/matlabcentral/fileexchange/16650
-hMenu = spm_figure('FindWin','Menu');
-hInt  = spm_figure('FindWin','Interactive');
-hGra  = spm_figure('FindWin','Graphics');
-h     = [hMenu hInt hGra];
-group   = ['Statistical Parametric Mapping (' spm('Ver') ')'];
-try
-    desktop = com.mathworks.mde.desk.MLDesktop.getInstance;
-    if ~ismember(group,cell(desktop.getGroupTitles))
-        desktop.addGroup(group);
-    end
-    for i=1:length(h)
-        set(getJFrame(h(i)),'GroupName',group);
-    end
-    hContainer = desktop.getGroupContainer(group);
-    set(hContainer,'userdata',group);
-end
-set(h,'WindowStyle','docked');
-try, pause(0.5), desktop.setGroupDocked(group,false); end
-
-%==========================================================================
 function myclosefig(obj,evt)
 %==========================================================================
 hMenu = spm_figure('FindWin','Menu');
@@ -1007,31 +952,6 @@ for F1=handles(:)'
             'Separator',get(F1,'Separator'));
         copy_menu(F1,G1);
     end
-end
-
-%==========================================================================
-function jframe = getJFrame(h)
-%==========================================================================
-warning('off','MATLAB:HandleGraphics:ObsoletedProperty:JavaFrame');
-hhFig    = handle(h);
-jframe   = [];
-maxTries = 16;
-while maxTries > 0
-    try
-        jframe = get(hhFig,'javaframe');
-        if ~isempty(jframe)
-            break;
-        else
-            maxTries = maxTries - 1;
-            drawnow; pause(0.1);
-        end
-    catch
-        maxTries = maxTries - 1;
-        drawnow; pause(0.1);
-    end
-end
-if isempty(jframe)
-    error('Cannot retrieve the java frame from handle.');
 end
 
 %==========================================================================
