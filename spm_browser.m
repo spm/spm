@@ -1,18 +1,12 @@
-function [H, HC] = spm_browser(url,F,pos,format)
-% Display an HTML document within a MATLAB figure
-% FORMAT H = spm_browser(url,F,pos,[format])
+function spm_browser(url,format)
+% Display an HTML document in a web browser
+% FORMAT spm_browser(url,[format])
 %
 % url    - string containing URL (e.g. 'http://...' or 'file://...')
-% F      - figure handle or Tag [Default: Graphics]
-% pos    - position within figure in pixel units with the format [left,
-%          bottom, width, height]. [Default: full window with 10px margin]
 % format - data format {['html'],'md'}
 %          'md' option uses Markdown:
 %            https://www.wikipedia.org/wiki/Markdown
 %            http://showdownjs.com/
-% 
-% H      - handle to the Java component
-% HC     - handle to the HG container
 %__________________________________________________________________________
 
 % Guillaume Flandin
@@ -25,21 +19,7 @@ if nargin < 1
     url  = ['file://' fullfile(spm('Dir'),'help','index.html')];
 end
 
-if nargin < 2 || isempty(F)
-    F    = spm_figure('GetWin','Graphics');
-end
-try, isUpdate = ismethod(F,'setCurrentLocation'); catch, isUpdate=false; end
-if ~isUpdate, F = spm_figure('FindWin',F); end
-
-if (nargin < 3 || isempty(pos)) && ~isUpdate
-    u    = get(F,'Units');
-    set(F,'Units','pixels');
-    pos  = get(F,'Position');
-    set(F,'Units',u);
-    pos  = [10, 10, pos(3)-20, pos(4)-20];
-end
-
-if nargin < 4 || isempty(format)
+if nargin < 2 || isempty(format)
     if numel(url) > 1 && strcmp(url(end-2:end),'.md')
         format = 'md';
     else
@@ -49,37 +29,21 @@ end
 
 %-Display
 %--------------------------------------------------------------------------
-ws = warning('off');
-try
-    if strcmp(getenv('SPM_HTML_BROWSER'),'0')
-        error('HTML browser disabled.');
+if strcmpi(format,'html') && any(strncmp(url,{'file','http'},4))
+    web(strrep(url,'\','/'),'-browser');
+else
+    if strcmpi(format,'md')
+        url = md2html(url);
     end
-    % if usejava('awt') && spm_check_version('matlab','7.4') >= 0
-    %-Create HTML browser panel
-    %----------------------------------------------------------------------
-    if ~isUpdate
-        browser = com.mathworks.mlwidgets.html.HTMLBrowserPanel;
-        [H, HC] = javacomponent(browser,pos,F);
+    if ~isdeployed
+        url = ['text://' url];
+        web(url,'-notoolbar','-noaddressbox');
     else
-        H       = F;
-        HC      = [];
+        tmp = [tempname '.html'];
+        spm_save(tmp,url);
+        web(tmp,'-browser');
     end
-    
-    %-Set content
-    %----------------------------------------------------------------------
-    if strcmpi(format,'html') && any(strncmp(url,{'file','http'},4))
-        H.setCurrentLocation(strrep(url,'\','/'))
-    elseif strcmpi(format,'md')
-        H.setHtmlText(md2html(url));
-    else
-        H.setHtmlText(url);
-    end
-    drawnow;
-catch
-    H  = [];
-    HC = [];
 end
-warning(ws);
 
 
 %==========================================================================

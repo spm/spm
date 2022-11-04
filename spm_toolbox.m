@@ -13,7 +13,8 @@ function varargout = spm_toolbox(action,varargin)
 if ~nargin, action = 'Display'; end
 switch lower(action)
     case 'display'
-        tbx_display;
+        %tbx_display;
+        web('https://www.fil.ion.ucl.ac.uk/spm/ext');
     case 'install'
         if isdeployed, return; end
         tbx_install(varargin{:});

@@ -75,7 +75,7 @@ switch ext
         if nargin < 3, varargin = {struct([])}; end
         spm_jsonwrite(f,var,varargin{:});
         
-    case {'','txt','md'}
+    case {'','txt','md','html'}
         var = cellstr(var);
         fid = fopen(f,'Wt');
         if fid == -1

@@ -72,23 +72,12 @@ function varargout = spm_help(varargin)
 %             Defaults to README.md
 % Loads file Topic and displays it in the Help window.
 %
-% FORMAT spm_help('!Disp',Fname,S,F)
+% FORMAT spm_help('!Disp',Fname,S)
 % Fname     - Name of file from which to display help
 % S         - [Optional] String vector containing a previously read in
 %             contents of file Fname
-% F         - Figure to use
 % Displays the help for the given file in the Help window (creating
 % one if required).
-%
-% FORMAT spm_help('!Quit')
-% FORMAT spm_help('!DrawMenuWin')
-% FORMAT [S,Err] = spm_help('!ShortTopics',Topic)
-% FORMAT F = spm_help('!Create')
-% FORMAT F = spm_help('!CreateHelpWin')
-% FORMAT spm_help('!CreateBar',F)
-% FORMAT spm_help('!Clear',F)
-% FORMAT h = spm_help('!ContextHelp',Topic)
-% Deprecated function calls.
 %__________________________________________________________________________
 
 
@@ -96,9 +85,7 @@ function varargout = spm_help(varargin)
 %--------------------------------------------------------------------------
 %-All actions begin '!' - Other (string) actions are topics
 if nargin==0 || isempty(varargin{1})
-    Fhelp = spm_figure('FindWin','Help');
-    if ~isempty(Fhelp), set(Fhelp,'Visible','on')
-    else spm_help('!Topic'); end
+    spm_help('!Topic');
     return
 elseif varargin{1}(1)~='!'
     spm_help('!Topic',varargin{:}); return
@@ -115,24 +102,18 @@ case {'!quit','!drawmenuwin','!shorttopics','!create','!createhelpwin',...
     warning('Action ''%s'' is deprecated.',action);
 
 case '!disp'
-% FORMAT spm_help('!Disp',Fname,S,F)
+% FORMAT spm_help('!Disp',Fname,S)
 %==========================================================================
-    if nargin<4, F='Help'; else F=varargin{4}; end
     if nargin<3, S='';     else S=varargin{3}; end
     if nargin<2, Fname = fullfile(spm('Dir'),'README.md');
     else         Fname = varargin{2}; end
     
-    F = spm_figure('GetWin',F);
-    spm_clf(F);
     if isempty(S), S = get_content(Fname); end
-    [H,HC]=spm_browser(S,F);
-    varargout = {H, HC};
+    spm_browser(S);
 
 case '!topic'
 % FORMAT spm_help('!Topic',Topic)
 %==========================================================================
-    F = spm_figure('GetWin','Help');
-    spm_clf(F);
     if nargin > 1
         topic = varargin{2};
     else
