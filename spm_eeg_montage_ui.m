@@ -35,7 +35,7 @@ table    = cat(2,montage.labelnew(:),num2cell(montage.tra));
 colnames = cat(2,'channel labels',montage.labelorg(:)');
 
 pause(1e-1) % This is weird, but fixes java troubles.
-ht       = my_uitable(table,colnames);
+ht       = uitable('v0',table,colnames);
 set(ht,'position',pos2, 'units','normalized');
 
 % Display the matrix representation of the montage 
@@ -79,7 +79,7 @@ delete(ud.ht);
 table = cat(2,newLabels,num2cell(M));
 colnames = cat(2,'channel labels',ud.montage.labelorg(:)');
 pause(1) % This is weird, but fixes java troubles.
-ht = my_uitable(table,colnames);
+ht = uitable('v0',table,colnames);
 set(ht,'position',pos, 'units','normalized');
 ud.ht = ht;
 set(h,'userdata',ud);
@@ -101,7 +101,7 @@ if sts
         table      = cat(2,montage.labelnew(:),num2cell(montage.tra));
         colnames   = cat(2,'channel labels',montage.labelorg(:)');
         pause(1) % This is weird, but fixes java troubles.
-        ht         = my_uitable(table,colnames);
+        ht         = uitable('v0',table,colnames);
         set(ht,'position',pos,...
             'units','normalized');
         ud.ht      = ht;
@@ -220,22 +220,3 @@ hCheck = uicontrol('style','pushbutton',...
     'string',' Refresh display ','callback',{@doCheck,h},...
     'position',[760 20 120 20]);
 set(hCheck,'units','normalized');
-
-%==========================================================================
-function [ht,hc] = my_uitable(varargin)
-%==========================================================================
-% conversion layer for various MATLAB versions
-persistent runOnce
-try
-    if spm_check_version('matlab','8.4') >= 0
-        if isempty(runOnce)
-            warning('Consider migrating to the new uitable component.');
-            runOnce = true;
-        end
-        [ht,hc] = uitable('v0',varargin{:});
-    else
-        [ht,hc] = spm_uitable(varargin{:});
-    end
-catch
-    [ht,hc]     = deal([]);
-end
