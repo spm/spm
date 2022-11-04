@@ -116,9 +116,6 @@ end
 function [D] = PSD_initUD(D)
 % This function initializes the userdata structure.
 
-%-- Check spm_uitable capability (JAVA compatibility) --%
-D.PSD.VIZU.uitable = spm_uitable;
-
 %-- Initialize time window basic info --%
 D.PSD.VIZU.xlim = [1,min([5e2,nsamples(D)])];
 D.PSD.VIZU.info = 4; % show history

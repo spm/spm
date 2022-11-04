@@ -328,7 +328,7 @@ fprintf('%s\n', version('-java'));
 fprintf('Java support: ');
 level = {'jvm', 'awt', 'swing', 'desktop'};
 for i=1:numel(level)
-    if isempty(javachk(level{i})), fprintf('%s ',level{i}); end
+    if usejava(level{i}), fprintf('%s ',level{i}); end
 end
 fprintf('\n');
 

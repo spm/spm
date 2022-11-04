@@ -407,8 +407,9 @@ end
 %==========================================================================
 function [D] = DataInfo(D)
 
+use_table = 'on';
 
-switch D.PSD.VIZU.uitable
+switch use_table
 
     case 'off'
 
@@ -431,7 +432,6 @@ switch D.PSD.VIZU.uitable
             'position',[0.7 0.87 0.25 0.02]);
 
     case 'on'
-
 
         if isempty(D.PSD.VIZU.fromTab) || ~isequal(D.PSD.VIZU.fromTab,'info')
             % delete graphical objects from other main tabs
@@ -505,12 +505,11 @@ switch D.PSD.VIZU.uitable
                     table{i,5} = char(units(D,i));
                 end
                 colnames = {'label','type','bad','position','units'};
-                [ht,hc] = my_uitable(table,colnames);
-                set(ht,'units','normalized');
-                set(hc,'position',[0.1 0.05 0.55 0.7],...
-                    'tag','plotEEG');
+                ht = uitable('Data',table,'ColumnName',colnames,...
+                    'Units','normalized',...
+                    'Position',[0.1 0.05 0.55 0.7],...
+                    'Tag','plotEEG');
                 D.PSD.handles.infoUItable = ht;
-                D.PSD.handles.infoUItable2 = hc;
                 D = spm_eeg_review_uis(D,object); % this adds the buttons
 
             case 2 % trials info
@@ -543,10 +542,10 @@ switch D.PSD.VIZU.uitable
                             table{i,7} = num2str(trialonset(D,1));
                         end
                         colnames = {'label','type','value','duration','time','bad','offset'};
-                        [ht,hc] = my_uitable(table,colnames);
-                        set(ht,'units','normalized');
-                        set(hc,'position',[0.1 0.05 0.74 0.7],...
-                            'tag','plotEEG');
+                        ht = uitable('Data',table, 'ColumnName',colnames,...
+                            'Units','normalized',...
+                            'Position',[0.1 0.05 0.74 0.7],...
+                            'Tag','plotEEG');
                     else
                         POS = get(D.PSD.handles.infoTabs.hp,'position');
                         D.PSD.handles.message = uicontrol('style','text','units','normalized',...
@@ -596,10 +595,10 @@ switch D.PSD.VIZU.uitable
                             table{i,7} = num2str(trialonset(D,i));
                         end
                         colnames = {'label','type','value','duration','time','bad','onset'};
-                        [ht,hc] = my_uitable(table,colnames);
-                        set(ht,'units','normalized');
-                        set(hc,'position',[0.1 0.05 0.74 0.7],...
-                            'tag','plotEEG');
+                        ht = uitable('Data',table, 'ColumnName',colnames,...
+                            'Units','normalized',...
+                            'Position',[0.1 0.05 0.74 0.7],...
+                            'Tag','plotEEG');
                     else
                         for i=1:nt
                             table{i,1} = char(conditions(D,i));
@@ -611,15 +610,14 @@ switch D.PSD.VIZU.uitable
                             end
                         end
                         colnames = {'label','nb of repl','bad'};
-                        [ht,hc] = my_uitable(table,colnames);
-                        set(ht,'units','normalized');
-                        set(hc,'position',[0.1 0.05 0.32 0.7],...
-                            'tag','plotEEG');
+                        ht = uitable('Data',table, 'ColumnName',colnames,...
+                            'Units','normalized',...
+                            'Position',[0.1 0.05 0.32 0.7],...
+                            'Tag','plotEEG');
                     end
                 end
                 if ok
                     D.PSD.handles.infoUItable = ht;
-                    D.PSD.handles.infoUItable2 = hc;
                     D = spm_eeg_review_uis(D,object); % this adds the buttons
                 end
 
@@ -699,12 +697,11 @@ switch D.PSD.VIZU.uitable
                     end
                     colnames = {'label','date','modality','model','#dipoles','method',...
                         'pst','hanning','band pass','#modes','%var','log[p(y|m)]'};
-                    [ht,hc] = my_uitable(table,colnames);
-                    set(ht,'units','normalized');
-                    set(hc,'position',[0.1 0.05 0.8 0.7],...
-                        'tag','plotEEG');
+                    ht = uitable('Data',table, 'ColumnName',colnames,...
+                        'Units','normalized',...
+                        'Position',[0.1 0.05 0.8 0.7],...
+                        'Tag','plotEEG');
                     D.PSD.handles.infoUItable = ht;
-                    D.PSD.handles.infoUItable2 = hc;
                     D = spm_eeg_review_uis(D,object); % this adds the buttons
                 else
                     POS = get(D.PSD.handles.infoTabs.hp,'position');
@@ -723,12 +720,12 @@ switch D.PSD.VIZU.uitable
                 table = spm_eeg_history(D);
                 if ~isempty(table)
                     colnames = {'Process','function called','input file','output file'};
-                    [ht,hc] = my_uitable(table,colnames);
-                    set(ht,'units','normalized','editable',0);
-                    set(hc,'position',[0.1 0.05 0.8 0.7],...
-                        'tag','plotEEG');
+                    ht = uitable('Data',table,'ColumnName',colnames,...
+                        'Units','normalized',...
+                        'ColumnEditable',false,...
+                        'Position',[0.1 0.05 0.8 0.7],...
+                        'Tag','plotEEG');
                     D.PSD.handles.infoUItable = ht;
-                    D.PSD.handles.infoUItable2 = hc;
                 else
                     POS = get(D.PSD.handles.infoTabs.hp,'position');
                     D.PSD.handles.message = uicontrol('style','text','units','normalized',...
@@ -747,24 +744,4 @@ switch D.PSD.VIZU.uitable
             set(D.PSD.handles.infoText,'string',str)
         end
 
-end
-
-
-%==========================================================================
-function [ht,hc] = my_uitable(varargin)
-%==========================================================================
-% conversion layer for various MATLAB versions
-persistent runOnce
-try
-    if spm_check_version('matlab','8.4') >= 0
-        if isempty(runOnce)
-            warning('Consider migrating to the new uitable component.');
-            runOnce = true;
-        end
-        [ht,hc] = uitable('v0',varargin{:});
-    else
-        [ht,hc] = spm_uitable(varargin{:});
-    end
-catch
-    [ht,hc]     = deal([]);
 end

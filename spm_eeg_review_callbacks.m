@@ -1626,17 +1626,12 @@ else
 end
 % try,str{7} = ['Time onset: ',num2str(D.timeOnset),' sec'];end
 
-%% extracting data from spm_uitable java object
+%% extracting data from uitable
 function [D] = getUItable(D)
 ht = D.PSD.handles.infoUItable;
-cn = get(ht,'columnNames');
-table = get(ht,'data');
-% !! there is some redundancy here --> to be optimized...
-table2 = spm_uitable('get',ht);
-emptyTable = 0;
-try
-    emptyTable = isempty(cell2mat(table2));
-end
+cn = get(ht,'ColumnName');
+table = get(ht,'Data');
+emptyTable = isempty(cell2mat(table2));
 
 
 if length(cn) == 5  % channel info
