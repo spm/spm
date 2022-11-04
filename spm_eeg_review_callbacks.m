@@ -1631,7 +1631,7 @@ function [D] = getUItable(D)
 ht = D.PSD.handles.infoUItable;
 cn = get(ht,'ColumnName');
 table = get(ht,'Data');
-emptyTable = isempty(cell2mat(table2));
+emptyTable = isempty(cell2mat(table));
 
 
 if length(cn) == 5  % channel info
