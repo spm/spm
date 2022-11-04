@@ -66,7 +66,7 @@ function FEP_information_length(gi,qi,ci,fi)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: FEP_lorenz_surprise.m 8152 2021-09-13 09:17:36Z karl $
+% $Id: FEP_information_length.m 8333 2022-11-04 20:48:41Z guillaume $
 
 
 

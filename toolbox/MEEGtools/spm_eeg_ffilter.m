@@ -25,7 +25,7 @@ function Dnew = spm_eeg_ffilter(S)
 % Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
 
 % Tim Tierney
-% $Id: spm_eeg_filter.m 7125 2017-06-23 09:49:29Z guillaume $
+% $Id: spm_eeg_ffilter.m 8333 2022-11-04 20:48:41Z guillaume $
 
 
 if ~isfield(S, 'dir'),    S.dir    = 'twopass';     end

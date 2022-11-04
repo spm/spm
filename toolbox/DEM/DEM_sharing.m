@@ -75,7 +75,7 @@ function MDP = DEM_sharing
 % Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_surveillance.m 8175 2021-11-01 15:46:35Z guillaume $
+% $Id: DEM_sharing.m 8333 2022-11-04 20:48:41Z guillaume $
 
 
 rng('default')
