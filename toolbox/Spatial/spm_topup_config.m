@@ -110,7 +110,18 @@ outdir.help    = {[...
 'in the specified directory. The deformation field is saved to disk as ',...
 'a vdm file ("vdm5_*.nii")']};
 
-[cfg,varargout{1}] = deal({vols,fwhm,reg,outdir});
+%--------------------------------------------------------------------------
+% disp display
+%--------------------------------------------------------------------------
+disp         = cfg_menu;
+disp.tag     = 'display';
+disp.name    = 'Display';
+disp.help    = {'Display intermediate results.'};
+disp.labels  = {'Yes' 'No'};
+disp.values  = {1 0};
+disp.val     = {0};
+
+[cfg,varargout{1}] = deal({vols,fwhm,reg,outdir,disp});
 
 
 %==========================================================================
@@ -119,7 +130,7 @@ function out = spm_run_topup(cmd, job)
 switch lower(cmd)
     case 'run'
         VDM               = spm_topup(job.vols{1},job.vols{2},job.fwhm, ...
-                            job.reg,job.outdir{1});
+                            job.reg,job.outdir{1},struct('display',job.display));
         out.vdmfile       = {VDM.dat.fname};
         
     case 'vout'

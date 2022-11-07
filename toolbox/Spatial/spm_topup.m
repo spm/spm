@@ -1,4 +1,4 @@
-function VDM = spm_topup(vol1, vol2, FWHM, reg, outdir)
+function VDM = spm_topup(vol1, vol2, FWHM, reg, outdir, opts)
 % Correct susceptibility distortions using topup
 % FORMAT VDM = spm_topup(vol1, vol2, FWHM, reg, save)
 % vol1   - path to first image (blip up/down image)
@@ -12,6 +12,8 @@ function VDM = spm_topup(vol1, vol2, FWHM, reg, outdir)
 %            - [3] Penalty on the `bending energy'. This penalises
 %                  the sum of squares of the 2nd derivatives.
 % outdir - output directory
+% opts   - structure of optional parameters:
+%           .display: [default: true]
 %
 % VDM    - voxel displacement map
 %
@@ -37,6 +39,9 @@ if nargin < 4
 end
 if nargin < 5
     outdir = '';          % output directory
+end
+if nargin < 6
+    opts = struct('display',true);
 end
 
 %-Load images and estimate noise level
@@ -127,7 +132,7 @@ for fwhm = FWHM % Loop over spatial scales
 
         % Display topup iterations in Graphics window
         %------------------------------------------------------------------
-        if true
+        if opts.display
             pl = ceil(size(f1,3)*0.2);
             FG = spm_figure('GetWin','Graphics');
 
