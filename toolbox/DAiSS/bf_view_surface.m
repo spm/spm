@@ -3,7 +3,7 @@ function res = bf_view_surface(BF, S)
 % Copyright (C) 2022 Wellcome Trust Centre for Neuroimaging
 
 % George O'Neill
-% $Id: bf_view_surface.m 7846 2020-05-05 14:33:24Z george $
+% $Id: bf_view_surface.m 8340 2022-11-09 20:49:05Z guillaume $
 
 %--------------------------------------------------------------------------
 if nargin == 0

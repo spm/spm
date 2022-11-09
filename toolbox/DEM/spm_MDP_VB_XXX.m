@@ -126,7 +126,7 @@ function [MDP] = spm_MDP_VB_XXX(MDP,OPTIONS)
 % Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_XXX.m 8262 2022-06-03 14:15:28Z karl $
+% $Id: spm_MDP_VB_XXX.m 8340 2022-11-09 20:49:05Z guillaume $
 
 
 % deal with a sequence of trials
