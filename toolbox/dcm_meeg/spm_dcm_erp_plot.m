@@ -1,5 +1,5 @@
 function x = spm_dcm_erp_plot(DCM)
-% plots predicted source activity
+% Plot predicted source activity
 % FORMAT x = spm_dcm_erp_plot(DCM)
 %
 % DCM - DCM structure:
@@ -30,10 +30,10 @@ function x = spm_dcm_erp_plot(DCM)
 %
 % x{i}   - source activity contributing sources {trial i}
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_erp_plot.m 6112 2014-07-21 09:39:53Z karl $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
+
 
 % check options
 %==========================================================================

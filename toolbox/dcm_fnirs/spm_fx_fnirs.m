@@ -1,6 +1,6 @@
 function [f] = spm_fx_fnirs(x,u,P,M)
 % State equation for a dynamic model of fNIRS responses
-% FORMAT [f] = spm_fx_nirs(x,u,P,M)
+% FORMAT [f] = spm_fx_fnirs(x,u,P,M)
 %
 % x      - state vector
 %--------------------------------------------------------------------------
@@ -39,10 +39,10 @@ function [f] = spm_fx_fnirs(x,u,P,M)
 % This script is based on spm_fx_fmri.m written by 
 % Karl Friston & Klaas Enno Stephan.
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Sungho Tak
-% $Id: spm_fx_fnirs.m 6942 2016-11-21 13:17:44Z guillaume $
+% Copyright (C) 2015-2022 Wellcome Centre for Human Neuroimaging
+
 
 % Neuronal motion
 %==========================================================================
@@ -149,9 +149,3 @@ f(:,5)   = (x(:,3).*ff - fv_d.*x(:,5)./x(:,4))./(tt.*x(:,5));
 f(:,6)   = (x(:,3) - fv_d) ./ (tt.*x(:,4));
 
 f        = f(:);
-
-
-
-
-
-

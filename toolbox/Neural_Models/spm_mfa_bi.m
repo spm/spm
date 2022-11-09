@@ -18,12 +18,11 @@ function [M0,M1,L1] = spm_mfa_bi(M,P)
 % Transformed states     q = [1; v*(p(X) - p0)];
 %
 %                dq/dt = M0*q + u(1)*M1{1}*q + ...;
-%
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mfa_bi.m 5615 2013-08-15 14:37:24Z spm $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 % reshape coupling parameters
 %--------------------------------------------------------------------------

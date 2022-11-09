@@ -15,10 +15,9 @@ function [Q] = spm_gen_Q(P,X)
 % in P.B.
 % P.BN and P.AN operate at NMDA receptors along extrinsic connections
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_gen_Q.m 7279 2018-03-10 21:22:44Z karl $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 
 % condition or trial specific parameters

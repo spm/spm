@@ -9,12 +9,10 @@ function spm_epileptor_demo
 % parameters, while Y couples hidden states to parameters.  Here we use
 % exogenous input to change the parameters and the ensuing Jacobian to
 % elicit fast gamma activity.
-%
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_epileptor_demo.m 7679 2019-10-24 15:54:07Z spm $ 
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
  
 
 % Model specification
@@ -189,8 +187,3 @@ title('Predicted response','FontSize',16)
 axis  xy
 xlabel('time (s)')
 ylabel('Hz')
-
-return
-
- 
- 

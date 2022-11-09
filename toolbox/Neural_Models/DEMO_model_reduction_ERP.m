@@ -1,5 +1,5 @@
 function DEMO_model_reduction_ERP
-% Illustration of (post hoc)the neuronal mass model optimisation
+% Illustration of (post hoc) neuronal mass model optimisation
 %__________________________________________________________________________
 % This demonstration routine illustrates the post-hoc optimisation of
 % dynamic causal models for event related responses. To assess performance
@@ -18,10 +18,9 @@ function DEMO_model_reduction_ERP
 % reduction procedure - that is computationally more efficient and
 % robust to local minima.
 %__________________________________________________________________________
-% Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEMO_model_reduction_ERP.m 7679 2019-10-24 15:54:07Z spm $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 % model specification - a simple two source model with two electrodes
 % =========================================================================

@@ -7,11 +7,11 @@ function varargout = spm_mb_io(varargin)
 % FORMAT           spm_mb_io('save_template',mu,sett)
 % FORMAT fout    = spm_mb_io('set_data',fin,f)
 % FORMAT dat     = spm_mb_io('save_mat',dat,mat);
-%
 %__________________________________________________________________________
-% Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_io.m 8253 2022-05-19 09:14:05Z john $
+% John Ashburner
+% Copyright (C) 2019-2022 Wellcome Centre for Human Neuroimaging
+
 
 [varargout{1:nargout}] = spm_subfun(localfunctions,varargin{:});
 %==========================================================================

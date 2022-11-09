@@ -1,5 +1,5 @@
 function [f,J,Q] = spm_fx_cmm(x,u,P,M)
-% state equations for canonical neural-mass and mean-field models
+% State equations for canonical neural-mass and mean-field models
 % FORMAT [f,J,Q] = spm_fx_cmm(x,u,P,M)
 %
 % x - states and covariances
@@ -42,10 +42,10 @@ function [f,J,Q] = spm_fx_cmm(x,u,P,M)
 % Jul-Aug;11(1):63-85.
 %
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_cmm.m 5369 2013-03-28 20:09:27Z karl $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
+
  
 % get dimensions and configure state variables
 %--------------------------------------------------------------------------
@@ -233,5 +233,3 @@ D  = d(2)*Dp + d(1)*Ds;
 %                     = Q*f = Q*J*x(t)
 %--------------------------------------------------------------------------
 Q  = spm_inv(speye(length(J)) - D.*J);
-
-

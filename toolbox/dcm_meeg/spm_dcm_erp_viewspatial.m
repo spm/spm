@@ -320,5 +320,3 @@ for i = 1:Nsources
     title([handles.DCM.Sname{i} ', ERP 2'], 'FontSize', 16);
     end
 end
-
-

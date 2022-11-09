@@ -19,10 +19,10 @@ function files = fil_label(fil,mbsett,mbdat,iterations,vsett_scale,odir,df,Mf)
 % df          - dimensions of label image (optional)
 % Mf          - voxel-to-world matrix of label image (optional)
 %__________________________________________________________________________
-% Copyright (C) 2019-2021 Wellcome Centre for Human Neuroimaging
 
 % John Ashburner
-% $Id: fil_label.m 8283 2022-07-11 08:05:04Z john $
+% Copyright (C) 2019-2022 Wellcome Centre for Human Neuroimaging
+
 
 if nargin<4, iterations  = [6 10 10]; end
 if nargin<5, vsett_scale = 1/4; end
@@ -441,7 +441,3 @@ else
         P(patch.pos{:},c) = psi;
     end
 end
-
-
-
-

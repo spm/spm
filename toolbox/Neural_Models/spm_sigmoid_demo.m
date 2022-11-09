@@ -24,12 +24,11 @@ function spm_sigmoid_demo
 % importance of implicit variance in neuronal states for neural-mass models
 % of cortical dynamics is illustrated using both synthetic data and real
 % EEG measurement of sensory evoked responses.
-%
-%________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
-
+%__________________________________________________________________________
+ 
 % Karl Friston
-% $Id: spm_sigmoid_demo.m 7679 2019-10-24 15:54:07Z spm $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 % relating R amd the variance
 %==========================================================================

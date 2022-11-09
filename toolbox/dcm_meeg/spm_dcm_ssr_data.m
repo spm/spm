@@ -1,5 +1,5 @@
 function DCM = spm_dcm_ssr_data(DCM)
-% gets cross-spectral density data-features using a VAR model
+% Get cross-spectral density data-features using a VAR model
 % FORMAT DCM = spm_dcm_ssr_data(DCM)
 % DCM    -  DCM structure
 % requires
@@ -23,10 +23,10 @@ function DCM = spm_dcm_ssr_data(DCM)
 %    DCM.xY.Hz      - Frequency bins
 %    DCM.xY.code    - trial codes evaluated
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ssr_data.m 5082 2012-11-28 20:25:37Z karl $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
+
  
 % Set defaults and Get D filename
 %-------------------------------------------------------------------------

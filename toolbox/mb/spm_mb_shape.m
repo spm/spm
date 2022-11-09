@@ -23,9 +23,11 @@ function varargout = spm_mb_shape(varargin)
 % FORMAT sz        = spm_mb_shape('zoom_settings', v_settings, mu, n)
 % FORMAT psi       = get_def(dat,sett.ms.Mmu)
 %__________________________________________________________________________
-% Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_shape.m 8323 2022-10-24 15:36:09Z john $
+% John Ashburner
+% Copyright (C) 2019-2022 Wellcome Centre for Human Neuroimaging
+
+
 [varargout{1:nargout}] = spm_subfun(localfunctions,varargin{:});
 %==========================================================================
 

@@ -17,10 +17,9 @@ function [y] = spm_fx_hh(x,u,P)
 % P(1) = opening rate of GABA channels
 % P(1) = opening rate of NMDA channels
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
-
+ 
 % Karl Friston
-% $Id: spm_fx_hh.m 5615 2013-08-15 14:37:24Z spm $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % fixed parameters

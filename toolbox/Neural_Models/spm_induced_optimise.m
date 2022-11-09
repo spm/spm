@@ -10,10 +10,9 @@ function spm_induced_optimise(Ep,model)
 % By editing the script, one can change the neuronal model or the hidden
 % neuronal states that are characterised in terms of induced responses
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_induced_optimise.m 6937 2016-11-20 12:30:40Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
  
 % Model specification

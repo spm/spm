@@ -1,5 +1,5 @@
 function [pE,pC] = spm_nmm_priors(A,B,C)
-% prior moments for a neural-mass model of ERPs
+% Prior moments for a neural-mass model of ERPs
 % FORMAT [pE,pC] = spm_nmm_priors(A,B,C)
 %
 % A{3},B{m},C  - binary constraints on extrinsic connections
@@ -43,15 +43,14 @@ function [pE,pC] = spm_nmm_priors(A,B,C)
 % David O, Friston KJ (2003) A neural mass model for MEG/EEG: coupling and
 % neuronal dynamics. NeuroImage 20: 1743-1755
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nmm_priors.m 4718 2012-04-19 15:34:45Z karl $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
  
  
 % disable log zero warning
 %--------------------------------------------------------------------------
-warning('off','MATLAB:log:logOfZero');
+ws    = warning('off','MATLAB:log:logOfZero');
 n     = size(C,1);                                % number of sources
 u     = size(C,2);                                % number of inputs
  
@@ -126,4 +125,4 @@ pE.U   = 0;              pC.U  = 1/16;
 %--------------------------------------------------------------------------
 pE.CV  = 0;              pC.CV = 1/16;
 
-warning('on','MATLAB:log:logOfZero');
+warning(ws);

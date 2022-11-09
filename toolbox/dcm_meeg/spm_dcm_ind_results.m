@@ -29,10 +29,9 @@ function [DCM] = spm_dcm_ind_results(DCM,Action,fig)
 % connectivity. Parameter estimation proceeds using fairly standard
 % approaches to system identification that rest upon Bayesian inference.
 %__________________________________________________________________________
-% Copyright (C) 2007-2013 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ind_results.m 6101 2014-07-13 21:34:34Z karl $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
  
  
 % set up

@@ -1,13 +1,13 @@
 function spm_dcm_local_minima(DCM)
-% evaluates the free energy landscape around the posterior
-% FORMAT: spm_dcm_local_minima(DCM)
+% Evaluate the free energy landscape around the posterior
+% FORMAT spm_dcm_local_minima(DCM)
 % DCM - (invert) model structure
 %
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_local_minima.m 5892 2014-02-23 11:00:16Z karl $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
+
 
 % find dimension of greatest curvature
 %==========================================================================
@@ -42,8 +42,3 @@ title('Free energy','FontSize',16);
 xlabel('parameter 1')
 ylabel('parameter 2')
 axis square
-
-
-
-
-

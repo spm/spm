@@ -1,7 +1,6 @@
 function [mod,Z,V] = fil_fit(F,J,sett,ind,p,varargin)
-%% Bohning bound CCA stuff
-%
-% [mod,Z,V] = CCAbohning(F,sett,ind,p,mod,Z,Z0,P0)
+% Bohning bound CCA stuff
+% FORMAT [mod,Z,V] = fil_fit(F,sett,ind,p,mod,Z,Z0,P0)
 % F{l}      - Nvox x M x N
 % ind       - N x L
 % p         - N x 1
@@ -11,10 +10,10 @@ function [mod,Z,V] = fil_fit(F,J,sett,ind,p,varargin)
 % Z0        - K x N
 % P0        - K x K
 %__________________________________________________________________________
-% Copyright (C) 2019-2021 Wellcome Centre for Human Neuroimaging
 
 % John Ashburner & Yu Yan
-% $Id: fil_fit.m 8259 2022-06-01 12:35:54Z john $
+% Copyright (C) 2019-2022 Wellcome Centre for Human Neuroimaging
+
 
 if nargin<3, error('Incorrect usage.'); end
 if nargin<4 || isempty(ind), ind = true(size(F{1},3), numel(F)); end

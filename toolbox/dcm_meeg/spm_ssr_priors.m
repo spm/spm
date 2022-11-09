@@ -1,5 +1,5 @@
 function [pE,pC] = spm_ssr_priors(pE,pC)
-% augments prior moments of a neural mass model for CSD analyses
+% Augments prior moments of a neural mass model for CSD analyses
 % FORMAT [pE,pC] = spm_ssr_priors(pE,pC)
 %
 % pE - prior expectation
@@ -28,11 +28,11 @@ function [pE,pC] = spm_ssr_priors(pE,pC)
 % David O, Friston KJ (2003) A neural mass model for MEG/EEG: coupling and
 % neuronal dynamics. NeuroImage 20: 1743-1755
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_ssr_priors.m 7279 2018-03-10 21:22:44Z karl $
- 
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
+
+
 % catch
 %--------------------------------------------------------------------------
 try, pE.L; catch, pE.L = 1; end
@@ -57,9 +57,3 @@ pE.d = sparse(d,m); pC.d = sparse(d,m) + 1/128;
 %--------------------------------------------------------------------------
 d    = 2;
 pE.f = sparse(d,1); pC.f = sparse(d,1) + 1/64;
-
-
-
-
-
- 

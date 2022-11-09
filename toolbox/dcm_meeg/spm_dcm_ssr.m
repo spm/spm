@@ -21,10 +21,9 @@ function DCM = spm_dcm_ssr(DCM)
 %   options.type         - 'ECD', 'LFP' or 'IMG'     (see spm_erp_L)
 %   options.model        - 'ECD', 'SEP', 'CMC', 'NMM' or 'MFM'
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_ssr.m 5160 2012-12-21 16:58:38Z guillaume $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 
 % check options

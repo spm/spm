@@ -1,5 +1,5 @@
 function [pE,pC] = spm_cmm_priors(A,B,C)
-% prior moments for a canonical neural-mass model of ERPs
+% Prior moments for a canonical neural-mass model of ERPs
 % FORMAT [pE,pC] = spm_cmm_priors(A,B,C)
 %
 % A{3},B{m},C  - binary constraints on extrinsic connections
@@ -43,7 +43,7 @@ function [pE,pC] = spm_cmm_priors(A,B,C)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_cmm_priors.m 5369 2013-03-28 20:09:27Z karl $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
  
  
 % disable log zero warning

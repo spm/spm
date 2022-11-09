@@ -15,10 +15,9 @@
 % .label - cell array of strings, list of channel labels. Same length as
 %         the first dimension of the data.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
-
-% Karl Friston, Vladimir Litvak 
-% $Id: spm_lfp_txt2mat.m 2255 2008-09-30 15:36:59Z vladimir $
+ 
+% Karl Friston, Vladimir Litvak
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % load data (in this case a .mat file)

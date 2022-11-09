@@ -1,5 +1,5 @@
 function [f,J,Q] = spm_fx_nmda(x,u,P,M)
-% state equations for neural-mass and mean-field models
+% State equations for neural-mass and mean-field models
 % FORMAT [f,J,Q] = spm_fx_nmda(x,u,P,M)
 %
 % x - states and covariances
@@ -43,10 +43,10 @@ function [f,J,Q] = spm_fx_nmda(x,u,P,M)
 % Jul-Aug;11(1):63-85.
 %
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_nmda.m 5369 2013-03-28 20:09:27Z karl $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
+
  
 % get dimensions and configure state variables
 %--------------------------------------------------------------------------
@@ -220,7 +220,7 @@ for i = 1:ns
         f{1}(i,j,1) =         (GL*(VL - x{1}(i,j,1)) + ...
                       x{1}(i,j,2)*(VE - x{1}(i,j,1)) + ...
                       x{1}(i,j,3)*(VI - x{1}(i,j,1)) +...
-                      x{1}(i,j,4)*(VN - x{1}(i,j,1))*mg_switch(x{1}(i,j,1)))/CV; %%% 
+                      x{1}(i,j,4)*(VN - x{1}(i,j,1))*spm_mg_switch(x{1}(i,j,1)))/CV; %%% 
                   
         % Exogenous input (U)
         %------------------------------------------------------------------

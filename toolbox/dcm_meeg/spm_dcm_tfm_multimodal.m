@@ -1,6 +1,6 @@
-function DCM = spm_dcm_tfm(DCM)
+function DCM = spm_dcm_tfm_multimodal(DCM)
 % Estimate parameters of a DCM of (induced) cross-spectral density
-% FORMAT DCM = spm_dcm_tfm(DCM)
+% FORMAT DCM = spm_dcm_tfm_multimodal(DCM)
 %
 % DCM
 %    name: name string
@@ -47,10 +47,9 @@ function DCM = spm_dcm_tfm(DCM)
 % DCM.DTF;                  % conditional directed transfer functions
 % DCM.ERP;                  % conditional evoked responses
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_tfm_multimodal.m 6237 2014-10-12 10:08:13Z karl $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
  
  
 % check options and preliminaries

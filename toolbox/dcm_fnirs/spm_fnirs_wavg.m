@@ -1,17 +1,17 @@
-function wy = spm_fnirs_wavg(y, ons, dur)
+function wy = spm_fnirs_wavg(y,ons,dur)
 % Average data across trials 
-% FORMAT [wy] = spm_fnirs_wavg(y, ons, dur)
+% FORMAT wy = spm_fnirs_wavg(y,ons,dur)
 %
-% y       data (eg, optical density changes) 
-% ons    onset of average window (eg, onset of tasks)
-% dur    window size 
+% y    - data (eg, optical density changes) 
+% ons  - onset of average window (eg, onset of tasks)
+% dur  - window size 
 %
-% wy     time series averaged across trials
+% wy   - time series averaged across trials
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Sungho Tak
-% $Id: spm_fnirs_wavg.m 6754 2016-03-25 06:44:58Z will $
+% Copyright (C) 2015-2022 Wellcome Centre for Human Neuroimaging
+
 
 n = length(ons); 
 ns = size(y, 1); nch = size(y, 2); 

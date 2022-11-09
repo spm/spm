@@ -1,6 +1,6 @@
 function [pE,pC,x] = spm_dcm_fnirs_priors(DCM)
-% Returns the priors for a one-state DCM for fNIRS.
-% FORMAT:[pE,pC,x] = spm_dcm_fnirs_priors(DCM)
+% Priors for a one-state DCM for fNIRS
+% FORMAT [pE,pC,x] = spm_dcm_fnirs_priors(DCM)
 %
 % INPUT:
 %    DCM.a,DCM.b,DCM.c,DCM.c - constraints on connections (1 - present, 0 - absent)
@@ -34,10 +34,10 @@ function [pE,pC,x] = spm_dcm_fnirs_priors(DCM)
 % In this script, optics priors are added, prior covariance of A is changed, 
 % prior for extended Balloon model (viscoelastic time constant) is added. 
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Sungho Tak
-% $Id: spm_dcm_fnirs_priors.m 6942 2016-11-21 13:17:44Z guillaume $
+% Copyright (C) 2015-2022 Wellcome Centre for Human Neuroimaging
+
 
 % Unpack
 %--------------------------------------------------------------------------
@@ -165,5 +165,3 @@ end
 % prior covariance matrix
 %--------------------------------------------------------------------------
 pC  = diag(spm_vec(pC));
-
-return

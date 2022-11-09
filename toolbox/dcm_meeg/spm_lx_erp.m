@@ -1,5 +1,5 @@
 function [L] = spm_lx_erp(P,dipfit)
-% observer matrix for a neural mass model: y = G*x
+% Observer matrix for a neural mass model: y = G*x
 % FORMAT [G] = spm_lx_erp(P,dipfit)
 % FORMAT [G] = spm_lx_erp(P,M)
 %
@@ -12,10 +12,10 @@ function [L] = spm_lx_erp(P,dipfit)
 % David O, Friston KJ (2003) A neural mass model for MEG/EEG: coupling and
 % neuronal dynamics. NeuroImage 20: 1743-1755
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_lx_erp.m 7256 2018-02-11 14:45:00Z karl $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
+
 
 % Check for explicit gain matrix (LG)
 %--------------------------------------------------------------------------

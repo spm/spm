@@ -23,12 +23,11 @@ function varargout = fil_io(varargin)
 % varargin - arrays of input filenames containing output from
 %            fil_push_train_data
 % dat      - data structure
-%
 %__________________________________________________________________________
-% Copyright (C) 2020-2021 Wellcome Centre for Human Neuroimaging
 
 % John Ashburner
-% $Id: fil_io.m 8139 2021-08-24 19:38:01Z guillaume $
+% Copyright (C) 2020-2022 Wellcome Centre for Human Neuroimaging
+
 
 [varargout{1:nargout}] = spm_subfun(localfunctions,varargin{:});
 
@@ -186,5 +185,3 @@ ind = zeros(size(A));
 for i=1:numel(A)
     ind(i) = find(A(i)==B);
 end
-
-

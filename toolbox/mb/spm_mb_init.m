@@ -2,10 +2,10 @@ function [dat,sett] = spm_mb_init(cfg)
 % Initialisation of Multi-Brain data structures
 % FORMAT [dat,sett] = spm_mb_init(cfg)
 %__________________________________________________________________________
-% Copyright (C) 2018-2020 Wellcome Centre for Human Neuroimaging
 
+% John Ashburner
+% Copyright (C) 2019-2022 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_init.m 8259 2022-06-01 12:35:54Z john $
 
 [dat,sett] = mb_init1(cfg);
 

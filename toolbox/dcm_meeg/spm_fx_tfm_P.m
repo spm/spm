@@ -1,5 +1,5 @@
 function [u,P] = spm_fx_tfm_P(u,P)
-% returns exogenous input and input dependent parameters
+% Exogenous input and input dependent parameters
 % FORMAT [u,P] = spm_fx_tfm_P(u,P)
 %
 % arguments:
@@ -10,15 +10,14 @@ function [u,P] = spm_fx_tfm_P(u,P)
 % u  - exogenous (conductance) inputs driving states
 % P  - input dependent parameters
 %
-% tthis is a help are routine for the, microcircuit models equations of
-% motion - it simply separates inputs into those affecting (driving) his
-% neuronal states and those modulating parameters. It returns the exogenous
+% This is a help routine for the microcircuit models equations of motion -
+% it simply separates inputs into those affecting (driving) his neuronal
+% states and those modulating parameters. It returns the exogenous
 % (conductance) inputs and input dependent parameters.
 %___________________________________________________________________________
-% Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_tfm_P.m 7679 2019-10-24 15:54:07Z spm $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
  
 
 % input dependent (intrinsic connection) parameters
@@ -31,5 +30,3 @@ end
 % exogenous inputs
 %--------------------------------------------------------------------------
 u     = exp(P.C(:,1))*u(1);
-
-

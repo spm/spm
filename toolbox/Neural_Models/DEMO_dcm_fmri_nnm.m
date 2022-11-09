@@ -32,8 +32,11 @@ function DCM = DEMO_dcm_fmri_nnm
 % DCM.options.centre                 % mean-centre inputs
 % DCM.options.P                      % starting estimates for parameters
 % DCM.options.hidden                 % indices of hidden regions
+%__________________________________________________________________________
  
-% $Id: DEMO_dcm_fmri_nnm.m 6931 2016-11-16 12:09:58Z karl $
+% Karl Friston
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
  
 % tests of spatial models: 'ECD', 'LFP' or 'IMG'
 %==========================================================================

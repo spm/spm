@@ -1,5 +1,5 @@
 function [x,f,h] = spm_dcm_x_neural(P,model)
-% Returns the state and equation of neural mass models
+% Return the state and equation of neural mass models
 % FORMAT [x,f,h] = spm_dcm_x_neural(P,'model')
 %
 %  P      - parameter structure
@@ -9,10 +9,10 @@ function [x,f,h] = spm_dcm_x_neural(P,model)
 % f   - state equation dxdt = f(x,u,P,M)  - synaptic activity
 % h   - state equation dPdt = f(x,u,P,M)  - synaptic plasticity
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_x_neural.m 7679 2019-10-24 15:54:07Z spm $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
+
 
 % paramteric state equation
 %--------------------------------------------------------------------------

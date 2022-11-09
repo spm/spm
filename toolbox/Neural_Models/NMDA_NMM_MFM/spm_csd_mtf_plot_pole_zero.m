@@ -9,12 +9,10 @@ function [b,a] = spm_csd_mtf_plot_pole_zero(P,M,U,region_stab)
 % stability
 %
 % Returns poles and zeros and plots them 
-%
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
-
+ 
 % Rosalyn Moran
-% $Id: spm_csd_mtf_plot_pole_zero.m 5964 2014-04-20 09:48:58Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % compute log-spectral density
@@ -124,5 +122,3 @@ for  c = 1:size(X,1)
     zplane(b,a)    
 
 end
-
-

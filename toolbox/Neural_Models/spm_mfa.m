@@ -20,12 +20,10 @@ function [M0,M1,L,X,q0] = spm_mfa(M,x,u)
 % X    - evaluation points of state space
 % q0   - stable mode M0*q0 = 0
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mfa.m 4936 2012-09-18 19:47:55Z karl $
- 
- 
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
  
 % default expansion point for inputs
 %--------------------------------------------------------------------------

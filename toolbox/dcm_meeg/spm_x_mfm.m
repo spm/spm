@@ -1,5 +1,5 @@
 function [x,M] = spm_x_mfm(P)
-% initialises a state structure for a mean field model
+% Initialise a state structure for a mean field model
 % FORMAT [x,M] = spm_x_mfm(P)
 %
 % P - parameter structure (encoding extrinsic connections)
@@ -20,10 +20,9 @@ function [x,M] = spm_x_mfm(P)
 %               2 gE - conductance (excitatory)
 %               3 gI - conductance (inhibitory)
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_x_mfm.m 5023 2012-10-30 19:25:32Z karl $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
  
 % dimensions

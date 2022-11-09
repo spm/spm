@@ -65,10 +65,9 @@ function [r,xp] = spm_dcm_erp_bma (BMS_file,stats,params)
 % params.C=[0 0 0; 0 0 1; 0 -1 0];
 % spm_dcm_erp_bma([],'ffx',params);
 %__________________________________________________________________________
-% Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_dcm_erp_bma.m 4529 2011-10-18 14:58:20Z guillaume $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Get parameters

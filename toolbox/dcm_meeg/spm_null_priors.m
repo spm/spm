@@ -1,5 +1,5 @@
 function [pE,pC] = spm_null_priors(A,B,C)
-% prior moments for null (Jacobian) model
+% Prior moments for null (Jacobian) model
 % FORMAT [pE,pC] = spm_null_priors(A,B,C)
 %
 % A{1},B{m},C  - binary constraints on extrinsic connections
@@ -7,10 +7,10 @@ function [pE,pC] = spm_null_priors(A,B,C)
 % pE - prior expectation
 % pC - prior covariance
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_null_priors.m 5908 2014-03-05 20:31:57Z karl $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
+
  
 % default: a single source model
 %--------------------------------------------------------------------------

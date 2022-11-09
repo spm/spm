@@ -18,10 +18,9 @@ function A = spm_fnirs_sensitivity(DCM)
 % G.elem - tissue types of voxels [3 x # voxels] 
 % 1-scalp, 2-CSF, 3-gray matter, 4-white matter 
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Sungho Tak
-% $id$
+% Copyright (C) 2015-2022 Wellcome Centre for Human Neuroimaging
 
 %--------------------------------------------------------------------------
 if ~nargin || isempty(DCM) 
@@ -70,7 +69,7 @@ for i = 1:nh
     diff = G.xyz(:, node_g) - xyzh(:,i) * ones(1, ng); 
     diff = sqrt(sum(diff.^2)); 
     
-    if r == 0,
+    if r == 0
         A.node_h(i, 1) = node_g(find(diff == min(diff)));
     else
         indx_r = find(diff < r); 
@@ -91,7 +90,7 @@ for i = 1:nwav
     niter = size(A, 2);
     for j = 1:niter 
         S = []; 
-        for k = 1:nroi,
+        for k = 1:nroi
             indx_s = find(R.s.label == R.ch_sd(rois(k), 2));
             indx_d = find(R.d.label == R.ch_sd(rois(k), 3));
             S(k,:) = (G.s(indx_s, A(j).node_h,i) .* G.d(indx_d, A(j).node_h,i))./(G.s(indx_s, node_d(indx_d),i)); 

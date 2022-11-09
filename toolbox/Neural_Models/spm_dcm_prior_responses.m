@@ -14,10 +14,9 @@ function spm_dcm_prior_responses(Ep)
 % scale empirical data. The amplitude of the responses are set by the
 % scaling of U in the equations of motion for each model.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
-
+ 
 % Karl Friston
-% $Id: spm_dcm_prior_responses.m 7679 2019-10-24 15:54:07Z spm $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % Model specification

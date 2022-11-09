@@ -1,5 +1,5 @@
 function [x] = spm_dcm_neural_x(P,M)
-% Returns the fixed point or steady-state of a neural mass DCM
+% Return the fixed point or steady-state of a neural mass DCM
 % FORMAT [x] = spm_dcm_neural_x(P,M)
 %
 % P   - parameter structure
@@ -7,10 +7,10 @@ function [x] = spm_dcm_neural_x(P,M)
 %
 % x   - steady state solution
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_neural_x.m 6112 2014-07-21 09:39:53Z karl $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
+
 
 switch lower(char(M.f))
     

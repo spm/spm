@@ -6,10 +6,9 @@ function [DCM] = spm_dcm_phase_results(DCM,Action)
 %     'Coupling (As)'
 %     'Coupling (Bs)'
 %__________________________________________________________________________
-% Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
  
 % Will Penny
-% $Id: spm_dcm_phase_results.m 3472 2009-10-16 17:10:26Z will $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 
 % get figure handle
@@ -149,7 +148,7 @@ function [] = plot_trials(DCM,j)
     nt=min(nt,max_nt);
     
     rnt=ceil(sqrt(nt));
-    for i=1:nt,
+    for i=1:nt
         subplot(rnt,rnt,i);
         plot(DCM.xY.pst,sin(DCM.xY.y{i}(:,j)));
         hold on

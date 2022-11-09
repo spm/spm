@@ -21,7 +21,7 @@ function DCM = spm_dcm_ind(DCM)
 %   options.type         - 'ECD' (1) or 'Imaging' (2) (see spm_erp_L)
 %   options.onset        - stimulus onset (ms)
 %   options.dur          - and dispersion (sd)
-%______________________________________________________________________
+%__________________________________________________________________________
 % This routine inverts dynamic causal models (DCM) of induced or spectral 
 % responses as measured with the electroencephalogram (EEG) or the 
 % magnetoencephalogram (MEG). It models the time-varying power, over a 
@@ -48,11 +48,10 @@ function DCM = spm_dcm_ind(DCM)
 % See: Chen CC, Kiebel SJ, Friston KJ.
 % Dynamic causal modelling of induced responses.
 % Neuroimage. 2008 Jul 15;41(4):1293-312.
-% ______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
  
 % Karl Friston
-% $Id: spm_dcm_ind.m 7143 2017-07-29 18:50:38Z karl $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
  
  
 % check options 
@@ -104,7 +103,7 @@ xY.X0  = sparse(Ns,0);
 % trial-specific effects
 %--------------------------------------------------------------------------
 try
-    if length(DCM.B) ~= Nu;
+    if length(DCM.B) ~= Nu
         warndlg({'please ensure number of trial specific effects', ...
                  'encoded by DCM.xU.X & DCM.B are the same'})
     end

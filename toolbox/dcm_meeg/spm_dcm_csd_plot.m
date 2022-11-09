@@ -1,5 +1,5 @@
 function spm_dcm_csd_plot(DCM,i1,i2,C)
-% Plots the conditional density of coherence etc for a given connection
+% Plot the conditional density of coherence etc for a given connection
 % FORMAT spm_dcm_csd_plot(DCM,i,j,C)
 %
 % DCM - inverted DCM structure for CSD models
@@ -14,10 +14,9 @@ function spm_dcm_csd_plot(DCM,i1,i2,C)
 % approximated by sampling the underlying parameters from the 
 % [approximate] conditional density.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_csd_plot.m 4095 2010-10-22 19:37:51Z karl $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
  
  
 % check options
@@ -52,8 +51,8 @@ for i = 1:N
     
     % functions
     %----------------------------------------------------------------------
-    [ccf pst] = spm_csd2ccf(hc,DCM.M.Hz);
-    [coh fsd] = spm_csd2coh(hc,DCM.M.Hz);
+    [ccf,pst] = spm_csd2ccf(hc,DCM.M.Hz);
+    [coh,fsd] = spm_csd2coh(hc,DCM.M.Hz);
     
     CCF(:,i)  = ccf{1}(:,i1,i2);
     COH(:,i)  = coh{1}(:,i1,i2);
@@ -123,4 +122,3 @@ title('Conduction delay','FontSize',16)
 xlabel('delay (ms)')
 ylabel('conditional density')
 axis square
-

@@ -1,5 +1,5 @@
 function [E, V ] = spm_nfm_priors(A,B,C)
-% prior moments for a neural mass model of ERPs
+% Prior moments for a neural mass model of ERPs
 % FORMAT [pE,pC] = spm_nfm_priors(A,B,C)
 %
 % A{3},B{m},C    - binary constraints on extrinsic connectivity
@@ -42,10 +42,10 @@ function [E, V ] = spm_nfm_priors(A,B,C)
 % David O, Friston KJ (2003) A neural mass model for MEG/EEG: coupling and
 % neuronal dynamics. NeuroImage 20: 1743-1755
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nfm_priors.m 4305 2011-04-12 18:15:32Z karl $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
+
  
 % defaults
 %--------------------------------------------------------------------------
@@ -58,7 +58,7 @@ n   = size(C,1);                                    % number of sources
  
 % disable log zero warning
 %--------------------------------------------------------------------------
-warning('off','MATLAB:log:logOfZero');
+ws = warning('off','MATLAB:log:logOfZero');
  
 % parameters for neural-field forward model
 %==========================================================================
@@ -101,6 +101,4 @@ C      = ~~C;
 E.C    = C*32 - 32;                               % where inputs enter
 V.C    = C/32;
  
-
-warning('on','MATLAB:log:logOfZero');
-
+warning(ws);

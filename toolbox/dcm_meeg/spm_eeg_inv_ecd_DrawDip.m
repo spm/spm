@@ -31,10 +31,9 @@ function spm_eeg_inv_ecd_DrawDip(action,varargin)
 %             cell{1,n_seeds}(3*n_dip x Ntimebins)
 %   Mtb     - index of maximum power in EEG time series used
 %__________________________________________________________________________
-% Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips
-% $Id: spm_eeg_inv_ecd_DrawDip.m 7797 2020-03-06 16:44:42Z vladimir $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 global st
 

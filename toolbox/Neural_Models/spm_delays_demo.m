@@ -14,12 +14,10 @@ function spm_delays_demo
 % 
 % See also:
 %  spm_dcm_delay.m
-%
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_delays_demo.m 6900 2016-10-08 13:16:46Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
 
 % Notes: analysis of delay operator

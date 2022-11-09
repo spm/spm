@@ -1,5 +1,5 @@
 function x = spm_dcm_erp_sensitivity(DCM,C)
-% plots change in source activity w.r.t. a contrast of parameters
+% Plot change in source activity w.r.t. a contrast of parameters
 % FORMAT x = spm_dcm_erp_sensitivity(DCM,C)
 %
 % DCM - DCM structure:
@@ -35,10 +35,10 @@ function x = spm_dcm_erp_sensitivity(DCM,C)
 %
 % x{i}   - dx/dC for contributing sources {trial i}
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_erp_sensitivity.m 6112 2014-07-21 09:39:53Z karl $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
+
 
 % check options
 %==========================================================================

@@ -1,6 +1,10 @@
 function E = ROBOT_NMM
-% Tests rotines in neural mass model (NMM) GUI
+% Tests routines in neural mass model (NMM) GUI
 %__________________________________________________________________________
+ 
+% Karl Friston
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 % close and clear everything
 %--------------------------------------------------------------------------

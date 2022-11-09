@@ -8,10 +8,11 @@ function varargout = spm_mb_appearance(varargin) % Appearance model
 % FORMAT dat        = spm_mb_appearance('update_prior',dat,sett)
 % FORMAT            = spm_mb_appearance('debug_show',img,img_is,modality,fig_title,do)
 %__________________________________________________________________________
-% Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
 % Mikael Brudfors, John Ashburner & Yael Balbastre
-% $Id: spm_mb_appearance.m 8274 2022-07-05 09:03:43Z john $
+% Copyright (C) 2019-2022 Wellcome Centre for Human Neuroimaging
+
+
 [varargout{1:nargout}] = spm_subfun(localfunctions,varargin{:});
 %==========================================================================
 

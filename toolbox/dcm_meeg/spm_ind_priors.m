@@ -1,5 +1,5 @@
 function [pE,gE,pC,gC] = spm_ind_priors(A,B,C,Nm,Nf)
-% prior moments for a neural-mass model of induced responses
+% Prior moments for a neural-mass model of induced responses
 % FORMAT [pE,gE,pC,gC] = spm_ind_priors(A,B,C,dipfit,Nu,Nf)
 % A{2},B{m},C  - binary constraints on extrinsic connections
 % Nm           - number of frequency modes used
@@ -24,11 +24,11 @@ function [pE,gE,pC,gC] = spm_ind_priors(A,B,C,Nm,Nf)
 % David O, Friston KJ (2003) A neural mass model for MEG/EEG: coupling and
 % neuronal dynamics. NeuroImage 20: 1743-1755
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_ind_priors.m 5900 2014-02-27 21:54:51Z karl $
- 
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
+
+
 % orders
 %--------------------------------------------------------------------------
 if nargin < 5; Nf = Nm; end

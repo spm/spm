@@ -3,10 +3,9 @@ function varargout = spm_api_erp(varargin)
 %    FIG = SPM_API_ERP launch spm_api_erp GUI.
 %    SPM_API_ERP('callback_name', ...) invoke the named callback.
 %__________________________________________________________________________
-% Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_api_erp.m 6644 2015-12-12 14:53:37Z karl $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
  
 
 %-Launch GUI
@@ -1546,8 +1545,3 @@ spm_dcm_bmr;
 function reduce_Callback(hObject, eventdata, handles)
 handles = reset_Callback(hObject, eventdata, handles);
 spm_dcm_post_hoc(handles.DCM);
-
-
-
-
-

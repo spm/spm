@@ -27,10 +27,9 @@ function [DCM] = spm_dcm_erp_results(DCM,Action,fig)
 % estimation proceeds using fairly standard approaches to system
 % identification that rest upon Bayesian inference.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_erp_results.m 6644 2015-12-12 14:53:37Z karl $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 
 % get Action if necessary

@@ -1,5 +1,5 @@
 function DCM = spm_dcm_ind_data(DCM)
-% gets time-frequency amplitude at specified sources for DCM
+% Get time-frequency amplitude at specified sources for DCM
 % FORMAT DCM = spm_dcm_ind_data(DCM)
 % DCM    -  DCM structure
 % requires
@@ -40,10 +40,10 @@ function DCM = spm_dcm_ind_data(DCM)
 %                          j-th region
 %                          i-th trial
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ind_data.m 6259 2014-11-10 12:08:18Z bernadette $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
+
  
 % Set defaults and Get D filename
 %-------------------------------------------------------------------------

@@ -8,9 +8,9 @@ function [dat,sett,mu] = spm_mb_fit(dat,sett)
 % sett  (inputParser) - struct storing final algorithm settings
 % model (inputParser) - struct storing shape and appearance model
 %__________________________________________________________________________
-% Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_fit.m 8253 2022-05-19 09:14:05Z john $
+% John Ashburner
+% Copyright (C) 2019-2022 Wellcome Centre for Human Neuroimaging
 
 
 % Repeatable random numbers

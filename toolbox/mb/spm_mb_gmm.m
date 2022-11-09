@@ -1,4 +1,11 @@
 function varargout = spm_mb_gmm(varargin)
+%
+% FORMAT varargout = spm_mb_gmm(varargin)
+%__________________________________________________________________________
+
+% John Ashburner
+% Copyright (C) 2019-2022 Wellcome Centre for Human Neuroimaging
+
 
 if nargin>=1 && isa(varargin{1},'char')
     [varargout{1:nargout}] = spm_subfun(localfunctions,varargin{:});

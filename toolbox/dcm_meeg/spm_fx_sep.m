@@ -1,5 +1,5 @@
 function [f,J,Q] = spm_fx_sep(x,u,P,M)
-% state equations for a neural mass model of erps
+% State equations for a neural mass model of erps
 % FORMAT [f,J,D] = spm_fx_sep(x,u,P,M)
 % FORMAT [f,J]   = spm_fx_sep(x,u,P,M)
 % FORMAT [f]     = spm_fx_sep(x,u,P,M)
@@ -33,11 +33,10 @@ function [f,J,Q] = spm_fx_sep(x,u,P,M)
 %__________________________________________________________________________
 % David O, Friston KJ (2003) A neural mass model for MEG/EEG: coupling and
 % neuronal dynamics. NeuroImage 20: 1743-1755
-%___________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
  
 % Karl Friston
-% $Id: spm_fx_sep.m 5369 2013-03-28 20:09:27Z karl $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
  
  
 % get dimensions and configure state variables

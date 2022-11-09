@@ -31,10 +31,10 @@ function DCM = spm_dcm_erp_dipfit(DCM, save_vol_sens)
 %    dipfit.vol      - volume structure (for M/EEG)
 %    dipfit.datareg  - registration structure (for M/EEG)
 %__________________________________________________________________________
-% Copyright (C) 2007-2015 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_erp_dipfit.m 7702 2019-11-22 11:32:26Z guillaume $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
+
  
 % Get data filename and good channels
 %--------------------------------------------------------------------------
@@ -191,7 +191,7 @@ switch DCM.options.spatial
             % nearest mesh points
             %--------------------------------------------------------------
             Ip = find(Dp < rad^2);
-            if length(Ip) < Nm;
+            if length(Ip) < Nm
                 [y,Ip] = sort(Dp);
                 Ip     = Ip(1:Nm);
             end

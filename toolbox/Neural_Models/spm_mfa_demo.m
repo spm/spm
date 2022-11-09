@@ -8,10 +8,10 @@ function spm_mfa_demo
 % modes over time, which effectively converts a spiking model into a rate
 % model.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mfa_demo.m 4936 2012-09-18 19:47:55Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
  
 % model specification (Parameters and initial states)
 %--------------------------------------------------------------------------

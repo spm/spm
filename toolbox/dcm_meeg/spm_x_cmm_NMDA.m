@@ -1,5 +1,5 @@
 function [x,M] = spm_x_cmm_NMDA(P)
-% initialises a state structure for a mean field model
+% Initialise a state structure for a mean field model
 % FORMAT [x,M] = spm_x_cmm(P)
 %
 % P - parameter structure
@@ -22,12 +22,9 @@ function [x,M] = spm_x_cmm_NMDA(P)
 %
 % see also: spm_x_mfm
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_x_cmm_NMDA.m 5741 2013-11-13 12:10:48Z guillaume $
-
-
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 
 % dimensions
@@ -55,6 +52,3 @@ M.u   = sparse(ns,1);
 % solve for steady state
 %--------------------------------------------------------------------------
 x     = spm_dcm_neural_x(P,M);
-
-
-

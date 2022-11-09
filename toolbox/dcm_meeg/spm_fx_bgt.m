@@ -1,5 +1,5 @@
 function [f,J,Q] = spm_fx_bgt(x,u,P,M)
-% state equations for a neural mass model of the basal ganglia & thalamus
+% State equations for a neural mass model of the basal ganglia & thalamus
 % [striatum, gpe, stn, gpi, and thalamus] as a
 % single source (no extrinsic connections)
 %
@@ -20,10 +20,9 @@ function [f,J,Q] = spm_fx_bgt(x,u,P,M)
 % G(1,8) = gpi -> gpi (-ve self)
 % G(1,9) = gpi -> tha (-ve ext)
 %__________________________________________________________________________
-% Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
  
 % Bernadette van Wijk
-% $Id: spm_fx_bgt.m 7412 2018-09-06 10:12:18Z guillaume $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 
 % check if intrinsic connections are free parameters

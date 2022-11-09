@@ -30,10 +30,9 @@ function spm_dcm_csd_results(DCM,Action,fig)
 % estimation proceeds using fairly standard approaches to system
 % identification that rest upon Bayesian inference.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_csd_results.m 7679 2019-10-24 15:54:07Z spm $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
  
  
 % get figure

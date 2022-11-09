@@ -1,5 +1,5 @@
 function [f,J,Q] = spm_fx_mmc(x,u,P,M)
-% state equations for a neural mass model of motor cortex
+% State equations for a neural mass model of motor cortex
 % Bhatt et al. 2016 Neuroimage
 %
 % FORMAT [f,J,D] = spm_fx_mmc(x,u,P,M)
@@ -29,10 +29,9 @@ function [f,J,Q] = spm_fx_mmc(x,u,P,M)
 % S  = slope of sigmoid activation function
 %
 %__________________________________________________________________________
-% Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
  
 % Bernadette van Wijk
-% $Id: spm_fx_mmc.m 7185 2017-10-11 10:10:04Z spm $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 
 % get dimensions and configure state variables

@@ -19,10 +19,10 @@ function DCM = spm_dcm_dem(DCM)
 %   options.spatial      - 'ERP', 'LFP' or 'IMG'
 %   options.onset        - stimulus onset (ms)
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_dem.m 6112 2014-07-21 09:39:53Z karl $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
+
 
 % check options
 %==========================================================================
@@ -283,4 +283,3 @@ end
 %--------------------------------------------------------------------------
 save(DCM.name, 'DCM', spm_get_defaults('mat.format'));
 assignin('base','DCM',DCM)
-return

@@ -9,10 +9,9 @@ function [m,v] = spm_csd_chf(P,M,U)
 % m - expected frequency
 % v - dispersion
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_csd_chf.m 4718 2012-04-19 15:34:45Z karl $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
  
  
 % compute log-spectral density (without noise)

@@ -1,5 +1,5 @@
 function spm_dcm_tfm_transfer(dtf,pst,Hz)
-% displays time-frequency modulation transfer functions
+% Display time-frequency modulation transfer functions
 % FORMAT spm_dcm_tfm_transfer(dtf,pst,Hz)
 % 
 % dtf - (t x w x n x u): an array over t time bins, w frequency bins,
@@ -14,10 +14,9 @@ function spm_dcm_tfm_transfer(dtf,pst,Hz)
 %
 % See also: spm_dcm_tfm_responses (and spm_dcm_tfm_image) 
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_tfm_transfer.m 6112 2014-07-21 09:39:53Z karl $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
  
 % setup and defaults
 %--------------------------------------------------------------------------

@@ -16,11 +16,11 @@ function [f,J,Q] = spm_fx_tfm(x,u,P,M)
 %__________________________________________________________________________
 % David O, Friston KJ (2003) A neural mass model for MEG/EEG: coupling and
 % neuronal dynamics. NeuroImage 20: 1743-1755
-%___________________________________________________________________________
-% Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
  
 % Karl Friston
-% $Id: spm_fx_tfm.m 7679 2019-10-24 15:54:07Z spm $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
+
  
 % input and state-dependent parameters
 %==========================================================================

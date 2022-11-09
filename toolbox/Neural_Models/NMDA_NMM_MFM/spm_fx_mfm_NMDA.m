@@ -1,5 +1,5 @@
 function [f,J,Q] = spm_fx_mfm_NMDA(x,u,P,M)
-% state equations for neural-mass and mean-field models
+% State equations for neural-mass and mean-field models
 % FORMAT [f,J,Q] = spm_fx_mfm_NMDA(x,u,P,M)
 %
 % x - states and covariances
@@ -41,12 +41,11 @@ function [f,J,Q] = spm_fx_mfm_NMDA(x,u,P,M)
 % Effects of neuromodulation in a cortical network model of object working
 % memory dominated by recurrent inhibition. J Comput Neurosci. 2001
 % Jul-Aug;11(1):63-85.
-%
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_mfm_NMDA.m 5106 2012-12-10 17:13:34Z rosalyn $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
  
 % get dimensions and configure state variables
 %--------------------------------------------------------------------------
@@ -370,7 +369,7 @@ Q  = inv(speye(length(J)) - D.*J);
 
 % trace(a*b)
 %--------------------------------------------------------------------------
-function x = tr(a,b);
+function x = tr(a,b)
 %__________________________________________________________________________
 
 b   = b';

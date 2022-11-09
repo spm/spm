@@ -38,11 +38,10 @@ function spm_mtf_demo
 % predictions derived from experimental microdialysis measures of
 % extracellular glutamate levels.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mtf_demo.m 7679 2019-10-24 15:54:07Z spm $
- 
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
  
 % empirical data - sort and decimate
 %--------------------------------------------------------------------------

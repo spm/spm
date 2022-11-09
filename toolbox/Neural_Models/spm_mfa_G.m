@@ -1,5 +1,5 @@
 function [G] = spm_mfa_G(M,x)
-% creates a structure for a Gibb's ensemble
+% Create a structure for a Gibb's ensemble
 % FORMAT [G] = spm_mfa_G(M,x)
 %--------------------------------------------------------------------------
 % M   - model specification structure
@@ -26,11 +26,11 @@ function [G] = spm_mfa_G(M,x)
 %   G.p0: [n x 1 sparse]  - expansion point
 %   G.q0: [n x 1 sparse]  - equilibrium density
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mfa_G.m 4936 2012-09-18 19:47:55Z karl $
- 
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
+
 % Bilinear Mean field form
 %--------------------------------------------------------------------------
 [J0,J1,L,X,q0] = spm_mfa(M,x);
@@ -60,5 +60,3 @@ G.x   = x;
 G.X   = X;
 G.p0  = p0/sum(p0);
 G.q0  = q0/sum(q0);
-
-

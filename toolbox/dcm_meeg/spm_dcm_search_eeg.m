@@ -50,10 +50,10 @@ function [DCM,RCM]   = spm_dcm_search_eeg(P,SAVE_DCM)
 % See also: spm_dcm_post_hoc.m, spm_dcm_group and spm_dcm_bma
 %
 %__________________________________________________________________________
-% Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_search_eeg.m 7679 2019-10-24 15:54:07Z spm $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
+
 
 % get filenames and set up
 %--------------------------------------------------------------------------
@@ -287,5 +287,3 @@ if SAVE_DCM
     filename = fullfile(pathname,'DCM_optimum.mat');
     save(filename,'DCM','F','Ep','Cp', spm_get_defaults('mat.format'));
 end
-
-

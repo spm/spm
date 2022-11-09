@@ -1,5 +1,5 @@
 function [y] = spm_gx_erp(x,u,P,M)
-% observer for a neural mass model of event related potentials
+% Observer for a neural mass model of event related potentials
 % FORMAT [y] = spm_gx_erp(x,u,P,M)
 % x      - state vector
 % y      - measured voltage y = L*x(:)
@@ -8,10 +8,10 @@ function [y] = spm_gx_erp(x,u,P,M)
 % David O, Friston KJ (2003) A neural mass model for MEG/EEG: coupling and
 % neuronal dynamics. NeuroImage 20: 1743-1755
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_gx_erp.m 6112 2014-07-21 09:39:53Z karl $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
+
 
 % parameterised lead field times [perturbations] of states
 %--------------------------------------------------------------------------

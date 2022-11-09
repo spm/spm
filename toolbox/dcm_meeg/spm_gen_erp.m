@@ -1,5 +1,5 @@
 function [y,pst] = spm_gen_erp(P,M,U)
-% Generates a prediction of trial-specific source activity
+% Generate a prediction of trial-specific source activity
 % FORMAT [y,pst] = spm_gen_erp(P,M,U)
 %
 % P - parameters
@@ -13,10 +13,9 @@ function [y,pst] = spm_gen_erp(P,M,U)
 % pst - peristimulus time (seconds)
 %
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_gen_erp.m 6427 2015-05-05 15:42:35Z karl $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 % default inputs - one trial (no between-trial effects)
 %--------------------------------------------------------------------------
@@ -84,4 +83,3 @@ for  c = 1:size(X,1)
     y{c} = spm_int_L(Q,M,U);
     
 end
-

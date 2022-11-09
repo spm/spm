@@ -6,10 +6,9 @@ function DCM = spm_dcm_erp_update(DCM,oldDCM,fields)
 % oldDCM - inverted DCM with posterior moments
 % fields - character array of fields to be updated: e.g.,{'A','B'}
 %__________________________________________________________________________
-% Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_erp_update.m 5801 2013-12-10 18:45:20Z guillaume $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 % get prior structure for the sort of model
 %==========================================================================

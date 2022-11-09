@@ -36,10 +36,10 @@ function [f,J] = spm_fx_lfp(x,u,P,M)
 % David O, Friston KJ (2003) A neural mass model for MEG/EEG: coupling and
 % neuronal dynamics. NeuroImage 20: 1743-1755
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_lfp.m 5369 2013-03-28 20:09:27Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 % check if intrinsic connections are free parameters
 %--------------------------------------------------------------------------

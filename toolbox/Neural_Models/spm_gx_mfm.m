@@ -8,10 +8,10 @@ function [m] = spm_gx_mfm(x,u,P,M)
 % David O, Friston KJ (2003) A neural mass model for MEG/EEG: coupling and
 % neuronal dynamics. NeuroImage 20: 1743-1755
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_gx_mfm.m 2941 2009-03-24 17:45:56Z maria $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
  
 % get dimensions and configure state variables
 %--------------------------------------------------------------------------

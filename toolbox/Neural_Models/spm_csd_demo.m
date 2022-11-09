@@ -44,12 +44,10 @@ function spm_csd_demo
 % induced changes in adaptation currents. In short, this work establishes a
 % forward or generative model of electrophysiological recordings for
 % psychopharmacological studies.
-% 
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_csd_demo.m 6236 2014-10-12 10:03:44Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
 clear global
  

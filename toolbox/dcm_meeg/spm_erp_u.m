@@ -1,5 +1,5 @@
 function [u] = spm_erp_u(t,P,M)
-% returns the [scalar] input for EEG models (Gaussian function)
+% [scalar] input for EEG models (Gaussian function)
 % FORMAT [u] = spm_erp_u(t,P,M)
 % t      - PST (seconds)
 % P      - parameter structure
@@ -13,10 +13,9 @@ function [u] = spm_erp_u(t,P,M)
 % David O, Friston KJ (2003) A neural mass model for MEG/EEG: coupling and
 % neuronal dynamics. NeuroImage 20: 1743-1755
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_erp_u.m 7679 2019-10-24 15:54:07Z spm $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 
 % preliminaries - check durations (ms)
@@ -62,6 +61,3 @@ for i = 1:nu
     U      = prop*cumsum(U)/sum(U) + U*(1 - prop);
     u(:,i) = 32*U;
 end
-
-
-

@@ -1,5 +1,5 @@
 function [x,f] = spm_dcm_x_neural_NMDA(P,model)
-% Returns the state and equation of neural mass models
+% Return the state and equation of neural mass models
 % FORMAT [x,f] = spm_dcm_x_neural_NMDA(P,'model')
 %
 %  P      - parameter structure
@@ -8,10 +8,9 @@ function [x,f] = spm_dcm_x_neural_NMDA(P,model)
 % x   - initial states
 % f   - state euquation
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
-
+ 
 % Karl Friston
-% $Id: spm_dcm_x_neural_NMDA.m 4820 2012-08-01 12:20:00Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % initial state and equation

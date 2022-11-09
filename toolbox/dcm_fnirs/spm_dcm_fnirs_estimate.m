@@ -56,10 +56,10 @@ function [DCM] = spm_dcm_fnirs_estimate(P)
 % (i) shows best results with spm_nlsi_GN.m (version 6481),
 % (ii) is based on spm_dcm_estimate.m by Karl Friston.
 %__________________________________________________________________________
-% Copyright (C) 2002-2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Sungho Tak
-% $Id: spm_dcm_fnirs_estimate.m 7060 2017-04-18 16:44:46Z will $
+% Copyright (C) 2015-2022 Wellcome Centre for Human Neuroimaging
+
 
 %--------------------------------------------------------------------------
 %-Load DCM structure
@@ -363,5 +363,3 @@ if ~nargin
     spm('Pointer','Arrow');
     spm('FigName','Done');
 end
-
-

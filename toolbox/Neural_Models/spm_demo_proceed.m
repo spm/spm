@@ -5,10 +5,9 @@ function spm_demo_proceed(tag,str)
 % tag - graphics tag
 % str - string for dialogue box
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
-
+ 
 % Karl Friston
-% $Id: spm_demo_proceed.m 4136 2010-12-09 22:22:28Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 % get figure
 %--------------------------------------------------------------------------

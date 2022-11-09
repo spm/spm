@@ -19,12 +19,11 @@ function [f] = spm_fx_mfm_ensemble(x,u,P)
 % refs:
 %
 % Marreiros et al (2008) Population dynamics under the Laplac assumption 
-%
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_mfm_ensemble.m 1212 2008-03-14 19:08:47Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
  
 % get dimensions and configure state variables
 %--------------------------------------------------------------------------
@@ -138,7 +137,3 @@ end
 % vectorise
 %--------------------------------------------------------------------------
 f = spm_vec(f);
-
-return
-
-

@@ -1,13 +1,13 @@
 function [d,M] = fil_subvol(Nii,bb)
 % Dimensions and voxel-to world mapping of a subvolume
-% FORMAT VO = subvol(Nii,bb)
-% V      - SPM NIfTI object
+% FORMAT [d,M] = fil_subvol(Nii,bb)
+% Nii    - SPM NIfTI object
 % bb     - bounding box (2 x 3)
 %__________________________________________________________________________
-% Copyright (C) 2021 Wellcome Centre for Human Neuroimaging
 
 % John Ashburner
-% $Id: fil_subvol.m 8139 2021-08-24 19:38:01Z guillaume $
+% Copyright (C) 2021-2022 Wellcome Centre for Human Neuroimaging
+
 
 if ~isa(Nii,'nifti')
     Nii = nifti(Nii);
@@ -27,5 +27,3 @@ else
 end
 d = diff(bb)+1;
 M = Nii.mat*spm_matrix((bb(1,:)-1));
-%==========================================================================
-

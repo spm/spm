@@ -37,10 +37,10 @@ function [DCM,dipfit] = spm_dcm_erp(DCM)
 % useful for Bayesian parameter averaging - but would not normally be
 % called upon - because prior constraints are specified by DCM.A, DCM.B,...
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_erp.m 7679 2019-10-24 15:54:07Z spm $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
+
 
 % check options (and clear persistent variables)
 %==========================================================================

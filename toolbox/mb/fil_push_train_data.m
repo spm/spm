@@ -17,10 +17,10 @@ function fil_push_train_data(dw, Mw, Niiy, Nii1)
 %          Number of categories is the number of dimensions + 1, accounting
 %          for an implicit background class.
 %__________________________________________________________________________
-% Copyright (C) 2019-2021 Wellcome Centre for Human Neuroimaging
 
 % John Ashburner
-% $Id: fil_push_train_data.m 8139 2021-08-24 19:38:01Z guillaume $
+% Copyright (C) 2019-2022 Wellcome Centre for Human Neuroimaging
+
 
 assert(isnumeric(dw) && isreal(dw) && numel(dw)==3);
 assert(ismatrix(Mw)  && isreal(Mw) && all(size(Mw)==[4 4]));
@@ -105,4 +105,3 @@ for i=1:(size(X0,4)+1)
     fprintf('.');
 end
 fprintf('.\n');
-

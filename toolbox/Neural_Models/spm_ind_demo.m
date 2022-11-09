@@ -32,12 +32,10 @@ function spm_ind_demo
 % We then apply our model to EEG data from a face-perception experiment, to
 % ask whether there is evidence for nonlinear coupling between early visual
 % cortex and fusiform areas.
-% 
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_ind_demo.m 5934 2014-03-28 15:03:00Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % number of regions in coupled map lattice

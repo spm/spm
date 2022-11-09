@@ -1,19 +1,18 @@
 function model = fil_prec(model,sett,p)
 % Attach matrices for computing priors
 % FORMAT model = fil_prec(model,sett)
-% model - The learned model from PatchCCAtrain
+% model - The learned model from fil_train
 % sett  - Settings
 %         Uses sett.matname, sett.nu and sett.v0
 %
-% Takes a fitted model, and converts to a form that allows
-% the distributions of latent variables to be estimated by
-% a neural network type formulation.
-%
+% Takes a fitted model, and converts to a form that allows the
+% distributions of latent variables to be estimated by a neural network
+% type formulation.
 %__________________________________________________________________________
-% Copyright (C) 2019-2021 Wellcome Centre for Human Neuroimaging
 
 % John Ashburner
-% $Id: fil_prec.m 8139 2021-08-24 19:38:01Z guillaume $
+% Copyright (C) 2019-2022 Wellcome Centre for Human Neuroimaging
+
 
 model(1).P11 = [];
 model(1).P12 = [];
@@ -124,4 +123,3 @@ nu  = Ns+nu0;
 P   = Psi*nu; % E[P]
 P11 = P(1:K,    1:K  );
 P12 = P(1:K, K+(1:K2));
-

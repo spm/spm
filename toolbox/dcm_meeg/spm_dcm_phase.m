@@ -25,10 +25,9 @@ function DCM = spm_dcm_phase(DCM)
 %
 %   options.type         - 'ECD' 
 %__________________________________________________________________________
-% Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
-%
+
 % Will Penny
-% $Id: spm_dcm_phase.m 4884 2012-09-03 13:33:17Z guillaume $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 
 % check options 

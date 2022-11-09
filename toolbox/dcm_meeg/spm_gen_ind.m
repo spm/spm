@@ -1,5 +1,5 @@
 function [y] = spm_gen_ind(P,M,U)
-% Generates a prediction of trial-specific induced activity
+% Generate a prediction of trial-specific induced activity
 % FORMAT [y] = spm_gen_ind(P,M,U)
 %
 % P - parameters
@@ -9,10 +9,9 @@ function [y] = spm_gen_ind(P,M,U)
 % y - prediction
 %
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_gen_ind.m 5900 2014-02-27 21:54:51Z karl $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 
 % within-trial inputs
@@ -58,5 +57,3 @@ for  c = 1:nX
     y{c}  = spm_int_L(Q,M,U);
 
 end
-
-

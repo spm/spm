@@ -1,5 +1,5 @@
 function [E,V] = spm_cmc_priors(A,B,C)
-% prior moments for a canonical microcircuit model
+% Prior moments for a canonical microcircuit model
 % FORMAT [pE,pC] = spm_cmc_priors(A,B,C)
 %
 % A{3},B{m},C  - binary constraints on extrinsic connections
@@ -36,11 +36,11 @@ function [E,V] = spm_cmc_priors(A,B,C)
 % David O, Friston KJ (2003) A neural mass model for MEG/EEG: coupling and
 % neuronal dynamics. NeuroImage 20: 1743-1755
 %__________________________________________________________________________
-% Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_cmc_priors.m 7279 2018-03-10 21:22:44Z karl $
- 
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
+
+
 % default: a single source model
 %--------------------------------------------------------------------------
 if nargin < 3

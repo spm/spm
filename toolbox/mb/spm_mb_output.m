@@ -1,11 +1,11 @@
 function res = spm_mb_output(cfg)
 % Write output from groupwise normalisation and segmentation of images
 % FORMAT res = spm_mb_output(cfg)
-%
 %__________________________________________________________________________
-% Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_output.m 8259 2022-06-01 12:35:54Z john $
+% John Ashburner
+% Copyright (C) 2019-2022 Wellcome Centre for Human Neuroimaging
+
 
 res  = cfg.result;
 if iscell(res), res = res{1}; end

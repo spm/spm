@@ -1,5 +1,5 @@
 function [y] = spm_int_U(P,M,U)
-% integrates a MIMO nonlinear system (fast integration for sparse inputs)
+% Integrate a MIMO nonlinear system (fast integration for sparse inputs)
 % FORMAT [y] = spm_int_U(P,M,U)
 % P   - model parameters
 % M   - model structure
@@ -60,12 +60,12 @@ function [y] = spm_int_U(P,M,U)
 % Jacobian evaluated using spm_bireduce. This routine will also allow for
 % sparse sampling of the solution and delays in observing outputs. It is
 % used primarily for integrating fMRI models
-%___________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
  
 % Karl Friston
-% $Id: spm_int_U.m 7148 2017-08-04 15:27:29Z karl $
- 
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
+
+
 % convert U to U.u if necessary
 %--------------------------------------------------------------------------
 if ~isstruct(U), U.u = U; end

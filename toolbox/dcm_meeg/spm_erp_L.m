@@ -1,5 +1,5 @@
 function [L] = spm_erp_L(P,dipfit)
-% returns [projected] lead field L as a function of position and moments
+% [projected] lead field L as a function of position and moments
 % FORMAT [L] = spm_erp_L(P,dipfit)
 % P       - model parameters
 % dipfit  - spatial model specification
@@ -22,10 +22,10 @@ function [L] = spm_erp_L(P,dipfit)
 %
 % see; Kiebel et al. (2006) NeuroImage
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_erp_L.m 7142 2017-07-26 20:38:45Z karl $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
+
 
 % Create a persient variable that rembers the last locations
 %--------------------------------------------------------------------------

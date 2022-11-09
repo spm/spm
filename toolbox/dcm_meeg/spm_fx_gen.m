@@ -1,5 +1,5 @@
 function [f,J,Q] = spm_fx_gen(x,u,P,M)
-% generic state equations for a neural mass models
+% Generic state equations for a neural mass models
 % FORMAT [f,J,D] = spm_fx_gen(x,u,P,M)
 % FORMAT [f,J]   = spm_fx_gen(x,u,P,M)
 % FORMAT [f]     = spm_fx_gen(x,u,P,M)
@@ -37,10 +37,9 @@ function [f,J,Q] = spm_fx_gen(x,u,P,M)
 % David O, Friston KJ (2003) A neural mass model for MEG/EEG: coupling and
 % neuronal dynamics. NeuroImage 20: 1743-1755
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_gen.m 7409 2018-08-27 11:39:00Z bernadette $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
  
  
 % model-specific parameters
@@ -255,9 +254,3 @@ for i = 1:8
         N = N/2;
     end
 end
-
-return
-
-
-
-

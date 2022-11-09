@@ -1,6 +1,6 @@
 function model = fil_train(data,sett,model)
 % Fit the patch-wise CCA-like model.
-% FORMAT model=PatchCCAtrain(data,sett,model)
+% FORMAT model = fil_train(data,sett,model)
 % data  - a data structure encoding the images used, as well as the
 %         amount of jitter etc.
 % sett  - a data structure encoding settings.  Fields used are (with suggested values):
@@ -15,12 +15,11 @@ function model = fil_train(data,sett,model)
 %         matname - filename for saving model                            [a string]
 %         workers - Number of workers in parfor                          [it depends]
 % model - the estimated model
-%
 %__________________________________________________________________________
-% Copyright (C) 2019-2021 Wellcome Centre for Human Neuroimaging
 
 % John Ashburner
-% $Id: fil_train.m 8196 2021-12-16 15:18:25Z john $
+% Copyright (C) 2019-2022 Wellcome Centre for Human Neuroimaging
+
 
 io   = fil_io;                      % Handles to I/O functions
 dat  = io.init(data{:});            % Set up data for I/O
@@ -309,4 +308,3 @@ else
         [model.mod,Z,V] = fil_fit(F,J,sett,ind,p,model.mod,Z,Z0,P11);
     end
 end
-

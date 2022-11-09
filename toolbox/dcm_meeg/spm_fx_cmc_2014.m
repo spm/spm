@@ -1,5 +1,5 @@
 function [f,J,Q] = spm_fx_cmc_2014(x,u,P,M)
-% state equations for a neural mass model (canonical microcircuit)
+% State equations for a neural mass model (canonical microcircuit)
 % FORMAT [f,J,D] = spm_fx_cmc(x,u,P,M)
 % FORMAT [f,J]   = spm_fx_cmc(x,u,P,M)
 % FORMAT [f]     = spm_fx_cmc(x,u,P,M)
@@ -30,10 +30,9 @@ function [f,J,Q] = spm_fx_cmc_2014(x,u,P,M)
 % David O, Friston KJ (2003) A neural mass model for MEG/EEG: coupling and
 % neuronal dynamics. NeuroImage 20: 1743-1755
 %___________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_cmc_2014.m 7279 2018-03-10 21:22:44Z karl $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
  
  
 % get dimensions and configure state variables

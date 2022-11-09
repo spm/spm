@@ -39,11 +39,11 @@ function [pE] = spm_dcm_csd_priors(M,U,Y,k)
 % k    - indices of parameter vector to search over
 %
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_csd_priors.m 4095 2010-10-22 19:37:51Z karl $
- 
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
+
+
 % reduce system to one source
 %==========================================================================
  
@@ -161,7 +161,7 @@ dfdp  = pC*spm_vec(dfdp);
 [q k] = sort(-abs(dfdp));
 s     = linspace(-4,4,64);
 for i = 1:length(s)
-    for j = 1:length(s);
+    for j = 1:length(s)
         P        = spm_vec(S.pE);
         P(k(1))  = P(k(1)) + sqrt(pC(k(1),k(1)))*s(i);
         P(k(2))  = P(k(2)) + sqrt(pC(k(2),k(2)))*s(j);

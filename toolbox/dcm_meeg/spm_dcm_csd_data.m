@@ -1,5 +1,5 @@
 function DCM = spm_dcm_csd_data(DCM)
-% gets cross-spectral density data-features using a VAR model
+% Cross-spectral density data-features using a VAR model
 % FORMAT DCM = spm_dcm_csd_data(DCM)
 % DCM    -  DCM structure
 % requires
@@ -23,10 +23,10 @@ function DCM = spm_dcm_csd_data(DCM)
 %    DCM.xY.Hz      - Frequency bins
 %    DCM.xY.code    - trial codes evaluated
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_csd_data.m 6481 2015-06-16 17:01:47Z karl $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
+
  
 % Set defaults and Get D filename
 %-------------------------------------------------------------------------
@@ -160,7 +160,7 @@ try
 catch
     pst     = DCM.xY.pst(end) - DCM.xY.pst(1);
     Hz1     = max(ceil(2*1000/pst),4);
-    if Hz1 < 8;
+    if Hz1 < 8
         Hz2 = 48;
     else
         Hz2 = 128;
@@ -182,7 +182,7 @@ DCM.xY.csd = cell(1,Ne);               % CSD for each condition
 
 w     = min(fix(2/DCM.xY.dt),Nb);      % window length (bins)
 m     = 1;                             % retain principal mode
-for i = 1:Ne;
+for i = 1:Ne
    
     % trial indices
     %----------------------------------------------------------------------
@@ -216,7 +216,7 @@ for i = 1:Ne;
     
     % retain principal eigenmode
     %----------------------------------------------------------------------
-    [u s v]       = spm_svd(K,1);
+    [u,s,v]       = spm_svd(K,1);
     P             = u(:,m)*s(m,m)*mean(v(:,m));
     DCM.xY.csd{i} = spm_unvec(P,mar.P);
    

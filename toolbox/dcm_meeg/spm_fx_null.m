@@ -1,5 +1,5 @@
 function [f,J] = spm_fx_null(x,u,P,M)
-% state equations for null (Jacobian) model
+% State equations for null (Jacobian) model
 % FORMAT [f,J] = spm_fx_null(x,u,P,M)
 %
 % x - hidden states
@@ -9,8 +9,10 @@ function [f,J] = spm_fx_null(x,u,P,M)
 %
 % f - flow
 % J - Jacobian
-%
-%--------------------------------------------------------------------------
+%__________________________________________________________________________
+ 
+% Karl Friston
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 % input
 %==========================================================================
@@ -31,5 +33,3 @@ end
 %==========================================================================
 J     = -expm(P.A);
 f     = J*x + U;
-
-

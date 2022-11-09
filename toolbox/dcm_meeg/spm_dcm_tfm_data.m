@@ -1,5 +1,5 @@
 function DCM = spm_dcm_tfm_data(DCM)
-% gets cross-spectral density data-features using a wavelet transform
+% Get cross-spectral density data-features using a wavelet transform
 % FORMAT DCM = spm_dcm_tfm_data(DCM)
 % DCM    -  DCM structure
 % requires
@@ -29,7 +29,8 @@ function DCM = spm_dcm_tfm_data(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_tfm_data.m 7749 2019-12-05 17:05:46Z guillaume $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
+
  
 % Set defaults and Get D filename
 %-------------------------------------------------------------------------

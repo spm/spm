@@ -1,5 +1,5 @@
 function [pE,pC] = spm_dcm_neural_priors(A,B,C,model)
-% Prepares the priors on the parameters of neural mass models
+% Prepare the priors on the parameters of neural mass models
 % FORMAT [pE,pC] = spm_dcm_neural_priors(A,B,C,'model'))
 %
 % A,B{m},C  - binary constraints on extrinsic connections for m conditions
@@ -33,10 +33,9 @@ function [pE,pC] = spm_dcm_neural_priors(A,B,C,model)
 % and variance of one.  After log transform this renders pE = 0 and
 % pC = 1;
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_neural_priors.m 7409 2018-08-27 11:39:00Z bernadette $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 % For generic schemes one can mix and match different types of sources;
 % furthermore, they can have different condition-specific modulation of

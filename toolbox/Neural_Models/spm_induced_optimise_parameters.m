@@ -1,4 +1,4 @@
-function [Ep M] = spm_induced_optimise_parameters(PARAMS)
+function [Ep,M] = spm_induced_optimise_parameters(PARAMS)
 % Demo routine that optimises free parameters
 %==========================================================================
 %
@@ -7,10 +7,10 @@ function [Ep M] = spm_induced_optimise_parameters(PARAMS)
 % by the complex eigenvalue spectrum - or a reduced form that considers a
 % small number of complex values (roots).
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_induced_optimise_parameters.m 6856 2016-08-10 17:55:05Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
  
 % Parameters to optimise
 %--------------------------------------------------------------------------
@@ -193,5 +193,3 @@ title('Jacobian','FontSize',16)
 xlabel('hidden state')
 ylabel('hidden state')
 axis square
-
-

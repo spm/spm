@@ -1,5 +1,5 @@
 function [f] = spm_fp_cmc_tfm(x,u,P,M)
-% parameter equations for a neural mass model (canonical microcircuit)
+% Parameter equations for a neural mass model (canonical microcircuit)
 % FORMAT [f] = spm_fp_cmc_tfm(x,u,P,M)
 %
 % x      - state vector
@@ -25,10 +25,10 @@ function [f] = spm_fp_cmc_tfm(x,u,P,M)
 % David O, Friston KJ (2003) A neural mass model for MEG/EEG: coupling and
 % neuronal dynamics. NeuroImage 20: 1743-1755
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fp_cmc_tfm.m 6234 2014-10-12 09:59:10Z karl $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
+
 
 % Neuronal states (deviations from baseline firing)
 %--------------------------------------------------------------------------
@@ -73,5 +73,3 @@ dG    = Ca.*(2 - G)/2  - G.*B;
 Ca    = Ca + dC*M.dt;
 G     = G  + dG*M.dt;
 f(iG) = G(:);
-
-

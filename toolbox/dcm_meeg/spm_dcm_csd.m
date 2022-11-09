@@ -38,10 +38,9 @@ function DCM = spm_dcm_csd(DCM)
 % DCM.F                     - Laplace log evidence
 % DCM.ID                    -  data ID
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_csd.m 7809 2020-03-31 11:55:09Z karl $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
  
  
 % check options
@@ -272,8 +271,3 @@ qp.J{i}(j)  = 1;
 [Hs Hz dtf] = spm_csd_mtf(qp,M,DCM.xU); % conditional cross spectra
 [ccf pst]   = spm_csd2ccf(Hs,DCM.M.Hz); % conditional correlation functions
 [coh fsd]   = spm_csd2coh(Hs,DCM.M.Hz); % conditional covariance
-
-
-
-
-

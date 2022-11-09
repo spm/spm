@@ -1,5 +1,5 @@
 function [pE,pC] = spm_L_priors(dipfit,pE,pC)
-% prior moments for the lead-field parameters of ERP models
+% Prior moments for the lead-field parameters of ERP models
 % FORMAT [pE,pC] = spm_L_priors(dipfit)
 %
 % dipfit    - forward model structure:
@@ -28,11 +28,9 @@ function [pE,pC] = spm_L_priors(dipfit,pE,pC)
 % David O, Friston KJ (2003) A neural mass model for MEG/EEG: coupling and
 % neuronal dynamics. NeuroImage 20: 1743-1755
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_L_priors.m 7409 2018-08-27 11:39:00Z bernadette $
-
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 
 % defaults
@@ -191,6 +189,3 @@ if numel(pE.J) == 1
     pE.J = pE.J{:};
     pC.J = pC.J{:};
 end
-
-
-

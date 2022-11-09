@@ -24,10 +24,9 @@ function [M0,M1,L,M2] = spm_mfa_bi_multi(S,C)
 %
 % Transformed probability states:  q = [1; v*(p(X) - p0)];
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mfa_bi_multi.m 4936 2012-09-18 19:47:55Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
  
 % indices

@@ -20,23 +20,23 @@ function [pE,gE,pC,gC] = spm_phase_priors(DCM,fb,dipfit,freq_prior)
 %    pE.Bc{m} - trial-dependent
 %
 %__________________________________________________________________________
-% Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
  
 % Will Penny
-% $Id: spm_phase_priors.m 3637 2009-12-11 16:40:15Z will $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
+
  
-if nargin < 4 | isempty(freq_prior)
-    freq_prior='hard_freq';
+if nargin < 4 || isempty(freq_prior)
+    freq_prior = 'hard_freq';
 end
 
-As=DCM.As;
-Bs=DCM.Bs;
+As = DCM.As;
+Bs = DCM.Bs;
 
 if isfield(DCM,'Ac')
-    Ac=DCM.Ac;
+    Ac = DCM.Ac;
 end
 if isfield(DCM,'Bc')
-    Bc=DCM.Bc;
+    Bc = DCM.Bc;
 end
 
 % orders
@@ -68,9 +68,9 @@ end
 % Frequency priors
 E.df=zeros(n,1);
 switch freq_prior
-    case 'hard_freq',
+    case 'hard_freq'
         V.df=1e-6*ones(n,1);
-    case 'soft_freq',
+    case 'soft_freq'
         new_df=(DCM.options.Fdcm(2)-DCM.options.Fdcm(1))/2;
         new_sig=new_df/3;
         V.df=new_sig*ones(n,1);

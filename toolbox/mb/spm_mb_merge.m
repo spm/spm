@@ -1,9 +1,11 @@
 function out = spm_mb_merge(cfg)
 % Combine tissue maps together
+% FORMAT out = spm_mb_merge(cfg)
 %__________________________________________________________________________
-% Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_merge.m 8259 2022-06-01 12:35:54Z john $
+% John Ashburner
+% Copyright (C) 2019-2022 Wellcome Centre for Human Neuroimaging
+
 
 out      = struct('mu','priors');
 odir     = cfg.odir{1};

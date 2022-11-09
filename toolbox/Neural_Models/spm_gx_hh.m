@@ -18,10 +18,9 @@ function [y] = spm_gx_hh(x,u,P)
 % x(5) = V                  % transmembrane potential mV
 % x(6) = t                  % time since last spike (peri-spike time)
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_gx_hh.m 4936 2012-09-18 19:47:55Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
  
 % fixed parameters
@@ -48,5 +47,3 @@ E     =  gl*(Vl   - v).^2 + ...                 % leak
 % output (y)
 %--------------------------------------------------------------------------
 y      = [v; 1/(1/128 + T); E/1000];
-
-

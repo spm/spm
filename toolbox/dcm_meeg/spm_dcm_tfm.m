@@ -47,10 +47,9 @@ function DCM = spm_dcm_tfm(DCM)
 % DCM.DTF;                  % conditional directed transfer functions
 % DCM.ERP;                  % conditional evoked responses
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_tfm.m 7149 2017-08-08 13:14:36Z karl $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
  
  
 % check options and preliminaries

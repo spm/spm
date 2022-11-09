@@ -1,5 +1,5 @@
 function [f,dfdx,dfdu,dfdxdu] = spm_fx_mfm_D(x,u,P,M)
-% state equations for neural-mass and mean-field models (delay version)
+% State equations for neural-mass and mean-field models (delay version)
 % FORMAT [f,dfdx,dfdu,dfdxdu] = spm_fx_mfm(x,u,P,M)
 %
 % x         - states (means and covariances)
@@ -34,12 +34,12 @@ function [f,dfdx,dfdu,dfdxdu] = spm_fx_mfm_D(x,u,P,M)
 %
 %    J(d)            = Q(d)df/dx
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_mfm_D.m 2393 2008-10-23 14:58:50Z karl $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
+
  
-% get delyed flow and Jacobian
+% get delayed flow and Jacobian
 %--------------------------------------------------------------------------
 [f,J,Q] = spm_fx_mfm(x,u,P,M);
 f       = Q*f;

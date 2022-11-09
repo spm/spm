@@ -1,16 +1,15 @@
 function model = fil_prune(model,sett,p)
 % Prune the model
-% FORMAT model = PatchCCAprune(model,sett,p)
-% model - The learned model from PatchCCAtrain
+% FORMAT model = fil_prune(model,sett,p)
+% model - The learned model from fil_train
 %
-% Takes a fitted model, orthogonalise and remove
-% irrelevent latent variables.
-%
-%_______________________________________________________________________
-% Copyright (C) 2019-2021 Wellcome Centre for Human Neuroimaging
+% Take a fitted model, orthogonalise and remove irrelevent latent
+% variables.
+%__________________________________________________________________________
 
 % John Ashburner
-% $Id: fil_prune.m 8139 2021-08-24 19:38:01Z guillaume $
+% Copyright (C) 2019-2022 Wellcome Centre for Human Neuroimaging
+
 
 if nargin<2, error('Need settings.'); end
 if nargin<3, error('Need weights.'); end
@@ -65,4 +64,3 @@ end
 patch.mod = mod;
 latent.Z  = Z;
 latent.V  = V;
-

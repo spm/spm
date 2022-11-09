@@ -1,5 +1,5 @@
 function [f,J,Q] = spm_fx_mfm(x,u,P,M)
-% state equations for neural-mass and mean-field models
+% State equations for neural-mass and mean-field models
 % FORMAT [f,J,Q] = spm_fx_mfm(x,u,P,M)
 %
 % x - states and covariances
@@ -43,10 +43,10 @@ function [f,J,Q] = spm_fx_mfm(x,u,P,M)
 % Jul-Aug;11(1):63-85.
 %
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_mfm.m 5273 2013-02-21 15:05:42Z karl $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
+
  
 % get dimensions and configure state variables
 %--------------------------------------------------------------------------

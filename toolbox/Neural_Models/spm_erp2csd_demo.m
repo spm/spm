@@ -20,12 +20,10 @@ function spm_erp2csd_demo
 % parameters can be identified using model selection, under a parametric
 % random effect or empirical Bayesian model, which furnishes posterior
 % densities over parameters at the first or within trial Level.
-%
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
-
+ 
 % Karl Friston
-% $Id: spm_erp2csd_demo.m 7679 2019-10-24 15:54:07Z spm $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % Model specification

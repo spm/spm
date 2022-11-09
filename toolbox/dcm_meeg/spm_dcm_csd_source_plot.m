@@ -8,10 +8,9 @@ function [G] = spm_dcm_csd_source_plot(model,s,P,N)
 % N     - twice the maximum frequency
 %
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_csd_source_plot.m 5210 2013-01-25 15:31:46Z guillaume $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 
 % Create model

@@ -1,5 +1,5 @@
 function [pC] = spm_dcm_symm(pV,pE)
-% locks ECD orientations by introducing prior correlations
+% Lock ECD orientations by introducing prior correlations
 % FORMAT [pC] = spm_dcm_symm(pV,pE)
 %__________________________________________________________________________
 %
@@ -10,7 +10,8 @@ function [pC] = spm_dcm_symm(pV,pE)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_symm.m 5376 2013-04-02 09:59:01Z karl $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
+
 
 % Distance between homolgous sources (16mm)
 %--------------------------------------------------------------------------
@@ -67,5 +68,3 @@ for  i = 1:length(feilds)
     end
 end
 pC    = spm_cat(pC);
-
-

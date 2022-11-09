@@ -6,10 +6,9 @@ function [PE] = spm_dcm_csd_source_optimise
 % desired frequency responses (in selected populations)
 %
 %__________________________________________________________________________
-% Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_csd_source_optimise.m 4814 2012-07-30 19:56:05Z karl $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
  
  
 % setup
@@ -22,7 +21,7 @@ param = {'G'};                    % parameters to vary
  
 % priors
 %==========================================================================
-[PE PC] = spm_dcm_neural_priors({0 0 0},{},1,model);
+[PE,PC] = spm_dcm_neural_priors({0 0 0},{},1,model);
  
 i     = spm_fieldindices(PE,param{:});
 n     = length(spm_vec(PE));

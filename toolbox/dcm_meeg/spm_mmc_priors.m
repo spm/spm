@@ -1,5 +1,5 @@
 function [E,V] = spm_mmc_priors(A,B,C)
-% prior moments for a canonical motor cortex microcircuit model
+% Prior moments for a canonical motor cortex microcircuit model
 % FORMAT [E,V] = spm_mmc_priors(A,B,C)
 %
 % A{3},B{m},C  - binary constraints on extrinsic connections
@@ -32,10 +32,9 @@ function [E,V] = spm_mmc_priors(A,B,C)
 % pC = 1;  The prior expectations of what they scale are specified in
 % spm_fx_mmc
 %__________________________________________________________________________
-% Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
  
 % Bernadette van Wijk
-% $Id: spm_mmc_priors.m 7755 2019-12-16 13:19:28Z spm $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 
 % default: a single source model

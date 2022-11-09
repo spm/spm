@@ -31,10 +31,9 @@ function [CSD,ERP,csd,mtf,w,pst,x,dP] = spm_csd_int(P,M,U)
 %
 % If M.analysis = 'ERP' then only the ERP is evaluated
 %__________________________________________________________________________
-% Copyright (C) 2012-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_csd_int.m 6856 2016-08-10 17:55:05Z karl $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 
 % check input - default: one trial (no between-trial effects)

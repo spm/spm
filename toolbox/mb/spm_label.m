@@ -1,8 +1,15 @@
 function out = spm_label(cfg)
+%
+% FORMAT out = spm_label(cfg)
+%__________________________________________________________________________
+
+% John Ashburner
+% Copyright (C) 2021-2022 Wellcome Centre for Human Neuroimaging
+
 
 if nargin==0
     % Select images to label
-    P        = spm_select(Inf,'nifti','Select scans to label');
+    P     = spm_select(Inf,'nifti','Select scans to label');
 else
     if isa(cfg,'char')
         P = cfg;
@@ -97,4 +104,3 @@ for n=1:size(P,1)
     Plab        = fil_label(fil,sett,dat,[6 10 10],0.25,odir); % Label the image
     out.labels{n} = Plab;
 end
-

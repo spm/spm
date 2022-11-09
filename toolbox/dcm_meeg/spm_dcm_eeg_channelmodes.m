@@ -1,5 +1,5 @@
 function [U] = spm_dcm_eeg_channelmodes(dipfit,Nm,xY)
-% Returns the channel eigenmodes
+% Return the channel eigenmodes
 % FORMAT [U] = spm_dcm_eeg_channelmodes(dipfit,Nm)
 % FORMAT [U] = spm_dcm_eeg_channelmodes(dipfit,Nm,xY)
 % dipfit  - spatial model specification
@@ -17,10 +17,10 @@ function [U] = spm_dcm_eeg_channelmodes(dipfit,Nm,xY)
 %
 % U is scaled to ensure trace(U'*L*L'*U) = Nm
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_eeg_channelmodes.m 6806 2016-06-08 20:04:30Z karl $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
+
  
 % number of channels and modes
 %--------------------------------------------------------------------------
@@ -70,4 +70,3 @@ end
 % re-scale spatial projector
 %--------------------------------------------------------------------------
 U     = U/sqrt(mean(S));
-

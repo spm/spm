@@ -29,12 +29,11 @@
 % These are shown graphically with their analytic predictions from the 
 % generative model.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_induced_demo.m 7679 2019-10-24 15:54:07Z spm $
- 
- 
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
+
 % Model specification
 %==========================================================================
 rng('default')
@@ -275,5 +274,4 @@ spm_figure('GetWin','Expected and simulated responses');
 
 spm_dcm_tfm_image(csd{1},pst,w,0)
 spm_dcm_tfm_image(Q,pst,w,1)
- 
  

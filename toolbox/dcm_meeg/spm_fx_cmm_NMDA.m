@@ -1,5 +1,5 @@
 function [f,J,Q] = spm_fx_cmm_NMDA(x,u,P,M)
-% state equations for canonical neural-mass and mean-field models
+% State equations for canonical neural-mass and mean-field models
 % FORMAT [f,J,Q] = spm_fx_cmm(x,u,P,M)
 %
 % x - states and covariances
@@ -42,10 +42,10 @@ function [f,J,Q] = spm_fx_cmm_NMDA(x,u,P,M)
 % Jul-Aug;11(1):63-85.
 %
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_cmm_NMDA.m 5741 2013-11-13 12:10:48Z guillaume $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
+
  
 % get dimensions and configure state variables
 %--------------------------------------------------------------------------
@@ -210,7 +210,7 @@ for i = 1:ns
           f(i,:,1) =    (GL*(VL - x(i,:,1))+...
                          x(i,:,2).*(VE - x(i,:,1))+...
                          x(i,:,3).*(VI - x(i,:,1))+...
-                         x(i,:,4).*(VN - x(i,:,1)).*mg_switch(x(i,:,1)))./CV;
+                         x(i,:,4).*(VN - x(i,:,1)).*spm_mg_switch(x(i,:,1)))./CV;
         
         % Conductance
         %==================================================================
@@ -260,5 +260,3 @@ D  = d(2)*Dp + d(1)*Ds;
 %                     = Q*f = Q*J*x(t)
 %--------------------------------------------------------------------------
 Q  = spm_inv(speye(length(J)) - D.*J);
-
-

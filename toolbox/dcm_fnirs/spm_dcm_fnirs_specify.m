@@ -6,10 +6,9 @@ function DCM = spm_dcm_fnirs_specify(SPMf)
 %
 % DCM  - DCM structure (see spm_dcm_ui)
 %__________________________________________________________________________
-% Copyright (C) 2015-2016 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Sungho Tak
-% $Id: spm_dcm_fnirs_specify.m 7060 2017-04-18 16:44:46Z will $
+% Copyright (C) 2015-2022 Wellcome Centre for Human Neuroimaging
 
 %--------------------------------------------------------------------------
 %-Interactive window

@@ -1,5 +1,5 @@
 function [E,V] = spm_tfm_priors(A,B,C)
-% prior moments for a canonical microcircuit model (with plasticity)
+% Prior moments for a canonical microcircuit model (with plasticity)
 % FORMAT [pE,pC] = spm_tfm_priors(A,B,C)
 %
 % A{3},B{m},C  - binary constraints on extrinsic connections
@@ -41,10 +41,10 @@ function [E,V] = spm_tfm_priors(A,B,C)
 % David O, Friston KJ (2003) A neural mass model for MEG/EEG: coupling and
 % neuronal dynamics. NeuroImage 20: 1743-1755
 %__________________________________________________________________________
-% Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_tfm_priors.m 7527 2019-02-06 19:12:56Z karl $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
+
  
 % default: a single source model
 %--------------------------------------------------------------------------

@@ -6,14 +6,14 @@ function spm_fnirs_viewer_sensor(R)
 % R - structure array containing optode/channel positions 
 %    - This structure can be obtained using the SPM-fNIRS toolbox
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Sungho Tak
-% $Id: spm_fnirs_viewer_sensor.m 6754 2016-03-25 06:44:58Z will $
+% Copyright (C) 2015-2022 Wellcome Centre for Human Neuroimaging
+
 
 view = 2; % default view of brain (dorsal view) 
 
-%------------------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % display channel and optodes positions on the rendered brain 
 figure('name', 'Optode and Channel Positions');
 brain = R.rend{view}.ren; 
@@ -22,7 +22,7 @@ colormap gray;
 axis image
 axis off 
 
-%------------------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % channels 
 % set font and background colors 
 bcolor = [1 1 1]; fcolor = [1 0 0]; % ROI
@@ -38,7 +38,7 @@ for i = 1:nch
     text(c, r, num2str(ch), 'color', fcolor, 'FontWeight', 'bold', 'FontSize', 7, 'HorizontalAlignment', 'center', 'BackgroundColor', bcolor, 'Margin', 0.5); 
 end
     
-%------------------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % sources and detectors 
 indx = find(sum(R.s.xy{view}) ~= 0); 
 ns = length(indx);

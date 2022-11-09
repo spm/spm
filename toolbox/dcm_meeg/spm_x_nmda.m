@@ -1,6 +1,6 @@
-function [x,M] = spm_x_mfm(P)
-% initialises a state structure for a mean field model
-% FORMAT [x,M] = spm_x_mfm(P)
+function [x,M] = spm_x_nmda(P)
+% Initialise a state structure for a mean field model
+% FORMAT [x,M] = spm_x_nmda(P)
 %
 % P - parameter structure (encoding extrinsic connections)
 % M - model structure
@@ -21,10 +21,9 @@ function [x,M] = spm_x_mfm(P)
 %               3 gI - conductance (inhibitory)
 %               4 gN - conductance (NMDA)
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_x_nmda.m 5299 2013-03-04 18:19:35Z guillaume $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
  
 % dimensions

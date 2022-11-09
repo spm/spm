@@ -1,5 +1,5 @@
 function [f,J,Q] = spm_fx_cmc_tfm(x,u,P,M,OPT)
-% state equations for a neural mass model (canonical microcircuit)
+% State equations for a neural mass model (canonical microcircuit)
 % FORMAT [f,J,D]  = spm_fx_cmc_tfm(x,u,P,M)
 % FORMAT [f,J]    = spm_fx_cmc_tfm(x,u,P,M)
 % FORMAT [f]      = spm_fx_cmc_tfm(x,u,P,M)
@@ -37,10 +37,9 @@ function [f,J,Q] = spm_fx_cmc_tfm(x,u,P,M,OPT)
 % David O, Friston KJ (2003) A neural mass model for MEG/EEG: coupling and
 % neuronal dynamics. NeuroImage 20: 1743-1755
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_cmc_tfm.m 7679 2019-10-24 15:54:07Z spm $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
  
  
 % get dimensions and configure state variables
@@ -288,9 +287,3 @@ J = [[-diag(T)    eye(4) ]
 % [  T2*g12, -T2*g22, -T2*g23,       0,   0, -T2,   0,   0]
 % [  T3*g12,  T3*g23, -T3*g33,  T3*g23,   0,   0, -T3,   0]
 % [       0,       0, -T4*g23, -T4*g44,   0,   0,   0, -T4]
-
-
-
-
-
-

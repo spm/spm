@@ -21,10 +21,9 @@ function [Gu,Gs,Gn,f] = spm_csd_mtf_gu(P,M)
 %    pE.d(8,n) - neuronal fluctuations        - basis set coefficients
 %
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_csd_mtf_gu.m 6856 2016-08-10 17:55:05Z karl $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
  
 % frequencies of interest
@@ -77,6 +76,3 @@ Gn  = exp(P.b(1) - 2)*f.^(-exp(P.b(2)));
 for i = 1:size(P.c,2)
     Gs(:,i) = exp(P.c(1,i) - 2)*f.^(-exp(P.c(2,1)));
 end
-
-
-

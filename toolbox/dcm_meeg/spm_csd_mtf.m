@@ -30,13 +30,10 @@ function [y,w,s,g] = spm_csd_mtf(P,M,U)
 % See also:
 %  spm_ccf2csd.m, spm_ccf2mar, spm_csd2ccf.m, spm_csd2mar.m, spm_mar2csd.m,
 %  spm_csd2coh.m, spm_dcm_mtf.m, spm_Q.m, spm_mar.m and spm_mar_spectral.m
-%
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_csd_mtf.m 7529 2019-02-06 19:21:38Z karl $
-
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 
 % between-trial (experimental) inputs
@@ -184,7 +181,3 @@ if nargout > 3
         g{c} = spm_dtf2gew(s{c},Gu);
     end
 end
-
-
-
-

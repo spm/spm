@@ -11,10 +11,9 @@ function [y,w] = spm_nfm_mtf(P,M,U)
 % w - frequencies
 %
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Dimitris Pinotsis, Karl Friston
-% $Id: spm_nfm_mtf.m 5517 2013-05-23 12:47:45Z dimitris $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
  
  
 % compute log-spectral density
@@ -156,6 +155,3 @@ for t = 1:length(y)
     y{t} = G;
     
 end
-
-
-

@@ -1,5 +1,5 @@
 function [pE,pC] = spm_cmm_NMDA_priors(A,B,C)
-% prior moments for a canonical neural-mass model of ERPs
+% Prior moments for a canonical neural-mass model of ERPs
 % FORMAT [pE,pC] = spm_cmm_priors(A,B,C)
 %
 % A{3},B{m},C  - binary constraints on extrinsic connections
@@ -39,10 +39,9 @@ function [pE,pC] = spm_cmm_NMDA_priors(A,B,C)
 % David O, Friston KJ (2003) A neural mass model for MEG/EEG: coupling and
 % neuronal dynamics. NeuroImage 20: 1743-1755
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_cmm_NMDA_priors.m 5741 2013-11-13 12:10:48Z guillaume $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
  
  
 % disable log zero warning

@@ -29,10 +29,10 @@ function DCM = spm_dcm_phase_data(DCM)
 %
 %
 %__________________________________________________________________________
-% Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_dcm_phase_data.m 5082 2012-11-28 20:25:37Z karl $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
+
 
 % Get data filename
 %-------------------------------------------------------------------------
@@ -121,7 +121,7 @@ ind = ind(1):ind(2);
 % Read in trials
 Ntr=length(trials);
 clist=conditions(D);
-for i=1:Ntr,
+for i=1:Ntr
     k=trials(i);
     DCM.xY.y{i}=squeeze(D(Ic,ind,k))';
     DCM.xY.code{i}=clist{k};
@@ -146,20 +146,20 @@ if ~isequal(modality, 'LFP')
     L      = spm_erp_L(G,DCM.M.dipfit);
     MAP    = pinv(L);
     [Ntime,Nchannels]=size(DCM.xY.y{1});
-    for n=1:Ntrials,
+    for n=1:Ntrials
         % Get source time series for all orthogonal directions
         DCM.xY.y{n}=DCM.xY.y{n}*MAP';
     end
 
     % Get max variance orientation for each source
-    for s=1:Nr,
+    for s=1:Nr
         ind=[1:3]+(s-1)*3;
         y=[];
-        for n=1:Ntrials,
+        for n=1:Ntrials
             y=[y;DCM.xY.y{n}(:,ind)];
         end
         [uu,ss,vv]=svd(y,0);
-        for n=1:Ntrials,
+        for n=1:Ntrials
             region{n}(:,s)=DCM.xY.y{n}(:,ind)*vv(:,1);
         end
     end
@@ -171,8 +171,8 @@ end
 DCM.xY.y = [];
 % Get instantaneous phase
 disp('Filter and compute instantaneous phase ...');
-for n=1:Ntrials,
-    for c=1:Nr,
+for n=1:Ntrials
+    for c=1:Nr
         xr=region{n}(:,c);
         
         % Filtering
@@ -188,6 +188,6 @@ disp('Source extraction complete ...');
 tcr=1e-3*Tdcm;
 crind=find(DCM.xY.pst >= tcr(1) & DCM.xY.pst <= tcr(2));
 DCM.xY.pst=DCM.xY.pst(crind);
-for n=1:Ntrials,
+for n=1:Ntrials
     DCM.xY.y{n}=DCM.xY.y{n}(crind,:);
 end

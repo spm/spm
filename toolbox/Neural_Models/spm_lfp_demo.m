@@ -13,10 +13,9 @@ function spm_lfp_demo
 % identifying useful domains of parameter space (here the inhibitory time-
 % constant)
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
-
+ 
 % Karl Friston
-% $Id: spm_lfp_demo.m 6937 2016-11-20 12:30:40Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % Model specification

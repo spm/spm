@@ -1,5 +1,5 @@
 function [E,V] = spm_erp_priors(A,B,C)
-% prior moments for a neural-mass model of ERPs
+% Prior moments for a neural-mass model of ERPs
 % FORMAT [pE,pC] = spm_erp_priors(A,B,C)
 %
 % A{3},B{m},C  - binary constraints on extrinsic connections
@@ -36,10 +36,10 @@ function [E,V] = spm_erp_priors(A,B,C)
 % David O, Friston KJ (2003) A neural mass model for MEG/EEG: coupling and
 % neuronal dynamics. NeuroImage 20: 1743-1755
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_erp_priors.m 6900 2016-10-08 13:16:46Z karl $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
+
  
 % default: a single source model
 %--------------------------------------------------------------------------

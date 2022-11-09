@@ -4,11 +4,9 @@ function [pE,pC] = spm_bgt_priors
 % only contains priors for intrinsic parameters
 % priors for extrinsic parameters are defined in spm_cmc_priors
 %__________________________________________________________________________
-% Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
  
 % Bernadette van Wijk
-% $Id: spm_bgt_priors.m 7412 2018-09-06 10:12:18Z guillaume $
-
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 % synaptic parameters
 %--------------------------------------------------------------------------

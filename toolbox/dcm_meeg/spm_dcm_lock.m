@@ -1,15 +1,15 @@
 function [pC] = spm_dcm_lock(pV)
-% locks experimental effects by introducing prior correlations
+% Lock experimental effects by introducing prior correlations
 % FORMAT [pC] = spm_dcm_lock(pV)
 %__________________________________________________________________________
 %
 % pV   - prior variance
 % pC   - prior covariance
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+
  
 % Karl Friston
-% $Id: spm_dcm_lock.m 4095 2010-10-22 19:37:51Z karl $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 % lock experimental effects by introducing prior correlations
 %==========================================================================

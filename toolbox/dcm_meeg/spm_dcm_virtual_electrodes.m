@@ -31,10 +31,9 @@ function CSD = spm_dcm_virtual_electrodes(DCM,s,p,TYPE)
 % DCM.F                     - Laplace log evidence
 % DCM.ID                    - data ID
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_virtual_electrodes.m 7256 2018-02-11 14:45:00Z karl $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 % population specific cross spectra
 %--------------------------------------------------------------------------
@@ -171,4 +170,3 @@ for i = 1:ne
 end
 hold off
 legend(name)
-

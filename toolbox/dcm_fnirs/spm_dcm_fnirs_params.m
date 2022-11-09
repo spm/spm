@@ -8,10 +8,10 @@ function [A, B, C] = spm_dcm_fnirs_params(DCM)
 % B - Connections modulated by input
 % C - Influence of input on regional activity 
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Sungho Tak
-% $Id: spm_dcm_fnirs_params.m 6754 2016-03-25 06:44:58Z will $
+% Copyright (C) 2015-2022 Wellcome Centre for Human Neuroimaging
+
 
 % intrinsic connection in the absence of input
 r = 10.^5;
@@ -20,7 +20,7 @@ mlA = diag(DCM.Ep.A);
 slA = sqrt(diag(DCM.Vp.A));
 
 n = DCM.n;
-for i = 1:n,
+for i = 1:n
     latentA(i,:) = mlA(i) + slA(i) .* randn(1,r);
 end
 
@@ -52,7 +52,7 @@ sA(indx) = siA;
 
 mB = reshape(DCM.Ep.B, n^2, nc)';
 sB = reshape(sqrt(DCM.Vp.B), n^2, nc)';
-for i = 1:nc,
+for i = 1:nc
     mB(i, indx) = miB(:,i)';
     sB(i, indx) = siB(:,i)';
 end
@@ -70,6 +70,3 @@ B.std = sB;
 
 C.mean = mC; 
 C.std = sC; 
-
-
-

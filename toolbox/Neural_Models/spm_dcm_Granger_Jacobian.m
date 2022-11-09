@@ -5,12 +5,10 @@
 % This routine illustrates the derivation of spectral Granger causal
 % measures from the inversion of a simple state-space DCM paramterised in
 % explcicity in terms of its Jacobian (null model).
-%
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_Granger_Jacobian.m 5908 2014-03-05 20:31:57Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
  
 % Process (model) specification

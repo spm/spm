@@ -20,10 +20,9 @@ function DCM = spm_dcm_nfm(DCM)
 %   options.D            - time bin decimation       (usually 1 or 2)
 %   options.type         - 'ECD', 'LFP' or 'IMG'     (see spm_erp_L)
 %__________________________________________________________________________
-% Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_nfm.m 4492 2011-09-16 12:11:09Z guillaume $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
  
  
 % check options

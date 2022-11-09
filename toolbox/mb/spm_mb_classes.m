@@ -11,9 +11,10 @@ function varargout = spm_mb_classes(varargin)
 % FORMAT l       = spm_mb_classes('LSE1',mu,ax)
 % FORMAT mu      = spm_mb_classes('template_k1',mu,delta)
 %__________________________________________________________________________
-% Copyright (C) 2019-2020 Wellcome Centre for Human Neuroimaging
 
-% $Id: spm_mb_classes.m 8293 2022-07-13 15:11:52Z john $
+% John Ashburner
+% Copyright (C) 2019-2022 Wellcome Centre for Human Neuroimaging
+
 
 if isa(varargin{1},'char')
     [varargout{1:nargout}] = spm_subfun(localfunctions,varargin{:});
@@ -163,4 +164,3 @@ l  = log(sum(exp(bsxfun(@minus,mu,mx)),ax)) + mx;
 %==========================================================================
 
 %==========================================================================
-

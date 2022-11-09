@@ -35,10 +35,10 @@ function [E,V] = spm_lfp_priors(A,B,C)
 % David O, Friston KJ (2003) A neural mass model for MEG/EEG: coupling and
 % neuronal dynamics. NeuroImage 20: 1743-1755
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_lfp_priors.m 5369 2013-03-28 20:09:27Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
  
 % defaults
 %--------------------------------------------------------------------------

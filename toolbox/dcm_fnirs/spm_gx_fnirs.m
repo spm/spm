@@ -2,13 +2,13 @@ function [g] = spm_gx_fnirs(x,u,P,M)
 % fNIRS optics equation
 % FORMAT [g] = spm_gx_fnirs(x,u,P,M)
 %
-% x     state vector     (see spm_fx_fnirs)
-% u     experimental inputs
-% P     prior of latent variables
-% M    model structure
+% x   - state vector     (see spm_fx_fnirs)
+% u   - experimental inputs
+% P   - prior of latent variables
+% M   - model structure
 %
-% g     optical density changes
-%___________________________________________________________________________
+% g   - optical density changes
+%__________________________________________________________________________
 % References for optics equations:
 % 1. Arridge, SR 1999. Optical tomography in medical imaging. Inverse Prob.
 % 15: R41-R93.
@@ -18,20 +18,20 @@ function [g] = spm_gx_fnirs(x,u,P,M)
 % 3. Tak, S, Kempny, AM, Friston, KJ, Leff, AP, Penny WD, Dynamic causal
 % modelling for functional near-infrared spectroscopy. NeuroImage 111: 338-349.
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Sungho Tak
-% $Id: spm_gx_fnirs.m 6754 2016-03-25 06:44:58Z will $
+% Copyright (C) 2015-2022 Wellcome Centre for Human Neuroimaging
+
 
 % exponentiation of hemodynamic state variables
 x(:, 3:6) = exp(x(:,3:6));
 
 % optics parameters
-%------------------------------------------------------------------------------------
+%--------------------------------------------------------------------------
 %   N(1) - oxygen saturation                                            SO2
 %   N(2) - baseline total-hb concentration [mM]                P0
 %   N(3) - cortical weighting factor                                   w
-%------------------------------------------------------------------------------------
+%--------------------------------------------------------------------------
 N = [0.65 0.071 2];
 
 % baseline dxy-hb concentration
@@ -78,4 +78,3 @@ for i = 1:M.nwav
     g(:,i) = (pv .* (S * [sh sq])) * M.acoef(i,:)';
 end
 g = spm_vec(g);
-

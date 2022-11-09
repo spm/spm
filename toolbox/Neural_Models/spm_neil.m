@@ -4,10 +4,9 @@ function spm_neil
 % For Prof Neil Burgess
 % Inst of Cognitive Neuroscience (Deputy Director), and Inst of Neurology
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_neil.m 4812 2012-07-30 19:54:59Z karl $ 
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
 
 % Model specification
@@ -70,4 +69,3 @@ title('summed BOLD')
 axis square
 
 drawnow
-

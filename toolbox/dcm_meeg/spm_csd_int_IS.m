@@ -1,5 +1,5 @@
 function [y] = spm_csd_int_IS(P,M,U)
-% wrapper for erp and csd response of a neural mass model
+% Wrapper for erp and csd response of a neural mass model
 % FORMAT [y] = spm_csd_int_IS(P,M,U)
 %
 % P - parameters
@@ -19,10 +19,9 @@ function [y] = spm_csd_int_IS(P,M,U)
 % predictions of data features based upon a wavelet transform
 % characterisation of induced responses.
 %__________________________________________________________________________
-% Copyright (C) 2012-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_csd_int_IS.m 6234 2014-10-12 09:59:10Z karl $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 
 % check input - default: one trial (no between-trial effects)

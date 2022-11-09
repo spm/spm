@@ -1,5 +1,5 @@
 function spm_dcm_tfm_response(xY,pst,hz,XY)
-% displays evoked and induced responses
+% Display evoked and induced responses
 % FORMAT spm_dcm_tfm_response(xY,pst,hz,[XY])
 %
 % xY.erp{i} - (t x n):         an array over t time bins and n channels for
@@ -18,10 +18,10 @@ function spm_dcm_tfm_response(xY,pst,hz,XY)
 %
 % see also spm_dcm_tfm_image - for between channel (coherence) responses)
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_tfm_response.m 6234 2014-10-12 09:59:10Z karl $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
+
 
 % setup and defaults
 %--------------------------------------------------------------------------

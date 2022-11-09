@@ -7,12 +7,10 @@ function [x] = spm_gen_phase(P,M,U)
 % U - trial-specific effects
 %
 % x - states
-%
 %__________________________________________________________________________
-% Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_gen_phase.m 2908 2009-03-20 14:54:03Z will $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 
 % between-trial inputs
@@ -54,6 +52,4 @@ end
 if isfield(M,'trial')
     M.x=Mx;
 end
-
-
 

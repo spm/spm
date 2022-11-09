@@ -508,6 +508,3 @@ catch
     load_Callback(hObject, eventdata, handles)
     return
 end
-
-
-

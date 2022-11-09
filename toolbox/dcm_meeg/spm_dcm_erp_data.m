@@ -1,5 +1,5 @@
 function DCM = spm_dcm_erp_data(DCM,ERP)
-% prepares structures for forward model(EEG, MEG and LFP)
+% Prepare structures for forward model(EEG, MEG and LFP)
 % FORMAT DCM = spm_dcm_erp_data(DCM,ERP)
 % DCM  - DCM structure
 % ERP  - switch to average over trials (default)
@@ -29,10 +29,9 @@ function DCM = spm_dcm_erp_data(DCM,ERP)
 %    DCM.xY.Hz       - Frequency bins (for Wavelet transform)
 %    DCM.options.h
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_erp_data.m 7749 2019-12-05 17:05:46Z guillaume $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
  
  
 % Set defaults and Get D filename

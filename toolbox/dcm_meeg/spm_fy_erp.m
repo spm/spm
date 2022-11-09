@@ -1,12 +1,11 @@
-function [f] = spm_fy_erp(y,M)
-% feature selection for erp models 
-% FORMAT [f] = spm_fy_erp(y,M)
+function f = spm_fy_erp(y,M)
+% Feature selection for erp models 
+% FORMAT f = spm_fy_erp(y,M)
 % f = y*M.U;
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_fy_erp.m 6294 2014-12-31 16:47:47Z karl $
+% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 % projectors
 %--------------------------------------------------------------------------

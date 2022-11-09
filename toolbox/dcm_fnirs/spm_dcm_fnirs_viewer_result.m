@@ -1,10 +1,9 @@
 function varargout = spm_dcm_fnirs_viewer_result(varargin)
 % GUI for displaying DCM-fNIRS results
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Sungho Tak
-% $Id: spm_dcm_fnirs_viewer_result.m 6754 2016-03-25 06:44:58Z will $
+% Copyright (C) 2015-2022 Wellcome Centre for Human Neuroimaging
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
