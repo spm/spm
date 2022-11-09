@@ -141,6 +141,7 @@ eol   = sprintf('\n');
 S   = fileread(f); % spm_file(f,'local','content');
 if isempty(S), x = []; return; end
 if S(end) ~= eol, S = [S eol]; end
+if S(1) == 65279, S(1) = []; end % Byte order mark (BOM),U+FEFF,0xEF,0xBB,0xBF
 S   = regexprep(S,{'\r\n','\r','(\n)\1+'},{'\n','\n','$1'});
 
 %-Get column names from header line (non-numeric first line)
