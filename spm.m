@@ -855,20 +855,8 @@ v = spm_version(ReDo);
 if isempty(Mfile)
     varargout = {v.Release, v.Version};
 else
-    unknown = struct('file',Mfile,'id','???','date','','author','');
-    if ~isdeployed
-        fp  = fopen(Mfile,'rt');
-        if fp == -1, error('Cannot read %s.',Mfile); end
-        str = fread(fp,Inf,'*uchar');
-        fclose(fp);
-        str = char(str(:)');
-        r = regexp(str,['\$Id: (?<file>\S+) (?<id>[0-9]+) (?<date>\S+) ' ...
-            '(\S+Z) (?<author>\S+) \$'],'names','once');
-        if isempty(r), r = unknown; end
-    else
-        r = unknown;
-    end
-    varargout = {r(1).id v.Release};
+    % versioning of single files deprecated
+    varargout = {'???', v.Release};
 end
 
 
@@ -879,16 +867,6 @@ case 'version'                                             %-SPM version
 %-----------------------------------------------------------------------
 [v, r] = spm('Ver');
 varargout = {sprintf('%s (%s)',v,r)};
-
-
-%=======================================================================
-case 'mlver'                       %-MATLAB major & point version number
-%=======================================================================
-% v = spm('MLver')
-%-----------------------------------------------------------------------
-warning('spm(''MLver'') is deprecated. Use spm_check_version instead.');
-v = version; tmp = find(v=='.');
-if length(tmp)>1, varargout={v(1:tmp(2)-1)}; end
 
 
 %=======================================================================

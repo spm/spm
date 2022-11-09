@@ -505,20 +505,20 @@ fprintf('%s\n',repmat('-',1,70));
 dispc = true;
 for i=1:numel(r)
     if tf(i)
-        if ~isempty(r(i).id) && (isempty(l(ir(i)).id) || (r(i).id ~= l(ir(i)).id))
-            dispc = false;
-            fprintf('File %s is not up to date (r%d vs r%d)\n', ...
-                r(i).file, r(i).id, l(ir(i)).id);
-        end
+%         if ~isempty(r(i).id) && (isempty(l(ir(i)).id) || (r(i).id ~= l(ir(i)).id))
+%             dispc = false;
+%             fprintf('File %s is not up to date (r%d vs r%d)\n', ...
+%                 r(i).file, r(i).id, l(ir(i)).id);
+%         end
         if ~isempty(r(i).md5) && ~isempty(l(ir(i)).md5) && ~strcmp(r(i).md5,l(ir(i)).md5)
             dispc = false;
             fprintf('File %s has been edited (checksum mismatch)\n', r(i).file);
         end
     end
 end
-if dispc
-    fprintf('No local change or out-of-date files\n');
-end
+% if dispc
+%     fprintf('No local change or out-of-date files\n');
+% end
 
 %==========================================================================
 % FUNCTION get_rev
