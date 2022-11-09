@@ -9,10 +9,9 @@ function [w0] = mci_interp_init (Y,M)
 % w0    [d x N] matrix of initial states
 %       where d is number of states
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: mci_interp_init.m 6548 2015-09-11 12:39:47Z will $
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 N=length(Y);
 d=size(Y{1}.y,2);

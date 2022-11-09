@@ -13,10 +13,9 @@ function [S] = spm_mci_random (mcmc,R,v,M,U,Y)
 %
 % Uses Langevin Monte Carlo
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_mci_random.m 6697 2016-01-27 14:57:28Z spm $
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Data precision
 

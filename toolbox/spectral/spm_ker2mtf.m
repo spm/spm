@@ -7,12 +7,11 @@ function [mtf,Hz] = spm_ker2mtf(ker,dt)
 %
 % mtf  - modulation transfer function
 % Hz   - frequencies
-%
 %__________________________________________________________________________
-% Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ker2mtf.m 7774 2020-01-25 18:07:03Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 % preliminaries
 %--------------------------------------------------------------------------
@@ -26,8 +25,3 @@ function [mtf,Hz] = spm_ker2mtf(ker,dt)
 N    = size(ker,1);
 mtf  = fft(ker,2*N + 1)*dt;
 Hz   = ((1:N) - 1)/(N*dt)/2;
-
-
-
-
-

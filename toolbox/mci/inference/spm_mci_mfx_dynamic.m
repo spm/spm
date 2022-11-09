@@ -62,10 +62,9 @@ function [MCI] = spm_mci_mfx_dynamic (MCI)
 % W.Penny, M Klein-Flugge and B Sengupta (2015) Mixed Effects Langevin
 % Monte Carlo, Submitted, 2015.
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
-% Will Penny 
-% $Id: spm_mci_mfx_dynamic.m 6697 2016-01-27 14:57:28Z spm $
+% Will Penny
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 try, verbose=MCI.verbose; catch, verbose=0; end
 

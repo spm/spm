@@ -14,10 +14,9 @@ function [stats,Y,X] = spm_mci_mvnpost (post,method,verbose,max_lag)
 % 
 % Run Gaussianity test on Markov chain samples
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
-% Will Penny 
-% $Id: spm_mci_mvnpost.m 6697 2016-01-27 14:57:28Z spm $
+% Will Penny
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 try, pmax=max_lag; catch, pmax=10; end
 try, meth=method; catch, meth='ESS'; end

@@ -19,10 +19,9 @@ function [isvl] = spm_mci_isvl (mcmc,M,U,Y,VL)
 %
 % Uses IS with VL posterior as proposal
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_mci_isvl.m 6548 2015-09-11 12:39:47Z will $
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 M = spm_mci_minit (M);
 V  = M.V;

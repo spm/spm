@@ -9,12 +9,11 @@ function [ccf,pst] = spm_ssm2ccf(dfdx,dfdu,dgdx,Hz)
 %
 % ccf  - cross covariance functions
 % pst  - vector of lags for evaluation (seconds)
-%
 %__________________________________________________________________________
-% Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ssm2ccf.m 7774 2020-01-25 18:07:03Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 % preliminaries
 %--------------------------------------------------------------------------

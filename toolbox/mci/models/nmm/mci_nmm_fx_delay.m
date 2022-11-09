@@ -27,12 +27,10 @@ function [f] = mci_nmm_fx_delay (x,u,P,M)
 %__________________________________________________________________________
 % David O, Friston KJ (2003) A neural mass model for MEG/EEG: coupling and
 % neuronal dynamics. NeuroImage 20: 1743-1755
-%
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny and Biswa Sengupta
-% $Id: mci_nmm_fx_delay.m 6548 2015-09-11 12:39:47Z will $
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 if ~isstruct(P)
 %     if isfield(M,'V')

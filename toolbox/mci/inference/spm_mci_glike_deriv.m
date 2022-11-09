@@ -12,10 +12,9 @@ function [dLdp,iCpY,st,L] = spm_mci_glike_deriv (P,M,U,Y)
 % st        status flag (0 for OK, -1 for problem)
 % L         Log Likelihood
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny and Biswa Sengupta
-% $Id: spm_mci_glike_deriv.m 6548 2015-09-11 12:39:47Z will $
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 %[G,x,S] = spm_mci_fwd (P,M,U,1);
 if strcmp(M.int,'sundials')

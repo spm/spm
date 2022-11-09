@@ -7,10 +7,10 @@ function D = spm_eeg_ft_datareg_manual(varargin)
 % Output:
 % D         - same data struct including the new required files and variables
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_ft_datareg_manual.m 5397 2013-04-11 15:13:47Z vladimir $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 % initialise
 %--------------------------------------------------------------------------

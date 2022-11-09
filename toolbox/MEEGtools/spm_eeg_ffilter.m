@@ -22,10 +22,9 @@ function Dnew = spm_eeg_ffilter(S)
 %
 % D           - MEEG object (also written to disk)
 %__________________________________________________________________________
-% Copyright (C) 2008-2017 Wellcome Trust Centre for Neuroimaging
 
 % Tim Tierney
-% $Id: spm_eeg_ffilter.m 8333 2022-11-04 20:48:41Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 if ~isfield(S, 'dir'),    S.dir    = 'twopass';     end

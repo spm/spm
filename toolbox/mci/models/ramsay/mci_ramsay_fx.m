@@ -19,10 +19,9 @@ function [F] = mci_ramsay_fx (x,U,P,M)
 % Girolami and Calderhead (2011) Riemann manifold Langevin and Hamiltonian
 % Monte Carlo methods. J Roy Stat Soc B,73(2):123-214.
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
-% Will Penny 
-% $Id: mci_ramsay_fx.m 6548 2015-09-11 12:39:47Z will $
+% Will Penny
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 c=3;
 

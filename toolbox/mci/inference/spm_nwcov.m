@@ -14,10 +14,9 @@ function [M] = spm_nwcov (M)
 % See J. Bernardo and A. Smith (2000) 
 % Bayesian Theory, Wiley (page 435)
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_nwcov.m 6548 2015-09-11 12:39:47Z will $
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Get prior covariances
 M.mean_prior_cov=M.B0/(M.n0*(M.a0-1));

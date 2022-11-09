@@ -5,10 +5,9 @@ function [] = mci_plot_noiseSD (Ce,ind)
 % Ce    [d x d x Ns] d-dimensional observations with Ns samples
 % ind   indices of samples to plot
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
-% Will Penny 
-% $Id: mci_plot_noiseSD.m 6548 2015-09-11 12:39:47Z will $
+% Will Penny
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 d=size(Ce,1);
 dist.ind=ind;

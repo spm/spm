@@ -9,10 +9,10 @@
 % on the Sonata scanner at the FIL with the being phased out sequence
 % ralf_epi_tbr and nw_mepi_silent_v1a.
 %_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Chloe Hutton and Jesper Andersson
-% $Id: pm_defaults_Sonata.m 5015 2012-10-24 13:40:07Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 global pm_def
 

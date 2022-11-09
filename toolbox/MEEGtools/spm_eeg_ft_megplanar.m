@@ -10,17 +10,10 @@ function D = spm_eeg_ft_megplanar(S)
 %
 % Output
 %   D - dataset converted to planar gradient
-%
-% Disclaimer: this code is provided as an example and is not guaranteed to work
-% with data on which it was not tested. If it does not work for you, feel
-% free to improve it and contribute your improvements to the MEEGtools toolbox
-% in SPM (http://www.fil.ion.ucl.ac.uk/spm)
-%
-% _______________________________________________________________________
-% Copyright (C) 2017 Institute of Neurology, UCL
+%__________________________________________________________________________
 
 % Vladimir Litvak
-% $Id: spm_eeg_ft_megplanar.m 8275 2022-07-06 11:14:02Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Startup

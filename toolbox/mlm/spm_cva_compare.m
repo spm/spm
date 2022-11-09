@@ -20,11 +20,11 @@ function [CVA] = spm_cva_compare (Y,X,c)
 % for the highest order model.
 %
 % See spm_cva_prob.m for more details
-%___________________________________________________________________________
-% Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Will Penny 
-% $Id: spm_cva_compare.m 4687 2012-03-14 18:15:49Z will $
+% Copyright (C) 2011-2022 Wellcome Centre for Human Neuroimaging
+
 
 if nargin > 2
     % get null-space of contrast
@@ -44,7 +44,7 @@ if ~(N1==N2)
 end
 
 m=min([p1,p2]);
-for i=1:m+1,
+for i=1:m+1
     order(i)=i-1;
     CVA = spm_cva_prob (Y',X',order(i));
     bic(i)=CVA.bic;

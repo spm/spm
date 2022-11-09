@@ -8,9 +8,8 @@ function [a] = mci_logistic_act (P,M,U)
 %
 % a         activations of logistic model
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: mci_logistic_act.m 6548 2015-09-11 12:39:47Z will $
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 a = U.X*P;

@@ -12,10 +12,10 @@ function [ker,pst] = spm_ssm2ker(dfdx,dfdu,dgdx,pst)
 % NB: Please see notes at the end of this routine for a demonstration of
 % the systems analyses using the suite of spm_???2??.m routines
 %__________________________________________________________________________
-% Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ssm2ker.m 7799 2020-03-12 17:23:14Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 % preliminaries
 %--------------------------------------------------------------------------

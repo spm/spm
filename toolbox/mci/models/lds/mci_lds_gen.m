@@ -8,10 +8,9 @@ function [Y] = mci_lds_gen (M,U,P)
 %
 % Y     Data
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: mci_lds_gen.m 6548 2015-09-11 12:39:47Z will $
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 G = spm_mci_fwd (P,M,U);
 e = M.sd*randn(M.N,M.d);

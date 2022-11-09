@@ -10,11 +10,11 @@ function [x,t,xi] = spm_boxcars(T,fs,len)
 % t         time index (secs) eg. for plot(t,x) 
 % xi        Sample numbers of events  (samples)
 %
-%___________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Will Penny 
-% $Id: spm_boxcars.m 1143 2008-02-07 19:33:33Z spm $
+% Copyright (C) 2007-2022 Wellcome Centre for Human Neuroimaging
+
 
 N=T*fs;
 t=[1/fs:1/fs:T];

@@ -14,11 +14,11 @@ function [E] = spm_dpss (N,NW)
 %     Percival, D.B. and Walden, A.T., "Spectral Analysis For Physical
 %     Applications", Cambridge University Press, 1993. 
 %__________________________________________________________________________
-% Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
+
+% Copyright (C) 2009-2022 Wellcome Centre for Human Neuroimaging
 
 % Eric Breitenberger, 10/3/95
 % Copyright 1988-2004 The MathWorks, Inc.
-% $Id: spm_dpss.m 3821 2010-04-15 14:26:34Z will $
 
 W=NW/N;
 

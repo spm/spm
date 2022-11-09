@@ -42,11 +42,10 @@ function D = spm_eeg_megheadloc(S)
 % free to improve it and contribute your improvements to the MEEGtools toolbox
 % in SPM (http://www.fil.ion.ucl.ac.uk/spm)
 %
-% _______________________________________________________________________
-% Copyright (C) 2008 Institute of Neurology, UCL
+%__________________________________________________________________________
 
 % Vladimir Litvak, Robert Oostenveld
-% $Id: spm_eeg_megheadloc.m 5396 2013-04-11 13:38:24Z vladimir $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','MEG head locations',0);

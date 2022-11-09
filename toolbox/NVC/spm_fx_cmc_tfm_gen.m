@@ -66,10 +66,10 @@ function [ux, vx, wx] = spm_fx_cmc_tfm_gen(x,u,P,M,option)
 % David O, Friston KJ (2003) A neural mass model for MEG/EEG: coupling and
 % neuronal dynamics. NeuroImage 20: 1743-1755
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Amirhossein Jafarian, and Karl Friston
-% $Id: spm_fx_cmc_tfm_gen.m 7735 2019-12-02 09:15:27Z peter $
+% Copyright (C) 2019-2022 Wellcome Centre for Human Neuroimaging
+
 
 persistent in1 in2 in3 ;
 

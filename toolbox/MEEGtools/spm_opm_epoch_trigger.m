@@ -18,10 +18,9 @@ function [D, trl] = spm_opm_epoch_trigger(S)
 %  D           - epoched MEEG object (also written to disk)
 % trl          - the trial matrix used to epoch the data
 %__________________________________________________________________________
-% Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
 
 % Tim Tierney
-% $Id: spm_opm_epoch_trigger.m 8305 2022-08-18 09:57:46Z george $
+% Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Set Defaults

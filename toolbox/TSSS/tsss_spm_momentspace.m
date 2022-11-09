@@ -14,10 +14,9 @@ function D = tsss_spm_momentspace(S)
 % Reference: Vrba J, Taulu S, Nenonen J, Ahonen A. Signal space separation
 % beamformer. Brain Topogr. 2010 Jun;23(2):128-33.
 %__________________________________________________________________________
-% Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: tsss_spm_momentspace.m 8275 2022-07-06 11:14:02Z guillaume $
+% Copyright (C) 2014-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Startup

@@ -4,10 +4,9 @@ function [corr] = spm_mci_check (M)
 %
 % corr      1 for correctly specified model
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_mci_check.m 6548 2015-09-11 12:39:47Z will $
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 corr=1;
 if ~isfield(M,'N')

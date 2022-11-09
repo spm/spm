@@ -11,10 +11,10 @@ function [cor,cov] = spm_ccf2cor(ccf)
 %  spm_ccf2csd.m, spm_ccf2mar, spm_csd2ccf.m, spm_csd2mar.m, spm_mar2csd.m,
 %  spm_csd2coh.m, spm_Q.m, spm_mar.m and spm_mar_spectral.m
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
- 
+
 % Karl Friston
-% $Id: spm_ccf2cor.m 7774 2020-01-25 18:07:03Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 % convert via cross spectral density
 %==========================================================================

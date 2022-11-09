@@ -13,10 +13,9 @@ function [post] = spm_mci_post (mcmc,M,U,Y,true_P)
 %
 % post          structure containing posterior (mean, samples etc)
 %__________________________________________________________________________
-% Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_mci_post.m 6697 2016-01-27 14:57:28Z spm $
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 try, verbose=mcmc.verbose; catch, verbose=0; end
 if nargin < 5 || isempty(true_P)

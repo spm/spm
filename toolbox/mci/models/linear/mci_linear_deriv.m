@@ -11,10 +11,9 @@ function [dLdp,iCpY,L] = mci_linear_deriv (P,M,U,Y)
 % iCpY      curvature (Fisher Information)
 % L         log joint
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: mci_linear_deriv.m 6548 2015-09-11 12:39:47Z will $
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 G = mci_linear_gen (P,M,U);
 if isstruct(Y)

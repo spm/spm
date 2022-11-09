@@ -22,10 +22,9 @@
 %
 % See also: spm_dcm_spem; spm_dcm_spem_data; spm_dcm_spem_results
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_SEM_demo.m 6501 2015-07-17 14:32:09Z spm $
+% Copyright (C) 2013-2022 Wellcome Trust Centre for Neuroimaging
 
 
 % load and create data structure

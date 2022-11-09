@@ -7,12 +7,10 @@ function [ccf,pst] = spm_ker2ccf(ker,dt)
 %
 % ccf  - cross covariance functions
 % pst  - time samples
-%
 %__________________________________________________________________________
-% Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
-% Karl Friston
-% $Id: spm_ker2ccf.m 7799 2020-03-12 17:23:14Z karl $
+% Will Penny
+% Copyright (C) 2012-2022 Wellcome Centre for Human Neuroimaging
 
 
 % cross covariance function

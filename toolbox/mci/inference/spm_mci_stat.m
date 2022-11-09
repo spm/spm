@@ -18,10 +18,9 @@ function [pstat,mu,nse,batch] = spm_mci_stat (post,nbatch,method)
 % J. Geweke (1992) Evaluating the accuracy of sampling-base approaches to 
 % the calculation of posterior moments. Bayesian Statistics 4, OUP.
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_mci_stat.m 6697 2016-01-27 14:57:28Z spm $
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 try, meth=method; catch, meth='ar1'; end
 try, Nb=nbatch; catch, Nb=6; end

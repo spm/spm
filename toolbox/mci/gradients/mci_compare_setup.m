@@ -4,10 +4,9 @@ function [P,M,U,Y,ind] = mci_compare_setup (model)
 %
 % model     'phase', 'nmm-r2p2'
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: mci_compare_setup.m 6548 2015-09-11 12:39:47Z will $
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 switch model,
     

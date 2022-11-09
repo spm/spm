@@ -16,4 +16,3 @@ subplot(2,1,2);
 plot(log_ev);
 title('Log Evidence');
 disp(sprintf('Estimated number of sources is %d',p_opt));
-

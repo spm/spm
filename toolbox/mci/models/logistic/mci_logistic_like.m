@@ -11,10 +11,9 @@ function [L,E,st] = mci_logistic_like (P,M,U,Y)
 % E         Errors
 % st        Status flag (0 for OK, -1 for problem)
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: mci_logistic_like.m 6548 2015-09-11 12:39:47Z will $
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 st=0;
 

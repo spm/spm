@@ -28,11 +28,11 @@ function Dnew = spm_eeg_remove_spikes(S)
 % free to improve it and contribute your improvements to the MEEGtools toolbox
 % in SPM (http://www.fil.ion.ucl.ac.uk/spm)
 %
-% _______________________________________________________________________
-% Copyright (C) 2008 Institute of Neurology, UCL
+%__________________________________________________________________________
 
 % Vladimir Litvak, Will Penny
-% $Id: spm_eeg_remove_spikes.m 5640 2013-09-18 12:02:29Z vladimir $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 if nargin == 0
     S = [];

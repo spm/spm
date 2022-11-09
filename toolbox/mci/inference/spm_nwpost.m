@@ -9,10 +9,9 @@ function [M] = spm_nwpost (M,w)
 %
 % Bernardo and Smith, Bayesian Theory, 2000 (p.441)
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_nwpost.m 6548 2015-09-11 12:39:47Z will $
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 mw=mean(w,2);
 Sw=cov(w',1);

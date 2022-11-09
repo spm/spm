@@ -21,7 +21,6 @@
 % [3] W.D. Penny and J. Kilner (2007) Robust Bayesian General Linear
 %     Models. Neuroimage.
 %__________________________________________________________________________
-% Copyright (C) 2007-2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: Contents.m 5962 2014-04-17 12:47:43Z spm $
+% Copyright (C) 2007-2022 Wellcome Centre for Human Neuroimaging

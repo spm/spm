@@ -12,10 +12,10 @@ function D = spm_eeg_ctf_synth_gradiometer(S)
 % Output:
 %   D               - denoised MEEG object (also written to disk)
 %__________________________________________________________________________
-% Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % George O'Neill
-% $Id: spm_eeg_ctf_synth_gradiometer.m 8275 2022-07-06 11:14:02Z guillaume $
+% Copyright (C) 2020-2022 Wellcome Centre for Human Neuroimaging
+
 
 %-Set default options
 %--------------------------------------------------------------------------

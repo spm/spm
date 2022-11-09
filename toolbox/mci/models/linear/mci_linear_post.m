@@ -10,10 +10,9 @@ function [Ep,Cp,L] = mci_linear_post (M,U,Y)
 % Cp    Posterior covariance
 % L     Log evidence
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: mci_linear_post.m 6548 2015-09-11 12:39:47Z will $
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 ipC=inv(M.pC);
 iCe=inv(M.Ce);

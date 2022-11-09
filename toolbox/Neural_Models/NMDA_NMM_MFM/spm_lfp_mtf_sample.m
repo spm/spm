@@ -9,12 +9,10 @@ function [y,w] = spm_lfp_mtf_sample(P,M,U)
 % G - {G(N,nc,nc}} - cross-spectral density for nc channels {trials}
 %                  - for N frequencies in M.Hz [default 1:64Hz]
 % w - frequencies
-%
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_lfp_mtf_sample.m 4820 2012-08-01 12:20:00Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % compute log-spectral density

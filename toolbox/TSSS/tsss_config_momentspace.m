@@ -1,10 +1,9 @@
 function momentspace = tsss_config_momentspace
 % Configuration file for TSSS space conversion
 %__________________________________________________________________________
-% Copyright (C) 2014-2021 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: tsss_config_momentspace.m 8119 2021-07-06 13:51:43Z guillaume $
+% Copyright (C) 2014-2022 Wellcome Centre for Human Neuroimaging
 
 
 %--------------------------------------------------------------------------

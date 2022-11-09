@@ -73,7 +73,6 @@
 % The occluder was present between target18.plotocc.x(1,1) and (1,2), and
 % between (2,1) and (2,2), in milliseconds.
 %__________________________________________________________________________
-% Copyright (C) 2013-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston and Rick Adams
-% $Id: Contents.m 6014 2014-05-23 15:00:35Z guillaume $
+% Copyright (C) 2013-2022 Wellcome Trust Centre for Neuroimaging

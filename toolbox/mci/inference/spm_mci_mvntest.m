@@ -26,10 +26,9 @@ function [stats] = spm_mci_mvntest (X,df)
 %      normality. Statistics and Computing, 2:117-119.
 %      121-133.
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
-% Will Penny 
-% $Id: spm_mci_mvntest.m 7679 2019-10-24 15:54:07Z spm $
+% Will Penny
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 alpha = 0.05;
 

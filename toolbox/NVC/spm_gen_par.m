@@ -14,10 +14,10 @@ function Q = spm_gen_par(P,U)
 % Neurovascular coupling: insights from multi-modal dynamic causal modelling
 % of fMRI and MEG. arXiv preprint arXiv:1903.07478.
 %__________________________________________________________________________
-% Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Amirhossein Jafarian
-% $Id: spm_gen_par.m 7734 2019-12-01 22:15:22Z peter $
+% Copyright (C) 2019-2022 Wellcome Centre for Human Neuroimaging
+
 
 %--------------------------------------------------------------------------
 if nargin < 2, U.X = sparse(1,0); end

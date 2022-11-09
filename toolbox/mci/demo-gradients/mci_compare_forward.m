@@ -6,10 +6,10 @@ function [els_sun,els_ode,els_spm] = mci_compare_forward (model)
 %
 % Run integration 9 times - compare speed and accuracy
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: mci_compare_forward.m 6548 2015-09-11 12:39:47Z will $
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
+
 
 [P,M,U,Y] = mci_compare_setup (model);
 

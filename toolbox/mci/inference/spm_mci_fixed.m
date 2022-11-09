@@ -14,10 +14,9 @@ function [Psamp,noise,M] = spm_mci_fixed (mcmc,w,fixed,noise,M,U,Y)
 %
 % Uses Langevin Monte Carlo
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_mci_fixed.m 6697 2016-01-27 14:57:28Z spm $
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 try, verbose=mcmc.verbose; catch, verbose=0; end
 try, maxits=mcmc.maxits; catch, maxits=64; end

@@ -8,12 +8,11 @@ function [csd,Hz] = spm_ssm2csd(dfdx,dfdu,dgdx,Hz)
 % Hz   - frequencies   [default: based on maximum eigenvalue]
 %
 % csd  - cross spectral density
-%
 %__________________________________________________________________________
-% Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ssm2csd.m 7774 2020-01-25 18:07:03Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 % preliminaries
 %--------------------------------------------------------------------------

@@ -11,10 +11,9 @@ function [w_init,v_init,assign,update_ffx,update_rfx] = spm_mci_vw_init (MCI)
 % update_ffx    (1/0)
 % update_rfx    (1/0)
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_mci_vw_init.m 6697 2016-01-27 14:57:28Z spm $
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 assign=MCI.assign;
 try, fixed=MCI.fixed; catch, fixed=[]; end

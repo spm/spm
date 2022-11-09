@@ -2,10 +2,9 @@ function [M] = spm_mci_switch_prep (M)
 % Prepare quantities for computing log prior in SVD-reduced space
 % FORMAT [M] = spm_mci_switch_prep (M)
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_mci_switch_prep.m 6548 2015-09-11 12:39:47Z will $
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 for i=1:2,
     if isstruct(M{i}.pE)

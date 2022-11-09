@@ -10,9 +10,10 @@
 %
 % Check phase over-sampling factor for TOTAL_EPI_READOUT_TIME 
 %_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Chloe Hutton and Jesper Andersson
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 global pm_def
 

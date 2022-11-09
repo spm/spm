@@ -7,10 +7,9 @@ function [M,U] = mci_rphase_init (d,conn)
 % M     model structure
 % U     inputs
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
-% Will Penny 
-% $Id: mci_rphase_struct.m 6548 2015-09-11 12:39:47Z will $
+% Will Penny
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 M.N=100;
 M.T=1;

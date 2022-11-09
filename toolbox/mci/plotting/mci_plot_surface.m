@@ -9,10 +9,9 @@ function [log_prob,S,E] = mci_plot_surface (P,M,U,Y,S,dist)
 % S         Surface data structure
 % dist      'prior', 'like' or 'post'
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
-% Will Penny 
-% $Id: mci_plot_surface.m 6548 2015-09-11 12:39:47Z will $
+% Will Penny
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 try 
     S.surf;

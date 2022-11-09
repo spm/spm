@@ -17,10 +17,10 @@ function xY = spm_dcm_spem_data(xY)
 %  This auxiliary routine  decimates and normalises eye movement data to a
 %  single period of a (negative) cosine wave - of unit amplitude.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_spem_data.m 6014 2014-05-23 15:00:35Z guillaume $
+% Copyright (C) 2013-2022 Wellcome Trust Centre for Neuroimaging
+
  
 % Get frequency (in bins) and target trajectory
 %==========================================================================

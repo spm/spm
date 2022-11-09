@@ -8,10 +8,9 @@ function [dfdx] = mci_phase_dfdx (x,u,P,M)
 %
 % dfdx   Jacobian wrt states
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny and Biswa Sengupta
-% $Id: mci_phase_dfdx.m 6548 2015-09-11 12:39:47Z will $
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 params = spm_unvec (P,M.pE);
 

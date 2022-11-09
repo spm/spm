@@ -36,20 +36,20 @@ function [rglm,yclean] = spm_rglm (y,X,m,priors,verbose)
 % pi               mixing coefficients (lambda/sum(lambda))
 % variances        variances (1./(b.*c))
 % gamma            the responsilities of each noise component
-%___________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Will Penny 
-% $Id: spm_rglm.m 1276 2008-03-28 18:29:19Z guillaume $
+% Copyright (C) 2007-2022 Wellcome Centre for Human Neuroimaging
 
-if nargin < 4 | isempty(priors)
+
+if nargin < 4 || isempty(priors)
     mean_alpha=0.001;
     % Set variance priors
     b_0=1000*ones(m,1);
     c_0=0.001*ones(m,1);
 else
     mean_alpha=priors.alpha;
-    for mm=1:m,
+    for mm=1:m
         b_0(mm)=(priors.std_err(mm)^2)/priors.mean_err(mm);
         c_0(mm)=priors.mean_err(mm)/b_0(mm);
     end
@@ -60,7 +60,7 @@ if (m==1)
     return
 end
 
-if nargin < 5 | isempty(verbose)
+if nargin < 5 || isempty(verbose)
     verbose=0;
 end
 
@@ -92,7 +92,7 @@ lambda=100*zmix.pi+lambda_0;
 zmean=[zmix.m].^2;
 % Posterior for precisions
 var_precision=1/std(zmean)^2;
-for s=1:m,
+for s=1:m
       % Set so that b*c=precision and  b^2*c=var_precision
       precision=1/zmean(s);
       b(s)=var_precision/precision;
@@ -101,7 +101,7 @@ end
 
 if verbose
     disp('Init');
-    for s=1:m, 
+    for s=1:m
         disp(sprintf('State %d mix=%1.2f var=%1.2f',s,lambda(s)/sum(lambda),1/(b(s)*c(s))));
     end
 end
@@ -110,7 +110,7 @@ lik=[];
 tol=0.0001;
 max_loops=100;
 WLOOPS=5;
-for loops=1:max_loops,
+for loops=1:max_loops
     
     % E-step
     lambda_tot=sum(lambda);
@@ -122,7 +122,7 @@ for loops=1:max_loops,
     
     tv=y2-2*ypred.*y+y_err'+ypred2;
     tv=tv';
-    for s=1:m,
+    for s=1:m
         log_tilde_pi(s)=psi(lambda(s))-psi(lambda_tot);
         log_tilde_beta(s)=psi(c(s))+log(b(s));
         tilde_pi(s)=exp(log_tilde_pi(s));
@@ -132,7 +132,7 @@ for loops=1:max_loops,
         gamma(s,:)=tilde_pi(s)*(tilde_beta(s)^0.5)*exp(-0.5*mean_beta(s)*tv);
     end
     gamma_n=sum(gamma);
-    for s=1:m,
+    for s=1:m
         if mean(gamma_n) > eps
             % If component still exists
             gamma(s,:)=gamma(s,:)./gamma_n;
@@ -142,7 +142,7 @@ for loops=1:max_loops,
     
     % M-step
     % Part I
-    for s=1:m,
+    for s=1:m
         pi_bar(s)=mean(gamma(s,:));
         N_bar(s)=N*pi_bar(s);
         mean_bar(s)=mean(gamma(s,:)'.*y);
@@ -160,7 +160,7 @@ for loops=1:max_loops,
     lambda_p=lambda_0*ones(1,m);
     kl_dir=spm_kl_dirichlet(lambda,lambda_p,log_tilde_pi);
     kl_gamm=0;
-    for s=1:m,
+    for s=1:m
         kl_gamm=kl_gamm+spm_kl_gamma(b(s),c(s),b_0(s),c_0(s));
     end
     kl_weights=spm_kl_normald(w_mean,w_cov,zeros(1,p),(1/mean_alpha)*eye(p));
@@ -178,7 +178,7 @@ for loops=1:max_loops,
     end
     
     % M-Step: Part II
-    for s=1:m,
+    for s=1:m
         % Mixers
         lambda(s)=N_bar(s)+lambda_0;
         % Precisions
@@ -191,7 +191,7 @@ for loops=1:max_loops,
         % Regression coefficients
         cc=sparse(p,p);
         cw=zeros(p,1);
-        for s=1:m,
+        for s=1:m
             dg=sparse(1:N,1:N,gamma(s,:));
             cc=cc+mean_beta(s)*X'*dg*X;
             cw=cw+mean_beta(s)*X'*dg*y;
@@ -205,7 +205,7 @@ for loops=1:max_loops,
         disp(sprintf('It=%d, L_AV =%1.2f, KL Mix=%1.2f, KL Prec=%1.2f, KL-W=%1.2f, Fm=%1.2f',loops,avg_likelihood,kl_dir,kl_gamm,kl_weights,fm));
         disp(' ');
         disp(sprintf('Iteration number=%d',loops));
-        for s=1:m,
+        for s=1:m
             var=1/(b(s)*c(s));
             disp(sprintf('State %d pi_bar=%1.2f var=%1.2f',s,pi_bar(s),var));
         end
@@ -224,17 +224,17 @@ rglm.mean_alpha=mean_alpha;
 rglm.priors.lambda_0=lambda_0;
 rglm.priors.c_0=c_0;
 rglm.priors.b_0=b_0;
-for k=1:m,
+for k=1:m
   rglm.posts.lambda(k)=lambda(k);
 end
-for k=1:m,
+for k=1:m
   rglm.posts.c(k)=c(k);
   rglm.posts.b(k)=b(k);
 end
 rglm.posts.w_mean=w_mean;
 rglm.posts.w_cov=w_cov;
 
-for k=1:m,
+for k=1:m
   rglm.posts.pi(k)=lambda(k)/sum(lambda);
 end
 rglm.posts.variances=1./(b.*c);

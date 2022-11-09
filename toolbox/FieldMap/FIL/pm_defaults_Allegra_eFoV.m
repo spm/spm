@@ -11,10 +11,10 @@
 % nw_mepi_v3d_efov, nw_mepi_v3d_Amy,
 % nw_mepi_v3d_Hippoc, nw_mepi_v3d_OFC_Amy.
 %_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Chloe Hutton and Jesper Andersson
-% $Id: pm_defaults_Allegra_eFoV.m 5015 2012-10-24 13:40:07Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 global pm_def;
 

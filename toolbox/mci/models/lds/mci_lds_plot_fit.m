@@ -10,10 +10,9 @@ function [] = mci_lds_plot_fit (MCI,lds,n,plotfit)
 % n         subject number
 % plotfit   1 to plot model fit, 0 otherwise (default)
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: mci_lds_plot_fit.m 6697 2016-01-27 14:57:28Z spm $
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 if nargin < 4
     plotfit=0;

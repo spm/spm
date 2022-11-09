@@ -18,11 +18,11 @@ function [mar,y,y_pred] = spm_mar (X,p,prior,verbose)
 % mar.wmean      MAR coefficients stored in a matrix
 % y              Target values
 % y_pred         Predicted values
-%___________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
-% Will Penny 
-% $Id: spm_mar.m 5883 2014-02-18 10:32:23Z karl $
+% Will Penny
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 if nargin < 4 || isempty(verbose)
     verbose=0;

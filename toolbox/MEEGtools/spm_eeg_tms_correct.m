@@ -7,13 +7,6 @@ function D = spm_eeg_tms_correct(S)
 
 % Output:
 % D                   - MEEG object (also written on disk)
-% _______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
-%
-% Disclaimer: this code is provided as an example and is not guaranteed to work
-% with data on which it was not tested. If it does not work for you, feel
-% free to improve it and contribute your improvements to the MEEGtools toolbox
-% in SPM (http://www.fil.ion.ucl.ac.uk/spm)
 %
 % Implements:
 %
@@ -21,9 +14,10 @@ function D = spm_eeg_tms_correct(S)
 % Artifact correction and source analysis of early electroencephalographic
 % responses evoked by transcranial magnetic stimulation over primary motor cortex.
 % Neuroimage. 2007; 37(1):56-70.
-%
+%__________________________________________________________________________
+
 % Vladimir Litvak
-% $Id: spm_eeg_tms_correct.m 8275 2022-07-06 11:14:02Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Startup

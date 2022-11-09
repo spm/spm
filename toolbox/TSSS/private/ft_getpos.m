@@ -54,8 +54,6 @@ function trans = headcoordinates_mne(nas, lpa, rpa)
 % Copyright (C) 2017  Vladimir Litvak based on MNE code by Matti Hamalainen
 % and Eric Larson
 
-% $Id: ft_getpos.m 7703 2019-11-22 12:06:29Z guillaume $
-
 % ensure that they are row vectors
 lpa = lpa(:)';
 rpa = rpa(:)';

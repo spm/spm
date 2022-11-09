@@ -12,10 +12,9 @@ function [p] = spm_mvtpdf (x,mu,Lambda,v)
 % See J. Bernardo and A. Smith (2000) 
 % Bayesian Theory, Wiley (page 435)
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_mvtpdf.m 6548 2015-09-11 12:39:47Z will $
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 d=length(mu);
 lnz=gammaln(0.5*v)+0.5*d*log(v)+0.5*d*log(pi);

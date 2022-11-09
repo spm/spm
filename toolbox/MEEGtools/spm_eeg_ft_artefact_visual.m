@@ -6,11 +6,11 @@ function D = spm_eeg_ft_artefact_visual(S)
 % free to improve it and contribute your improvements to the MEEGtools toolbox
 % in SPM (http://www.fil.ion.ucl.ac.uk/spm)
 %
-% _______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Vladimir Litvak
-% $Id: spm_eeg_ft_artefact_visual.m 5674 2013-10-09 10:00:26Z vladimir $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup', 'Fieldtrip visual artefact rejection',0);
 

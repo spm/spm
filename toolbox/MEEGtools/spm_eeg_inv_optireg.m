@@ -21,10 +21,9 @@ function D = spm_eeg_inv_optireg(S)
 %
 % D - Coregistered dataset.
 %__________________________________________________________________________
-% Copyright (C) 2021 Wellcome Centre for Human Neuroimaging
 
 % George O'Neill
-% $Id: spm_eeg_inv_optireg.m 8275 2022-07-06 11:14:02Z guillaume $
+% Copyright (C) 2021-2022 Wellcome Centre for Human Neuroimaging
 
 
 spm('FnBanner', mfilename);

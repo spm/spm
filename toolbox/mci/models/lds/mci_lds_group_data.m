@@ -19,10 +19,9 @@ function [pinit,pflow,names,M,U,Y] = mci_lds_group_data (lds)
 % U          Cell of inputs
 % Y          Cell of data
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: mci_lds_group_data.m 6548 2015-09-11 12:39:47Z will $
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 R=lds.R; sd=lds.sd; Nsub=lds.Nsub; 
 Nobs=lds.Nobs; model=lds.model;

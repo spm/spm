@@ -24,12 +24,10 @@ function [CVA] = spm_cva_prob (X1,X2,m)
 % F. Bach and M. Jordan (2005) A probabilistic interpretation of canonical
 % correlation analysis. Dept. Stats, Univ California, Berkeley CA. 
 % Tech Rep 688.
-%
-%___________________________________________________________________________
-% Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Will Penny 
-% $Id: spm_cva_prob.m 4687 2012-03-14 18:15:49Z will $
+% Copyright (C) 2011-2022 Wellcome Centre for Human Neuroimaging
 
 
 [d1,N1]=size(X1);
@@ -43,10 +41,10 @@ else
     N=N1;
 end
 
-if nargin < 3 | isempty(m)
+if nargin < 3 || isempty(m)
     m=min([d1,d2]);
 else
-    if m > min([d1,d2]);
+    if m > min([d1,d2])
         disp('m too large');
         return
     end
@@ -102,6 +100,3 @@ k=2*m*(d1+d2); % W1, W2 plus diag Psi's
 
 CVA.bic=CVA.L-0.5*k*log(N);
 CVA.aic=CVA.L-k;
-
-
-

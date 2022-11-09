@@ -14,10 +14,9 @@ function [S] = spm_wishrnd (B,a,N)
 % Pattern Recognition and Machine Learning, Springer, 2006., who
 % have W(S;n,V). They are related by n=2a, V=B^{-1}/2. We have E[S]=nV
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_wishrnd.m 6548 2015-09-11 12:39:47Z will $
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 if nargin < 3 | isempty(N)
     N=1;

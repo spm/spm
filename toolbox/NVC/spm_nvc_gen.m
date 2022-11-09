@@ -21,10 +21,10 @@ function [y] = spm_nvc_gen(P,M,U)
 % Neurovascular coupling: insights from multi-modal dynamic causal modelling
 % of fMRI and MEG. arXiv preprint arXiv:1903.07478.
 %__________________________________________________________________________
-% Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Amirhossein Jafarian
-% $Id: spm_nvc_gen.m 7713 2019-11-25 16:00:34Z spm $
+% Copyright (C) 2019-2022 Wellcome Centre for Human Neuroimaging
+
 
 % Neurovascular coupling signal (scaled summed neuronal drives)
 %--------------------------------------------------------------------------

@@ -16,10 +16,10 @@ function [po,freq] = spm_opm_psd(S)
 %   psd             - power spectral density
 %   f               - frequencies psd is sampled at
 %__________________________________________________________________________
-% Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
 
 % Tim Tierney
-% $Id: spm_opm_psd.m 8305 2022-08-18 09:57:46Z george $
+% Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
+
 
 %-ArgCheck
 %--------------------------------------------------------------------------

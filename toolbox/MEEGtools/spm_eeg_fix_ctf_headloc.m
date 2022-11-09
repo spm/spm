@@ -22,11 +22,10 @@ function D = spm_eeg_fix_ctf_headloc(S)
 % free to improve it and contribute your improvements to the MEEGtools toolbox
 % in SPM (http://www.fil.ion.ucl.ac.uk/spm)
 %
-% _______________________________________________________________________
-% Copyright (C) 2008 Institute of Neurology, UCL
+%__________________________________________________________________________
 
 % Vladimir Litvak, Robert Oostenveld
-% $Id: spm_eeg_fix_ctf_headloc.m 8301 2022-07-21 10:41:57Z vladimir $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','Fix CTF head locations',0);
@@ -253,8 +252,6 @@ function [grad, elec] = ctf2grad(hdr, dewar, coilaccuracy)
 %
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
-%
-% $Id: spm_eeg_fix_ctf_headloc.m 8301 2022-07-21 10:41:57Z vladimir $
 
 if nargin<2 || isempty(dewar)
   dewar = false;

@@ -9,10 +9,10 @@
 % PE blips=-1:
 % 
 %_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Chloe Hutton and Jesper Andersson
-% $Id: pm_defaults_Trio_eFoV.m 5015 2012-10-24 13:40:07Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 global pm_def
 

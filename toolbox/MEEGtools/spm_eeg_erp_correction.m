@@ -13,10 +13,9 @@ function D = spm_eeg_erp_correction(S)
 % Output:
 % D        - MEEG object (also written on disk)
 %__________________________________________________________________________
-% Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Melanie Boly
-% $Id: spm_eeg_erp_correction.m 8275 2022-07-06 11:14:02Z guillaume $
+% Copyright (C) 2010-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Startup

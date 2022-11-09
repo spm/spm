@@ -7,11 +7,11 @@ function [y] = spm_MNpdf (m, C, x)
 % x     [n x d] points at which to evaluate
 %
 % y     [n x 1] density at n points
-%___________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Will Penny 
-% $Id: spm_MNpdf.m 3995 2010-07-13 17:19:49Z karl $
+% Copyright (C) 2007-2022 Wellcome Centre for Human Neuroimaging
+
 
 ic     = inv(C);
 [n, d] = size(x);

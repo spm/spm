@@ -14,10 +14,9 @@ function [L,e,st] = spm_mci_glike (P,M,U,Y,G)
 %
 % Assumes diagonal error covariance M.Ce
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny and Biswa Sengupta
-% $Id: spm_mci_glike.m 6548 2015-09-11 12:39:47Z will $
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 st=0;
 try

@@ -11,10 +11,10 @@ function [coh,fsd] = spm_ssm2coh(dfdx,dfdu,dgdx,Hz)
 % fsd            - frequency specific delay (seconds) 
 %                - phase-delay/radial frequency
 %__________________________________________________________________________
-% Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ssm2coh.m 7774 2020-01-25 18:07:03Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 % preliminaries
 %--------------------------------------------------------------------------

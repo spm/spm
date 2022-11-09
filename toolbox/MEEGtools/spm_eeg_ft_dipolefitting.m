@@ -1,15 +1,9 @@
 % Demo script for dipole fitting using Fieldtrip
 % _______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
-%
-% Disclaimer: this code is provided as an example and is not guaranteed to work
-% with data on which it was not tested. If it does not work for you, feel
-% free to improve it and contribute your improvements to the MEEGtools toolbox
-% in SPM (http://www.fil.ion.ucl.ac.uk/spm)
-%
 
 % Vladimir Litvak
-% $Id: spm_eeg_ft_dipolefitting.m 7962 2020-09-25 12:06:47Z vladimir $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 [Finter,Fgraph] = spm('FnUIsetup','Fieldtrip dipole fitting', 0);
 %%

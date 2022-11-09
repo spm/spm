@@ -11,10 +11,9 @@ function elec = spm_eeg_transform_cap(S)
 % Output:
 %   sens               - transformed sensors
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_transform_cap.m 8275 2022-07-06 11:14:02Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Startup

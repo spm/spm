@@ -6,10 +6,9 @@ function spm_spectral_plot(Hz,csd,str,xlab,ylab,r)
 % xlab - xlabel (default: 'Hz')
 % ylab - ylabel (default: 'power')
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_spectral_plot.m 5902 2014-03-02 18:26:06Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % order

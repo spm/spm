@@ -1,10 +1,9 @@
 function tsss = tsss_config
 % Configuration file for TSSS clean-up for Neuromag data
 %__________________________________________________________________________
-% Copyright (C) 2014-2021 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: tsss_config.m 8119 2021-07-06 13:51:43Z guillaume $
+% Copyright (C) 2014-2022 Wellcome Centre for Human Neuroimaging
 
 
 %--------------------------------------------------------------------------

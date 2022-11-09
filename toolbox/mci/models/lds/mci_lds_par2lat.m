@@ -7,10 +7,9 @@ function [P] = mci_lds_par2lat (Pt,M)
 %
 % P     params (latent)
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: mci_lds_par2lat.m 6548 2015-09-11 12:39:47Z will $
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 a=Pt(1:M.d)/M.a_typical;
 a=log(a);

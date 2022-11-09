@@ -7,12 +7,10 @@ function [csd,Hz] = spm_ker2csd(ker,pst)
 %
 % csd  - cross spectral density
 % Hz   - frequencies
-%
 %__________________________________________________________________________
-% Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ker2csd.m 7774 2020-01-25 18:07:03Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % cross spectral density

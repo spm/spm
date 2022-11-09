@@ -12,12 +12,11 @@ function [gew] = spm_ccf2gew(ccf,Hz,dt,p)
 % See also: spm_???2???.m
 %     ??? = {'ccf','csd','gew','mar','coh','mtf','ker','ssm','dcm'}
 % and spm_Q.m, spm_mar.m, spm_mar_spectral.m
-%
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% Karl Friston
-% $Id: spm_ccf2gew.m 7774 2020-01-25 18:07:03Z karl $
+% Will Penny
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 % defaults
 %--------------------------------------------------------------------------

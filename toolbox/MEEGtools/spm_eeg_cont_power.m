@@ -12,10 +12,9 @@ function D = spm_eeg_cont_power(S)
 %
 % D           - MEEG object (also written to disk)
 %__________________________________________________________________________
-% Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_cont_power.m 8275 2022-07-06 11:14:02Z guillaume $
+% Copyright (C) 2011-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Startup

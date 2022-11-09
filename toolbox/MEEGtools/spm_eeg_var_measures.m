@@ -7,11 +7,11 @@ function spm_eeg_var_measures
 % free to improve it and contribute your improvements to the MEEGtools toolbox
 % in SPM (http://www.fil.ion.ucl.ac.uk/spm)
 %
-% _______________________________________________________________________
-% Copyright (C) 2008 Institute of Neurology, UCL
+%__________________________________________________________________________
 
 % Vladimir Litvak
-% $Id: spm_eeg_var_measures.m 6047 2014-06-16 11:11:22Z vladimir $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 [Finter,Fgraph] = spm('FnUIsetup','MEEGtoools VAR measures', 0);
 

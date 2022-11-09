@@ -12,10 +12,9 @@ function [ess,m] = spm_mci_ess (x,p)
 % proposed in C. Geyer (1992) Practical Markov Chain Monte Carlo, 
 % Statistical Science, 7(4):473-511.
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_mci_ess.m 6697 2016-01-27 14:57:28Z spm $
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 N=length(x);
 

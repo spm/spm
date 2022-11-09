@@ -25,17 +25,11 @@ function D = spm_eeg_bst_fooof(S)
 %
 % Output:
 % D         - MEEG data struct with FOOOF-corrected spectra
-%
-% Disclaimer: this code is provided as an example and is not guaranteed to work
-% with data on which it was not tested. If it does not work for you, feel
-% free to improve it and contribute your improvements to the MEEGtools toolbox
-% in SPM (http://www.fil.ion.ucl.ac.uk/spm)
-%
-% _______________________________________________________________________
-% Copyright (C) 2021 Wellcome Centre for Human Neuroimaging, UCL
+%__________________________________________________________________________
 
 % Vladimir Litvak
-% $Id: spm_eeg_bst_fooof.m 8143 2021-08-26 12:00:26Z vladimir $
+% Copyright (C) 2021-2022 Wellcome Centre for Human Neuroimaging
+
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','FOOOF spectral correction',0);
 
@@ -134,11 +128,3 @@ for c = 1:D.nchannels
         k = k+1;
     end
 end
-
-
-
-
-
-
-
-

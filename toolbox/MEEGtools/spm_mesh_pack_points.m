@@ -15,10 +15,9 @@ function [Pout,ms2s ,ims2s,n] = spm_mesh_pack_points(S)
 %   ims2s       - initial nearest neighbour distances
 %   n           - number of sensors at each iteration
 %__________________________________________________________________________
-% Copyright (C) 2019-2022 Wellcome Centre for Human Neuroimaging
 
 % Tim Tierney
-% $Id: spm_mesh_pack_points.m 8201 2021-12-22 14:11:18Z george $
+% Copyright (C) 2019-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Set default values and check arguments

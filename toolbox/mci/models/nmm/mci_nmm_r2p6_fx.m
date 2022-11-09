@@ -9,10 +9,9 @@ function [f] = mci_nmm_r2p6_fx (x,u,P,M)
 %
 % f         Flow, dx/dt
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny and Biswa Sengupta
-% $Id: mci_nmm_r2p6_fx.m 6548 2015-09-11 12:39:47Z will $
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 curr_P=M.can_P; % Canonical parameter set
 

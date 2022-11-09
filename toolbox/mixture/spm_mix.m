@@ -37,12 +37,11 @@ function [mix] = spm_mix (y,m,verbose)
 % lambda_0         Prior mixers, p(pi) = D(lambda_0)
 % a_0,B_0          Prior precisions, p(Gamma)=W(a_0,B_0)
 % m_0,beta_0       Prior means, p(mu)=N(m_0,beta_0 Gamma_s)
-%
 %__________________________________________________________________________
-% Copyright (C) 2007-2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_mix.m 5962 2014-04-17 12:47:43Z spm $
+% Copyright (C) 2007-2022 Wellcome Centre for Human Neuroimaging
+
 
 % This code implements the algorithm in:
 %
@@ -88,7 +87,7 @@ mix.prior.a_0=a_0;
 mix.prior.B_0=B_0;
 
 sd=0;
-for i=1:d,
+for i=1:d
   sd=sd+psi((a_0+1-i)/2);
 end
 log_tilde_gamma_0=sd-log(det(B_0))+d*log(2);
@@ -126,7 +125,7 @@ end
 % Add pseudo-counts to ML priors
 priors=priors+(1/N);
 lambda=priors;
-for s=1:m,
+for s=1:m
   state(s).m=means(s,:);
   state(s).beta=priors(s)*N+beta_0;
   state(s).a=priors(s)*N+a_0;
@@ -144,22 +143,22 @@ end
 lik=[];
 tol=0.0001;
 max_loops=32;
-for loops=1:max_loops,
+for loops=1:max_loops
     
     % E-step
     lambda_tot=sum(lambda);
-    for s=1:m,
+    for s=1:m
         state(s).bar_gamma=state(s).a*inv(state(s).B);
         log_tilde_pi(s)=psi(lambda(s))-psi(lambda_tot);
         sd=0;
-        for i=1:d,
+        for i=1:d
             sd=sd+psi((state(s).a+1-i)/2);
         end
         log_tilde_gamma(s)=sd-log(det(state(s).B))+d*log(2);
         
         tilde_pi(s)=exp(log_tilde_pi(s));
         tilde_gamma(s)=exp(log_tilde_gamma(s));
-        for n=1:N,
+        for n=1:N
             gamma(s,n)=tilde_pi(s)*tilde_gamma(s)^0.5;
             dy=(y(n,:)-state(s).m);
             gamma(s,n)=gamma(s,n)*(exp(-0.5*dy*state(s).bar_gamma*dy')+eps)*exp(-d/(2*state(s).beta));
@@ -167,7 +166,7 @@ for loops=1:max_loops,
     end
     
     gamma_n=sum(gamma);
-    for s=1:m,
+    for s=1:m
         if mean(gamma_n) > eps
             % If component still exists
             gamma(s,:)=gamma(s,:)./gamma_n;
@@ -177,7 +176,7 @@ for loops=1:max_loops,
     % M-step
     
     % Part-I
-    for s=1:m,
+    for s=1:m
         pi_bar(s)=mean(gamma(s,:))+eps;
         N_bar(s)=N*pi_bar(s)+eps;
         bar_mu(s,:)=(1/N_bar(s))*sum(gamma(s,:)'*ones(1,d).*y);
@@ -185,9 +184,9 @@ for loops=1:max_loops,
     end
     
     % get weighted means and covariances
-    for s=1:m,
+    for s=1:m
         state(s).bar_sigma=zeros(d,d);
-        for n=1:N,
+        for n=1:N
             dy=y(n,:)-bar_mu(s,:);
             state(s).bar_sigma=state(s).bar_sigma+gamma(s,n).*(dy'*dy);
         end
@@ -200,7 +199,7 @@ for loops=1:max_loops,
     
     % Now compute the free energy 
     f1=-spm_kl_dirichlet(lambda,lambda_0*ones(1,m),log_tilde_pi);
-    for s=1:m,
+    for s=1:m
         f2(s)=-spm_kl_wishart(state(s).a,state(s).B,a_0,B_0);
         
         % KL-method for computing f3(s)
@@ -216,7 +215,7 @@ for loops=1:max_loops,
         
         f4(s)=N_bar(s)*log_tilde_pi(s)-sum(gamma(s,:).*log(gamma(s,:)+eps));
         LaB=0;
-        for i=1:d,
+        for i=1:d
             LaB=LaB+psi((state(s).a+1-i)/2);
         end  
         LaB=LaB+d*log(2)-log(det(state(s).B));
@@ -246,7 +245,7 @@ for loops=1:max_loops,
     
     % Part-II
     
-    for s=1:m,
+    for s=1:m
         % Posterior mixing coefficients
         lambda(s)=N_bar(s)+lambda_0;
         % Posterior means
@@ -271,7 +270,7 @@ mix.lambda=lambda;
 mix.gamma=gamma;
 
 % Put info into data structure
-for j=1:m,
+for j=1:m
     mix.state(j).prior=pi_bar(j);
     mix.state(j).C=mix.state(j).B/mix.state(j).a;
 end

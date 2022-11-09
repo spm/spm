@@ -13,10 +13,9 @@ function [mess] = spm_mci_diag (post,diag)
 %
 % ess      effective sample size (for each parameter)
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_mci_diag.m 6697 2016-01-27 14:57:28Z spm $
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 Ns=size(post.P,2);
 try, traceplot=diag.traceplot; catch, traceplot=1; end

@@ -40,10 +40,9 @@ function [M,stats] = spm_mci_lgv (mcmc,M,U,Y)
 % [1] Calderhead and Girolami. Interface Focus (2011), pp 821-835.
 % [2] Girolami and Calderhead. J R Stat Soc B (2011), pp 123-214.
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny and Biswa Sengupta
-% $Id: spm_mci_lgv.m 6697 2016-01-27 14:57:28Z spm $
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Defaults
 try, verbose=mcmc.verbose; catch, verbose=0; end

@@ -16,7 +16,7 @@ hold on
    
 vbmix=spm_mix(y,m_model);
 
-for i=1:m_model,
+for i=1:m_model
    plot(vbmix.state(i).m(1),vbmix.state(i).m(2),'rx');
 end
 hold on

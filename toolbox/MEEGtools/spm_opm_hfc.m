@@ -14,10 +14,10 @@ function [mfD,Yinds] = spm_opm_hfc(S)
 %   D               - denoised MEEG object (also written to disk)
 %   Yinds           - the indices of filtered channels
 %__________________________________________________________________________
-% Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
 
 % Tim Tierney
-% $Id: spm_opm_hfc.m 8245 2022-04-26 12:59:57Z george $
+% Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
+
 
 %-Set default values
 %--------------------------------------------------------------------------

@@ -13,11 +13,11 @@ function [v] = spm_mar_gen (w,A,C,n,ndisc)
 %
 %  This function is adapted from the ARFIT toolbox by Neumaier and
 %  Schneider
-%___________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
-% Will Penny 
-% $Id: spm_mar_gen.m 1143 2008-02-07 19:33:33Z spm $
+% Will Penny
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 m       = size(C,1);                  % dimension of state vectors 
 p       = size(A,2)/m;                % order of process

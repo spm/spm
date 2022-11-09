@@ -27,12 +27,11 @@ function [pca] = spm_vpca (T,q,Bayes)
 %       Observation noise precision: mean_tau
 %       Prior precisions of Factor magnitudes: mean_alpha
 %       Prior precision of Mean: mean_beta
-%
 %__________________________________________________________________________
-% Copyright (C) 2012-2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_vpca.m 5962 2014-04-17 12:47:43Z spm $
+% Copyright (C) 2011-2022 Wellcome Centre for Human Neuroimaging
+
 
 [d,N]=size(T);
 if nargin < 2 || isempty(q)
@@ -91,7 +90,7 @@ pca_c=c;
 
 maxits=32;
 Fm_evol=[];
-for it=1:maxits,
+for it=1:maxits
     
     [pca,c] = spm_vpca_update (T,S,pca,c,1);
     

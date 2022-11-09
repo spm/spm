@@ -12,10 +12,9 @@ function [dLdp,iCpY,st] = spm_mci_grad_curve (assign,w,v,M,U,Y,fxtype)
 % iCpY      curvature (Fisher information)
 % st        -1 for integration problem
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_mci_grad_curve.m 6697 2016-01-27 14:57:28Z spm $
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Extract init and flow params from rfx or ffx vectors
 [p_init,p_flow] = spm_mci_init_flow (assign,w,v,M);

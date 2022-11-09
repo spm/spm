@@ -16,10 +16,9 @@ function [D, S] = spm_eeg_reref_eeg(S)
 % spm_eeg_reref_eeg re-references any EEG data within an MEEG dataset, by
 % calling spm_eeg_montage with appropriate montage, excluding bad channels
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Rik Henson (updated so that bad channels included in tra but not used)
-% $Id: spm_eeg_reref_eeg.m 8275 2022-07-06 11:14:02Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Startup

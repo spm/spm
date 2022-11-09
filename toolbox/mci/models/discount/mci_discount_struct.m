@@ -7,10 +7,9 @@ function [M,U] = mci_discount_struct (Nobs)
 % M         model structure
 % U         U.X is the design matrix
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
-% Will Penny 
-% $Id: mci_discount_struct.m 6697 2016-01-27 14:57:28Z spm $
+% Will Penny
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Number of data points
 try, T=Nobs; catch, T=100; end

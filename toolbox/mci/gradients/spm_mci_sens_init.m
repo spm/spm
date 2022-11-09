@@ -20,10 +20,9 @@ function [y,sy,st] = spm_mci_sens_init (R,P,M,U)
 % B. Sengupta, K. Friston and W. Penny (2014) Efficient Gradient
 % Computation for Dynamical Models. Neuroimage,98, 521-527. 
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny and Biswa Sengupta
-% $Id: spm_mci_sens_init.m 6697 2016-01-27 14:57:28Z spm $
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 y=[];sy=[];x=[];sx=[];
 st=0;

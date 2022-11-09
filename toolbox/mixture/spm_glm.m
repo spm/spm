@@ -29,13 +29,13 @@ function [rglm] = spm_glm (y,X,alpha,verbose)
 %
 %                  Mean posterior values:
 % variances        variances (1./(b.*c))
-%___________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Will Penny 
-% $Id: spm_glm.m 1276 2008-03-28 18:29:19Z guillaume $
+% Copyright (C) 2007-2022 Wellcome Centre for Human Neuroimaging
 
-if nargin < 4 | isempty(verbose)
+
+if nargin < 4 || isempty(verbose)
   verbose=0;
 end
 
@@ -62,7 +62,7 @@ b_beta_prior=1000;
 c_beta_prior=0.001;
 
 % Initialise weight precision
-if nargin < 3 | isempty(alpha)
+if nargin < 3 || isempty(alpha)
     mean_alpha=0.001;
 else
     mean_alpha=alpha;
@@ -76,7 +76,7 @@ yty=y'*y;
 max_iters=100;
 lik=[];
 tol=0.0001;
-for it=1:max_iters,
+for it=1:max_iters
   
   E_d_av=0.5*yty-w_mean'*xty;
   E_d_av=E_d_av+0.5*w_mean'*xtx*w_mean;
@@ -109,7 +109,7 @@ for it=1:max_iters,
     likbase=lik;
   elseif ((lik-likbase)<(1 + tol)*(oldlik-likbase))
     break;
-  end;
+  end
 
 end
 
@@ -127,4 +127,3 @@ rglm.posts.w_cov=w_cov;
 rglm.posts.c=c_beta;
 rglm.posts.b=b_beta;
 rglm.variances=1./(b_beta.*c_beta);
-

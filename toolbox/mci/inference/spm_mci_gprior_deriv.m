@@ -7,10 +7,9 @@ function [j] = spm_mci_gprior_deriv (Pr,M)
 %
 % j         gradient of log Gaussian prior
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny and Biswa Sengupta
-% $Id: spm_mci_gprior_deriv.m 6548 2015-09-11 12:39:47Z will $
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 Pr=Pr(:);
 

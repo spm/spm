@@ -1,5 +1,4 @@
 
-
 % Demonstrate posthoc model comparison for spm_mlm_bayes
 
 clear all

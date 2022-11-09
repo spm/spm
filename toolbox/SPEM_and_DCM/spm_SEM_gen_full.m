@@ -16,10 +16,10 @@ function [y,DEM] = spm_SEM_gen_full(P,MM,U)
 %
 % see also: spm_SEM_gen
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_SEM_gen_full.m 6014 2014-05-23 15:00:35Z guillaume $
+% Copyright (C) 2013-2022 Wellcome Trust Centre for Neuroimaging
+
  
 % trial-specific initial states and parameters
 %==========================================================================

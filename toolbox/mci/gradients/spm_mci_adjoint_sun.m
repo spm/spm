@@ -19,10 +19,9 @@ function [dLdp] = spm_mci_adjoint_sun (Pr,M,U,Y)
 % B. Sengupta, K. Friston and W. Penny (2014) Efficient Gradient
 % Computation for Dynamical Models. Neuroimage,98, 521-527. 
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny and Biswa Sengupta
-% $Id: spm_mci_adjoint_sun.m 6697 2016-01-27 14:57:28Z spm $
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 try, backint=M.backint; catch, backint=1; end
 try, adjlike=M.adjlike; catch, adjlike=0; end

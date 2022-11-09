@@ -10,10 +10,10 @@ function [coh] = spm_ccf2coh(ccf,Hz)
 % See also: spm_???2???.m
 %     ??? = {'ccf','csd','gew','mar','coh','mtf','ker','ssm','dcm'}
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
- 
+
 % Karl Friston
-% $Id: spm_ccf2coh.m 7774 2020-01-25 18:07:03Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
  
 % unpack cells
 %--------------------------------------------------------------------------

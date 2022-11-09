@@ -12,10 +12,9 @@ function [] = mci_plot_dist (dist,j,xlims)
 % j         jth variable
 % xlims     xlims(1,2) for lower/upper limits
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
-% Will Penny 
-% $Id: mci_plot_dist.m 6697 2016-01-27 14:57:28Z spm $
+% Will Penny
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 try, ks=dist.ks; catch, ks=1; end
 

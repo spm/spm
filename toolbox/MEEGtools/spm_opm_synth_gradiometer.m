@@ -18,10 +18,9 @@ function D = spm_opm_synth_gradiometer(S)
 % Output:
 %   D               - denoised MEEG object (also written to disk)
 %__________________________________________________________________________
-% Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
 
 % Tim Tierney
-% $Id: spm_opm_synth_gradiometer.m 8201 2021-12-22 14:11:18Z george $
+% Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Set default values

@@ -13,17 +13,11 @@ function sD = spm_eeg_dipole_waveforms(S)
 %
 % Output:
 % sD                   - MEEG object (also written on disk)
-% _______________________________________________________________________
-% Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
-%
-% Disclaimer: this code is provided as an example and is not guaranteed to work
-% with data on which it was not tested. If it does not work for you, feel
-% free to improve it and contribute your improvements to the MEEGtools toolbox
-% in SPM (http://www.fil.ion.ucl.ac.uk/spm)
-%
+%__________________________________________________________________________
 
 % Vladimir Litvak
-% $Id: spm_eeg_dipole_waveforms.m 7702 2019-11-22 11:32:26Z guillaume $
+% Copyright (C) 2013-2022 Wellcome Centre for Human Neuroimaging
+
 
 [Finter,Fgraph] = spm('FnUIsetup','Dipole waveform extraction', 0);
 %%

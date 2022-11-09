@@ -13,10 +13,9 @@ function [m,Lambda,Cm] = spm_nwrnd (M,N)
 % See J. Bernardo and A. Smith (2000) 
 % Bayesian Theory, Wiley (page 435)
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_nwrnd.m 6548 2015-09-11 12:39:47Z will $
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 %iB=inv(M.B);
 for n=1:N,

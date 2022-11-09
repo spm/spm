@@ -9,10 +9,9 @@ function [Pt,a,b] = mci_lds_lat2par (P,M)
 % a         diagonal values
 % b         off-diagonal values
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: mci_lds_lat2par.m 6548 2015-09-11 12:39:47Z will $
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Diagonal entries
 s=exp(P(1:M.d));

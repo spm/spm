@@ -20,10 +20,9 @@ function [x,M] = spm_x_mfm_NMDA(P)
 %               2 gE - conductance (excitatory)
 %               3 gI - conductance (inhibitory)
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
- 
+
 % Karl Friston
-% $Id: spm_x_mfm_NMDA.m 4820 2012-08-01 12:20:00Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
  
 % dimensions

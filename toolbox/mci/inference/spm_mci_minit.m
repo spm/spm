@@ -4,10 +4,9 @@ function [M] = spm_mci_minit (M)
 %
 % eg. Pre-compute quantities for computing log-joint
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_mci_minit.m 6548 2015-09-11 12:39:47Z will $
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 if isstruct(M.pE)
     M.vpE=spm_vec(M.pE);

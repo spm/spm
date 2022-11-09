@@ -9,10 +9,10 @@
 % on the Sonata scanner at the FIL with the eFoV sequence and PE blips=-1:
 % nw_mepi_v3d_eFoV, nw_mepi_v3d_OFC_Amy.
 %_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Chloe Hutton and Jesper Andersson
-% $Id: pm_defaults_Sonata_eFoV.m 5015 2012-10-24 13:40:07Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 global pm_def
 

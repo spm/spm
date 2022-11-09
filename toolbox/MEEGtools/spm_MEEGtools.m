@@ -1,11 +1,15 @@
 function spm_MEEGtools
 % GUI gateway to MEEGtools toolbox
+%
+% Disclaimer: the code in this directory is provided as an example and is
+% not guaranteed to work with data on which it was not tested. If it does
+% not work for you, feel free to improve it and contribute your
+% improvements to the MEEGtools toolbox in SPM
+% (https://www.fil.ion.ucl.ac.uk/spm)
 %__________________________________________________________________________
-% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_MEEGtools.m 8272 2022-07-01 12:16:04Z guillaume $
-
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 funlist = {
     'Transform EEG cap', 'spm_eeg_transform_cap';

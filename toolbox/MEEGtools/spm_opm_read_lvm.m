@@ -20,10 +20,9 @@ function [lbv] = spm_opm_read_lvm(S)
 %   lbv.binaryTrigs        - Trigger Channels
 %   lbv.pinout             - pinout of lbv file(coming soon)
 %__________________________________________________________________________
-% Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
 
 % Tim Tierney
-% $Id: spm_opm_read_lvm.m 8201 2021-12-22 14:11:18Z george $
+% Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Set default values

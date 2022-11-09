@@ -8,11 +8,11 @@ function [x] = spm_samp_gauss (m, C, N, dC, vC)
 % vC    eigenvectors of C [d x d]
 %
 % x     [N x d] matrix of samples
-%___________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
-% Will Penny 
-% $Id: spm_samp_gauss.m 3543 2009-11-09 09:40:46Z maria $
+% Will Penny
+% Copyright (C) 2007-2022 Wellcome Centre for Human Neuroimaging
+
 
 d = size(C, 1);
 m = reshape(m, 1, d);   % Ensure that m is a row vector
@@ -29,10 +29,10 @@ imag_e = find(abs(imag(deig))>0);
 neg_e  = find(deig<0);
 rem    = unique([imag_e;neg_e]);
 
-if (length(rem)>0), 
-  %warning('Covariance Matrix is not OK, redefined to be positive definite');
-  deig(rem)   = [];
-  evec(:,rem) = [];
+if (length(rem)>0)
+    %warning('Covariance Matrix is not OK, redefined to be positive definite');
+    deig(rem)   = [];
+    evec(:,rem) = [];
 end
 k = length(deig);
 

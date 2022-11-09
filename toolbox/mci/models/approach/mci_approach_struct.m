@@ -6,10 +6,9 @@ function [M,U] = mci_approach_struct (Nobs)
 % M         Model structure
 % U         Input structure
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
-% Will Penny 
-% $Id: mci_approach_struct.m 6548 2015-09-11 12:39:47Z will $
+% Will Penny
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 M.l=1; % Single output variable
 

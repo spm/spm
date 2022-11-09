@@ -8,11 +8,11 @@ function [prior] = spm_mar_prior (d,p,type)
 %           'silly','ran2','triu' (see code below)
 %
 % prior     data structure to be passed to spm_mar.m
-%___________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
-% Will Penny 
-% $Id: spm_mar_prior.m 1143 2008-02-07 19:33:33Z spm $
+% Will Penny
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 k=p*d*d;
 switch type,

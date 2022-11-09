@@ -26,10 +26,9 @@ function [M_opt,log_ev,lambda,var] = spm_pca_order (X, N)
 % and dynamic source models. ICA: Principles and Practice, pages 299-314. 
 % Cambridge University Press.
 %__________________________________________________________________________
-% Copyright (C) 2007-2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_pca_order.m 5962 2014-04-17 12:47:43Z spm $
+% Copyright (C) 2011-2022 Wellcome Centre for Human Neuroimaging
 
 
 if nargin == 1
@@ -53,7 +52,7 @@ lambda=sort(lambda);
 lambda=flipud(lambda);
 
 % Loop over possible number of sources
-for M=1:d-1,
+for M=1:d-1
   % Minka equation 50
   i=[1:1:M];
   kk=(d-i+1)/2;
@@ -66,8 +65,8 @@ for M=1:d-1,
   
   lambda_hat=[lambda(1:M);var*ones(d-M,1)];
   term5=0;
-  for i=1:M,
-    for j=i+1:d,
+  for i=1:M
+    for j=i+1:d
       term5=term5+log(1/lambda_hat(j)-1/lambda_hat(i))+log(lambda(i)-lambda(j))+ log(N);
     end
   end

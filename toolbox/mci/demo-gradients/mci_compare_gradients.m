@@ -13,10 +13,10 @@ function [els,names] = mci_compare_gradients (model,cost,methods)
 %
 % Note: 4. AdjSun may not work for nmm2-r2p2.
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: mci_compare_gradients.m 6548 2015-09-11 12:39:47Z will $
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
+
 
 if nargin < 2 | isempty(cost)
     cost='spm_mci_joint';

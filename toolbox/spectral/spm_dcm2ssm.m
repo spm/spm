@@ -12,12 +12,10 @@ function [dfdx,dfdu,dgdx] = spm_dcm2ssm(P,M)
 % dfdx - Jacobian
 % dfdu - input  matrix
 % dgdx - output matrix
-%
 %__________________________________________________________________________
-% Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm2ssm.m 7774 2020-01-25 18:07:03Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % get local linear approximation

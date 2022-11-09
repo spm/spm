@@ -6,10 +6,9 @@ function [dLdp,iCpY,L] = mci_pb_deriv (P,M,U,Y)
 % iCpY      curvature (Fisher Information)
 % L         log joint
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
-% Will Penny 
-% $Id: mci_pb_deriv.m 6548 2015-09-11 12:39:47Z will $
+% Will Penny
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 dydp = spm_diff(M.IS,P,M,U,1);
 

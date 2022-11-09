@@ -18,10 +18,10 @@ function [pE,pC,x] = spm_dcm_nvc_priors(DCM)
 % Neurovascular coupling: insights from multi-modal dynamic causal modelling
 % of fMRI and MEG. arXiv preprint arXiv:1903.07478.
 %__________________________________________________________________________
-% Copyright (C) 2019 Wellcome Trust Centre for Humman Neuroimaging
 
 % Amirhossein Jafarian 
-% $Id: spm_dcm_nvc_priors.m 7713 2019-11-25 16:00:34Z spm $
+% Copyright (C) 2019-2022 Wellcome Centre for Human Neuroimaging
+
 
 % Number of regions & model space (see spm_dcm_nvc.m for model details)
 %--------------------------------------------------------------------------

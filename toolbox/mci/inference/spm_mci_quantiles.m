@@ -12,10 +12,9 @@ function [y] = spm_mci_quantiles (post,j,q3,expP)
 % Solid lines show quantiles from posterior samples
 % Dotted lines under Gaussian assumptions
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_mci_quantiles.m 6697 2016-01-27 14:57:28Z spm $
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 try, plotq=q3; catch, plotq=1; end
 try, expP=expP; catch, expP=0; end

@@ -36,10 +36,10 @@ function [mar] = spm_mar_spectra (mar,freqs,ns,show)
 %
 % Also note that PVE and GEW are only valid for d=2 time series
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% Will Penny 
-% $Id: spm_mar_spectra.m 6198 2014-09-25 10:38:48Z karl $
+% Will Penny
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 % options
 %--------------------------------------------------------------------------

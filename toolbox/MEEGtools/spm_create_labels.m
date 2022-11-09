@@ -15,10 +15,10 @@ function labels = spm_create_labels(S)
 %       S.n = 100;
 %       labels = spm_create_labels(S);
 %__________________________________________________________________________
-% Copyright (C) 2018 Wellcome Trust Centre for Neuroimaging
 
 % Tim Tierney
-% $Id: spm_create_labels.m 7452 2018-10-17 15:29:54Z tim $
+% Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
+
 
 %-Set default values
 %--------------------------------------------------------------------------

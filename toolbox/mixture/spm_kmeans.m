@@ -13,44 +13,44 @@ function [priors,means,covs,post] = spm_kmeans (y,k,method,return_cov)
 % covs          [d x d x k] matrix containing class covariances. This
 %               matrix is empty if return_covs=0
 % post          [N x k] matrix of class labels
-%___________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Will Penny 
-% $Id: spm_kmeans.m 1143 2008-02-07 19:33:33Z spm $
+% Copyright (C) 2007-2022 Wellcome Centre for Human Neuroimaging
 
-if nargin < 3 | isempty(method)
+
+if nargin < 3 || isempty(method)
    method='random';
 end
 
-if nargin < 4 | isempty(return_cov)
+if nargin < 4 || isempty(return_cov)
     return_cov=1;
 end
 
 [N,d]=size(y);
 
-switch lower(method),
-    case 'uniform',
+switch lower(method)
+    case 'uniform'
         % Spread seeds out evenly in d-space
-        for i=1:d,
+        for i=1:d
             delta(i)=(max(y(:,i))-min(y(:,i)))/(k+1);
         end
-        for m=1:k,
+        for m=1:k
             means(m,:)=m*delta;
-        end,
-    case 'points',
+        end
+    case 'points'
         % Pick k data points at random. Use as class means
         rp=randperm(N);
-        for m=1:k,
+        for m=1:k
             means(m,:)=y(rp(m),:);
         end
-    case 'fixed-points',
+    case 'fixed-points'
         % Pick first k data points. Use as class means
         rp=[1:N];
-        for m=1:k,
+        for m=1:k
             means(m,:)=y(rp(m),:);
         end
-    case 'random',
+    case 'random'
         mu=mean(y);
         C=cov(y);
         means=spm_samp_gauss(mu,C,k);
@@ -92,7 +92,7 @@ for n = 1:niters
   e = sum(minvals);
   if n > 1
     % Test for termination
-    if max(max(abs(means - old_means))) < tol & ...
+    if max(max(abs(means - old_means))) < tol && ...
         abs(old_e - e) < tol
       break;
     end
@@ -100,7 +100,7 @@ for n = 1:niters
   old_e = e;
 end
 
-for m=1:k,
+for m=1:k
    x=y(find(post(:,m)),:);
    Nm=size(x,1);
    if return_cov

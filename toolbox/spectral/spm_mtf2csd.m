@@ -12,12 +12,10 @@ function [csd] = spm_mtf2csd(mtf,C)
 % See also:
 %  spm_ccf2csd.m, spm_ccf2mar, spm_csd2ccf.m, spm_csd2mar.m, spm_mar2csd.m,
 %  spm_csd2coh.m, spm_dcm_mtf.m, spm_Q.m, spm_mar.m and spm_mar_spectral.m
-%
 %__________________________________________________________________________
-% Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_mtf2csd.m 7799 2020-03-12 17:23:14Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % preliminaries
@@ -29,7 +27,7 @@ nw = size(mtf,1);
 %  spectral density of fluctuations
 %--------------------------------------------------------------------------
 c     = zeros(nw,ns,ns);
-if nargin < 2;
+if nargin < 2
     C = eye(ns,ns);
 end
 if size(C,1) == nw
@@ -50,5 +48,3 @@ for i = 1:nw
     C          = squeeze(c(i,:,:));
     csd(i,:,:) = tf*C*tf';
 end
-
-

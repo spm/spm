@@ -26,7 +26,7 @@ function D = tsss_spm_enm(S)
 % in connection with its use and distribution of any and all parts of the Software under this license.
 % 
 
-% $Id: tsss_spm_enm.m 8275 2022-07-06 11:14:02Z guillaume $
+% Copyright (C) 2014-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Startup

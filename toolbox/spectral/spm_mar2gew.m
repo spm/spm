@@ -18,10 +18,10 @@ function [gew,pve] = spm_mar2gew(mar,Hz,ns)
 % See also: spm_???2???.m
 %     ??? = {'ccf','csd','gew','mar','coh','mtf','ker','ssm','dcm'}
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_mar2gew.m 7774 2020-01-25 18:07:03Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 % convert via cross spectral density
 %==========================================================================

@@ -9,10 +9,9 @@ function [dfdp] = mci_phase_dfdp (x,u,P,M)
 %
 % dfdp   Jacobian wrt. parameters, df/dp
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny and Biswa Sengupta
-% $Id: mci_phase_dfdp.m 6548 2015-09-11 12:39:47Z will $
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 D = M.n;
 df_dp=zeros(D,length(P));

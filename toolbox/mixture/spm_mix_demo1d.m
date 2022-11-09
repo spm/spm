@@ -9,11 +9,11 @@ function [vbmix logev mix] = spm_mix_demo1d (data, maxcomps, verbosity)
 % vbmix     - cell array of fitted mixtures for all numbers of components
 % logev     - log evidence for each number of components
 % mix       - mix structure for simulated mixtures if scalar data given
-%_______________________________________________________________________
-% Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
-% Will Penny & Ged Ridgway
-% $Id: spm_mix_demo1d.m 3997 2010-07-15 12:38:24Z ged $
+% Will Penny, Ged Ridgway
+% Copyright (C) 2007-2022 Wellcome Centre for Human Neuroimaging
+
 
 if nargin < 3
     verbosity = 1;

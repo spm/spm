@@ -8,12 +8,11 @@ function [mtf,Hz] = spm_ssm2mtf(dfdx,dfdu,dgdx,Hz)
 % Hz   - frequencies   [default: based on maximum eigenvalue]
 %
 % mtf  - directed or modulation transfer function
-%
 %__________________________________________________________________________
-% Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ssm2mtf.m 7799 2020-03-12 17:23:14Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 % preliminaries
 %--------------------------------------------------------------------------

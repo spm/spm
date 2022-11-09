@@ -14,10 +14,9 @@ function [j,iCpY,st,L,L2] = spm_mci_joint_grad (Pr,M,U,Y)
 % L         log joint, L = log p(Y,P)
 % L2        log likelihood, L2 = log p(Y|P)
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny and Biswa Sengupta
-% $Id: spm_mci_joint_grad.m 6697 2016-01-27 14:57:28Z spm $
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 try, beta=M.beta; catch, beta=1; end
     

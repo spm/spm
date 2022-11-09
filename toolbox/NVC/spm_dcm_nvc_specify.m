@@ -23,10 +23,10 @@ function DCM = spm_dcm_nvc_specify(SPM,xY_fMRI,MEEG,model,n_exclude,fmri_cond,op
 % Neurovascular coupling: insights from multi-modal dynamic causal modelling
 % of fMRI and MEG. arXiv preprint arXiv:1903.07478.
 %__________________________________________________________________________
-% Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Amirhossein Jafarian
-% $Id: spm_dcm_nvc_specify.m 7735 2019-12-02 09:15:27Z peter $
+% Copyright (C) 2019-2022 Wellcome Centre for Human Neuroimaging
+
 
 %-Get SPM file and DCM for MEG
 %--------------------------------------------------------------------------

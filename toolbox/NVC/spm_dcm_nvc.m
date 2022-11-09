@@ -104,10 +104,10 @@ function DCM  = spm_dcm_nvc(P)
 % Friston, K.J., Preller, K.H., Mathys, C., Cagnan, H., Heinzle, J., Razi, A.
 % and Zeidman, P., 2017. Dynamic causal modelling revisited. Neuroimage.
 %__________________________________________________________________________
-% Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
  
 % Amirhossein Jafarian
-% $Id: spm_dcm_nvc.m 7735 2019-12-02 09:15:27Z peter $
+% Copyright (C) 2019-2022 Wellcome Centre for Human Neuroimaging
+
 
 % Prepare input
 %--------------------------------------------------------------------------

@@ -11,10 +11,10 @@ function [W_ml,lambda,sigma2] = spm_vpca_init (T, form_cov)
 % lambda    eigenvalues
 % sigma2    Observation noise variance
 %__________________________________________________________________________
-% Copyright (C) 2012-2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_vpca_init.m 5962 2014-04-17 12:47:43Z spm $
+% Copyright (C) 2011-2022 Wellcome Centre for Human Neuroimaging
+
 
 % Maximum size of data set that SVD can handle given typical PC memory
 max_size=10^6;

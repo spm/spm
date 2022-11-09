@@ -7,11 +7,11 @@ function [p] = spm_ar_freq (ar, freq, fs)
 % fs    sample rate
 %
 % p     [Nf x 1] vector containing power estimates
-%___________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
-% Will Penny 
-% $Id: spm_ar_freq.m 1143 2008-02-07 19:33:33Z spm $
+% Will Penny
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 Nf=length(freq);
 Np=length(ar.a_mean);

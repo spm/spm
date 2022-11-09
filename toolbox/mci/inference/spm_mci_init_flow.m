@@ -10,10 +10,9 @@ function [x_init,x_flow] = spm_mci_init_flow (assign,w,v,M)
 % x_init    init params
 % x_flow    flow params (includes out params)
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_mci_init_flow.m 6548 2015-09-11 12:39:47Z will $
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 switch assign.init_par,
     case 'known',

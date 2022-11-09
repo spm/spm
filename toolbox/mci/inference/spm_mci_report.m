@@ -8,10 +8,9 @@ function [Ep,SDp] = spm_mci_report (P,mcmc,true_P)
 % Ep        Posterior mean
 % SDp       Posterior SD
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_mci_report.m 6548 2015-09-11 12:39:47Z will $
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 if nargin < 3 | isempty(true_P)
     tp=0;

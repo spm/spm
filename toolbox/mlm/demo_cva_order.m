@@ -29,7 +29,7 @@ else
     X2=W2*Z+E2;
 end
 
-for i=1:4,
+for i=1:4
     CVA = spm_cva_prob (X1,X2,i-1);
     L(i)=CVA.L;
     bic(i)=CVA.bic;
@@ -42,5 +42,3 @@ plot([0:3],bic,'r');
 plot([0:3],aic,'g');
 xlabel('Number of Canonical Vectors');
 legend('LogLike','BIC','AIC');
-
-

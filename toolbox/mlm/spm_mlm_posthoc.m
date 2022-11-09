@@ -20,11 +20,11 @@ function [logbf] = spm_mlm_posthoc (mlm,c,a)
 % bf = p(c*w=a|mlm)/p(c*w=a|Y,mlm)              
 %
 % logbf        Log Bayes Factor
-%___________________________________________________________________________
-% Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Will Penny 
-% $Id: spm_mlm_posthoc.m 4651 2012-02-09 16:03:39Z will $
+% Copyright (C) 2011-2022 Wellcome Centre for Human Neuroimaging
+
 
 wpost=mlm.wmean(:);
 
@@ -36,13 +36,13 @@ post_cov=c*mlm.wcov*c';
 
 % Get prior covariance matrix
 prec_prior=size(mlm.wcov,1);
-for g=1:mlm.prior.groups,
+for g=1:mlm.prior.groups
     prec_prior=prec_prior+mlm.prior.group(g).mean_alpha*mlm.prior.group(g).index;
 end
 w_prior_cov=diag(1./prec_prior);
 prior_cov=c*w_prior_cov*c';
 
-if nargin < 3 | isempty (a)
+if nargin < 3 || isempty (a)
     a=zeros(k,1);
 end
 

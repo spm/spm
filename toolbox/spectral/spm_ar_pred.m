@@ -8,11 +8,11 @@ function [y_pred,y,r2] = spm_ar_pred (Z,ar)
 % y_pred        (one-step ahead) predictions 
 % y             the values we are 'predicting'
 % r2            proportion of variance explained
-%___________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
-% Will Penny 
-% $Id: spm_ar_pred.m 1143 2008-02-07 19:33:33Z spm $
+% Will Penny
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 if nargin < 2, 
    disp('spm_ar_pred.m needs at least two arguments'); 

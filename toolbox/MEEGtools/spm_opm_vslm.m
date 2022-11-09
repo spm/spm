@@ -14,10 +14,10 @@ function [vSlm] = spm_opm_vslm(S)
 % Output:
 %  vSlm            - matrix of vector spherical harmonic (n x (li^2+2*l))
 %__________________________________________________________________________
-% Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
-%
+
 % Tim Tierney
-% $Id$
+% Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
+
 
 % sp = spm_mesh_sphere(5);
 % 

@@ -5,10 +5,9 @@ function [] = mci_plot_outputs (M,G)
 % M     Model
 % G     Data
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
-% Will Penny 
-% $Id: mci_plot_outputs.m 6548 2015-09-11 12:39:47Z will $
+% Will Penny
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 lw=2;
 h=figure;

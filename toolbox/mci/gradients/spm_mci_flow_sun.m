@@ -8,10 +8,9 @@ function [f, flag, new_data] = spm_mci_flow_sun (t, x, data)
 %
 % f     flow, dx/dt
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny and Biswa Sengupta
-% $Id: spm_mci_flow_sun.m 6548 2015-09-11 12:39:47Z will $
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 U=data.U;
 P=data.P;

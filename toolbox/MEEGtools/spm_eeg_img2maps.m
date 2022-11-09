@@ -9,10 +9,9 @@ function spm_eeg_img2maps(S)
 %    window         - start and end of a window in peri-stimulus time [ms]
 %    clim           - color limits of the plot
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_img2maps.m 8275 2022-07-06 11:14:02Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Startup

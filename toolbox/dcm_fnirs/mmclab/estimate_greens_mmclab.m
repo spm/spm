@@ -39,10 +39,10 @@ function [G] = estimate_greens_mmclab(F, P)
 % G.elem - tissue types of voxels [3 x # voxels] 
 % 1-scalp, 2-CSF, 3-gray matter, 4-white matter 
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Sungho Tak
-% $Id: estimate_greens_mmclab.m 6754 2016-03-25 06:44:58Z will $
+% Copyright (C) 2015-2022 Wellcome Centre for Human Neuroimaging
+
 
 %-Load data and add folders of softwares to search path 
 %--------------------------------------------------------------------------

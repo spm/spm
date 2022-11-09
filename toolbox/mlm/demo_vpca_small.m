@@ -76,4 +76,3 @@ imagesc(C-CBayes);
 colormap gray
 colorbar
 title('Difference');
-

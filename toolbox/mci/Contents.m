@@ -80,8 +80,7 @@
 %
 % B. Sengupta, K. Friston and W. Penny (2014) Efficient Gradient
 % Computation for Dynamical Models. Neuroimage,98, 521-527. 
-%_________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Will Penny and Biswa Sengupta
-% $Id: Contents.m 6548 2015-09-11 12:39:47Z will $
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging

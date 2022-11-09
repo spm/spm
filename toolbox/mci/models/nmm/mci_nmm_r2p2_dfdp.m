@@ -9,10 +9,9 @@ function [F] = mci_nmm_r2p2_dfdp (x,u,P,M)
 %
 % F         F(i,j) = df(x)_i/dp_j
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny and Biswa Sengupta
-% $Id: mci_nmm_r2p2_dfdp.m 6548 2015-09-11 12:39:47Z will $
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % 18 state variables, 2 parameters
 F=zeros(18,2);

@@ -15,10 +15,9 @@ function D = spm_eeg_split_conditions(S)
 % The function also physically removes bad trials.
 %
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Dominik R Bach
-% based on spm_eeg_remove_bad_trials
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Startup

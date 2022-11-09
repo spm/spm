@@ -9,10 +9,9 @@ function [y,L] = mci_nmm_r2_gx (x,u,P,M)
 % y         Output
 % L         Lead field (dy/dx)
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
-% Will Penny 
-% $Id: mci_nmm_r2_gx.m 6548 2015-09-11 12:39:47Z will $
+% Will Penny
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 x=spm_vec(x);
 

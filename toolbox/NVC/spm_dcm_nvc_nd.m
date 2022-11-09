@@ -15,10 +15,9 @@ function neuronal_drive = spm_dcm_nvc_nd(DCM)
 % Neurovascular coupling: insights from multi-modal dynamic causal modelling
 % of fMRI and MEG. arXiv preprint arXiv:1903.07478.
 %__________________________________________________________________________
-% Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Amirhossein Jafarian
-% $Id: spm_dcm_nvc_nd.m 7731 2019-11-28 17:53:00Z peter $
+% Copyright (C) 2019-2022 Wellcome Centre for Human Neuroimaging
 
 % DCM for MEG simualtion
 %--------------------------------------------------------------------------

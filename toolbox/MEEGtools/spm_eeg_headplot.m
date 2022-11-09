@@ -7,9 +7,10 @@ function spm_eeg_headplot(Y, D, H)
 %         H - (optional) axes handle
 %
 %__________________________________________________________________________
-% Copyright (C) 2015-2016 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_eeg_headplot.m 6669 2016-01-11 15:51:06Z guillaume $
+% Vladimir Litvak
+% Copyright (C) 2015-2022 Wellcome Centre for Human Neuroimaging
+
 
 if ~exist('headplot', 'file')
     error('This functionality requires EEGLAB http://sccn.ucsd.edu/eeglab/');

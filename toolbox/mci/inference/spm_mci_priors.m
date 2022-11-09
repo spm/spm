@@ -7,10 +7,9 @@ function [M] = spm_mci_priors (M)
 % M.log_prior_t2    second term of log prior 
 % M.Np              dimension of reduced space
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_mci_priors.m 6548 2015-09-11 12:39:47Z will $
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 if isstruct(M.pC)
     pC=full(diag(spm_vec(M.pC)));

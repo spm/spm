@@ -13,12 +13,10 @@ function [gew,pve] = spm_dtf2gew(dtf,C)
 % See also:
 %  spm_ccf2csd.m, spm_ccf2mar, spm_csd2ccf.m, spm_csd2mar.m, spm_mar2csd.m,
 %  spm_csd2coh.m, spm_dcm_mtf.m, spm_Q.m, spm_mar.m and spm_mar_spectral.m
-%
 %__________________________________________________________________________
-% Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dtf2gew.m 7774 2020-01-25 18:07:03Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % preliminaries
@@ -30,7 +28,7 @@ nw = size(dtf,1);
 %  spectral density of fluctuations
 %--------------------------------------------------------------------------
 c     = zeros(nw,ns,ns);
-if nargin < 2;
+if nargin < 2
     C = eye(ns,ns);
 end
 if size(C,1) == nw

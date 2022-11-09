@@ -8,11 +8,11 @@ function [y,y_pred] = spm_mar_pred (X,mar)
 %
 % y              Target values
 % y_pred         Predicted values
-%___________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
-% Will Penny 
-% $Id: spm_mar_pred.m 1143 2008-02-07 19:33:33Z spm $
+% Will Penny
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 d=size(X,2);    % dimension of time series
 N=size(X,1);    % length of time series

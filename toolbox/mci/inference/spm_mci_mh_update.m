@@ -11,10 +11,9 @@ function [next,accepted,bayes_fb,dL] = spm_mci_mh_update (curr,prop,verbose)
 % bayes_fb  Log Bayes factor for forward versus backward transition
 % dL        Proposed difference in log joint
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_mci_mh_update.m 6548 2015-09-11 12:39:47Z will $
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 accepted=1;
 

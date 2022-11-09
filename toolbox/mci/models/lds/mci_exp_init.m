@@ -11,10 +11,9 @@ function [w0,a] = mci_exp_init (Y,M,doplot)
 %           where d is number of states
 % a         [d x N] matrix of exponential coefficients
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: mci_exp_init.m 6548 2015-09-11 12:39:47Z will $
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 if nargin < 3
     doplot=0;

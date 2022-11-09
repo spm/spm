@@ -6,11 +6,11 @@ function [] = spm_mix_plot1d (data, mix, rng, nPoints)
 % mix      - Mixture model data structure from spm_mix
 % rng      - [xmin xmax], defaulting to [min(data) max(data)] if data given
 % nPoints  - Number of points covering rng; default=100
-%_______________________________________________________________________
-% Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
-% Will Penny & Ged Ridgway
-% $Id: spm_mix_plot1d.m 4195 2011-02-05 18:39:13Z ged $
+% Will Penny, Ged Ridgway
+% Copyright (C) 2007-2022 Wellcome Centre for Human Neuroimaging
+
 
 if nargin < 4 || isempty(nPoints), nPoints = 100; end
 if nargin < 3 || isempty(rng)

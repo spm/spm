@@ -5,10 +5,9 @@
 % free to improve it and contribute your improvements to the MEEGtools toolbox
 % in SPM (http://www.fil.ion.ucl.ac.uk/spm)
 %__________________________________________________________________________
-% Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_plot_interactive.m 8315 2022-10-10 13:29:48Z tim $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 iD = spm_eeg_load;

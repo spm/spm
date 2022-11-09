@@ -19,10 +19,11 @@ function [D, L] = spm_opm_headmodel(S)
 %  D           - MEEG object (also written to disk)
 %  L           - Lead field (also written on disk)
 %__________________________________________________________________________
-% Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
 
 % George O'Neill
-% $Id$
+% Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
+
+
 spm('FnBanner', mfilename);
 
 if ~isfield(S,'D'); error('please specify a MEEG object!'); end

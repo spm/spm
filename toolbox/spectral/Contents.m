@@ -27,9 +27,7 @@
 % J. Ashburner, S. Kiebel, T. Nichols, and W. Penny, editors, Statistical 
 % Parametric Mapping: The analysis of functional brain images. Elsevier, 
 % London, 2006
+%__________________________________________________________________________
 
-%___________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
-
-% Will Penny 
-% $Id: Contents.m 1143 2008-02-07 19:33:33Z spm $
+% Will Penny
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging

@@ -9,10 +9,9 @@ function D = spm_eeg_recode_epoched_ctf(S)
 % Output:
 % D                 - MEEG object relabeled trials (also saved to disk)
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_recode_epoched_ctf.m 8275 2022-07-06 11:14:02Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 %-Startup

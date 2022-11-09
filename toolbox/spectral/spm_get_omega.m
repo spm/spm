@@ -8,17 +8,17 @@ function [Omega] = spm_get_omega (p,d,w_cov,xtx)
 % xtx       X'X where X is design matrix (ie. from lagged data)
 %
 % Omega     Expected error
-%___________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
-% Will Penny 
-% $Id: spm_get_omega.m 1143 2008-02-07 19:33:33Z spm $
+% Will Penny
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 Omega=zeros(d,d);
 % Submatrix size
 s=p*d;
-for di=1:d,
-    for dj=di:d,
+for di=1:d
+    for dj=di:d
         istart=1+(di-1)*s;
         istop=istart+s-1;
         jstart=1+(dj-1)*s;

@@ -9,18 +9,17 @@ function [con_vec] = spm_mlm_makecon (mlm,w)
 %
 % con_vec       Vectorised contrast matrix that can be passed 
 %               to spm_mlm_posthoc.m
-%
-%___________________________________________________________________________
-% Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Will Penny 
-% $Id: spm_mlm_makecon.m 4651 2012-02-09 16:03:39Z will $
+% Copyright (C) 2011-2022 Wellcome Centre for Human Neuroimaging
+
 
 [p,d]=size(mlm.wmean);
 
 con_vec=[];
-for i=1:p,
-    for j=1:d,
+for i=1:p
+    for j=1:d
         if w(i,j)==1
             con=zeros(p,d);
             con(i,j)=1;

@@ -15,11 +15,11 @@ function [p, f, t] = spm_mmtspec (x,Fs, freqs,timeres, timestep, NW)
 % as/if necessary. The taper approach is applied to each padded sample.
 % 
 % Plot spectrogram using imagesc(t,f,p); axis xy
-%___________________________________________________________________________
-% Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Partha Mitra, Ken Harris and Will Penny
-% $Id: spm_mmtspec.m 4021 2010-07-28 12:43:16Z vladimir $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+
 
 nChannels = size(x, 2);
 nSamples = size(x,1);

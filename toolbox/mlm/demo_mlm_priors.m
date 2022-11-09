@@ -1,5 +1,4 @@
 
-
 % Demonstrate different shrinkage priors for spm_mlm_bayes
 
 clear all

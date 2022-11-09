@@ -26,10 +26,11 @@ function [D,L] = spm_opm_create(S)
 %  D           - MEEG object (also written to disk)
 %  L           - Lead field (also written on disk)
 %__________________________________________________________________________
-% Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
 
 % Tim Tierney
-% $Id: spm_opm_create.m 8305 2022-08-18 09:57:46Z george $
+% Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
+
+
 spm('FnBanner', mfilename);
 
 %-Set default values
@@ -337,10 +338,10 @@ function [bids] = read_cMEG_data(S)
 %  bids           - struct containing info for channels.tsv,meg.json and
 %                   positions.tsv
 %__________________________________________________________________________
-% Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
 
 % Tim Tierney
-% $Id: spm_opm_create.m 8305 2022-08-18 09:57:46Z george $
+% Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
+
 
 if strcmpi(num2str(S.filename(end-4:end)),'.cMEG')
     filename = S.filename(1:end-5);

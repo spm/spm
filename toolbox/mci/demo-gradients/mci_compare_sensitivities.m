@@ -6,10 +6,10 @@ function [] = mci_compare_sensitivities (model,pars)
 % pars      vector indicating which sensitivities to plot
 %           eg. [1,2,..,Np] (default) for all parameters
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: mci_compare_sensitivities.m 6548 2015-09-11 12:39:47Z will $
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
+
 
 [P,M,U,Y] = mci_compare_setup (model);
 

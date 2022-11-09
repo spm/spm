@@ -9,10 +9,9 @@ function [f] = mci_rphase_fx (x,u,P,M)
 %
 % f      dx/dt
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny and Biswa Sengupta
-% $Id: mci_rphase_fx.m 6548 2015-09-11 12:39:47Z will $
+% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 params = spm_unvec (P,M.pE);
 

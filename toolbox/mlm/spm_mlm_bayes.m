@@ -36,11 +36,11 @@ function [mlm] = spm_mlm_bayes (y,x,pr,verbose,ml_only)
 %             Estimated prior precision of jth parameter group.
 %             For 'input' prior this is jth row of W. 
 %             For 'output' prior this is jth column of W.
-%___________________________________________________________________________
-% Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Will Penny 
-% $Id: spm_mlm_bayes.m 4651 2012-02-09 16:03:39Z will $
+% Copyright (C) 2011-2022 Wellcome Centre for Human Neuroimaging
+
 
 if nargin < 4 || isempty(verbose)
     verbose=0;

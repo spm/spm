@@ -16,10 +16,10 @@ function DCM = spm_dcm_spem_results(DCM)
 %       Ep     - posterior expectation
 %       Cp     - posterior covariance
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_spem_results.m 6014 2014-05-23 15:00:35Z guillaume $
+% Copyright (C) 2013-2022 Wellcome Trust Centre for Neuroimaging
+
  
 % model specification
 %--------------------------------------------------------------------------
