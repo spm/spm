@@ -20,7 +20,7 @@ function tree = struct2xml(s,rootname)
 
 % Define root tag
 if nargin == 1
-	rootname = inputname(1);
+    rootname = inputname(1);
 end
 if isempty(rootname)
     rootname = 'root';

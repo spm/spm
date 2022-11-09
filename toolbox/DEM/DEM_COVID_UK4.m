@@ -14,7 +14,7 @@ function DCM = DEM_COVID_UK4
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_UK4.m 8312 2022-09-30 18:21:14Z karl $
+% $Id: DEM_COVID_UK4.m 8341 2022-11-09 21:18:12Z guillaume $
 
 % set up and preliminaries
 %==========================================================================
@@ -175,8 +175,8 @@ tab  = readtable(url,opts);
 i    = ismember(tab{:,1},'GB') & ismember(tab{:,2},'');
 writetable(tab(i,[3,4,5,6,7,8,9]),'mobility.csv');
 
-% Country Code	K02000001	K03000001	K04000001	E92000001	W92000004	S92000003	N92000002	
-% All Persons	67,081,234	65,185,724	59,719,724	56,550,138	3,169,586	5,466,000	1,895,510	
+% Country Code  K02000001   K03000001   K04000001   E92000001   W92000004   S92000003   N92000002   
+% All Persons   67,081,234  65,185,724  59,719,724  56,550,138  3,169,586   5,466,000   1,895,510   
 %--------------------------------------------------------------------------
 % population sizes (millions) in five year bins
 %--------------------------------------------------------------------------

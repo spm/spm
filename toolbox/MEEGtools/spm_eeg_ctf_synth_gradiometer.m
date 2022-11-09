@@ -22,7 +22,7 @@ function D = spm_eeg_ctf_synth_gradiometer(S)
 spm('FnBanner', mfilename);
 errorMsg = 'an MEEG object must be supplied.';
 if ~isfield(S, 'D'),            error(errorMsg);            end
-if ~isfield(S, 'gradient'), 	S.gradient = 3;             end
+if ~isfield(S, 'gradient'),     S.gradient = 3;             end
 if ~isfield(S, 'prefix'),       S.prefix = 'g_';            end
 if ~isfield(S, 'method'),       S.method = 'fieldtrip';     end
 

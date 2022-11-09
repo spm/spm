@@ -3,7 +3,7 @@ function res = bf_output_image_sensitivity(BF, S)
 % Copyright (C) 2017 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: bf_output_image_sensitivity.m 7703 2019-11-22 12:06:29Z guillaume $
+% $Id: bf_output_image_sensitivity.m 8341 2022-11-09 21:18:12Z guillaume $
 
 %--------------------------------------------------------------------------
 if nargin == 0      
@@ -52,7 +52,7 @@ for i = 1:nvert
     
     if isfield(BF, 'inverse')
         lf = BF.inverse.(S.modality).L{i};
-        channels = BF.inverse.(S.modality).channels;	
+        channels = BF.inverse.(S.modality).channels;    
     else
         lf = BF.sources.L.(S.modality(1:3)){i};
         channels = BF.sources.channels.(S.modality(1:3));

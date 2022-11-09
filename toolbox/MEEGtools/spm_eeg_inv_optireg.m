@@ -29,7 +29,7 @@ function D = spm_eeg_inv_optireg(S)
 spm('FnBanner', mfilename);
 
 if ~isfield(S,'D');         error('You must specify a MEEG dataset!');  end
-if ~isfield(S,'fidfile');   error('You must specify a fiducial file!');	end
+if ~isfield(S,'fidfile');   error('You must specify a fiducial file!'); end
 if ~isfield(S,'save');      S.save = 1;                                 end
 if ~isfield(S,'forward');   S.forward = 0;                              end
 

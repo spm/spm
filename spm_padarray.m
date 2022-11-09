@@ -34,7 +34,7 @@ padsize = [padsize zeros(1,numel(dim)-numel(padsize))];
 padsize(padsize < 0 | ~isfinite(padsize)) = 0;
 newdim  = dim + padsize * (strcmpi(direction, 'both') + 1);
 if strcmpi(direction,'post')
-	padsize = zeros(size(padsize));
+    padsize = zeros(size(padsize));
 end
 
 % Pad array

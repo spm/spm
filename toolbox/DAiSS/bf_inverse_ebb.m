@@ -3,7 +3,7 @@ function res = bf_inverse_ebb(BF, S)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % George O'Neill
-% $Id: bf_inverse_ebb.m 8134 2021-08-13 13:05:41Z george $
+% $Id: bf_inverse_ebb.m 8341 2022-11-09 21:18:12Z guillaume $
 
 %--------------------------------------------------------------------------
 
@@ -418,7 +418,7 @@ end
 UU      = U'*U;
 Qe{1}   = UU./trace(UU);
 
-hP(1) = -5;		% assumes IID noise is 1/100th of signal.
+hP(1) = -5;     % assumes IID noise is 1/100th of signal.
 hC(1) = 1e-64;
 
 % Step 2: optional room noise: WARNING this hasnt been tested for

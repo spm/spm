@@ -50,10 +50,10 @@ for iem=1:nem
    [p d q]=svd(gam);ldgam=sum(log(diag(d)));
    temp1=-.5*ldgam*ones(1,nt)+.5*sum(ubar.*(gam*ubar),1);
    temp2=.5*ldlam*ones(1,nt)-.5*lam'*(y.^2);
-   f=temp1+temp2;	
+   f=temp1+temp2;   
    f3=.5*nl*ldlam+.5*nk*ldbet-.5*trace(b'*dlam*b*dbet); %diff
    likeli(iem)=mean(f)+f3/nt; 
-							   
+                               
    betbar=ruu+dbet;
    ibetbar=inv(betbar);
    b=ryu*ibetbar;
@@ -61,7 +61,7 @@ for iem=1:nem
    ilam=diag(ryy-b*ryu')/(nt+nl); % diff
    lam=1./ilam;
    dlam=diag(lam);
-       					
+                        
    bet=1./(diag(b'*dlam*b)/nk+diag(ibetbar));
     if nargin>3
        figure(fig)

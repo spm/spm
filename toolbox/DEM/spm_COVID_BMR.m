@@ -1,7 +1,7 @@
 function spm_COVID_BMR(DCM)
 % Bayesian model reduction for COVID models
 % FORMAT spm_COVID_BMR(DCM)
-% DCM – dynamic causal model for covid outbreak
+% DCM - dynamic causal model for covid outbreak
 %
 % This subroutine applies Bayesian model reduction to a DCM for the corona
 % virus outbreak, asking whether any parameters can be treated as fixed
@@ -12,7 +12,7 @@ function spm_COVID_BMR(DCM)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_BMR.m 8252 2022-05-18 13:23:48Z karl $
+% $Id: spm_COVID_BMR.m 8341 2022-11-09 21:18:12Z guillaume $
 
 % setup
 %==========================================================================
