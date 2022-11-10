@@ -12,10 +12,9 @@ function [f]= spm_fx_dem_salience(x,v,P)
 % v    - hidden causes - attracting location
 % P    - parameters
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_dem_salience.m 4862 2012-08-24 19:21:27Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
 % intialise flow (to ensure fields are aligned)
 %--------------------------------------------------------------------------

@@ -13,10 +13,9 @@ function [I] = spm_voice_frequency(Y,FS,F0)
 % namely, inflection or fluctuations in fundamental wavelength (i.e.,
 % glottal pulse rate).
 %__________________________________________________________________________
-% Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_frequency.m 7750 2019-12-05 17:54:29Z spm $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 %% find fundamental frequencies

@@ -84,7 +84,7 @@ function [y,x,z,W] = spm_SARS_gen(P,M,U,NPI,age)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_gen.m 8312 2022-09-30 18:21:14Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % The generative model:

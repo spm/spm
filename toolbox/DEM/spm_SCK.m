@@ -86,7 +86,7 @@ function SCKS = spm_SCK(SCKS)
 % Copyright (C) - Martin Havlicek
  
 % Martin Havlicek
-% $Id: spm_SCK.m 4628 2012-01-27 20:51:41Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 % check model specification
 %--------------------------------------------------------------------------
 M  = SCKS.M;

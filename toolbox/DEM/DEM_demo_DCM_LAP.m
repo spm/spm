@@ -9,10 +9,9 @@ function DEM_demo_DCM_LAP
 % with an automatic model optimization in terms of the prior variances over
 % coupling parameters.
 %__________________________________________________________________________
-% Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_DCM_LAP.m 6483 2015-06-21 21:14:34Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
 % Specify a DCM to generate synthetic data
 %==========================================================================

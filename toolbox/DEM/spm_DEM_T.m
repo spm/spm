@@ -9,10 +9,9 @@ function [T] = spm_DEM_T(n,dt)
 %
 % NB:  T(-dt) = inv(T(dt)), T(-dt)*T(dt) = I and T(i*dT) = T(dt)^i
 %==========================================================================
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DEM_T.m 8308 2022-09-02 10:15:40Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 % Delay operator
 %--------------------------------------------------------------------------

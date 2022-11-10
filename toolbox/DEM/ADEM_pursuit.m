@@ -17,10 +17,9 @@ function ADEM_pursuit
 % reversal is omitted (and the target) persists in a clockwise direction)
 % violation responses are emitted.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_pursuit.m 6290 2014-12-20 22:11:50Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
  
 % hidden causes and states

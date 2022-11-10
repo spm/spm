@@ -22,10 +22,9 @@ function MDP = DEMO_MDP_maze_X
 %
 % see also: DEM_MDP_maze.m and spm_MPD_VB_X.m
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEMO_MDP_maze_X.m 7775 2020-01-25 18:10:41Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 % set up and preliminaries: first level
 %--------------------------------------------------------------------------

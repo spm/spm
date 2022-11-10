@@ -10,7 +10,7 @@ function Tab = spm_COVID_table(Ep,Cp,M)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_table.m 8118 2021-07-03 10:45:45Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 % Get data for the United Kingdom (including total tests R)
 %==========================================================================

@@ -34,10 +34,9 @@ function MDP = DEM_demo_MDP_maze
 %
 % see also: spm_MPD_game
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_MDP_maze.m 6975 2016-12-18 20:27:00Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 % set up and preliminaries
 %==========================================================================

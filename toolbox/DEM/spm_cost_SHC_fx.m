@@ -10,10 +10,9 @@ function [f] = spm_cost_SHC_fx(x,v,P)
 % The parameters associate increases in some physiological states x.q with 
 % positions in physical space, encoded by radial basis functions x.a
 %__________________________________________________________________________
-% Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_cost_SHC_fx.m 3757 2010-03-08 11:41:53Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
  
  

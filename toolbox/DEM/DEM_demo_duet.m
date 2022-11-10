@@ -20,10 +20,9 @@ function DEM_demo_duet
 % one in the  main script.. To separate the birds - and preclude
 % communication (or synchronisation chaos) set NULL to 1.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_duet.m 7679 2019-10-24 15:54:07Z spm $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
 
 % preliminaries

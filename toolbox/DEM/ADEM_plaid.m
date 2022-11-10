@@ -4,10 +4,9 @@ function [y,n] = ADEM_plaid(x,n)
 % x(1) - horizontal displacement
 % x(2) - vertical displacement
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_plaid.m 3655 2009-12-23 20:15:34Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
 % default stimulus
 %--------------------------------------------------------------------------

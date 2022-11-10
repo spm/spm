@@ -8,10 +8,9 @@ function [S L] = spm_salience_map(M,n)
 % M  - generative model (with M(2).v and M(1).xo encoding location (L)
 % n  - dimension of map (S)
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_salience_map.m 4595 2011-12-19 13:06:22Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
  
 % Defaults

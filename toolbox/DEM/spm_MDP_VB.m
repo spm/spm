@@ -97,10 +97,9 @@ function [MDP] = spm_MDP_VB(MDP,OPTIONS)
 % maximises the KL divergence between the posterior predictive distribution
 % over hidden states and those specified by preferences or prior beliefs.
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_VB.m 8222 2022-02-13 11:14:08Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
  
 % deal with a sequence of trials

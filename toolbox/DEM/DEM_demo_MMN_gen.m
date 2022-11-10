@@ -11,10 +11,9 @@ function [x,DEM] = DEM_demo_MMN_gen(P,G,U)
 %
 % see DEM_demo_MMN
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_MMN_gen.m 4146 2010-12-23 21:01:39Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
  
  

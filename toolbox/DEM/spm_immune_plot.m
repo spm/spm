@@ -9,7 +9,7 @@ function y = spm_immune_plot(P,c,U,Y)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
  
 % Thomas Parr
-% $Id: spm_immune_plot.m 7946 2020-09-15 12:12:15Z spm $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % Simulate model

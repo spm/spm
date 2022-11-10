@@ -8,10 +8,9 @@ function DEM_demo_ALAP
 % back to the generative process through action (see active inference
 % schemes): spm_ALAP.
 %__________________________________________________________________________
-% Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_ALAP.m 7679 2019-10-24 15:54:07Z spm $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
 % get basic convolution model
 %==========================================================================

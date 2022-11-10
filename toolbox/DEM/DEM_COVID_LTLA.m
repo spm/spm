@@ -15,7 +15,7 @@ function [DCM] = DEM_COVID_LTLA(LA)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_LTLA.m 8204 2021-12-28 21:14:03Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 % download from web options
 %--------------------------------------------------------------------------

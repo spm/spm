@@ -24,10 +24,9 @@ function DEM_FEP_Least_Action
 % the initial and final states: for example, a final active state of -8 has
 % the least two paths of least action (xT in the code below).
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_FEP_Least_Action.m 7512 2019-01-05 21:15:16Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 % generative model
 %==========================================================================                       % switch for demo

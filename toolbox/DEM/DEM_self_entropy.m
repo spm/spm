@@ -12,10 +12,9 @@ function DEM_self_entropy
 % probability density over action reduces the entropy of sensory states
 % under a fixed density of hidden or external states.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_self_entropy.m 7679 2019-10-24 15:54:07Z spm $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % set up

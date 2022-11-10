@@ -16,7 +16,6 @@ function KLDemo
 % effect of conditional dependencies on the haemodynamic information gain
 % afforded by EEG data
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Setup and preliminaries
 %--------------------------------------------------------------------------

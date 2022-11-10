@@ -17,10 +17,9 @@ function ADEM_salience
 % sampling of sensory data) to simulate saccadic eye movements under
 % active inference.
 %__________________________________________________________________________
-% Copyright (C) 2011-2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: ADEM_salience.m 6901 2016-10-08 13:21:41Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 pth = fileparts(mfilename('fullpath'));

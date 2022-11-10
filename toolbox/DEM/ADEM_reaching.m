@@ -4,10 +4,9 @@ function ADEM_reaching
 % trajectories. In this example a two-joint arm is trained to touch a target
 % so that spontaneous reaching occurs after training.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_reaching.m 4804 2012-07-26 13:14:18Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 % hidden causes and states
 %==========================================================================

@@ -9,10 +9,9 @@
 % This scheme was not pursued to closure
  
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_learning_Q.m 4516 2011-10-07 19:18:32Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
  
 % generative model

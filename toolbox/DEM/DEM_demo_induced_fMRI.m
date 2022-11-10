@@ -16,10 +16,9 @@ function DEM_demo_induced_fMRI
 % NB - the generalised filtering trakes much longer than the deterministic
 % scheme
 %__________________________________________________________________________
-% Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_induced_fMRI.m 7679 2019-10-24 15:54:07Z spm $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
 % Simulate timeseries
 %==========================================================================

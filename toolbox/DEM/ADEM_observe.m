@@ -10,10 +10,9 @@ function ADEM_observe
 % and implicit predictions (in a generalised or dynamic sense). These 
 % simulations can be regarded as simulations of mirror neuron responses.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_observe.m 7679 2019-10-24 15:54:07Z spm $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
  
 % hidden causes and states

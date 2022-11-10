@@ -48,7 +48,7 @@ function [Y,X] = spm_COVID_S(P,M,U)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_S.m 8341 2022-11-09 21:18:12Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 % setup and defaults (assume new deaths and cases as outcome variables)
 %--------------------------------------------------------------------------

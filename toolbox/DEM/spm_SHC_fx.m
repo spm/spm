@@ -14,10 +14,9 @@ function [f] = spm_SHC_fx(x,v,P,varargin)
 % stable heteroclinic channel.
 %
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_SHC_fx.m 3265 2009-07-10 14:02:22Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 

@@ -5,10 +5,9 @@ function spm_DEM_ButtonDownFcn
 % Requires gcbo to have appropriate UserData; see spm_DEM_movie and
 % spm_DEM_play_song
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM_ButtonDownFcn.m 7111 2017-06-16 09:01:09Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
 % default
 %--------------------------------------------------------------------------

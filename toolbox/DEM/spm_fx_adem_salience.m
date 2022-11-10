@@ -9,10 +9,9 @@ function [f]= spm_fx_adem_salience(x,v,a,P)
 % v    - hidden cause
 % P    - parameters
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_adem_salience.m 4580 2011-12-02 20:22:19Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
 
 % motion of oculomotor angles (driven by unbounded action)

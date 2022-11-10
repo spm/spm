@@ -38,10 +38,9 @@ function [MDP] = spm_MDP_VB_update(MDP,PDP,OPTIONS)
 % 
 % See also: spm_MDP_log_evidence.m, spm_MDP_VB and spm_MDP_VB_sleep.m
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_update.m 8333 2022-11-04 20:48:41Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 % defaults
 %--------------------------------------------------------------------------

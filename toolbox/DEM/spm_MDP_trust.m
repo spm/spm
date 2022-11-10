@@ -26,10 +26,9 @@ function spm_MDP_trust
 % or confidence in beliefs about choices, fluctuates with beliefs about
 % the nature of one's opponent.
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_trust.m 6044 2014-06-14 10:22:46Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 % set up and preliminaries
 %==========================================================================

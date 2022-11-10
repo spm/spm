@@ -12,10 +12,9 @@ function [f]= spm_fx_dem_pursuit(x,v,P)
 % v    - hidden causes
 % P    - parameters
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_dem_pursuit.m 4322 2011-05-04 15:28:08Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
 % intisaise flow (to ensure fields are aligned)
 %--------------------------------------------------------------------------

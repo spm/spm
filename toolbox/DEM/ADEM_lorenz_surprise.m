@@ -4,10 +4,9 @@ function ADEM_lorenz_surprise
 % surprise or sojourn time). However, value is not a Lyapunov function
 % because the flow is not curl-free (i.e., is not irrotational).
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_lorenz_surprise.m 4804 2012-07-26 13:14:18Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
 
 % dynamics and parameters

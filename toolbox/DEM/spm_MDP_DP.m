@@ -11,10 +11,9 @@ function [B0,BV] = spm_MDP_DP(MDP)
 % B0      - optimal state action policy or transition matrix
 % BV      - corresponding policy using value iteration
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_DP.m 6598 2015-11-11 19:48:30Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 % set up and preliminaries
 %==========================================================================

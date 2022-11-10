@@ -31,10 +31,9 @@ function spm_voice(PATH)
 %  various optimisation schemes and illustrations of online voice
 %  recognition
 %__________________________________________________________________________
-% Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice.m 7761 2019-12-29 17:48:04Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 %% setup options and files

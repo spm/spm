@@ -21,10 +21,9 @@ function DEM_demo_song_omission
 % the sequence of chirps supervenes, producing false inference. This
 % can be thought of as a - crude - model of hallucinosis.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_song_omission.m 7679 2019-10-24 15:54:07Z spm $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
  
 % Hierarchical non-linear generative model (dynamic & chaotic)

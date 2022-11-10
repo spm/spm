@@ -32,10 +32,9 @@ function DEMO_SLR
 %
 % see also: spm_sparse_regression.m
 %__________________________________________________________________________
-% Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEMO_SLR.m 7454 2018-10-19 19:38:50Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % Genomic data (G)

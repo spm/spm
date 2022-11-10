@@ -7,7 +7,6 @@ function [pC] = spm_dcm_symm(pV,pE)
 % pV   - prior variance
 % pC   - prior covariance
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
 % Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging

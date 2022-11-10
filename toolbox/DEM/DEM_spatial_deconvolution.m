@@ -13,10 +13,9 @@ function DEM_spatial_deconvolution
 % anatomically informed because the generative model stars with a parcellation
 % scheme.
 %__________________________________________________________________________
-% Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_spatial_deconvolution.m 6975 2016-12-18 20:27:00Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
  
 % parcellation scheme (U) (make an atlas on the fly)
@@ -150,7 +149,6 @@ function y = spm_gen_image(P,M,U)
 % generative model of image
 % FORMAT y = spm_gen_image(P,M,U)
 %__________________________________________________________________________
-% Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
  
 % convolve
 %--------------------------------------------------------------------------
@@ -160,7 +158,6 @@ function K = K(P,M,U)
 % convolution kernel
 % FORMAT K = K(P)
 %__________________________________________________________________________
-% Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
  
 nV  = U.dt;        % number of voxels
 nD  = numel(nV);   % number of dimensions

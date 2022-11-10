@@ -5,10 +5,9 @@ function spm_dem_cue_movie(DEM,q)
 % DEM - DEM structure from reaching simulations
 % q   - flag switching from true to perceived reaching
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dem_set_movie.m 4231 2011-03-07 21:00:02Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 % Dimensions
 %--------------------------------------------------------------------------

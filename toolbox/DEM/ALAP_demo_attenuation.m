@@ -12,10 +12,9 @@ function ALAP_demo_attenuation
 % abolishes sensory attenuation at the expense of false (delusional) 
 % posterior beliefs about antagonistic external forces.
 %__________________________________________________________________________
-% Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ALAP_demo_attenuation.m 4826 2012-08-03 16:45:09Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
 % process (G) and model (M)
 %==========================================================================

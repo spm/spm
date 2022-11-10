@@ -4,10 +4,9 @@ function [f]= spm_dem_reach_plot(DEM)
 %
 % DEM - DEM structure from reaching simulations
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dem_reach_plot.m 3901 2010-05-27 16:14:36Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 % evaluate positions
 %--------------------------------------------------------------------------

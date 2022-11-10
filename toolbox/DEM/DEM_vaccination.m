@@ -13,7 +13,7 @@ function Tab = DEM_vaccination
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_vaccination.m 8236 2022-04-03 11:26:28Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % sent plotting colours for overlay (with without interventions)

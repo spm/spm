@@ -40,7 +40,6 @@ function [pE,pC] = spm_cmm_priors(A,B,C)
 % David O, Friston KJ (2003) A neural mass model for MEG/EEG: coupling and
 % neuronal dynamics. NeuroImage 20: 1743-1755
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
 % Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging

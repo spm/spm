@@ -10,10 +10,9 @@ function [f]= spm_fx_dem_cue(x,v,P)
 %
 % P.x  - target locations (visual) - extrinsic coordinates (Cartesian)
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_dem_cue.m 4230 2011-03-07 20:58:38Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
 % intisaise flow (to ensure fields are aligned)
 %--------------------------------------------------------------------------

@@ -23,10 +23,9 @@ function f = spm_fx_mountaincar(x,v,a,P)
 % Spemannstraße 38, 72076 T¨ubingen, Germany
 % {carl,malte.kuss}@tuebingen.mpg.de
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_mountaincar.m 7679 2019-10-24 15:54:07Z spm $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
  
 % determine controlled forces (a)

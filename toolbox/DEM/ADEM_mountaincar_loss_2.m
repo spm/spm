@@ -9,10 +9,9 @@
 %
 % This is version 2; where loss is represented at each location
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_mountaincar_loss_2.m 4804 2012-07-26 13:14:18Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
 % generative process (mountain car terrain)
 %==========================================================================                        % switch for demo

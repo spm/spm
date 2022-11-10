@@ -14,10 +14,9 @@ function [R] = spm_DEM_MEG(DEM,dt,n,graphics)
 %
 % see also spm_DEM_ERP
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DEM_MEG.m 4187 2011-02-01 20:13:57Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 % defaults
 %--------------------------------------------------------------------------

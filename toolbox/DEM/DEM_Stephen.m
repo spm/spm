@@ -13,7 +13,7 @@ function Tab = DEM_Stephen
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_Stephen.m 8153 2021-09-17 17:10:56Z spm $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % sent plotting colours for overlay (with without interventions)

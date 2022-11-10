@@ -10,10 +10,9 @@ function DEM_path_integrals
 % equation. The point being made here is that the terms based upon the
 % surprisal (cyan dots) upper bound the action (blue dots).
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_path_integrals.m 7679 2019-10-24 15:54:07Z spm $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % set up (ignoring Stratonovich term; i.e., divergence)

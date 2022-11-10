@@ -37,10 +37,9 @@ function DEM_demo_fMRI_HMM
 %  example, we did not introduce any differences between the two groups
 %  (i.e., subjects) and therefore expected to infer no group effect.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_demo_fMRI_HMM.m 7679 2019-10-24 15:54:07Z spm $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 

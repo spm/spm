@@ -72,10 +72,9 @@ function MDP = DEM_sharing
 % whereas, in the brain or analogue (neuromorphic) implementations they
 % would be simpler to instantiate.
 %_________________________________________________________________________
-% Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_sharing.m 8333 2022-11-04 20:48:41Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 rng('default')

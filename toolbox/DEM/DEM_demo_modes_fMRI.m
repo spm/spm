@@ -22,10 +22,9 @@ function DEM_demo_modes_fMRI
 %           spm_dcm_fmri_mode_gen
 %           spm_dcm_fmri_mode
 %__________________________________________________________________________
-% Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_demo_modes_fMRI.m 5838 2014-01-18 18:40:37Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % Simulate timeseries

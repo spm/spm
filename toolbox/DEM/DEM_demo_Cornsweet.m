@@ -9,10 +9,9 @@ function DEM_demo_Cornsweet
 % explanation for visual input (reflectance times illuminant) assigns edges
 % to the reflectance; thereby producing the Cornsweet effect.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_Cornsweet.m 4851 2012-08-20 15:03:48Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
  
 % Illustrate the Cornsweet effect

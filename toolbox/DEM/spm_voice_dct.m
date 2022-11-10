@@ -10,10 +10,9 @@ function [U] = spm_voice_dct(N,K,n,s)
 % This routine returns a discrete cosine transform matrix sampled
 % logarithmically according to a scaling parameter.
 %__________________________________________________________________________
-% Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_dct.m 7750 2019-12-05 17:54:29Z spm $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % defaults

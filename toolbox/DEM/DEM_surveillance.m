@@ -72,10 +72,9 @@ function MDP = DEM_surveillance
 % whereas, in the brain or analogue (neuromorphic) implementations they
 % would be simpler to instantiate.
 %_________________________________________________________________________
-% Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_surveillance.m 8313 2022-09-30 18:33:43Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 rng('default')

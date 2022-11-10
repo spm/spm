@@ -5,10 +5,9 @@ function spm_MDP_plot(MDP)
 % MDP - nested MDP (and DEM) structures
 %     - (requires fields to specify the labels of states and outcomes)
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_plot.m 6977 2016-12-24 17:48:44Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 % Preliminaries
 %--------------------------------------------------------------------------

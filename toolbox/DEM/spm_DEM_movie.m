@@ -12,10 +12,9 @@ function [M] = spm_DEM_movie(qU,S,FPS);
 %
 % A button press on the image will play the movie. The i-th frame is simply S.V*qU.v{1}(:,i)
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM_movie.m 3715 2010-02-08 13:57:26Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
 % load image modes
 %--------------------------------------------------------------------------

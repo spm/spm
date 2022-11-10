@@ -46,10 +46,9 @@ function [MB] = DEMO_DCM_MB
 % (neuronal) timeseries.
 % 
 %__________________________________________________________________________
-% Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEMO_DCM_MB.m 7799 2020-03-12 17:23:14Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 SPM = load('C:\home\spm\SPM\analysis_set9\SPM.mat','SPM');

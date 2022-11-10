@@ -6,10 +6,9 @@ function ADEM_lorenz
 % see if it has remembered the chaotic dynamics it learnt in the training
 % environment
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_lorenz.m 4804 2012-07-26 13:14:18Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 % generative model
 %==========================================================================

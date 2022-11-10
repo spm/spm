@@ -7,10 +7,9 @@ function DEM_demo_Gabor
 % the input) to recover the stimulus that can be represented. The
 % prediction shown in the lower panels had position information removed.
 %___________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_demo_Gabor.m 4804 2012-07-26 13:14:18Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
 % temporal correlations
 %--------------------------------------------------------------------------

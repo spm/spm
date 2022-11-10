@@ -38,10 +38,9 @@ function [M] = spm_DEM_M(model,varargin)
 %   M(i).n  = number of states x(i);
 %   M(i).l  = number of output v(i);
 %__________________________________________________________________________
-% Copyright (C) 2007-2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DEM_M.m 6416 2015-04-21 15:34:10Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 switch lower(model)

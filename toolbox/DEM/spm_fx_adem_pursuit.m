@@ -12,10 +12,9 @@ function [f]= spm_fx_adem_pursuit(x,v,a,P)
 % v    - hidden cause (speed)
 % P    - parameters
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_adem_pursuit.m 4625 2012-01-24 20:53:10Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
 % intisaise flow (to ensure fields are aligned)
 %--------------------------------------------------------------------------

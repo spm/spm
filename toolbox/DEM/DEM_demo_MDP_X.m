@@ -35,10 +35,9 @@ function MDP = DEM_demo_MDP_X
 %
 % see also: DEM_demo_MDP_habits.m and spm_MPD_VB_X.m
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_MDP_X.m 8313 2022-09-30 18:33:43Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
 % set up and preliminaries
 %==========================================================================

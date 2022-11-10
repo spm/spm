@@ -30,10 +30,9 @@ function spm_MDP_urn
 % of how to estimate model parameters using the likelihood of observed
 % (simulated) choices.
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_urn.m 6592 2015-11-06 16:20:48Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
 % set up and preliminaries
 %==========================================================================

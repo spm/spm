@@ -7,10 +7,9 @@ function [y] = spm_cornsweet(P,M,U)
 %  y{1} - matched contrast level for Cornsweet effect
 %  y{2} - probability of seeing Mach bands
 %__________________________________________________________________________
-% Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_cornsweet.m 4339 2011-06-02 13:04:49Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
  
 % get variables

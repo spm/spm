@@ -21,10 +21,9 @@ function [g]= spm_gx_adem_write(x,v,a,P)
 % 
 % As for spm_dem_reach but with no visual target
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_gx_adem_write.m 3901 2010-05-27 16:14:36Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 % evaluate positions
 %--------------------------------------------------------------------------

@@ -44,10 +44,9 @@ function DEM = ADEM_eyeblink(OPTION)
 % states (for trace conditioning): see the functions at the end of this
 % routine.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: ADEM_eyeblink.m 7679 2019-10-24 15:54:07Z spm $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % paradigm and stimuli

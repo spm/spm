@@ -23,10 +23,9 @@ function DEM = DEM_cells
 % of cells that can be one of three types at the local level; independently
 % of their time at the global level.
 %__________________________________________________________________________
-% Copyright (C) 2017 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_cells.m 7447 2018-10-13 15:32:10Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 % preliminaries
 %--------------------------------------------------------------------------

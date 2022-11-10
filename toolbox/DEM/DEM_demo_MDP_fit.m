@@ -30,10 +30,9 @@ function BMA = DEM_demo_MDP_fit
 %
 % see also: spm_MPD_VB.m, spm_dcm_mdp.m and spm_nlsi_Newton.m
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_MDP_fit.m 7679 2019-10-24 15:54:07Z spm $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
 % set up and preliminaries: first generate synthetic (single subject) data
 %==========================================================================

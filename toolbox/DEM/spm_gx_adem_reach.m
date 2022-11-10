@@ -15,10 +15,9 @@ function [g] = spm_gx_adem_reach(x,v,a,P)
 % a    - action
 % P    - parameters
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_gx_adem_reach.m 3893 2010-05-17 18:28:52Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 % stretch (angular) and visual (positional) information (target & arm)
 %==========================================================================

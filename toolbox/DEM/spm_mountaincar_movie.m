@@ -9,10 +9,9 @@ function spm_mountaincar_movie(DEM)
 % Spemannstraße 38, 72076 T¨ubingen, Germany
 % {carl,malte.kuss}@tuebingen.mpg.de
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mountaincar_movie.m 7679 2019-10-24 15:54:07Z spm $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
  
 % get postion

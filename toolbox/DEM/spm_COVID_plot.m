@@ -15,7 +15,7 @@ function spm_COVID_plot(Y,X,Z,u,U)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_plot.m 7891 2020-07-07 16:34:13Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 % Plot outcomes
 %==========================================================================

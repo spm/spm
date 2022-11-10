@@ -51,10 +51,9 @@ function DCM = spm_meta_model(DCM)
 % be used in the usual way for inference on parameters or Bayesian model
 % comparison (as for other DCMs)
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_meta_model.m 5788 2013-12-06 20:08:57Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
  
  

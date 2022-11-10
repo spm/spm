@@ -8,10 +8,9 @@ function [on,rt,ac] = spm_ADEM_cue_rt(DEM)
 % ac  - accuracy
 % rt  - reaction time
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_ADEM_cue_rt.m 4231 2011-03-07 21:00:02Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
 % distance from target and cue contrast
 %--------------------------------------------------------------------------

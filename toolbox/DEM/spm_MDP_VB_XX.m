@@ -126,10 +126,9 @@ function [MDP] = spm_MDP_VB_XX(MDP,OPTIONS)
 % passing scheme for fixed policies; i.e., ordered sequences of actions
 % that are specified a priori.
 %__________________________________________________________________________
-% Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_XX.m 8313 2022-09-30 18:33:43Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % deal with a sequence of trials

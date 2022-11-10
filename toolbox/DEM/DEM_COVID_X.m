@@ -41,7 +41,7 @@ function [DCM] = DEM_COVID_X(Y,Data)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_X.m 7870 2020-06-09 15:02:12Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % Get data (see DATA_COVID_US): an array with a structure for each State

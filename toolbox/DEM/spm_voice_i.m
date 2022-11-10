@@ -19,10 +19,9 @@ function [i,P] = spm_voice_i(str)
 %
 %  NB: If a string is not in the lexicon, 0 is returned.
 %__________________________________________________________________________
-% Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_i.m 7750 2019-12-05 17:54:29Z spm $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % get timeseries from audio recorder(or from a path

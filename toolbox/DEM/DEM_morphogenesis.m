@@ -20,10 +20,9 @@ function DEM = DEM_morphogenesis
 % type - that is interpreted in terms of genetic and epigenetic
 % processing.
 % _________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_morphogenesis.m 7679 2019-10-24 15:54:07Z spm $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
  
 % preliminaries

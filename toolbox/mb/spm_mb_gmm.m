@@ -19,8 +19,6 @@ function [cluster,lb,Alpha] = GMMimages(X,E, cluster, priors, lkp, mu, label, va
 %__________________________________________________________________________
 % Fit a [Bayesian] Gaussian mixture model to observed data.
 
-% Copyright (C) 2018 Wellcome Centre for Human Neuroimaging
-
 lb     = struct('X',-Inf, 'P',-Inf, 'mu',-Inf, 'A',-Inf, 'Alpha',-Inf);
 
 m      = cluster{1};
@@ -926,7 +924,6 @@ function gain = get_gain(vals)
 % Compute gain --- usually used to determine a stopping criteria when
 % optimising
 %__________________________________________________________________________
-% Copyright (C) 2018 Wellcome Trust Centre for Neuroimaging
 vals = vals(:);
 gain = abs((vals(end - 1) - vals(end)) / ...
       (max(vals(isfinite(vals))) - min(vals(isfinite(vals)))));

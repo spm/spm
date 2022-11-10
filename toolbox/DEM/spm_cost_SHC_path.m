@@ -6,10 +6,9 @@ function spm_cost_SHC_path(qU,A)
 % A.x - locations of attrcuor
 % A.d - radius
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_cost_SHC_path.m 3757 2010-03-08 11:41:53Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 % plot
 %==========================================================================

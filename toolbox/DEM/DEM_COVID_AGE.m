@@ -15,7 +15,7 @@ function [DCM] = DEM_COVID_AGE
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_AGE.m 8156 2021-09-27 09:05:29Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 %% age demographics
 %--------------------------------------------------------------------------

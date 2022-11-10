@@ -14,10 +14,9 @@ function [f] = spm_cost_SHC_fxa(x,v,a,P)
 % locations % using an appropriate policy. This generative process would 
 % also substitute for Morris water-maze simulations or unbounded saccades.
 %__________________________________________________________________________
-% Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_cost_SHC_fxa.m 3757 2010-03-08 11:41:53Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
 % location and radius of attractors A (only A.q attractors deliver reward)
 %--------------------------------------------------------------------------

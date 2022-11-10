@@ -14,10 +14,9 @@ function [Y,I,FS] = spm_voice_get_next(wfile)
 % than VOX.U. if no such peak exists it advances for 500 ms (at most four
 % times)
 %__________________________________________________________________________
-% Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_get_next.m 7750 2019-12-05 17:54:29Z spm $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % get peak identification parameters from VOX

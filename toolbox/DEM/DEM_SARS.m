@@ -14,7 +14,7 @@ function DEM_SARS
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_SARS.m 7929 2020-08-16 13:43:49Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % Get data (see DATA_COVID): an array with a structure for each country

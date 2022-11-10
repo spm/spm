@@ -20,10 +20,9 @@ function [G,F0] = spm_voice_filter(Y,FS,F1,F2)
 %
 % see also: spm_voice_check.m
 %__________________________________________________________________________
-% Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_filter.m 7750 2019-12-05 17:54:29Z spm $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % defaults

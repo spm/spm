@@ -11,10 +11,9 @@ function [f]= spm_fx_adem_write(x,v,a,P)
 % a    - action (forces) (x,y)
 % P    - parameters
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_adem_write.m 3893 2010-05-17 18:28:52Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 % evaluate positions
 %--------------------------------------------------------------------------

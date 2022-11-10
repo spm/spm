@@ -24,10 +24,9 @@ function DEM_demo_MMN_deviance
 % incorrect expectations about its pitch (of varying confidence or
 % precision).
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_MMN_deviance.m 4804 2012-07-26 13:14:18Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
  
 % Create the generative model

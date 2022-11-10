@@ -22,7 +22,7 @@ function [DCM,GCM] = DEM_COVID(country,data)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID.m 7868 2020-06-02 16:39:02Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 % F: -1.5701e+04 social distancing based upon P(infected)
 % F: -1.5969e+04 social distancing based upon P(symptomatic)

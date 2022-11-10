@@ -13,10 +13,9 @@ function [S] = DEM_birdsong(file)
 % time-frequency modes.  These modes are saved in BirdSong.mat (U) for
 % illustrating DEM_demo_sequences
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_birdsong.m 7111 2017-06-16 09:01:09Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 % load bird song
 %==========================================================================

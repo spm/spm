@@ -17,10 +17,9 @@ function [f,p] = spm_DEM_basis(x,v,P)
 % where B(x,i) are basis functions
 %
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM_basis.m 3140 2009-05-21 18:38:17Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
 % basis set
 %--------------------------------------------------------------------------

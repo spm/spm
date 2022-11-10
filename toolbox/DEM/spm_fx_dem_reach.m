@@ -13,10 +13,9 @@ function [f]= spm_fx_dem_reach(x,v,P)
 %   v(3) - cue strength
 % P    - parameters
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_dem_reach.m 6866 2016-09-05 09:19:42Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % evaluate positions

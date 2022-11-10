@@ -75,4 +75,4 @@
 %__________________________________________________________________________
 
 % Karl Friston and Rick Adams
-% Copyright (C) 2013-2022 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2013-2022 Wellcome Centre for Human Neuroimaging

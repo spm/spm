@@ -29,10 +29,9 @@ function [PP] = spm_voice_get_LEX(xY,word,NI)
 %  variable. In addition, the expected value of various coefficients are
 %  stored in VOX.W and VOX.P.
 %__________________________________________________________________________
-% Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_get_LEX.m 7750 2019-12-05 17:54:29Z spm $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % defaults

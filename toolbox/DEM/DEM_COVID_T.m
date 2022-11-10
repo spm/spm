@@ -30,7 +30,7 @@ function [DCM] = DEM_COVID_T
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_T.m 7891 2020-07-07 16:34:13Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 % Get data for the United Kingdom (including total tests R)
 %==========================================================================

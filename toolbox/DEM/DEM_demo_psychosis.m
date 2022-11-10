@@ -29,10 +29,9 @@ function DEM_demo_psychosis
 % much easier (cf, the difference between deterministic dynamic causal
 % modelling and stochastic dynamic causal modelling).
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_psychosis.m 8153 2021-09-17 17:10:56Z spm $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
  
 %% Set up the generative model

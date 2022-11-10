@@ -29,7 +29,7 @@ function dSYdP = spm_COVID_R_cii(DCM,U,name)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_R_cii.m 7849 2020-05-13 19:48:29Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 % setup and default: number of outcomes to evaluate
 %--------------------------------------------------------------------------

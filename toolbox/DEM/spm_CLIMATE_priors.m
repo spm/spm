@@ -30,7 +30,7 @@ function [P,C,str] = spm_CLIMATE_priors
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_CLIMATE_priors.m 8154 2021-09-24 11:25:10Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 % names of outcome and latent states saved in a structure for potting
 %==========================================================================

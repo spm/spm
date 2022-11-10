@@ -4,10 +4,9 @@ function ADEM_SHC_demo
 % example each (unstable) fixed point in the SHC attracts the agent to
 % points on the circumference of a circle.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_SHC_demo.m 6290 2014-12-20 22:11:50Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
 % generative process
 %==========================================================================

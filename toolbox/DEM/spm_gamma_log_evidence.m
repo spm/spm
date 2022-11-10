@@ -13,10 +13,9 @@ function [F,sA] = spm_gamma_log_evidence(qA,pA,rA)
 % This routine computes the negative log evidence of a reduced model of a
 % gamma distribution parameterised in terms of its shape parameter.
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_gamma_log_evidence.m 7493 2018-11-21 12:47:55Z thomas $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 % reduced posteriors
 %--------------------------------------------------------------------------

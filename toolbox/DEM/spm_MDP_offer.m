@@ -23,10 +23,9 @@ function spm_MDP_offer
 % produce trial-specific changes in uncertainty - or how one can use
 % behaviour to identify the parameters used by a subject.
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_offer.m 7679 2019-10-24 15:54:07Z spm $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
 % set up and preliminaries
 %==========================================================================

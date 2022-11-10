@@ -9,10 +9,9 @@ function DEM_demo_GF_and_KF
 % over Kalman filtering rests on the optimisation of K - the rate of
 % generalised descent on free energy (see code after 'return').
 %__________________________________________________________________________
-% Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_GF_and_KF.m 4804 2012-07-26 13:14:18Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
  
 % linear generative model

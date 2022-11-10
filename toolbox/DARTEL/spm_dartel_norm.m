@@ -6,7 +6,6 @@ function out = spm_dartel_norm(job)
 % job.interp     - Interpolation method
 % job.K          - 2^K timesteps are used
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
 % Copyright (C) 2006-2022 Wellcome Centre for Human Neuroimaging

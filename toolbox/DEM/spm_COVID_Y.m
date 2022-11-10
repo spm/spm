@@ -21,7 +21,7 @@ function [Y,S,dates] = spm_COVID_Y(Y,date0,days)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_Y.m 8206 2022-01-06 11:27:29Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % set up

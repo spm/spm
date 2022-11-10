@@ -10,10 +10,9 @@ function DEM_demo_SOC
 % free energy - as a function of precision of the motion of hidden states
 % (see code after return).
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_SOC.m 4804 2012-07-26 13:14:18Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
  
 % hierarchical non-linear generative model of birdsong

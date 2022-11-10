@@ -12,7 +12,7 @@ function [DCM, PEB, BMA, BMR] = DEM_Immune
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
  
 % Thomas Parr
-% $Id: DEM_Immune.m 7946 2020-09-15 12:12:15Z spm $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 % For reproducibility
 %--------------------------------------------------------------------------

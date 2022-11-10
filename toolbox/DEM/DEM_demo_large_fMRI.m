@@ -10,10 +10,9 @@ function DEM_demo_large_fMRI
 % We illustrate (for time convenience) the inversion of eight nodes and 64
 % connections.
 %__________________________________________________________________________
-% Copyright (C) 2010 Wellcome Trust Centrea for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_demo_large_fMRI.m 7270 2018-03-04 13:08:10Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 % Simulate timeseries
 %==========================================================================

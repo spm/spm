@@ -7,7 +7,7 @@ function [P,C] = spm_immune_priors
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
  
 % Thomas Parr
-% $Id: spm_immune_priors.m 7946 2020-09-15 12:12:15Z spm $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 % Log scale parameters for initial states
 %--------------------------------------------------------------------------

@@ -6,10 +6,9 @@ function [Q] = spm_mountaincar_Q(x)
 %
 % Q   - desired equilibrium density; p(x)
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mountaincar_Q.m 2033 2008-09-02 18:32:14Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
 % desired equilibrium density
 %--------------------------------------------------------------------------

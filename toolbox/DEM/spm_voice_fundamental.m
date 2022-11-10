@@ -19,10 +19,9 @@ function [F0,F1] = spm_voice_fundamental(Y,FS)
 % This routine is not used for voice recognition but can be useful for
 % diagnostic purposes.
 %__________________________________________________________________________
-% Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_fundamental.m 7750 2019-12-05 17:54:29Z spm $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % find fundamental frequencies

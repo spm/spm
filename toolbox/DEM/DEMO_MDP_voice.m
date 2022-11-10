@@ -34,10 +34,9 @@ function MDP = DEMO_MDP_voice
 %
 % see also: DEM_demo_MDP_habits.m and spm_MPD_VB_X.m
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEMO_MDP_voice.m 7679 2019-10-24 15:54:07Z spm $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 clear global VOX TRAIN
 rng('default')

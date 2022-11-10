@@ -14,7 +14,7 @@ function DCM = DEM_Dispatches
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_Dispatches.m 8037 2020-12-27 21:36:21Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 % set up and preliminaries
 %==========================================================================

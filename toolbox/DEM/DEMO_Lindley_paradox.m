@@ -10,10 +10,9 @@ function DEMO_Lindley_paradox(pC,hE,hC)
 % relationship between free energy differences or log Bayes factors and
 % classical F statistics.
 %__________________________________________________________________________
-% Copyright (C) 2010-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: DEMO_Lindley_paradox.m 8280 2022-07-08 09:50:45Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % set up

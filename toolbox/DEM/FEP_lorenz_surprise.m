@@ -19,10 +19,9 @@ function FEP_lorenz_surprise
 % dependent) solenoidal flow around a multivariate Gaussian, which might be
 % a reasonable approximation in the setting of random fluctuations.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: FEP_lorenz_surprise.m 8179 2021-11-03 19:31:30Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 %% dynamics and parameters of a Lorentz system (with Jacobian)

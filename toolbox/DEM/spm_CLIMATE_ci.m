@@ -30,7 +30,7 @@ function [Y,C] = spm_CLIMATE_ci(Ep,Cp,Z,U,M,NPI)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_CLIMATE_ci.m 8154 2021-09-24 11:25:10Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 % preliminaries
 %--------------------------------------------------------------------------

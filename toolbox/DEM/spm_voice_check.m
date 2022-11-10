@@ -17,10 +17,9 @@ function [G,Y] = spm_voice_check(Y,FS,C)
 % 
 % see also: spm_voice_filter.m
 %__________________________________________________________________________
-% Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_check.m 7750 2019-12-05 17:54:29Z spm $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % find the interval that contains spectral energy

@@ -8,10 +8,9 @@ function ADEM_motor
 % then show how the movement is robust to changes in the true motor
 % dynamics and other exogenous perturbations, late in movement execution
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_motor.m 4804 2012-07-26 13:14:18Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
 % Recognition model (linear for expediency)
 %==========================================================================

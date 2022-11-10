@@ -18,10 +18,9 @@ function [I] = spm_voice_onsets(Y,FS,C,U)
 %
 % see also: spm_voice_onset.m
 %__________________________________________________________________________
-% Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_onsets.m 7750 2019-12-05 17:54:29Z spm $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % find the interval that contains spectral energy

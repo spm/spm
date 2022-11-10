@@ -9,10 +9,9 @@ function DEM_demo_doublewell_LAP
 % no free parameters or hyperparameters and the mean-field assumption 
 % implcit in DEM is irrelevant.
 %__________________________________________________________________________
-% Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_doublewell_LAP.m 4804 2012-07-26 13:14:18Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
  
 % Create model and data

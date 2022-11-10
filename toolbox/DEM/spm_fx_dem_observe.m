@@ -16,10 +16,9 @@ function [f]= spm_fx_dem_observe(x,v,P)
 %   v(1) - not used
 % P    - parameters (locations of point attratcors in state-space)
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_dem_observe.m 6290 2014-12-20 22:11:50Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 % motion of physical states
 %==========================================================================

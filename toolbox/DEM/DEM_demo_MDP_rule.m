@@ -29,10 +29,9 @@ function MDP = DEM_demo_MDP_rule
 %
 % see also: DEM_demo_MDP_habits.m and spm_MPD_VB_X.m
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_demo_MDP_rule.m 8262 2022-06-03 14:15:28Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 % set up and preliminaries
 %==========================================================================
@@ -683,10 +682,9 @@ function [MDP] = spm_MDP_VB_rule(MDP,BMR)
 %
 % See also: spm_MDP_log_evidence.m, spm_MDP_VB and spm_MDP_VB_X.m
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_demo_MDP_rule.m 8262 2022-06-03 14:15:28Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % deal with a sequence of trials

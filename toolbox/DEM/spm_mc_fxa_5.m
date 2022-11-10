@@ -10,10 +10,9 @@ function [f] = spm_mc_fxa_5(x,v,a,P)
 %
 % returns f = dx/dt 
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mc_fxa_5.m 3333 2009-08-25 16:12:44Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 % physical flow
 %--------------------------------------------------------------------------

@@ -10,10 +10,9 @@ function FEP_physics
 % descriptions are in the form of a figure legend, where each section is
 % summarised with a figure.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: FEP_physics.m 7681 2019-10-24 16:22:40Z spm $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % default settings (GRAPHICS sets movies)

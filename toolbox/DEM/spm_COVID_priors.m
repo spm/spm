@@ -35,7 +35,7 @@ function [P,C,str,rfx] = spm_COVID_priors
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_priors.m 7929 2020-08-16 13:43:49Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 % sources and background
 %--------------------------------------------------------------------------

@@ -14,7 +14,7 @@ function spm_SARS_plot(Y,X,Z,U)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_plot.m 8221 2022-02-13 11:12:11Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 % Plot outcomes
 %==========================================================================

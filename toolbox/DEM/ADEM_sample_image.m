@@ -22,10 +22,9 @@ function [s] = ADEM_sample_image(V,o,R)
 % STIM.P = image position in retinal  coordinates (default: [0;0])
 % STIM.B = basis functions or receptive fields    (default: 1)
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_sample_image.m 6932 2016-11-16 12:11:01Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % retinotopic predictions

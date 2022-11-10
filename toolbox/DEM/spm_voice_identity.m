@@ -16,10 +16,9 @@ function [F0,F1] = spm_voice_identity(wfile,P)
 % and first formant frequencies based upon speech with known lexical
 % content.
 %__________________________________________________________________________
-% Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_identity.m 7750 2019-12-05 17:54:29Z spm $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % global VOX

@@ -36,7 +36,7 @@ function data = DATA_COVID_JHU(n)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DATA_COVID_JHU.m 8129 2021-08-02 18:08:36Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 % get data
 %--------------------------------------------------------------------------

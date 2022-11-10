@@ -10,10 +10,9 @@ function DEM_demo_hdm_SCK
 % noiseless. The key thing to focus on is the comparative performance in
 % recovering the hidden states and causes.
 %__________________________________________________________________________
-% Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_hdm_SCK.m 4804 2012-07-26 13:14:18Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
  
 % create model and generate data

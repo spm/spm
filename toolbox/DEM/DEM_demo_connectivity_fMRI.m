@@ -28,10 +28,9 @@ function DEM_demo_connectivity_fMRI
 %           spm_dcm_fmri_graph_gen.m
 %           spm_dcm_fmri_mode_gen
 %__________________________________________________________________________
-% Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_demo_connectivity_fMRI.m 7679 2019-10-24 15:54:07Z spm $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 % Simulate timeseries
 %==========================================================================

@@ -10,10 +10,9 @@ function [FS,read] = spm_voice_FS(wfile)
 %  This auxiliary routine finds the sampling frequency and returns a
 %  function handle appropriate for the sound format in question.
 %__________________________________________________________________________
-% Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_FS.m 7750 2019-12-05 17:54:29Z spm $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % get timeseries from audio recorder(or from a file)

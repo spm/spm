@@ -32,10 +32,9 @@ function LAP = DEM_demo_texture
 % PS: for a 2-D simulation delete 'return' below.
 %
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_texture.m 7679 2019-10-24 15:54:07Z spm $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
 
 % Create a generative model:

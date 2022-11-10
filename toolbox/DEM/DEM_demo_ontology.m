@@ -22,10 +22,9 @@ function DEM_demo_ontology
 % predicting putative response in the future, based upon a posterior
 % predictive density.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_ontology.m 6511 2015-08-02 15:05:41Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
  
 % Set up the generative model

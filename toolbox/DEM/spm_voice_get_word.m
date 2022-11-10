@@ -36,10 +36,9 @@ function [O,I,J,F] = spm_voice_get_word(wfile,P)
 % will perform a tree search and return the likelihoods (and intervals)
 % with the path of greatest log evidence (i.e., free energy).
 %__________________________________________________________________________
-% Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_get_word.m 7750 2019-12-05 17:54:29Z spm $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 %% log prior over lexical content

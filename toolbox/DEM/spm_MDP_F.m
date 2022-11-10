@@ -12,10 +12,9 @@ function [F,Fu,Fs,Fq,Fg,Fa] = spm_MDP_F(MDP)
 % If MDP is a cell array, the free actions are turned (summed over time),
 % otherwise, the free energies are turned over time
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_F.m 6811 2016-06-17 09:55:47Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % evaluate free action

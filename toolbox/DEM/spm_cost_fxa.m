@@ -10,10 +10,9 @@ function [f] = spm_cost_fxa(x,v,a,P)
 %
 % returns f = dx/dt 
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_cost_fxa.m 3757 2010-03-08 11:41:53Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 % physical flow
 %--------------------------------------------------------------------------

@@ -6,10 +6,9 @@ function DEM_demo_song_priors
 % We then repeat but omitting dynamical priors by forsaking generalised 
 % coordinates
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_song_priors.m 6030 2014-05-31 13:09:24Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
  
 % hierarchical non-linear generative model (dynamic & chaotic)

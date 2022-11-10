@@ -16,10 +16,9 @@ function ADEM_learning
 % or utility.
 
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_learning.m 6801 2016-05-29 19:18:06Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
  
 % generative model

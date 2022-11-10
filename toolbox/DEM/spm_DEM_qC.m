@@ -12,10 +12,9 @@ function [qP] = spm_DEM_qC(M)
 % see spm_DEM and spm_ADEM for details.
 %
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM_qC.m 4580 2011-12-02 20:22:19Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
  
 % order parameters (d = n = 1 for static models) and checks

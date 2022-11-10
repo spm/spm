@@ -5,10 +5,9 @@ function DEM_demo_hierarchical_optmisation
 % free energy by recasting the problem in terms of a parameterised mapping 
 % from conditional expectation to free energy explicitly.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_hierarchical_optmisation.m 4989 2012-10-05 19:25:07Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
 % set up model (a simple GLM)
 %==========================================================================

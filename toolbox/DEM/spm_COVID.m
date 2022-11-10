@@ -40,7 +40,7 @@ function [F,Ep,Cp,pE,pC,Eh] = spm_COVID(Y,pE,pC,hC)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID.m 7866 2020-05-30 09:57:38Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % Gaussian priors over model parameters

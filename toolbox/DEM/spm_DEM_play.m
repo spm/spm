@@ -13,10 +13,9 @@ function [Y,FS] = spm_DEM_play(qU,S,T);
 %
 % A button press on the spectrogram will play the sound
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM_play.m 1380 2008-04-11 18:55:18Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
 % load frequency modes
 %--------------------------------------------------------------------------

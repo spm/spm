@@ -26,10 +26,9 @@ function Q = spm_MDP_VB_game(MDP)
 %
 % please see spm_MDP_VB
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_game.m 8313 2022-09-30 18:33:43Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 % numbers of transitions, policies and states
 %--------------------------------------------------------------------------

@@ -23,10 +23,9 @@ function DEM_FEP_Lorenz
 % propagated over time to induce uncertainty about a particle's state; even
 % when the initial (particular) state is known.
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_FEP_Lorenz.m 8179 2021-11-03 19:31:30Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 % generative model
 %==========================================================================                       % switch for demo

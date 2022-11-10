@@ -27,10 +27,9 @@ function FEP_fluctuations
 % separation)
 %
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: FEP_fluctuations.m 7163 2017-09-04 09:12:50Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
  
 % default settings (GRAPHICS sets movies)

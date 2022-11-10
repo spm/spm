@@ -34,7 +34,7 @@ function [S,CS,Y,C,t] = spm_SARS_ci(Ep,Cp,Z,U,M,NPI,age)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_SARS_ci.m 8312 2022-09-30 18:21:14Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 % default: number of outcomes to evaluate
 %--------------------------------------------------------------------------

@@ -10,10 +10,9 @@ function [mdp, Z] = DEMO_MDP_Stroop(p)
 % 
 % see also: spm_MDP_VB_X.m, DEM_demo_MDP_reading.m, DEMO_MDP_questions.m
 %__________________________________________________________________________
-% Copyright (C) 2022 Wellcome Trust Centre for Neuroimaging
 
 % Thomas Parr
-% $Id: DEMO_MDP_Stroop.m 8340 2022-11-09 20:49:05Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 % set up and preliminaries
 %==========================================================================

@@ -25,10 +25,9 @@ function [Q,X,V,A,x] = spm_soup(x,u,P,T,dt,PLOT)
 % specified states. It deals with the special case of within and between
 % particle coupling.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_soup.m 7679 2019-10-24 15:54:07Z spm $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 % equations of motion
 %--------------------------------------------------------------------------

@@ -60,10 +60,9 @@ function [Q,R,S,U,P] = spm_MDP(MDP)
 %
 % See also spm_MDP_game
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP.m 6061 2014-06-21 09:02:42Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 % set up and preliminaries
 %==========================================================================

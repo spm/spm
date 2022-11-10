@@ -6,10 +6,9 @@ function mdp = DEMO_MDP_Understanding
 %
 % see also: DEM_demo_MDP_X.m and spm_MPD_VB_X.m
 %__________________________________________________________________________
-% Copyright (C) 2021 Wellcome Trust Centre for Neuroimaging
 
 % Thomas Parr
-% $Id: DEMO_MDP_Understanding.m 8153 2021-09-17 17:10:56Z spm $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 % set up and preliminaries
 %==========================================================================

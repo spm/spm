@@ -10,10 +10,9 @@ function [J] = spm_dem_reach_x2J(x)
 % J1   - position of 1st joint
 % J2   - position of 2nd joint (relative to first)
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dem_reach_x2J.m 3893 2010-05-17 18:28:52Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 % evaluate positions
 %--------------------------------------------------------------------------

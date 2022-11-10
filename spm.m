@@ -778,8 +778,8 @@ fprintf('\n');
 %=======================================================================
 case {'fnbanner','sfnbanner','ssfnbanner'}  %-Text banners for functions
 %=======================================================================
-% SPMid = spm('FnBanner', Fn,FnV)
-% SPMid = spm('SFnBanner',Fn,FnV)
+% SPMid = spm('FnBanner',  Fn,FnV)
+% SPMid = spm('SFnBanner', Fn,FnV)
 % SPMid = spm('SSFnBanner',Fn,FnV)
 %-----------------------------------------------------------------------
 time = spm('time');
@@ -788,9 +788,9 @@ if nargin>=2, str = [str,': ',varargin{2}]; end
 if nargin>=3 
     v = regexp(varargin{3},'\$Rev: (\d*) \$','tokens','once');
     if ~isempty(v)
-        str = [str,' (v',v{1},')'];
+        str = [str,' (',v{1},')'];
     else
-        str = [str,' (v',varargin{3},')'];
+        str = [str,' (',varargin{3},')'];
     end
 end
 
@@ -800,11 +800,11 @@ case 'fnbanner'
     wid = 72;
     lch = '=';
 case 'sfnbanner'
-    tab = sprintf('\t');
+    tab = repmat(' ',1,8);
     wid = 72-8;
     lch = '-';
 case 'ssfnbanner'
-    tab = sprintf('\t\t');
+    tab = repmat(' ',1,2*8);
     wid = 72-2*8;
     lch = '-';
 end

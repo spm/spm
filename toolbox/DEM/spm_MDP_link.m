@@ -9,10 +9,9 @@ function [LINK,link] = spm_MDP_link(MDP)
 %
 % this routine assumes unique names in MDP.labels
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_link.m 7382 2018-07-25 13:58:04Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 % search for matching strings identifying outcomes at the higher level with
 % states at the lower level

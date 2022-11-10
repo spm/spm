@@ -16,10 +16,9 @@ function [g]= spm_gx_dem_cue(x,v,P)
 %   g.c  - target contrast  (visual)
 % 
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_gx_dem_cue.m 4230 2011-03-07 20:58:38Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
 % evaluate positions in intrinsic (polar) coordinates
 %--------------------------------------------------------------------------

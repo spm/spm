@@ -15,10 +15,9 @@ function spm_MDP_mountain_car(X,V,T)
 % result is a planned trajectory through state space that realizes prior
 % beliefs in a prospective sense.
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_mountain_car.m 7679 2019-10-24 15:54:07Z spm $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
 % set up and preliminaries
 %==========================================================================

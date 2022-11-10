@@ -22,10 +22,9 @@ function spm_voice_P300
 % (Sound files) directory; that can be specified by editing the script
 % below.
 %__________________________________________________________________________
-% Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_P300.m 7750 2019-12-05 17:54:29Z spm $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 %% demo mode loads sentence (.mat) files

@@ -24,10 +24,9 @@ function [Y,W] = spm_voice_iff(xY)
 % fundamental frequency. In other words, it applies the reverse sequence
 % of inverse transforms implemented by spm_voice_ff.m
 %__________________________________________________________________________
-% Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_iff.m 7750 2019-12-05 17:54:29Z spm $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 % defaults
 %--------------------------------------------------------------------------

@@ -9,10 +9,9 @@ function DEM_demo_LAP
 % quadruple estimation of hidden states, exogenous input, parameters and 
 % log-precisions (and, for spm_LAP, log-smoothness)
 %__________________________________________________________________________
-% Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_LAP.m 4804 2012-07-26 13:14:18Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
 % get basic convolution model
 %==========================================================================

@@ -84,7 +84,7 @@ function [DCM] = DEM_CLIMATE_India
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_CLIMATE_India.m 8154 2021-09-24 11:25:10Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 % Load illustrative data
 %==========================================================================

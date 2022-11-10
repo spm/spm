@@ -16,7 +16,7 @@ function [y,DEM] = spm_SEM_gen(P,MM,U)
 %__________________________________________________________________________
  
 % Karl Friston
-% Copyright (C) 2013-2022 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2013-2022 Wellcome Centre for Human Neuroimaging
 
  
 % trial-specific initial states and parameters

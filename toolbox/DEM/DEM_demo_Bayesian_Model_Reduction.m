@@ -38,10 +38,9 @@ function RCM = DEM_demo_Bayesian_Model_Reduction
 % partition of model space (or families of models).
 
 %__________________________________________________________________________
-% Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_Bayesian_Model_Reduction.m 6306 2015-01-18 20:50:38Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 rng('default')
 

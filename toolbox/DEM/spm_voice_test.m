@@ -17,10 +17,9 @@ function [L] = spm_voice_test(wfile,sfile)
 %  the accuracy of inference in relation to the known words and then plays
 %  them back with and without prosody (or lexical content)
 %__________________________________________________________________________
-% Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_test.m 7750 2019-12-05 17:54:29Z spm $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % create lexical structures for subsequent word recognition

@@ -16,10 +16,9 @@ function [Q,U,V] = spm_voice_Q(W,G,Ni,ni)
 % This  auxiliary routine scales and transforms log formant coefficients
 % using a pair of discrete cosine transforms with logarithmic scaling.
 %__________________________________________________________________________
-% Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_Q.m 7750 2019-12-05 17:54:29Z spm $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % defaults and (logarithmic) scaling

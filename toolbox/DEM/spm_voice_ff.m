@@ -48,10 +48,9 @@ function [xY] = spm_voice_ff(Y,FS)
 % transform. This has two key parameters that model inflection. Please see
 % the annotated code below for further details.
 %__________________________________________________________________________
-% Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_ff.m 7750 2019-12-05 17:54:29Z spm $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % defaults

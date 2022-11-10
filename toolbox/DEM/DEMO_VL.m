@@ -4,10 +4,9 @@
 % DCM - (invert) model structure
 %
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEMO_VL.m 6291 2014-12-22 11:15:19Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 % Model specification
 %==========================================================================

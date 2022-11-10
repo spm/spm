@@ -24,7 +24,7 @@ function Markov_blankets_and_NESS
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: Markov_blankets_and_NESS.m 8175 2021-11-01 15:46:35Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 % backwards compatibility for symbolic maths
 %--------------------------------------------------------------------------

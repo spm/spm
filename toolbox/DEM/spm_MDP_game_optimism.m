@@ -95,10 +95,9 @@ function [MDP] = spm_MDP_game_optimism(MDP,OPTION)
 % maximises the KL divergence between the posterior predictive distribution
 % over hidden states and those specified by preferences or prior beliefs.
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_game_optimism.m 7679 2019-10-24 15:54:07Z spm $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 % set up and preliminaries
 %==========================================================================

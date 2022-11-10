@@ -34,10 +34,9 @@ function [MDP] = spm_MDP_VB_sleep(MDP,BMR)
 %
 % See also: spm_MDP_log_evidence.m, spm_MDP_VB and spm_MDP_VB_update.m
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_sleep.m 8308 2022-09-02 10:15:40Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % deal with a sequence of trials

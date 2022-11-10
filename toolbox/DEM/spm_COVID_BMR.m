@@ -12,7 +12,7 @@ function spm_COVID_BMR(DCM)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_BMR.m 8341 2022-11-09 21:18:12Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 % setup
 %==========================================================================

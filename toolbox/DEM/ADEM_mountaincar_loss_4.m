@@ -9,10 +9,9 @@
 %
 % This is version four; that includes a drive state.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_mountaincar_loss_4.m 4626 2012-01-24 20:55:59Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
 % generative process (mountain car terrain)
 %==========================================================================                        % switch for demo

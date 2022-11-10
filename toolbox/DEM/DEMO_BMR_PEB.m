@@ -31,10 +31,9 @@ function DEMO_BMR_PEB
 %
 % See also: spm_dcm_bmr, spm_dcm_peb and spm_dcm_peb_bma
 %__________________________________________________________________________
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: DEMO_BMR_PEB.m 6737 2016-03-03 12:05:51Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % set up

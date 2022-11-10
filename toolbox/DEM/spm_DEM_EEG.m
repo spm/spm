@@ -14,10 +14,9 @@ function [R] = spm_DEM_EEG(DEM,dt,n,graphics)
 %
 % see also spm_DEM_ERP
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DEM_EEG.m 5366 2013-03-27 21:12:10Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 % defaults
 %--------------------------------------------------------------------------

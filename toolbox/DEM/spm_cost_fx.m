@@ -12,10 +12,9 @@ function [f] = spm_cost_fx(x,v,P)
 %
 % where C determines divergence of flow x(2) at any position x(1).
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_cost_fx.m 3757 2010-03-08 11:41:53Z guillaume $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
 
 % dominant physiological state

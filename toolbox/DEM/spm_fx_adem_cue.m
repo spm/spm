@@ -8,10 +8,9 @@ function [f]= spm_fx_adem_cue(x,v,a,P)
 % v    - hidden causes
 %
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_adem_cue.m 4230 2011-03-07 20:58:38Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
 % intisaise flow (to ensure fields are aligned)
 %--------------------------------------------------------------------------

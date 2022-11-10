@@ -25,10 +25,9 @@ function DEM = spm_MDP_DEM(DEM,demi,O,o)
 % (integrated) over time. This free energy is supplemented with the prior
 % over discrete outcomes; thereby constituting a posterior over outcomes.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_DEM.m 7560 2019-03-29 14:39:38Z thomas $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % evaluate true values and priors over causes given discrete states

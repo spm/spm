@@ -27,10 +27,9 @@ function FEP_Manifold
 % experiments, in which the influence of various states are quenched.
 %
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: FEP_Manifold.m 8298 2022-07-15 10:06:28Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
  
 % default settings (GRAPHICS sets movies)

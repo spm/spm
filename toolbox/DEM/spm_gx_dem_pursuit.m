@@ -20,10 +20,9 @@ function [g] = spm_gx_dem_pursuit(x,v,P)
 % 
 % As for spm_dem_reach but with no visual target
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_gx_dem_pursuit.m 4170 2011-01-24 18:37:42Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
 % evaluate positions in intrinsic (polar) coordinates
 %--------------------------------------------------------------------------

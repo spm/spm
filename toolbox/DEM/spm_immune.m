@@ -15,7 +15,7 @@ function [F,Ep,Cp,pE,pC,Eh] = spm_immune(Y,U,pE,pC,hC)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
  
 % Thomas Parr
-% $Id: spm_immune.m 7946 2020-09-15 12:12:15Z spm $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 % Gaussian priors over model parameters
 %--------------------------------------------------------------------------

@@ -22,10 +22,9 @@ function spm_dem_search_plot(DEM)
 %   g(4) - retinal input - channel 2
 %   g(5) - ...
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dem_search_plot.m 4851 2012-08-20 15:03:48Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
  
 % Preliminaries

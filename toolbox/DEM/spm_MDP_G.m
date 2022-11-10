@@ -6,10 +6,9 @@ function [G] = spm_MDP_G(A,x)
 % x   - probability density of causes
 %
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_G.m 7306 2018-05-07 13:42:02Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % get Bayesian surprise or mutual information

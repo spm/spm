@@ -11,10 +11,9 @@ function DEM_demo_MMN
 % suppression subtends a mismatch response that has many of the
 % characteristics of the well-known mismatch negativity (MMN).
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_MMN.m 6198 2014-09-25 10:38:48Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
 
 % level 1

@@ -4,10 +4,9 @@ function DEM_get_faces
 % specifically for the images used in this demonstration and should be
 % tailored for any new images.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_get_faces.m 4804 2012-07-26 13:14:18Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
 % try to read all images in current directory
 %--------------------------------------------------------------------------

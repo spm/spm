@@ -11,10 +11,9 @@ function spm_voice_repeat
 %
 % See also: spm_voice_speak.m and spm_voice_segmentation.m
 %__________________________________________________________________________
-% Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_repeat.m 7750 2019-12-05 17:54:29Z spm $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 %% setup

@@ -23,7 +23,7 @@ function DCM = spm_dcm_spem(DCM)
 %__________________________________________________________________________
 
 % Karl Friston
-% Copyright (C) 2013-2022 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2013-2022 Wellcome Centre for Human Neuroimaging
 
 
 % name

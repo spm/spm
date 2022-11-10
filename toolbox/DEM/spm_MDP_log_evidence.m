@@ -19,10 +19,9 @@ function [F,sA,dFdA] = spm_MDP_log_evidence(qA,pA,rA)
 % A demonstration of the implicit pruning can be found at the end of this
 % routine
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_log_evidence.m 8308 2022-09-02 10:15:40Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % change in free energy or log model evidence

@@ -19,10 +19,9 @@ function [v] = spm_MDP_VB_LFP(MDP,UNITS,f,SPECTRAL)
 %
 % see also: spm_MDP_VB_ERP (for hierarchical belief updating)
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_VB_LFP.m 8313 2022-09-30 18:33:43Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
  
 % defaults

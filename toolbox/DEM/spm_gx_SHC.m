@@ -6,10 +6,9 @@ function [g] = spm_gx_SHC(x,v,P)
 % P.g  - state-space location associated with each hidden states
 %
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_gx_SHC.m 3113 2009-05-11 15:25:13Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
 % expected position (coordinates in P.g)
 %--------------------------------------------------------------------------

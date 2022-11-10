@@ -18,10 +18,9 @@ function DEM_demo_Posner
 % simultaneously.
 
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_Posner.m 4851 2012-08-20 15:03:48Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
 
 % Create a generative model: To keep thing simple we will model just 2 

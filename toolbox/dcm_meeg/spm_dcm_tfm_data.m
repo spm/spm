@@ -26,7 +26,6 @@ function DCM = spm_dcm_tfm_data(DCM)
 %    DCM.xY.scale   - scalefactor applied to data
 %    DCM.xY.Rft     - Wavelet number or ratio of frequency to time
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
 % Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging

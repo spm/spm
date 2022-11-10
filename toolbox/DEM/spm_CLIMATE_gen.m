@@ -85,7 +85,7 @@ function [Y,X,dates] = spm_CLIMATE_gen(P,M,U,NPI)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_CLIMATE_gen.m 8154 2021-09-24 11:25:10Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % preliminaries
@@ -351,7 +351,7 @@ function dxdt = spm_CLIMATE_f(x,P)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_CLIMATE_gen.m 8154 2021-09-24 11:25:10Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 % dynamics
 %==========================================================================

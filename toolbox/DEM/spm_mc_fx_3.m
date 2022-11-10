@@ -13,10 +13,9 @@ function [f] = spm_mc_fx_3(x,v,P)
 %
 % where C determines divergence of flow x(2) at any position x(1).
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mc_fx_3.m 3333 2009-08-25 16:12:44Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
  
 % gradient (G)

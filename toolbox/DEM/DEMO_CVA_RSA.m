@@ -68,10 +68,9 @@ function RSA = DEMO_CVA_RSA
 % Barnes G, Fuentemilla Lluis, Duzel E, Penny WD. PLoS One. 2013.
 % 8(8): e71305
 %__________________________________________________________________________
-% Copyright (C) 2006-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEMO_CVA_RSA.m 7679 2019-10-24 15:54:07Z spm $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % preliminaries

@@ -16,10 +16,9 @@ function [f]= spm_fx_dem_write(x,v,P)
 %   v(1) - not used
 % P    - parameters (locations of point attratcors in state-space)
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_dem_write.m 3901 2010-05-27 16:14:36Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % diameter of radial basis function (for autovitiation)

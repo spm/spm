@@ -22,7 +22,7 @@ function [T,R] = spm_COVID_T(P,I)
 % Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_T.m 8312 2022-09-30 18:21:14Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 % setup
 %==========================================================================
@@ -472,10 +472,9 @@ function [x] = spm_cat_sym(x,d)
 %
 % If called with a dimension argument, a cell array is returned.
 %__________________________________________________________________________
-% Copyright (C) 2005-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_COVID_T.m 8312 2022-09-30 18:21:14Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 %error('spm_cat.c not compiled - see Makefile')

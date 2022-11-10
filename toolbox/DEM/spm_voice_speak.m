@@ -27,10 +27,9 @@ function [xY,Y] = spm_voice_speak(q,p,r)
 %
 % see also: spm_voice_iff.m
 %__________________________________________________________________________
-% Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_speak.m 7750 2019-12-05 17:54:29Z spm $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % check for empty indices (that will invoke average lexical or prosody)

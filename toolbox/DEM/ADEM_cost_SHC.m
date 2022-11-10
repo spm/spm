@@ -16,10 +16,9 @@ function ADEM_cost_SHC
 % physiological states. This results in a failure to learn and, again, 
 % subsequent failure to optimise physiological states.
 %__________________________________________________________________________
-% Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_cost_SHC.m 7679 2019-10-24 15:54:07Z spm $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
  
 % switch for demo

@@ -20,10 +20,9 @@ function DEMO_BAYES_FACTORS(pC,hE,hC,N,b)
 % the covariance of the parameters and the log precision. These can be
 % changed by editing the code below (or supplying input arguments).
 %__________________________________________________________________________
-% Copyright (C) 2010-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: DEMO_BAYES_FACTORS.m 6737 2016-03-03 12:05:51Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % set up

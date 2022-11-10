@@ -19,10 +19,9 @@ function spm_MDP_factor_graph(MDP)
 % passing is illustrated with three arrows, corresponding to ascending
 % likelihoods, forward and backward messages (1, 2 and 3,respectively).
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_factor_graph.m 7651 2019-08-03 12:35:15Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % deal with a sequence of trials

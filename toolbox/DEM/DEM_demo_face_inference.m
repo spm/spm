@@ -15,10 +15,9 @@ function DEM_demo_face_inference
 % when we repeat the stimulus.  Clicking on the images will display the
 % movies entailed by the true and estimated causes.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_face_inference.m 4804 2012-07-26 13:14:18Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % temporal smoothness - s.d. of kernel

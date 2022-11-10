@@ -26,10 +26,9 @@
 % setting or the emission of autonomous behavior in the absence of any
 % precise sensory information
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_response_set.m 7679 2019-10-24 15:54:07Z spm $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
  
 % hidden causes and states

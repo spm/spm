@@ -11,10 +11,9 @@ function DEM_demo_lorenz_LAP
 % will cause the schemes to fail due it its inherently nonlinear nature and
 % non-identifiability); however, the results are imperfect.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_lorenz_LAP.m 7322 2018-05-31 09:47:15Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
  
 % get model

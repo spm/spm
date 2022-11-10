@@ -10,10 +10,9 @@ function ADEM_visual
 % sampling sensory input to ensure conditional expectations are met; and
 % how these expectations are shaped by prior expectations.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_visual.m 4826 2012-08-03 16:45:09Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
  
 % recognition model (M)

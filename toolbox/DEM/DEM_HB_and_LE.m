@@ -16,10 +16,9 @@ function DEM_HB_and_LE
 % this example and blanket states become the particular states (i.e., the
 % states of a particle).
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_HB_and_LE.m 7502 2018-12-02 12:28:03Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 % generative model
 %==========================================================================                       % switch for demo

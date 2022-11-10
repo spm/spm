@@ -16,10 +16,9 @@ function [s,q,f] = spm_Lap2Lorenz(P,w,x)
 % precision of random fluctuations (i.e., G = 1/(2*w)
 %--------------------------------------------------------------------------
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_Lap2Lorenz.m 8153 2021-09-17 17:10:56Z spm $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % initialise polynomial coefficients

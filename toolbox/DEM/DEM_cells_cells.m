@@ -24,10 +24,9 @@ function DEM = DEM_cells_cells
 % levels to simulate the morphogenesis of particular organelles that have a
 % different form from their constituent cellular ensembles.
 %__________________________________________________________________________
-% Copyright (C) 2017 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_cells_cells.m 7679 2019-10-24 15:54:07Z spm $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % preliminaries

@@ -3,7 +3,6 @@ function [K1,lambda] = covLin(lambda0,settings,args,lab)
 % FORMAT [K1,lambda] = covLin(lambda0,settings,args,lab)
 % No usage documentation yet
 %__________________________________________________________________________
-% Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
 % Copyright (C) 2011-2022 Wellcome Centre for Human Neuroimaging

@@ -28,10 +28,9 @@ function [x,y,ind] = spm_MDP_VB_ERP(MDP,FACTOR,T)
 %
 % see also: spm_MDP_VB_LFP (for single level belief updating)
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_ERP.m 7656 2019-08-26 14:00:36Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % defaults: assume the first factor is of interest

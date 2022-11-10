@@ -17,10 +17,9 @@ function [xY,word,NI] = spm_voice_get_xY(PATH)
 %  transform operates on a word structure xY to create lexical and prosody
 %  parameters (Q and P respectively).
 %__________________________________________________________________________
-% Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_voice_get_xY.m 7766 2020-01-05 21:37:39Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
 % get corpus

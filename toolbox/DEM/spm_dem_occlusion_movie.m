@@ -18,10 +18,9 @@ function spm_dem_occlusion_movie(DEM)
 %   g(2) - oculomotor velocity
 %   g(:) - visual input - intrinsic coordinates
 %--------------------------------------------------------------------------
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dem_occlusion_movie.m 4663 2012-02-27 11:56:23Z karl $
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
  
  
