@@ -150,11 +150,9 @@ Ns    = numel(P);                               % number of subjects
 if isfield(M,'bC') && Ns > 1
     q = spm_find_pC(M.bC,M.bE,field);           % parameter indices
 elseif isnumeric(field)
-    q = field;
-elseif iscell(field) && isstruct(DCM.M.pE) && (Ns == 1)
-    q = spm_fieldindices(DCM.M.pE,field{:});
+    q = field;                                  % parameter indices
 else
-    q = spm_find_pC(DCM,field);
+    q = spm_find_pC(DCM,field);                 % parameter indices
 end
 
 % prepare field names
