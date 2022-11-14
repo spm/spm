@@ -13,6 +13,8 @@ function spm_standalone(varargin)
 % Copyright (C) 2010-2022 Wellcome Centre for Human Neuroimaging
 
 
+%-Options
+%--------------------------------------------------------------------------
 if ~nargin, action = ''; else action = varargin{1}; end
 
 if strcmpi(action,'run')
@@ -20,8 +22,19 @@ if strcmpi(action,'run')
     action = 'batch';
 end
 
+%-Default exit code: 0 (SUCCESS)
+%--------------------------------------------------------------------------
 exit_code = 0;
 
+%-Set maximum number of computational threads to 1 by default
+% This replaces the hardcoded mcc option -singleCompThread, allowing for
+% the number of threads to be modified at runtime (either in script or in
+% spm_my_defaults.m or in startup.m).
+%--------------------------------------------------------------------------
+maxNumCompThreads(1);
+
+%-Action
+%==========================================================================
 switch lower(action)
     
     case {'','pet','fmri','eeg','quit'}

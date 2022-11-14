@@ -16,7 +16,10 @@ function spm_make_standalone(outdir, gateway, contentsver, tbxs)
 %   ./run_spm12.sh <MCRroot> script script.m
 %
 % The first command starts SPM in interactive mode with GUI. The second
-% executes a batch file or starts the Batch Editor if none is provided.
+% executes a batch file or starts the Batch Editor if none is provided,
+% while the third command evaluates the content of script.m. Extra
+% command line arguments are available in a cell array variable named
+% "inputs".
 %
 % Full list of options is accessible from:
 %   ./run_spm12.sh <MCRroot> --help
@@ -105,17 +108,17 @@ for i=1:numel(d)
     f = spm_file(d{i},'basename');
     nrmv = strncmp(f,'matlablt',8);
     if nrmv
-        [dummy,I] = sort({f(9:end),version('-release')});
+        [~,I] = sort({f(9:end),version('-release')});
         nrmv = I(1) == 2;
     end
     if ~nrmv
-        [sts, msg] = rmdir(d{i},'s');
+        [~] = rmdir(d{i},'s');
     end
 end
 for i=1:numel(tbxs)
     d = fullfile(spm('Dir'),'external','fieldtrip','external',tbxs{i});
     if exist(d,'dir')
-        [sts, msg] = rmdir(d,'s');
+        [~] = rmdir(d,'s');
     end
 end
 
@@ -129,7 +132,7 @@ for i=1:numel(tbxs)
         Nopts = [Nopts {'-p'} {d}];
     end
 end
-Ropts = {'-R','-singleCompThread'} ;
+Ropts = {} ;
 if ~ismac && spm_check_version('matlab','8.4') >= 0
     Ropts = [Ropts, {'-R','-softwareopengl'}];
 end
