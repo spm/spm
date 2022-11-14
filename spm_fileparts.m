@@ -13,11 +13,21 @@ function [pth,nam,ext,num] = spm_fileparts(fname)
 % Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 
-num = '';
 if ~ispc, fname = strrep(fname,'\',filesep); end
 [pth,nam,ext] = fileparts(fname);
-ind = find(ext==',');
+ind = strfind(ext,',');
 if ~isempty(ind)
-    num = ext(ind(1):end);
-    ext = ext(1:(ind(1)-1));
+    if isa(fname,'string') % R2016b onwards
+        num = extractAfter(ext,ind(1)-1);
+        ext = extractBefore(ext,ind(1));
+    else
+        num = ext(ind(1):end);
+        ext = ext(1:(ind(1)-1));
+    end
+else
+    if isa(fname,'string') % R2016b onwards
+        num = "";
+    else
+        num = '';
+    end
 end
