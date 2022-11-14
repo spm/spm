@@ -4,16 +4,16 @@ function varargout = cfg_ui_util(cmd, varargin)
 % module or data summary. It also handles all value display and editing for
 % a particular item.
 %
-% This code is part of a batch job configuration system for MATLAB. See 
+% This code is part of a batch job configuration system for MATLAB. See
 %      help matlabbatch
 % for a general overview.
 %_______________________________________________________________________
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui_util.m 8183 2021-11-04 15:25:19Z guillaume $
+% $Id: cfg_ui_util.m 8345 2022-11-14 15:39:05Z guillaume $
 
-rev = '$Rev: 8183 $';  %#ok<NASGU>
+rev = '$Rev: 8345 $';  %#ok<NASGU>
 
 switch lower(cmd)
     case {'preview'}
@@ -503,7 +503,7 @@ if expmode
     else
         instr = {''};
     end
-    hlptxt = char({'Enter a valid MATLAB expression.', ...
+    hlptxt  = {'Enter a valid MATLAB expression.', ...
         ' ', ...
         ['Strings must be enclosed in single quotes ' ...
         '(''A''), multiline string arrays in curly braces {} ' ...
@@ -511,7 +511,9 @@ if expmode
         ' ', ...
         'To clear a value, enter an empty cell ''{}''.', ...
         ' ', ...
-        'Leave input box with CTRL-TAB to access buttons.'});
+        'Leave input box with Ctrl+Tab to access buttons.'};
+    hlptxt  = strcat(hlptxt, {sprintf('\n')});
+    hlptxt  = deblank(cat(2, hlptxt{:}));
     failtxt = {'Input could not be evaluated. Possible reasons are:',...
         '1) Input should be a vector or matrix, but is not enclosed in ''['' and '']'' brackets.',...
         '2) Input should be a character or string, but is not enclosed in '' single quotes.',...
@@ -533,11 +535,13 @@ else
         end
         encl  = {'[' ']'};
     end
-    hlptxt = char({'Enter a value.', ...
+    hlptxt  = {'Enter a value.', ...
         ' ', ...
         'To clear a value, clear the input field and accept.', ...
         ' ', ...
-        'Leave input box with CTRL-TAB to access buttons.'});
+        'Leave input box with Ctrl+Tab to access buttons.'};
+    hlptxt  = strcat(hlptxt, {sprintf('\n')});
+    hlptxt  = deblank(cat(2, hlptxt{:}));
     failtxt = {'Input could not be evaluated.'};
 end
 sts = false;
