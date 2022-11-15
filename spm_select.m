@@ -40,7 +40,7 @@ function varargout = spm_select(varargin)
 %
 % FORMAT [files,dirs] = spm_select('ExtList',direc,filt,frames)
 % As above, but for selecting frames of 4D NIfTI files
-% frames - vector of frames to select (defaults to 1, if not specified).
+% frames - vector of frames to select (defaults to Inf, if not specified).
 %          If the frame number is Inf, all frames for the matching images
 %          are listed. 
 %
