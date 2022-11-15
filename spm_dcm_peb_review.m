@@ -300,8 +300,28 @@ if display_connectivity
     
     sel_field = fields{sel_field_idx};
     
+    % Get model parameter structure
+    P = [];
+    if isfield(DCM{1},'Ep')
+        % Posterior
+        P = DCM{1}.Ep;
+    elseif isfield(DCM{1},'M') && isfield(DCM{1}.M,'pE')
+        % Prior
+        P = DCM{1}.M.pE;
+    else
+        % Generate prior
+        try
+            [~,~,P,~] = spm_find_pC(DCM{1});
+        end
+    end
+    
+    % Fail if parameters weren't in the form of a structure
+    if ~isstruct(P)
+        error('Could not display connectivity matrix');
+    end
+    
     % Get the size of this field's matrix in the DCM
-    [i,j,k] = size(eval(['DCM{1}.Ep.' sel_field]));
+    [i,j,k] = size(P.(sel_field));
     
     % Reshape PEB parameters
     Eq = zeros(i,j,k);    
