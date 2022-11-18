@@ -380,8 +380,8 @@ for iter=1:ds.noi
       beta     = beta0(:,iter);
 
       for i=1:nof
-         def(:,i)   = spm_get_def(Bx, By,Bz,beta((i-1)*prod(ds.order)+1:i*prod(ds.order)));
-         ddefa(:,i) = spm_get_def(Bx,dBy,Bz,beta((i-1)*prod(ds.order)+1:i*prod(ds.order)));
+         def(:,i)   = spm_uw_get_def(Bx, By,Bz,beta((i-1)*prod(ds.order)+1:i*prod(ds.order)));
+         ddefa(:,i) = spm_uw_get_def(Bx,dBy,Bz,beta((i-1)*prod(ds.order)+1:i*prod(ds.order)));
       end
 
       % If we are re-estimating the movement parameters, remove any DC
@@ -412,7 +412,7 @@ for i=1:length(ds.P)
 end
 ds.beta = reshape(refit(P,dispP,ds,def),prod(ds.order),nof);
 ds.SS   = ssq;
-if isfield(ds,'sfield');
+if isfield(ds,'sfield')
    ds = rmfield(ds,'sfield');
 end
 
@@ -451,7 +451,7 @@ function [q,ep] = make_q(P,fot,sot,exp_round)
 %             then expansion around the 'First' MIGHT give a slightly
 %             better average geometric fidelity.
 
-if strcmpi(exp_round,'average');
+if strcmpi(exp_round,'average')
    %
    % Get geometric mean of all transformation matrices.
    % This will be used as the zero-point in the space 
@@ -466,9 +466,9 @@ if strcmpi(exp_round,'average');
    end
    mT = real(expm(mT/length(P)));
 
-elseif strcmpi(exp_round,'first');
+elseif strcmpi(exp_round,'first')
    mT = eye(4);
-elseif strcmpi(exp_round,'last');
+elseif strcmpi(exp_round,'last')
    mT = inv(P(end).mat) * P(1).mat;
 else
    warning(sprintf('Unknown expansion point %s',exp_round));
@@ -650,22 +650,22 @@ for scan = 1:length(P)
    T    = P(scan).mat\ds.M;
    txyz = xyz*T(1:3,:)';
    if ~(all(beta == 0) && isempty(ds.sfield))
-      [idef,jac] = spm_get_image_def(scan,ds,def,ddefa);
+      [idef,jac] = spm_uw_get_image_def(scan,ds,def,ddefa);
       txyz(:,2)  = txyz(:,2)+idef;
-   end;
+   end
    c    = spm_bsplinc(P(scan),ds.hold);
    y    = sf(scan) * spm_bsplins(c,txyz(:,1),txyz(:,2),txyz(:,3),ds.hold);
    if ds.jm && ~(all(beta == 0) && isempty(ds.sfield))
       y = y .* jac;
-   end;
+   end
 
    y_diff       = (ref - y).*msk;
    indx         = find(isnan(y));
    y_diff(indx) = 0;
    iTcol        = inv(T(1:3,1:3));
-   tmpAty       = spm_get_def(Bx',By',Bz',([dx dy dz]*iTcol(:,2)).*y_diff);
+   tmpAty       = spm_uw_get_def(Bx',By',Bz',([dx dy dz]*iTcol(:,2)).*y_diff);
    if ds.jm ~= 0
-      tmpAty = tmpAty + spm_get_def(Bx',dBy',Bz',ref.*y_diff);
+      tmpAty = tmpAty + spm_uw_get_def(Bx',dBy',Bz',ref.*y_diff);
    end
    for i=1:nof
       rindx      = (i-1)*prod(ds.order)+1:i*prod(ds.order);
@@ -691,7 +691,7 @@ function [ref,dx,dy,dz,P,ds,sf,dispP] = make_ref(ds,def,ddefa,P,xyz,M,msk,beta,d
 spm_uw_show('StartRef',length(P));
 
 rem = ds.rem;
-if all(beta==0), rem=0; end;
+if all(beta==0), rem=0; end
 
 if rem
    [m_ref,D] = get_refD(ds,def,ddefa,P,xyz,msk);
@@ -703,9 +703,9 @@ for i=1:length(P)
    T    = P(i).mat\ds.M;
    txyz = xyz*T(1:3,:)';
    if ~(all(beta == 0) && isempty(ds.sfield))
-      [idef,jac] = spm_get_image_def(i,ds,def,ddefa);
+      [idef,jac] = spm_uw_get_image_def(i,ds,def,ddefa);
       txyz(:,2)  = txyz(:,2)+idef;
-   end;
+   end
    c     = spm_bsplinc(P(i),ds.hold);
    f     = spm_bsplins(c,txyz(:,1),txyz(:,2),txyz(:,3),ds.hold);
    if ds.jm ~= 0 && exist('jac')==1
@@ -754,7 +754,7 @@ return
 function [m_ref,D] = get_refD(ds,def,ddefa,P,xyz,msk)
 % Get partials w.r.t. movements from first scan.
 
-[idef,jac] = spm_get_image_def(1,ds,def,ddefa);
+[idef,jac] = spm_uw_get_image_def(1,ds,def,ddefa);
 T    = P(1).mat\ds.M;
 txyz = xyz*T';
 c    = spm_bsplinc(P(1),ds.hold);

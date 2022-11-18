@@ -1,5 +1,5 @@
 function varargout = spm_uw_apply(ds,flags)
-% Reslices images volume by volume
+% Reslice images volume by volume
 % FORMAT spm_uw_apply(ds,[flags])
 % or
 % FORMAT P = spm_uw_apply(ds,[flags])
@@ -141,18 +141,15 @@ if nargin < 1 || isempty(ds)
     ds = ds.ds;
 end
 
-%
-% Default to using Jacobian modulation for the reslicing if it was
+%-Default to using Jacobian modulation for the reslicing if it was
 % used during the estimation phase.
-%
+%--------------------------------------------------------------------------
 if ds(1).jm ~= 0
     def_flags.udc = 2;
 end
 
-%
-% Replace defaults with user supplied values for all fields
-% defined by user.
-%
+%-Replace defaults with user supplied values for all fields defined by user
+%--------------------------------------------------------------------------
 if nargin < 2 || isempty(flags)
     flags = def_flags;
 end
@@ -173,21 +170,19 @@ end
 
 hold = [repmat(flags.interp,1,3) flags.wrap];
 
-%
-% Create empty sfield for all structs.
-%
+%-Create empty sfield for all structs
+%--------------------------------------------------------------------------
 [ds.sfield] = deal([]);
 
-%
-% Make space for output P-structs if required
-%
+%-Make space for output P-structs if required
+%--------------------------------------------------------------------------
 if nargout > 0
     oP = cell(length(ds),1);
 end
 
 %-Create mask, if required
 %--------------------------------------------------------------------------
-if flags.mask || flags.mean,
+if flags.mask || flags.mean
     fprintf('%-40s: %30s','Computing mask...','');                      %-#
     spm_progress_bar('Init',ntot,'Computing available voxels',...
         'volumes completed');
@@ -217,13 +212,13 @@ if flags.mask || flags.mean,
             clear c txyz;
         end
         for i=1:size(ds(s).beta,2)
-            def_array(:,i) = spm_get_def(Bx,By,Bz,ds(s).beta(:,i));
+            def_array(:,i) = spm_uw_get_def(Bx,By,Bz,ds(s).beta(:,i));
         end
         sess_msk = zeros(prod(ds(1).P(1).dim(1:3)),1);
         for i = 1:numel(ds(s).P)
             T = inv(ds(s).P(i).mat) * ds(1).P(1).mat;
             txyz = xyz * T';
-            txyz(:,2) = txyz(:,2) + spm_get_image_def(ds(s).P(i),ds(s),def_array);
+            txyz(:,2) = txyz(:,2) + spm_uw_get_image_def(ds(s).P(i),ds(s),def_array);
             tmp       = false(size(txyz,1),1);
             if ~flags.wrap(1), tmp = tmp | txyz(:,1) < (1-tiny) | txyz(:,1) > (ds(s).P(i).dim(1)+tiny); end
             if ~flags.wrap(2), tmp = tmp | txyz(:,2) < (1-tiny) | txyz(:,2) > (ds(s).P(i).dim(2)+tiny); end
@@ -280,13 +275,13 @@ for s=1:length(ds)
         clear c txyz;
     end
     for i=1:size(ds(s).beta,2)
-        def_array(:,i) = spm_get_def(Bx,By,Bz,ds(s).beta(:,i));
+        def_array(:,i) = spm_uw_get_def(Bx,By,Bz,ds(s).beta(:,i));
     end
     if flags.udc > 1
         ddef_array = zeros(prod(ds(s).P(1).dim(1:3)),size(ds(s).beta,2));
         dBy = spm_dctmtx(ds(s).P(1).dim(2),ds(s).order(2),'diff');
         for i=1:size(ds(s).beta,2)
-            ddef_array(:,i) = spm_get_def(Bx,dBy,Bz,ds(s).beta(:,i));
+            ddef_array(:,i) = spm_uw_get_def(Bx,dBy,Bz,ds(s).beta(:,i));
         end
     end
     for i = 1:length(ds(s).P)
@@ -296,9 +291,9 @@ for s=1:length(ds)
         T = inv(ds(s).P(i).mat) * ds(1).P(1).mat;
         txyz = xyz * T';
         if flags.udc > 1
-            [def,jac] = spm_get_image_def(ds(s).P(i),ds(s),def_array,ddef_array);
+            [def,jac] = spm_uw_get_image_def(ds(s).P(i),ds(s),def_array,ddef_array);
         else
-            def = spm_get_image_def(ds(s).P(i),ds(s),def_array);
+            def = spm_uw_get_image_def(ds(s).P(i),ds(s),def_array);
         end
         txyz(:,2) = txyz(:,2) + def;
         if flags.udc > 1
