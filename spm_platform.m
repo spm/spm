@@ -151,6 +151,7 @@ end
 %--------------------------------------------------------------------------
 PDefs = {'PCWIN64',   'win',   false;...
          'MACI64',    'unx',   false;...
+         'MACA64',    'unx',   false;...
          'GLNXA64',   'unx',   false;...
          'ARM',       'unx',   false};
 
@@ -209,7 +210,7 @@ PLATFORM.host = strtok(PLATFORM.host,'.');
 %-Fonts
 %--------------------------------------------------------------------------
 switch comp
-    case 'MACI64'
+    case {'MACI64','MACA64'}
         PLATFORM.font.helvetica = 'TrebuchetMS';
         PLATFORM.font.times     = 'Times';
         PLATFORM.font.courier   = 'Courier';

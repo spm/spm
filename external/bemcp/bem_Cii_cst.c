@@ -89,7 +89,7 @@ void Cii_constant(double C[], double ind_tr[], int Ntri, double XYZv[],
  				C[i+v*Nvert] = C[i+v*Nvert] + dO/3 * weight ;
  				C[i+w*Nvert] = C[i+w*Nvert] + dO/3 * weight ;
 				/* printf("C(i,[u v w]) = %f  %f  %f\n"
-				,C[i+u*Nvert],C[i+v*Nvert],C[i+w*Nvert]) ;
+				,C[i+u*Nvert],C[i+v*Nvert],C[i+w*Nvert]) ; */
 				/* Distribution of the SA on the 3 vert */
 				sumOm = sumOm + dO ;
 				/* printf("sumOm = %f \n",sumOm) ;*/
