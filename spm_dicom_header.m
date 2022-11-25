@@ -333,12 +333,14 @@ end
 Tag.ExtraBytes = 4; % Two shorts read so far
 
 if TransferSyntax(1) =='e'
+    VR             = Tag.VR;
     Tag.VR         = char(fread(FID,2,'uint8')');
     Tag.ExtraBytes = Tag.ExtraBytes + 2;
     switch Tag.VR
         case {'OB','OW','OF','OD','SQ','UN','UT'}
             if ~strcmp(Tag.VR,'UN') || Tag.Group~=65534
                 fread(FID,1,'ushort');
+                if strcmp(Tag.VR,'UN'), Tag.VR = VR; end
                 Tag.ExtraBytes = Tag.ExtraBytes + 2;
             else
                 warning('spm:dicom','%s: Possible problem with %s Tag (VR="%s").', fopen(FID), Tag.Name, Tag.VR);
