@@ -4,7 +4,7 @@
  */
 
 #include "mex.h"
-#include "Simplify.h"
+#include "external/simplify/Simplify.h"
 
 /* Gateway Function */
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])

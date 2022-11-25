@@ -322,10 +322,10 @@ spm_field.$(MEXEXT): spm_field.c  shoot_optimN.c shoot_multiscale.c shoot_bounda
 spm_gmmlib.$(MEXEXT): spm_gmmlib.c gmmlib.c gmmlib.h 
 	$(MEX) spm_gmmlib.c gmmlib.c -largeArrayDims $(MEXEND)
 
-spm_jsonread.$(MEXEXT): spm_jsonread.c jsmn.h jsmn.c
-	$(MEX) spm_jsonread.c jsmn.c -DJSMN_PARENT_LINKS $(MEXEND)
+spm_jsonread.$(MEXEXT): spm_jsonread.c external/jsmn/jsmn.h external/jsmn/jsmn.c
+	$(MEX) spm_jsonread.c external/jsmn/jsmn.c -DJSMN_PARENT_LINKS $(MEXEND)
 
-spm_mesh_reduce.$(MEXEXT): spm_mesh_reduce.cpp Simplify.h
+spm_mesh_reduce.$(MEXEXT): spm_mesh_reduce.cpp external/simplify/Simplify.h
 	$(MEX) spm_mesh_reduce.cpp $(MEXEND)
 
 spm_mesh_geodesic.$(MEXEXT): spm_mesh_geodesic.cpp

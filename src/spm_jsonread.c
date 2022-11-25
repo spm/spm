@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "jsmn.h"
+#include "external/jsmn/jsmn.h"
 #include "mex.h"
 
 /* for MATLAB <= R2008a or GNU Octave */
