@@ -14,7 +14,7 @@ function spm_plot_ci(E,C,x,j,s)
 %    E:[n x 1], C:[n x 1] or [n x n]
 %
 % 2. Grouped bar chart with n bars in g groups:
-%    E:[n x g], C:[n x g]
+%    E:[n x g], C:[n x g]  (transposed if 'exp' option is chosen)
 %
 % 3. Line chart with n lines, each with length g, where g >= 8:
 %    E:[n x g], C:[n x g]
