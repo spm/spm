@@ -865,7 +865,7 @@ static void addto(mwSize n, float *a, float *b)
         a[i] += b[i];
 }
 
-mwSignedIndex fmg_scratchsize(mwSize n0[])
+mwSize fmg_scratchsize(mwSize n0[])
 {
     mwIndex    n[32][3], m[32], bs, j;
     bs = 0;
@@ -883,7 +883,7 @@ mwSignedIndex fmg_scratchsize(mwSize n0[])
         if ((n[j][0]<2) && (n[j][1]<2) && (n[j][2]<2))
             break;
     }
-    return((mwSignedIndex)(n0[3]*n0[0]*n0[1]*n0[2] + n[0][0]*n[1][1]+3*n[0][0]*n[0][1] + (n0[3]*3+(n0[3]*(n0[3]+1))/2)*bs));
+    return((mwSize)(n0[3]*n0[0]*n0[1]*n0[2] + n[0][0]*n[1][1]+3*n[0][0]*n[0][1] + (n0[3]*3+(n0[3]*(n0[3]+1))/2)*bs));
 }
 
 /*

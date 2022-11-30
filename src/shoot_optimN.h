@@ -9,4 +9,4 @@ extern void LtLf(mwSize dm[], float f[], double s[], double scal[], float g[]);
 extern void LtWLf(mwSize dm[], float f[], float h[], double s[], double scal[], float g[]);
 extern void Atimesp1(mwSize dm[], float A[], float p[], float Ap[]);
 extern double diaginv(mwSize dm[], float a[], float b[], double s[], double scal[], float u[]);
-extern int fmg_scratchsize(mwSize n0[]);
+extern mwSize fmg_scratchsize(mwSize n0[]);
