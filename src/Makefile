@@ -11,12 +11,13 @@
 # mex-files for your platform, please send the details to <fil.spm@ucl.ac.uk>
 # so they can be included here.
 #
-# To compile and install SPM, type the following in a Unix console:
+# To compile and install SPM, type the following in a Terminal:
 # >  make distclean && make && make install
 #
 # You can specify a particular platform with the following syntax:
 # >  make PLATFORM=Your_Platform
-# The standard targets are 'all', 'clean', 'distclean', 'doc' and 'install'.
+# The standard targets are 'all', 'clean', 'distclean', 'doc', 'install',
+# 'check' and 'test'.
 #
 # For a list of compatible compilers, see
 #    https://www.mathworks.com/support/compilers.html
@@ -84,6 +85,12 @@ tarball: all tbx-tarball verb.tarball
 
 doc:
 	@ $(MAKE) -C ../man --no-print-directory
+
+check:
+	@ $(SPMEXE) eval "spm_check_installation;"
+
+test:
+	@ $(SPMEXE) eval "spm_tests;close all force;"
 
 ###############################################################################
 # Private make targets

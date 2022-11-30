@@ -31,7 +31,7 @@ exit_code = 0;
 % the number of threads to be modified at runtime (either in script or in
 % spm_my_defaults.m or in startup.m).
 %--------------------------------------------------------------------------
-maxNumCompThreads(1);
+try, maxNumCompThreads(1); end
 
 %-Action
 %==========================================================================

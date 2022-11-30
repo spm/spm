@@ -8,11 +8,6 @@ include ../src/Makefile.var
 
 PDFLATEX = pdflatex -interaction=batchmode
 BIBTEX   = bibtex
-ifeq (octave,$(PLATFORM))
-  SPMEXE = ../bin/spm12-octave
-else
-  SPMEXE = ../bin/spm12-matlab
-endif
 
 SPMPDF   = manual.pdf ReleaseNotes.pdf
 

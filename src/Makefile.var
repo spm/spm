@@ -102,7 +102,6 @@ ifndef MEXEXT
   $(error Unknowm platform $(PLATFORM))
 endif
 
-MATLABROOT   = $(realpath $(shell which $(firstword $(MEXBIN))))
 ifeq (1,$(USE_OPENMP))
   ifneq ($(OMPFLAG),)
     MEXOPTS += CFLAGS='$$CFLAGS $(OMPFLAG)' LDFLAGS='$$LDFLAGS $(OMPFLAG)'
@@ -110,6 +109,13 @@ ifeq (1,$(USE_OPENMP))
 endif
 MEX          = $(MEXBIN) $(MEXOPTS)
 SUF          = $(MEXEXT)
+
+MATLABROOT   = $(realpath $(shell which $(firstword $(MEXBIN))))
+ifeq (mex,$(MEXEXT))
+  SPMEXE    ?= ../bin/spm12-octave
+else
+  SPMEXE    ?= ../bin/spm12-matlab
+endif
 
 define verb
 	@ echo "_____________________________________________________________"
