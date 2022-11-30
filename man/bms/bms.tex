@@ -64,7 +64,7 @@ We can now go back and load the \verb!ffx_all_models.mat! job in the batch edito
 
 Now go back into the batch editor and reload the \verb!ffx_all_models.mat! job.
 Highlight BMA, and select Choose family (instead of 'Do not compute'). Accept the 'Winning Family' option. The BMA results will be saved in the same BMS.mat file as the previous analyses. Now go ahead and press the green play button.
-SPM will do the FFX model inference (again), but will also implement a weighted average of the model parameters where the weights are given by the evidence for each model, as described in \cite{dcm_families}. After the averaging is complete, SPM will report the number of models in Occams window. This should be 10 models (models 5,6,7,8,11,12,13,14,15,16). 
+SPM will do the FFX model inference (again), but will also implement a weighted average of the model parameters where the weights are given by the evidence for each model, as described in \cite{dcm_families}. After the averaging is complete, SPM will report the number of models in Occam's window. This should be 10 models (models 5,6,7,8,11,12,13,14,15,16). 
 
 To look at the BMA results, go to the Menu window and press the Dynamic Causal Modelling button. Then select Average, select BMA, and then the BMS.mat file just created. If you then highlight the tab (top left) to select the modulatory variables you should get the plot shown in figure~\ref{bma}.
 
@@ -168,7 +168,7 @@ Random-effects (different from fixed-effects):\\
 
 \begin{tabular}{ l l l }
 \bf{family}         & & \\
-& \bf{.Nsamp}  & number of samples used in Gibbs’ sampling (default = 20000).\\
+& \bf{.Nsamp}  & number of samples used in Gibbs sampling (default = 20000).\\
 & \bf{.prior	}        & family type of priors (`F-unity', $\alpha_0=1$, for each family, is the default; \\
 & & other option, `M-unity',  $\alpha_0=1$, for each model) .\\
 & \bf{.alpha0}    & initial values of the Dirichlet parameters (prior counts), $\alpha_{prior}(m)$, [1 $\times$ nfam].\\
@@ -184,7 +184,7 @@ Random-effects (different from fixed-effects):\\
 \begin{tabular}{ l l l }
 \bf{bma} & & \\
 & \bf{.nsamp} &	 number of samples used to average parameters (default = 10000). \\
-& \bf{.oddsr} & posterior odds ratio, $\pi_{OCC}$, (number of models in Occam’s window, \\
+& \bf{.oddsr} & posterior odds ratio, $\pi_{OCC}$, (number of models in Occam's window, \\
 & & default = 0). \\
 & \bf{.Nocc} & number of models in Occam's window. \\
 & \bf{.Mocc} & index of models in Occam's window, [1 $\times$ nm]. \\  
