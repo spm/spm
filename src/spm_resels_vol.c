@@ -16,7 +16,7 @@ static void resel_fun(int *curr, int *prev, /* current and previous planes */
     int m, int n, /* image dimensions */
     int *P,   /* # points */
     int E[3], /* # edges  */
-    int F[4], /* # faces  */
+    int F[3], /* # faces  */
     int *C)   /* # cubes  */
 {
     int p=0,ex=0,ey=0,ez=0,fxy=0,fxz=0,fyz=0,c=0;
