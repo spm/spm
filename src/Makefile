@@ -332,8 +332,9 @@ spm_gmmlib.$(MEXEXT): spm_gmmlib.c gmmlib.c gmmlib.h
 spm_jsonread.$(MEXEXT): spm_jsonread.c external/jsmn/jsmn.h external/jsmn/jsmn.c
 	$(MEX) spm_jsonread.c external/jsmn/jsmn.c -DJSMN_PARENT_LINKS $(MEXEND)
 
-spm_mesh_reduce.$(MEXEXT): spm_mesh_reduce.cpp external/simplify/Simplify.h
-	$(MEX) spm_mesh_reduce.cpp $(MEXEND)
+spm_mesh_reduce.$(MEXEXT): spm_mesh_reduce.c external/nii2mesh/quadric.c\
+		external/nii2mesh/quadric.h external/nii2mesh/meshtypes.h
+	$(MEX) spm_mesh_reduce.c external/nii2mesh/quadric.c $(MEXEND)
 
 spm_mesh_geodesic.$(MEXEXT): spm_mesh_geodesic.cpp
 	$(MEX) spm_mesh_geodesic.cpp $(MEXEND)

@@ -1,0 +1,37 @@
+BSD 2-Clause License
+
+Copyright (c) 2022, Chris Rorden
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice, this
+   list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+If compiled with `USE_CLASSIC_CUBES`, the software uses Cory Bloyd's public domain Marching Cubes Example Program (see http://paulbourke.net/geometry/polygonise/). Otherwise, the software uses Thomas Lewiner's Marching Cubes algorithm, ported to C by Ziad Saad in 2004 (with improved tables added by Chris Rorden in 2022).
+
+The bwlabel.cpp file was written by Jesper Andersson, who has explicitly allowed this to be shared using the BSD 2-Clause license (above).
+
+base64.cpp was written by Jouni Malinen and is distributed under the BSD license. For a performance evaluation, see https://github.com/gaspardpetit/base64
+
+simplify.h was written by Sven Forstmann and distributed under the MIT license. https://github.com/sp4cerat/Fast-Quadric-Mesh-Simplification
+
+The software uses the radixsort files written by Cameron Hart (2014) using the zlib license. https://github.com/bitshifter/radixsort
+
+The software has the option (`-DHAVE_JSON`) to include the cJSON files written by Dave Gamble (2009-2017) using the MIT license (https://github.com/DaveGamble/cJSON). This allows support for saving to JMesh Format (https://github.com/fangq/jmesh). The JMesh, JSON and OFF file saving routines were written by Qianqian Fang (2022) and use the BSD 2-Clause license.

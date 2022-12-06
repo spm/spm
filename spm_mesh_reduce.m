@@ -17,8 +17,10 @@ function M = spm_mesh_reduce(M,t)
 % using Quadric Error Metrics. In Proceedings of IEEE Visualization 98. 
 % http://mgarland.org/files/papers/quadric2.pdf
 % 
-% Wrapper around an implementation by Sven Forstmann, MIT licence:
+% Wrapper around a C++ implementation by Sven Forstmann, MIT licence:
 % https://github.com/sp4cerat/Fast-Quadric-Mesh-Simplification
+% ported to pure C by Chris Rorden, BSD 2-Clause License:
+% https://github.com/neurolabusc/nii2mesh
 %__________________________________________________________________________
 
 % Guillaume Flandin
@@ -26,6 +28,6 @@ function M = spm_mesh_reduce(M,t)
 
 
 %-This is merely the help file for the compiled routine
-% error('spm_mesh_reduce.cpp not compiled - see Makefile')
+% error('spm_mesh_reduce.c not compiled - see Makefile')
 
 M = reducepatch(M,t);

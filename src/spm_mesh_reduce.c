@@ -1,10 +1,10 @@
 /*
  * Guillaume Flandin
- * Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
+ * Copyright (C) 2022 Wellcome Centre for Human Neuroimaging
  */
 
 #include "mex.h"
-#include "external/simplify/Simplify.h"
+#include "external/nii2mesh/quadric.h"
 
 /* Gateway Function */
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
@@ -12,12 +12,12 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     mxArray *array = NULL;
     void *f = NULL, *v = NULL;
     double *out = NULL;
-    unsigned int i;
+    int i, nv, nf, target = 0;
     double aggressiveness = 7.0;
-    int target = 0;
-    mwSize nv, nf;
     bool isVdouble = true, isFdouble = true;
     const char *fnames[] = {"vertices", "faces"};
+    vec3d *vertices = NULL;
+	vec3i *faces = NULL;
     
     if (nrhs == 0) mexErrMsgTxt("Not enough input arguments.");
     if (nrhs > 3) mexErrMsgTxt("Too many input arguments.");
@@ -35,7 +35,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         mexErrMsgTxt("Field 'vertices' missing.");
     else if (!mxIsDouble(array) && !mxIsClass(array,"single"))
         mexErrMsgTxt("Vertices have to be stored as floating point numbers.");
-    nv    = mxGetM(array);
+    nv    = (int)mxGetM(array);
     v     = mxGetData(array);
     
     array = mxGetField(prhs[0], 0, "faces");
@@ -43,65 +43,61 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         mexErrMsgTxt("Field 'faces' missing.");
     else if (!mxIsDouble(array) && !mxIsClass(array,"int32"))
         mexErrMsgTxt("Faces have to be stored as double or int32.");
-    nf    = mxGetM(array);
+    nf    = (int)mxGetM(array);
     f     = mxGetData(array);
     
-    Simplify::vertices.clear();
-    Simplify::Vertex vert;
     isVdouble = mxIsDouble(mxGetField(prhs[0], 0, "vertices"));
+    vertices = (vec3d*)malloc(nv * sizeof(vec3d));
     for (i=0;i<nv;i++) {
         if (isVdouble) {
-            vert.p.x = ((double *)v)[i];
-            vert.p.y = ((double *)v)[i+nv];
-            vert.p.z = ((double *)v)[i+2*nv];
+            vertices[i].x = ((double *)v)[i];
+            vertices[i].y = ((double *)v)[i+nv];
+            vertices[i].z = ((double *)v)[i+2*nv];
         } else {
-            vert.p.x = ((float *)v)[i];
-            vert.p.y = ((float *)v)[i+nv];
-            vert.p.z = ((float *)v)[i+2*nv];
+            vertices[i].x = ((float *)v)[i];
+            vertices[i].y = ((float *)v)[i+nv];
+            vertices[i].z = ((float *)v)[i+2*nv];
         }
-        Simplify::vertices.push_back(vert);
-    }
-    
-    Simplify::triangles.clear();
-    Simplify::Triangle t;
-    isFdouble = mxIsDouble(mxGetField(prhs[0], 0, "faces"));
-    t.attr = 0;
-    t.material = -1;
-    for (i=0;i<nf;i++) {
-        if (isFdouble) {
-            t.v[0] = ((double *)f)[i]-1;
-            t.v[1] = ((double *)f)[i+nf]-1;
-            t.v[2] = ((double *)f)[i+2*nf]-1;
-        } else {
-            t.v[0] = ((int *)f)[i]-1;
-            t.v[1] = ((int *)f)[i+nf]-1;
-            t.v[2] = ((int *)f)[i+2*nf]-1;
-        }
-        Simplify::triangles.push_back(t);
     }
 
-    if (target == 0) target = (int) (Simplify::triangles.size() / 2);
+    isFdouble = mxIsDouble(mxGetField(prhs[0], 0, "faces"));
+    faces = (vec3i*)malloc(nf * sizeof(vec3i));
+    for (i=0;i<nf;i++) {
+        if (isFdouble) {
+            faces[i].x = ((double *)f)[i]-1;
+            faces[i].y = ((double *)f)[i+nf]-1;
+            faces[i].z = ((double *)f)[i+2*nf]-1;
+        } else {
+            faces[i].x = ((int *)f)[i]-1;
+            faces[i].y = ((int *)f)[i+nf]-1;
+            faces[i].z = ((int *)f)[i+2*nf]-1;
+        }
+    }
     
-    Simplify::simplify_mesh(target, aggressiveness, false);
-    
+    if (target == 0) target = (int) (nf / 2);
+
+    quadric_simplify_mesh(&vertices, &faces, &nv, &nf, target, aggressiveness, false, aggressiveness < 7.0);
+
     plhs[0] = mxCreateStructMatrix(1, 1, 2, fnames);
-    array = mxCreateNumericMatrix(Simplify::vertices.size(), 3, mxDOUBLE_CLASS, mxREAL);
+    
+    array = mxCreateNumericMatrix(nv, 3, mxDOUBLE_CLASS, mxREAL);
     out = mxGetPr(array);
-    for (i=0;i<Simplify::vertices.size();i++) {
-        out[i] = Simplify::vertices[i].p.x;
-        out[i+Simplify::vertices.size()] = Simplify::vertices[i].p.y;
-        out[i+2*Simplify::vertices.size()] = Simplify::vertices[i].p.z;
+    for (i=0;i<nv;i++) {
+        out[i]      = vertices[i].x;
+        out[i+nv]   = vertices[i].y;
+        out[i+2*nv] = vertices[i].z;
     }
     mxSetFieldByNumber(plhs[0], 0, 0, array);
     
-    array = mxCreateNumericMatrix(Simplify::triangles.size(), 3, mxDOUBLE_CLASS, mxREAL);
+    array = mxCreateNumericMatrix(nf, 3, mxDOUBLE_CLASS, mxREAL);
     out = mxGetPr(array);
-    for (i=0;i<Simplify::triangles.size();i++) {
-        if (!Simplify::triangles[i].deleted) {
-            out[i] = Simplify::triangles[i].v[0]+1;
-            out[i+Simplify::triangles.size()] = Simplify::triangles[i].v[1]+1;
-            out[i+2*Simplify::triangles.size()] = Simplify::triangles[i].v[2]+1;
-        }
+    for (i=0;i<nf;i++) {
+        out[i]      = faces[i].x + 1;
+        out[i+nf]   = faces[i].y + 1;
+        out[i+2*nf] = faces[i].z + 1;
     }
     mxSetFieldByNumber(plhs[0], 0, 1, array);
+    
+    free(vertices);
+    free(faces);
 }
