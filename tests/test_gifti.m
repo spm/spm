@@ -123,16 +123,34 @@ g = gifti(isosurface(smooth3(squeeze(mri.D)),5));
 g.cdata = rand(size(g.vertices,1),1);
 basename = tempname;
 file = [basename '.gii'];
-save(g,file,'ASCII');
-g = gifti(file);
-delete(file);
-save(g,file,'Base64Binary');
-g = gifti(file);
-delete(file);
-save(g,file,'GZipBase64Binary');
-g = gifti(file);
-delete(file);
-save(g,file,'ExternalFileBinary');
-g = gifti(file);
-delete(file);
-delete([basename '.dat']);
+encoding = {'','ASCII','Base64Binary','GZipBase64Binary','ExternalFileBinary'};
+ordering = {'','ColumnMajorOrder','RowMajorOrder'};
+
+for i=1:numel(encoding)
+    for j=1:numel(ordering)
+        save(g,file,encoding{i},ordering{j});
+        gg = gifti(file);
+        testCase.verifyEqual(double(g.faces),double(gg.faces));
+        testCase.verifyEqual(double(g.vertices),double(gg.vertices),'AbsTol',1e-6);
+        testCase.verifyEqual(double(g.cdata),double(gg.cdata),'AbsTol',1e-6);
+        delete(file);
+        if strcmp(encoding{i},'ExternalFileBinary')
+            delete([basename '.dat']);
+        end
+    end
+end
+
+g.cdata = rand(size(g.vertices,1),5);
+for i=1:numel(encoding)
+    for j=1:numel(ordering)
+        save(g,file,encoding{i},ordering{j});
+        gg = gifti(file);
+        testCase.verifyEqual(double(g.faces),double(gg.faces));
+        testCase.verifyEqual(double(g.vertices),double(gg.vertices),'AbsTol',1e-6);
+        testCase.verifyEqual(double(g.cdata),double(gg.cdata),'AbsTol',1e-6);
+        delete(file);
+        if strcmp(encoding{i},'ExternalFileBinary')
+            delete([basename '.dat']);
+        end
+    end
+end

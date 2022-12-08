@@ -208,6 +208,10 @@ switch s.ArrayIndexingOrder
             % special case that does not require permuting
             d = reshape(d,s.Dim);
         else
+            if isa(d,'file_array')
+                %warning('Memory-mapped data are loaded into memory');
+                d = subsref(d,substruct('()',repmat({':'},1,numel(d.dim))));
+            end
             d = permute(reshape(d,fliplr(s.Dim)),length(s.Dim):-1:1);
         end
     case 'ColumnMajorOrder'

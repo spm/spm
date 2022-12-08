@@ -1,4 +1,4 @@
-function save(this,filename,encoding)
+function save(this,filename,encoding,ordering)
 % Save GIfTI object in a GIfTI format file
 % FORMAT save(this,filename,encoding)
 % this      - GIfTI object
@@ -6,6 +6,9 @@ function save(this,filename,encoding)
 % encoding  - optional argument to specify encoding format, among
 %             ASCII, Base64Binary, GZipBase64Binary, ExternalFileBinary.
 %             [Default: 'GZipBase64Binary']
+% ordering  - optional argument to specify array element ordering, among
+%             ColumnMajorOrder, RowMajorOrder
+%             [Default: 'ColumnMajorOrder']
 %__________________________________________________________________________
 
 % Guillaume Flandin
@@ -24,6 +27,24 @@ if ~ismember(lower(e),{ext})
 end
 filename = fullfile(p,[f e]);
 
+% Check encoding
+%--------------------------------------------------------------------------
+if nargin < 3 || isempty(encoding), encoding = 'GZipBase64Binary'; end
+switch encoding
+    case {'ASCII','Base64Binary','GZipBase64Binary','ExternalFileBinary'}
+    otherwise
+        error('Unknown encoding.');
+end
+
+% Check order
+%--------------------------------------------------------------------------
+if nargin < 4 || isempty(ordering), ordering = 'ColumnMajorOrder'; end
+switch ordering
+    case {'ColumnMajorOrder','RowMajorOrder'}
+    otherwise
+        error('Unknown ordering.');
+end
+
 % Open file for writing
 %--------------------------------------------------------------------------
 fid = fopen(filename,'wt');
@@ -33,13 +54,7 @@ end
 
 % Write file
 %--------------------------------------------------------------------------
-if nargin < 3, encoding = 'GZipBase64Binary'; end
-switch encoding
-    case {'ASCII','Base64Binary','GZipBase64Binary','ExternalFileBinary'}
-    otherwise
-        error('Unknown encoding.');
-end
-fid = save_gii(fid,this,encoding);
+fid = save_gii(fid,this,encoding,ordering);
 
 % Close file
 %--------------------------------------------------------------------------
@@ -47,9 +62,9 @@ fclose(fid);
 
 
 %==========================================================================
-% function fid = save_gii(fid,this,encoding)
+% function fid = save_gii(fid,this,encoding,ordering)
 %==========================================================================
-function fid = save_gii(fid,this,encoding)
+function fid = save_gii(fid,this,encoding,ordering)
 
 % Defaults for DataArray's attributes
 %--------------------------------------------------------------------------
@@ -81,8 +96,7 @@ for i=1:length(this.data)
     for j=1:length(d)
         this.data{i}.attributes.(sprintf('Dim%d',j-1)) = num2str(d(j));
     end
-    % Enforce some conventions
-    this.data{i}.attributes.ArrayIndexingOrder = 'ColumnMajorOrder';
+    this.data{i}.attributes.ArrayIndexingOrder = ordering;
     if ~isfield(this.data{i}.attributes,'DataType') || ...
         isempty(this.data{i}.attributes.DataType)
         warning('DataType set to default: %s', def.DataType);
@@ -206,7 +220,7 @@ for i=1:length(this.data)
         fprintf(fid,'%s</CoordinateSystemTransformMatrix>\n',o(2));
     end
     
-    % Data (saved using MATLAB's ColumnMajorOrder)
+    % Data
     %----------------------------------------------------------------------
     fprintf(fid,'%s<Data>',o(2));
     tp = getdict;
@@ -215,21 +229,24 @@ for i=1:length(this.data)
     catch
         error('[GIFTI] Unknown DataType.');
     end
+    dat = this.data{i}.data;
+    if isa(dat,'file_array')
+        dat = subsref(dat,substruct('()',repmat({':'},1,numel(dat.dim))));
+    end
+    if strcmp(this.data{i}.attributes.ArrayIndexingOrder,'RowMajorOrder')
+        dat = dat.';
+    end
     switch this.data{i}.attributes.Encoding
         case 'ASCII'
-            fprintf(fid, [tp.format ' '], this.data{i}.data);
+            fprintf(fid, [tp.format ' '], dat);
         case 'Base64Binary'
-            fprintf(fid,base64encode(typecast(this.data{i}.data(:),'uint8')));
+            fprintf(fid,base64encode(typecast(dat(:),'uint8')));
             % uses native machine format
         case 'GZipBase64Binary'
-            fprintf(fid,base64encode(zstream('C',typecast(this.data{i}.data(:),'uint8'))));
+            fprintf(fid,base64encode(zstream('C',typecast(dat(:),'uint8'))));
             % uses native machine format
         case 'ExternalFileBinary'
             extfilename = this.data{i}.attributes.ExternalFileName;
-            dat = this.data{i}.data;
-            if isa(dat,'file_array')
-                dat = subsref(dat,substruct('()',repmat({':'},1,numel(dat.dim))));
-            end
             if ~def.offset
                 fide = fopen(extfilename,'w'); % uses native machine format
             else
