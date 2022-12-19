@@ -138,6 +138,12 @@ for i = 1:numel(U)
     end
     sf        = cumsum(sf);                         % integrate
     sf        = sf(1:(k*T + 32),:);                 % stimulus
+    if nnz(sf) == 0 && ~isempty(ons)
+        ws = warning('backtrace','off');
+        warning(['All trial onsets are outside acquisition time window',...
+                 ' in session %d condition %d'],s,i);
+        warning(ws);
+    end
 
     %-Place in outputs structure U
     %----------------------------------------------------------------------
