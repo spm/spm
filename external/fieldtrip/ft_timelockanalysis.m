@@ -73,7 +73,6 @@ ft_preamble init
 ft_preamble debug
 ft_preamble loadvar data
 ft_preamble provenance data
-ft_preamble trackconfig
 
 % the ft_abort variable is set to true or false in ft_preamble_init
 if ft_abort
@@ -122,7 +121,7 @@ end
 
 % compute the covariance matrix, if requested
 if computecov
-  tmpcfg = keepfields(cfg, {'trials', 'channel', 'tolerance', 'showcallinfo', 'trackcallinfo', 'trackconfig', 'trackusage', 'trackdatainfo', 'trackmeminfo', 'tracktimeinfo'});
+  tmpcfg = keepfields(cfg, {'trials', 'channel', 'tolerance', 'showcallinfo', 'trackcallinfo', 'trackusage', 'trackdatainfo', 'trackmeminfo', 'tracktimeinfo'});
   tmpcfg.latency = cfg.covariancewindow;
   datacov = ft_selectdata(tmpcfg, data);
   % restore the provenance information
@@ -178,12 +177,21 @@ end
 
 % select trials and channels of interest
 orgcfg = cfg;
-tmpcfg = keepfields(cfg, {'trials', 'channel', 'tolerance', 'latency', 'showcallinfo', 'trackcallinfo', 'trackconfig', 'trackusage', 'trackdatainfo', 'trackmeminfo', 'tracktimeinfo'});
+tmpcfg = keepfields(cfg, {'trials', 'channel', 'tolerance', 'latency', 'showcallinfo', 'trackcallinfo', 'trackusage', 'trackdatainfo', 'trackmeminfo', 'tracktimeinfo'});
 data   = ft_selectdata(tmpcfg, data);
 % restore the provenance information
 [cfg, data] = rollback_provenance(cfg, data);
 % do not use the default option returned by FT_SELECTDATA, but the original one for this function
 cfg.nanmean = orgcfg.nanmean;
+
+% do a sanity check
+if isempty(data.trial)
+  if ~isempty(cfg.trials)
+    ft_error('there are no trials selected');
+  else
+    ft_error('there are no trials in the input data');
+  end
+end
 
 if keeptrials
   % convert to a timelock structure with trials kept and NaNs for missing data points, when there's only a single trial in the input data
@@ -216,7 +224,7 @@ elseif ~keeptrials
   % estimate number of samples
   nsmp = round((endtime-begtime)*fsample) + 1; % numerical round-off issues should be dealt with by this round, as they will/should never cause an extra sample to appear
   % construct general time-axis
-  time = linspace(begtime,endtime,nsmp);
+  time = linspace(begtime, endtime, nsmp);
   
   nchan  = numel(data.label);
   ntrial = numel(data.trial);
@@ -239,7 +247,7 @@ elseif ~keeptrials
     tmpdof(:,begsmp(i):endsmp(i)) = isfinite(tmp) + tmpdof(:,begsmp(i):endsmp(i));
     if istrue(cfg.nanmean)
       tmp(~isfinite(tmp)) = 0;
-    end  
+    end
     tmpsum(:,begsmp(i):endsmp(i)) = tmp    + tmpsum(:,begsmp(i):endsmp(i));
   end
   avgmat = tmpsum ./ tmpdof;
@@ -252,7 +260,7 @@ elseif ~keeptrials
 
     if istrue(cfg.nanmean)
       tmp(~isfinite(tmp)) = 0;
-    end  
+    end
     tmpsum(:,begsmp(i):endsmp(i)) = tmp    + tmpsum(:,begsmp(i):endsmp(i));
     tmpssq(:,begsmp(i):endsmp(i)) = tmp.^2 + tmpssq(:,begsmp(i):endsmp(i));
     
@@ -296,7 +304,6 @@ end
 
 % do the general cleanup and bookkeeping at the end of the function
 ft_postamble debug
-ft_postamble trackconfig
 ft_postamble previous   data
 ft_postamble provenance timelock
 ft_postamble history    timelock
