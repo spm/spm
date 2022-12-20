@@ -30,30 +30,6 @@ persistent cfg
 if ~isempty(cfg), varargout = {cfg}; return; end
 
 %==========================================================================
-% savepwd      = cfg_const;
-% savepwd.name = 'Current directory';
-% savepwd.tag  = 'savepwd';
-% savepwd.val  = {1};
-% savepwd.help = {[...
-% 'All created files (deformation fields and unwarped images) are ',...
-% 'written to the current directory.']};
-% 
-% saveas       = entry('Save as','ofname','s',[0 Inf]);
-% saveas.help  = {[...
-% 'Save the result as a VDM file.  "vdm5_" will be prepended to the ',...
-% 'filename.']};
-% 
-% saveusr      = files('Output directory','saveusr','dir',[1 1]);
-% saveusr.help = {[...
-% 'The combined deformation field and the unwarped images are written ' ...
-% 'to the specified directory.']};
-% 
-% savedir      = cfg_choice;
-% savedir.name = 'Output destination';
-% savedir.tag  = 'savedir';
-% savedir.values = {saveusr savepwd};
-% savedir.val  = {saveusr};
-
 %--------------------------------------------------------------------------
 % vols Volumes
 %--------------------------------------------------------------------------
@@ -65,7 +41,7 @@ vols.ufilter = '.*';
 vols.num     = [2 2];
 vols.help    = {[...
 'Select two images with opposite phase-encoding polarities. The first one ',...
-'is blip up/down and the second one is blip down/up.']};
+'must be a blip up and the second one a blip down.']};
 
 %--------------------------------------------------------------------------
 % fwhm values
@@ -75,7 +51,7 @@ fwhm.tag     = 'fwhm';
 fwhm.name    = 'FWHM';
 fwhm.val     = {[8 4 2 1 0.1]};
 fwhm.strtype = 'e';
-fwhm.num     = [1 5];
+fwhm.num     = [1 Inf];
 fwhm.help    = {[...
 'Spatial scales (expressed as FWHM of Gaussian kernels used to smooth ',...
 'input images during topup estimation.']};
@@ -96,6 +72,55 @@ reg.help    = {[...
 '[3] Penalty on the "bending energy".']};
 
 %--------------------------------------------------------------------------
+% Degree of B-spline  
+%--------------------------------------------------------------------------
+rinterp         = cfg_menu;
+rinterp.tag     = 'rinterp';
+rinterp.name        = 'Interpolation';
+rinterp.val     = {[1 1 1]}; % Default values 
+rinterp.help    = {[
+'Degree of B-spline (from 0 to 7) along different dimensions ' ...
+'(see spm_diffeo).']};
+
+rinterp.labels = {
+                  '2nd Degree B-spline '
+                  '3rd Degree B-Spline'
+                  '4th Degree B-Spline'
+                  '5th Degree B-Spline '
+                  '6th Degree B-Spline'
+                  '7th Degree B-Spline'
+}';
+rinterp.values = {[0 1 0] [1 1 0] [0 0 1] [1 0 1] [0 1 1] [1 1 1]};
+
+%--------------------------------------------------------------------------
+% Wrapping along the dimensions
+%--------------------------------------------------------------------------
+wrap         = cfg_menu;
+wrap.tag     = 'wrap';
+wrap.name    = 'Wrapping';
+wrap.val     = {[0 0 0]}; % Default values 
+wrap.help    = {[
+'Wrapping along the dimensions (see spm_diffeo). '...
+'This indicates which directions in the volumes the values should ' ...
+'wrap around in.'...
+'* No wrapping - for images that have already been spatially transformed.'...
+'* Wrap in Y  - for (un-resliced) MRI where phase encoding is in the Y ' ...
+'direction (voxel space).']}';
+
+wrap.labels = {
+               'No wrap'
+               'Wrap X'
+               'Wrap Y'
+               'Wrap X & Y'
+               'Wrap Z '
+               'Wrap X & Z'
+               'Wrap Y & Z'
+               'Wrap X, Y & Z'
+}';
+wrap.values = {[0 0 0] [1 0 0] [0 1 0] [1 1 0] [0 0 1] [1 0 1] [0 1 1]...
+               [1 1 1]};
+
+%--------------------------------------------------------------------------
 % Save VDM 
 %--------------------------------------------------------------------------
 outdir         = cfg_files;
@@ -110,18 +135,7 @@ outdir.help    = {[...
 'in the specified directory. The deformation field is saved to disk as ',...
 'a vdm file ("vdm5_*.nii")']};
 
-%--------------------------------------------------------------------------
-% disp display
-%--------------------------------------------------------------------------
-disp         = cfg_menu;
-disp.tag     = 'display';
-disp.name    = 'Display';
-disp.help    = {'Display intermediate results.'};
-disp.labels  = {'Yes' 'No'};
-disp.values  = {1 0};
-disp.val     = {0};
-
-[cfg,varargout{1}] = deal({vols,fwhm,reg,outdir,disp});
+[cfg,varargout{1}] = deal({vols,fwhm,reg,rinterp,wrap,outdir});
 
 
 %==========================================================================
@@ -130,12 +144,16 @@ function out = spm_run_topup(cmd, job)
 switch lower(cmd)
     case 'run'
         VDM               = spm_topup(job.vols{1},job.vols{2},job.fwhm, ...
-                            job.reg,job.outdir{1},struct('display',job.display));
+                            job.reg,job.rinterp,job.wrap,job.outdir{1});
         out.vdmfile       = {VDM.dat.fname};
+
+
+
         
     case 'vout'
         out(1)            = cfg_dep;
         out(1).sname      = 'Voxel displacement map';
         out(1).src_output = substruct('.','vdmfile');
         out(1).tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});
+
 end
