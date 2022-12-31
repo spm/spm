@@ -386,6 +386,7 @@ for i = 1:M.T
         %------------------------------------------------------------------
         for j = 1:numel(R{n}.lim)
             Q{n}.pil(j) = R{n}.lim(j)*spm_phi((i - R{n}.ons(j))/R{n}.rat(j));
+            Q{n}.pil(j) = Q{n}.pil(j)*erf(16*exp(-i/256));
         end
         Q{n}.pil = Q{n}.pil*Q{n}.abs;              % age dependent testing
         
@@ -417,9 +418,9 @@ for i = 1:M.T
         r{n} = [(1 - k1) (1 - k2);
                      k1,      k2]*r{n};
         
-        Pout     = r{n}(1)*exp(Rout);              % P(going out) 
-        Pout     = erf(Pout);                      % with fluctuations
-        Q{n}.out = Pout*R{n}.out;                  % scale by baseline
+        Pout     = exp(Rout*R{n}.rut);             % fluctuations
+        Pout     = erf(r{n}(1)*Pout);              % P(going out)
+        Q{n}.out = R{n}.out*Pout;                  % scale by baseline
         
         % seasonal variation in transmission risk
         %------------------------------------------------------------------

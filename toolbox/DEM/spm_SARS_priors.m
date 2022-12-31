@@ -65,13 +65,13 @@ if nargin
     % priors for single group              % age-dependent variability in:
     %----------------------------------------------------------------------
     [P,C,str] = spm_SARS_priors;
-    free  = {'N'  ,...                     % Population size
-             'Nin','Nou','iss'...          % numbers and contact rates
-             'qua','pro',...               % social distancing
+    free  = {'N'  ,'trm',...               % population and seasonality
+             'Nin','Nou',...               % number of contacts
+             'rut','out',...               % social distancing
              'hos','ccu',...               % hospitalisation
              'sev','fat',...               % vulnerability
-             'abs','tts',...               % testing
-             'rol','fol','lnk'};           % vaccination and efficacy
+             'tts','lnk',...               % testing and efficacy
+             'rol','fol'};                 % vaccination 
 
     if nN == 1
         
@@ -305,6 +305,8 @@ names{56} = 'transmissibility parameters';
 names{57} = 'doses per seroconversion';
 names{58} = 'age-related testing';
 names{59} = 'self-isolation';
+names{60} = 'Sensitivity to contact rate';
+
 
 % latent or hidden factors
 %--------------------------------------------------------------------------
@@ -477,6 +479,7 @@ P.tra = ones(1,i)*64/800;     % (56) transmissibility parameters
 P.dps = [2 1];                % (57) doses per seroconversion
 P.abs = 1;                    % (58) age-related testing
 P.iss = 1;                    % (59) probability of self-isolation
+P.rut = 1;                    % (60) Sensitivity:contact rate fluctuations
 
 
 % infection fatality (for susceptible population)
@@ -531,7 +534,7 @@ C.sur = V;                    % (27) changes in severity
 
 % testing parameters
 %--------------------------------------------------------------------------
-C.ttt = X;                    % (28) FTTI efficacy
+C.ttt = W;                    % (28) FTTI efficacy
 C.tes = V;                    % (29) testing: bias (early)
 C.tts = V;                    % (30) testing: bias (late)
 C.del = X;                    % (31) test delay (days)
@@ -568,6 +571,8 @@ C.tra = X;                    % (56) transmissibility parameters
 C.dps = X;                    % (57) doses per seroconversion
 C.abs = X;                    % (58) age-related testing
 C.iss = X;                    % (59) probability of self-isolation
+C.rut = X;                    % (60) Sensitivity:contact rate fluctuations
+
 
 % check prior expectations and covariances are consistent
 %--------------------------------------------------------------------------
