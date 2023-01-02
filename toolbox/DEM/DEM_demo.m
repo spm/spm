@@ -22,7 +22,7 @@ function varargout = DEM_demo(varargin)
 
 % Edit the above text to modify the response to help DEM_demo
 
-% Last Modified by GUIDE v2.5 18-Apr-2022 16:55:12
+% Last Modified by GUIDE v2.5 01-Jan-2023 15:29:32
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -794,3 +794,9 @@ run_demo_Callback(hObject, handles, 'FEP_information_length')
 function pushbutton265_Callback(hObject, eventdata, handles)
 handles.web = 'Active Inference A Process Theory';
 run_demo_Callback(hObject, handles, 'DEM_sharing')
+
+
+% --- Executes on button press in pushbutton266.
+function pushbutton266_Callback(hObject, eventdata, handles)
+handles.web = 'Variational free energy and the Laplace approximation';
+run_demo_Callback(hObject, handles, 'DEM_psychophysics')
