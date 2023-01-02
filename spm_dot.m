@@ -17,14 +17,28 @@ function [X] = spm_dot(X,x,i)
 % Karl Friston
 % Copyright (C) 2015-2022 Wellcome Centre for Human Neuroimaging
 
+% scalar product
+%--------------------------------------------------------------------------
+if numel(spm_vec(x)) == 1
+    X = X*spm_vec(x);
+    return
+end
 
 % initialise dimensions
 %--------------------------------------------------------------------------
 if iscell(x)
-    DIM = (1:numel(x)) + ndims(X) - numel(x);
+
+    % omit leading dimensions
+    %----------------------------------------------------------------------
+    DIM = (1:numel(x)) + max(ndims(X),numel(x)) - numel(x);
+    
 else
+
+    %  find first matching dimension
+    %----------------------------------------------------------------------
     DIM = find(size(X) == numel(x),1);
     x   = {x};
+
 end
 
 % omit dimensions specified
@@ -34,33 +48,12 @@ if nargin > 2
     x(i)   = [];
 end
 
-% inner product using recursive summation (and bsxfun)
+% inner product using tensorprod
 %--------------------------------------------------------------------------
 for d = 1:numel(x)
-    s         = ones(1,ndims(X));
-    s(DIM(d)) = numel(x{d});
-    X         = bsxfun(@times,X,reshape(full(x{d}),s));
-    X         = sum(X,DIM(d));
+    X    = tensorprod(X,full(x{d}),DIM(d),1);
+    DIM  = DIM - 1;
 end
-
-% eliminate singleton dimensions
-%--------------------------------------------------------------------------
-X = squeeze(X);
 
 return
 
-% NB: alternative scheme using outer product
-%==========================================================================
-
-% outer product and sum
-%--------------------------------------------------------------------------
-x      = spm_cross(x);
-s      = ones(1,ndims(X));
-S      = size(X);
-s(DIM) = S(DIM);
-x      = reshape(full(x),s);
-X      = bsxfun(@times,X,x);
-for d  = 1:numel(DIM)
-    X  = sum(X,DIM(d));
-end
-X      = squeeze(X);

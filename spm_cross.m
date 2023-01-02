@@ -37,7 +37,10 @@ A   = reshape(full(X),[size(X) ones(1,ndims(x))]);
 B   = reshape(full(x),[ones(1,ndims(X)) size(x)]);
 Y   = bsxfun(@times,A,B);
 siz = size(Y);
-Y   = reshape(Y,[siz(siz > 1) 1]);
+siz = siz(siz > 1);
+if numel(siz)
+    Y = reshape(Y,[siz,1]);
+end
 
 % and handle remaining arguments
 %--------------------------------------------------------------------------

@@ -3,6 +3,7 @@ function [K] = spm_perm_mtx(n)
 % FORMAT [K] = spm_perm_mtx(n)
 %    n   - (scalar) number of indices
 %    K   - (2^n x n) permutation matrix
+% or
 %    n   - (vector) indices
 %    K   - (length(n)! x n) permutation matrix
 %__________________________________________________________________________

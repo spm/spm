@@ -22,5 +22,5 @@ if size(x,1) < 2; y = ones(size(x)); return, end
 
 % exponentiate and normalise
 %--------------------------------------------------------------------------
-x  = exp(bsxfun(@minus,x,max(x)));
-y  = bsxfun(@rdivide,x,sum(x));
+x  = exp(minus(x,max(x)));
+y  = rdivide(x,sum(x));

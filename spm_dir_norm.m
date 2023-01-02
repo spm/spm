@@ -10,6 +10,5 @@ function A = spm_dir_norm(A)
 % Karl Friston 
 % Copyright (C) 2022 Wellcome Centre for Human Neuroimaging
 
-
-A           = bsxfun(@rdivide,A,sum(A,1));
+A           = rdivide(A,sum(A,1));
 A(isnan(A)) = 1/size(A,1);

@@ -1,13 +1,17 @@
 function [E,dEda,dEdA] = spm_MDP_MI(a,C)
 % Expected information gain (i.e., mutual information)
-% FORMAT [I,dEda,dEdA] = spm_MDP_MI(a,C)
+% FORMAT [E,dEda,dEdA] = spm_MDP_MI(a,C)
 %
 % a    - Dirichlet parameters of a joint distribution
 % C    - log preferences
 %
 % E    - expected free energy (information gain minus cost)
 % dEda - derivative with respect to Dirichlet parameters (a)
-% dEdA - derivative with respect to joint density: A = a/sum(a(:));
+% dEdA - derivative with respect to joint density: A = a/sum(a(:))
+%
+% The mutual information here pertains to the expected distribution. See
+% spm_dir_MI for the mutual information of a Dirichlet distribution per se
+%
 %__________________________________________________________________________
 
 % Karl Friston

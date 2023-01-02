@@ -1,10 +1,12 @@
-function [A] = spm_psi(A)
-% Normalisation of a probability transition rate matrix (columns)
-% FORMAT [A] = spm_psi(A)
+function [A] = spm_psi(a)
+% Normalisation of a Dirichlet probability matrix (columns)
+% FORMAT [A] = spm_psi(a)
 %
-% A  - numeric array
+% a  - Dirichlet tensor
 %
-% See also: psi.m
+% This can be regarded as log(spm_dir_norm(a)). More formally, it
+% corresponds to  the expectation  of the log marginals: E[log(X)]: X(i)
+% ~ Beta(a(i),a0 - a(i)). See also: psi.m
 %__________________________________________________________________________
 
 % Karl Friston
@@ -13,4 +15,5 @@ function [A] = spm_psi(A)
 
 % normalisation of a probability transition rate matrix (columns)
 %--------------------------------------------------------------------------
-A = bsxfun(@minus, psi(A), psi(sum(A,1)));
+A = minus(psi(a),psi(sum(a,1)));
+A(A < -32) = -32;

@@ -3,7 +3,7 @@ function [D] = spm_speye(m,n,k,c)
 % FORMAT [D] = spm_speye(m,n,k,c)
 %
 % returns an m x n matrix with ones along the k-th leading diagonal. If
-% call with an optional fourth argument c = 1, a wraparound sparse matrix
+% called with an optional fourth argument c = 1, a wraparound sparse matrix
 % is returned. If c = 2, then empty rows or columns are filled in on the
 % leading diagonal.
 %__________________________________________________________________________
