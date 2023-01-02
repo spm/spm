@@ -325,7 +325,8 @@ OPTIONS.T = 3;
 
 for n = 1:N
     sdp{n} = spm_MDP_VB_rule(MDP(n),OPTIONS);
-    cor(n) = corr(spm_vec(MDP(n).A{1}) > 0,spm_vec(sdp{n}.a{1}) > 0);
+    c      = corrcoef([(spm_vec(MDP(n).A{1}) > 0),(spm_vec(sdp{n}.a{1}) > 0)]);
+    cor(n) = c(1,2);
 end
 [m,n] = max(cor);
 
@@ -489,8 +490,10 @@ for m = 1:Ns
     % look for instances of BMR
     %----------------------------------------------------------------------
     vA    = spm_vec(A{1});
+    c     = zeros(N,1);
     for i = 1:N
-       c(i,1) = corr(vA,(spm_vec(RDP(i).a{1}) > 0));
+        ccc    = corrcoef([vA,(spm_vec(RDP(i).a{1}) > 0)]);
+        c(i) = ccc(1,2);
     end
     bmr(:,m) = diff(c);
     
@@ -789,7 +792,7 @@ end
 % score models using Bayesian model reduction
 %--------------------------------------------------------------------------
 for i = 1:numel(rA)
-    F(i) = sum(spm_MDP_log_evidence(qA,pA,pA + rA{i}));
+    F(i) = sum(spm_MDP_log_evidence(qA,pA,pA + rA{i}),'all');
 end
 
 % find any model that has greater evidence than the parent model

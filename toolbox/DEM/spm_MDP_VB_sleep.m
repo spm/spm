@@ -66,7 +66,7 @@ else
     a0 = (MDP.a{g} > 0);
 end
 
-% structue learning with BMR
+% structure learning with BMR
 %==========================================================================
 if isfield(MDP,'a')
 

@@ -62,7 +62,7 @@ rA       = bsxfun(@times,rA,sum(qA)./sum(rA));      % preclude overflow
 % retain reduced priors and posteriors if outwith Occam's window
 %--------------------------------------------------------------------------
 F        = spm_MDP_log_evidence(qA,pA,rA);
-j        = F < 2;
+j        = F < T;
 qA       = pA;
 qA(:,j)  = rA(:,j);
 pA(:,j)  = rA(:,j);

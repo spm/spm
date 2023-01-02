@@ -88,15 +88,19 @@ Nu     = find(Nu);
 Np     = length(Nu);
 for f  = 1:Np
     subplot(3*Np,2,f*2)
-    P  = MDP.P;
-    if Nf > 1
-        ind     = 1:Nf;
-        for dim = 1:Nf
-            if dim ~= ind(Nu(f))
-                P = sum(P,dim);
+
+    if iscell(MDP.P)
+       P = spm_cat(MDP.P(f,:));
+    else
+        if Nf > 1
+            ind     = 1:Nf;
+            for dim = 1:Nf
+                if dim ~= ind(Nu(f))
+                    P = sum(MDP.P,dim);
+                end
             end
+            P = squeeze(P);
         end
-        P = squeeze(P);
     end
     
     % display
@@ -190,14 +194,16 @@ end
 
 % expected precision
 %--------------------------------------------------------------------------
-if size(MDP.dn,2) > 0
-    subplot(3,2,6)
-    if size(MDP.dn,2) > 1
-        plot(MDP.dn,'r:'),   hold on, plot(MDP.wn,'c','LineWidth',2), hold off
-    else
-        bar(MDP.dn,1.1,'k'), hold on, plot(MDP.wn,'c','LineWidth',2), hold off
+try
+    if size(MDP.dn,2) > 0
+        subplot(3,2,6)
+        if size(MDP.dn,2) > 1
+            plot(MDP.dn,'r:'),   hold on, plot(MDP.wn,'c','LineWidth',2), hold off
+        else
+            bar(MDP.dn,1.1,'k'), hold on, plot(MDP.wn,'c','LineWidth',2), hold off
+        end
+        title('Expected precision (dopamine)')
+        xlabel('updates'), ylabel('precision'), spm_axis tight, box off
     end
-    title('Expected precision (dopamine)')
-    xlabel('updates'), ylabel('precision'), spm_axis tight, box off
 end
 drawnow

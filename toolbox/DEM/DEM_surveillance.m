@@ -303,7 +303,7 @@ clear T
 % order interactions among the causes of outcomes (e.g., occlusion).
 %--------------------------------------------------------------------------
 for i = 1:numel(label.modality)
-    A{i} = false([numel(label.outcome{i}),Nf]);
+    A{i} = single(zeros([numel(label.outcome{i}),Nf]));
 end
 
 % loop over every combination of object attributes to specify outcomes

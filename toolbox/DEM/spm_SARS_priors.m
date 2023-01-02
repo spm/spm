@@ -424,7 +424,7 @@ P.trn = 0.2;                  % (15) transmission strength (secondary attack rat
 P.trm = 0.04;                 % (16) seasonality
 P.Tin = 3;                    % (17) infected period (days)
 P.Tcn = 4;                    % (18) infectious period (days)
-P.Tim = 128;                  % (19) seropositive immunity: natural (days)
+P.Tim = 128;                  % (19) seropositive immunity: (days)
 P.res = 0.2;                  % (20) seronegative proportion (resistance)
 
 % clinical parameters

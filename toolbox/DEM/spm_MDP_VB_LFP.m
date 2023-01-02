@@ -23,7 +23,13 @@ function [v] = spm_MDP_VB_LFP(MDP,UNITS,f,SPECTRAL)
 % Karl Friston
 % Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
- 
+% check for simulated neuronal responses
+%--------------------------------------------------------------------------
+if ~isfield(MDP(1),'xn')
+    warning ('please use another inversion scheme that simulates neuronal responses (e.g., spm_MDP_VB_XX)')
+    return
+end
+
 % defaults
 %==========================================================================
 try, f;          catch, f        = 1;  end

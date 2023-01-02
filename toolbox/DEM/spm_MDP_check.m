@@ -138,7 +138,7 @@ for g = 1:Ng
     end
 end
 
-% check iinitial states
+% check initial states
 %--------------------------------------------------------------------------
 if ~isfield(MDP,'D')
     for f = 1:Nf
@@ -146,18 +146,28 @@ if ~isfield(MDP,'D')
     end
 end
 if Nf  ~= numel(MDP.D)
-    error('please ensure V(:,:,1:Nf) is consistent with MDP.D{1:Nf}')
+    error('please check MDP.D')
 end
 for f = 1:Nf
     MDP.D{f} = MDP.D{f}(:);
 end
 
-
-% check iinitial states and internal consistency
+% check initial controls
 %--------------------------------------------------------------------------
-if Nf  ~= numel(MDP.D)
-    error('please ensure V(:,:,1:Nf) is consistent with MDP.D{1:Nf}')
+if ~isfield(MDP,'E')
+    for f = 1:Nf
+        MDP.E{f} = ones(Nu(f),1);
+    end
 end
+if Nf  ~= numel(MDP.E)
+    error('please check MDP.E')
+end
+for f = 1:Nf
+    MDP.E{f} = MDP.E{f}(:);
+end
+
+% check initial states and internal consistency
+%--------------------------------------------------------------------------
 for f = 1:Nf
     if Ns(f) ~= size(MDP.D{f},1)
         error(['please ensure B{' num2str(f) '} and D{' num2str(f) '} are consistent'])
@@ -361,13 +371,13 @@ if isfield(MDP,'Aname')
         error('please specify an MDP.Aname for each modality')
     end
 else
-    MDP.Aname = MDP.label.modality;
+    % MDP.Aname = MDP.label.modality;
 end
 if isfield(MDP,'Bname')
     if numel(MDP.Bname) ~= Nf
         error('please specify an MDP.Bname for each factor')
     end
 else
-    MDP.Bname = MDP.label.factor;
+    % MDP.Bname = MDP.label.factor;
 end
 
