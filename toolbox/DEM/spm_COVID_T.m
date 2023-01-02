@@ -152,9 +152,9 @@ b    = cell(1,dim(2));
 Ptin = P.tin;                              % P(no transmission) | home
 Ptou = P.tou;                              % P(no transmission) | work
 
-Kimm = exp(-1/P.Tim);                      % loss of Ab+ immunity (per day)
-Kinn = exp(-1/P.Tnn);                      % loss of Ab- immunity (per day)
-Kvac = exp(-1/P.vac);                      % Loss of Ab+ vaccine  (per day)
+Kimm = exp(-1/P.Tim);                      % loss of Ab+ immunity   (per day)
+Kinn = exp(-1/P.Tnn);                      % loss of Ab- immunity   (per day)
+Kvac = exp(-1/P.vac);                      % Vaccine seroconversion (per day)
 
 Kinf = exp(-1/P.Tin);                      % infection rate
 Kcon = exp(-1/P.Tcn);                      % infectious rate
