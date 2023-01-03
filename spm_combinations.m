@@ -5,11 +5,11 @@ function U = spm_combinations(Nu)
 %
 % returns a matrix of all combinations of Nu
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_sleep.m 7679 2019-10-24 15:54:07Z spm $
-%__________________________________________________________________________
+% Copyright (C) 2022-2023 Wellcome Centre for Human Neuroimaging
+
+
 Nf    = numel(Nu);
 U     = zeros(prod(Nu),Nf);
 for f = 1:Nf
@@ -30,5 +30,3 @@ for f = 1:Nf
     U(:,f) = u(:);
     
 end
-
-return

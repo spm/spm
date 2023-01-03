@@ -10,7 +10,6 @@ function E = spm_dir_MI(a)
 % The mutual information here pertains to the Dirichlet distribution. See
 % spm_MDP_MI for the mutual information of the expected categorical
 % distribution.
-%
 %__________________________________________________________________________
 
 % Karl Friston
@@ -41,5 +40,3 @@ a   = a + 1/32;                                % preclude overflow
 a0  = sum(a);
 K   = numel(a);
 I   = spm_betaln(a) + (a0 - K)*psi(a0) - sum((a - 1).*psi(a));
-
-return

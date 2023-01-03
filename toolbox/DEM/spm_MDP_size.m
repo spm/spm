@@ -1,13 +1,16 @@
 function [Nf,Ns,Nu,Ng,No] = spm_MDP_size(mdp)
-% ddimensions of MDP
+% Dimensions of MDP
 % FORMAT [Nf,Ns,Nu,Ng,No] = spm_MDP_size(mdp)
-% Nf  - nummber of factors
+% Nf  - number of factors
 % Ns  - states per factor
 % Nu  - control per factors
 % Ng  - number of modalities
 % No  - levels per modality
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
+
+% Karl Friston
+% Copyright (C) 2022-2023 Wellcome Centre for Human Neuroimaging
+
 
 % checks
 %--------------------------------------------------------------------------

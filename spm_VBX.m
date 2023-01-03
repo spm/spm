@@ -1,5 +1,5 @@
 function [Q,F] = spm_VBX(O,P,A,METHOD)
-% vvariational Bayes estimate of categorical posterior over factors
+% variational Bayes estimate of categorical posterior over factors
 % FORMAT [Q,F] = spm_VBX(O,P,A,[METHOD])
 %
 % O{g}    -  outcome probabilities over each of G modalities
@@ -34,7 +34,7 @@ function [Q,F] = spm_VBX(O,P,A,METHOD)
 %__________________________________________________________________________
 
 % Karl Friston
-% Copyright (C) 2012-2022 Wellcome Centre for Human Neuroimaging
+% Copyright (C) 2022-2023 Wellcome Centre for Human Neuroimaging
 
 
 % preliminaries
@@ -347,9 +347,3 @@ for i = 1:256
     subplot(2,2,1)
     plot(F), drawnow
 end
-
-
-
-
-
-

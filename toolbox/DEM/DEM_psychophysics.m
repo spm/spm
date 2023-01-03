@@ -31,12 +31,10 @@ function DCM = DEM_psychophysics
 % bias and sensitivity. In the example below, three of these models are
 % compared, in terms of their marginal likelihood (as approximated by a
 % softmax function of the ensuing variational free energy).
-%
 %__________________________________________________________________________
-% Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
 
 % Karl Friston
-% $Id: DEM_COVID_UK4.m 8312 2022-09-30 18:21:14Z karl $
+% Copyright (C) 2022-2023 Wellcome Centre for Human Neuroimaging
 
 
 % set up and get data
