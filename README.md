@@ -135,5 +135,5 @@ SPM is supplied as is: No formal support or maintenance is provided or
 implied.
 
 ```
-Copyright (C) 1991,1994-2022 Wellcome Centre for Human Neuroimaging
+Copyright (C) 1991,1994-2023 Wellcome Centre for Human Neuroimaging
 ```

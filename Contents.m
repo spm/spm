@@ -38,7 +38,7 @@
 %
 % See README.md for details of this release.
 %__________________________________________________________________________
-% Copyright (C) 1991,1994-2022 Wellcome Centre for Human Neuroimaging
+% Copyright (C) 1991,1994-2023 Wellcome Centre for Human Neuroimaging
 
 
 %==========================================================================
