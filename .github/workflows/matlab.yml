@@ -1,0 +1,52 @@
+name: Run MATLAB Tests
+on:
+  push:
+    branches:
+      - 'main'
+  pull_request:
+  workflow_dispatch:
+jobs:
+  matlab-test:
+    name: Run MATLAB Tests
+    strategy:
+      fail-fast: false
+      matrix:
+        version: ["R2020a", "R2020b", "R2021a", "R2021b", "R2022a", "R2022b"]
+        os: ["ubuntu-latest", "macos-latest", "windows-latest"]
+        exclude:
+          - os: windows-latest
+            version: "R2020a" # MATLAB not available
+          - os: windows-latest
+            version: "R2020b" # MATLAB not available
+          - os: windows-latest
+            version: "R2021a" # Compiler not available
+          - os: windows-latest
+            version: "R2021b" # Compiler not available
+    runs-on: ${{matrix.os}}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+      - name: Set up MATLAB
+        uses: matlab-actions/setup-matlab@v1
+        with:
+          release: ${{matrix.version}}
+      - name: Compile MEX files
+        run: |
+          make -C src distclean
+          make -C src
+          make -C src install
+          make -C src external-distclean
+          make -C src external
+          make -C src external-install
+      - name: Get MEX extension on Linux/macOS
+        if: runner.os != 'Windows'
+        run: echo "MEXEXT=$(mexext)" >> $GITHUB_ENV
+      - name: Get MEX extension on Windows
+        if: runner.os == 'Windows'
+        run: echo "MEXEXT=$(mexext.bat)" >> $env:GITHUB_ENV
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: spm-${{env.MEXEXT}}-${{runner.os}}-${{matrix.version}}
+          path: ./**/*.${{env.MEXEXT}}
+          retention-days: 1
