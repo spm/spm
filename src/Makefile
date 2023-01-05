@@ -127,7 +127,7 @@ toolbox toolbox-all toolbox-clean toolbox-distclean toolbox-install toolbox-tarb
 
 spm_vol_utils.$(MEXEXT).a: $(OBS)
 	$(DEL) $@
-ifeq (windows,$(PLATFORM))
+ifdef ARNOSPACE
 	$(AR)$@ $(OBS)
 else
 	$(AR) $@ $(OBS)

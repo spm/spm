@@ -42,6 +42,8 @@ ifndef PLATFORM
   PLATFORM   = $(shell $(UNAME))
 endif
 
+$(info ** PLATFORM is $(PLATFORM) **)
+
 ##### Linux #####
 ifeq (Linux,$(PLATFORM))
   MEXEXT     = mexa64
@@ -65,13 +67,13 @@ endif
 
 ##### Windows #####
 ifeq (MINGW32,$(word 1,$(subst _, ,$(PLATFORM)))) # MSVC
-  override PLATFORM = windows
   MEXEXT   = mexw64
   MEXBIN    ?= cmd /c "mex.bat
   MEXOPTS   += -DSPM_WIN32
   MEXEND     = "
   MOSUF      = obj
   AR         = lib.exe /out:
+  ARNOSPACE  = 
   OMPFLAG    = /openmp
 endif
 ifeq (MSYS,$(word 1,$(subst _, ,$(PLATFORM)))) # GCC
