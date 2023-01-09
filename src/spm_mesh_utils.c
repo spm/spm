@@ -1,9 +1,10 @@
 /*
  * Guillaume Flandin
- * Copyright (C) 2010-2022 Wellcome Centre for Human Neuroimaging
+ * Copyright (C) 2010-2023 Wellcome Centre for Human Neuroimaging
  */
 
 #include <string.h>
+#include <math.h>
 #include "mex.h"
 
 /* --- Compute geodesic distance using Dijkstra algorithm --- */
@@ -141,8 +142,8 @@ void mexFunctionNeighbours(int nlhs, mxArray *plhs[], int nrhs, const mxArray *p
 void mexFunctionNeighbouringFaces(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
     mwSize nf;
-    mwIndex i, j, v1, v2, v3;
-    double *N, *F1, *F2, *F3;
+    mwIndex i, j;
+    double *N, *F1, *F2, *F3, v1, v2, v3;
     int n, a, b, c;
     
     if (nrhs < 2) mexErrMsgTxt("Not enough input arguments.");
@@ -169,7 +170,8 @@ void mexFunctionNeighbouringFaces(int nlhs, mxArray *plhs[], int nrhs, const mxA
     N[1] = mxGetNaN();
     N[2] = mxGetNaN();
     
-    for (j=0,n=0;j<nf;a=0,b=0,c=0,j++,F1++,F2++,F3++) {
+    for (j=0,n=0;j<nf;j++,F1++,F2++,F3++) {
+		a = b = c = 0;
         if ((fabs(*F1 - v1) < 0.1) || (fabs(*F2 - v1) < 0.1) || (fabs(*F3 - v1) < 0.1)) a = 1;
         if ((fabs(*F1 - v2) < 0.1) || (fabs(*F2 - v2) < 0.1) || (fabs(*F3 - v2) < 0.1)) b = 1;
         if ((fabs(*F1 - v3) < 0.1) || (fabs(*F2 - v3) < 0.1) || (fabs(*F3 - v3) < 0.1)) c = 1;
