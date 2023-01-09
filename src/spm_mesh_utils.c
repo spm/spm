@@ -170,9 +170,9 @@ void mexFunctionNeighbouringFaces(int nlhs, mxArray *plhs[], int nrhs, const mxA
     N[2] = mxGetNaN();
     
     for (j=0,n=0;j<nf;a=0,b=0,c=0,j++,F1++,F2++,F3++) {
-        if ((*F1 == v1) || (*F2 == v1) || (*F3 == v1)) a = 1;
-        if ((*F1 == v2) || (*F2 == v2) || (*F3 == v2)) b = 1;
-        if ((*F1 == v3) || (*F2 == v3) || (*F3 == v3)) c = 1;
+        if ((fabs(*F1 - v1) < 0.1) || (fabs(*F2 - v1) < 0.1) || (fabs(*F3 - v1) < 0.1)) a = 1;
+        if ((fabs(*F1 - v2) < 0.1) || (fabs(*F2 - v2) < 0.1) || (fabs(*F3 - v2) < 0.1)) b = 1;
+        if ((fabs(*F1 - v3) < 0.1) || (fabs(*F2 - v3) < 0.1) || (fabs(*F3 - v3) < 0.1)) c = 1;
         if ((a) && (b) && (!c)) {
             N[2] = j+1;
             n++;
