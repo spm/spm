@@ -6,8 +6,19 @@ on:
   pull_request:
   workflow_dispatch:
 jobs:
-  matlab-test:
+  prepare-tests:
+    name: Get SPM and test data
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+      - name: Get data for unit tests
+        run: |
+          curl -o tests_data.zip https://www.fil.ion.ucl.ac.uk/spm/download/data/tests/tests_data.zip 
+          unzip tests_data.zip
+          rm tests_data.zip
+  matlab-tests:
     name: Run MATLAB Tests
+    needs: prepare-tests
     strategy:
       fail-fast: false
       matrix:
@@ -24,17 +35,10 @@ jobs:
             version: "R2021b" # Compiler not available
     runs-on: ${{matrix.os}}
     steps:
-      - name: Check out repository
-        uses: actions/checkout@v3
       - name: Set up MATLAB
         uses: matlab-actions/setup-matlab@v1
         with:
           release: ${{matrix.version}}
-      - name: Get data for unit tests
-        run: |
-          curl -o tests_data.zip https://www.fil.ion.ucl.ac.uk/spm/download/data/tests/tests_data.zip 
-          unzip tests_data.zip
-          rm -f tests_data.zip
       - name: Run unit tests with existing MEX files
         uses: matlab-actions/run-command@v1
         with:

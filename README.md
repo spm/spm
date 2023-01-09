@@ -4,7 +4,9 @@
   \__ \ )___/ )    (   Statistical Parametric Mapping
   (___/(__)  (_/\/\_)  SPM - https://www.fil.ion.ucl.ac.uk/spm/
 ```
- 
+[![License: GPL](https://img.shields.io/badge/license-GPL-blue.svg)](https://opensource.org/licenses/GPL-2.0)
+[![CI](https://github.com/spm/spm/actions/workflows/matlab.yml/badge.svg)](https://github.com/spm/spm/actions/workflows/matlab.yml)
+
 This README gives a brief introduction to the SPM software. Full details
 can be found on the [SPM website](https://www.fil.ion.ucl.ac.uk/spm/).
  
