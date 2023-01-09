@@ -30,14 +30,23 @@ jobs:
         uses: matlab-actions/setup-matlab@v1
         with:
           release: ${{matrix.version}}
+      - name: Get data for unit tests
+        run: |
+          curl -o tests_data.zip https://www.fil.ion.ucl.ac.uk/spm/download/data/tests/tests_data.zip 
+          unzip tests_data.zip
+          rm -f tests_data.zip
+      - name: Run unit tests with existing MEX files
+        uses: matlab-actions/run-command@v1
+        with:
+          command: addpath(pwd); results = spm_tests('display',true); assert(all(~[results.Failed]));
       - name: Compile MEX files
         run: |
           make -C src distclean
           make -C src
           make -C src install
-          make -C src external-distclean
-          make -C src external
-          make -C src external-install
+        # make -C src external-distclean
+        # make -C src external
+        # make -C src external-install
       - name: Get MEX extension on Linux/macOS
         if: runner.os != 'Windows'
         run: echo "MEXEXT=$(mexext)" >> $GITHUB_ENV
