@@ -20,7 +20,7 @@ function [d] = spm_KL_dir(q,p)
 
 %  KL divergence based on log beta functions
 %--------------------------------------------------------------------------
-d = spm_betaln(p) - spm_betaln(q) - sum((p - q).*spm_psi(q + 1/32),1);
+d = spm_betaln(p) - spm_betaln(q) + sum((q - p).*spm_psi(q),1);
 d = sum(d(:));
 
 return

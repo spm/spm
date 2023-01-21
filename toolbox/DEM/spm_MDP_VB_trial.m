@@ -90,9 +90,8 @@ for f  = 1:Np
     subplot(3*Np,2,f*2)
 
     if iscell(MDP.P)
-       P = spm_cat(MDP.P(f,:));
-    else
-        if Nf > 1
+       P = MDP.P{f};
+    elseif Nf > 1
             ind     = 1:Nf;
             for dim = 1:Nf
                 if dim ~= ind(Nu(f))
@@ -100,7 +99,8 @@ for f  = 1:Np
                 end
             end
             P = squeeze(P);
-        end
+    else
+        P = squeeze(MDP.P);
     end
     
     % display
@@ -145,7 +145,7 @@ end
 
 % expectations over policies
 %--------------------------------------------------------------------------
-try
+if isfield(MDP,'un')
     subplot(3,2,4)
     image(64*(1 - MDP.un))
     title('Posterior probability')
@@ -194,7 +194,7 @@ end
 
 % expected precision
 %--------------------------------------------------------------------------
-try
+if isfield(MDP,'dn') && isfield(MDP,'wn')
     if size(MDP.dn,2) > 0
         subplot(3,2,6)
         if size(MDP.dn,2) > 1

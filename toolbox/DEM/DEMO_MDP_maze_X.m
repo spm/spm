@@ -1,5 +1,5 @@
 function MDP = DEMO_MDP_maze_X
-% Demo of mixed continuous and discrete state space modelling
+% Demo of sophisticated inference and novelty (i.e.,planning to learn)
 %__________________________________________________________________________
 %
 % This demonstration of active inference focuses on navigation and
@@ -114,7 +114,7 @@ end
 % basic MDP structure
 %--------------------------------------------------------------------------
 mdp.T = 8 + 1;                  % time horizon
-mdp.N = 4;                      % policy depth
+mdp.N = 2;                      % policy depth
 mdp.U = U;                      % allowable policies
 mdp.A = A;                      % observation model or likelihood
 mdp.B = B;                      % transition probabilities
@@ -134,7 +134,7 @@ mdp.s = START;
 for i = 1:4
     MDP   = mdp;
     MDP.N = i - 1;
-    MDP   = spm_MDP_VB_XX(MDP);
+    MDP   = spm_MDP_VB_XXX(MDP);
     
     % cumulative reward
     %----------------------------------------------------------------------
@@ -156,43 +156,35 @@ end
 spm_figure('GetWin','Figure 5'); clf
 spm_MDP_VB_LFP(MDP); subplot(3,2,5); delete(gca)
 
-% evidence accumulation under task set: 
+%% evidence accumulation under task set: 
 % removing knowledge about safe locations
 %==========================================================================
 clear MDP
-mdp.a{1}   = ones(size(mdp.A{1}))/8;
+mdp.a{1}   = ones(size(mdp.A{1}));
 mdp.a{2}   = mdp.A{2}*128;
 [MDP(1:5)] = deal(mdp);
-MDP = spm_MDP_VB_XX(MDP);
+MDP = spm_MDP_VB_XXX(MDP);
 
 spm_figure('GetWin','Figure 6'); clf
 spm_maze_plot(MDP,END)
 
 
-% pure exploration
+%% pure exploration
 % removing preferences about proximity to target location
 %==========================================================================
+rng(1)
 clear MDP
-mdp.a{1}  = ones(size(mdp.A{1}))/64;
+mdp.a{1}  = ones(size(mdp.A{1}));
 mdp.a{2}  = mdp.A{2}*128;
 mdp.C{2}  = spm_zeros(C{2});
 mdp.s     = START;
 mdp.D     = D;
+mdp.T     = 128;
+mdp.N     = 3;
 
-mdp.T = 2;
-mdp.N = 1;
-for i = 1:64
-    
-    % proceed with subsequent trial
-    %----------------------------------------------------------------------
-    MDP(i)   = spm_MDP_VB_XX(mdp);
-    mdp      = MDP(i);
-    mdp.s    = mdp.s(:,end);
-    mdp.D{1} = MDP(i).X{1}(:,end);
-    mdp.o    = [];
-    mdp.u    = [];
-    
-end
+% proceed with trial
+%----------------------------------------------------------------------
+MDP       = spm_MDP_VB_XXX(mdp);
 
 % show results - behavioural
 %--------------------------------------------------------------------------

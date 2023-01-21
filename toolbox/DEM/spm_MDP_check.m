@@ -11,10 +11,13 @@ function [MDP] = spm_MDP_check(MDP)
 % MDP.B{F}(NF,NF,MF)    - transitions among hidden under MF control states
 % MDP.C{G}(O,T)         - prior preferences over O outcomes in modality G
 % MDP.D{F}(NF,1)        - prior probabilities over initial states
+% MDP.E{F}(NF,1)        - prior probabilities over initial control
 %
 % MDP.a{G}              - concentration parameters for A
 % MDP.b{F}              - concentration parameters for B
+% MDP.c{F}              - concentration parameters for C
 % MDP.d{F}              - concentration parameters for D
+% MDP.e{F}              - concentration parameters for E
 %
 % optional:
 % MDP.s(F,T)            - vector of true states - for each hidden factor
@@ -38,8 +41,8 @@ function [MDP] = spm_MDP_check(MDP)
 % if there are multiple structures check each separately
 %--------------------------------------------------------------------------
 if numel(MDP) > 1
-    for m = 1:size(MDP,1)
-        for i = 1:size(MDP,2)
+    for m = 1:size(MDP,1)                      % number of trials
+        for i = 1:size(MDP,2)                  % number of agents
             mdp(m,i) = spm_MDP_check(MDP(m,i));
         end
     end
@@ -64,25 +67,42 @@ if isfield(MDP,'b'), if ~iscell(MDP.b), MDP.b = {full(MDP.b)}; end; end
 % check dimensions and orders
 %==========================================================================
 
-% numbers of transitions, policies and states
+% number of transitions, policies and states
 %--------------------------------------------------------------------------
-Nf  = numel(MDP.B);                 % number of hidden state factors
-Ng  = numel(MDP.A);                 % number of outcome factors
+Nf    = numel(MDP.B);                      % number of hidden state factors
 for f = 1:Nf
-    Nu(f)    = size(MDP.B{f},3);    % number of hidden controls
-    Ns(f)    = size(MDP.B{f},1);    % number of hidden states
+
+    % ensure probabilities are normalised  : B
+    %----------------------------------------------------------------------
+    NU(f)    = size(MDP.B{f},3);           % number of hidden controls
+    NS(f)    = size(MDP.B{f},1);           % number of hidden states
     MDP.B{f} = double(MDP.B{f});
+    MDP.B{f} = spm_dir_norm(MDP.B{f});
+
 end
+
+% numbber of outcome modalities and outcomes
+%--------------------------------------------------------------------------
+Ng    = numel(MDP.A);                      % number of outcome factors
 for g = 1:Ng
-    No(g)    = size(MDP.A{g},1);    % number of outcomes
+
+    % ensure probabilities are normalised  : A
+    %----------------------------------------------------------------------
+    No(g) = size(MDP.A{g},1);              % number of outcomes
     if ~(issparse(MDP.A{g}) || islogical(MDP.A{g}))
         MDP.A{g} = double(MDP.A{g});
     end
+    if ~islogical(MDP.A{g})
+        MDP.A{g} = full(spm_dir_norm(MDP.A{g}));
+    end
 end
 
+% check sizes of Dirichlet parameterisation
+%--------------------------------------------------------------------------
+[Nf,Ns,Nu] = spm_MDP_size(MDP);
+
+
 % check policy specification (create default moving policy U, if necessary)
-% V = V(Nt,Np,Nf)
-% U = U(Np,Nf)
 %--------------------------------------------------------------------------
 if isfield(MDP,'U')
     if size(MDP.U,1) == 1 && size(MDP.U,3) == Nf
@@ -90,26 +110,16 @@ if isfield(MDP,'U')
     end
 end
 try
-    V(1,:,:) = MDP.U;               % allowable actions (1,Np)
+    V(1,:,:) = MDP.U;                      % allowable actions (1,Np)
 catch
     try
-        V = MDP.V;                  % allowable policies (T - 1,Np)
+        V = MDP.V;                         % allowable policies (T - 1,Np)
     catch
         
         % allowable (moving) policies using all allowable actions
         %------------------------------------------------------------------
-        for f = 1:Nf
-            u = 1;
-            for i = 1:Nf
-                if i == f
-                    u = kron(1:Nu(i),u);
-                else
-                    u = kron(ones(1,Nu(i)),u);
-                end
-            end
-            MDP.U(:,f)  = u;
-        end
-        V(1,:,:) = MDP.U;
+        MDP.U    = spm_combinations(Nu);   % U = U(Np,Nf)
+        V(1,:,:) = MDP.U;                  % V = V(Nt,Np,Nf)
     end
 end
 MDP.V = V;
@@ -138,9 +148,10 @@ for g = 1:Ng
     end
 end
 
+
 % check initial states
 %--------------------------------------------------------------------------
-if ~isfield(MDP,'D')
+if ~isfield(MDP,{'D'})
     for f = 1:Nf
         MDP.D{f} = ones(Ns(f),1);
     end
@@ -154,17 +165,18 @@ end
 
 % check initial controls
 %--------------------------------------------------------------------------
-if ~isfield(MDP,'E')
-    for f = 1:Nf
-        MDP.E{f} = ones(Nu(f),1);
-    end
-end
-if Nf  ~= numel(MDP.E)
-    error('please check MDP.E')
-end
-for f = 1:Nf
-    MDP.E{f} = MDP.E{f}(:);
-end
+% if ~isfield(MDP,{'E'})
+%     for f = 1:Nf
+%         MDP.E{f} = ones(Nu(f),1);
+%     end
+% end
+% if Nf  ~= numel(MDP.E)
+%     error('please check MDP.E')
+% end
+% for f = 1:Nf
+%     MDP.E{f} = MDP.E{f}(:);
+% end
+
 
 % check initial states and internal consistency
 %--------------------------------------------------------------------------
@@ -178,7 +190,11 @@ for f = 1:Nf
         end
     end
     for g = 1:Ng
-        Na  = size(MDP.A{g});
+        try
+            Na  = size(MDP.a{g});
+        catch
+            Na  = size(MDP.A{g});
+        end
         if ~all(Na(2:end) == Ns)
             error(['please ensure A{' num2str(g) '} and D{' num2str(f) '} are consistent'])
         end
@@ -187,12 +203,12 @@ end
 
 % check probability matrices are properly specified
 %--------------------------------------------------------------------------
-for f = 1:Nf
+for f = 1:numel(MDP.B)
     if ~all(spm_vec(any(MDP.B{f},1)))
         error(['please check B{' num2str(f) '} for missing entries'])
     end
 end
-for g = 1:Ng
+for g = 1:numel(MDP.A)
     if ~all(spm_vec(any(MDP.A{g},1)))
         error(['please check A{' num2str(g) '} for missing entries'])
     end
@@ -201,11 +217,11 @@ end
 % check initial states
 %--------------------------------------------------------------------------
 if isfield(MDP,'s')
-    if size(MDP.s,1) > Nf
+    if size(MDP.s,1) > numel(MDP.B)
         error('please specify an initial state MDP.s for %i factors',Nf)
     end
     f  = max(MDP.s,[],2)';
-    if any(f > Ns(1:numel(f)))
+    if any(f > NS(1:numel(f)))
         error('please ensure initial states MDP.s are consistent with MDP.B')
     end
 end

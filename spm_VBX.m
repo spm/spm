@@ -1,5 +1,5 @@
 function [Q,F] = spm_VBX(O,P,A,METHOD)
-% variational Bayes estimate of categorical posterior over factors
+% vvariational Bayes estimate of categorical posterior over factors
 % FORMAT [Q,F] = spm_VBX(O,P,A,[METHOD])
 %
 % O{g}    -  outcome probabilities over each of G modalities
@@ -34,7 +34,7 @@ function [Q,F] = spm_VBX(O,P,A,METHOD)
 %__________________________________________________________________________
 
 % Karl Friston
-% Copyright (C) 2022-2023 Wellcome Centre for Human Neuroimaging
+% Copyright (C) 2012-2022 Wellcome Centre for Human Neuroimaging
 
 
 % preliminaries
@@ -69,11 +69,13 @@ switch METHOD
             F     = 0;
             for f = 1:numel(P)
 
+                % log likelihood
+                %----------------------------------------------------------
                 LL   = spm_vec(spm_dot(L,Q,f));
 
-                % ensure the log likelihood is not too precise
+                % ensure log likelihood is not too precise
                 %----------------------------------------------------------
-                LB          = max(LL) - 16;
+                LB   = max(LL) - 16;
                 LL(LL < LB) = LB;
 
                 Q{f} = spm_softmax(LL + LP{f});
@@ -103,9 +105,9 @@ switch METHOD
         %------------------------------------------------------------------
         F     = 0;
         for f = 1:numel(P)
-            LL  = spm_vec(spm_dot(spm_log(L),Q,f));
-            LP  = spm_vec(spm_log(P{f}));
-            F   = F + Q{f}'*(LL + LP - spm_log(Q{f}));
+            LL = spm_vec(spm_dot(spm_log(L),Q,f));
+            LP = spm_vec(spm_log(P{f}));
+            F  = F + Q{f}'*(LL + LP - spm_log(Q{f}));
         end
 
     case 'sparse'
@@ -120,7 +122,7 @@ switch METHOD
         U     = spm_vec(L).*spm_vec(spm_cross(P)); % posterior unnormalised
         Z     = sum(U,'all');                      % partition coefficient
         F     = spm_log(Z);                        % negative free energy 
-        U     = reshape(U/Z,[Nf(2:end),1]);            % joint posterior
+        U     = reshape(U/Z,[Nf(2:end),1]);        % joint posterior
         Q     = spm_marginal(U);                   % marginal  posteriors
 
     case 'marginal'
@@ -347,3 +349,9 @@ for i = 1:256
     subplot(2,2,1)
     plot(F), drawnow
 end
+
+
+
+
+
+
