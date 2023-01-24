@@ -1,10 +1,10 @@
 % %==========================================================================
 % %==========================================================================
-function VDM = spm_topup(vol1, vol2, FWHM, reg, rinterp, wrap, outdir)
+function VDM = spm_topup(vol1, vol2, FWHM, reg, rinterp, wrap, rt, pref, outdir)
 % Correct susceptibility distortions using topup
 % FORMAT VDM = spm_topup(vol1, vol2, FWHM, reg, save)
-% vol1   - path to first image (blip up/down image)
-% vol2   - path to second image (blip down/up image)
+% vol1   - path to first image (blip up)
+% vol2   - path to second image (blip down)
 % fwhm   - Gaussian kernel spatial scales (default: [8 4 2 1 0.1])
 % reg    - regularisation settings (default: [0 10 100])
 %          See spm_field for details:
@@ -13,9 +13,10 @@ function VDM = spm_topup(vol1, vol2, FWHM, reg, rinterp, wrap, outdir)
 %                  the sum of squares of the gradients of the values.
 %            - [3] Penalty on the `bending energy'. This penalises
 %                  the sum of squares of the 2nd derivatives.
-% outdir - output directory
+% pref - string to be prepended to the VDM files.
+% outdir - output directory.
 %
-% VDM    - voxel displacement map
+% VDM    - voxel displacement map.
 %
 % Reference:
 %
@@ -165,14 +166,16 @@ for fwhm = FWHM % Loop over spatial scales
             title(ax,'dE/du');
 
             drawnow
+
         end
     end
     fprintf('\n');
 end
 
 % Refine Topup
-[u,wf1,wf2] = refine_topup(u, f1,f2, sig2, vx, reg(4:end));
-
+if rt == 1
+  [u,wf1,wf2] = refine_topup(u, f1,f2, sig2, vx, reg(4:end));
+end
 %-Save distortion-corrected blip up/down and down/up images) and VDM
 %==========================================================================
 
@@ -203,7 +206,8 @@ Nio.dat(:,:,:) = wf2;
 % Write VDM file
 %--------------------------------------------------------------------------
 basename       = spm_file(vol1,'basename');
-oname          = spm_file(basename,'prefix','vdm5_+ve_','ext','.nii');
+pref           = strcat(pref,'_+ve_');
+oname          = spm_file(basename,'prefix',pref,'ext','.nii');
 oname          = fullfile(outdir,oname);
 Nio            = nifti;  
 Nio.dat        = file_array(oname,size(u),'float32');
@@ -217,7 +221,8 @@ VDM = Nio;
 %--------------------------------------------------------------------------
 vi             = inv1D(u);
 basename       = spm_file(vol1,'basename');
-oname          = spm_file(basename,'prefix','vdm5_-ve_','ext','.nii');
+pref           = strcat(pref,'_-ve_');
+oname          = spm_file(basename,'prefix', pref,'ext','.nii');
 oname          = fullfile(outdir,oname);
 Nio            = nifti;  
 Nio.dat        = file_array(oname,size(vi),'float32');
@@ -254,7 +259,7 @@ vi  = spm_field(h,g,[1 1 1  0 0.1 0.1  2 2]); % Interpolate
 end
 
 % ===========================================================================
-% %==========================================================================
+% %==========================================================================output directory
 function [u,wf1,wf2] = refine_topup(u, f1,f2, sig2, vx, reg, ord, tol, nit)
 % Refine topup. It include in the process the changes of intensities due to 
 % stretching and compression.

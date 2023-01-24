@@ -31,17 +31,41 @@ if ~isempty(cfg), varargout = {cfg}; return; end
 
 %==========================================================================
 %--------------------------------------------------------------------------
-% vols Volumes
+% Blip up volume(s)
 %--------------------------------------------------------------------------
-vols         = cfg_files;
-vols.tag     = 'vols';
-vols.name    = 'Volumes';
-vols.filter  = 'image';
-vols.ufilter = '.*';
-vols.num     = [2 2];
-vols.help    = {[...
+volbup         = cfg_files;
+volbup.tag     = 'volbup';
+volbup.name    = 'Blip up volume (.nii)';
+volbup.filter  = 'image';
+volbup.ufilter = '.*';
+volbup.num     = [0 1];
+volbup.val     = {''};
+volbup.help    = {'Select an image with a blip up phase-encoding polarity.'};
+volbup.preview = @(f) spm_image('Display',char(f));
+
+%--------------------------------------------------------------------------
+% Blip down volume(s)
+%--------------------------------------------------------------------------
+volbdown         = cfg_files;
+volbdown.tag     = 'volbdown';
+volbdown.name    = 'Blip down volume (.nii)';
+volbdown.filter  = 'image';
+volbdown.ufilter = '.*';
+volbdown.num     = [0 1];
+volbdown.val     = {''};
+volbdown.help    = {'Select an image with a blip down phase-encoding polarity.'};
+volbdown.preview = @(f) spm_image('Display',char(f));
+
+%--------------------------------------------------------------------------
+% data Volumes
+%--------------------------------------------------------------------------
+data         = cfg_branch;
+data.tag     = 'data';
+data.name    = 'Volumes';
+data.val     = {volbup volbdown};
+data.help    = {[....*
 'Select two images with opposite phase-encoding polarities. The first one ',...
-'must be a blip up and the second one a blip down.']};
+'a blip up and the second one a blip down.']};
 
 %--------------------------------------------------------------------------
 % fwhm values
@@ -57,7 +81,7 @@ fwhm.help    = {[...
 'input images during topup estimation.']};
 
 %--------------------------------------------------------------------------
-% Regularisation 
+% Regularisation .*
 %--------------------------------------------------------------------------
 reg         = cfg_entry;
 reg.tag     = 'reg';
@@ -72,6 +96,24 @@ reg.help    = {[...
 '[3] Penalty on the "bending energy".']};
 
 %--------------------------------------------------------------------------
+% Option for refine topup
+%--------------------------------------------------------------------------
+rt         = cfg_menu;
+rt.tag     = 'rt';
+rt.name    = 'Refine topup';
+rt.val     = {1};
+rt.help    = {
+    'Option to include refine topup after estimating the fields.'
+    ['It include in the process the changes of intensities due to' ...
+    ' stretching and compression.']
+    }';
+rt.labels  = {
+              'Yes'
+              'No'
+}';
+rt.values  = {1 0};
+
+%--------------------------------------------------------------------------
 % Degree of B-spline  
 %--------------------------------------------------------------------------
 rinterp         = cfg_menu;
@@ -81,7 +123,6 @@ rinterp.val     = {[1 1 1]}; % Default values
 rinterp.help    = {[
 'Degree of B-spline (from 0 to 7) along different dimensions ' ...
 '(see spm_diffeo).']};
-
 rinterp.labels = {
                   '2nd Degree B-spline '
                   '3rd Degree B-Spline'
@@ -121,6 +162,18 @@ wrap.values = {[0 0 0] [1 0 0] [0 1 0] [1 1 0] [0 0 1] [1 0 1] [0 1 1]...
                [1 1 1]};
 
 %--------------------------------------------------------------------------
+% prefix VDM Filename Prefix
+%--------------------------------------------------------------------------
+prefix         = cfg_entry;
+prefix.tag     = 'prefix';
+prefix.name    = 'VDM Filename Prefix';
+prefix.help    = {'Specify the string to be prepended to the VDM files. Default prefix is ''vdm5_''.'};
+prefix.strtype = 's';
+prefix.num     = [1 Inf];
+prefix.val     = {'vdm5'};
+%prefix.def     = @(val)spm_get_defaults('unwarp.write.prefix', val{:});
+
+%--------------------------------------------------------------------------
 % Save VDM 
 %--------------------------------------------------------------------------
 outdir         = cfg_files;
@@ -135,7 +188,7 @@ outdir.help    = {[...
 'in the specified directory. The deformation field is saved to disk as ',...
 'a vdm file ("vdm5_*.nii")']};
 
-[cfg,varargout{1}] = deal({vols,fwhm,reg,rinterp,wrap,outdir});
+[cfg,varargout{1}] = deal({data,fwhm,reg,rinterp,wrap,rt,prefix,outdir});
 
 
 %==========================================================================
@@ -143,12 +196,10 @@ function out = spm_run_topup(cmd, job)
 
 switch lower(cmd)
     case 'run'
-        VDM               = spm_topup(job.vols{1},job.vols{2},job.fwhm, ...
-                            job.reg,job.rinterp,job.wrap,job.outdir{1});
+        VDM               = spm_topup(job.data.volbup{1},job.data.volbdown{1}, ...
+                            job.fwhm,job.reg,job.rinterp,job.wrap,job.rt, ...
+                            job.prefix,job.outdir{1});
         out.vdmfile       = {VDM.dat.fname};
-
-
-
         
     case 'vout'
         out(1)            = cfg_dep;
@@ -157,3 +208,8 @@ switch lower(cmd)
         out(1).tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});
 
 end
+
+
+
+
+
