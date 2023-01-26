@@ -10,7 +10,7 @@ function [pth,nam,ext,num] = spm_fileparts(fname)
 %__________________________________________________________________________
 
 % John Ashburner
-% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
+% Copyright (C) 2005-2023 Wellcome Centre for Human Neuroimaging
 
 
 if ~ispc, fname = strrep(fname,'\',filesep); end
@@ -25,9 +25,8 @@ if ~isempty(ind)
         ext = ext(1:(ind(1)-1));
     end
 else
+    num = '';
     if isa(fname,'string') % R2016b onwards
-        num = "";
-    else
-        num = '';
+        num = string(num);
     end
 end
