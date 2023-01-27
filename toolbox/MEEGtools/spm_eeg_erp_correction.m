@@ -9,6 +9,7 @@ function D = spm_eeg_erp_correction(S)
 % S.D        - MEEG object or filename of M/EEG mat-file with epoched data
 % S.detrend  - detrending order (0 for no detrending)
 % S.hanning  - apply Hanning window (true or false)
+% S.chtype   - channel type (default 'MEEG')
 %
 % Output:
 % D        - MEEG object (also written on disk)
@@ -83,8 +84,14 @@ spm('Pointer','Watch');
 
 %-Adjust data
 %--------------------------------------------------------------------------
+if isfield(S, 'chtype')
+    chtype = S.chtype;
+else
+    chtype = 'MEEG';
+end
+
 for i = 1:D.ntrials
-    Dnew(Dnew.indchantype('MEEG', 'GOOD'),:,i) = (R*spm_squeeze(D(D.indchantype('MEEG', 'GOOD'),:,i), 3)')';
+    Dnew(Dnew.indchantype(chtype, 'GOOD'),:,i) = (R*spm_squeeze(D(D.indchantype(chtype, 'GOOD'),:,i), 3)')';
     
     if ismember(i, Ibar), spm_progress_bar('Set', i); end
 end
