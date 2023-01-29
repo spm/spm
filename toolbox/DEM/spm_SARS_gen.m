@@ -356,21 +356,21 @@ for i = 1:M.T
         % fluctuations in testing rate: Gaussian basis functions
         %------------------------------------------------------------------
         Ppcr = 0;
-        dt   = 64;
         if isfield(R{n},'pcr')
+            dt    = 64;
             for j = 1:numel(R{n}.pcr)
                 Ppcr = Ppcr + log(R{n}.pcr(j)) * exp(-(i - j*dt).^2./((dt/2)^2));
             end
         end
         Q{n}.pcr = exp(Ppcr);
         
-        % fluctuations in contact rates (mobility): Gaussian basis functions
+        % fluctuations in contact rates (mobility): Discrete Cosine Set
         %------------------------------------------------------------------
         Rout = 0;
-        dt   = 48;
         if isfield(R{n},'mob')
+            t     = mod(i,365);
             for j = 1:numel(R{n}.mob)
-                Rout = Rout + log(R{n}.mob(j)) * exp(-(i - j*dt).^2/((dt/2)^2));
+                    Rout = Rout + log(R{n}.mob(j)) * cos(j*pi*t/365);
             end
         end
         
@@ -394,14 +394,13 @@ for i = 1:M.T
         %------------------------------------------------------------------
         Q{n}.Tin = R{n}.Tin*Ptra^(-R{n}.s(1)/16);  % infected time
         Q{n}.Tic = R{n}.Tic*Ptra^(-R{n}.s(2)/16);  % incubation time
-        
-        Q{n}.Tim = R{n}.Tim*Ptra^(-R{n}.s(3)/4);   % antibody immunity
-        Q{n}.Tnn = R{n}.Tnn*Ptra^(-R{n}.s(4)/4);   % T-cell immunity
-        Q{n}.Trd = R{n}.Trd*Ptra^(-R{n}.s(5)/4);   % duration of ARDS
-        
-        Q{n}.tes = R{n}.tes*Ptra^(-R{n}.s(6)/4);   % testing bias PCR
-        Q{n}.tts = R{n}.tts*Ptra^(-R{n}.s(7)/4);   % testing bias LFD
-        
+        Q{n}.Trd = R{n}.Trd*Ptra^(-R{n}.s(3)/4);   % duration of ARDS
+
+        Q{n}.tes = R{n}.tes*Ptra^(-R{n}.s(4)/4);   % testing bias PCR
+        Q{n}.tts = R{n}.tts*Ptra^(-R{n}.s(5)/4);   % testing bias LFD
+
+        Q{n}.Tnn = R{n}.Tnn*exp(i*R{n}.s(6)/512);  % T-cell immunity
+
         Q{n}.sev = R{n}.sev*Ptra^(-R{n}.lat);      % P(ARDS | infected)
         Q{n}.fat = R{n}.fat*Ptra^(-R{n}.sur);      % P(fatality | ARDS)
         Q{n}.ccu = R{n}.ccu*Ptra^(-R{n}.iad);      % P(CCU | ARDS)

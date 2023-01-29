@@ -66,6 +66,7 @@ if nargin
     %----------------------------------------------------------------------
     [P,C,str] = spm_SARS_priors;
     free  = {'N'  ,'trm',...               % population and seasonality
+             'Tim','Tnn',...               % immunity
              'Nin','Nou',...               % number of contacts
              'rut','out',...               % social distancing
              'hos','ccu',...               % hospitalisation
@@ -414,7 +415,7 @@ P.qua = 128;                  % (08) time constant of unlocking
 P.exp = 0.02;                 % (09) viral spreading (rate)
 P.hos = 1;                    % (10) admission rate (hospital) [erf]
 P.ccu = 0.1;                  % (11) admission rate (CCU)
-P.s   = [1 1 1 1 1 1 1];      % (12) infectivity exponents
+P.s   = [1 1 1 1 1 1];        % (12) infectivity exponents
 
 % infection (transmission) parameters
 %--------------------------------------------------------------------------
