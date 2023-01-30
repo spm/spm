@@ -89,6 +89,8 @@ else
             SPM.xBF.name = 'Gamma functions';
         case 'fir'
             SPM.xBF.name = 'Finite Impulse Response';
+        case 'cosine'
+            SPM.xBF.name = 'Cosine set';
         otherwise
             error('Unknown basis functions.');
     end

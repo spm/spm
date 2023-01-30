@@ -11,6 +11,7 @@ function [xBF] = spm_get_bf(xBF)
 %               'Fourier set (Hanning)'
 %               'Gamma functions'
 %               'Finite Impulse Response'
+%               'Cosine set'
 %               (any other specification will default to 'hrf')
 % xBF.length  - window length (seconds)
 % xBF.order   - order
@@ -53,7 +54,8 @@ if ~isfield(xBF,'name')
         'Fourier set',...
         'Fourier set (Hanning)',...
         'Gamma functions',...
-        'Finite Impulse Response'};
+        'Finite Impulse Response', ...
+        'Cosine set'};
     str   = 'Select basis set';
     Sel   = spm_input(str,2,'m',Ctype);
     xBF.name = Ctype{Sel};
@@ -64,7 +66,7 @@ end
 switch xBF.name
  
     case {'Fourier set','Fourier set (Hanning)',...
-          'Gamma functions','Finite Impulse Response'}
+          'Gamma functions','Finite Impulse Response', 'Cosine set'}
     %----------------------------------------------------------------------
     try,   l          = xBF.length;
     catch, l          = spm_input('window length {secs}',3,'e',32);
@@ -111,6 +113,10 @@ switch xBF.name
     %----------------------------------------------------------------------
     bin   = l/h;
     bf    = kron(eye(h),ones(round(bin/dt),1));
+
+    case {'Cosine set'}
+    %----------------------------------------------------------------------
+    bf    = spm_dctmtx(round(l/dt), h);
  
     case {'NONE'}
     %----------------------------------------------------------------------

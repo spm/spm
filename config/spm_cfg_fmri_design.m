@@ -552,6 +552,32 @@ fir.name    = 'Finite Impulse Response';
 fir.val     = {length order };
 fir.help    = {'Finite impulse response - requires SPM{F} for inference.'};
 % ---------------------------------------------------------------------
+% length Window length
+% ---------------------------------------------------------------------
+length         = cfg_entry;
+length.tag     = 'length';
+length.name    = 'Window length';
+length.help    = {'Post-stimulus window length (in seconds)'};
+length.strtype = 'r';
+length.num     = [1 1];
+% ---------------------------------------------------------------------
+% order Order
+% ---------------------------------------------------------------------
+order         = cfg_entry;
+order.tag     = 'order';
+order.name    = 'Order';
+order.help    = {'Number of basis functions'};
+order.strtype = 'n';
+order.num     = [1 1];
+% ---------------------------------------------------------------------
+% cosine Cosine Set
+% ---------------------------------------------------------------------
+cosine        = cfg_branch;
+cosine.tag    = 'cosine';
+cosine.name   = 'Cosine Set';
+cosine.val    = {length order };
+cosine.help   = {'Discrete cosine set - requires SPM{F} for inference.'};
+% ---------------------------------------------------------------------
 % bases Basis Functions
 % ---------------------------------------------------------------------
 bases         = cfg_choice;
@@ -559,7 +585,7 @@ bases.tag     = 'bases';
 bases.name    = 'Basis Functions';
 bases.val     = {hrf };
 bases.help    = {'The most common choice of basis function is the Canonical HRF with or without time and dispersion derivatives. '};
-bases.values  = {hrf fourier fourier_han gamma fir };
+bases.values  = {hrf fourier fourier_han gamma fir cosine};
 % ---------------------------------------------------------------------
 % volt Model Interactions (Volterra)
 % ---------------------------------------------------------------------

@@ -480,6 +480,25 @@ fir.tag     = 'fir';
 fir.name    = 'Finite Impulse Response';
 fir.val     = {order};
 fir.help    = {'Finite impulse response.'};
+
+% ---------------------------------------------------------------------
+% order Order
+% ---------------------------------------------------------------------
+order         = cfg_entry;
+order.tag     = 'order';
+order.name    = 'Order';
+order.help    = {'Number of basis functions'};
+order.strtype = 'n';
+order.val     = {4};
+order.num     = [1 1];
+% -------------------------------------------------------------------------
+% cosine Cosine Set
+% -------------------------------------------------------------------------
+cosine         = cfg_branch;
+cosine.tag     = 'cosine';
+cosine.name    = 'Cosine Set';
+cosine.val     = {order};
+cosine.help    = {'Discrete cosine set.'};
 % -------------------------------------------------------------------------
 % bases Basis Functions
 % -------------------------------------------------------------------------
@@ -488,7 +507,8 @@ bases.tag     = 'bases';
 bases.name    = 'Basis Functions';
 bases.val     = {fourier};
 bases.help    = {'Choose the basis set'};
-bases.values  = {fourier fourier_han fir};
+bases.values  = {fourier fourier_han fir cosine};
+
 % -------------------------------------------------------------------------
 % volt Model Interactions (Volterra)
 % -------------------------------------------------------------------------
