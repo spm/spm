@@ -12,17 +12,21 @@
 % Volkmar Glauche
 % Chloe Hutton
 % Amirhossein Jafarian
+% Nicole Labra Avila
 % Vladimir Litvak
+% Johan Medrano
 % Rosalyn Moran
+% George O'Neill
 % Robert Oostenveld
+% Thomas Parr
 % Will Penny
 % Christophe Phillips
 % Dimitris Pinotsis
 % Adeel Razi
 % Ged Ridgway
+% Holly Rossiter
 % Mohamed Seghier
 % Klaas Enno Stephan
-% Thomas Parr
 % Tim Tierney
 % Bernadette van Wijk
 % Peter Zeidman
