@@ -18,6 +18,8 @@ function D = spm_eeg_firstlevel(S)
 spm('FnBanner', mfilename);
 spm('FigName','M/EEG first level');
 
+% Load the M/EEG .mat file 
+% ------------------------
 D        = spm_eeg_load(char(S.sess.D));
 
 statdir = D.path;
@@ -26,15 +28,22 @@ try
     delete(fullfile(statdir, 'SPM.mat'));
 end
 
+% Configure the job for using with conventional fMRI GLM design
+% =============================================================
+
+% Create a new field for fMRI analysis
 job{1}.spm.stats.fmri_design = [];
+
+% Set basic settings
 job{1}.spm.stats.fmri_design.dir            = {statdir};
 job{1}.spm.stats.fmri_design.timing.units   = 'secs';
 job{1}.spm.stats.fmri_design.timing.fmri_t0 = 1;
 job{1}.spm.stats.fmri_design.volt           = S.volt;
 job{1}.spm.stats.fmri_design.cvi            = 'none';
 
-isTF     = strncmpi(D.transformtype,'TF',2);
+isTF     = strncmpi(D.transformtype,'TF',2); 
 
+% Set recording settings 
 time     = D.time;
 dt       = mean(diff(time));
 nt       = D.nsamples;
@@ -42,10 +51,22 @@ channels = D.selectchannels(S.channels);
 nchan    = numel(channels);
 nf       = D.nfrequencies;
 
-job{1}.spm.stats.fmri_design.timing.RT  = dt;
+job{1}.spm.stats.fmri_design.timing.RT  = dt; % Time resolution
 job{1}.spm.stats.fmri_design.sess       = rmfield(S.sess, {'D', 'cond', 'convregress', 'multi_conv_reg', 'savereg'});
 job{1}.spm.stats.fmri_design.sess.hpf   = Inf;
-job{1}.spm.stats.fmri_design.sess.nscan = nt;
+job{1}.spm.stats.fmri_design.sess.nscan = nt; % Number of rows
+
+% Process the events for each condition
+% -------------------------------------
+% details: 
+%    .sess
+%       .cond
+%          .name
+%          .define:  How to define events (field 'manual'/'event', see cfg)
+%          .tmod:    Time modulation - order of a polynomial basis in time
+%          .pmod:    Parameter modulation (polynomial basis) - see cfg
+%          .orth:    Whether to orthogonalise modulations
+% NB: fields name, tmod, pmod, and orth are not processed, simply copied 
 
 nc = numel(S.sess.cond);
 
@@ -57,7 +78,11 @@ else
         trigsample      = {};
         duration        = {};
         durationsample  = {};
+ 
         if isfield(S.sess.cond(j).define, 'event')
+            % If events are defined from dataset
+
+            % Configure structure to get event info from dataset
             S1              = [];
             S1.D            = D;
             S1.reviewtrials = 0;
@@ -66,13 +91,17 @@ else
             S1.timewin      = [0 0];
             [S1.trialdef(:).conditionlabel] = deal(S.sess.cond(j).name);
             
+            % Get event info from dataset
             trl                       = spm_eeg_definetrial(S1);
             trigsample{j}             = trl(:, 1);
             trig{j}                   = time(trigsample{j});
             duration{j}               = 0*trig{j};
             durationsample{j}         = 0*trig{j};
         elseif isfield(S.sess.cond(j).define, 'manual')
+            % If events are defined manually 
+            
             if isequal(S.timing.units, 'secs')
+                % Populate sample index info from physical time 
                 trig{j}         = S.sess.cond(j).define.manual.onset;
                 trigsample{j}   = D.indsample(trig{j});
                 duration{j}     = S.sess.cond(j).define.manual.duration;
@@ -81,6 +110,7 @@ else
                 end
                 durationsample{j} = round(duration{j}*D.fsample);
             else
+                % Populate physical time fields from sample index info
                 trigsample{j}     = S.sess.cond(j).define.manual.onset;
                 trig{j}           = time(trigsample{j});
                 durationsample{j} = S.sess.cond(j).define.manual.duration;
@@ -94,6 +124,7 @@ else
             error('Unsupported option');
         end
         
+        % Setup condition in fMRI design
         job{1}.spm.stats.fmri_design.sess.cond(j).name     = S.sess.cond(j).name;
         job{1}.spm.stats.fmri_design.sess.cond(j).onset    = trig{j} - D.timeonset;
         job{1}.spm.stats.fmri_design.sess.cond(j).duration = duration{j};
@@ -103,8 +134,11 @@ else
     end
 end
 
+% Try to get the index of the event channel in the dataset
 eventchanind = D.indchannel('event');
 if ~isempty(eventchanind) && nc
+    % Use the event channel to compute the timing shift (dataset vs constructed)
+    % --------------------------------------------------------------------------
     sess =  job{1}.spm.stats.fmri_design.sess;
     job{1}.spm.stats.fmri_design.sess.cond = ...
         rmfield(sess.cond, {'tmod', 'pmod', 'orth'});
@@ -115,32 +149,46 @@ if ~isempty(eventchanind) && nc
     job{1}.spm.stats.fmri_design.sess =...
         rmfield(job{1}.spm.stats.fmri_design.sess, 'regress');
     
+    % Configure default fields for the job
     [dummy, job] = spm_jobman('harvest', job);
+
+    % Build and load the design matrix (populates SPM.mat) 
     spm_run_fmri_spec(job{1}.spm.stats.fmri_design);
-    
     load(fullfile(statdir, 'SPM.mat'));
     
+    % NB: for info about fields in SPM.mat: 'help spm_fmri_spm_ui' and
+    % 'help spm_fmri_design'
+    % xBF:  Basis function structure
+    % xX.X: Design matrix
     X = SPM.xX.X*SPM.xBF.dt;
+
+    % Remove the intercept 
     X = X(:, 1:(end-1));
     
+    % check whether rows are populated
     aX = any(X', 1);
     caX = cumsum(aX);
     
+    % average over trials if time-frequency data
     if isTF
         Y = squeeze(mean(D(eventchanind, :, :), 2));
     else
         Y = D(eventchanind, :);
     end
     
-    Y = Y-min(Y);
-    Y = Y/max(Y);
+    % Use lagged cross-correlation to find a shift index/time
+    Y = Y-min(Y); 
+    Y = Y/max(Y); 
     
-    [c, lags] = xcorr(aX, Y, 500, 'coeff');
+    [c, lags] = xcorr(aX, Y, 500, 'coeff'); 
     
-    [dummy, ind] = max(c);
-    shiftcorr = lags(ind);
+    [dummy, ind] = max(c); 
+    shiftcorr = lags(ind); 
     
     if ~spm('CmdLine')
+        % Plot timing realignment
+        % -----------------------
+
         spm_figure('GetWin','Timing check');
         clf
         subplot(2, 3, 1:3);
@@ -180,25 +228,35 @@ else
     shiftcorr = 0;
 end
 
+% Shift to align onsets with data
+% -------------------------------
 for c = 1:nc
     job{1}.spm.stats.fmri_design.sess.cond(c).onset = ...
-        job{1}.spm.stats.fmri_design.sess.cond(c).onset + 1e-3*S.timing.timewin(1) - shiftcorr*dt;
+        job{1}.spm.stats.fmri_design.sess.cond(c).onset ... 
+        + 1e-3*S.timing.timewin(1) - shiftcorr*dt;
 end
 
 
+% Build the convolution regressors
+% ================================
 U = struct([]);
 
-for i = 1:numel(S.sess.convregress)
+% Handle regressors provided by the user
+for i = 1:numel(S.sess.convregress) 
     U(i).name = S.sess.convregress(i).name;
     U(i).u    = S.sess.convregress(i).val;
 end
 
 ncr = numel(U);
 
+% Check whether convolution regressors where provided through a .mat file
+% (see spm_cfg_eeg_firstlevel.m for details on the file structure) 
 if ~isequal(S.sess.multi_conv_reg, {''})
     temp = load(S.sess.multi_conv_reg{1});
+
+    % Add each regressor and name it ('R1', 'R2', ...) if necessary 
     for i = 1:size(temp.R, 2)
-        U(ncr+i).u = temp.R(:, i);
+        U(ncr+i).u = temp.R(:, i); 
         if isfield(temp, 'names')
             U(ncr+i).name = temp.names{i};
         else
@@ -219,27 +277,44 @@ for i = 1:ncr
     job{1}.spm.stats.fmri_design.sess.cond(nc+i).orth     = 0;
 end
 
+% Set microtime resolution
 job{1}.spm.stats.fmri_design.timing.fmri_t        = S.timing.utime;
-bname                                             = char(fieldnames(S.bases));
 
+% Set bases function (field 'fourier', 'fourier_han', or 'fir')
+bname                                             = char(fieldnames(S.bases));
 job{1}.spm.stats.fmri_design.bases                = S.bases;
 job{1}.spm.stats.fmri_design.bases.(bname).length = 1e-3*diff(sort(S.timing.timewin));
 
+% Construct the fMRI GLM design
+% =============================
+
+% Configure default fields for the job
 [dummy, job] = spm_jobman('harvest', job);
+
+% Build the design (populates SPM.mat)
 spm_run_fmri_spec(job{1}.spm.stats.fmri_design);
 
-clear job
+% Make some space
+clear job 
 
+% Load the design 
 load(fullfile(statdir, 'SPM.mat'));
 
-X = SPM.xX.X*SPM.xBF.dt;
+% Scale stick functions with sampling interval 
+X = SPM.xX.X*SPM.xBF.dt; 
 
+% Unpack the shape of the basis set
+% nb: number of time points      (xBF.length / xBF.dt + 1) 
+% nr: number of basis functions  (xBF.order * 2 + 1)
 nb = size(SPM.xBF.bf, 1);
 nr = size(SPM.xBF.bf, 2);
 
-T = round(1/(SPM.xBF.dt*D.fsample));
+% Compute the up- or downsampling factor 
+% (basis functions' dt vs dataset sampling rate) 
+T = round(1/(SPM.xBF.dt*D.fsample)); 
 
 if ~isempty(U)
+    % Compute the padding necessary for time windows
     if S.timing.timewin(1)<0
         pad = round(abs(1e-3*S.timing.timewin(1)*D.fsample));
     else
@@ -247,22 +322,27 @@ if ~isempty(U)
     end
     
     for i = 1:ncr
+        % Unpack convolution regressor
         u = U(i).u;
-        
         u = u(:);
         
+        % Check dimensions
         if length(u)~= D.nsamples
             error('Convolution regressor should be the same length as the data.');
         end
            
+        % Pad the data at the end 
         u = [u(:); zeros(pad, 1)];
         
+        % Resample if necessary (linear interpolation)
         if T~=1
             u = interp1(1:length(u), u, 1:1/T:length(u));
         end
         
+        % Repack
         U(i).u = u(:);
         
+        % Specify new dt
         U(i).dt = SPM.xBF.dt;
         
         if ~iscell(U(i).name)
@@ -272,22 +352,25 @@ if ~isempty(U)
     
     
     %-Convolve stimulus functions with basis functions
-    %----------------------------------------------------------------------
+    %-------------------------------------------------
     [Xu] = spm_Volterra(U, SPM.xBF.bf);
     
     %-Resample regressors 
-    %----------------------------------------------------------------------
+    %--------------------
     Xu = Xu((0:(nt + pad - 1))*T+1, :);       
     
     Xu = Xu((1+pad):end, :);
     
-    X(:, (nc*nr+1):((nc+ncr)*nr)) = Xu*SPM.xBF.dt;
+    % nc  = number of conditions
+    % ncr = number of convolution regressors
+    % nr  = size of basis set
+    X(:, (nc*nr+1):((nc+ncr)*nr)) = Xu*SPM.xBF.dt; 
 end
 
-SPM.xX.X = X./SPM.xBF.dt;
+SPM.xX.X = X./SPM.xBF.dt; 
 
 %-Save SPM.mat
-%--------------------------------------------------------------------------
+%-------------
 fprintf('%-40s: ','Saving SPM configuration')                           %-#
 fmt = spm_get_defaults('mat.format');
 s = whos('SPM');
@@ -295,6 +378,7 @@ if s.bytes > 2147483647, fmt = '-v7.3'; end
 save(fullfile(statdir, 'SPM.mat'), 'SPM', fmt);
 fprintf('%30s\n','...SPM.mat saved')                                    %-#
 
+% Configure the high-pass filter if requested
 if S.sess.hpf
     K = [];
     K.RT     = dt;
@@ -304,11 +388,16 @@ else
     K = 1;
 end
 
-xX    = spm_sp('Set', spm_filter(K, X)); % filter design
+% Compute SVD of filtered design matrix
+xX    = spm_sp('Set', spm_filter(K, X)); 
+
+% Compute the pseudo-inverse in reduced space
 if ~isfield(xX,'pX')
-    xX.pX = spm_sp('x-',xX);
+    xX.pX = spm_sp('x-',xX); 
 end
 
+% Process and save design inputs, compute betas
+% ---------------------------------------------
 if ~isempty(SPM.Sess.U)            
     label = {};
     for i = 1:numel(SPM.Sess.U)
@@ -316,6 +405,8 @@ if ~isempty(SPM.Sess.U)
     end
     ne = numel(label);
     
+    % Prepare the structure for the output dataset 
+    % --------------------------------------------
     if isTF
         Dout = clone(D, spm_file(D.fname, 'prefix', S.prefix), [nchan nf nb ne]);
     else
@@ -327,32 +418,47 @@ if ~isempty(SPM.Sess.U)
     Dout = chanlabels(Dout, ':', D.chanlabels(channels));
     Dout = conditions(Dout, ':', label);
     Dout = type(Dout, 'evoked');
-    
-    
+
+    % Process each channel
+    % --------------------
     spm_progress_bar('Init', nchan, 'channels done');
     if nchan > 100, Ibar = floor(linspace(1, nchan, 100));
     else Ibar = 1:nchan; end
+
     for c = 1:nchan
-        
+
+        % Set sample weight for channel 
         W = ones(nt, 1);
         W(D.badsamples(channels(c), ':', 1)) = exp(-256);
         W = spdiags(W, 0, nt, nt);
         
+        % Compute svd with sample weight for that channel
         axX    = spm_sp('Set', spm_filter(K, W*X));
+
+        % Compute pinv(X'X)*X'
         if ~isfield(axX,'pX')
             axX.pX = spm_sp('x-',axX);
         end
         
+        % Reshape and filter M/EEG for that channel
+        % -----------------------------------------
         Y = reshape(D(channels(c), :, :, :), nf, nt);
-        
         Y = spm_filter(K, W*Y');
         
+        % Compute beta coefficients (B =(X'X)^{-1} X'Y)
+        % ---------------------------------------------
         B = axX.pX*Y;
         
+        % Recompose the beta coefficients for the labels 
+        % ----------------------------------------------
+        % For now, betas are weighting each component of the basis set
+        % individualy. Project on the basis to construct the deconvolved
+        % response. 
+        % i.e. xY(t, i) = sum_k basis(t, k) * beta(k, i) 
         for i = 1:ne
             xY = SPM.xBF.bf*B((i-1)*nr+(1:nr), :);
             if isTF
-                Dout(c, :, :, i) = shiftdim(xY', -1);
+                Dout(c, :, :, i) = shiftdim(xY', -1); 
             else
                 Dout(c, :, i) = xY';
             end
@@ -364,7 +470,7 @@ if ~isempty(SPM.Sess.U)
     spm_progress_bar('Clear');
     
     %-Save
-    %----------------------------------------------------------------------
+    %----------
     save(Dout);
 else
     Dout = [];
@@ -372,6 +478,8 @@ else
     ne   = 0;
 end
 
+% Process and save regressors if requested
+% ----------------------------------------
 if ~isempty(SPM.Sess.C.C) && S.sess.savereg
     rlabel = {};
     for i = 1:numel(SPM.Sess.C)
@@ -386,6 +494,8 @@ if ~isempty(SPM.Sess.C.C) && S.sess.savereg
         preprefix = '';
     end
     
+    % Prepare the structure for the output dataset
+    % --------------------------------------------
     if isTF
         Dr = clone(D, spm_file(D.fname, 'prefix', [S.prefix preprefix]), [nchan nf 1 ng]);
     else
@@ -398,27 +508,38 @@ if ~isempty(SPM.Sess.C.C) && S.sess.savereg
     Dr = conditions(Dr, ':', rlabel);
     Dr = type(Dr, 'evoked');
     
-    
+    % Process each channel
+    % --------------------
     spm_progress_bar('Init', nchan, 'channels done');
     if nchan > 100, Ibar = floor(linspace(1, nchan, 100));
     else Ibar = 1:nchan; end
     for c = 1:nchan
-        
+
+        % Compute sample weights for the channel
+        % --------------------------------------
         W = ones(nt, 1);
         W(D.badsamples(channels(c), ':', 1)) = exp(-256);
         W = spdiags(W, 0, nt, nt);
         
+        % Compute svd with sample weight for that channel
         axX    = spm_sp('Set', spm_filter(K, W*X));
+        
+        % Compute pinv(X'X)*X'
         if ~isfield(axX,'pX')
-            axX.pX = spm_sp('x-',axX);
+            axX.pX = spm_sp('x-',axX); 
         end
         
+        % Reshape and filter M/EEG for that channel
+        % -----------------------------------------
         Y = reshape(D(channels(c), :, :, :), nf, nt);
-        
         Y = spm_filter(K, W*Y');
         
+        % Compute beta coefficients (B = pinv(X'X)*X'*Y)
+        % ---------------------------------------------
         B = axX.pX*Y;
         
+        % Set data structure to beta
+        % --------------------------
         for i = 1:ng
             xY = B(ne*nr+i, :);
             if isTF
@@ -434,7 +555,7 @@ if ~isempty(SPM.Sess.C.C) && S.sess.savereg
     spm_progress_bar('Clear');
     
     %-Save
-    %----------------------------------------------------------------------
+    %-----
     save(Dr);
 else
     Dr = [];
