@@ -249,6 +249,8 @@ for i=1:numel(c0.val) % go recursive instead
         flag = [{c0.val{i}.tag} flag];
         h1   = [{char(c0.val{i}.help{:})} h1];
         m    = [is_mandatory(c0.val{i}) m];
+    elseif isa(c0,'cfg_const') || ischar(c0.val{i}) || isnumeric(c0.val{i})
+        % do nothing
     else
         flag = c0.val{i}.tag;
         h1   = char(c0.val{i}.help{:});
