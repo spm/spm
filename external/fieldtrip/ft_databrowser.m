@@ -46,9 +46,10 @@ function [cfg] = ft_databrowser(cfg, data)
 %   cfg.selfun                  = string, name of function that is evaluated using the right-click context menu. The selected data and cfg.selcfg are passed on to this function.
 %   cfg.selcfg                  = configuration options for function in cfg.selfun
 %   cfg.seldat                  = 'selected' or 'all', specifies whether only the currently selected or all channels will be passed to the selfun (default = 'selected')
+%   cfg.figure                  = 'yes' or 'no', whether to open a new figure. You can also specify a figure handle from FIGURE, GCF or SUBPLOT. (default = 'yes')
 %   cfg.visible                 = string, 'on' or 'off' whether figure will be visible (default = 'on')
-%   cfg.position                = location and size of the figure, specified as a vector of the form [left bottom width height]
-%   cfg.renderer                = string, 'opengl', 'zbuffer', 'painters', see MATLAB Figure Properties. If this function crashes, you should try 'painters'.
+%   cfg.position                = location and size of the figure, specified as [left bottom width height] (default is automatic)
+%   cfg.renderer                = string, 'opengl', 'zbuffer', 'painters', see RENDERERINFO (default is automatic, try 'painters' when it crashes)
 %   cfg.colormap                = string, or Nx3 matrix, see FT_COLORMAP
 %
 % The following options for the scaling of the EEG, EOG, ECG, EMG, MEG and NIRS channels
@@ -304,7 +305,7 @@ end
 
 if strcmp(cfg.viewmode, 'component')
   % read or create the topographic layout that will be used for the topoplots
-  tmpcfg = keepfields(cfg, {'layout', 'rows', 'columns', 'commentpos', 'skipcomnt', 'scalepos', 'skipscale', 'projection', 'viewpoint', 'rotate', 'width', 'height', 'elec', 'grad', 'opto', 'showcallinfo', 'trackcallinfo', 'trackusage', 'trackdatainfo', 'trackmeminfo', 'tracktimeinfo'});
+  tmpcfg = keepfields(cfg, {'layout', 'rows', 'columns', 'commentpos', 'skipcomnt', 'scalepos', 'skipscale', 'projection', 'viewpoint', 'rotate', 'width', 'height', 'elec', 'grad', 'opto', 'showcallinfo', 'trackcallinfo', 'trackusage', 'trackdatainfo', 'trackmeminfo', 'tracktimeinfo', 'checksize'});
   if hasdata
     % select those channels from the layout that are relevant for the
     % decomposition that is being plotted
@@ -1885,7 +1886,7 @@ if strcmp(cfg.viewmode, 'butterfly')
 else
   % the timecourse layout needs to be reconstructed whenever the channel selection changes
   if changedchanflg % trigger for redrawing channel labels and preparing layout again (see bug 2065 and 2878)
-    tmpcfg = keepfields(cfg, {'channel', 'columns', 'rows', 'commentpos', 'scalepos', 'elec', 'grad', 'opto', 'showcallinfo', 'trackcallinfo', 'trackusage', 'trackdatainfo', 'trackmeminfo', 'tracktimeinfo'});
+    tmpcfg = keepfields(cfg, {'channel', 'columns', 'rows', 'commentpos', 'scalepos', 'elec', 'grad', 'opto', 'showcallinfo', 'trackcallinfo', 'trackusage', 'trackdatainfo', 'trackmeminfo', 'tracktimeinfo', 'checksize'});
     tmpcfg.layout = 'vertical';
     tmpcfg.skipcomnt = 'yes';
     tmpcfg.skipscale = 'yes';
