@@ -1,4 +1,4 @@
-function D = spm_eeg_bst_fooof(S)
+function Dout = spm_eeg_bst_fooof(S)
 % Remove the aperiodic component from the spectrum using the FOOOF algorithm
 % Donoghue et al. (2020). Nature Neuroscience, 23, 1655-1665.
 %
@@ -98,11 +98,12 @@ hOT = exist('fmincon');
 
 freq = D.frequencies;
 
-toplot = max(D.nchannels, D.ntrials)<=8;
+toplot = 1;%max(D.nchannels, D.ntrials)<=8;
 if toplot
     Fgraph   = spm_figure('GetWin','Graphics'); figure(Fgraph); clf
 end
 k = 1;
+peak_table = {};
 for c = 1:D.nchannels
     for i = 1:D.ntrials
         
@@ -118,13 +119,21 @@ for c = 1:D.nchannels
         Dout(c, :, 1, i) = fg.power_spectrum-log10(fg.ap_fit);
                 
         if toplot
-            subplot(D.nchannels, D.ntrials, k)
+            %subplot(D.nchannels, D.ntrials, k)
+            figure;
             plot(fs, log10(fg.fooofed_spectrum), 'r', 'LineWidth', 2.5);
             hold on
             plot(fs, log10(fg.ap_fit), 'b--', 'LineWidth', 2.5);
             plot(fs, fg.power_spectrum, 'k', 'LineWidth', 2.5);
         end
         
+        if ~isequal(fg.peak_params, zeros(1, 3))
+           peak_table = [peak_table; {char(D.chanlabels(c)), char(D.conditions(i)), fg.peak_params}];
+        end
+        
         k = k+1;
     end
 end
+
+Dout.peak_table = peak_table;
+save(Dout);

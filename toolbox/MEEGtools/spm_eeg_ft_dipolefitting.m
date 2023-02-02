@@ -119,11 +119,11 @@ end
 
 figure;
 clf
-subplot(1,2,1);
+cfg.figure = subplot(1,2,1);
 cfg.parameter ='Vdata';
 ft_topoplotER(cfg, rmfield(source, 'dip'));
 title('Data');
-subplot(1,2,2);
+cfg.figure = subplot(1,2,2);
 cfg.parameter ='Vmodel';
 ft_topoplotER(cfg, rmfield(source, 'dip'));
 title('Model');

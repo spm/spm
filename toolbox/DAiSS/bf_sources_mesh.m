@@ -3,7 +3,7 @@ function mesh = bf_sources_mesh(BF, S)
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: bf_sources_mesh.m 7703 2019-11-22 12:06:29Z guillaume $
+% $Id: bf_sources_mesh.m 8405 2023-02-02 11:43:33Z vladimir $
 
 %--------------------------------------------------------------------------
 if nargin == 0
@@ -54,7 +54,8 @@ original = BF.data.mesh.tess_mni;
 canonical = original;
 
 if S.fdownsample ~= 1
-    canonical = export(gifti(reducepatch(export(gifti(canonical), 'patch'), 1/S.fdownsample)), 'spm');
+    nfaces = size(canonical.face, 1);
+    canonical = export(gifti(spm_mesh_reduce(export(gifti(canonical), 'patch'), round(nfaces/S.fdownsample))), 'spm');
 end
 
 if ~isequal(S.symmetric, 'no')
