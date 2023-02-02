@@ -1,41 +1,10 @@
-#!/usr/bin/octave -fqH
+#!/usr/bin/env bash
 #
-# Command Line Interface for SPM
+# Command Line Interface for SPM using Octave
 # SPM: https://www.fil.ion.ucl.ac.uk/spm/
 #
 # Guillaume Flandin
-# Copyright (C) 2017-2022 Wellcome Centre for Human Neuroimaging
+# Copyright (C) 2017-2023 Wellcome Centre for Human Neuroimaging
 
 
-spm_dir = getenv ("SPM_HOME");
-if (isempty (spm_dir))
-  spm_dir = mfilename ("fullpath");
-  sts = false;
-  while ! (sts)
-    [out, sts] = readlink (spm_dir);
-    if ! (sts)
-      if ! (is_absolute_filename (out))
-        spm_dir = fullfile (fileparts (spm_dir), out);
-      else
-        spm_dir = out;
-      endif
-    endif
-  endwhile
-  spm_dir = fullfile (fileparts (spm_dir), "..");
-endif
-addpath (canonicalize_file_name (spm_dir));
-
-try
-  spm ("Ver");
-catch
-  printf (["error: Cannot find the SPM directory. " ...
-    "Set SPM_HOME environment variable.\n"]);
-  exit (1);
-end
-
-spm_standalone (argv (){:});
-
-while (! isempty (get (0, "CurrentFigure")))
-  waitfor (get (0, "CurrentFigure"));
-endwhile
-exit (0);
+${BASH_SOURCE%/*}/spm-octave $@

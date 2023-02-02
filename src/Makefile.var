@@ -41,8 +41,6 @@ ifndef PLATFORM
   PLATFORM   = $(shell $(UNAME))
 endif
 
-$(info ** PLATFORM is $(PLATFORM) **)
-
 ##### Linux #####
 ifeq (Linux,$(PLATFORM))
   MEXEXT     = mexa64
@@ -119,9 +117,9 @@ SUF          = $(MEXEXT)
 
 MATLABROOT   = $(realpath $(shell which $(firstword $(MEXBIN))))
 ifeq (mex,$(MEXEXT))
-  SPMEXE    ?= ../bin/spm12-octave
+  SPMEXE    ?= ../bin/spm-octave
 else
-  SPMEXE    ?= ../bin/spm12-matlab
+  SPMEXE    ?= ../bin/spm-matlab
 endif
 
 define verb

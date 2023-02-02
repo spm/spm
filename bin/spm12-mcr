@@ -1,42 +1,11 @@
-#!/bin/sh
+#!/usr/bin/env bash
 #
-# Command Line Interface for SPM
+# Command Line Interface for SPM using the MATLAB Runtime
 # SPM: https://www.fil.ion.ucl.ac.uk/spm/
 #
 # Guillaume Flandin
-# Copyright (C) 2017-2022 Wellcome Centre for Human Neuroimaging
+# Copyright (C) 2017-2023 Wellcome Centre for Human Neuroimaging
 
-if [ "${MCR_HOME}" = "" ]; then
-  echo "Set MCR_HOME environment variable." >&2 
-  exit 1
-fi
-if [ ! -d "${MCR_HOME}" ]; then
-  echo "MCR directory not found." >&2 
-  exit 1
-fi
 
-if [ "${SPM_HOME}" = "" ]; then
-  if [ "${PLATFORM}" = "Darwin" ]; then
-    RL_FLAG="" # alternative needed
-  else
-    RL_FLAG="-f"
-  fi
-  SPM_HOME=$(readlink ${RL_FLAG} "$0")
-  while [ ! -x "${SPM_HOME}/run_spm12.sh" ]; do
-    if [ "${SPM_HOME}" = "$(dirname "${SPM_HOME}")" ]; then
-      echo "Set SPM_HOME environment variable." >&2 
-      exit 1
-    fi
-    SPM_HOME=$(dirname "${SPM_HOME}")
-  done
-fi
-if [ ! -d "${SPM_HOME}" ]; then
-  echo "SPM MCR directory not found." >&2 
-  exit 1
-fi
-if [ ! -x "${SPM_HOME}/run_spm12.sh" ]; then
-  echo "SPM MCR executable not found." >&2 
-  exit 1
-fi
-
-${SPM_HOME}/run_spm12.sh ${MCR_HOME} $@
+export SPM_EXE="run_spm12.sh"
+source ${BASH_SOURCE%/*}/spm-mcr $@
