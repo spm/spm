@@ -454,8 +454,8 @@ if(pos)
     positions=[];
     helm = spm_load(S.positions);
     
-    [a,b] = spm_match_str(Chan_names,helm.Sensor);
-    positions.name= Chan_names(a);
+    [~,b] = spm_match_str(Chan_names,helm.Sensor);
+    positions.name= helm.Sensor(b);
     
     if(iscell(helm.Px(b)))
         positions.Px = str2double(helm.Px(b));
