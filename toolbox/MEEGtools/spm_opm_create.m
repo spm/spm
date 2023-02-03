@@ -26,10 +26,11 @@ function [D,L] = spm_opm_create(S)
 %  D           - MEEG object (also written to disk)
 %  L           - Lead field (also written on disk)
 %__________________________________________________________________________
-% Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
 
 % Tim Tierney
-% $Id$
+% Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
+
+
 spm('FnBanner', mfilename);
 
 %-Set default values
@@ -75,7 +76,7 @@ try % work out if data is a matrix or a file
         Data = read_cMEG_data(args);
         S.channels = Data.channels;
         if isfield(Data,'position')
-			S.positions = Data.position;
+            S.positions = Data.position;
         end
         S.fs=Data.meg.SamplingFrequency;
         binData=0;
@@ -350,7 +351,7 @@ function [bids] = read_cMEG_data(S)
 % Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
 
 % Tim Tierney
-% $Id$
+% $Id: spm_opm_create.m 8407 2023-02-03 21:46:18Z guillaume $
 
 if strcmpi(num2str(S.filename(end-4:end)),'.cMEG')
     filename = S.filename(1:end-5);
