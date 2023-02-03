@@ -26,11 +26,10 @@ function [D,L] = spm_opm_create(S)
 %  D           - MEEG object (also written to disk)
 %  L           - Lead field (also written on disk)
 %__________________________________________________________________________
-
-% Tim Tierney
 % Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
 
-
+% Tim Tierney
+% $Id$
 spm('FnBanner', mfilename);
 
 %-Set default values
@@ -76,7 +75,7 @@ try % work out if data is a matrix or a file
         Data = read_cMEG_data(args);
         S.channels = Data.channels;
         if isfield(Data,'position')
-        S.positions = Data.position;
+			S.positions = Data.position;
         end
         S.fs=Data.meg.SamplingFrequency;
         binData=0;
@@ -106,19 +105,29 @@ end
 
 %- Check for channel Info
 %--------------------------------------------------------------------------
-try % to load a channels file
-    channels = spm_load(S.channels);
-catch
-    try % to load a BIDS channel file
-        channels = spm_load(chanFile);
+
+chanfieldexists = isfield(S,'channels');
+
+if chanfieldexists   
+    ischanstruct = isstruct(S.channels);
+end
+
+if (chanfieldexists && ischanstruct)
+    % use channel struct if it exists
+    channels = S.channels;
+else
+    try % to load a channels file
+        channels = spm_load(S.channels);
     catch
         try  % use channel struct if supplied
-            channels = S.channels;
+            channels = spm_load(chanFile);
         catch % create channel struct
             error('A valid channels.tsv file or struct was not found');
         end
     end
 end
+
+
 
 %- Check for MEG Info
 %--------------------------------------------------------------------------
@@ -338,10 +347,10 @@ function [bids] = read_cMEG_data(S)
 %  bids           - struct containing info for channels.tsv,meg.json and
 %                   positions.tsv
 %__________________________________________________________________________
-
-% Tim Tierney
 % Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
 
+% Tim Tierney
+% $Id$
 
 if strcmpi(num2str(S.filename(end-4:end)),'.cMEG')
     filename = S.filename(1:end-5);
@@ -371,7 +380,7 @@ while fsize ~= ftell(fid)
         dims = [dims,temp];
     end
     I = I + 1;
-    temp = fread(fid,prod(dims),'double',0,'ieee-be');  % Skip the actual data (much faster for some reason)
+    fread(fid,prod(dims),'double',0,'ieee-be');  % Skip the actual data (much faster for some reason)
 end
 fseek(fid,0,'bof'); % Reset the cursor
 data1 = repmat({NaN*ones(dims)},I,1);  % Preallocate space, assumes each section is the same
@@ -384,7 +393,6 @@ for j = 1:I
         temp = sum(Adim_conv.*temp);
         dims = [dims,temp];
     end
-        
     clear temp n
     temp = fread(fid,prod(dims),'double',0,'ieee-be');
     
@@ -406,7 +414,7 @@ for n = 1:size(data1,1)
 end
 
 %disp('Read session info')
-Session_info_file = [filename '_SessionInfo.txt'];
+Session_info_file = [filename(1:15) '_SessionInfo.txt'];
 fidSI = fopen(Session_info_file);
 finfoSI = dir(Session_info_file);
 fsizeSI = finfoSI.bytes;
@@ -417,143 +425,92 @@ while fsizeSI ~= ftell(fidSI)
 end
 fclose(fidSI);
 
-%disp('Get channel names')
-for n = 1:size(Session_info,1)
-    if strfind(Session_info{n},'Sensor Names:')
-        Chan_info_string_id = n;
-    end
+channels = spm_load([filename(1:15) '_channels.tsv']);
+Chan_names = channels.name;
+for i = 1:size(Chan_names,1)
+basespl = strsplit(channels.name{i},'[');
+Chan_names{i}= [basespl{1} basespl{2}(1)];
 end
-Chan_info_string = Session_info{Chan_info_string_id};
-cn1 = strsplit(Chan_info_string,', ');
-cn11 = strsplit(cn1{1},':  ');
-Chan_names = [cn11(2) cn1(2:end)]';
+channels.name=Chan_names;
 
-disp('Create Cerca data structure')
-Data.Session_info = Session_info;
-Data.samp_frequency = round(1/(data(1,2)-data(1,1)));
-Data.nsamples = size(data,2);
-Data.time = linspace(0,size(data,2)./Data.samp_frequency,size(data,2));
-Data.elapsed_time = Data.nsamples./Data.samp_frequency;
-Data.Chan_names = Chan_names;
-Data.data = data(2:end,:);
+f = round(1/(data(1,2)-data(1,1)));
+time = linspace(0,size(data,2)./f,size(data,2));
+data = data(2:end,:);
 
 
-f = Data.samp_frequency;
-time = Data.time;
 
-
-% Triggers
-tIdx = strfind(Data.Chan_names,'Trigger');
-tIdx= find(not(cellfun('isempty',tIdx)));
-bncIdx = strfind(Data.Chan_names,'BNC');
-bncIdx= find(not(cellfun('isempty',bncIdx)));
-triggers = Data.data(tIdx,:);
-bncs  = Data.data(bncIdx,:);
-
-% OPM data
-OPM_names = Data.Chan_names;
-othernames = OPM_names([tIdx;bncIdx],:);
-OPM_names([tIdx;bncIdx],:) = [];
-
-for n = 1:size(OPM_names,1)
-    tmp = strsplit(OPM_names{n});
-    Names_only(n,1) = tmp(1);
-    Axis_only(n,1) = tmp(2);
-end
-
-OPM_data1 = Data.data;
-OPM_data1([tIdx;bncIdx],:) = [];
+% Convert to fT (1x Mode, so 2.7 V/nT)
 gainIndex =  find(not(cellfun('isempty',strfind(Session_info,'OPM Gain'))));
 gain = Session_info{gainIndex};
 gainString = strsplit(gain, ': ');
 gainFac= str2num((gainString{2}(1:4)));
-
-% Convert to fT (1x Mode, so 2.7 V/nT)
-OPM_data1 = (1e6.*OPM_data1)./(2.7*gainFac);
-
-% OPM data in layout order
-load([fname(1:end-5) '_sensor_order.mat']);
-
-loc_info = cell(size(T.Name));
-OPM_data = [];
-sensornames = [];
-count = 0;
-bids = [];
-
-for n = 1:size(T,1)
-    idx = [];
-    if ~isempty(T.Name{n})
-        sens_name = strsplit(T.Name{n});
-        idx = find(strcmpi(sens_name(1),Names_only));
-        for m = 1:length(idx)
-            count = count + 1;
-            OPM_data_mat.(['Sensor_' sens_name{1}]).([Axis_only{idx(m)}(2)]) = OPM_data1(idx(m),:);
-            loc_info{n} = ['Sensor ' sens_name{1}];
-            sensornames{count} = [sens_name{1} ' ' Axis_only{idx(m)}(2)];
-            OPM_data = [OPM_data;OPM_data1(idx(m),:)];
-        end
-    end
-end
-sensornames = sensornames';
+opminds = strcmp(channels.type,'MEGMAG');
+data(opminds,:) = (1e6.*data(opminds,:))./(2.7*gainFac);
+channels.units(opminds)={'fT'};
 
 %- positions
 %----------------------------------------------------------------------
 if(pos)
-    load(S.positions);
-    % Helmet positions and orientations
-    for n = 1:size(sensornames,1)
-        tmp = split(sensornames{n});
-        loc_names{n} = tmp{1};
-        loc_axis{n} = tmp{2};
-        loc_idx(n) = unique(find(strcmpi(['Sensor ' loc_names{n}],loc_info)));
-        Sens_pos(n,:) = Helmet_info.sens_pos(loc_idx(n),:);
-        Sens_ors(n,:) = Helmet_info.(['sens_ors_' loc_axis{n}])(loc_idx(n),:);
-    end
     positions=[];
-    positions.name= sensornames;
-    positions.Px = Sens_pos(:,1);
-    positions.Py = Sens_pos(:,2);
-    positions.Pz = Sens_pos(:,3);
-    positions.Ox = Sens_ors(:,1);
-    positions.Oy = Sens_ors(:,2);
-    positions.Oz = Sens_ors(:,3);
-    bids.position = positions;
+    helm = spm_load(S.positions);
     
-    % big assumtion that z is radial to head
-    a= positions.name;
+    [a,b] = spm_match_str(Chan_names,helm.Sensor);
+    positions.name= Chan_names(a);
+    
+    if(iscell(helm.Px(b)))
+        positions.Px = str2double(helm.Px(b));
+    else
+        positions.Px =helm.Px(b);
+    end
+    
+    if(iscell(helm.Py(b)))
+        positions.Py = str2double(helm.Py(b));
+    else
+        positions.Py =helm.Py(b);
+    end
+    
+    if(iscell(helm.Pz(b)))
+        positions.Pz = str2double(helm.Pz(b));
+    else
+        positions.Pz =helm.Pz(b);
+    end
+    
+    if(iscell(helm.Ox(b)))
+        positions.Ox = str2double(helm.Ox(b));
+    else
+        positions.Ox =helm.Ox(b);
+    end
+     if(iscell(helm.Oy(b)))
+        positions.Oy = str2double(helm.Oy(b));
+    else
+        positions.Oy =helm.Oy(b);
+     end
+     
+     if(iscell(helm.Oz(b)))
+        positions.Oz = str2double(helm.Oz(b));
+    else
+        positions.Oz =helm.Oz(b);
+    end
     
     xy = zeros(size(positions.name,1),2);
     xylabs = positions.name;
-    for i = 1:size(Helmet_info.lay.pos,1)
-        xy(2*i-1,:)=Helmet_info.lay.pos(i,:);
-        xy(2*i,:)=Helmet_info.lay.pos(i,:);
-    end
+    xy(:,1)= helm.Layx(b);
+    xy(:,2)= helm.Layy(b);
+    
     bids.xy= xy;
     bids.xylabs=xylabs;
-    
+    bids.position = positions;
 end
-
-%- output cerca data in bids format
-%----------------------------------------------------------------------
-DataOut = [OPM_data;triggers;bncs];
 
 
 %- MEG.json - only crucial fields populated
 %----------------------------------------------------------------------
 meg=[];
-meg.SamplingFrequency = Data.samp_frequency;
-
-%- channels.tsv
-%----------------------------------------------------------------------
-channels = [];
-channels.name = [sensornames;othernames];
-channels.type = [repmat({'MEGMAG'},size(sensornames,1),1) ;repmat({'TRIG'},size(triggers,1),1) ;repmat({'PHYS'},size(bncs,1),1) ];
-channels.units = [repmat({'fT'},size(sensornames,1),1) ;repmat({'V'},size(othernames,1),1)];
-channels.status = repmat({'good'},size(channels.name,1),1);
+meg.SamplingFrequency = f;
 
 %- 1 output struct
 %----------------------------------------------------------------------
-bids.data= DataOut;
+bids.data= data;
 bids.channels = channels;
 bids.meg = meg;
 
