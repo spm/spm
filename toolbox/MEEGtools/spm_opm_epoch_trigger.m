@@ -18,9 +18,10 @@ function [D, trl] = spm_opm_epoch_trigger(S)
 %  D           - epoched MEEG object (also written to disk)
 % trl          - the trial matrix used to epoch the data
 %__________________________________________________________________________
+% Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
 
 % Tim Tierney
-% Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
+% $Id$
 
 
 %-Set Defaults
@@ -37,7 +38,11 @@ nTrigs =length(trigInds);
 
 % assume trigger is in first frequency of TF object
 if (strcmp(transformtype(S.D),'TF'))
-    trigs=squeeze(S.D(trigInds,1,:));
+    if (nTrigs==1)
+    trigs=squeeze(S.D(trigInds,1,:))';
+    else
+        trigs=squeeze(S.D(trigInds,1,:));    
+    end
 else
 trigs=squeeze(S.D(trigInds,:,:));
 end
