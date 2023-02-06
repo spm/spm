@@ -3,7 +3,7 @@ function topup = spm_topup_config
 %__________________________________________________________________________
 
 % Nicole Labra Avila
-% Copyright (C) 2022 Wellcome Centre for Human Neuroimaging
+% Copyright (C) 2022-2023 Wellcome Centre for Human Neuroimaging
 
 %--------------------------------------------------------------------------
 % topup Topup
@@ -89,29 +89,12 @@ reg.name    = 'Regularisation';
 reg.val     = {[0 10 100]}; % Default values 
 reg.strtype = 'e';
 reg.num     = [1 3];
-reg.help    = {[...
-'Regularisation settings (see spm_field). The three expected values are:',...
+reg.help    = {...
+'Regularisation settings (see spm_field).',...
+'The three expected values are:',...
 '[1] Penalty on absolute values.',...
 '[2] Penalty on the "membrane energy".',...
-'[3] Penalty on the "bending energy".']};
-
-%--------------------------------------------------------------------------
-% Option for refine topup
-%--------------------------------------------------------------------------
-rt         = cfg_menu;
-rt.tag     = 'rt';
-rt.name    = 'Refine topup';
-rt.val     = {1};
-rt.help    = {
-    'Option to include refine topup after estimating the fields.'
-    ['It include in the process the changes of intensities due to' ...
-    ' stretching and compression.']
-    }';
-rt.labels  = {
-              'Yes'
-              'No'
-}';
-rt.values  = {1 0};
+'[3] Penalty on the "bending energy".'};
 
 %--------------------------------------------------------------------------
 % Degree of B-spline  
@@ -140,12 +123,12 @@ wrap         = cfg_menu;
 wrap.tag     = 'wrap';
 wrap.name    = 'Wrapping';
 wrap.val     = {[0 0 0]}; % Default values 
-wrap.help    = {[
-'Wrapping along the dimensions (see spm_diffeo). '...
-'This indicates which directions in the volumes the values should ' ...
-'wrap around in.'...
-'* No wrapping - for images that have already been spatially transformed.'...
-'* Wrap in Y  - for (un-resliced) MRI where phase encoding is in the Y ' ...
+wrap.help    = {
+'Wrapping along the dimensions (see spm_diffeo).',...
+['This indicates which directions in the volumes the values should ',...
+'wrap around in.'],...
+'* No wrapping - for images that have already been spatially transformed.',...
+['* Wrap in Y  - for (un-resliced) MRI where phase encoding is in the Y ',...
 'direction (voxel space).']}';
 
 wrap.labels = {
@@ -160,6 +143,24 @@ wrap.labels = {
 }';
 wrap.values = {[0 0 0] [1 0 0] [0 1 0] [1 1 0] [0 0 1] [1 0 1] [0 1 1]...
                [1 1 1]};
+
+%--------------------------------------------------------------------------
+% Option for refine topup
+%--------------------------------------------------------------------------
+rt         = cfg_menu;
+rt.tag     = 'rt';
+rt.name    = 'Refine topup';
+rt.val     = {1};
+rt.help    = {
+    'Option to include refine topup after estimating the fields.'
+    ['It includes in the process the changes of intensities due to' ...
+    ' stretching and compression.']
+    }';
+rt.labels  = {
+              'Yes'
+              'No'
+}';
+rt.values  = {1 0};
 
 %--------------------------------------------------------------------------
 % prefix VDM Filename Prefix
@@ -208,8 +209,3 @@ switch lower(cmd)
         out(1).tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});
 
 end
-
-
-
-
-
