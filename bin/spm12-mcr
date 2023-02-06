@@ -8,4 +8,4 @@
 
 
 export SPM_EXE="run_spm12.sh"
-source ${BASH_SOURCE%/*}/spm-mcr $@
+${BASH_SOURCE%/*}/spm-mcr $@

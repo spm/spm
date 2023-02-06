@@ -14,18 +14,36 @@
 # OCTAVE_EXEC - name (and path) of the Octave executable
 
 
+for arg in "$@"
+do
+  shift
+  case "${arg%%=*}" in
+    MATLAB_EXEC|MCR_HOME|SPM_HOME|OCTAVE_EXEC)
+    eval export ${arg}
+    ;;
+  *)
+    set -- "$@" "$arg"
+    ;;
+  esac
+done
+
 if [[ ${MATLAB_EXEC} ]]; then
-  source ${BASH_SOURCE%/*}/spm-matlab $@
+  ${BASH_SOURCE%/*}/spm-matlab $@
   exit 0
 fi
 
 if [[ ${MCR_HOME} ]]; then
-  source ${BASH_SOURCE%/*}/spm-mcr $@
+  ${BASH_SOURCE%/*}/spm-mcr $@
+  exit 0
+fi
+
+if [[ ${OCTAVE_EXEC} ]]; then
+  ${BASH_SOURCE%/*}/spm-octave $@
   exit 0
 fi
 
 if [ "$(command -v matlab)" != "" ]; then
-  source ${BASH_SOURCE%/*}/spm-matlab $@
+  ${BASH_SOURCE%/*}/spm-matlab $@
   exit 0
 fi
 

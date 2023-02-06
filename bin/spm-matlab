@@ -41,7 +41,7 @@ fi
 INPUTS=""
 for arg in "$@"
 do
-  INPUTS=${INPUTS}"'${arg//\'/''}',"
+  INPUTS=${INPUTS}"'${arg//\'/\'\'}',"
 done
 if [ "${INPUTS}" != "" ]; then
   INPUTS=${INPUTS:0:$((${#INPUTS}-1))}
