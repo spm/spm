@@ -135,6 +135,9 @@ elseif isa(json,'table')
         end
     end
     S = jsonwrite_struct(S,tab);
+elseif isa(json,'function_handle')
+    json = functions(json); % or json = func2str(json);
+    S = jsonwrite_struct(json,tab);
 else
     if numel(json) ~= 1
         json = arrayfun(@(x)x,json,'UniformOutput',false);
@@ -144,7 +147,7 @@ else
         if isempty(p), p = fieldnames(json); end % for pre-classdef
         s = struct;
         for i=1:numel(p)
-            s.(p{i}) = json.(p{i});
+            try, s.(p{i}) = json.(p{i}); end
         end
         S = jsonwrite_struct(s,tab);
         %error('Class "%s" is not supported.',class(json));

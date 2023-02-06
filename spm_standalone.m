@@ -31,7 +31,9 @@ exit_code = 0;
 % the number of threads to be modified at runtime (either in script or in
 % spm_my_defaults.m or in startup.m).
 %--------------------------------------------------------------------------
-try, maxNumCompThreads(1); end
+if ~strcmpi(spm_check_version,'octave')
+    try, maxNumCompThreads(1); end
+end
 
 %-Action
 %==========================================================================
