@@ -1,13 +1,13 @@
-function [inside] = surface_inside(pos, pnt, tri)
+function [inside] = surface_inside(dippos, pos, tri)
 
 % SURFACE_INSIDE determines if a point is inside/outside a triangle mesh
 % whereby the bounding triangle mesh should be closed.
 %
 % Use as
-%   inside = surface_inside(pos, pnt, tri)
+%   inside = surface_inside(dippos, pos, tri)
 % where
-%   pos     position of point of interest (can be 1x3 or Nx3)
-%   pnt     bounding mesh vertices
+%   dippos  position of point of interest (can be 1x3 or Nx3)
+%   pos     bounding mesh vertices
 %   tri     bounding mesh triangles
 %
 % See also SURFACE_ORIENTATION, SURFACE_NORMALS, SURFACE_NESTING, SOLID_ANGLE
@@ -17,7 +17,7 @@ function [inside] = surface_inside(pos, pnt, tri)
 % This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
 %
-%    FieldTrip is free software: you can redistribute it and/or modify
+%    FieldTrip is free software: you can redistrinside = surface_inside(dippos, pos, tri)ibute it and/or modify
 %    it under the terms of the GNU General Public License as published by
 %    the Free Software Foundation, either version 3 of the License, or
 %    (at your option) any later version.
@@ -32,55 +32,48 @@ function [inside] = surface_inside(pos, pnt, tri)
 %
 % $Id$
 
-% this can be used for printing detailled user feedback
-fb = false;
-
 % this is a work-around for http://bugzilla.fieldtriptoolbox.org/show_bug.cgi?id=2369
+dippos = double(dippos);
 pos = double(pos);
-pnt = double(pnt);
 tri = double(tri);
 
+ndip = size(dippos, 1);
 npos = size(pos, 1);
-npnt = size(pnt, 1);
 ntri = size(tri, 1);
 
 % determine a cube that encompases the boundary triangulation
-cube_min = min(pnt);
-cube_max = max(pnt);
+cube_min = min(pos);
+cube_max = max(pos);
 
 % determine a sphere that is completely inside the boundary triangulation
-sphere_center = mean(pnt);
-sphere_radius = sqrt(min(sum((pnt - repmat(sphere_center, size(pnt,1), 1)).^2, 2)));
+sphere_center = mean(pos);
+sphere_radius = sqrt(min(sum((pos - repmat(sphere_center, size(pos,1), 1)).^2, 2)));
 
-inside = zeros(npos, 1);
-for i=1:npos
-  if fb
-    fprintf('%6.2f%%', 100*i/npos);
-  end
-  if any(pos(i,:)<cube_min) || any(pos(i,:)>cube_max)
+tolerance = 1000*eps;
+inside = zeros(ndip, 1);
+
+for i=1:ndip
+  if any(dippos(i,:)<cube_min) || any(dippos(i,:)>cube_max)
     % the point is outside the bounding cube
     inside(i) = 0;
-    if fb, fprintf(' outside the bounding cube\n'); end
-  elseif sqrt(sum((pos(i,:)-sphere_center).^2, 2))<sphere_radius
+  elseif sqrt(sum((dippos(i,:)-sphere_center).^2, 2))<sphere_radius
     % the point is inside the interior sphere
     inside(i) = 1;
-    if fb, fprintf(' inside the interior sphere\n'); end
   else
     % the point is inside the bounding cube but outside the interior sphere
     % compute the total solid angle of the surface, which is zero for a point outside
     % the triangulation and 4*pi or -4*pi for a point inside (depending on the triangle
     % orientation)
-    tmp = pnt - repmat(pos(i,:), npnt, 1);
+    tmp = pos - repmat(dippos(i,:), npos, 1);
     solang = solid_angle(tmp, tri);
     if any(isnan(solang))
       inside(i) = nan;
-    elseif (abs(sum(solang))-2*pi)<0
+    elseif abs(sum(solang)) < tolerance
       % total solid angle is (approximately) zero
       inside(i) = 0;
-    elseif (abs(sum(solang))-2*pi)>0
+    elseif (abs(sum(solang))-4*pi) < tolerance
       % total solid angle is (approximately) plus or minus 4*pi
       inside(i) = 1;
     end
-    if fb, fprintf(' solid angle\n'); end
   end
 end
