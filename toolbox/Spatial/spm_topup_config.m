@@ -102,7 +102,7 @@ reg.help    = {...
 rinterp         = cfg_menu;
 rinterp.tag     = 'rinterp';
 rinterp.name        = 'Interpolation';
-rinterp.val     = {[1 1 1]}; % Default values 
+rinterp.val     = {[1 1 1]};         % Default values 
 rinterp.help    = {[
 'Degree of B-spline (from 0 to 7) along different dimensions ' ...
 '(see spm_diffeo).']};
@@ -117,34 +117,7 @@ rinterp.labels = {
 rinterp.values = {[0 1 0] [1 1 0] [0 0 1] [1 0 1] [0 1 1] [1 1 1]};
 
 %--------------------------------------------------------------------------
-% Wrapping along the dimensions
-%--------------------------------------------------------------------------
-wrap         = cfg_menu;
-wrap.tag     = 'wrap';
-wrap.name    = 'Wrapping';
-wrap.val     = {[0 0 0]}; % Default values 
-wrap.help    = {
-'Wrapping along the dimensions (see spm_diffeo).',...
-['This indicates which directions in the volumes the values should ',...
-'wrap around in.'],...
-'* No wrapping - for images that have already been spatially transformed.',...
-['* Wrap in Y  - for (un-resliced) MRI where phase encoding is in the Y ',...
-'direction (voxel space).']}';
-
-wrap.labels = {
-               'No wrap'
-               'Wrap X'
-               'Wrap Y'
-               'Wrap X & Y'
-               'Wrap Z '
-               'Wrap X & Z'
-               'Wrap Y & Z'
-               'Wrap X, Y & Z'
-}';
-wrap.values = {[0 0 0] [1 0 0] [0 1 0] [1 1 0] [0 0 1] [1 0 1] [0 1 1]...
-               [1 1 1]};
-
-%--------------------------------------------------------------------------
+% prefix VDM Filename Prefix
 % Option for refine topup
 %--------------------------------------------------------------------------
 rt         = cfg_menu;
@@ -172,7 +145,7 @@ prefix.help    = {'Specify the string to be prepended to the VDM files. Default 
 prefix.strtype = 's';
 prefix.num     = [1 Inf];
 prefix.val     = {'vdm5'};
-%prefix.def     = @(val)spm_get_defaults('unwarp.write.prefix', val{:});
+
 
 %--------------------------------------------------------------------------
 % Save VDM 
@@ -189,7 +162,7 @@ outdir.help    = {[...
 'in the specified directory. The deformation field is saved to disk as ',...
 'a vdm file ("vdm5_*.nii")']};
 
-[cfg,varargout{1}] = deal({data,fwhm,reg,rinterp,wrap,rt,prefix,outdir});
+[cfg,varargout{1}] = deal({data,fwhm,reg,rinterp,rt,prefix,outdir});
 
 
 %==========================================================================
@@ -198,8 +171,8 @@ function out = spm_run_topup(cmd, job)
 switch lower(cmd)
     case 'run'
         VDM               = spm_topup(job.data.volbup{1},job.data.volbdown{1}, ...
-                            job.fwhm,job.reg,job.rinterp,job.wrap,job.rt, ...
-                            job.prefix,job.outdir{1});
+                            job.fwhm,job.reg,job.rinterp,job.rt,job.prefix, ...
+                            job.outdir{1});
         out.vdmfile       = {VDM.dat.fname};
         
     case 'vout'

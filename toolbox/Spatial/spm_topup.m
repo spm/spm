@@ -1,22 +1,25 @@
 % %==========================================================================
 % %==========================================================================
-function VDM = spm_topup(vol1, vol2, FWHM, reg, rinterp, wrap, rt, pref, outdir)
+function VDM = spm_topup(vol1, vol2, FWHM, reg, rinterp, rt, pref, outdir)
 % Correct susceptibility distortions using topup
 % FORMAT VDM = spm_topup(vol1, vol2, FWHM, reg, save)
-% vol1   - path to first image (blip up)
-% vol2   - path to second image (blip down)
-% fwhm   - Gaussian kernel spatial scales (default: [8 4 2 1 0.1])
-% reg    - regularisation settings (default: [0 10 100])
-%          See spm_field for details:
-%            - [1] Penalty on absolute values.
-%            - [2] Penalty on the `membrane energy'. This penalises
+% vol1       - path to first image (blip up)
+% vol2       - path to second image (blip down)
+% fwhm       - Gaussian kernel spatial scales (default: [8 4 2 1 0.1])
+% reg        - regularisation settings (default: [0 10 100])
+%            See spm_field for details:
+%               - [1] Penalty on absolute values.
+%               - [2] Penalty on the `membrane energy'. This penalises
 %                  the sum of squares of the gradients of the values.
-%            - [3] Penalty on the `bending energy'. This penalises
+%               - [3] Penalty on the `bending energy'. This penalises
 %                  the sum of squares of the 2nd derivatives.
-% pref - string to be prepended to the VDM files.
-% outdir - output directory.
+% rinterp    - Degree of B-spline 
+% rt         - Option to apply a supplemtary refine over topup to incluse in the 
+%              process the changes of intensities due to stretching and compression.
+% pref       - string to be prepended to the VDM files.
+% outdir     - output directory.
 %
-% VDM    - voxel displacement map.
+% VDM        - voxel displacement map.
 %
 % Reference:
 %
@@ -39,12 +42,16 @@ if nargin < 4
     reg = [0 10 100];     % regularisation
 end
 if nargin < 5
-    rinterp = [1 1 1];        % Degree of B-spline 
+    rinterp = [1 1 1];    % Degree of B-spline 
 end
 if nargin < 6
-    wrap = [0 0 0];        % Wrapping along the dimensions 
+    rt = 1;               % Refine topip 
 end
 if nargin < 7
+    pref = 'vdm5_';       % Prefix for files
+end
+
+if nargin < 8
     outdir = '';          % output directory
 end
 
@@ -94,11 +101,11 @@ for fwhm = FWHM % Loop over spatial scales
 
         % Sample the blip up/down image and its gradients in y direction
         phi(:,:,:,2) = id(:,:,:,2) + u;
-        [wf1,~,d1,~] = spm_diffeo('bsplins',f1,phi,[rinterp wrap]);
+        [wf1,~,d1,~] = spm_diffeo('bsplins',f1,phi,[rinterp [0 0 0]]);
 
         % Sample the blip down/up image and its gradients in y direction
         phi(:,:,:,2) = id(:,:,:,2) - u;
-        [wf2,~,d2,~] = spm_diffeo('bsplins',f2,phi,[rinterp wrap]);
+        [wf2,~,d2,~] = spm_diffeo('bsplins',f2,phi,[rinterp [0 0 0]]);
 
         % Regularisation term is \tfrac{1}{2} u^T L u. Compute L u. 
         gu  = spm_field('vel2mom', u, reg);
@@ -174,7 +181,7 @@ end
 
 % Refine Topup
 if rt == 1
-  [u,wf1,wf2] = refine_topup(u, f1,f2, sig2, vx, reg(4:end));
+   [u,wf1,wf2] = refine_topup(u, f1,f2, sig2, vx, reg(4:end));
 end
 %-Save distortion-corrected blip up/down and down/up images) and VDM
 %==========================================================================
@@ -206,8 +213,8 @@ Nio.dat(:,:,:) = wf2;
 % Write VDM file
 %--------------------------------------------------------------------------
 basename       = spm_file(vol1,'basename');
-pref           = strcat(pref,'_+ve_');
-oname          = spm_file(basename,'prefix',pref,'ext','.nii');
+pr             = strcat(pref,'_+ve_');
+oname          = spm_file(basename,'prefix',pr,'ext','.nii');
 oname          = fullfile(outdir,oname);
 Nio            = nifti;  
 Nio.dat        = file_array(oname,size(u),'float32');
@@ -221,8 +228,8 @@ VDM = Nio;
 %--------------------------------------------------------------------------
 vi             = inv1D(u);
 basename       = spm_file(vol1,'basename');
-pref           = strcat(pref,'_-ve_');
-oname          = spm_file(basename,'prefix', pref,'ext','.nii');
+pr             = strcat(pref,'_-ve_');
+oname          = spm_file(basename,'prefix', pr,'ext','.nii');
 oname          = fullfile(outdir,oname);
 Nio            = nifti;  
 Nio.dat        = file_array(oname,size(vi),'float32');
