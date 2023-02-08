@@ -192,6 +192,17 @@ switch action
         %    f2 = uimenu(f0,'Label','xxx', 'Callback',@xxx, ...
         %        'HandleVisibility','off', 'tag','xxx');
         %end
+
+    case {'export'}
+        try
+            c0 = cfg_util('getcfg');
+        catch
+            spm_jobman('initcfg');
+            c0 = cfg_util('getcfg');
+        end
+        c0 = cfg_simplify(c0.values{1});
+        c0 = spm_changepath(c0,spm('dir'),'$SPMDIR',false);
+        varargout = {c0};
         
     case {'interactive'}
         if exist('mljob', 'var')
@@ -543,7 +554,35 @@ code{2}  = 'spm_jobman(''run'', jobs, inputs{:});';
 cont     = false;
 
 
-%-Compatibility layer for SPM5
-function varargout = interactive(varargin)
-function varargout = defaults_edit(varargin)
-function varargout = run_serial(varargin)
+%==========================================================================
+% function c0 = cfg_simplify(c0)
+%==========================================================================
+function c0 = cfg_simplify(c0)
+cl = class(c0);
+if numel(cl) > 3 && strcmp(cl(1:4),'cfg_')
+    p = properties(c0);
+    if isempty(p), p = fieldnames(c0); end % for pre-classdef
+    p = setxor(p,{'rewrite_job','expanded','preview','check','prog',...
+        'tdeps','vfiles','vout','jout','extras','sdeps','sout','forcestruct'});
+    s = struct('class',cl(5:end));
+    for i=1:numel(p)
+        try, s.(p{i}) = c0.(p{i}); end
+        if strcmp(p{i},'def') && isa(s.def,'function_handle')
+            s.def = feval(s.def,{});
+        end
+    end
+    c0 = s;
+end
+if isfield(c0,'val')
+    if isa(c0.val,'function_handle')
+        c0.val = feval(c0.val);
+    end
+    for i=1:numel(c0.val)
+        c0.val{i} = cfg_simplify(c0.val{i});
+    end
+end
+if isfield(c0,'values')
+    for i=1:numel(c0.values)
+        c0.values{i} = cfg_simplify(c0.values{i});
+    end
+end
