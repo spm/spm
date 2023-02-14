@@ -694,9 +694,18 @@ Y(40).lag  = 0;
 Y(40).age  = 0;
 Y(40).hold = 0;
 
-% Data selection
+% Data selection (and visual inspection)
 %--------------------------------------------------------------------------
 % Y([13,14]) = [];
+
+% subplot(2,1,1)
+% for i = 1:numel(Y)
+%     plot(Y(i).date,Y(i).Y,'o')
+%     title(Y(i).type)
+%     datetick('x','dd-mmm','keeplimits','keepticks')
+%     xlabel('date')
+%     pause
+% end
 
 % remove NANs, smooth and sort by date
 %==========================================================================
