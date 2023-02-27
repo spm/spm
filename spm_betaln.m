@@ -16,21 +16,7 @@ function y = spm_betaln(z)
 % Copyright (C) 2016-2022 Wellcome Centre for Human Neuroimaging
 
 
-% log the multivariate beta function of a vector
+% log multivariate beta function
 %--------------------------------------------------------------------------
-if isvector(z)
-    z     = z(find(z)); %#ok<FNDSB>
-    y     = sum(gammaln(z)) - gammaln(sum(z));
-else
-    for i = 1:size(z,2)
-        for j = 1:size(z,3)
-            for k = 1:size(z,4)
-                for l = 1:size(z,5)
-                    for m = 1:size(z,6)
-                        y(1,i,j,k,l,m) = spm_betaln(z(:,i,j,k,l,m));
-                    end
-                end
-            end
-        end
-    end
-end
+z     = z + exp(-16);
+y     = sum(gammaln(z),1) - gammaln(sum(z,1));

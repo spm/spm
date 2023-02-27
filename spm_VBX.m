@@ -56,6 +56,10 @@ switch METHOD
         end
         L     = spm_log(L);
 
+        % preclude numerical overflow of log likelihood
+        %------------------------------------------------------------------
+        L     = max(L,max(L,[],'all') - 8);
+
         % log prior
         %------------------------------------------------------------------
         for f = 1:numel(P)
@@ -65,7 +69,8 @@ switch METHOD
         % variational iterations
         %------------------------------------------------------------------
         Q     = P;
-        for i = 1:4
+        Z     = -Inf;
+        for v = 1:4
             F     = 0;
             for f = 1:numel(P)
 
@@ -73,18 +78,31 @@ switch METHOD
                 %----------------------------------------------------------
                 LL   = spm_vec(spm_dot(L,Q,f));
 
-                % ensure log likelihood is not too precise
+                % posterior
                 %----------------------------------------------------------
-                LB   = max(LL) - 16;
-                LL(LL < LB) = LB;
-
                 Q{f} = spm_softmax(LL + LP{f});
 
                 % (-ve) free energy (partition coefficient)
                 %----------------------------------------------------------
                 F    = F + Q{f}'*(LL + LP{f} - spm_log(Q{f}));
             end
+
+            % convergence
+            %--------------------------------------------------------------
+%             if F > 0
+%                 warning('positive ELBO in spm_VBX')
+%             end
+            dF = F - Z;
+            if dF < 1/128
+                break
+            elseif dF < 0
+                warning('ELBO decreasing in spm_VBX')
+            else
+                Z = F;
+            end
         end
+
+
 
     case 'exact'
 
@@ -158,14 +176,13 @@ switch METHOD
 
 end
 
-
 return
 
 
 
 %% NOTES on disentanglement in Dirichlet matrices
 %==========================================================================
-% ccreate a multiset likelihood mapping by replicating a Dirichlet
+% create a multiset likelihood mapping by replicating a Dirichlet
 % likelihood
 
 n   = 4;

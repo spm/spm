@@ -4,12 +4,18 @@ function [X] = spm_dot(X,x,i)
 %
 % X   - numeric array
 % x   - cell array of numeric vectors
-% DIM - dimensions to omit (assumes ndims(X) = numel(x))
+% DIM - dimensions to skip [assumes ndims(X) = numel(x)]
 %
-% Y  - inner product obtained by summing the products of X and x along DIM
+% Y   - inner product obtained by summing the products of X and x
 %
-% If DIM is not specified the leading dimensions of X are omitted.
-% If x is a vector the inner product is over the first matching dimension of X
+% If DIM is not specified the leading dimensions of X are skipped. If x is
+% a vector the inner product is over the first matching dimension of X.
+% This means that if called with a vector valued x, the dot product will be
+% over the first (matching) dimension. Conversely, if called with {x} the
+% dot product will be over the last dimension of X.
+%
+% This version calls tensorprod.m
+%
 %
 % See also: spm_cross
 %__________________________________________________________________________
@@ -34,14 +40,14 @@ if iscell(x)
     
 else
 
-    %  find first matching dimension
+    % find first matching dimension
     %----------------------------------------------------------------------
     DIM = find(size(X) == numel(x),1);
     x   = {x};
 
 end
 
-% omit dimensions specified
+% omit specified dimensions 
 %--------------------------------------------------------------------------
 if nargin > 2
     DIM(i) = [];
@@ -51,7 +57,7 @@ end
 % inner product using tensorprod
 %--------------------------------------------------------------------------
 for d = 1:numel(x)
-    X    = tensorprod(X,full(x{d}),DIM(d),1);
+    X    = tensorprod(X,full(x{d}(:)),DIM(d),1);
     DIM  = DIM - 1;
 end
 

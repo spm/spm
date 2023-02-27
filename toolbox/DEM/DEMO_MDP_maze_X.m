@@ -130,11 +130,12 @@ mdp       = spm_MDP_check(mdp);
 % illustrate shortest path to target with suitable policy depth (e.g., N
 % = 4), when the safe locations are known
 %--------------------------------------------------------------------------
+OPTIONS.N = 1;
 mdp.s = START;
 for i = 1:4
     MDP   = mdp;
     MDP.N = i - 1;
-    MDP   = spm_MDP_VB_XXX(MDP);
+    MDP   = spm_MDP_VB_XXX(MDP,OPTIONS);
     
     % cumulative reward
     %----------------------------------------------------------------------
@@ -143,7 +144,7 @@ for i = 1:4
     end
     
     % show results - behavioural
-    %--------------------------------------------------------------------------
+    %----------------------------------------------------------------------
     str = sprintf('Figure %i',i);
     spm_figure('GetWin',str); clf
     spm_maze_plot(MDP,END)

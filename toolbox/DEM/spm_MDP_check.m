@@ -234,7 +234,7 @@ if isfield(MDP,'o')
             error('please specify an outcomes MDP.o for %i modalities',Ng)
         end
         if any(max(MDP.o,[],2) > No(:))
-            error('please ensure outcomes MDP.o are consistent with MDP.A')
+            error('please ensure # outcomes MDP.o are consistent with MDP.A')
         end
     end
 end

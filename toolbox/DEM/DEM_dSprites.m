@@ -39,7 +39,6 @@ function mdp = DEM_dSprites
 % Karl Friston
 % $Id: DEM_surveillance.m 8313 2022-09-30 18:33:43Z karl $
 
-
 %% set up and preliminaries
 %==========================================================================
 rng(1)
@@ -89,7 +88,7 @@ dSprite{3} = [ ...
 %--------------------------------------------------------------------------
 label.factor  = {'x','y','kind'};
 
-Nx    = 12;                         % number of pixels
+Nx    = 8;                          % number of pixels
 Nk    = numel(dSprite);             % number of dSprite kinds
 
 for i = 1:Nx, label.name{1}{i} = sprintf('x%i',i); end
@@ -253,9 +252,10 @@ disp('inverting generative model (c.f., active inference)'), disp(' ')
 
 % specify a trial, with initial conditions, s
 %--------------------------------------------------------------------------
+OPTIONS.N = 1;                    % simulate neuronal responses
 MDP   = mdp;
 MDP.s = [1,1,2];
-MDP   = spm_MDP_VB_XXX(MDP);
+MDP   = spm_MDP_VB_XXX(MDP,OPTIONS);
 
 
 % illustrate behavioural responses
@@ -296,9 +296,8 @@ mdp = spm_MDP_motor_learning(mdp);
 %--------------------------------------------------------------------------
 spm_figure('GetWin','learning'); clf
 disp('inverting generative model (c.f., active inference)'), disp(' ')
+
 OPTIONS.A = 0;                             % suppress explicit action
-OPTIONS.B = 0;                             % suppress backward pass
-OPTIONS.D = 0;                             % suppress backward pass
 OPTIONS.N = 0;                             % suppress neuronal responses
 OPTIONS.G = 1;                             % suppress graphics
 
@@ -439,7 +438,7 @@ for f = 1:Nf(3)
     end
     R = squeeze(R(1,:,:));
     subplot(6,3,f + 2*3)
-    image(R*64), axis image, title(sprintf('Reward mapping (%i)',f))
+    imagesc(R), axis image, title(sprintf('Reward mapping (%i)',f))
     
 end
 
@@ -453,7 +452,8 @@ for f = 1:Nf(3)
     end
     R = squeeze(R(1,:,:));
     subplot(6,3,f + 3*3)
-    image(R*16), axis image, title(sprintf('Dirichlet counts (%i)',f))
+    image(64*R/(MDP.T/prod(Nf(1:2))))
+    axis image, title(sprintf('Dirichlet counts (%i)',f))
 end
 
 % place fields - first factor (i.e., marginal likelihoods)
@@ -499,7 +499,12 @@ L = spm_cat(L');
 K = spm_cat(K');
 
 
-
+%% routines that call XXX
+%--------------------------------------------------------------------------
+DEMO_MDP_maze_X
+DEM_surveillance
+DEM_dSprites
+DEM_syntax
 
 
 

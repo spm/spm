@@ -418,6 +418,9 @@ title('Posterior probabilities (reaction time)')
 xlabel('Parameter')
 ylabel('Probability')
 
+
+return
+
 % Model fits
 %--------------------------------------------------------------------------
 % This section demonstrates the fitting of this model to synthetic data,
@@ -666,9 +669,9 @@ XX = kron(XX,ones(round(r*T),r));
 R  = rand(size(XX));
 XX(R>XX-s) = 0;
 XX(R<XX+s) = 1;
-duu   = dctmtx(size(uu,1))*uu;
+duu   = spm_dctmtx(size(uu,1))*uu;
 k     = repmat(exp((1-(1:size(duu,1)))/h)',1,size(duu,2));
-uu    = dctmtx(size(uu,1))'*(k.*duu);
+uu    = spm_dctmtx(size(uu,1))'*(k.*duu);
 U{1} = XX;
 U{2} = uu;
 U{3} = 250+(1:size(uu,1))*250*T/16; % Time
@@ -732,10 +735,10 @@ R   = rand(size(XXX));
 XXX(R>XXX-s) = 0;
 XXX(R<XXX+s) = 1;
 V{1} = XXX;
-duu   = dctmtx(size(uuu,1))*uuu;
-k     = repmat(exp((1-(1:size(duu,1)))/h)',1,size(duu,2));
-k     = k./sum(k,2);
-uuu    = dctmtx(size(uuu,1))'*(k.*duu);
+duu  = spm_dctmtx(size(uuu,1))*uuu;
+k    = repmat(exp((1-(1:size(duu,1)))/h)',1,size(duu,2));
+k    = k./sum(k,2);
+uuu  = spm_dctmtx(size(uuu,1))'*(k.*duu);
 V{2} = uuu;
 V{3} = (1:size(uuu,1))*250/16;
 
@@ -779,7 +782,7 @@ for i = 2:length(MDP.mdp)
         end
         x(:,end+1) = spm_dot(MDP.mdp(i).A{4},xn);
     end
-    v       = -diag(x'*log(x + 1e-8));
+    v       = -diag(x'*spm_log(x));
     rt(i-1) = find(v<8/10,1);
     rt(i-1) = v(end);
 end
@@ -842,8 +845,8 @@ if M.ch == 1
             for j = 1:numel(MDP.mdp(i).xn)
                 xn{j} = MDP.mdp(i).xn{j}(end,:,2,1);
             end
-            x(:,end+1) = spm_softmax(MDP.mdp(i).lambda*log(spm_dot(MDP.mdp(i).A{4},xn)));
-            L = L + log(x(MDP.mdp(i).o(4,2),end));
+            x(:,end+1) = spm_softmax(MDP.mdp(i).lambda*spm_log(spm_dot(MDP.mdp(i).A{4},xn)));
+            L = L + spm_log(x(mdp.mdp(i).o(4,2),end));
         end
     end
     

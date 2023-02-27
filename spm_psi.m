@@ -2,7 +2,7 @@ function [A] = spm_psi(a)
 % Normalisation of a Dirichlet probability matrix (columns)
 % FORMAT [A] = spm_psi(a)
 %
-% a  - Dirichlet tensor
+% a  - Dirichlet parameter tensor
 %
 % This can be regarded as log(spm_dir_norm(a)). More formally, it
 % corresponds to  the expectation  of the log marginals: E[log(X)]: X(i)
@@ -13,7 +13,7 @@ function [A] = spm_psi(a)
 % Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
 
 
-% normalisation of a probability transition rate matrix (columns)
-%--------------------------------------------------------------------------
-A = minus(psi(a),psi(sum(a,1)));
-A(A < -32) = -32;
+% expectation of a log probability encoded by Dirichlet parameters
+%-------------------------------------------------------------------------- 
+A  = minus(psi(a),psi(sum(a,1)));
+A  = max(A,-32);

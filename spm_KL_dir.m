@@ -25,7 +25,7 @@ d = sum(d(:));
 
 return
 
-% check on KL of Dirichlet distributions
+% NOTES: numerical check on KL of Dirichlet distributions
 %==========================================================================
 p  = rand(6,1) + 1;
 q  = rand(6,1) + p;
@@ -34,5 +34,5 @@ q0 = sum(q);
 
 d  = q - p;
 KL = spm_betaln(p) - spm_betaln(q) + d'*spm_psi(q)
-kl = gammaln(q0) - sum(gammaln(q)) - gammaln(p0) + sum(gammaln(p)) + ...
+kl = gammaln(q0)   - sum(gammaln(q)) - gammaln(p0) + sum(gammaln(p)) + ...
     d'*(spm_psi(q) - spm_psi(q0))

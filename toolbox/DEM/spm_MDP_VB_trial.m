@@ -60,8 +60,10 @@ for f = 1:nf
     if size(X{gf(f)},1) > 128
         spm_spy(X{gf(f)},12,1);
     end
-    a = axis; hold on
-    plot(MDP.s(gf(f),:),'.r','MarkerSize',8), axis(a), hold off
+    a = axis;
+    if isfield(MDP,'s')
+         hold on, plot(MDP.s(gf(f),:),'.r','MarkerSize',8), axis(a), hold off
+    end
     if f < 2
         title(sprintf('Hidden states - %s',MDP.label.factor{gf(f)}));
     else
@@ -93,9 +95,10 @@ for f  = 1:Np
        P = MDP.P{f};
     elseif Nf > 1
             ind     = 1:Nf;
+            P       = MDP.P;
             for dim = 1:Nf
                 if dim ~= ind(Nu(f))
-                    P = sum(MDP.P,dim);
+                    P = sum(P,dim);
                 end
             end
             P = squeeze(P);
@@ -105,8 +108,10 @@ for f  = 1:Np
     
     % display
     %----------------------------------------------------------------------
-    image(64*(1 - P)), hold on
-    plot(MDP.u(Nu(f),:),'.c','MarkerSize',16), hold off
+    image(64*(1 - P))
+    if isfield(MDP,'u')
+        hold on, plot(MDP.u(Nu(f),:),'.c','MarkerSize',16), hold off
+    end
     if f < 2
         title(sprintf('Action - %s',MDP.label.factor{Nu(f)}));
     else

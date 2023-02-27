@@ -1,12 +1,14 @@
-function MDP = spm_MDP_structure_learning(MDP)
+function MDP = spm_MDP_structure_learning(MDP,mdp)
 % structure learning of factorised Markov decision processes
-% FORMAT mdp = spm_MDP_structure_learning(MDP)
-% FORMAT mdp = spm_MDP_structure_learning(o)
+% FORMAT mdp = spm_MDP_structure_learning(MDP,[mdp])
+% FORMAT mdp = spm_MDP_structure_learning(o,[mdp])
 %
-% MDP - generative process or
-% o   - cell array of outcomes
+% MDP   - generative process or
+% o     - cell array of outcomes
+% mdp.p - initial Dirichlet counts [1/16]
+% mdp.q - precise Dirichlet counts [512]
 %
-% mdp - generative model: with mdp.a, mdp.b (and mdp.k)
+% mdp   - generative model: with mdp.a, mdp.b (and mdp.k)
 %
 % This routine returns a generative model in the form of an MDP, based upon
 % a sequence of outcomes. If the outcomes are not supplied, then they are
@@ -19,24 +21,24 @@ function MDP = spm_MDP_structure_learning(MDP)
 % assumptions about the basic structural form of generative models at any
 % given level of a hierarchical model. These are minimal assumptions:
 % 
-% (i) Dynamics are conditionally independent of outcomes. This means that the
-% generative model can be factorised into a likelihood mapping (A) and
+% (i) Dynamics are conditionally independent of outcomes. This means that
+% the generative model can be factorised into a likelihood mapping (A) and
 % transition probabilities over latent states (B)
 % 
 % (ii) Latent states can be partitioned into factors, whose dynamics are
 % conditionally independent 
 % 
-% (iii) The dynamics for each factor can be partitioned
-% into discrete paths.
+% (iii) The dynamics for each factor can be partitioned into discrete
+% paths.
 % 
-% This leads to a generic form for any level of a
-% hierarchical (deep) Markov decision process in which the likelihood
-% mapping (for each modality) is a tensor whose trailing dimensions
-% correspond to the dimensions of each factor. The (transition) priors are
-% tensors, with a probability transition matrix for each path. In addition,
-% the initial state and path of each factor is specified with D and E. With
-% this form, structure learning can simply consider the addition of a
-% latent state, a latent path or a new factor. 
+% This leads to a generic form for any level of a hierarchical (deep)
+% Markov decision process in which the likelihood mapping (for each
+% modality) is a tensor whose trailing dimensions correspond to the
+% dimensions of each factor. The (transition) priors are tensors, with a
+% probability transition matrix for each path. In addition, the initial
+% state and path of each factor is specified with D and E. With this form,
+% structure learning can simply consider the addition of a latent state, a
+% latent path or a new factor.
 % 
 % It is assumed that the first path of any factor has no dynamics and
 % corresponds to an identity operator. Subsequent paths can have any form.
@@ -45,6 +47,9 @@ function MDP = spm_MDP_structure_learning(MDP)
 % likelihood mapping is shared by the first state of every factor. In turn,
 % this means that adding a factor entails adding a second state to the
 % implicit first state of the new factor.
+%
+% If called with two arguments, the outcomes are assimilated into an
+% existing generative model.
 %
 % See: spm_MDP_log_evidence.m, spm_MDP_VB_update and spm_MDP_VB_sleep.m
 %__________________________________________________________________________
@@ -57,16 +62,13 @@ function MDP = spm_MDP_structure_learning(MDP)
 
 % options for model inversion (and evaluation)
 %==========================================================================
-OPTIONS.A = 0;                             % suppress explicit action
-OPTIONS.B = 0;                             % suppress backward pass
-OPTIONS.D = 0;                             % suppress backward pass
 OPTIONS.N = 0;                             % suppress neuronal responses
 OPTIONS.P = 0;                             % suppress plotting
+OPTIONS.B = 1;                             % replay
 OPTIONS.G = 1;                             % suppress graphics
 
-% generate sequence of outcomes if nnecessary
+% generate sequence of outcomes if necessary
 %==========================================================================
-o  = {};                                   % initialise outcome cell array
 if isstruct(MDP)
 
     % number of outcomes, states, controls and policies
@@ -85,10 +87,11 @@ if isstruct(MDP)
     %----------------------------------------------------------------------
     MUP   = MDP;
     MUP.U = zeros(1,Nf);
-    MUP.T = T;                              % number of moves
+    MUP.T = T;                              % number of outcomes
 
     % cycle over latent factors to generate outcomes
     %----------------------------------------------------------------------
+    o     = {};                             % initialise outcome cell array
     for i = 1:Nf                            % cycle over factors
 
         % cycle over paths
@@ -105,7 +108,7 @@ if isstruct(MDP)
                 MUP.s = ones(Nf,1); MUP.s(i) = k;
                 MUP.u = ones(Nf,1); MUP.u(i) = j;
                 MUP.o = [];
-                MUP   = spm_MDP_VB_XXX(MUP,OPTIONS);
+                MUP   = spm_MDP_VB_XXX(MUP);
 
                 % outcomes for this epoch
                 %==========================================================
@@ -114,79 +117,137 @@ if isstruct(MDP)
             end
         end
     end
+
 else
 
-    % number of modalities and length of epochs
+    % MDP are outcomes
     %----------------------------------------------------------------------
-    [Ng,T] = size(o{1});
+    o     = MDP;
+    if isnumeric(o{1})
 
-    % number of outcomes for each modality
-    %----------------------------------------------------------------------
-    O     = spm_cat(o);
-    for g = 1:Ng
-        No(g) = max(O(g,:));
+        % number of modalities
+        %------------------------------------------------------------------
+        Ng    = size(o{1},1);
+
+        % number of outcomes for each modality
+        %------------------------------------------------------------------
+        O     = spm_cat(o);
+        for g = 1:Ng
+            No(g) = max(max(O(g,:)),2);
+        end
+
+    else  
+
+        % probabilistic outcomes
+        %------------------------------------------------------------------
+        Ng    = size(o{1},1);
+
+        % number of outcomes for each modality
+        %------------------------------------------------------------------
+        for g = 1:Ng
+            No(g) = numel(o{1}{g,1});
+        end
+
     end
 
 end
 
+% initialise model (mdp)
+%==========================================================================
+try mdp.l; catch, mdp.l  = 1;       end      % structure learning
+try mdp.p; catch, mdp.p  = exp(-3); end      % initial Dirichlet counts
+try mdp.q; catch, mdp.q  = exp(16); end      % precise Dirichlet counts
+try mdp.r; catch, mdp.r  = 1;       end      % repetitions
+
+% check there are sufficient outcomes for each modality
+%--------------------------------------------------------------------------
+try
+    [nf,ns,nu,ng,no] = spm_MDP_size(mdp);
+    for g = 1:ng
+        do = No(g) - no(g);
+        if do > 0
+            i = (1:do) + no(g);
+            mdp.a{g}(i,:) = mdp.p;
+        end
+    end
+
+catch
+
+    % initialise model (one factor, one state, no dynamics)
+    %----------------------------------------------------------------------
+    for g = 1:Ng
+        mdp.a{g} = zeros([No(g),1]) + mdp.p;  % likelihood tensor
+    end
+    mdp.b = {eye(1,1)*mdp.q + mdp.p};         % transition probabilities
+
+end
+
+
 %  structure learning from observations
 %==========================================================================
 
-% initialise model (one factor, one state, no dynamics)
-%--------------------------------------------------------------------------
-mdp.T = T;                                 % number of moves
-mdp.p = 1/32;                              % initial Dirichlet counts
-mdp.q = 1024;                              % precise Dirichlet counts
-for g = 1:Ng
-    mdp.a{g} = zeros([No(g),1]) + mdp.p;   % likelihood tensor
-end
-mdp.b = {eye(1,1)*mdp.q + mdp.p};          % transition probabilities
-
 % cycle over latent factors to generate outcomes and grow the model
 %--------------------------------------------------------------------------
-N     = 2;                                 % number of iterations
-U     = 3;                                 % Occam's razor (nats)
-FF    = [];                                % successive ELBO
-for t = 1:numel(o)                         % cycle over epochs
+U     = 0;                                    % Occam's razor (nats)
+FF    = [];                                   % successive ELBO
+for t = 1:size(o,2)                           % cycle over epochs
 
 
     % Bayesian model selection for this epoch
     %======================================================================
     [Nf,Ns,Nu] = spm_MDP_size(mdp);
-    mdp.o  = o{t};
-    mdp.U  = zeros(1,Nf);
+
+    if isnumeric(o{t})
+        mdp.T     = size(o{t},2);             % number of outcomes
+        mdp.o     = o{t};                     % outcomes
+        OPTIONS.O = 0;                        % use o
+    else
+        mdp.T     = size(o{t},2);             % number of outcomes
+        mdp.O     = o{t};                     % outcomes
+        OPTIONS.O = 1;                        % use O
+    end
+    mdp.U  = zeros(1,Nf);                     % supress active sampling
 
     % no expansion
     %----------------------------------------------------------------------
     hdp    = {mdp};
-    hdp{1} = spm_expand(mdp,1,0,0);
-    F      = spm_evaluate(hdp{1},N) + U;
+    if mdp.l
+
+        % learning of the likelihood and transition probabilities
+        %------------------------------------------------------------------
+        hdp{1} = spm_expand(mdp,1,0,0);
+
+    else
+        % learning of the likelihood mapping
+        %------------------------------------------------------------------
+        hdp{1} = spm_expand(mdp,0,0,0);
+    end
+    F      = spm_evaluate(hdp{1},OPTIONS);
+
 
     % Bayesian model expansion: add state to each factor
     %----------------------------------------------------------------------
     for f = 1:Nf
-        if Nu(f) < 2
-            hdp{end + 1} = spm_expand(mdp,f,1,0);      % expand
-            F(end + 1)   = spm_evaluate(hdp{end},N);   % evaluate
+        if Nu(f) == 1 && mdp.l
+            hdp{end + 1} = spm_expand(mdp,f,1,0);              % expand
+            F(end + 1)   = spm_evaluate(hdp{end},OPTIONS);     % evaluate
         end
     end
 
     % Bayesian model expansion: add path to each factor
     %----------------------------------------------------------------------
     for f = 1:Nf
-        if Ns(f) > 1
-            hdp{end + 1} = spm_expand(mdp,f,0,1);      % expand
-            F(end + 1)   = spm_evaluate(hdp{end},N);   % evaluate
-        end
+        if Ns(f) > 1 && f == Nf && mdp.l
+            hdp{end + 1} = spm_expand(mdp,f,0,1);              % expand
+            F(end + 1)   = spm_evaluate(hdp{end},OPTIONS);     % evaluate
+        end            
     end
 
     % Bayesian model expansion: add factor
     %----------------------------------------------------------------------
-    if min(Ns) > 1
-        if FF(end) - max(F) > mdp.T*U
-            hdp{end + 1} = spm_expand(mdp,Nf + 1,0,0);
-            F(end + 1)   = spm_evaluate(hdp{end},N);
-        end
+    if min(Ns) > 1 && Nu(1) > 1 && mdp.l
+        hdp{end + 1} = spm_expand(mdp,Nf + 1,0,0);
+        F(end + 1)   = spm_evaluate(hdp{end},OPTIONS);
     end
 
     % Bayesian model selection
@@ -194,18 +255,25 @@ for t = 1:numel(o)                         % cycle over epochs
     [m,h]       = max(F);
     FF(end + 1) = m;
 
-
     % Parameter learning under selected model
     %----------------------------------------------------------------------
-    for i = 1:N
+    for i = 1:mdp.r
+
+        % evidence accumulation
+        %------------------------------------------------------------------
         hdp{h} = spm_MDP_VB_XXX(hdp{h},OPTIONS);
+
     end
-    mdp.a = hdp{h}.a;
-    mdp.b = hdp{h}.b;
+    if mdp.l
+        mdp.a = hdp{h}.a;
+        mdp.b = hdp{h}.b;
+    else
+        mdp.a = hdp{h}.a;
+    end
 
     % lossless compression
     %----------------------------------------------------------------------
-    Nf = spm_MDP_size(mdp);
+    [Nf,Ns,Nu] = spm_MDP_size(mdp);
     for f = 1:Nf
         mdp = spm_reduce(mdp,f);
     end
@@ -213,25 +281,65 @@ for t = 1:numel(o)                         % cycle over epochs
     % graphics
     %======================================================================
     if OPTIONS.G
+        
         spm_figure('getwin','Structure learning'); clf
 
-        for f = 1:numel(mdp.b)
-            for u = 1:size(mdp.b{f},3)
-                subplot(6,6,u + (f - 1)*6)
-                imagesc(spm_dir_norm(mdp.b{f}(:,:,u)))
-                title('Transition priors')
-                axis square
+        if mdp.l
+            for f = 1:numel(mdp.b)
+
+                % plot transistions and likelihood mapping
+                %----------------------------------------------------------
+                for u = 1:size(mdp.b{f},3)
+                    subplot(6,6,u + (f - 1)*6)
+                    imagesc(spm_dir_norm(mdp.b{f}(:,:,u)))
+                    title('Transition priors')
+                    axis square
+                end
+                subplot(2,2,3)
+                for g = 1:Ng
+                    a{g} = spm_dir_norm(mdp.a{g}(:,:));
+                end
+                A = spm_cat(a');
+                if size(A,1) > 256
+                    spm_spy(A);
+                else
+                    imagesc(A)
+                end
+                axis square, title('Likelihood')
+
+                % free energies (ELBO)
+                %----------------------------------------------------------
+                subplot(4,2,6)
+                bar(F - min(F))
+                axis square, title('ELBO')
+                subplot(4,2,8)
+                bar(FF)
+                axis square, title('Successive ELBO')
             end
-            subplot(2,2,3)
-            for g = 1:Ng, a{g} = mdp.a{g}(:,:); end
-            imagesc(spm_dir_norm(spm_cat(a')))
-            axis square, title('Likelihood')
-            subplot(4,2,6)
-            bar(F - min(F))
-            axis square, title('ELBO')
-            subplot(4,2,8)
-            bar(FF)
-            axis square, title('Successive ELBO')
+        else
+
+            % state estimation
+            %--------------------------------------------------------------
+            spm_MDP_VB_trial(hdp{h});
+
+            for f = 1:numel(mdp.b)
+                
+                % plot likelihood mapping
+                %----------------------------------------------------------
+                subplot(2,2,4)
+                for g = 1:Ng
+                    a{g} = spm_dir_norm(mdp.a{g}(:,:));
+                end
+                A = spm_cat(a');
+                if size(A,1) > 256
+                    spm_spy(A);
+                else
+                    imagesc(A)
+                end
+                axis square, title('Likelihood')
+
+            end
+
         end
         drawnow
     end
@@ -241,13 +349,34 @@ end
 % transcribe Dirichlet parameters to output
 %--------------------------------------------------------------------------
 mdp    = spm_expand(mdp,1,0,0);   % default priors
-MDP.a  = mdp.a;                   % Dirichlet likelihood parameters
-MDP.b  = mdp.b;                   % Dirichlet transition parameters
-MDP.D  = mdp.D;                   % initial states
-MDP.E  = mdp.E;                   % initial control
-MDP.k  = mdp.U;                   % controllable factors
-
+try
+    MDP.a  = mdp.a;                   % Dirichlet likelihood parameters
+    MDP.b  = mdp.b;                   % Dirichlet transition parameters
+    MDP.D  = mdp.D;                   % initial states
+    MDP.E  = mdp.E;                   % initial control
+    MDP.k  = mdp.U;                   % controllable factors
+catch
+    mdp.k  = mdp.U;
+    MDP    = mdp;
+end
 return
+
+% NOTES: 
+%==========================================================================
+%     % Bayesian model reduction
+%     %--------------------------------------------------------------------
+%     for g = 1:Ng
+%         mdp.a{g} = spm_MDP_VB_prune(mdp.a{g},a0{g},0,2,0,'SIMPLE');
+%     end
+%
+%     NB: a0 = hdp{h}.a;               % priors for BMR
+
+%     % Contraction of likelihood mapping
+%     %--------------------------------------------------------------------
+%     [Nf,Ns,Nu] = spm_MDP_size(mdp);
+%     if Nu(end) == 1 && Nf < 3
+%         mdp = spm_resolve(mdp);
+%     end
 
 
 function mdp = spm_expand(mdp,f,s,u)
@@ -264,12 +393,24 @@ function mdp = spm_expand(mdp,f,s,u)
 %--------------------------------------------------------------------------
 [Nf,Ns,Nu,Ng,No] = spm_MDP_size(mdp);
 
-%  default priors over states and control
+% preclude learning of transitions
 %--------------------------------------------------------------------------
-for i = 1:Nf
-    mdp.D{i} = ones(Ns(i),1);        % initial state
-    mdp.E{i} = ones(Nu(i),1);        % initial control
+if f == 0
+    for f = 1:Nf
+        mdp.b{f} = (mdp.b{f} - mdp.p)*exp(16);
+    end
+
+else
+
+    %  default priors over states and control
+    %----------------------------------------------------------------------
+    for i = 1:Nf
+        mdp.D{i} = ones(Ns(i),1);        % initial state
+        mdp.E{i} = ones(Nu(i),1);        % initial control
+    end
+
 end
+
 
 % add factor: with 2 states, because the first is shared by all factors
 %--------------------------------------------------------------------------
@@ -307,6 +448,7 @@ if f > Nf
 
 end
 
+
 % add latent state
 %--------------------------------------------------------------------------
 if logical(s)
@@ -318,7 +460,7 @@ if logical(s)
     mdp.b{f}(end,end,1)   = mdp.q + mdp.p;
     Ns(f)                 = Ns(f) + 1;
 
-    % and likelihood: and imprecise otherwise
+    % likelihood: and imprecise otherwise
     % ---------------------------------------------------------------------
     for g = 1:Ng
         a{g}      = zeros([No(g),Ns]) + mdp.p;
@@ -374,6 +516,7 @@ if isfield(mdp,'B'), mdp = rmfield(mdp,'B'); end
 
 if isfield(mdp,'d'), mdp = rmfield(mdp,'d'); end
 if isfield(mdp,'e'), mdp = rmfield(mdp,'e'); end
+if isfield(mdp,'k'), mdp = rmfield(mdp,'k'); end
 
 return
 
@@ -382,6 +525,15 @@ function mdp = spm_reduce(mdp,f)
 % FORMAT mdp = spm_reduce(mdp,f)
 % mdp  - MDP structure
 % f    - factor to reduce
+%
+% This subroutine compresses transition tensors of Dirichlet parameters
+% summarising the joint distribution over successive states and paths. This
+% compression effectively minimises expected free energy by minimising
+% ambiguity; namely, the entropy over successive states, conditioned upon
+% paths. Because this minimisation entails moving posterior probability
+% mass between paths, the transition entropy remains the same and therefore
+% minimising ambiguity of paths corresponds to maximising mutual
+% information. This can also be read as minimising information loss.
 %__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
@@ -437,128 +589,137 @@ if isfield(mdp,'B'), mdp = rmfield(mdp,'B'); end
 
 if isfield(mdp,'d'), mdp = rmfield(mdp,'d'); end
 if isfield(mdp,'e'), mdp = rmfield(mdp,'e'); end
+if isfield(mdp,'k'), mdp = rmfield(mdp,'k'); end
 
 return
 
 
-function F = spm_evaluate(mdp,N)
-% Augment with an additional control state
-% FORMAT mdp = spm_evaluate(mdp,N)
+function mdp = spm_resolve(mdp)
+% FORMAT mdp = spm_resolve(mdp)
 % mdp  - MDP structure
-% N    - number of iterations
 %__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
-
-% suppress expplicit action and backward pass
-%--------------------------------------------------------------------------
-OPTIONS.A = 0;
-OPTIONS.B = 0;
-OPTIONS.N = 0;
-
-% accumulate free energy (states and parameters)
-%--------------------------------------------------------------------------
-F     = 0;
-for t = 1:N
-    mdp = spm_MDP_VB_XXX(mdp,OPTIONS);
-    F   = F + sum(mdp.Fa) + sum(mdp.Fb) + sum(mdp.F);
-end
-
-
-return
-
-
-
-% NOTES
 %==========================================================================
-%  These notes concern reduction of a likelihood tensor by moving
-%  posterior probability mass (Dirichlet counts) and assessing  the
-%  resulting possterior beliefs (about parameters) in terms of expected
-%  free energy which, in this instance, reduces to mutual information
+% This subroutine concerns the reduction of a likelihood tensor by moving
+% posterior probability mass (Dirichlet counts) and assessing  the
+% resulting possterior beliefs (about parameters) in terms of expected free
+% energy which, in this instance, reduces to mutual information
+%
+% This subroutine compresses transition tensors of Dirichlet parameters
+% summarising the joint distribution over outcomes and states. This
+% compression effectively minimises expected free energy by minimising
+% ambiguity; namely, the average conditional entropy over outcomes over
+% states. Because this minimisation entails moving posterior probability
+% mass between states, the entropy over outcomes remains the same and
+% therefore minimising ambiguity corresponds to maximising the mutual
+% information between states and outcomes. This can also be read as
+% minimising information loss.
 %__________________________________________________________________________
 
 
 % reduction operator (R): lossless compression
 %==========================================================================
-Ns    = size(mdp.b{f},1);            % number of hidden states
-Nu    = size(mdp.b{f},3);            % number of hidden controls
+[Nf,Ns] = spm_MDP_size(mdp);
 
 % mutual information of likelihood
 %--------------------------------------------------------------------------
 M0    = 0;
 for g = 1:numel(mdp.a)
-    a{g} = mdp.a{g}(:,:,f);
-    M0   = M0 + spm_MDP_MI(a{g});    % mutual information
+    M0 = M0 + spm_MDP_MI(mdp.a{g});
 end
 
 % reduce likelihood matrix
 %--------------------------------------------------------------------------
 p     = mdp.p;                       % prior counts
-F     = zeros(Ns,Ns);
-for i = 1:Ns
-    for j = (i + 1):Ns
+F     = zeros(1,Ns(end) - 1);
+for i = 1:(Ns(end) - 1)
 
-        % evaluate reduced likelihood
-        %------------------------------------------------------------------
-        M     = 0;
-        for g = 1:numel(mdp.a)
-            a{g}      = mdp.a{g}(:,:,f);
-            a{g}(:,i) = a{g}(:,i) + a{g}(:,j) - p;
-            a{g}(:,j) = p;
+    % evaluate reduced likelihood
+    %----------------------------------------------------------------------
+    M     = 0;
+    for g = 1:numel(mdp.a)
+        a{g}  = mdp.a{g};
+        if Nf == 1
+            a{g}(:,i)   = a{g}(:,i) + a{g}(:,end) - p;
+            a{g}(:,end) = p;
 
-            % mutual information
-            %------------------------------------------------------------------
-            M = M + spm_MDP_MI(a{g});
+        elseif Nf == 2
+            a{g}(:,:,i)   = a{g}(:,:,i) + a{g}(:,:,end) - p;
+            a{g}(:,:,end) = p;
 
         end
 
-        % score loss of mutual information
+        % mutual information
         %------------------------------------------------------------------
-        F(i,j) = M - M0;
+        M = M + spm_MDP_MI(a{g});
+
     end
+
+    % score loss of mutual information
+    %----------------------------------------------------------------------
+    F(i) = M - M0;
 end
 
-
-% reduce likelihood matrix: an alternative formulation
+% ccontract likelihood matrix if there is no loss of information
 %--------------------------------------------------------------------------
-p     = mdp.p;                      % prior counts
-R     = eye(Ns,Ns);
-F     = zeros(Ns,Ns);
-for i = 1:Ns
-    for j = (i + 1):Ns
+i = find(F > 0,1);
+if isempty(i), return, end
 
-        % evaluate reduced likelihood
-        %------------------------------------------------------------------
-        r      = R;
-        r(:,i) = r(:,i) + r(:,j);
-        r(:,j) = 0;
+for g = 1:numel(mdp.a)
+    if Nf == 1
+        mdp.a{g}(:,i)   = mdp.a{g}(:,i) + mdp.a{g}(:,end) - p;
+        mdp.a{g}        = mdp.a{g}(:,1:end - 1);
 
-        M     = 0;
-        for g = 1:numel(a)
-            M = M + spm_MDP_MI((a{g} - p)*r + p);
-        end
-
-        % score loss of mutual information
-        %------------------------------------------------------------------
-        F(i,j) = M - M0;
+    elseif Nf == 2
+        mdp.a{g}(:,:,i) = mdp.a{g}(:,:,i) + mdp.a{g}(:,:,end) - p;
+        mdp.a{g}        = mdp.a{g}(:,:,1:end - 1);
 
     end
 end
+mdp.b{end}(i,i,:)   = mdp.b{end}(i,i,:) + mdp.b{end}(end,end,:) - p;
+mdp.b{end}          = mdp.b{end}(1:end - 1,1:end - 1,:);
 
-% lossless compression
+% remove b if there is only one state
 %--------------------------------------------------------------------------
-for i = 1:Ns
-    for j = find(F(i,:) > 0)
-        R(:,i) = R(:,i) + R(:,j);
-        R(:,j) = 0;
-    end
+if numel(mdp.b{end}) == 1
+    mdp.b = mdp.b(1:end - 1);
 end
 
-% apply reduction operator to likelihood and transition matrices
+return
+
+function F = spm_evaluate(mdp,OPTIONS)
+% Augment with an additional control state
+% FORMAT F = spm_evaluate(mdp,OPTIONS)
+% mdp  - MDP structure
+%
+% This subroutine evaluates the (negative) free energy (pertaining to
+% states) by inverting an epoch of outcomes.
+%__________________________________________________________________________
+% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
+
+% options
 %--------------------------------------------------------------------------
-for g = 1:numel(g)
-    mdp.a{g}(:,:,f) = (a{g} - p)*R + p;
+if nargin < 2
+    OPTIONS.B = 1;
 end
-mdp.b{f}(:,:,Nu) = R'*(mdp.b{f}(:,:,Nu) - p)*R + p;
+
+% accumulate free energy (ELBO)
+%--------------------------------------------------------------------------
+mdp = spm_MDP_VB_XXX(mdp,OPTIONS);
+
+% path integral of ELBO
+%--------------------------------------------------------------------------
+F   = mdp.F;
+
+% mutual information of likelihood
+%--------------------------------------------------------------------------
+% for g = 1:numel(mdp.a)
+%     E(g) = spm_MDP_MI(mdp.a{g});
+% end
+% F     = F + sum(E);
+
+return
+
 
 
 

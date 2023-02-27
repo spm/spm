@@ -14,7 +14,7 @@ function [MDP] = spm_MDP_VB_sleep(MDP,BMR)
 %
 % This routine optimises the hyperparameters of a POMDP model (i.e.,
 % concentration parameters encoding likelihoods). It uses Bayesian model
-% reduction to evaluate the evidence for models with and without an changes
+% reduction to evaluate the evidence for models with and without changes
 % in Dirichlet counts (c.f., SWS or introspection)
 %
 % If specified, the scheme will then recompute posterior beliefs about the

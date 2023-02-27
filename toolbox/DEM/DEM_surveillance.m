@@ -500,8 +500,9 @@ mdp.label = label
 % anybody who might be looking at her
 %==========================================================================
 disp('inverting generative model (c.f., active inference)'), disp(' ')
-
-MDP  = spm_MDP_VB_XX(mdp);
+OPTIONS.N = 1;
+OPTIONS.B = 0;
+MDP       = spm_MDP_VB_XXX(mdp,OPTIONS);
 
 % illustrate scene construction and perceptual synthesis
 %--------------------------------------------------------------------------
