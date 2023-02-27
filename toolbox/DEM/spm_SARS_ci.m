@@ -123,7 +123,7 @@ if numel(U) == 1
     % label time
     %----------------------------------------------------------------------
     if isfield(M,'date')
-        datetick('x','dd-mmm','keeplimits','keepticks')
+        datetick('x','mmmyy','keeplimits','keepticks')
         xlabel('date')
     else
         xlabel('time (weeks)')

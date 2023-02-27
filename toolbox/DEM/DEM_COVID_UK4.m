@@ -734,7 +734,7 @@ pC.gd   = ones(j,2)/8;         % prior variance
 %--------------------------------------------------------------------------
 i       = ceil((datenum(date) - datenum(M.date))/48);
 j       = ceil((datenum(date) - datenum(M.date))/64);
-i       = 16;                  % number of basis functions
+i       = 24;                  % number of basis functions
 
 pE.mob  = zeros(1,i);          % mobility
 pC.mob  = ones(1,i)/1024;      % prior variance
@@ -1451,7 +1451,7 @@ M.T    = datenum(date) - datenum(DCM.M.date,'dd-mm-yyyy');
 M.T    = M.T + 360;                          % forecast dates
 u      = [8];                                % empirical outcome
 a      = 0;                                  % age cohort (0 for everyone)
-Ep.out = DCM.Ep.out + 0;                     % adjusted (log) parameter
+Ep.qua = DCM.Ep.qua + 0;                     % adjusted (log) parameter
 
 [Z,X]  = spm_SARS_gen(Ep,M,u,[],a); % posterior prediction
 
