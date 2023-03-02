@@ -39,16 +39,16 @@ function [def,jac] = spm_uw_get_image_def(P,ds,defa,ddefa)
 
 
 if nargin > 2 && ~isempty(defa)
-   def = zeros(size(defa,1),1);
+    def = zeros(size(defa, 1), 1);
 else 
-   def = zeros(prod(ds.P(1).dim(1:3)),1);
+    def = zeros(prod(ds.P(1).dim(1:3)), 1);
 end
 if nargout > 1
-   if nargin > 3 && ~isempty(ddefa)
-      jac = ones(size(ddefa,1),1);
-   else
-      jac = ones(prod(ds.P(1).dim(1:3)),1);
-   end
+    if nargin > 3 && ~isempty(ddefa)
+        jac = ones(size(ddefa, 1), 1);
+    else
+        jac = ones(prod(ds.P(1).dim(1:3)), 1);
+    end
 end
 
 %-Determine weights for linear combination of partial deriviatives of
@@ -56,68 +56,64 @@ end
 %--------------------------------------------------------------------------
 
 if isreal(P)   
-   if round(P) ~= P
-      error('Index has to be integer.');
-   elseif P < 1 || P > size(ds.P,1)
-      error('Index outside range of ds.');
-   end
-   T = inv(ds.P(P).mat) * ds.P(1).mat;
-   q = ds.q(P,:);
+    if round(P) ~= P
+        error('Index has to be integer.');
+    elseif P < 1 || P > size(ds.P, 1)
+        error('Index outside range of ds.');
+    end
+   %T = ds.P(P).mat \ ds.P(1).mat; % T unused
+    q = ds.q(P,:);
 else
-   if ~isfield(P,'mat'), P = spm_vol(P); end
-   T = inv(P.mat) * ds.P(1).mat;
-   p = [1 1 1 180/pi 180/pi 180/pi zeros(1,6)] .* spm_imatrix(T);
-   q = zeros(1,prod(size(ds.fot))+size(ds.sot,1));
-   for i=1:prod(size(ds.fot))
-      q(i) = p(ds.fot(i)) - ds.p0(ds.fot(i));
-   end
-   for j=1:size(ds.sot,1)  % Continue with i
-      i = i + 1;
-      q(i) = (p(ds.sot(j,1))-ds.p0(ds.sot(j,1))) *...
-             (p(ds.sot(j,2))-ds.p0(ds.sot(j,2)));
-   end
+    if ~isfield(P,'mat'), P = spm_vol(P); end
+    T = P.mat \ ds.P(1).mat;
+    p = [1 1 1 180/pi 180/pi 180/pi zeros(1,6)] .* spm_imatrix(T);
+    q = zeros(1, numel(ds.fot) + size(ds.sot, 1));
+    for i=1:numel(ds.fot)
+        q(i) = p(ds.fot(i)) - ds.p0(ds.fot(i));
+    end
+    for j=1:size(ds.sot,1)  % Continue with i
+        i = i + 1;
+        q(i) = (p(ds.sot(j, 1))-ds.p0(ds.sot(j, 1))) *...
+               (p(ds.sot(j, 2))-ds.p0(ds.sot(j, 2)));
+    end
 end
 
 %-Get deformation field in phase encoding direction
 %--------------------------------------------------------------------------
 if nargin < 3 || isempty(defa)
-   Bx = spm_dctmtx(ds.P(1).dim(1),ds.order(1));
-   By = spm_dctmtx(ds.P(1).dim(2),ds.order(2));
-   Bz = spm_dctmtx(ds.P(1).dim(3),ds.order(3));
-   for i=1:prod(size(ds.fot))+size(ds.sot,1)
-      def = def + q(i) * spm_uw_get_def(Bx,By,Bz,ds.beta(:,i));
-   end
+    Bx = spm_dctmtx(ds.P(1).dim(1), ds.order(1));
+    By = spm_dctmtx(ds.P(1).dim(2), ds.order(2));
+    Bz = spm_dctmtx(ds.P(1).dim(3), ds.order(3));
+    for i=1:numel(ds.fot) + size(ds.sot, 1)
+        def = def + q(i) * spm_sepmul3d(Bx,By,Bz, ds.beta(:,i));
+    end
 else
-   def = defa * q';
+    def = defa * q';
 end
 
 %-Add static field if one was supplied
 %--------------------------------------------------------------------------
-if isfield(ds,'sfield')
-   if ~isempty(ds.sfield)
-      def = def + ds.sfield; % Sign change - JAndersson
-   end
+if isfield(ds,'sfield') && ~isempty(ds.sfield)
+    def = def + ds.sfield; % Sign change - JAndersson
 end
 
 % Get Jacobian field in phase encode direction
 %--------------------------------------------------------------------------
 if nargout > 1
-   if nargin <  4 || isempty(ddefa)
-      Bx = spm_dctmtx(ds.P(1).dim(1),ds.order(1));
-      dBy = spm_dctmtx(ds.P(1).dim(2),ds.order(2),'diff');
-      Bz = spm_dctmtx(ds.P(1).dim(3),ds.order(3));
-      for i=1:1:prod(size(ds.fot))+size(ds.sot,1)
-         jac = jac + q(i) * spm_uw_get_def(Bx,dBy,Bz,ds.beta(:,i));
-      end
-   else
-      jac = jac + ddefa * q';
-   end
+    if nargin <  4 || isempty(ddefa)
+        Bx  = spm_dctmtx(ds.P(1).dim(1),ds.order(1));
+        dBy = spm_dctmtx(ds.P(1).dim(2),ds.order(2),'diff');
+        Bz  = spm_dctmtx(ds.P(1).dim(3),ds.order(3));
+        for i=1:1:numel(ds.fot) + size(ds.sot,1)
+            jac = jac + q(i) * spm_sepmul3d(Bx,dBy,Bz, ds.beta(:,i));
+        end
+    else
+        jac = jac + ddefa * q';
+    end
 
-   %-Add Jacobian for static field if one was supplied
-   %-----------------------------------------------------------------------
-   if isfield(ds,'sjac')
-      if ~isempty(ds.sjac)
-         jac = jac + ds.sjac;
-      end
-   end
+    %-Add Jacobian for static field if one was supplied
+    %-----------------------------------------------------------------------
+    if isfield(ds,'sjac') && ~isempty(ds.sjac)
+        jac = jac + ds.sjac;
+    end
 end

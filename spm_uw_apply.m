@@ -48,9 +48,6 @@ function varargout = spm_uw_apply(ds,flags)
 % .lambda      - Fudge factor used to decide relative weights of
 %                data and regularisation.
 %                Default: 1e5
-% .jm          - Jacobian Modulation. If set, intensity (Jacobian)
-%                deformations are included in the model. If zero,
-%                intensity deformations are not considered.
 % .fot         - List of indexes for first order terms to model
 %                derivatives for. Order of parameters as defined
 %                by spm_imatrix.
@@ -86,6 +83,13 @@ function varargout = spm_uw_apply(ds,flags)
 %
 % flags    - a structure containing various options.  The fields are:
 %
+%         jm   - Jacobian Modulation. If set, intensity (Jacobian)
+%                deformations are included in the model. If zero,
+%                intensity deformations are not considered.
+%               0   - Do only unwarping (not correcting
+%                     for changing sampling density).
+%               1   - Do both unwarping and Jacobian correction.
+%
 %         mask - mask output images (1 for yes, 0 for no)
 %                To avoid artifactual movement-related variance the realigned
 %                set of images can be internally masked, within the set (i.e.
@@ -105,12 +109,6 @@ function varargout = spm_uw_apply(ds,flags)
 %                       Useful if you only want a mean resliced image.
 %                 1   - reslice all the images.
 %
-%         udc - Values 1 or 2 are allowed
-%               1   - Do only unwarping (not correcting
-%                     for changing sampling density).
-%               2   - Do both unwarping and Jacobian correction.
-%
-%
 %         prefix - Filename prefix for resliced image files. Defaults to 'u'.
 %
 %             The spatially realigned images are written to the original
@@ -124,29 +122,19 @@ function varargout = spm_uw_apply(ds,flags)
 
 %-Say hello
 %--------------------------------------------------------------------------
-spm('FnBanner',mfilename);
+spm('FnBanner', mfilename);
 
 %-Parameters
 %--------------------------------------------------------------------------
-tiny = 5e-2;
-
 def_flags        = spm_get_defaults('realign.write');
-def_flags.udc    = 1;
 def_flags.prefix = 'u';
-
-defnames = fieldnames(def_flags);
+defnames         = fieldnames(def_flags);
 
 if nargin < 1 || isempty(ds)
-    ds = load(spm_select(1,'.*uw\.mat$','Select Unwarp result file'),'ds');
+    ds = load(spm_select(1, '.*uw\.mat$', 'Select Unwarp result file'), 'ds');
     ds = ds.ds;
 end
 
-%-Default to using Jacobian modulation for the reslicing if it was
-% used during the estimation phase.
-%--------------------------------------------------------------------------
-if ds(1).jm ~= 0
-    def_flags.udc = 2;
-end
 
 %-Replace defaults with user supplied values for all fields defined by user
 %--------------------------------------------------------------------------
@@ -154,7 +142,7 @@ if nargin < 2 || isempty(flags)
     flags = def_flags;
 end
 for i=1:length(defnames)
-    if ~isfield(flags,defnames{i})
+    if ~isfield(flags, defnames{i})
         flags.(defnames{i}) = def_flags.(defnames{i});
     end
 end
@@ -164,206 +152,226 @@ if numel(flags.which) == 2
 end
 
 ntot = 0;
-for i=1:length(ds)
-    ntot = ntot + length(ds(i).P);
+for i=1:numel(ds)
+    ntot = ntot + numel(ds(i).P);
 end
 
-hold = [repmat(flags.interp,1,3) flags.wrap];
+interp = [repmat(flags.interp, 1, 3) flags.wrap];
 
 %-Create empty sfield for all structs
 %--------------------------------------------------------------------------
 [ds.sfield] = deal([]);
+[ds.sjac]   = deal([]);
 
 %-Make space for output P-structs if required
 %--------------------------------------------------------------------------
 if nargout > 0
-    oP = cell(length(ds),1);
+    oP = cell(numel(ds), 1);
 end
+P11 = ds(1).P(1);
 
 %-Create mask, if required
 %--------------------------------------------------------------------------
 if flags.mask || flags.mean
-    fprintf('%-40s: %30s','Computing mask...','');                      %-#
-    spm_progress_bar('Init',ntot,'Computing available voxels',...
+    fprintf('%-40s: %30s', 'Computing mask...', '');                    %-#
+    spm_progress_bar('Init', ntot, 'Computing available voxels', ...
         'volumes completed');
-    [x,y,z] = ndgrid(1:ds(1).P(1).dim(1),1:ds(1).P(1).dim(2),1:ds(1).P(1).dim(3));
-    xyz = [x(:) y(:) z(:) ones(prod(ds(1).P(1).dim(1:3)),1)]; clear x y z;
+
+    dm        = P11.dim;
+    [x, y, z] = ndgrid(1:dm(1), 1:dm(2), 1:dm(3));
+    xyz       = [x(:) y(:) z(:) ones(prod(dm(1:3)), 1)]; clear x y z;
+
     if flags.mean
-        Count    = zeros(prod(ds(1).P(1).dim(1:3)),1);
-        Integral = zeros(prod(ds(1).P(1).dim(1:3)),1);
+        Count    = zeros(prod(dm(1:3)), 1);
+        Integral = zeros(prod(dm(1:3)), 1);
     end
-    
-    % if flags.mask
-    msk = zeros(prod(ds(1).P(1).dim(1:3)),1);
-    % end
-    
-    tv = 1;
-    for s=1:length(ds)
-        def_array = zeros(prod(ds(s).P(1).dim(1:3)),size(ds(s).beta,2));
-        Bx = spm_dctmtx(ds(s).P(1).dim(1),ds(s).order(1));
-        By = spm_dctmtx(ds(s).P(1).dim(2),ds(s).order(2));
-        Bz = spm_dctmtx(ds(s).P(1).dim(3),ds(s).order(3));
-        if isfield(ds(s),'sfP') && ~isempty(ds(s).sfP)
-            T = ds(s).sfP.mat\ds(1).P(1).mat;
-            txyz = xyz * T';
-            c = spm_bsplinc(ds(s).sfP,ds(s).hold);
-            ds(s).sfield = spm_bsplins(c,txyz(:,1),txyz(:,2),txyz(:,3),ds(s).hold);
-            ds(s).sfield = ds(s).sfield(:);
-            clear c txyz;
-        end
-        for i=1:size(ds(s).beta,2)
-            def_array(:,i) = spm_uw_get_def(Bx,By,Bz,ds(s).beta(:,i));
-        end
-        sess_msk = zeros(prod(ds(1).P(1).dim(1:3)),1);
+    msk = zeros(prod(dm(1:3)), 1);
+
+    tv  = 0;
+    for s=1:numel(ds)
+        [ds(s), def_array] = get_def_array(ds(s), P11, flags.jm);
+        sess_msk           = zeros(prod(P11.dim(1:3)), 1);
         for i = 1:numel(ds(s).P)
-            T = inv(ds(s).P(i).mat) * ds(1).P(1).mat;
-            txyz = xyz * T';
-            txyz(:,2) = txyz(:,2) + spm_uw_get_image_def(ds(s).P(i),ds(s),def_array);
-            tmp       = false(size(txyz,1),1);
-            if ~flags.wrap(1), tmp = tmp | txyz(:,1) < (1-tiny) | txyz(:,1) > (ds(s).P(i).dim(1)+tiny); end
-            if ~flags.wrap(2), tmp = tmp | txyz(:,2) < (1-tiny) | txyz(:,2) > (ds(s).P(i).dim(2)+tiny); end
-            if ~flags.wrap(3), tmp = tmp | txyz(:,3) < (1-tiny) | txyz(:,3) > (ds(s).P(i).dim(3)+tiny); end
-            sess_msk = sess_msk + real(tmp);
-            spm_progress_bar('Set',tv);
-            tv = tv+1;
+            txyz      = get_image_def(P11.mat, ds(s), i, xyz, def_array);
+            sess_msk  = maskfun(sess_msk, txyz, ds(s).P(i).dim, flags.wrap);
+            tv        = tv + 1;
+            spm_progress_bar('Set', tv);
         end
         msk = msk + sess_msk;
-        if flags.mean, Count = Count + repmat(length(ds(s).P),prod(ds(s).P(1).dim(1:3)),1) - sess_msk; end   % Changed 23/3-05
-        
-        %
-        % Include static field in estmation of mask.
-        %
-        if isfield(ds(s),'sfP') && ~isempty(ds(s).sfP)
-            T = inv(ds(s).sfP.mat) * ds(1).P(1).mat;
-            txyz = xyz * T';
-            tmp  = false(size(txyz,1),1);
-            if ~flags.wrap(1), tmp = tmp | txyz(:,1) < (1-tiny) | txyz(:,1) > (ds(s).sfP.dim(1)+tiny); end
-            if ~flags.wrap(2), tmp = tmp | txyz(:,2) < (1-tiny) | txyz(:,2) > (ds(s).sfP.dim(2)+tiny); end
-            if ~flags.wrap(3), tmp = tmp | txyz(:,3) < (1-tiny) | txyz(:,3) > (ds(s).sfP.dim(3)+tiny); end
-            msk = msk + real(tmp);
+        if flags.mean
+            Count = Count - sess_msk + numel(ds(s).P);
         end
-        if isfield(ds(s),'sfield') && ~isempty(ds(s).sfield)
+
+        %-Include static field in estmation of mask
+        %------------------------------------------------------------------
+        if isfield(ds(s), 'sfP') && ~isempty(ds(s).sfP)
+            T    = ds(s).sfP.mat \ ds(s).P(1).mat;
+            txyz = xyz * T';
+            msk  = maskfun(msk, txyz, ds(s).P(i).dim, flags.wrap);
+        end
+        if isfield(ds(s), 'sfield') && ~isempty(ds(s).sfield)
             ds(s).sfield = [];
+            if isfield(ds(s), 'sjac') && ~isempty(ds(s).sjac)
+                ds(s).sjac = [];
+            end
         end
     end
     if flags.mask, msk = find(msk ~= 0); end
-    fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...done');           %-#
+    fprintf('%s%30s\n', repmat(sprintf('\b'), 1, 30), '...done');       %-#
 end
 
 %-Reslicing images
 %--------------------------------------------------------------------------
-fprintf('%-40s: %30s','Reslicing images...','');                        %-#
-spm_progress_bar('Init',ntot,'Reslicing','volumes completed');
+fprintf('%-40s: %30s', 'Reslicing images...', '');                      %-#
+spm_progress_bar('Init', ntot, 'Reslicing', 'volumes completed');
 
 jP       = ds(1).P(1);
-jP       = rmfield(jP,{'fname','descrip','n','private'});
+jP       = rmfield(jP, {'fname', 'descrip', 'n', 'private'});
 jP.dim   = jP.dim(1:3);
 jP.dt    = [spm_type('float64'), spm_platform('bigend')];
 jP.pinfo = [1 0]';
-tv       = 1;
-for s=1:length(ds)
-    def_array = zeros(prod(ds(s).P(1).dim(1:3)),size(ds(s).beta,2));
-    Bx = spm_dctmtx(ds(s).P(1).dim(1),ds(s).order(1));
-    By = spm_dctmtx(ds(s).P(1).dim(2),ds(s).order(2));
-    Bz = spm_dctmtx(ds(s).P(1).dim(3),ds(s).order(3));
-    if isfield(ds(s),'sfP') && ~isempty(ds(s).sfP)
-        T = ds(s).sfP.mat\ds(1).P(1).mat;
-        txyz = xyz * T';
-        c = spm_bsplinc(ds(s).sfP,ds(s).hold);
-        ds(s).sfield = spm_bsplins(c,txyz(:,1),txyz(:,2),txyz(:,3),ds(s).hold);
-        ds(s).sfield = ds(s).sfield(:);
-        clear c txyz;
-    end
-    for i=1:size(ds(s).beta,2)
-        def_array(:,i) = spm_uw_get_def(Bx,By,Bz,ds(s).beta(:,i));
-    end
-    if flags.udc > 1
-        ddef_array = zeros(prod(ds(s).P(1).dim(1:3)),size(ds(s).beta,2));
-        dBy = spm_dctmtx(ds(s).P(1).dim(2),ds(s).order(2),'diff');
-        for i=1:size(ds(s).beta,2)
-            ddef_array(:,i) = spm_uw_get_def(Bx,dBy,Bz,ds(s).beta(:,i));
-        end
-    end
-    for i = 1:length(ds(s).P)
-        %
-        % Read undeformed image.
-        %
-        T = inv(ds(s).P(i).mat) * ds(1).P(1).mat;
-        txyz = xyz * T';
-        if flags.udc > 1
-            [def,jac] = spm_uw_get_image_def(ds(s).P(i),ds(s),def_array,ddef_array);
-        else
-            def = spm_uw_get_image_def(ds(s).P(i),ds(s),def_array);
-        end
-        txyz(:,2) = txyz(:,2) + def;
-        if flags.udc > 1
-            jP.dat = reshape(jac,ds(s).P(i).dim(1:3));
-            jtxyz = xyz * T';
-            c = spm_bsplinc(jP.dat,hold);
-            jac = spm_bsplins(c,jtxyz(:,1),jtxyz(:,2),jtxyz(:,3),hold);
-        end
-        c = spm_bsplinc(ds(s).P(i),hold);
-        ima = spm_bsplins(c,txyz(:,1),txyz(:,2),txyz(:,3),hold);
-        if flags.udc > 1
-            ima = ima .* jac;
-        end
-        %
+
+tv       = 0;
+for s = 1:numel(ds)
+    [ds(s), def_array, ddef_array] = get_def_array(ds(s), P11, flags.jm);
+
+    for i = 1:numel(ds(s).P)
+        Psi                   = ds(s).P(i);
+        [txyz, jac]           = get_image_def(P11.mat, ds(s), i, xyz, def_array, ddef_array);
+        ima                   = spm_bsplins(spm_bsplinc(Psi, interp), txyz(:,1), txyz(:,2), txyz(:,3), interp);
+        if ~isempty(jac), ima = ima .* jac; end
+
         % Write it if so required.
-        %
         if flags.which
-            PO         = ds(s).P(i);
-            PO.fname   = spm_file(PO.fname, 'prefix',flags.prefix);
-            PO.mat     = ds(1).P(1).mat;
+            PO         = Psi;
+            PO.fname   = spm_file(PO.fname, 'prefix', flags.prefix);
+            PO.mat     = P11.mat;
             PO.descrip = 'spm - undeformed';
-            ivol       = ima;
-            if flags.mask
-                ivol(msk) = NaN;
-            end
-            ivol = reshape(ivol,PO.dim(1:3));
-            PO = spm_write_vol(PO,ivol);
+            vol = reshape(ima, PO.dim(1:3));
+            if flags.mask, vol(msk) = NaN; end
+            PO  = spm_write_vol(PO, vol);
             if nargout > 0
                 oP{s}(i) = PO;
             end
         end
-        %
+
         % Build up mean image if so required.
-        %
         if flags.mean
             Integral = Integral + nan2zero(ima);
         end
-        spm_progress_bar('Set',tv);
-        tv = tv+1;
+        tv = tv + 1;
+        spm_progress_bar('Set', tv);
     end
-    if isfield(ds(s),'sfield') && ~isempty(ds(s).sfield)
+
+    if isfield(ds(s), 'sfield') && ~isempty(ds(s).sfield)
         ds(s).sfield = [];
     end
 end
 spm_progress_bar('Clear');
-fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...done');               %-#
+fprintf('%s%30s\n', repmat(sprintf('\b'), 1, 30), '...done');           %-#
 
 if flags.mean
-    fprintf('%-40s: %30s','Writing mean image...','');                  %-#
-    sw = warning('off','MATLAB:divideByZero');
-    Integral   = Integral./Count;
-    warning(sw);
-    PO         = ds(1).P(1);
-    PO.fname   = spm_file(ds(1).P(1).fname,'prefix',['mean' flags.prefix]);
+    fprintf('%-40s: %30s', 'Writing mean image...', '');                %-#
+    PO         = P11;
+    PO.fname   = spm_file(PO.fname, 'prefix', ['mean' flags.prefix]);
     PO.pinfo   = [max(max(max(Integral)))/32767 0 0]';
     PO.descrip = 'spm - mean undeformed image';
     PO.dt      = [spm_type('int16') spm_platform('bigend')];
     PO.n       = [1 1];
-    ivol       = reshape(Integral,PO.dim);
-    spm_write_vol(PO,ivol);
-    fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...done');           %-#
+
+    Integral   = reshape(Integral./Count, PO.dim);
+    spm_write_vol(PO, Integral);
+    fprintf('%s%30s\n', repmat(sprintf('\b'), 1, 30), '...done');       %-#
 end
 
 if nargout > 0
     varargout{1} = oP;
 end
 
-fprintf('%-40s: %30s\n','Completed',spm('time'))                        %-#
-
+fprintf('%-40s: %30s\n', 'Completed', spm('time'))                      %-#
+%==========================================================================
 
 %==========================================================================
 function v = nan2zero(v)
 v(~isfinite(v)) = 0;
+%==========================================================================
+
+%==========================================================================
+function msk = maskfun(msk, txyz, dim, wrap)
+tiny = 5e-2;
+tmp  = false(size(txyz, 1), 1);
+if ~wrap(1), tmp = tmp | txyz(:,1) < (1 - tiny) | txyz(:,1) > (dim(1) + tiny); end
+if ~wrap(2), tmp = tmp | txyz(:,2) < (1 - tiny) | txyz(:,2) > (dim(2) + tiny); end
+if ~wrap(3), tmp = tmp | txyz(:,3) < (1 - tiny) | txyz(:,3) > (dim(3) + tiny); end
+msk = msk + real(tmp);
+%==========================================================================
+
+%==========================================================================
+function [dss, def_array, ddef_array] = get_def_array(dss, P11, jm)
+Ps1       = dss.P(1);
+dm        = Ps1.dim;
+[x, y, z] = ndgrid(1:dm(1), 1:dm(2), 1:dm(3));
+xyz       = [x(:) y(:) z(:) ones(prod(dm(1:3)), 1)];
+clear x y z;
+
+def_array = zeros(prod(dm(1:3)), size(dss.beta, 2));
+Bx        = spm_dctmtx(dm(1), dss.order(1));
+By        = spm_dctmtx(dm(2), dss.order(2));
+Bz        = spm_dctmtx(dm(3), dss.order(3));
+if isfield(dss, 'sfP') && ~isempty(dss.sfP)
+    T          = dss.sfP.mat \ P11.mat;
+    txyz       = xyz * T';
+    c          = spm_bsplinc(dss.sfP, dss.hold);
+    if bitand(jm,1)
+        [dss.sfield,~,dss.sjac] = spm_bsplins(c, txyz(:,1), txyz(:,2), txyz(:,3), dss.hold);
+        dss.sfield = dss.sfield(:);
+        dss.sjac   = dss.sjac(:);
+    else
+        dss.sfield = spm_bsplins(c, txyz(:,1), txyz(:,2), txyz(:,3), dss.hold);
+        dss.sfield = dss.sfield(:);
+    end
+    clear c txyz;
+end
+
+for i=1:size(dss.beta, 2)
+    def_array(:,i) = spm_sepmul3d(Bx, By, Bz, dss.beta(:,i));
+end
+
+if nargout>=3 && bitand(jm,2)
+    ddef_array = zeros(prod(dm(1:3)), size(dss.beta, 2));
+    dBy        = spm_dctmtx(dm(2), dss.order(2), 'diff');
+    for i=1:size(dss.beta, 2)
+        ddef_array(:,i) = spm_sepmul3d(Bx, dBy, Bz, dss.beta(:,i));
+    end
+else
+    ddef_array = [];
+end
+%==========================================================================
+
+%==========================================================================
+function [txyz, jac] = get_image_def(P11mat, dss, i, xyz, def_array, ddef_array)
+jm = false;
+if nargin>=6 && nargout>=2
+    if ~isempty(ddef_array)
+        jm = true;
+    end
+    if ~isempty(dss.sjac)
+        jm = true;
+    end
+end
+Psi  = dss.P(i);
+T    = Psi.mat \ P11mat;
+txyz = xyz * T';
+jac  = [];
+if jm
+    [def, jac] = spm_uw_get_image_def(Psi, dss, def_array, ddef_array);
+    txyz(:,2)  = txyz(:,2) + def;
+    jP.dat     = reshape(jac, Psi.dim(1:3));
+    jtxyz      = xyz * T';
+    c          = spm_bsplinc(jP.dat, dss.hold);
+    jac        = spm_bsplins(c, jtxyz(:,1), jtxyz(:,2), jtxyz(:,3), dss.hold);
+else
+    txyz(:,2)  = txyz(:,2) + spm_uw_get_image_def(Psi, dss, def_array);
+end
+%==========================================================================
+

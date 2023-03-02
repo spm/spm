@@ -37,8 +37,6 @@ realignunwarp.help    = {
     ''
     'If we think of the field as a function of subject movement it should in principle be a function of six variables since rigid body movement has six degrees of freedom. However, the physics of the problem tells us that the field should not depend on translations nor on rotation in a plane perpendicular to the magnetic flux. Hence it should in principle be sufficient to model the field as a function of out-of-plane rotations (i.e. pitch and roll). One can object to this in terms of the effects of shimming (object no longer immersed in a homogeneous field) that introduces a dependence on all movement parameters. In addition SPM/Unwarp cannot really tell if the transversal slices it is being passed are really perpendicular to the flux or not. In practice it turns out thought that it is never (at least we haven''t seen any case) necessary to include more than Pitch and Roll. This is probably because the individual movement parameters are typically highly correlated anyway, which in turn is probably because most heads that we scan are attached to a neck around which rotations occur. On the subject of Taylor expansion we should mention that there is the option to use a second-order expansion (through the defaults) interface. This implies estimating also the rate-of-change w.r.t. to some movement parameter of the rate-of-change of the field w.r.t. some movement parameter (colloquially known as a second derivative). It can be quite interesting to watch (and it is amazing that it is possible) but rarely helpful/necessary.'
     ''
-    'In the defaults there is also an option to include Jacobian intensity modulation when estimating the fields. "Jacobian intensity modulation" refers to the dilution/concentration of intensity that ensue as a consequence of the distortions. Think of a semi-transparent coloured rubber sheet that you hold against a white background. If you stretch a part of the sheet (induce distortions) you will see the colour fading in that particular area. In theory it is a brilliant idea to include also these effects when estimating the field (see e.g. Andersson et al, NeuroImage 20:870-888). In practice for this specific problem it is NOT a good idea.'
-    ''
     'It should be noted that this is a method intended to correct data afflicted by a particular problem. If there is little movement in your data to begin with this method will do you little good. If on the other hand there is appreciable movement in your data (>1deg) it will remove some of that unwanted variance. If, in addition, movements are task related it will do so without removing all your "true" activations. The method attempts to minimise total (across the image volume) variance in the data set. It should be realised that while (for small movements) a rather limited portion of the total variance is removed, the susceptibility-by-movement interaction effects are quite localised to "problem" areas. Hence, for a subset of voxels in e.g. frontal-medial and orbitofrontal cortices and parts of the temporal lobes the reduction can be quite dramatic (>90). The advantages of using Unwarp will also depend strongly on the specifics of the scanner and sequence by which your data has been acquired. When using the latest generation scanners distortions are typically quite small, and distortion-by-movement interactions consequently even smaller. A small check list in terms of distortions is '
     'a) Fast gradients->short read-out time->small distortions '
     'b) Low field (i.e. <3T)->small field changes->small distortions '
@@ -147,10 +145,6 @@ fwhm.tag     = 'fwhm';
 fwhm.name    = 'Smoothing (FWHM)';
 fwhm.help    = {
     'The FWHM of the Gaussian smoothing kernel (mm) applied to the images before estimating the realignment parameters.'
-    ''
-    '    * PET images typically use a 7 mm kernel.'
-    ''
-    '    * MRI images typically use a 5 mm kernel.'
     }';
 fwhm.strtype = 'r';
 fwhm.num     = [1 1];
@@ -174,7 +168,7 @@ rtm.labels  = {
                'Register to mean'
 }';
 rtm.values  = {0 1};
-rtm.def     = @(val)spm_get_defaults('unwarp.estimate.rtm', val{:});
+rtm.def     = @(val)spm_get_defaults('realign.estimate.rtm', val{:});
 
 %--------------------------------------------------------------------------
 % einterp Interpolation
@@ -305,23 +299,6 @@ lambda.values  = {10000 100000 1000000};
 lambda.def     = @(val)spm_get_defaults('unwarp.estimate.regwgt', val{:});
 
 %--------------------------------------------------------------------------
-% jm Jacobian deformations
-%--------------------------------------------------------------------------
-jm         = cfg_menu;
-jm.tag     = 'jm';
-jm.name    = 'Jacobian deformations';
-jm.help    = {
-    'Option to include Jacobian intensity modulation when estimating the fields.'
-    '"Jacobian intensity modulation" refers to the dilution/concentration of intensity that ensue as a consequence of the distortions. Think of a semi-transparent coloured rubber sheet that you hold against a white background. If you stretch a part of the sheet (induce distortions) you will see the colour fading in that particular area. In theory it is a brilliant idea to include also these effects when estimating the field (see e.g. Andersson et al, NeuroImage 20:870-888). In practice for this specific problem it is NOT a good idea. Default: No'
-    }';
-jm.labels  = {
-              'Yes'
-              'No'
-}';
-jm.values  = {1 0};
-jm.def     = @(val)spm_get_defaults('unwarp.estimate.jm', val{:});
-
-%--------------------------------------------------------------------------
 % fot First-order effects
 %--------------------------------------------------------------------------
 fot         = cfg_entry;
@@ -438,7 +415,7 @@ expround.def     = @(val)spm_get_defaults('unwarp.estimate.expround', val{:});
 uweoptions      = cfg_branch;
 uweoptions.tag  = 'uweoptions';
 uweoptions.name = 'Unwarp Estimation Options';
-uweoptions.val  = {basfcn regorder lambda jm fot sot uwfwhm rem noi expround};
+uweoptions.val  = {basfcn regorder lambda fot sot uwfwhm rem noi expround};
 uweoptions.help = {'Various registration & unwarping estimation options.'};
 
 %--------------------------------------------------------------------------
@@ -461,6 +438,24 @@ uwwhich.labels = {
 }';
 uwwhich.values = {[2 0] [2 1]};
 uwwhich.def    = @(val)spm_get_defaults('realign.write.which', val{:});
+
+%--------------------------------------------------------------------------
+% jm Jacobian deformations
+%--------------------------------------------------------------------------
+jm         = cfg_menu;                                                                                                  jm.tag     = 'jm';
+jm.name    = 'Jacobian deformations';
+jm.help    = {
+    'Option to include Jacobian intensity modulation when writing the corrected images.'
+    '"Jacobian intensity modulation" refers to the dilution/concentration of intensity that ensue as a consequence of the distortions. Think of a semi-transparent coloured rubber sheet that you hold against a white background. If you stretch a part of the sheet (induce distortions) you will see the colour fading in that particular area.'
+             }';
+jm.labels  = {
+              'None'
+              'Static field only'
+              'Only interactions'
+              'Both static and interactions'
+             }';
+jm.values  = {0 1 2 3};
+jm.def     = @(val)spm_get_defaults('unwarp.write.jm', val{:});
 
 %--------------------------------------------------------------------------
 % rinterp Interpolation
@@ -542,7 +537,7 @@ prefix.def     = @(val)spm_get_defaults('unwarp.write.prefix', val{:});
 uwroptions         = cfg_branch;
 uwroptions.tag     = 'uwroptions';
 uwroptions.name    = 'Unwarp Reslicing Options';
-uwroptions.val     = {uwwhich rinterp wrap mask prefix};
+uwroptions.val     = {uwwhich jm rinterp wrap mask prefix};
 uwroptions.help    = {'Various registration & unwarping estimation options.'};
 
 [cfg,varargout{1}] = deal({generic eoptions uweoptions uwroptions});

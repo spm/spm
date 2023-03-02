@@ -25,7 +25,6 @@ flags.wrap    = job.eoptions.ewrap;
 uweflags.order     = job.uweoptions.basfcn;
 uweflags.regorder  = job.uweoptions.regorder;
 uweflags.lambda    = job.uweoptions.lambda;
-uweflags.jm        = job.uweoptions.jm;
 uweflags.fot       = job.uweoptions.fot;
 
 if ~isempty(job.uweoptions.sot)
@@ -46,18 +45,13 @@ uweflags.rem       = job.uweoptions.rem;
 uweflags.noi       = job.uweoptions.noi;
 uweflags.exp_round = job.uweoptions.expround;
 
+uwrflags.jm        = job.uwroptions.jm;
 uwrflags.interp    = job.uwroptions.rinterp;
 uwrflags.wrap      = job.uwroptions.wrap;
 uwrflags.mask      = job.uwroptions.mask;
 uwrflags.which     = job.uwroptions.uwwhich(1);
 uwrflags.mean      = job.uwroptions.uwwhich(2);
 uwrflags.prefix    = job.uwroptions.prefix;
-
-if uweflags.jm == 1
-    uwrflags.udc = 2;
-else
-    uwrflags.udc = 1;
-end
 
 %-Assemble files
 %--------------------------------------------------------------------------

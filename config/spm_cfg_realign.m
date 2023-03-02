@@ -147,10 +147,6 @@ fwhm.tag     = 'fwhm';
 fwhm.name    = 'Smoothing (FWHM)';
 fwhm.help    = {
     'The FWHM of the Gaussian smoothing kernel (mm) applied to the images before estimating the realignment parameters.'
-    ''
-    '    * PET images typically use a 7 mm kernel.'
-    ''
-    '    * MRI images typically use a 5 mm kernel.'
     }';
 fwhm.strtype = 'r';
 fwhm.num     = [1 1];

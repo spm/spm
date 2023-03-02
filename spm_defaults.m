@@ -97,11 +97,11 @@ defaults.imcalc.prefix                = 'i';
 
 % Realignment defaults
 %==========================================================================
-defaults.realign.estimate.quality = 0.9;
+defaults.realign.estimate.quality = 0.95;
 defaults.realign.estimate.interp  = 2;
 defaults.realign.estimate.wrap    = [0 0 0];
-defaults.realign.estimate.sep     = 4;
-defaults.realign.estimate.fwhm    = 5;
+defaults.realign.estimate.sep     = 2;
+defaults.realign.estimate.fwhm    = 2;
 defaults.realign.estimate.rtm     = 1;
 defaults.realign.write.mask       = 1;
 defaults.realign.write.interp     = 4;
@@ -110,20 +110,18 @@ defaults.realign.write.which      = [2 1];
 
 % Unwarp defaults
 %==========================================================================
-defaults.unwarp.estimate.rtm      = 0;
-defaults.unwarp.estimate.fwhm     = 4;
+defaults.unwarp.estimate.fwhm     = 2;
 defaults.unwarp.estimate.basfcn   = [12 12];
 defaults.unwarp.estimate.regorder = 1;
 defaults.unwarp.estimate.regwgt   = 1e5;
 defaults.unwarp.estimate.foe      = [4 5];
 defaults.unwarp.estimate.soe      = [];
 defaults.unwarp.estimate.rem      = 1;
-defaults.unwarp.estimate.jm       = 0;
 defaults.unwarp.estimate.noi      = 5;
 defaults.unwarp.estimate.expround = 'Average';
-%
-% Unwarp uses defaults.realign.write defaults for writing.
-%
+
+% Unwarp mostly uses defaults.realign.write defaults for writing.
+defaults.unwarp.write.jm          = 0;
 
 % Coregistration defaults
 %==========================================================================
