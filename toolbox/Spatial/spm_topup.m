@@ -189,7 +189,7 @@ end
 % wf1 (blip up/down image)
 %--------------------------------------------------------------------------
 basename = spm_file(vol1,'basename');
-pr       = strcat('w_', pref);
+pr       = strcat('w', pref);
 oname    = spm_file(basename,'prefix',pr,'ext','.nii');
 oname    = fullfile(outdir,oname);
 Nio      = nifti;                              
@@ -202,7 +202,7 @@ Nio.dat(:,:,:) = wf1;
 % wf2 (blip down/up image)
 %--------------------------------------------------------------------------
 basename = spm_file(vol2,'basename');
-pr       = strcat('w_', pref);
+pr       = strcat('w', pref);
 oname    = spm_file(basename,'prefix',pr,'ext','.nii');
 oname    = fullfile(outdir,oname);
 Nio      = nifti; 
@@ -230,7 +230,7 @@ VDM = Nio;
 %--------------------------------------------------------------------------
 vi             = u*(-1);
 basename       = spm_file(vol2,'basename');
-pr             = strcat(pref,'-ve_');
+pr             = strcat(pref,'_neg_');
 oname          = spm_file(basename,'prefix', pr,'ext','.nii');
 oname          = fullfile(outdir,oname);
 Nio            = nifti;  
