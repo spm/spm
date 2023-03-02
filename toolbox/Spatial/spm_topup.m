@@ -213,7 +213,7 @@ Nio.dat(:,:,:) = wf2;
 % Write VDM file
 %--------------------------------------------------------------------------
 basename       = spm_file(vol1,'basename');
-pr             = strcat(pref,'_+ve_');
+pr             = strcat(pref,'_pos_');
 oname          = spm_file(basename,'prefix',pr,'ext','.nii');
 oname          = fullfile(outdir,oname);
 Nio            = nifti;  
@@ -228,7 +228,7 @@ VDM = Nio;
 %--------------------------------------------------------------------------
 vi             = inv1D(u);
 basename       = spm_file(vol1,'basename');
-pr             = strcat(pref,'_-ve_');
+pr             = strcat(pref,'_neg_');
 oname          = spm_file(basename,'prefix', pr,'ext','.nii');
 oname          = fullfile(outdir,oname);
 Nio            = nifti;  
