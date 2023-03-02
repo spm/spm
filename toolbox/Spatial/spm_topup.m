@@ -14,7 +14,7 @@ function VDM = spm_topup(vol1, vol2, FWHM, reg, rinterp, rt, pref, outdir)
 %               - [3] Penalty on the `bending energy'. This penalises
 %                  the sum of squares of the 2nd derivatives.
 % rinterp    - Degree of B-spline 
-% rt         - Option to apply a supplemtary refine over topup to incluse in the 
+% rt         - Option to apply a supplementary refine over topup to include in the 
 %              process the changes of intensities due to stretching and compression.
 % pref       - string to be prepended to the VDM files.
 % outdir     - output directory.
@@ -189,7 +189,8 @@ end
 % wf1 (blip up/down image)
 %--------------------------------------------------------------------------
 basename = spm_file(vol1,'basename');
-oname    = spm_file(basename,'prefix','w','ext','.nii');
+pr       = strcat('w_', pref);
+oname    = spm_file(basename,'prefix',pr,'ext','.nii');
 oname    = fullfile(outdir,oname);
 Nio      = nifti;                              
 Nio.dat  = file_array(oname,d,'float32');    
@@ -201,7 +202,8 @@ Nio.dat(:,:,:) = wf1;
 % wf2 (blip down/up image)
 %--------------------------------------------------------------------------
 basename = spm_file(vol2,'basename');
-oname    = spm_file(basename,'prefix','w','ext','.nii');
+pr       = strcat('w_', pref);
+oname    = spm_file(basename,'prefix',pr,'ext','.nii');
 oname    = fullfile(outdir,oname);
 Nio      = nifti; 
 Nio.dat  = file_array(oname,d,'float32'); 
@@ -226,9 +228,9 @@ VDM = Nio;
 
 % Write VDM file
 %--------------------------------------------------------------------------
-vi             = inv1D(u);
-basename       = spm_file(vol1,'basename');
-pr             = strcat(pref,'_neg_');
+vi             = u*(-1);
+basename       = spm_file(vol2,'basename');
+pr             = strcat(pref,'-ve_');
 oname          = spm_file(basename,'prefix', pr,'ext','.nii');
 oname          = fullfile(outdir,oname);
 Nio            = nifti;  
@@ -237,32 +239,6 @@ Nio.mat        = Nii(1).mat;
 create(Nio);          
 Nio.dat(:,:,:) = vi; 
 
-end
-
-% %==========================================================================
-% %==========================================================================
-function id = identity(d)
-% Identity transform of dimensions d
-d  = [d 1 1];
-d  = d(1:3);
-id = zeros([d(:)',3],'single');
-[id(:,:,:,1),id(:,:,:,2),id(:,:,:,3)] = ndgrid(single(1:d(1)),...
-                                               single(1:d(2)),...
-                                               single(1:d(3)));
-end
-
-% %==========================================================================
-% %==========================================================================
-function vi = inv1D(v)
-% Invert a 1D displacement field
-dm  = [size(v) 1];
-phi = identity(dm(1:3));
-y   = phi(:,:,:,2);                           % Y component of identity
-phi(:,:,:,2) = phi(:,:,:,2) + v;              % Add displacements
-[g,h] = spm_mb_shape('push1',y,phi);          % Push the original positions
-g   = g - y.*h;                               % Subtract the identity
-                          
-vi  = spm_field(h,g,[1 1 1  0 0.1 0.1  2 2]); % Interpolate
 end
 
 % ===========================================================================
