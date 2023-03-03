@@ -2,7 +2,7 @@ function realignunwarp = spm_cfg_realignunwarp
 % SPM Configuration file for Realign & Unwarp
 %__________________________________________________________________________
 
-% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
+% Copyright (C) 2005-2023 Wellcome Centre for Human Neuroimaging
 
 
 %--------------------------------------------------------------------------
@@ -442,7 +442,8 @@ uwwhich.def    = @(val)spm_get_defaults('realign.write.which', val{:});
 %--------------------------------------------------------------------------
 % jm Jacobian deformations
 %--------------------------------------------------------------------------
-jm         = cfg_menu;                                                                                                  jm.tag     = 'jm';
+jm         = cfg_menu;
+jm.tag     = 'jm';
 jm.name    = 'Jacobian deformations';
 jm.help    = {
     'Option to include Jacobian intensity modulation when writing the corrected images.'

@@ -2,8 +2,13 @@ function job = spm_rewrite_job(job)
 % Rewrite a batch job for SPM12
 %__________________________________________________________________________
 
-% Copyright (C) 2012-2022 Wellcome Centre for Human Neuroimaging
+% Copyright (C) 2012-2023 Wellcome Centre for Human Neuroimaging
 
+
+try
+    job.spatial.realignunwarp.uweoptions.jm;
+    job.spatial.realignunwarp.uweoptions = rmfield(job.spatial.realignunwarp.uweoptions,'jm');
+end
 
 try
     job.spatial.preproc.data;
