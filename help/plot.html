@@ -23,20 +23,24 @@
           js.src = filename;
           var data = {}, layout = {title: ""}, options = {};
           js.onload = function () {
-            Plotly.plot("plotly", data, layout, options);
+            Plotly.newPlot("plotly", data, layout, options);
           }
           firstScript.parentNode.insertBefore(js, firstScript);
         } else {
-          Plotly.d3.json(filename, function(err, fig) {
-            if (err) alert("Could not read data!");
-            if (fig.layout === "undefined") {
-              fig.layout = {title: ""};
-            }
-            if (fig.options === "undefined") {
-              fig.options = {};
-            }
-            Plotly.plot("plotly", fig.data, fig.layout, fig.options);
-          });
+          fetch(filename)
+            .then(fig => fig.json())
+            .then(function (fig) {
+              if (fig.layout === "undefined") {
+                fig.layout = { title: "" };
+              }
+              if (fig.options === "undefined") {
+                fig.options = {};
+              }
+              Plotly.newPlot("plotly", fig.data, fig.layout, fig.options);
+            })
+            .catch(function () {
+              alert("Could not read data!");
+            });
         }
       }
     </script>
