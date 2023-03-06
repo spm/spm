@@ -560,11 +560,12 @@ cont     = false;
 function c0 = cfg_simplify(c0)
 cl = class(c0);
 if numel(cl) > 3 && strcmp(cl(1:4),'cfg_')
-    p = properties(c0);
+    p = {};
+    try, p = properties(c0); end
     if isempty(p), p = fieldnames(c0); end % for pre-classdef
     p = setxor(p,{'rewrite_job','expanded','preview','check','prog',...
         'tdeps','vfiles','vout','jout','extras','sdeps','sout','forcestruct'});
-    s = struct('class',cl(5:end));
+    s = struct('type',cl(5:end));
     for i=1:numel(p)
         try, s.(p{i}) = c0.(p{i}); end
         if strcmp(p{i},'def') && isa(s.def,'function_handle')

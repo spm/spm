@@ -9,7 +9,7 @@ function spm_uw_show(mode,p1,p2,p3,p4,p5,p6)
 %__________________________________________________________________________
 
 % Jesper Andersson
-% Copyright (C) 2002-2022 Wellcome Centre for Human Neuroimaging
+% Copyright (C) 2002-2023 Wellcome Centre for Human Neuroimaging
 
 
 persistent iter;
@@ -72,9 +72,6 @@ switch mode
               % p4 = sot
               % p5 = Any scan
               % p6 = Matrix of mean corrected movement parameters.
-      if nargin ~= 7
-         error('Wrong no. of arguments in call to ud_graphwip');
-      end
       fg = spm_figure('FindWin','Graphics');
       if ~isempty(fg)
           spm_figure('Clear','Graphics');
@@ -100,7 +97,7 @@ switch mode
                     'Position',[fg_pos(3)/10 0.95*fg_pos(4) 8*fg_pos(3)/10 30],...
                     'String','Estimation of EPI deformation fields',...
                     'ForegroundColor','k','BackgroundColor','w',...
-                    'FontSize',fs(20),'FontName',pf.times)
+                    'FontSize',fs(18),'FontName',pf.times)
 
           %
           % Code modelled on spm_check_registration.m
@@ -113,7 +110,6 @@ switch mode
           ds = (w+h)*0.02;
 
           spm_orthviews('Reset');
-          global st;
           P = p5; 
           for ij=1:mn
              P.dat = p2(:,ij);
@@ -126,47 +122,31 @@ switch mode
                  spm_orthviews('maxBB'); 
              end
              if ij <= size(p3,2)  % If first order effect. 
-                 string = sprintf('Derivative w.r.t. %s',eff_string{p3(ij)});
+                 str = sprintf('Derivative w.r.t. %s',eff_string{p3(ij)});
              else
-                 string = sprintf('Second order effect w.r.t. %s and %s',...
+                 str = sprintf('Second order effect w.r.t. %s and %s',...
                      eff_string{p4(ij-size(p3,2),1)},eff_string{p4(ij-size(p3,2),2)});
              end
-             if mn > 6 
-                 fsi = 12;
-             elseif mn > 4
-                 fsi = 14;
-             else
-                 fsi = 16;
-             end
-             uicontrol(fg,'Style','Text',...
-                    'Position',[(st.vols{gh}.area(1)+(st.vols{gh}.area(3)+ds)/2)*fg_pos(3)...
-                                st.vols{gh}.area(2)*fg_pos(4)...
-                                ((st.vols{gh}.area(3)-ds)/2)*fg_pos(3)...
-                                (2*st.vols{gh}.area(4)/5)*fg_pos(4)],...
-                    'String',string,...
-                    'ForegroundColor','k','BackgroundColor','w',...
-                    'FontSize',fs(fsi),'FontName',pf.times)
+             spm_orthviews('Caption',gh,str);
           end
           %
-          % Show plot of residual squared error
+          % Show plot of residual squared error.
           %
           ax = axes('Position',[.1 .025 .375 .17]);
           indx = find(p1 ~= 0); 
           plot(ax,indx,p1(indx),'-k','LineWidth',2);
-          title(ax,'Residual error','FontSize',fs(14),'FontName',pf.times);
+          title(ax,'Residual error','FontSize',fs(12),'FontName',pf.times);
 
           %
           % Show plot of relevant movement parameters.
           %
           ax = axes('Position',[.575 .025 .375 .17]);
           plot(ax,p6);
-          title(ax,'Movement parameters','FontSize',fs(14),'FontName',pf.times);
+          title(ax,'Movement parameters','FontSize',fs(12),'FontName',pf.times);
       end
              
    case 'FinTot'     % Report on outcome of undeformation.
       spm_progress_bar('Clear');
    otherwise         % Ignore unknown actions.
-
       drawnow;
-      
 end
