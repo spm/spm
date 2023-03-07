@@ -74,14 +74,14 @@ function Vo = spm_imcalc(Vi,Vo,f,flags,varargin)
 % E.g. if c is a 1xn vector of weights, then for n images, using the (dmtx)
 % data-matrix version, the weighted sum can be computed using:
 %       Vi = spm_vol(spm_select(inf,'image'));
-%       Vo = 'output.img'
+%       Vo = 'output.nii'
 %       Q  = spm_imcalc(Vi,Vo,'c*X',{1},c)
 % Here we've pre-specified the expression and passed the vector c as an
 % additional variable (you'll be prompted to select the n images).
 %__________________________________________________________________________
 
 % John Ashburner & Andrew Holmes
-% Copyright (C) 1998-2022 Wellcome Centre for Human Neuroimaging
+% Copyright (C) 1998-2023 Wellcome Centre for Human Neuroimaging
 
 
 %-Parameters & arguments
@@ -90,8 +90,6 @@ if nargin < 3
     spm_jobman('interactive','','spm.util.imcalc');
     return;
 end
-
-spm('FnBanner',mfilename);
 
 %-Input images
 %--------------------------------------------------------------------------
@@ -180,10 +178,6 @@ end
 n = numel(Vi);
 Y = zeros(Vo.dim(1:3));
 
-%-Start progress plot
-%--------------------------------------------------------------------------
-spm_progress_bar('Init',Vo.dim(3),f,'planes completed');
-
 %-Loop over planes computing result Y
 %--------------------------------------------------------------------------
 for p = 1:Vo.dim(3)
@@ -208,14 +202,8 @@ for p = 1:Vo.dim(3)
         error(['"',f,'" produced incompatible image.']); end
     if (mask < 0), Yp(isnan(Yp)) = 0; end
     Y(:,:,p) = reshape(Yp,Vo.dim(1:2));
-
-    spm_progress_bar('Set',p);
 end
 
 %-Write output image
 %--------------------------------------------------------------------------
 Vo = spm_write_vol(Vo,Y);
-
-%-End
-%--------------------------------------------------------------------------
-spm_progress_bar('Clear')

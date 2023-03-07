@@ -1,7 +1,7 @@
 #!/usr/bin/env make -f
 # General Makefile to compile SPM C-MEX files
 #
-# Copyright (C) 1991-2022 Wellcome Centre for Human Neuroimaging
+# Copyright (C) 1991-2023 Wellcome Centre for Human Neuroimaging
 #
 ###############################################################################
 #
@@ -44,7 +44,7 @@ OBS     =\
 
 SPMMEX  =\
 	spm_sample_vol.$(MEXEXT) spm_slice_vol.$(MEXEXT) spm_brainwarp.$(MEXEXT)\
-	spm_add.$(MEXEXT) spm_conv_vol.$(MEXEXT) spm_render_vol.$(MEXEXT)\
+	spm_conv_vol.$(MEXEXT) spm_render_vol.$(MEXEXT)\
 	spm_global.$(MEXEXT) spm_resels_vol.$(MEXEXT)\
 	spm_bsplinc.$(MEXEXT) spm_bsplins.$(MEXEXT)\
 	spm_unlink.$(MEXEXT) spm_existfile.$(MEXEXT) spm_gamrnd.$(MEXEXT)\
@@ -237,10 +237,6 @@ spm_mapping.$(MEXEXT).o: spm_mapping.c spm_mapping.h spm_vol_access.h spm_dataty
 
 %.$(MEXEXT) : %.c
 	$(MEX) $< $(MEXEND)
-
-spm_add.$(MEXEXT): spm_add.c spm_vol_utils.$(MEXEXT).a\
-		spm_mapping.h spm_vol_access.h
-	$(MEX) spm_add.c spm_vol_utils.$(MEXEXT).a $(MEXEND)
 
 spm_brainwarp.$(MEXEXT): spm_brainwarp.c spm_matfuns.c spm_vol_utils.$(MEXEXT).a\
 		spm_mapping.h spm_vol_access.h
