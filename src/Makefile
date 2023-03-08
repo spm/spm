@@ -83,6 +83,9 @@ tarball: all tbx-tarball verb.tarball
 	done
 	$(ZIP) spm_mex.tar
 
+data:
+	@ $(SPMEXE) eval "cd('../toolbox/mb');fil_install;"
+
 doc:
 	@ $(MAKE) -C ../man --no-print-directory
 
