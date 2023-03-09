@@ -52,6 +52,8 @@ defaults.mat.format     = '-v6'; % options: '-mat', '-v6', '-v7.0', '-v7.3'
 %==========================================================================
 defaults.tbx.dir = { fullfile(spm('Dir'),'toolbox') };
 
+defaults.tbx.mb.data = fullfile(defaults.tbx.dir{1},'mb','data');
+
 % DICOM Import defaults
 %==========================================================================
 defaults.dicom.root = 'flat'; % Folder hierarchy
