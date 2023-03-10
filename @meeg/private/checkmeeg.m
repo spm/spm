@@ -382,7 +382,7 @@ ft_warning on
 if ~isfield(this, 'fiducials')
    this.fiducials = struct([]);
 else
-   this.fiducials  = ft_struct2double(fixpnt(this.fiducials));
+   this.fiducials  = ft_convert_units(ft_struct2double(fixpnt(this.fiducials)), 'mm');
 end
 
 if ~isfield(this, 'artifacts')
