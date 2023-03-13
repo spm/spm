@@ -2,19 +2,24 @@ function DCM = spm_dcm_ind_data(DCM)
 % Get time-frequency amplitude at specified sources for DCM
 % FORMAT DCM = spm_dcm_ind_data(DCM)
 % DCM    -  DCM structure
-% requires
+% requires:
 %
-%    DCM.xY.Dfile
-%    DCM.Lpos
-%    DCM.options.Nmodes
-%    DCM.options.trials
-%    DCM.options.Tdcm
-%    DCM.options.Fdcm
-%    DCM.options.D
-%    DCM.options.Rft
-%    DCM.options.h
+%    DCM.xY.Dfile       - Data file
+%    DCM.options.trials - Trial indices, array(m)
+%    DCM.Lpos           - Priors on source location, array(3, n)
 %
-% optional: DCM.options.baseline [start(ms) end(ms)]
+% optional:
+%    DCM.options.Fmodes   - Number of frequency modes, default 8
+%    DCM.options.Tdcm     - Peristimulus time window, array(2) 
+%                             default: [D.time(1) + 512 D.time(end) - 512]
+%    DCM.options.Fdcm     - Frequency window, array(2)
+%                             default: see line 178
+%    DCM.options.D        - Downsampling factor, default 2
+%    DCM.options.Rft      - Number of wavelet coefficients, default 6
+%    DCM.options.h        - Order of the polynomial basis for detrending
+%                            default 1 (mean and linear trend)
+%    DCM.options.baseline - Baseline window, array(2), [start(ms) end(ms)]
+%                            default, first eighth of pst bins 
 %
 % sets
 %
