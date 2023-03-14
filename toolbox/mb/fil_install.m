@@ -31,7 +31,8 @@ url{1} = 'https://figshare.com/ndownloader/files/31699187';
 % Trained FIL Model (15 training + 15 test subjects)
 filename{2} = 'fil30-nuNaN-v1-d4-K24-r2-sd1.5.mat';
 %filename{2} = 'fil15-nuNaN-v1-d4-K24-r3-sd2.mat';
-url{2} = 'https://figshare.com/ndownloader/files/31784579';
+%url{2} = 'https://figshare.com/ndownloader/files/31784579'; % Old HDF5 version
+url{2} = 'https://figshare.com/ndownloader/files/39594484'; % MATLAB -v6 file format
 
 for i=1:numel(filename)
     varargout{i} = fullfile(datadir, filename{i});
