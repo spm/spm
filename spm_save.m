@@ -7,7 +7,7 @@ function spm_save(f,var,varargin)
 %__________________________________________________________________________
 
 % Guillaume Flandin
-% Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
+% Copyright (C) 2018-2023 Wellcome Centre for Human Neuroimaging
 
 
 ext = lower(spm_file(f,'ext'));
@@ -54,6 +54,7 @@ switch ext
             end
             for i=1:size(var,1)
                 for j=1:size(var,2)
+                    var{i,j} = strrep(var{i,j},'"','""');
                     if isempty(var{i,j})
                         var{i,j} = 'n/a';
                     elseif any(var{i,j} == delim)
