@@ -1580,17 +1580,33 @@ elseif filetype_check_extension(filename, '.meghdf5')
   manufacturer = 'York Instruments';
   content = 'MEG header and data';
 elseif filetype_check_extension(filename, '.jnii')
-  type = 'openjdata_jnii';
-  manufacturer = 'OpenJData'; % See http://openjdata.org
+  type = 'neurojson_jnii';
+  manufacturer = 'NeuroJSON'; % See https://neurojson.org
   content = 'MRI';
 elseif filetype_check_extension(filename, '.bnii')
-  type = 'openjdata_bnii';
-  manufacturer = 'OpenJData'; % See http://openjdata.org
+  type = 'neurojson_bnii';
+  manufacturer = 'NeuroJSON'; % See https://neurojson.org
   content = 'MRI';
+elseif any(filetype_check_extension(filename, {'.jmsh' '.jmesh'}))
+  type = 'neurojson_jmesh';
+  manufacturer = 'NeuroJSON'; % See https://neurojson.org
+  content = 'Mesh';
+elseif any(filetype_check_extension(filename, {'.bmsh' '.bmesh'}))
+  type = 'neurojson_bmesh';
+  manufacturer = 'NeuroJSON'; % See https://neurojson.org
+  content = 'Mesh';
 elseif filetype_check_extension(filename, '.tsv') && filetype_check_header(filename, sprintf('event\tvalue\ttimestamp'))
   type = 'eegsynth_tsv';
   manufacturer = 'EEGsynth recordtrigger';
   content = 'events';
+elseif filetype_check_extension(filename, '.msh') && filetype_check_header(filename, '$MeshFormat') && filetype_check_header(filename, 49, 16)
+  type = 'gmsh_binary';
+  manufacturer = 'gmsh team';
+  content = 'geometrical meshes';
+elseif filetype_check_extension(filename, '.msh') && filetype_check_header(filename, '$MeshFormat') && filetype_check_header(filename, 48, 16)
+  type = 'gmsh_ascii';
+  manufacturer = 'gmsh team';
+  content = 'geometrical meshes';
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
