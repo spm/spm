@@ -25,7 +25,7 @@ function MDP = spm_MDP_motor_learning(MDP)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_VB_sleep.m 7679 2019-10-24 15:54:07Z spm $
+% $Id: spm_MDP_motor_learning.m 8439 2023-03-27 18:41:45Z guillaume $
 %__________________________________________________________________________
 
 

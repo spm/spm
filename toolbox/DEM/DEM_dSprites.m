@@ -37,7 +37,7 @@ function mdp = DEM_dSprites
 % Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_surveillance.m 8313 2022-09-30 18:33:43Z karl $
+% $Id: DEM_dSprites.m 8439 2023-03-27 18:41:45Z guillaume $
 
 %% set up and preliminaries
 %==========================================================================
