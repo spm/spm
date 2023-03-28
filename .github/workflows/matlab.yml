@@ -1,10 +1,11 @@
 name: Tests
 on:
-  push:
-    branches:
-      - 'main'
+  release:
+    types: [published]
   pull_request:
   workflow_dispatch:
+  schedule:
+    - cron: '15 3 * * *'
 jobs:
   matlab-tests:
     name: Run MATLAB Tests
