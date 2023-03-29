@@ -319,10 +319,6 @@ rtm.help    = {
     ['Register to first: Images are registered to the first image in the series. ' ...
     'Register to mean: A two pass procedure is used in order to register the ' ...
     'images to the mean of the images after the first realignment.']
-    ''
-    '    * PET images are typically registered to the mean.'
-    ''
-    '    * MRI images are typically registered to the first image.'
     }';
 rtm.labels  = {
                'Register to first'
