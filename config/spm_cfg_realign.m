@@ -43,7 +43,7 @@ write.name = 'Realign: Reslice';
 write.val  = @()[{data} write_cfg];
 write.help = {
     'Reslice a series of registered images such that they match the first image selected voxel-for-voxel.'
-    'The resliced images are named the same as the originals, except that they are prefixed by ''r''.'
+    'The resliced images are named the same as the originals, except that they are prefixed by ``r``.'
     }';
 write.prog = @spm_run_realign;
 write.vout = @vout_reslice;
@@ -60,7 +60,7 @@ estwrite.help = {
     ''
     'The first image in the list specified by the user is used as a reference to which all subsequent scans are realigned. The reference scan does not have to be the first chronologically and it may be wise to chose a "representative scan" in this role.'
     ''
-    'The aim is primarily to remove movement artefact in fMRI and PET time-series (or more generally longitudinal studies) /* \cite{ashburner97bir}*/. The headers are modified for each of the input images, such that. they reflect the relative orientations of the data. The details of the transformation are displayed in the results window as plots of translation and rotation. A set of realignment parameters are saved for each session, named rp_*.txt. After realignment, the images are resliced such that they match the first image selected voxel-for-voxel. The resliced images are named the same as the originals, except that they are prefixed by ''r''.'
+    'The aim is primarily to remove movement artefact in fMRI and PET time-series (or more generally longitudinal studies) /* \cite{ashburner97bir}*/. The headers are modified for each of the input images, such that. they reflect the relative orientations of the data. The details of the transformation are displayed in the results window as plots of translation and rotation. A set of realignment parameters are saved for each session, named rp_*.txt. After realignment, the images are resliced such that they match the first image selected voxel-for-voxel. The resliced images are named the same as the originals, except that they are prefixed by ``r``.'
     }';
 estwrite.prog = @spm_run_realign;
 estwrite.vout = @vout_estwrite;
@@ -71,7 +71,7 @@ estwrite.vout = @vout_estwrite;
 realign        = cfg_choice;
 realign.tag    = 'realign';
 realign.name   = 'Realign';
-realign.help   = {'Within-subject registration of image time series.'};
+realign.help   = {'Within-subject registration of image time series for correcting (some of the) head motion artifacts.'};
 realign.values = {estimate write estwrite};
 %realign.num    = [1 Inf];
 
@@ -89,8 +89,7 @@ data         = cfg_files;
 data.tag     = 'data';
 data.name    = 'Session';
 data.help    = {
-    'Select scans for this session.'
-    'In the coregistration step, the sessions are first realigned to each other, by aligning the first scan from each session to the first scan of the first session.  Then the images within each session are aligned to the first image of the session. The parameter estimation is performed this way because it is assumed (rightly or not) that there may be systematic differences in the images between sessions.'
+    'Select scans for this session. In the estimation step, the sessions are first realigned to each other, by aligning the first scan from each session to the first scan of the first session.  Then the images within each session are aligned to the first image of the session. The parameter estimation is performed this way because it is assumed (rightly or not) that there may be systematic differences in the images between sessions.'
     }';
 data.filter  = 'image';
 data.ufilter = '.*';
@@ -104,8 +103,7 @@ generic        = cfg_repeat;
 generic.tag    = 'generic';
 generic.name   = 'Data';
 generic.help   = {
-    'Add new sessions for this subject.'
-    'In the coregistration step, the sessions are first realigned to each other, by aligning the first scan from each session to the first scan of the first session.  Then the images within each session are aligned to the first image of the session. The parameter estimation is performed this way because it is assumed (rightly or not) that there may be systematic differences in the images between sessions.'
+    'Add new sessions for this subject. In the estimation step, the sessions are first realigned to each other, by aligning the first scan from each session to the first scan of the first session.  Then the images within each session are aligned to the first image of the session. The parameter estimation is performed this way because it is assumed (rightly or not) that there may be systematic differences in the images between sessions.'
     }';
 generic.values = {data};
 generic.num    = [1 Inf];
@@ -117,8 +115,7 @@ quality         = cfg_entry;
 quality.tag     = 'quality';
 quality.name    = 'Quality';
 quality.help    = {
-    'Quality versus speed trade-off.'
-    'Highest quality (1) gives most precise results, whereas lower qualities gives faster realignment. The idea is that some voxels contribute little to the estimation of the realignment parameters. This parameter is involved in selecting the number of voxels that are used.'
+    'Quality versus speed trade-off. Highest quality (1) gives most precise results, whereas lower qualities gives faster realignment. The idea is that some voxels contribute little to the estimation of the realignment parameters. This parameter is involved in selecting the number of voxels that are used.'
     }';
 quality.strtype = 'r';
 quality.num     = [1 1];
@@ -160,10 +157,6 @@ rtm.tag    = 'rtm';
 rtm.name   = 'Num Passes';
 rtm.help   = {
     'Register to first: Images are registered to the first image in the series.  Register to mean: A two pass procedure is used in order to register the images to the mean of the images after the first realignment.'
-    ''
-    'PET images are typically registered to the mean. This is because PET data are more noisy than fMRI and there are fewer of them, so time is less of an issue.'
-    ''
-    'MRI images are typically registered to the first image.  The more accurate way would be to use a two pass procedure, but this probably wouldn''t improve the results so much and would take twice as long to run.'
     }';
 rtm.labels = {
               'Register to first'
@@ -201,10 +194,10 @@ wrap        = cfg_menu;
 wrap.tag    = 'wrap';
 wrap.name   = 'Wrapping';
 wrap.help   = {
-    'Directions in the volumes the values should wrap around in.'
-    'For example, in MRI scans, the images wrap around in the phase encode direction, so (e.g.) the subject''s nose may poke into the back of the subject''s head. These are typically:'
-    '    No wrapping - for PET or images that have already been spatially transformed. Also the recommended option if you are not really sure.'
-    '    Wrap in  Y  - for (un-resliced) MRI where phase encoding is in the Y direction (voxel space).'
+    ['Directions in the volumes the values should wrap around in. ' ...
+    'For example, in MRI scans, the images wrap around in the phase encode direction, so (e.g.) the subject''s nose may poke into the back of the subject''s head. These are typically:']
+    '    * **No wrapping** - for PET or images that have already been spatially transformed. Also the recommended option if you are not really sure.'
+    '    * **Wrap in  Y**  - for (un-resliced) MRI where phase encoding is in the Y direction (voxel space).'
     }';
 wrap.labels = {
                'No wrap'
@@ -228,9 +221,9 @@ weight.tag     = 'weight';
 weight.name    = 'Weighting';
 weight.val     = {''};
 weight.help    = {
-    'Optional weighting image to weight each voxel of the reference image differently when estimating the realignment parameters.'
-    'The weights are proportional to the inverses of the standard deviations.'
-    'This would be used, for example, when there is a lot of extra-brain motion - e.g., during speech, or when there are serious artifacts in a particular region of the images.'
+    ['Optional weighting image to weight each voxel of the reference image differently when estimating the realignment parameters. ' ...
+    'The weights are proportional to the inverses of the standard deviations.' ...
+    'This would be used, for example, when there is a lot of extra-brain motion - e.g., during speech, or when there are serious artifacts in a particular region of the images.']
     }';
 weight.filter  = 'image';
 weight.ufilter = '.*';
@@ -263,14 +256,10 @@ which.tag    = 'which';
 which.name   = 'Resliced images';
 which.help   = {
     'Specify the images to reslice.'
-    ''
-    'All Images (1..n) :  This reslices all the images - including the first image selected - which will remain in its original position.'
-    ''
-    'Images 2..n :  Reslices images 2..n only. Useful for if you wish to reslice (for example) a PET image to fit a structural MRI, without creating a second identical MRI volume.'
-    ''
-    'All Images + Mean Image :  In addition to reslicing the images, it also creates a mean of the resliced image.'
-    ''
-    'Mean Image Only :  Creates the mean resliced image only.'
+    '    1. **All Images (1..n)**:  This reslices all the images - including the first image selected - which will remain in its original position.'
+    '    2. **Images 2..n**:  Reslices images 2..n only. Useful for if you wish to reslice (for example) a PET image to fit a structural MRI, without creating a second identical MRI volume.'
+    '    3. All **Images + Mean Image**:  In addition to reslicing the images, it also creates a mean of the resliced image.'
+    '    4. **Mean Image Only**:  Creates the mean resliced image only.'
     }';
 which.labels = {
                 ' All Images (1..n)'
@@ -288,8 +277,7 @@ interp        = cfg_menu;
 interp.tag    = 'interp';
 interp.name   = 'Interpolation';
 interp.help   = {
-    'The method by which the images are sampled when being written in a different space.'
-    'Nearest Neighbour is fastest, but not recommended for image realignment. Trilinear Interpolation is probably OK for PET, but not so suitable for fMRI because higher degree interpolation generally gives better results/* \cite{thevenaz00a,unser93a,unser93b}*/. Although higher degree methods provide better interpolation, but they are slower because they use more neighbouring voxels. Fourier Interpolation/* \cite{eddy96,cox99}*/ is another option, but note that it is only implemented for purely rigid body transformations.  Voxel sizes must all be identical and isotropic.'
+    'The method by which the images are sampled when being written in a different space. Nearest Neighbour is fastest, but not recommended for image realignment. Trilinear Interpolation is probably OK for PET, but not so suitable for fMRI because higher degree interpolation generally gives better results/* \cite{thevenaz00a,unser93a,unser93b}*/. Although higher degree methods provide better interpolation, but they are slower because they use more neighbouring voxels. Fourier Interpolation/* \cite{eddy96,cox99}*/ is another option, but note that it is only implemented for purely rigid body transformations.  Voxel sizes must all be identical and isotropic.'
     }';
 interp.labels = {
                  'Nearest neighbour'
@@ -312,10 +300,9 @@ wrap        = cfg_menu;
 wrap.tag    = 'wrap';
 wrap.name   = 'Wrapping';
 wrap.help   = {
-    'This indicates which directions in the volumes the values should wrap around in.'
-    'For example, in MRI scans, the images wrap around in the phase encode direction, so (e.g.) the subject''s nose may poke into the back of the subject''s head. These are typically:'
-    '    No wrapping - for PET or images that have already been spatially transformed.'
-    '    Wrap in  Y  - for (un-resliced) MRI where phase encoding is in the Y direction (voxel space).'
+    'This indicates which directions in the volumes the values should wrap around in. For example, in MRI scans, the images wrap around in the phase encode direction, so (e.g.) the subject''s nose may poke into the back of the subject''s head. These are typically:'
+    '    * **No wrapping** - for PET or images that have already been spatially transformed.'
+    '    * **Wrap in  Y**  - for (un-resliced) MRI where phase encoding is in the Y direction (voxel space).'
     }';
 wrap.labels = {
                'No wrap'
@@ -351,7 +338,7 @@ mask.def    = @(val)spm_get_defaults('realign.write.mask', val{:});
 prefix         = cfg_entry;
 prefix.tag     = 'prefix';
 prefix.name    = 'Filename Prefix';
-prefix.help    = {'Specify the string to be prepended to the filenames of the resliced image file(s). Default prefix is ''r''.'};
+prefix.help    = {'Specify the string to be prepended to the filenames of the resliced image file(s). Default prefix is ``r``.'};
 prefix.strtype = 's';
 prefix.num     = [1 Inf];
 prefix.def     = @(val)spm_get_defaults('realign.write.prefix', val{:});

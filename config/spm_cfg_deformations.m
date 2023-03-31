@@ -30,8 +30,8 @@ hinv = {[...
 'have a unique inverse.  If y'':A->B is the inverse of y:B->A, then ',...
 'y'' o y = y o y'' = Id, where Id is the identity transform.'],...
 '',...
-'Deformations are inverted using the method described in the appendix of:',...
-['    * Ashburner J, Andersson JLR & Friston KJ (2000) ',...
+['Deformations are inverted using the method described in the appendix of ',...
+' Ashburner J, Andersson JLR & Friston KJ (2000) ',...
  '"Image Registration using a Symmetric Prior - in Three-Dimensions." ',...
  'Human Brain Mapping 9(4):212-225']};
 
@@ -46,7 +46,7 @@ hcomp = {[...
 'from A to C. ',...
 'The composition of these mappings is denoted by yox:A->C. ',...
 'Compositions can be combined in an associative way, such that zo(yox) = (zoy)ox.'],...
-'',[...
+[...
 'In this utility, the right-to-left order of the compositions is ',...
 'from top to bottom (note that the rightmost deformation would ',...
 'actually be applied first).']};
@@ -76,19 +76,19 @@ himgr = {[...
 'Each voxel contains the x, y and z mm coordinates of where the deformation points.']};
 
 himgw = {[...
-'Save the result as a three-volume image.  "y_" will be prepended to the ',...
+'Save the result as a three-volume image.  ``y_`` will be prepended to the ',...
 'filename.']};
 
 hdetw = {[...
-'Save the Jacobian determinants as an image.  "j_" will be prepended to the ',...
+'Save the Jacobian determinants as an image.  ``j_`` will be prepended to the ',...
 'filename.']};
 
 happly = {[...
 'Apply the resulting deformation field to some images. ',...
-'The filenames will be prepended by "w".']};
+'The filenames will be prepended by ``w``.']};
 
 hmatname = {...
-'Specify the _sn.mat to be used.'};
+'Specify the ``_sn.mat`` to be used.'};
 
 himg = {...
 'Specify the image file on which to base the dimensions, orientation etc.'};
@@ -170,7 +170,7 @@ template.help   = {...
  'registered with a TPM file, such that the resulting spatially normalised '...
  'images are closer aligned to MNI space. Leave empty if you do not wish to '...
  'incorporate a transform to MNI space '...
- '(ie just click ``done'' on the file selector, without selecting any images).']};
+ '(i.e., just click **done** on the file selector, without selecting any images).']};
 %------------------------------------------------------------------------
 drtl = branch('Dartel flow','dartel',{ffield,forbak,K,template});
 drtl.help = {'Imported Dartel flow field.'};
@@ -182,24 +182,30 @@ img.help     = himg;
 
 comp0        = repeat('Composition','comp',other);
 comp0.help   = hcomp;
+comp0.help   = {};
 
 iv0          = branch('Inverse','inv',{comp0,img});
 iv0.help     = hinv;
+iv0.help     = {};
 
 comp1        = repeat('Composition','comp',[other,{iv0},{comp0}]);
 comp1.num    = [1 Inf];
 comp1.help   = hcomp;
+comp1.help   = {};
 
 iv1          = branch('Inverse','inv',{comp1,img});
 iv1.help     = hinv;
+iv1.help     = {};
 
 comp2        = repeat('Composition','comp',[other,{iv1},{comp1}]);
 comp2.num    = [1 Inf];
 comp2.help   = hcomp;
+comp2.help   = {};
 
 iv2          = branch('Inverse','inv',{comp2,img});
 iv2.help     = hinv;
 
+comp2.help   = hcomp;
 comp         = repeat('Composition','comp',[other,{iv2},{comp2}]);
 comp.num     = [1 Inf];
 comp.help    = hcomp;
@@ -246,12 +252,14 @@ savedir.name = 'Output destination';
 savedir.tag  = 'savedir';
 savedir.values = {savepwd savesrc saveusr};
 savedir.val  = {savepwd};
+savedir.help = {};
 
 savedir1      = cfg_choice;
 savedir1.name = 'Output destination';
 savedir1.tag  = 'savedir';
 savedir1.values = {savepwd saveusr};
 savedir1.val  = {savepwd};
+savedir1.help = {};
 
 interp      = cfg_menu;
 interp.name = 'Interpolation';
@@ -266,18 +274,18 @@ interp.help    = {
                   'being written in a different space. ' ...
                   '(Note that Inf or NaN values are treated as zero, ' ...
                   'rather than as missing data)']
-                  '    Nearest Neighbour:'
-                  '      - Fastest, but not normally recommended.'
-                  '    Trilinear Interpolation:'
-                  '      - OK for PET, realigned fMRI, or segmentations'
-                  '    B-spline Interpolation:'
-                  ['      - Better quality (but slower) interpolation' ...
+                  '    1. **Nearest Neighbour**'
+                  '      Fastest, but not normally recommended.'
+                  '    2. **Trilinear Interpolation**'
+                  '      OK for PET, realigned fMRI, or segmentations'
+                  '    3. **B-spline Interpolation**'
+                  ['      Better quality (but slower) interpolation' ...
                   '/* \cite{thevenaz00a}*/, especially with higher ' ...
                   'degree splines. Can produce values outside the ' ...
                   'original range (e.g. small negative values from an ' ...
                   'originally all positive image).']
-                  '    Categorical:'
-                  ['       - Slow (particularly when there are lots of '...
+                  '    4. **Categorical**'
+                  ['      Slow (particularly when there are lots of '...
                   'categories). This is intended to warp categorical images ' ...
                   'such as label maps.']
 }';
@@ -320,11 +328,9 @@ preserve         = cfg_menu;
 preserve.tag     = 'preserve';
 preserve.name    = 'Preserve';
 preserve.help    = {
-'Preserve Concentrations: Smoothed spatially normalised images (sw*) represent weighted averages of the signal under the smoothing kernel, approximately preserving the intensities of the original images. This option is currently suggested for eg fMRI.'
-''
-'Preserve Amount: Smoothed and spatially normalised images preserve the total amount of signal from each region in the images (smw*). Areas that are expanded during warping are correspondingly reduced in intensity. This option is suggested for VBM.'
-''
-'Preserve Labels: This is intended for warping label images. While it is quite slow to run, it is intended to give more accurately warped categorical data.'
+'    * Preserve Concentrations: Smoothed spatially normalised images (sw*) represent weighted averages of the signal under the smoothing kernel, approximately preserving the intensities of the original images. This option is currently suggested for eg fMRI.'
+'    * Preserve Amount: Smoothed and spatially normalised images preserve the total amount of signal from each region in the images (smw*). Areas that are expanded during warping are correspondingly reduced in intensity. This option is suggested for VBM.'
+'    * Preserve Labels: This is intended for warping label images. While it is quite slow to run, it is intended to give more accurately warped categorical data.'
 }';
 preserve.labels = {
                    'Preserve Concentrations (no "modulation")'
@@ -375,13 +381,13 @@ savedef       = cfg_branch;
 savedef.name  = 'Save Deformation';
 savedef.tag   = 'savedef';
 savedef.val   ={saveas,savedir1};
-savedef.help  = {'The deformation may be saved to disk as a ``y_*.nii'''' file.'};
+savedef.help  = {'The deformation may be saved to disk as a ``y_*.nii`` file.'};
 
 savedet       = cfg_branch;
 savedet.name  = 'Save Jacobian Determinants';
 savedet.tag   = 'savejac';
 savedet.val   ={savedas,savedir1};
-savedet.help  = {'The Jacobian determinants may be saved to disk as a ``j_*.nii'''' file.'};
+savedet.help  = {'The Jacobian determinants may be saved to disk as a ``j_*.nii`` file.'};
 
 pullback      = cfg_branch;
 pullback.name = 'Pullback';
@@ -397,7 +403,7 @@ weight.name   = 'Weight Image';
 weight.tag    = 'weight';
 weight.filter = 'nifti';
 weight.num    = [0 1];
-weight.help   = {'Select an image file to weight the warped data with.  This is optional, but the idea is the same as was used by JE Lee et al (2009) in their ``A study of diffusion tensor imaging by tissue-specific, smoothing-compensated voxel-based analysis'''' paper.  In principle, a mask of (eg) white matter could be supplied, such that the warped images contain average signal intensities in WM.'};
+weight.help   = {'Select an image file to weight the warped data with.  This is optional, but the idea is the same as was used by JE Lee et al (2009) in their "A study of diffusion tensor imaging by tissue-specific, smoothing-compensated voxel-based analysis" paper.  In principle, a mask of (eg) white matter could be supplied, such that the warped images contain average signal intensities in WM.'};
 weight.val    = {{''}};
 
 % add note on aliasing to fwhm.help for Pushforward
@@ -415,16 +421,16 @@ pushfo.help   = {[...
 'The deformation field should be the inverse of the one used for the pullback procedure.'],...
 '',...
 [...
-'``Smoothed'''' (blurred) spatially normalised images are generated in such a ',...
+'Smoothed (blurred) spatially normalised images are generated in such a ',...
 'way that the original signal is preserved. Normalised images are ',...
-'generated by a ``pushing'''' rather than a ``pulling'''' (the usual) procedure. ',...
+'generated by a "pushing" rather than a "pulling" (the usual) procedure. ',...
 'Note that a procedure related to trilinear interpolation is used, and no masking is done.  It ',...
 'is therefore recommended that the images are realigned and resliced ',...
 'before they are spatially normalised, in order to benefit from motion correction using higher order interpolation.  Alternatively, contrast images ',...
 'generated from unsmoothed native-space fMRI/PET data can be spatially ',...
 'normalised for a 2nd level analysis.'],[...
-'Two ``preserve'''' options are provided.  One of them should do the ',...
-'equavalent of generating smoothed ``modulated'''' spatially normalised ',...
+'Two "preserve" options are provided.  One of them should do the ',...
+'equavalent of generating smoothed "modulated" spatially normalised ',...
 'images.  The other does the equivalent of smoothing the modulated ',...
 'normalised fMRI/PET, and dividing by the smoothed Jacobian determinants.']};
 
@@ -443,8 +449,8 @@ output.tag    = 'out';
 output.values = {savedef,pullback, pushfo,pushsurf,savedet};
 output.help = {[...
 'Various output options are available.  ',...
-'The deformation may be saved to disk as a ``y_*.nii'''' file.',...
-'Images may be warped using the resulting deformation, either using a ``pullback'''' procedure, or a ``pushforward''''.',...
+'The deformation may be saved to disk as a ``y_*.nii`` file.',...
+'Images may be warped using the resulting deformation, either using a "pullback" procedure, or a "pushforward".',...
 'The old style of spatial normalisation involved the pullback, whereas the pushforward requires ',...
 'the inverse of the deformation used by the pullback.  ',...
 'Finally, the deformation may be used to warp a GIFTI surface file.']};
@@ -499,6 +505,7 @@ entry_item.name    = name;
 entry_item.tag     = tag;
 entry_item.strtype = strtype;
 entry_item.num     = num;
+entry_item.help    = {};
 
 function files_item = files(name, tag, fltr, num)
 files_item        = cfg_files;
@@ -506,18 +513,21 @@ files_item.name   = name;
 files_item.tag    = tag;
 files_item.filter = fltr;
 files_item.num    = num;
+files_item.help   = {};
 
 function branch_item = branch(name, tag, val)
 branch_item      = cfg_branch;
 branch_item.name = name;
 branch_item.tag  = tag;
 branch_item.val  = val;
+branch_item.help = {};
 
 function repeat_item = repeat(name, tag, values)
 repeat_item        = cfg_repeat;
 repeat_item.name   = name;
 repeat_item.tag    = tag;
 repeat_item.values = values;
+repeat_item.help   = {};
 
 function menu_item = mnu(name, tag, labels, values)
 menu_item        = cfg_menu;
@@ -525,3 +535,5 @@ menu_item.name   = name;
 menu_item.tag    = tag;
 menu_item.labels = labels;
 menu_item.values = values;
+menu_item.help   = {};
+

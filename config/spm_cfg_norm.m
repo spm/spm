@@ -16,9 +16,9 @@ est.val  = @()[esubjs_cfg eoptions_cfg];
 est.help = {
     'Spatial normalisation performed via the segmentation routine.'
     ''
-    'The algorithm (which was known as ``New Segment'''' in SPM8) is essentially the same as that described in the Unified Segmentation paper /* \cite{ashburner05}*/, except for (i) a slightly different treatment of the mixing proportions, (ii) the use of an improved registration model, (iii) the ability to use multi-spectral data, (iv) an extended set of tissue probability maps, which allows a different treatment of voxels outside the brain.'
+    'The algorithm is essentially the same as that described in the Unified Segmentation paper /* \cite{ashburner05}*/, except for (i) a slightly different treatment of the mixing proportions, (ii) the use of an improved registration model, (iii) the ability to use multi-spectral data, (iv) an extended set of tissue probability maps, which allows a different treatment of voxels outside the brain.'
     ''
-    'If you encounter problems with spatial normalisation, it is advisable to use the Check reg button to see how well aligned the original data are with the MNI-space templates released with SPM.  If misalignment is greater than about 3cm and 15 degrees, you could try to manually re-position the images prior to attempting to align them.  This may be done using the Display button.'
+    'If you encounter problems with spatial normalisation, it is advisable to use **Check Reg** to see how well aligned the original data are with the MNI-space templates released with SPM.  If misalignment is greater than about 3 cm and 15 degrees, you could try to manually re-position the images prior to attempting to align them.  This may be done using the Display button.'
     }';
 est.prog = @spm_run_norm;
 est.vout = @vout_est;
@@ -58,15 +58,10 @@ normalise        = cfg_choice;
 normalise.tag    = 'normalise';
 normalise.name   = 'Normalise';
 normalise.help   = {...
-    'There are two components to spatial normalisation: There is the estimation part, ',...
+   ['There are two components to spatial normalisation: There is the estimation part, ',...
     'whereby a deformation is estimated by deforming template data to match an ',...
     'individual scan; And there is the actual writing of the spatially normalised ',...
-    'images, using the previously estimated deformation.',...
-    'This is a vanilla approach to spatial normalisation.  ',...
-    'It is not generally recommended for morphometric studies, or other studies of ',...
-    'differences among populations. ',...
-    'The reason is that the atlas data will differ systematically from the data under study, ',...
-    'which is likely to lead to an inherently biased set of findings.' };
+    'images, using the previously estimated deformation.']};
 normalise.values = {est write estwrite};
 
 
@@ -77,16 +72,16 @@ persistent cfg
 if ~isempty(cfg), varargout = {cfg}; return; end
 
 %--------------------------------------------------------------------------
-% biasreg Bias regularisation
+% biasreg INU regularisation
 %--------------------------------------------------------------------------
 biasreg         = cfg_menu;
 biasreg.tag     = 'biasreg';
-biasreg.name    = 'Bias regularisation';
+biasreg.name    = 'INU regularisation';
 biasreg.help    = {
-                   'MR images are usually corrupted by a smooth, spatially varying artifact that modulates the intensity of the image (bias). These artifacts, although not usually a problem for visual inspection, can impede automated processing of the images.'
+                   'MR images are usually corrupted by a smooth, spatially varying artifact that modulates the intensity of the image (intensity nonuniformity - INU). These artifacts, although not usually a problem for visual inspection, can impede automated processing of the images.'
                    ''
-                   'An important issue relates to the distinction between intensity variations that arise because of bias artifact due to the physics of MR scanning, and those that arise due to different tissue properties.  The objective is to model the latter by different tissue classes, while modelling the former with a bias field. We know a priori that intensity variations due to MR physics tend to be spatially smooth, whereas those due to different tissue types tend to contain more high frequency information. A more accurate estimate of a bias field can be obtained by including prior knowledge about the distribution of the fields likely to be encountered by the correction algorithm. For example, if it is known that there is little or no intensity non-uniformity, then it would be wise to penalise large values for the intensity non-uniformity parameters. This regularisation can be placed within a Bayesian context, whereby the penalty incurred is the negative logarithm of a prior probability for any particular pattern of non-uniformity.'
-                   'Knowing what works best should be a matter of empirical exploration.  For example, if your data has very little intensity non-uniformity artifact, then the bias regularisation should be increased.  This effectively tells the algorithm that there is very little bias in your data, so it does not try to model it.'
+                   'An important issue relates to the distinction between intensity variations that arise because of INU due to the physics of MR scanning, and those that arise due to different tissue properties.  The objective is to model the latter by different tissue classes, while modelling the former with an INU field. We know a priori that intensity variations due to MR physics tend to be spatially smooth, whereas those due to different tissue types tend to contain more high frequency information. A more accurate estimate of an INU field can be obtained by including prior knowledge about the distribution of the fields likely to be encountered by the correction algorithm. For example, if it is known that there is little or no intensity non-uniformity, then it would be wise to penalise large values for the intensity non-uniformity parameters. This regularisation can be placed within a Bayesian context, whereby the penalty incurred is the negative logarithm of a prior probability for any particular pattern of non-uniformity.'
+                   'Knowing what works best should be a matter of empirical exploration.  For example, if your data has very little intensity non-uniformity artifact, then the INU regularisation should be increased.  This effectively tells the algorithm that there is very little INU in your data, so it does not try to model it.'
                    }';
 biasreg.labels = {
                   'no regularisation (0)'
@@ -111,12 +106,12 @@ biasreg.values = {
 biasreg.val    = {0.0001};
 
 %--------------------------------------------------------------------------
-% biasfwhm Bias FWHM
+% biasfwhm INU FWHM
 %--------------------------------------------------------------------------
 biasfwhm        = cfg_menu;
 biasfwhm.tag    = 'biasfwhm';
-biasfwhm.name   = 'Bias FWHM';
-biasfwhm.help   = {'FWHM of Gaussian smoothness of bias. If your intensity non-uniformity is very smooth, then choose a large FWHM. This will prevent the algorithm from trying to model out intensity variation due to different tissue types. The model for intensity non-uniformity is one of i.i.d. Gaussian noise that has been smoothed by some amount, before taking the exponential. Note also that smoother bias fields need fewer parameters to describe them. This means that the algorithm is faster for smoother intensity non-uniformities.'};
+biasfwhm.name   = 'INU FWHM';
+biasfwhm.help   = {'FWHM of Gaussian smoothness of the intensity nonuniformity (INU). If your intensity non-uniformity is very smooth, then choose a large FWHM. This will prevent the algorithm from trying to model out intensity variation due to different tissue types. The model for intensity non-uniformity is one of i.i.d. Gaussian noise that has been smoothed by some amount, before taking the exponential. Note also that smoother INU fields need fewer parameters to describe them. This means that the algorithm is faster for smoother intensity non-uniformities.'};
 biasfwhm.labels = {
                    '30mm cutoff'
                    '40mm cutoff'
@@ -152,15 +147,15 @@ biasfwhm.values = {
 biasfwhm.val    = {60};
 
 %--------------------------------------------------------------------------
-% write Save Bias Fields
+% write Save INU fields
 %--------------------------------------------------------------------------
 write        = cfg_menu;
 write.tag    = 'write';
-write.name   = 'Save Bias Fields';
-write.help   = {'This is the option concerns whether to save the estimated bias fields. MR images are usually corrupted by a smooth, spatially varying artifact that modulates the intensity of the image (bias). These artifacts, although not usually a problem for visual inspection, can impede automated processing of the images.  The bias corrected version should have more uniform intensities within the different types of tissues.'};
+write.name   = 'Save INU fields';
+write.help   = {'This is the option concerns whether to save the estimated intensty nonuniformity (INU) fields. MR images are usually corrupted by a smooth, spatially varying artifact that modulates the intensity of the image (INU). These artifacts, although not usually a problem for visual inspection, can impede automated processing of the images.  The INU corrected version should have more uniform intensities within the different types of tissues.'};
 write.labels = {
-                'Save Nothing'
-                'Save Bias Field'
+                'Save nothing'
+                'Save INU field'
                 }';
 write.values = {
                 [0 0]

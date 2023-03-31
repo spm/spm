@@ -16,7 +16,7 @@ calculatevdm.name = 'Calculate VDM';
 calculatevdm.val  = @calculatevdm_cfg;
 calculatevdm.help = {
     'Generate unwrapped field maps which are converted to voxel displacement maps (VDM) that can be used to unwarp geometrically distorted EPI images.'
-    'The resulting VDM files are saved with the prefix vdm and can be applied to images using Apply VDM or in combination with Realign & Unwarp to calculate and correct for the combined effects of static and movement-related susceptibility induced distortions.'
+    'For references and an explanation of the theory behind the field map based unwarping, see FieldMap_principles.md. The resulting VDM files are saved with the prefix ``vdm`` and can be applied to images using **Apply VDM** or in combination with **Realign & Unwarp** to calculate and correct for the combined effects of static and movement-related susceptibility induced distortions.'
     };
 calculatevdm.prog = @FieldMap_calculatevdm;
 calculatevdm.vout = @vout_calculatevdm;
@@ -44,7 +44,8 @@ applyvdm.vout = @vout_applyvdm;
 fieldmap        = cfg_choice;
 fieldmap.tag    = 'fieldmap';
 fieldmap.name   = 'FieldMap';
-fieldmap.help   = {'The FieldMap toolbox generates unwrapped field maps which are converted to voxel displacement maps (VDM) that can be used to unwarp geometrically distorted EPI images. For references and an explanation of the theory behind the field map based unwarping, see FieldMap_principles.md. The resulting VDM files are saved with the prefix vdm and can be applied to images using Apply VDM or in combination with Realign & Unwarp to calculate and correct for the combined effects of static and movement-related susceptibility induced distortions.'};
+fieldmap.help   = {'The FieldMap toolbox generates unwrapped field maps which are converted to voxel displacement maps (VDM) that can be used to unwarp geometrically distorted EPI images.'};
+{'For references and an explanation of the theory behind the field map based unwarping, see FieldMap_principles.md. The resulting VDM files are saved with the prefix vdm and can be applied to images using Apply VDM or in combination with Realign & Unwarp to calculate and correct for the combined effects of static and movement-related susceptibility induced distortions.'};
 fieldmap.values = {calculatevdm applyvdm};
 
 
@@ -99,13 +100,13 @@ tert         = cfg_entry;
 tert.tag     = 'tert';
 tert.name    = 'Total EPI readout time';
 tert.help    = {
-                'Enter the total EPI readout time (in ms). This is the time taken to '
-                'acquire all of the phase encode steps required to cover k-space (ie one image slice). '
-                'For example, if the EPI sequence has 64 phase encode steps, the total readout time is '
-                'the time taken to acquire 64 echoes, e.g. '
-                'total readout time = number of echoes x echo spacing. '
-                'This time does not include i) the duration of the excitation, ii) the delay between, '
-                'the excitation and the start of the acquisition or iii) time for fat saturation etc.'
+                ['Enter the total EPI readout time (in ms). This is the time taken to ' ...
+                'acquire all of the phase encode steps required to cover k-space (ie one image slice). ' ...
+                'For example, if the EPI sequence has 64 phase encode steps, the total readout time is ' ...
+                'the time taken to acquire 64 echoes, e.g. ' ...
+                'total readout time = number of echoes x echo spacing. ' ...
+                'This time does not include i) the duration of the excitation, ii) the delay between, ' ...
+                'the excitation and the start of the acquisition or iii) time for fat saturation etc.']
 }';
 tert.strtype = 'e';
 tert.num     = [1  1];

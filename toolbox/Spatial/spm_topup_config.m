@@ -92,9 +92,9 @@ reg.num     = [1 3];
 reg.help    = {...
 'Regularisation settings (see spm_field).',...
 'The three expected values are:',...
-'[1] Penalty on absolute values.',...
-'[2] Penalty on the "membrane energy".',...
-'[3] Penalty on the "bending energy".'};
+'    1. Penalty on absolute values.',...
+'    2. Penalty on the *membrane energy*.',...
+'    3. Penalty on the *bending energy*.'};
 
 %--------------------------------------------------------------------------
 % Degree of B-spline  
@@ -105,7 +105,7 @@ rinterp.name        = 'Interpolation';
 rinterp.val     = {[1 1 1]};         % Default values 
 rinterp.help    = {[
 'Degree of B-spline (from 0 to 7) along different dimensions ' ...
-'(see spm_diffeo).']};
+'(see ``spm_diffeo``).']};
 rinterp.labels = {
                   '2nd Degree B-spline '
                   '3rd Degree B-Spline'
@@ -141,7 +141,7 @@ rt.values  = {1 0};
 prefix         = cfg_entry;
 prefix.tag     = 'prefix';
 prefix.name    = 'VDM Filename Prefix';
-prefix.help    = {'Specify the string to be prepended to the VDM files. Default prefix is ''vdm5_''.'};
+prefix.help    = {'Specify the string to be prepended to the VDM files. Default prefix is ``vdm5_``.'};
 prefix.strtype = 's';
 prefix.num     = [1 Inf];
 prefix.val     = {'vdm5'};
@@ -160,7 +160,7 @@ outdir.num     = [0 1];
 outdir.help    = {[...
 'All created files (deformation fields and unwarped images) are written ',...
 'in the specified directory. The deformation field is saved to disk as ',...
-'a vdm file ("vdm5_*.nii")']};
+'a vdm file (``vdm5_*.nii``)']};
 
 [cfg,varargout{1}] = deal({data,fwhm,reg,rinterp,rt,prefix,outdir});
 

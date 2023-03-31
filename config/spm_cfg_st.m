@@ -15,7 +15,7 @@ st.val     = @st_cfg;
 st.help    = {
     'Correct differences in image acquisition time between slices.'
     ''
-    'Slice-time corrected files are prepended with an ''a''.'
+    'Slice-time corrected files are prepended with an ``a``.'
     ''
     'Note: The sliceorder arg that specifies slice acquisition order is a vector of N numbers, where N is the number of slices per volume. Each number refers to the position of a slice within the image file. The order of numbers within the vector is the temporal order in which those slices were acquired. To check the order of slices within an image file, use the SPM Display option and move the cross-hairs to a voxel coordinate of z=1.  This corresponds to a point in the first slice of the volume.'
     ''
@@ -110,27 +110,23 @@ so.tag     = 'so';
 so.name    = 'Slice order';
 so.help    = {
     'Enter the slice order.'
-    ''
     'Bottom slice = 1. Sequence types and examples of code to enter are given below:'
+    '    ascending (first slice=bottom): ``[1:1:nslices]``'
+    '    descending (first slice=top): ``[nslices:-1:1]``'
+    '    interleaved (middle-top):'
+    '/*    ```*/'
+    '    for k = 1:nslices'
+    '       round((nslices-k)/2 + (rem((nslices-k),2) * (nslices - 1)/2)) + 1,'
+    '    end'
+    '/*    ```*/'
+    '    interleaved (bottom -> up): ``[1:2:nslices 2:2:nslices]``'
+    '    interleaved (top -> down): ``[nslices:-2:1, nslices-1:-2:1]``'
     ''
-    '  ascending (first slice=bottom): [1:1:nslices]'
-    ''
-    '  descending (first slice=top): [nslices:-1:1]'
-    ''
-    '  interleaved (middle-top):'
-    '     for k = 1:nslices'
-    '         round((nslices-k)/2 + (rem((nslices-k),2) * (nslices - 1)/2)) + 1,'
-    '     end'
-    ''
-    '  interleaved (bottom -> up): [1:2:nslices 2:2:nslices]'
-    ''
-    '  interleaved (top -> down): [nslices:-2:1, nslices-1:-2:1]'
-    ''
-    'Alternatively you can enter the slice timing in ms for each slice individually.'
-    'If doing so, the next item (Reference Slice) will contain a reference time (in ms) instead of the slice index of the reference slice.'
-    'For Siemens scanners, this can be acquired in MATLAB from the dicom header as follows (use any volume after the first one):'
-    '   hdr = spm_dicom_headers(''dicom.ima'');'
-    '   slice_times = hdr{1}.Private_0019_1029'
+   ['Alternatively you can enter the slice timing in ms for each slice individually.' ...
+    'If doing so, the next item (Reference Slice) will contain a reference time (in ms) instead of the slice index of the reference slice.' ...
+    'For Siemens scanners, this can be acquired in MATLAB from the dicom header as follows (use any volume after the first one):']
+    '   ``hdr = spm_dicom_headers(''dicom.ima'');``'
+    '   ``slice_times = hdr{1}.Private_0019_1029``'
     'Note that slice ordering is assumed to be from foot to head. If it is not, enter instead: TR - INTRASCAN_TIME - SLICE_TIMING_VECTOR'
     }';
 so.strtype = 'r';

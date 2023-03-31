@@ -15,7 +15,7 @@ estimate.val     = @()[estimate_cfg eoptions_cfg];
 estimate.help    = {
     'Within-subject registration using a rigid-body model.'
     ''
-    'Because the registration algorithm uses objective functions derived from joint intensity histograms, it often works much better using scans that have been intensity non-uniformity (INU) corrected. Skull-stripping can also help.  INU corrected scans can be obtained as a by-product of SPM''s segmentation. These can be easily skull-stripped by masking them with the grey matter grey matter, white matter and CSF maps that the segmentation generates (e.g., using SPM''s ImCalc, and evaluating an expression like `i1.*((i2+i3+i4)>0.5)'', where `i1'' corresponds to the INU corrected scan, and `i2'', `i3'' and `i4'' correspond to the tissue maps).'
+    'Because the registration algorithm uses objective functions derived from joint intensity histograms, it often works much better using scans that have been intensity non-uniformity (INU) corrected. Skull-stripping can also help.  INU corrected scans can be obtained as a by-product of SPM''s segmentation. These can be easily skull-stripped by masking them with the grey matter grey matter, white matter and CSF maps that the segmentation generates (e.g., using SPM''s ImCalc, and evaluating an expression like ``i1.*((i2+i3+i4)>0.5)``, where ``i1`` corresponds to the INU corrected scan, and ``i2``, ``i3`` and ``i4`` correspond to the tissue maps).'
    '' 
     'The registration method used here is based on work by Collignon et al/* \cite{collignon95}*/. The original interpolation method described in this paper has been changed in order to give a smoother cost function.  The images are also smoothed slightly, as is the histogram.  This is all in order to make the cost function as smooth as possible, to give faster convergence and less chance of local minima.'
     ''
@@ -34,8 +34,8 @@ write.tag     = 'write';
 write.name    = 'Coregister: Reslice';
 write.val     = @()[reslice_cfg roptions_cfg];
 write.help    = {
-    'Reslice images to match voxel-for-voxel with an image defining some space.'
-    'The resliced images are named the same as the originals except that they are prefixed by ''r''.'
+    ['Reslice images to match voxel-for-voxel with an image defining some space. ' ...
+    'The resliced images are named the same as the originals except that they are prefixed by ``r``.']
     }';
 write.prog    = @spm_run_coreg;
 write.vout    = @vout_reslice;
@@ -50,7 +50,7 @@ estwrite.val  = @()[estimate_cfg eoptions_cfg roptions_cfg];
 estwrite.help = {
     'Within-subject registration using a rigid-body model and image reslicing.'
     ''
-    'Because the registration algorithm uses objective functions derived from joint intensity histograms, often works much better using scans that have been intensity non-uniformity (INU) corrected. Skull-stripping can also help.  INU corrected scans can be obtained as a by-product of SPM''s segmentation. These can be easily skull-stripped by masking them with the grey matter grey matter, white matter and CSF maps that the segmentation generates (e.g., using SPM''s ImCalc, and evaluating an expression like `i1.*((i2+i3+i4)>0.5)'', where `i1'' corresponds to the INU corrected scan, and `i2'', `i3'' and `i4'' correspond to the tissue maps).'
+    'Because the registration algorithm uses objective functions derived from joint intensity histograms, often works much better using scans that have been intensity non-uniformity (INU) corrected. Skull-stripping can also help.  INU corrected scans can be obtained as a by-product of SPM''s segmentation. These can be easily skull-stripped by masking them with the grey matter grey matter, white matter and CSF maps that the segmentation generates (e.g., using SPM''s ImCalc, and evaluating an expression like ``i1.*((i2+i3+i4)>0.5)``, where ``i1`` corresponds to the INU corrected scan, and ``i2``, ``i3`` and ``i4`` correspond to the tissue maps).'
     ''
     'The registration method used here is based on work by Collignon et al/* \cite{collignon95}*/. The original interpolation method described in this paper has been changed in order to give a smoother cost function.  The images are also smoothed slightly, as is the histogram.  This is all in order to make the cost function as smooth as possible, to give faster convergence and less chance of local minima.'
     ''
@@ -58,7 +58,7 @@ estwrite.help = {
     ''
     'Please note that Coreg only attempts rigid alignment between the images. fMRI tend to have large distortions, which are not corrected by rigid-alignment alone. There is not yet any functionality in the SPM software that is intended to correct this type of distortion when aligning distorted fMRI with relatively undistorted anatomical scans (e.g. MPRAGE).'
     ''
-    'Registration parameters are stored in the headers of the "moved" and the "other" images. These images are also resliced to match the fixed image voxel-for-voxel. The resliced images are named the same as the originals except that they are prefixed by ''r''.'
+    'Registration parameters are stored in the headers of the "moved" and the "other" images. These images are also resliced to match the fixed image voxel-for-voxel. The resliced images are named the same as the originals except that they are prefixed by ``r``.'
     }';
 estwrite.prog = @spm_run_coreg;
 estwrite.vout = @vout_estwrite;
@@ -70,10 +70,8 @@ coreg         = cfg_choice;
 coreg.tag     = 'coreg';
 coreg.name    = 'Coregister';
 coreg.help    = {
-    'Within-subject registration using a rigid-body model.'
-    'A rigid-body transformation (in 3D) can be parameterised by three translations and three rotations about the different axes.'
-    ''
-    'You get the options of estimating the transformation, reslicing images according to some rigid-body transformations, or estimating and applying rigid-body transformations.'
+    ['Within-subject registration using a rigid-body model. ' ...
+    'There are the options of estimating the transformation, reslicing images according to some rigid-body transformations, or both estimating and applying rigid-body transformations.']
     }';
 coreg.values  = {estimate write estwrite};
 %coreg.num     = [1 Inf];
@@ -138,9 +136,7 @@ cost_fun         = cfg_menu;
 cost_fun.tag     = 'cost_fun';
 cost_fun.name    = 'Objective Function';
 cost_fun.help    = {
-    'Registration involves finding parameters that either maximise or minimise some objective function.'
-    'For inter-modal registration, use Mutual Information/* \cite{collignon95,wells96}*/, Normalised Mutual Information/* \cite{studholme99}*/, or Entropy Correlation Coefficient/* \cite{maes97}*/.'
-    'For within modality, you could also use Normalised Cross Correlation.'
+    'Registration involves finding parameters that either maximise or minimise some objective function. For inter-modal registration, use Mutual Information/* \cite{collignon95,wells96}*/, Normalised Mutual Information/* \cite{studholme99}*/, or Entropy Correlation Coefficient/* \cite{maes97}*/. For within modality, you could also use Normalised Cross Correlation.'
     }';
 cost_fun.labels  = {
                     'Mutual Information'
@@ -163,8 +159,7 @@ sep         = cfg_entry;
 sep.tag     = 'sep';
 sep.name    = 'Separation';
 sep.help    = {
-    'The average distance between sampled points (in mm).'
-    'Can be a vector to allow a coarse registration followed by increasingly fine ones.'
+    'The average distance between sampled points (in mm). Can be a vector to allow a coarse registration followed by increasingly fine ones.'
     }';
 sep.strtype = 'r';
 sep.num     = [1 Inf];
@@ -177,8 +172,7 @@ tol         = cfg_entry;
 tol.tag     = 'tol';
 tol.name    = 'Tolerances';
 tol.help    = {
-    'The accuracy for each parameter.'
-    'Iterations stop when differences between successive estimates are less than the required tolerance.'
+    'The accuracy for each parameter.  Iterations stop when differences between successive estimates are less than the required tolerance.'
     }';
 tol.strtype = 'r';
 tol.num     = [1 12];
@@ -191,8 +185,7 @@ fwhm         = cfg_entry;
 fwhm.tag     = 'fwhm';
 fwhm.name    = 'Histogram Smoothing';
 fwhm.help    = {
-    'Gaussian smoothing to apply to the 256x256 joint histogram.'
-    'Other information theoretic coregistration methods use fewer bins, but Gaussian smoothing seems to be more elegant.'
+    'Gaussian smoothing to apply to the 256x256 joint histogram. Other information theoretic coregistration methods use fewer bins, but Gaussian smoothing seems to be more elegant.'
     }';
 fwhm.strtype = 'r';
 fwhm.num     = [1 2];
@@ -256,8 +249,7 @@ interp         = cfg_menu;
 interp.tag     = 'interp';
 interp.name    = 'Interpolation';
 interp.help    = {
-    'The method by which the images are sampled when being written in a different space.'
-    'Nearest Neighbour is fastest, but not normally recommended. It can be useful for re-orienting images while preserving the original intensities (e.g. an image consisting of labels). Trilinear Interpolation is OK for PET, or realigned and re-sliced fMRI. If subject movement (from an fMRI time series) is included in the transformations then it may be better to use a higher degree approach. Note that higher degree B-spline interpolation/* \cite{thevenaz00a,unser93a,unser93b}*/ is slower because it uses more neighbours.'
+    'The method by which the images are sampled when being written in a different space.  Nearest Neighbour is fastest, but not normally recommended. It can be useful for re-orienting images while preserving the original intensities (e.g. an image consisting of labels). Trilinear Interpolation is OK for PET, or realigned and re-sliced fMRI. If subject movement (from an fMRI time series) is included in the transformations then it may be better to use a higher degree approach. Note that higher degree B-spline interpolation/* \cite{thevenaz00a,unser93a,unser93b}*/ is slower because it uses more neighbours.'
     }';
 interp.labels  = {
                   'Nearest neighbour'
@@ -280,10 +272,9 @@ wrap         = cfg_menu;
 wrap.tag     = 'wrap';
 wrap.name    = 'Wrapping';
 wrap.help    = {
-    'This indicates which directions in the volumes the values should wrap around in.'
-    'These are typically:'
-    '    No wrapping - for PET or images that have already been spatially transformed.'
-    '    Wrap in  Y  - for (un-resliced) MRI where phase encoding is in the Y direction (voxel space).'
+    'This indicates which directions in the volumes the values should wrap around in. These are typically:'
+    '    * **No wrapping** - for PET or images that have already been spatially transformed.'
+    '    * **Wrap Y**  - for (un-resliced) MRI where phase encoding is in the Y direction (voxel space).'
     }';
 wrap.labels  = {
                 'No wrap'
@@ -319,7 +310,7 @@ mask.def     = @(val)spm_get_defaults('coreg.write.mask', val{:});
 prefix         = cfg_entry;
 prefix.tag     = 'prefix';
 prefix.name    = 'Filename Prefix';
-prefix.help    = {'String to be prepended to the filenames of the resliced image file(s). Default prefix is ''r''.'};
+prefix.help    = {'String to be prepended to the filenames of the resliced image file(s). Default prefix is ``r``.'};
 prefix.strtype = 's';
 prefix.num     = [1 Inf];
 prefix.def     = @(val)spm_get_defaults('coreg.write.prefix', val{:});

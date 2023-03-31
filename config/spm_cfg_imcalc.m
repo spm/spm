@@ -14,7 +14,7 @@ imcalc.name = 'Image Calculator';
 imcalc.val  = @imcalc_cfg;
 imcalc.help = {
     'The image calculator is for performing user-specified algebraic manipulations on a set of images.'
-    'The result is being written out as an image. The user is prompted to supply images to work on, a filename for the output image, and the expression to evaluate. The expression should be a standard MATLAB expression, within which the images should be referred to as i1, i2, i3,... etc.'
+    'The result is being written out as an image. The user is prompted to supply images to work on, a filename for the output image, and the expression to evaluate. The expression should be a standard MATLAB expression, within which the images should be referred to as ``i1``, ``i2``, ``i3``,... etc.'
     }';
 imcalc.prog = @my_spm_imcalc;
 imcalc.vout = @vout;
@@ -32,7 +32,7 @@ if ~isempty(cfg), varargout = {cfg}; return; end
 input         = cfg_files;
 input.tag     = 'input';
 input.name    = 'Input Images';
-input.help    = {'These are the images that are used by the calculator.  They are referred to as i1, i2, i3, etc in the order that they are specified.'};
+input.help    = {'These are the images that are used by the calculator.  They are referred to as ``i1``, ``i2``, ``i3``, etc in the order that they are specified.'};
 input.filter  = 'image';
 input.ufilter = '.*';
 input.num     = [1 Inf];
@@ -44,7 +44,7 @@ output         = cfg_entry;
 output.tag     = 'output';
 output.name    = 'Output Filename';
 output.help    = {'The output image is written to current working directory unless a valid full pathname is given. If a path name is given here, the output directory setting will be ignored.'
-    'If the field is left empty, i.e. set to '''', then the name of the 1st input image, preprended with ''i'', is used (change this letter in the spm_defaults if necessary).'};
+    'If the field is left empty then the name of the 1st input image, preprended with ''i'', is used (change this letter in the spm_defaults if necessary).'};
 output.strtype = 's';
 output.num     = [0 Inf];
 output.val     = {'output'};
@@ -69,17 +69,17 @@ expression.tag     = 'expression';
 expression.name    = 'Expression';
 expression.help    = {
                       'Example expressions:'
-                      '  * Mean of six images (select six images)'
-                      '        (i1+i2+i3+i4+i5+i6)/6'
-                      '  * Make a binary mask image at threshold of 100'
-                      '        i1>100'
-                      '  * Make a mask from one image and apply to another'
-                      '        i2.*(i1>100)'
-                      '    [here the first image is used to make the mask, which is applied to the second image]'
-                      '  * Sum of n images'
-                      '        i1 + i2 + i3 + i4 + i5 + ...'
-                      '  * Sum of n images (when reading data into a data-matrix - use the Data Matrix option)'
-                      '        sum(X)'
+                      '    * Mean of six images (select six images)'
+                      '          ``(i1+i2+i3+i4+i5+i6)/6``'
+                      '    * Make a binary mask image at threshold of 100'
+                      '          ``i1>100``'
+                      '    * Make a mask from one image and apply to another'
+                      '          ``i2.*(i1>100)``'
+                      '      [here the first image is used to make the mask, which is applied to the second image]'
+                      '    * Sum of n images'
+                      '          ``i1 + i2 + i3 + i4 + i5 + ...``'
+                      '    * Sum of n images (when reading data into a data-matrix - use the Data Matrix option)'
+                      '          ``sum(X)``'
 }';
 expression.strtype = 's';
 expression.num     = [2 Inf];
@@ -124,12 +124,12 @@ generic.values = {var};
 generic.num    = [0 Inf];
 
 %--------------------------------------------------------------------------
-% dmtx Data Matrix
+% dmtx Data matrix
 %--------------------------------------------------------------------------
 dmtx         = cfg_menu;
 dmtx.tag     = 'dmtx';
-dmtx.name    = 'Data Matrix';
-dmtx.help    = {'If this flag is set, then images are read into a data matrix X (rather than into separate variables i1, i2, i3,...). The data matrix  should be referred to as X, and contains images in rows. Computation is plane by plane, so in data-matrix mode, X is a NxK matrix, where N is the number of input images [prod(size(Vi))], and K is the number of voxels per plane [prod(Vi(1).dim(1:2))].'};
+dmtx.name    = 'Data matrix';
+dmtx.help    = {'If this flag is set, then images are read into a data matrix ``X`` (rather than into separate variables ``i1``, ``i2``, ``i3``,...). The data matrix  should be referred to as ``X``, and contains images in rows. Computation is plane by plane, so in data-matrix mode, ``X`` is an NxK matrix, where N is the number of input images, and K is the number of voxels per plane.'};
 dmtx.labels  = {'No - don''t read images into data matrix'
                 'Yes -  read images into data matrix'}';
 dmtx.values  = {0 1};
@@ -141,7 +141,7 @@ dmtx.val     = {0};
 mask         = cfg_menu;
 mask.tag     = 'mask';
 mask.name    = 'Masking';
-mask.help    = {'For data types without a representation of NaN, implicit zero masking assumes that all zero voxels are to be treated as missing, and treats them as NaN. NaN''s are written as zero (by spm_write_plane), for data types without a representation of NaN.'};
+mask.help    = {'For data types without a representation of ``NaN``, implicit zero masking assumes that all zero voxels are to be treated as missing, and treats them as ``NaN``. ``NaN``s are written as zero (by spm_write_plane), for data types without a representation of ``NaN``.'};
 mask.labels  = {'No implicit zero mask'
                 'Implicit zero mask'
                 'NaNs should be zeroed'}';
@@ -158,13 +158,12 @@ interp.help    = {
                   'With images of different sizes and orientations, the size and orientation of the first is used for the output image. A warning is given in this situation. Images are sampled into this orientation using the interpolation specified by the hold parameter.'
                   ''
                   'The method by which the images are sampled when being written in a different space.'
-                  '    Nearest Neighbour'
-                  '    - Fastest, but not normally recommended.'
-                  '    Trilinear Interpolation'
-                  '    - OK for PET, or realigned fMRI.'
-                  '    Sinc Interpolation'
-                  '    - Better quality (but slower) interpolation, especially'
-                  '      with higher degrees.'
+                  '    0. **Nearest Neighbour**'
+                  '       Fastest, but not normally recommended.'
+                  '    1. **Trilinear Interpolation**'
+                  '       OK for PET, or realigned fMRI.'
+                  '    2. **Sinc Interpolation**'
+                  '       Better quality (but slower) interpolation, especially with higher degrees.'
 }';
 interp.labels  = {
                   'Nearest neighbour'

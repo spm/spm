@@ -56,18 +56,14 @@ root         = cfg_menu;
 root.tag     = 'root';
 root.name    = 'Directory structure';
 root.help    = {'Choose root directory of converted file tree. The options are:'
-                ''
-                '* Output directory: ./<StudyDate-StudyTime>: Automatically determine the project name and try to convert into the output directory, starting with a StudyDate-StudyTime subdirectory. This option is useful if automatic project recognition fails and one wants to convert data into a project directory.'
-                ''
-                '* Output directory: ./<PatientID>: Convert into the output directory, starting with a PatientID subdirectory.'
-                ''
-                '* Output directory: ./<ProtocolName>: Convert into the output directory, starting with a ProtocolName subdirectory.'
-                ''
-                '* No directory hierarchy: Convert all files into the output directory, without sequence/series subdirectories'}';
-root.labels  = {'Output directory: ./<StudyDate-StudyTime>/<ProtocolName>'
-                'Output directory: ./<PatientID>/<ProtocolName>'
-                'Output directory: ./<PatientID>/<StudyDate-StudyTime>/<ProtocolName>'
-                'Output directory: ./<ProtocolName>'
+                '    * **StudyDate-StudyTime**: Automatically determine the project name and try to convert into the output directory, starting with a StudyDate-StudyTime subdirectory. This option is useful if automatic project recognition fails and one wants to convert data into a project directory.'
+                '    * **PatientID**: Convert into the output directory, starting with a PatientID subdirectory.'
+                '    * **ProtocolName**: Convert into the output directory, starting with a ProtocolName subdirectory.'
+                '    * **No directory hierarchy**: Convert all files into the output directory, without sequence/series subdirectories'}';
+root.labels  = {'Output directory: <StudyDate-StudyTime>/<ProtocolName>'
+                'Output directory: <PatientID>/<ProtocolName>'
+                'Output directory: <PatientID>/<StudyDate-StudyTime>/<ProtocolName>'
+                'Output directory: <ProtocolName>'
                 'No directory hierarchy'}';
 root.values  = {'date_time'
                 'patid'
@@ -129,7 +125,7 @@ convopts       = cfg_branch;
 convopts.tag   = 'convopts';
 convopts.name  = 'Conversion options';
 convopts.val   = {format meta icedims};
-convopts.help  = {''};
+convopts.help  = {};
 
 [cfg,varargout{1}] = deal({data root outdir protfilter convopts});
 

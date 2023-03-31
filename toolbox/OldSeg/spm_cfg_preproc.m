@@ -50,7 +50,7 @@ data.num     = [1 Inf];
 GM         = cfg_menu;
 GM.tag     = 'GM';
 GM.name    = 'Grey Matter';
-GM.help    = {'Options to produce grey matter images: c1*, wc1* and mwc1*.'};
+GM.help    = {'Options to produce grey matter images: ``c1*.nii``, ``wc1*.nii` and ``mwc1*.nii``.'};
 GM.labels = {
              'None'
              'Native Space'
@@ -70,7 +70,7 @@ GM.def    = @(val)spm_get_defaults('old.preproc.output.GM', val{:});
 WM         = cfg_menu;
 WM.tag     = 'WM';
 WM.name    = 'White Matter';
-WM.help    = {'Options to produce white matter images: c2*, wc2* and mwc2*.'};
+WM.help    = {'Options to produce white matter images: ``c2*.nii``, ``wc2*.nii`` and ``mwc2*.nii``.'};
 WM.labels = {
              'None'
              'Native Space'
@@ -90,7 +90,7 @@ WM.def    = @(val)spm_get_defaults('old.preproc.output.WM', val{:});
 CSF         = cfg_menu;
 CSF.tag     = 'CSF';
 CSF.name    = 'Cerebro-Spinal Fluid';
-CSF.help    = {'Options to produce CSF images: c3*, wc3* and mwc3*.'};
+CSF.help    = {'Options to produce CSF images: ``c3*.nii``, ``wc3*.nii`` and ``mwc3*.nii``.'};
 CSF.labels = {
               'None'
               'Native Space'
@@ -112,8 +112,8 @@ biascor.tag     = 'biascor';
 biascor.name    = 'Bias Corrected';
 biascor.help    = {'This is the option to produce a bias corrected version of your image. MR images are usually corrupted by a smooth, spatially varying artifact that modulates the intensity of the image (bias). These artifacts, although not usually a problem for visual inspection, can impede automated processing of the images.  The bias corrected version should have more uniform intensities within the different types of tissues.'};
 biascor.labels = {
-                  'Save Bias Corrected'
-                  'Don''t Save Corrected'
+                  'Save bias corrected'
+                  'Don''t save corrected'
 }';
 biascor.values = {1 0};
 biascor.def    = @(val)spm_get_defaults('old.preproc.output.biascor', val{:});
@@ -125,7 +125,6 @@ cleanup.tag     = 'cleanup';
 cleanup.name    = 'Clean up any partitions';
 cleanup.help    = {
                    'This uses a crude routine for extracting the brain from segmented images.  It begins by taking the white matter, and eroding it acouple of times to get rid of any odd voxels.  The algorithm continues on to do conditional dilations for several iterations, where the condition is based upon gray or white matter being present. This identified region is then used to clean up the grey and white matter partitions, and has a slight influences on the CSF partition.'
-                   ''
                    'If you find pieces of brain being chopped out in your data, then you may wish to disable or tone down the cleanup procedure.'
 }';
 cleanup.labels = {
@@ -143,17 +142,11 @@ output.tag     = 'output';
 output.name    = 'Output Files';
 output.val     = {GM WM CSF biascor cleanup };
 output.help    = {
-                  'This routine produces spatial normalisation parameters (*_seg_sn.mat files) by default. These can be used for writing spatially normalised versions of your data, via the "Normalise: Write" option. This mechanism may produce superior results than the "Normalise: Estimate" option (but probably not as good as those produced using DARTEL).'
-                  ''
-                  'In addition, it also produces files that can be used for doing inverse normalisation. If you have an image of regions defined in the standard space, then the inverse deformations can be used to warp these regions so that it approximately overlay your image. To use this facility, the bounding-box and voxel sizes should be set to non-finite values (e.g. [NaN NaN NaN] for the voxel sizes, and ones(2,3)*NaN for the bounding box. This would be done by the spatial normalisation module, which allows you to select a set of parameters that describe the nonlinear warps, and the images that they should be applied to.'
-                  ''
-                  'There are a number of options about what data you would like the routine to produce. The routine can be used for producing images of tissue classes, as well as bias corrected images. The native space option will produce a tissue class image (c*) that is in alignment with the original/* (see Figure \ref{seg1})*/.  You can also produce spatially normalised versions - both with (mwc*) and without (wc*) modulation/* (see Figure \ref{seg2})*/. The bounding box and voxel sizes of the spatially normalised versions are the same as that of the tissue probability maps with which they are registered. These can be used for doing voxel-based morphometry with (also see the ``Using DARTEL'' chapter of the manual). All you need to do is smooth them and do the stats (which means no more questions on the mailing list about how to do "optimized VBM").'
-                  ''
+                  'This routine produces spatial normalisation parameters (``_seg_sn.mat`` files) by default. These can be used for writing spatially normalised versions of your data, via the "Normalise: Write" option. This mechanism may produce superior results than the "Normalise: Estimate" option (but probably not as good as those produced using DARTEL).'
+                  'In addition, it also produces files that can be used for doing inverse normalisation. If you have an image of regions defined in the standard space, then the inverse deformations can be used to warp these regions so that it approximately overlay your image. To use this facility, the bounding-box and voxel sizes should be set to non-finite values (e.g. ``[NaN NaN NaN]`` for the voxel sizes, and ``ones(2,3)*NaN`` for the bounding box. This would be done by the spatial normalisation module, which allows you to select a set of parameters that describe the nonlinear warps, and the images that they should be applied to.'
+                  'There are a number of options about what data you would like the routine to produce. The routine can be used for producing images of tissue classes, as well as bias corrected images. The native space option will produce a tissue class image (``c*.nii``) that is in alignment with the original/* (see Figure \ref{seg1})*/.  You can also produce spatially normalised versions - both with (``mwc*.nii``) and without (``wc*.nii``) modulation/* (see Figure \ref{seg2})*/. The bounding box and voxel sizes of the spatially normalised versions are the same as that of the tissue probability maps with which they are registered. These can be used for doing voxel-based morphometry with. All you need to do is smooth them and do the stats (which means no more questions on the mailing list about how to do "optimized VBM").'
                   'Modulation is to compensate for the effect of spatial normalisation.  When warping a series of images to match a template, it is inevitable that volumetric differences will be introduced into the warped images.  For example, if one subject''s temporal lobe has half the volume of that of the template, then its volume will be doubled during spatial normalisation. This will also result in a doubling of the voxels labelled grey matter.  In order to remove this confound, the spatially normalised grey matter (or other tissue class) is adjusted by multiplying by its relative volume before and after warping.  If warping results in a region doubling its volume, then the correction will halve the intensity of the tissue label. This whole procedure has the effect of preserving the total amount of grey matter signal in the normalised partitions.'
-                  '/*\begin{figure} \begin{center} \includegraphics[width=140mm]{images/seg1} \end{center} \caption{Segmentation results. These are the results that can be obtained in the original space of the image (i.e. the results that are not spatially normalised). Top left: original image (X.img). Top right: bias corrected image (mX.img). Middle and bottom rows: segmented grey matter (c1X.img), white matter (c2X.img) and CSF (c3X.img). \label{seg1}} \end{figure} */'
-                  '/*\begin{figure} \begin{center} \includegraphics[width=140mm]{images/seg2} \end{center} \caption{Segmentation results. These are the spatially normalised results that can be obtained (note that CSF data is not shown). Top row: The tissue probability maps used to guide the segmentation. Middle row: Spatially normalised tissue maps of grey and white matter (wc1X.img and wc2X.img). Bottom row: Modulated spatially normalised tissue maps of grey and white matter (mwc1X.img and mwc2X.img). \label{seg2}} \end{figure} */'
                   'A deformation field is a vector field, where three values are associated with each location in the field.  The field maps from co-ordinates in the normalised image back to co-ordinates in the original image.  The value of the field at co-ordinate [x y z] in the normalised space will be the co-ordinate [x'' y'' z''] in the original volume. The gradient of the deformation field at a co-ordinate is its Jacobian matrix, and it consists of a 3x3 matrix:'
-                  ''
                   '%   /                      \'
                   '%   | dx''/dx  dx''/dy dx''/dz |'
                   '%   |                       |'
@@ -161,7 +154,7 @@ output.help    = {
                   '%   |                       |'
                   '%   | dz''/dx  dz''/dy dz''/dz |'
                   '%   \                      /'
-                  '/* \begin{eqnarray*}\begin{pmatrix}\frac{dx''}{dx} & \frac{dx''}{dy} & \frac{dx''}{dz}\cr\frac{dy''}{dx} & \frac{dy''}{dy} & \frac{dy''}{dz}\cr\frac{dz''}{dx} & \frac{dz''}{dy} & \frac{dz''}{dz}\cr\end{pmatrix}\end{eqnarray*}*/'
+                  '/* $\begin{pmatrix}\frac{dx''}{dx} & \frac{dx''}{dy} & \frac{dx''}{dz}\cr\frac{dy''}{dx} & \frac{dy''}{dy} & \frac{dy''}{dz}\cr\frac{dz''}{dx} & \frac{dz''}{dy} & \frac{dz''}{dz}\cr\end{pmatrix}$*/'
                   'The value of dx''/dy is a measure of how much x'' changes if y is changed by a tiny amount. The determinant of the Jacobian is the measure of relative volumes of warped and unwarped structures.  The modulation step simply involves multiplying by the relative volumes /*(see Figure \ref{seg2})*/.'
 }';
 % ---------------------------------------------------------------------
@@ -172,9 +165,7 @@ tpm.tag     = 'tpm';
 tpm.name    = 'Tissue probability maps';
 tpm.help    = {
                'Select the tissue probability images. These should be maps of grey matter, white matter and cerebro-spinal fluid probability. A nonlinear deformation field is estimated that best overlays the tissue probability maps on the individual subjects'' image. The default tissue probability maps are modified versions of the ICBM Tissue Probabilistic Atlases.These tissue probability maps are kindly provided by the International Consortium for Brain Mapping, John C. Mazziotta and Arthur W. Toga. http://www.loni.ucla.edu/ICBM/ICBM_TissueProb.html. The original data are derived from 452 T1-weighted scans, which were aligned with an atlas space, corrected for scan inhomogeneities, and classified into grey matter, white matter and cerebrospinal fluid. These data were then affine registered to the MNI space and downsampled to 2mm resolution.'
-               ''
                'Rather than assuming stationary prior probabilities based upon mixing proportions, additional information is used, based on other subjects'' brain images.  Priors are usually generated by registering a large number of subjects together, assigning voxels to different tissue types and averaging tissue classes over subjects. Three tissue classes are used: grey matter, white matter and cerebro-spinal fluid. A fourth class is also used, which is simply one minus the sum of the first three. These maps give the prior probability of any voxel in a registered image being of any of the tissue classes - irrespective of its intensity.'
-               ''
                'The model is refined further by allowing the tissue probability maps to be deformed according to a set of estimated parameters. This allows spatial normalisation and segmentation to be combined into the same model. This implementation uses a low-dimensional approach, which parameterises the deformations by a linear combination of about a thousand cosine transform bases. This is not an especially precise way of encoding deformations, but it can model the variability of overall brain shape. Evaluations by Hellier et al have shown that this simple model can achieve a registration accuracy comparable to other fully automated methods with many more parameters.'
 }';
 tpm.filter  = 'image';
@@ -200,7 +191,6 @@ regtype.tag     = 'regtype';
 regtype.name    = 'Affine Regularisation';
 regtype.help    = {
                    'The procedure is a local optimisation, so it needs reasonable initial starting estimates. Images should be placed in approximate alignment using the Display function of SPM before beginning. A Mutual Information affine registration with the tissue probability maps (D''Agostino et al, 2004) is used to achieve approximate alignment. Note that this step does not include any model for intensity non-uniformity. This means that if the procedure is to be initialised with the affine registration, then the data should not be too corrupted with this artifact.If there is a lot of intensity non-uniformity, then manually position your image in order to achieve closer starting estimates, and turn off the affine registration.'
-                   ''
                    'Affine registration into a standard space can be made more robust by regularisation (penalising excessive stretching or shrinking).  The best solutions can be obtained by knowing the approximate amount of stretching that is needed (e.g. ICBM templates are slightly bigger than typical brains, so greater zooms are likely to be needed). For example, if registering to an image in ICBM/MNI space, then choose this option.  If registering to a template that is close in size, then select the appropriate option for this.'
 }';
 regtype.labels = {
@@ -246,7 +236,6 @@ biasreg.tag     = 'biasreg';
 biasreg.name    = 'Bias regularisation';
 biasreg.help    = {
                    'MR images are usually corrupted by a smooth, spatially varying artifact that modulates the intensity of the image (bias). These artifacts, although not usually a problem for visual inspection, can impede automated processing of the images.'
-                   ''
                    'An important issue relates to the distinction between intensity variations that arise because of bias artifact due to the physics of MR scanning, and those that arise due to different tissue properties.  The objective is to model the latter by different tissue classes, while modelling the former with a bias field. We know a priori that intensity variations due to MR physics tend to be spatially smooth, whereas those due to different tissue types tend to contain more high frequency information. A more accurate estimate of a bias field can be obtained by including prior knowledge about the distribution of the fields likely to be encountered by the correction algorithm. For example, if it is known that there is little or no intensity non-uniformity, then it would be wise to penalise large values for the intensity non-uniformity parameters. This regularisation can be placed within a Bayesian context, whereby the penalty incurred is the negative logarithm of a prior probability for any particular pattern of non-uniformity.'
 }';
 biasreg.labels = {
