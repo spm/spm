@@ -1,4 +1,6 @@
 *.asv
 *.o
 *.mex
-
+src/*.mex*
+tests/data
+toolbox/mb/data

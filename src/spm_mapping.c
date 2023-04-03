@@ -1,6 +1,6 @@
 /*
  * John Ashburner
- * Copyright (C) 1997-2022 Wellcome Centre for Human Neuroimaging
+ * Copyright (C) 1997-2023 Wellcome Centre for Human Neuroimaging
  */
 
 /* MATLAB dependent high level data access and map manipulation routines */
@@ -387,7 +387,9 @@ static void get_map_file(int i, const mxArray *ptr, MAPTYPE *maps)
             if (off+maps[i].dim[0]*maps[i].dim[1]*maps[i].dim[2]*(dsize/8) > maps[i].len)
             {
                 free_maps(maps,i+1);
-                mexErrMsgTxt("File too small.");
+                mexErrMsgIdAndTxt("SPM:mapping:map","File too small (%lu > %zu).",
+                                  off+maps[i].dim[0]*maps[i].dim[1]*maps[i].dim[2]*(dsize/8),
+                                  maps[i].len);
             }
             for(j=0; j<maps[i].dim[2]; j++)
             {
@@ -407,7 +409,9 @@ static void get_map_file(int i, const mxArray *ptr, MAPTYPE *maps)
                 if (off+maps[i].dim[0]*maps[i].dim[1]*(dsize/8) > maps[i].len)
                 {
                     free_maps(maps,i+1);
-                    mexErrMsgTxt("File too small.");
+                    mexErrMsgIdAndTxt("SPM:mapping:map","File too small (%lu > %zu).",
+                                      off+maps[i].dim[0]*maps[i].dim[1]*(dsize/8),
+                                      maps[i].len);
                 }
             }
         }
@@ -417,7 +421,9 @@ static void get_map_file(int i, const mxArray *ptr, MAPTYPE *maps)
         if (maps[i].dim[0]*maps[i].dim[1]*maps[i].dim[2]*(dsize/8) > maps[i].len)
         {
             free_maps(maps,i+1);
-            mexErrMsgTxt("File too small.");
+            mexErrMsgIdAndTxt("SPM:mapping:map","File too small (%lu > %zu).",
+                              maps[i].dim[0]*maps[i].dim[1]*maps[i].dim[2]*(dsize/8),
+                              maps[i].len);
         }
         for(j=0; j<maps[i].dim[2]; j++)
         {
