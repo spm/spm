@@ -698,21 +698,21 @@ Y(40).hold = 0;
 %--------------------------------------------------------------------------
 % Y([13,14]) = [];
 
-% subplot(2,1,1)
-% for i = 1:numel(Y)
-%     plot(Y(i).date,Y(i).Y,'o')
-%     title(Y(i).type)
-%     datetick('x','dd-mmm','keeplimits','keepticks')
-%     xlabel('date')
-%     pause
-% end
+if false
+    subplot(2,1,1)
+    for i = 1:numel(Y)
+        plot(Y(i).date,Y(i).Y,'o')
+        title(Y(i).type)
+        datetick('x','dd-mmm','keeplimits','keepticks')
+        xlabel('date'),disp(i)
+        pause(4)
+    end
+end
 
 % remove NANs, smooth and sort by date
 %==========================================================================
-M.date  = '01-02-2020';
+M.date  = '01-Jan-2020';
 [Y,S]   = spm_COVID_Y(Y,M.date,8);
-
-% for i = 1:38; plot(Y(i).date,Y(i).Y); pause, end
 
 % get and set priors
 %==========================================================================
@@ -732,7 +732,6 @@ pC.gd   = ones(j,2)/8;         % prior variance
 
 % augment priors with fluctuations
 %--------------------------------------------------------------------------
-i       = ceil((datenum(date) - datenum(M.date))/48);
 j       = ceil((datenum(date) - datenum(M.date))/64);
 i       = 24;                  % number of basis functions
 
@@ -827,7 +826,7 @@ A   = DCM.A;                                 % age cohort
 %==========================================================================
 spm_figure('GetWin','United Kingdom'); clf;
 %--------------------------------------------------------------------------
-M.T       = 64 + datenum(date) - datenum(M.date,'dd-mm-yyyy');
+M.T       = 64 + datenum(date) - datenum(M.date);
 u         = [find(U == 1,1) find(U == 2,1) find(U == 3,1)];
 [H,X,~,R] = spm_SARS_gen(Ep,M,[1 2 3]);
 spm_SARS_plot(H,X,S(:,u),[1 2 3])
@@ -917,15 +916,15 @@ hold on, plot([1,1]*size(DCM.Y,1),[0,1/2],':'), box off
 legend({'<15yrs','15-35yrs','35-70yrs','>70yrs'})
 
 
-%% long-term forecasts (six months from the current data)
+%% long-term forecasts (12 months from the current data)
 %==========================================================================
 spm_figure('GetWin','outcomes (4)'); clf
 
 Ep  = DCM.Ep;
 Cp  = DCM.Cp;
 M   = DCM.M;
-M.T = 30*12 + datenum(date) - datenum(M.date,'dd-mm-yyyy');
-t   = (1:M.T) + datenum(M.date,'dd-mm-yyyy');
+M.T = 30*12 + datenum(date) - datenum(M.date);
+t   = (1:M.T) + datenum(M.date);
 
 % infection fatality ratios (%)
 %--------------------------------------------------------------------------
@@ -1043,8 +1042,8 @@ drawnow
 %--------------------------------------------------------------------------
 spm_figure('GetWin','long-term (2)'); clf
 
-M.T = 30*12 + datenum(date) - datenum(M.date,'dd-mm-yyyy');
-t   = (1:M.T) + datenum(M.date,'dd-mm-yyyy');
+M.T = 30*12   + datenum(date) - datenum(M.date);
+t   = (1:M.T) + datenum(M.date);
 
 subplot(2,1,1)
 i   = find(DCM.U == 4,1);
@@ -1447,8 +1446,8 @@ A   = DCM.A;                                 % age cohort
 %==========================================================================
 spm_figure('GetWin','states'); clf;
 %--------------------------------------------------------------------------
-M.T    = datenum(date) - datenum(DCM.M.date,'dd-mm-yyyy');
-M.T    = M.T + 360;                          % forecast dates
+T      = datenum(date) - datenum(DCM.M.date,'dd-mm-yyyy');
+M.T    = T + 360*2;                          % forecast dates
 u      = [8];                                % empirical outcome
 a      = 0;                                  % age cohort (0 for everyone)
 Ep.qua = DCM.Ep.qua + 0;                     % adjusted (log) parameter
@@ -1467,5 +1466,6 @@ catch
     spm_SARS_plot(Z,X,[],u)
 end
 subplot(3,2,1), hold on
+plot([T T]/7,[min(Z) max(Z)],'--')
 
 

@@ -66,8 +66,8 @@ end
 % dates to generate
 %--------------------------------------------------------------------------
 d0     = min(spm_vec([DeathDate; CaseDate]));
-d0     = min(d0,datenum(PCM.M.date,'dd-mm-yyyy'));
-M.date = datestr(d0,'dd-mm-yyyy');
+d0     = min(d0,datenum(PCM.M.date));
+M.date = datestr(d0,'dd-mmm-yyyy');
 dates  = d0:max(spm_vec([DeathDate; CaseDate]));
 
 % free parameters of local model (fixed effects)

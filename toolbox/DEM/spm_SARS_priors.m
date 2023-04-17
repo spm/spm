@@ -572,7 +572,7 @@ C.tra = X;                    % (56) transmissibility parameters
 C.dps = X;                    % (57) doses per seroconversion
 C.abs = X;                    % (58) age-related testing
 C.iss = X;                    % (59) probability of self-isolation
-C.rut = X;                    % (60) Sensitivity:contact rate fluctuations
+C.rut = X;                    % (60) Sensitivity: contact rate fluctuations
 
 
 % check prior expectations and covariances are consistent
