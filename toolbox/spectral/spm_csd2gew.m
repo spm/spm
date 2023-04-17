@@ -90,8 +90,15 @@ for t = 1:128
     %----------------------------------------------------------------------
     nrm = mean(nrm);
     if nrm < 1e-6, break, end
-    if nrm > 8,   return, end
-   
+    if nrm > 8
+        warning(['spm_csd2gew: The Wilson-Burg algorithm has terminated'...
+            ' due to exceeding the maximum norm threshold. This may'...
+            ' indicate poor matrix conditioning, which can impact the'...
+            ' accuracy of the results. Please check the input data and'...
+            ' consider using a different algorithm or adjusting the'...
+            ' parameters to improve the matrix conditioning.']);
+        break; 
+    end
 end
 
 % transfer function and noise covariance
