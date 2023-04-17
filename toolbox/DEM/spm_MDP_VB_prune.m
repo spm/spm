@@ -4,7 +4,7 @@ function [qA,pA] = spm_MDP_VB_prune(qA,pA,f,T,C,OPT)
 % FORMAT [sA,rA] = spm_MDP_VB_prune(qA,pA,f,T,C,OPT)
 % qA  - posterior expectations
 % pA  - prior expectations
-% T   - threshold for Occam's window (natural units) [default: 2]
+% T   - threshold for Occam's window (natural units) [default: 0]
 % f   - hidden factor to contract over [default: 0]
 % C   - log preferences
 % OPT - 'MI' or 'SIMPLE'
@@ -44,9 +44,11 @@ function [qA,pA] = spm_MDP_VB_prune(qA,pA,f,T,C,OPT)
 % defaults
 %--------------------------------------------------------------------------
 nd  = size(qA);                           % size of tensor
+
+if nargin < 2, pA  = 0*qA + exp(-3); end  % default priors
 if nargin < 3, f   = 0;              end  % no contraction
-if nargin < 4, T   = 0;              end  % Occams threshold
-if nargin < 5, C   = zeros(1,nd(1)); end  % no preferences
+if nargin < 4, T   = 0;              end  % Occam's threshold
+if nargin < 5, C   = 0;              end  % no preferences
 if nargin < 6, OPT = 'MI';           end  % BMR type
 
 s   = prod(nd(f + 1));                    % contraction scaling
@@ -72,40 +74,51 @@ switch OPT
 
         % evaluate gradients of expected free energy
         %------------------------------------------------------------------
-        [E,dEdA] = spm_MDP_MI(qA,C);
-        rA       = qA.*exp(512*qA.*dEdA);       % reduced prior
-        rA       = times(rA,sum(qA)./sum(rA));  % preserve probability mass
-
+        [E,dEdA] = spm_MDP_MI(pA,C);
+        rA       = pA.*exp(pA.*dEdA);           % reduced prior
+        rA       = times(rA,sum(pA)./sum(rA));  % preserve probability mass
 
     case('SIMPLE')
 
-        % retain reduced priors and posteriors if outwith Occam's window
+        % simple pruning based on sparsity hyperprior
         %------------------------------------------------------------------
-        rA       = spm_psi(qA);                 % reduced (log) prior
+        rA       = spm_psi(pA);                 % reduced (log) prior
         rA       = minus(rA,max(rA));           % normalise
-        rA       = times(qA,rA > -2);           % prune
-        rA       = times(rA,sum(qA)./sum(rA));  % preserve probability mass
-
+        rA       = times(pA,rA > -3);           % prune
+        rA       = times(rA,sum(pA)./sum(rA));  % preserve probability mass
 
     otherwise
 
 end
 
 % retain reduced priors and posteriors if outwith Occam's window
-%--------------------------------------------------------------------------
-F        = spm_MDP_log_evidence(qA,pA,rA);
-j        = F < T;
-qA       = pA;
-qA(:,j)  = rA(:,j);
-pA(:,j)  = rA(:,j);
+%==========================================================================
+[F,sA]  = spm_MDP_log_evidence(qA,pA,rA);
 
+if ~T
+
+    % Bayesian model averaging based on reduced free energy
+    %----------------------------------------------------------------------
+    P   = spm_softmax(512*[F; spm_zeros(F)]);
+    qA  = times(sA,P(1,:)) + times(qA,P(2,:));
+    pA  = times(rA,P(1,:)) + times(pA,P(2,:));
+
+else
+
+    % Otherwise apply Occam’s razor
+    %---------------------------------------------------------------------
+    j        = F < -T;
+    qA(:,j)  = sA(:,j);
+    pA(:,j)  = rA(:,j);
+
+end
 
 % redistribute scaled parameters over contracted dimensions
 %--------------------------------------------------------------------------
 if f
-    pA = plus(zeros(nd),pA/s);
     qA = plus(zeros(nd),qA/s);
-
+    pA = plus(zeros(nd),pA/s);
+    
 else
 
     % fold tensors
@@ -114,7 +127,5 @@ else
     pA       = reshape(pA,nd);
 
 end
-
-
 
 return

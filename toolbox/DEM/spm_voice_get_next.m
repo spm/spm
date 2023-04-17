@@ -46,6 +46,7 @@ if isa(wfile,'audiorecorder')
     IS = get(wfile,'TotalSamples');
     if (IS/FS < 2) && strcmp(get(wfile,'Running'),'off')
         stop(VOX.audio);
+        pause(1);
         record(VOX.audio,8);
         pause(2);
     end

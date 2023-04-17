@@ -46,17 +46,24 @@ Nc     = size(u,1);                         % number of combinations
 U      = zeros(Nc,Nf);                      % control indicator matrix
 U(:,f) = u;
 
+% priors over initial states and control (first state and control)
+%--------------------------------------------------------------------------
+MDP.s = ones(Nf,1);
+MDP.u = ones(Nf,1);
+for f = 1:Nf
+    MDP.D{f} = sparse(1,1,1,Ns(f),1);        % initial state
+    MDP.E{f} = sparse(1,1,1,Nu(f),1);        % initial control
+end
+
 % motor babbling (evaluate the path integral of free energy  under
 % different beliefs about controllable factors)
 %==========================================================================
 MDP.T  = 8;
-MDP.s  = ones(Nf,1);
-MDP.u  = ones(Nf,1);
 for c  = 1:Nc
     mdp   = MDP;
     mdp.k = U(c,:);                         % what the agent thinks
     mdp   = spm_MDP_VB_XXX(mdp,OPTIONS);    % motor babbling
-    F(c)  = sum(mdp.Z);                     % assess evidence: ELBO(u)
+    F(c)  = sum(mdp.F);                     % assess evidence: ELBO(u)
 
     % Graphics
     %----------------------------------------------------------------------
@@ -69,7 +76,7 @@ end
 
 % select the best control model
 %--------------------------------------------------------------------------
-[F,c] = max(F);
+[F,c] = min(F);
 MDP.k = U(c,:);
 
 return

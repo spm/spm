@@ -8,7 +8,7 @@ function [MDP] = spm_MDP_VB_sleep(MDP,BMR)
 % BMR.o - outcomes - that induce REM [default: {}]
 % BMR.x - increase in concentration parameters for BMR [default: 8]
 % BMR.f - hidden factors to contract over [default: 0]
-% BMR.T - log Bayes factor threshold [default: 2]
+% BMR.T - log Bayes factor threshold [default: 0]
 %
 % MDP  - (reduced) model structure: with reduced MDP.a
 %
@@ -41,13 +41,14 @@ function [MDP] = spm_MDP_VB_sleep(MDP,BMR)
 
 % deal with a sequence of trials
 %==========================================================================
+if ~isfield(MDP,'a'), return, end
 
 % BMR options
 %--------------------------------------------------------------------------
 try, g  = BMR.g; catch, g = 1;    end       % outcome modality
 try, o  = BMR.o; catch, o = {};   end       % outcomes for empirical BMS
 try, f  = BMR.f; catch, f = 0;    end       % factors to contract over
-try, T  = BMR.T; catch, T = 2;    end       % threshold or window (nats)
+try, T  = BMR.T; catch, T = 0;    end       % threshold or window (nats)
 
 % for multiple agents
 %--------------------------------------------------------------------------
@@ -58,22 +59,22 @@ if size(MDP,1) > 1
     return
 end
 
-% Prior Dirichlet counts (assumed to be one, everywhere)
-%--------------------------------------------------------------------------
-if isfield(MDP,'a0')
-    a0 = MDP.a0{g};
-else
-    a0 = (MDP.a{g} > 0);
-end
-
 % structure learning with BMR
 %==========================================================================
-if isfield(MDP,'a')
+for i = 1:numel(g)
 
-    [sa,ra] = spm_MDP_VB_prune(MDP.a{g},a0,f,T);
-    
-else
-    return
+    % Prior Dirichlet counts [default: uninformative and unitary]
+    %----------------------------------------------------------------------
+    if isfield(MDP,'a0')
+        a0 = MDP.a0{g(i)};
+    else
+        a0 = (MDP.a{g(i)} > 0);
+    end
+
+    [s,r] = spm_MDP_VB_prune(MDP.a{g(i)},a0,f,T);
+    sa{i} = s;
+    ra{i} = r;
+
 end
 
 % repeat active inference and learning under reduced model and outcomes
@@ -91,8 +92,11 @@ if N
     
     % and install a generative process and reset priors
     %----------------------------------------------------------------------
-    REM.a{g}  = ra;
-    REM.a0{g} = ra;
+    for i = 1:numel(g)
+        REM.a{g(i)}  = ra{i};
+        REM.a0{g(i)} = ra{i};
+    end
+
     REM.o = o{1};
     for i = 1:N
         REM(i)   = REM(1);
@@ -101,17 +105,19 @@ if N
     
     % Bayesian belief updating: posteriors and priors
     %----------------------------------------------------------------------
-    REM       = spm_MDP_VB_X(REM);
+    REM       = spm_MDP_VB_XXX(REM);
     MDP.a     = REM(N).a;
-    MDP.a0{g} = ra;
+    MDP.a0{g} = REM(N).a0;
     
 else
     
     % otherwise, use reduced posteriors and priors
     %----------------------------------------------------------------------
-    MDP.a{g}  = sa;
-    MDP.a0{g} = ra;
-    
+    for i = 1:numel(g)
+        MDP.a{g(i)}  = sa{i};
+        MDP.a0{g(i)} = ra{i};
+    end
+
 end
 
 return

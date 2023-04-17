@@ -31,7 +31,7 @@ E      = spm_MI(A);
 % expected (negative) cost
 %--------------------------------------------------------------------------
 if nargin > 1
-    E = E + C*sum(A,2);
+    E = E + C'*sum(A,2);
 end
 
 if nargout < 2, return, end
@@ -48,7 +48,7 @@ dEda   = (dEdA - sum(sum(dEdA.*A)))/s;
 %--------------------------------------------------------------------------
 if nargin > 1
     dEdA = bsxfun(@plus,dEdA,C');
-    dEda = bsxfun(@plus,dEda,(C - sum(C*sum(A,2)))'/s);
+    dEda = bsxfun(@plus,dEda,(C' - sum(C'*sum(A,2)))'/s);
 end
 
 return

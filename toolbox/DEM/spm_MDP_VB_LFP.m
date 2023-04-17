@@ -176,7 +176,7 @@ if SPECTRAL
     if Nt == 1, subplot(3,2,2), else, subplot(4,2,2),end
     cfc   = 0;
     for i = 1:size(wft,3)
-        cfc = cfc + corr((abs(wft(:,:,i)))');
+        cfc = cfc + corrcoef((abs(wft(:,:,i)))');
     end
     imagesc(Hz,Hz,cfc)
     title('Cross-frequency coupling','FontSize',16)

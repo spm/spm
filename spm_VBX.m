@@ -1,6 +1,6 @@
-function [Q,F] = spm_VBX(O,P,A,METHOD)
+function [P,F] = spm_VBX(O,P,A,id,TOL)
 % vvariational Bayes estimate of categorical posterior over factors
-% FORMAT [Q,F] = spm_VBX(O,P,A,[METHOD])
+% FORMAT [Q,F] = spm_VBX(O,P,A,id,[tol,METHOD])
 %
 % O{g}    -  outcome probabilities over each of G modalities
 % P{f}    -  (empirical) prior over each of F factors
@@ -28,7 +28,7 @@ function [Q,F] = spm_VBX(O,P,A,METHOD)
 % 'sparse'  :  as for the exact scheme but suitable for sparse tensors
 %
 % 'marginal':  a heuristic scheme  that uses the log of the marginalised
-% likelihood and log prior to estimate the lot posterior
+% likelihood and log prior to estimate the log posterior
 %
 % see: spm_MDP_VB_XXX.m (NOTES)
 %__________________________________________________________________________
@@ -39,7 +39,8 @@ function [Q,F] = spm_VBX(O,P,A,METHOD)
 
 % preliminaries
 %--------------------------------------------------------------------------
-if nargin < 4, METHOD = 'exact'; end
+if nargin < 5, TOL    = 16;      end
+if nargin < 6, METHOD = 'full'; end
 
 switch METHOD
 
@@ -48,29 +49,33 @@ switch METHOD
         %  (iterative) variational scheme
         %==================================================================
 
-        % accumulate likelihoods over modalities
-        %------------------------------------------------------------------
-        L     = 1;
-        for g = 1:numel(O)
-            L = L.*spm_dot(A{g},O{g});
-        end
-        L     = spm_log(L);
-
-        % preclude numerical overflow of log likelihood
-        %------------------------------------------------------------------
-        L     = max(L,max(L,[],'all') - 8);
-
         % log prior
         %------------------------------------------------------------------
         for f = 1:numel(P)
-            LP{f} = spm_vec(spm_log(P{f}));
+            i{f}  = find(P{f} > exp(-8));
+            Q{f}  = P{f}(i{f});
+            LP{f} = spm_vec(spm_log(Q{f}));
         end
+
+        % accumulate log likelihoods over modalities
+        %------------------------------------------------------------------
+        L     = 0 ;
+        for g = 1:numel(O)
+            j  = id.A{g};
+            LL = spm_log(spm_dot(A{g}(:,i{j}),O{g}));
+            k  = ones(1,8); k(j) = size(LL,1:numel(j));
+            L  = plus(L,reshape(LL,k));
+        end
+
+        % preclude numerical overflow of log likelihood
+        %------------------------------------------------------------------
+        L     = max(L,max(L,[],'all') - TOL);
+
 
         % variational iterations
         %------------------------------------------------------------------
-        Q     = P;
         Z     = -Inf;
-        for v = 1:4
+        for v = 1:8
             F     = 0;
             for f = 1:numel(P)
 
@@ -89,9 +94,9 @@ switch METHOD
 
             % convergence
             %--------------------------------------------------------------
-%             if F > 0
-%                 warning('positive ELBO in spm_VBX')
-%             end
+            if F > 0
+                warning('positive ELBO in spm_VBX')
+            end
             dF = F - Z;
             if dF < 1/128
                 break
@@ -102,6 +107,12 @@ switch METHOD
             end
         end
 
+        % Posterior
+        %------------------------------------------------------------------
+        for f = 1:numel(P)
+            P{f}(:)    = 0;
+            P{f}(i{f}) = Q{f};
+        end
 
 
     case 'exact'

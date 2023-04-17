@@ -1,6 +1,6 @@
-function [MDP] = spm_MDP_check(MDP)
+function [MDP] = spm_MDP_checkX(MDP)
 % MDP structure checking
-% FORMAT [MDP] = spm_MDP_check(MDP)
+% FORMAT [MDP] = spm_MDP_checkX(MDP)
 %
 % MDP.V(T - 1,P,F)      - P allowable policies of T moves over F factors
 % or
@@ -26,9 +26,7 @@ function [MDP] = spm_MDP_check(MDP)
 % MDP.w(1,T)            - vector of precisions
 %
 % if C or D are not specified, they will be set to default values (of no
-% preferences and uniform priors over initial steps).  If there are no
-% policies, it will be assumed that I = 1 and all policies (for each
-% marginal hidden state) are allowed.
+% preferences and uniform priors over initial steps).
 %__________________________________________________________________________
 
 % Karl Friston
@@ -43,7 +41,7 @@ function [MDP] = spm_MDP_check(MDP)
 if numel(MDP) > 1
     for m = 1:size(MDP,1)                      % number of trials
         for i = 1:size(MDP,2)                  % number of agents
-            mdp(m,i) = spm_MDP_check(MDP(m,i));
+            mdp(m,i) = spm_MDP_checkX(MDP(m,i));
         end
     end
     MDP   = mdp;
@@ -74,8 +72,6 @@ for f = 1:Nf
 
     % ensure probabilities are normalised  : B
     %----------------------------------------------------------------------
-    NU(f)    = size(MDP.B{f},3);           % number of hidden controls
-    NS(f)    = size(MDP.B{f},1);           % number of hidden states
     MDP.B{f} = double(MDP.B{f});
     MDP.B{f} = spm_dir_norm(MDP.B{f});
 
@@ -102,32 +98,10 @@ end
 [Nf,Ns,Nu] = spm_MDP_size(MDP);
 
 
-% check policy specification (create default moving policy U, if necessary)
-%--------------------------------------------------------------------------
-if isfield(MDP,'U')
-    if size(MDP.U,1) == 1 && size(MDP.U,3) == Nf
-        MDP.U = shiftdim(MDP.U,1);
-    end
-end
-try
-    V(1,:,:) = MDP.U;                      % allowable actions (1,Np)
-catch
-    try
-        V = MDP.V;                         % allowable policies (T - 1,Np)
-    catch
-        
-        % allowable (moving) policies using all allowable actions
-        %------------------------------------------------------------------
-        MDP.U    = spm_combinations(Nu);   % U = U(Np,Nf)
-        V(1,:,:) = MDP.U;                  % V = V(Nt,Np,Nf)
-    end
-end
-MDP.V = V;
-
 % check policy specification
 %--------------------------------------------------------------------------
-if Nf ~= size(V,3) && size(V,3) > 1
-    error('please ensure V(:,:,1:Nf) is consistent with MDP.B{1:Nf}')
+if ~isfield(MDP,'U')
+    MDP.U = zeros(1,Nf);
 end
 
 % check preferences
@@ -140,7 +114,7 @@ end
 for g = 1:Ng
     if iscell(MDP.C)
         if isvector(MDP.C{g})
-            MDP.C{g} = spm_vec(MDP.C{g});
+            MDP.C{g} = MDP.C{g}(:);
         end
         if No(g) ~= size(MDP.C{g},1)
             error(['please ensure A{' num2str(g) '} and C{' num2str(g) '} are consistent'])
@@ -165,17 +139,17 @@ end
 
 % check initial controls
 %--------------------------------------------------------------------------
-% if ~isfield(MDP,{'E'})
-%     for f = 1:Nf
-%         MDP.E{f} = ones(Nu(f),1);
-%     end
-% end
-% if Nf  ~= numel(MDP.E)
-%     error('please check MDP.E')
-% end
-% for f = 1:Nf
-%     MDP.E{f} = MDP.E{f}(:);
-% end
+if ~isfield(MDP,{'E'})
+    for f = 1:Nf
+        MDP.E{f} = ones(Nu(f),1);
+    end
+end
+if Nf  ~= numel(MDP.E)
+    error('please check MDP.E')
+end
+for f = 1:Nf
+    MDP.E{f} = MDP.E{f}(:);
+end
 
 
 % check initial states and internal consistency
@@ -183,21 +157,6 @@ end
 for f = 1:Nf
     if Ns(f) ~= size(MDP.D{f},1)
         error(['please ensure B{' num2str(f) '} and D{' num2str(f) '} are consistent'])
-    end
-    if size(V,3) > 1
-        if Nu(f) < max(spm_vec(V(:,:,f)))
-            error(['please check V(:,:,' num2str(f) ') or U(:,:,' num2str(f) ')'])
-        end
-    end
-    for g = 1:Ng
-        try
-            Na  = size(MDP.a{g});
-        catch
-            Na  = size(MDP.A{g});
-        end
-        if ~all(Na(2:end) == Ns)
-            error(['please ensure A{' num2str(g) '} and D{' num2str(f) '} are consistent'])
-        end
     end
 end
 
@@ -214,6 +173,25 @@ for g = 1:numel(MDP.A)
     end
 end
 
+% check id
+%--------------------------------------------------------------------------
+if ~isfield(MDP,'id')
+    for g = 1:Ng
+        MDP.id.A{g} = 1:(ndims(MDP.A{g}) - 1);
+    end
+end
+for g = 1:Ng
+    try
+        MDP.id.A{g};
+    catch
+        MDP.id.A{g} = 1:(ndims(MDP.A{g}) - 1);
+    end
+    if isempty(MDP.id.A{g})
+        MDP.id.A{g} = 1:(ndims(MDP.A{g}) - 1);
+    end
+end
+
+
 % check initial states
 %--------------------------------------------------------------------------
 if isfield(MDP,'s')
@@ -221,7 +199,7 @@ if isfield(MDP,'s')
         error('please specify an initial state MDP.s for %i factors',Nf)
     end
     f  = max(MDP.s,[],2)';
-    if any(f > NS(1:numel(f)))
+    if any(f > Ns(1:numel(f)))
         error('please ensure initial states MDP.s are consistent with MDP.B')
     end
 end
@@ -239,80 +217,6 @@ if isfield(MDP,'o')
     end
 end
 
-% check (primary link array if necessary)
-%--------------------------------------------------------------------------
-if isfield(MDP,'link')
-    
-    % cardinality of subordinate level
-    %----------------------------------------------------------------------
-    nf    = numel(MDP.MDP(1).B);               % number of hidden factors
-    for f = 1:nf
-        ns(f)    = size(MDP.MDP(1).B{f},1);    % number of hidden states
-    end
-    
-    % check the size of link
-    %----------------------------------------------------------------------
-    if ~all(size(MDP.link) == [nf,Ng])
-        error('please check the size of link {%i,%i}',nf,Ng)
-    end
-    
-    % convert matrix to cell array if necessary
-    %----------------------------------------------------------------------
-    if isnumeric(MDP.link)
-        link  = cell(nf,Ng);
-        for f = 1:size(MDP.link,1)
-            for g = 1:size(MDP.link,2)
-                if MDP.link(f,g)
-                    link{f,g} = spm_speye(ns(f),No(g),0);
-                end
-            end
-        end
-        MDP.link = link;
-    end
-    
-    % check sizes of cell array
-    %----------------------------------------------------------------------
-    for f = 1:size(MDP.link,1)
-        for g = 1:size(MDP.link,2)
-            if ~isempty(MDP.link{f,g})
-                if ~all(size(MDP.link{f,g}) == [ns(f),No(g)]);
-                    error('please check link{%i,%i}',f,g)
-                end
-            end
-        end
-    end
-    
-end
-
-% Empirical prior preferences
-%--------------------------------------------------------------------------
-if isfield(MDP,'linkC')
-    if isnumeric(MDP.linkC)
-        linkC  = cell(numel(MDP.MDP.C),Ng);
-        for f = 1:size(MDP.linkC,1)
-            for g = 1:size(MDP.linkC,2)
-                if MDP.linkC(f,g)
-                    linkC{f,g} = spm_speye(size(MDP.MDP.C{f},1),No(g),0);
-                end
-            end
-        end
-        MDP.linkC = linkC;
-    end
-end
-
-% Empirical priors over policies
-%--------------------------------------------------------------------------
-if isfield(MDP,'linkE')
-    if isnumeric(MDP.linkE)
-        linkE  = cell(1,Ng);
-        for g = 1:size(MDP.linkE,2)
-            if MDP.linkE(g)
-                linkE{g} = spm_speye(size(MDP.MDP.E,1),No(g),0);
-            end
-        end
-        MDP.linkE = linkE;
-    end
-end
 
 % check factors and outcome modalities have proper labels
 %--------------------------------------------------------------------------
@@ -323,11 +227,7 @@ for i = 1:Nf
     try
         MDP.label.factor(i);
     catch
-        try
-            MDP.label.factor{i} = MDP.Bname{i};
-        catch
-            MDP.label.factor{i} = sprintf('factor %i',i);
-        end
+        MDP.label.factor{i} = sprintf('factor %i',i);
     end
     
     % name of levels of each factor
@@ -336,11 +236,7 @@ for i = 1:Nf
         try
             MDP.label.name{i}(j);
         catch
-            try
-                MDP.label.name{i}{j} = MDP.Sname{i}{j};
-            catch
-                MDP.label.name{i}{j} = sprintf('state %i(%i)',j,i);
-            end
+            MDP.label.name{i}{j} = sprintf('state %i(%i)',j,i);
         end
     end
     
@@ -350,7 +246,7 @@ for i = 1:Nf
         try
             MDP.label.action{i}(j);
         catch
-            MDP.label.action{i}{j} = sprintf('act %i(%i)',j,i);
+            MDP.label.action{i}{j} = sprintf('path %i(%i)',j,i);
         end
     end
 end
@@ -361,39 +257,14 @@ for i = 1:min(Ng,8)
     try
         MDP.label.modality(i);
     catch
-        try
-            MDP.label.modality{i} = MDP.Bname{i};
-        catch
-            MDP.label.modality{i} = sprintf('modality %i',i);
-        end
+        MDP.label.modality{i} = sprintf('modality %i',i);
     end
     for j = 1:No(i)
         try
             MDP.label.outcome{i}(j);
         catch
-            try
-                MDP.label.outcome{i}{j} = MDP.Oname{i}{j};
-            catch
-                MDP.label.outcome{i}{j} = sprintf('outcome %i(%i)',j,i);
-            end
+            MDP.label.outcome{i}{j} = sprintf('outcome %i(%i)',j,i);
         end
     end
-end
-
-% check names are specified properly
-%--------------------------------------------------------------------------
-if isfield(MDP,'Aname')
-    if numel(MDP.Aname) ~= Ng
-        error('please specify an MDP.Aname for each modality')
-    end
-else
-    % MDP.Aname = MDP.label.modality;
-end
-if isfield(MDP,'Bname')
-    if numel(MDP.Bname) ~= Nf
-        error('please specify an MDP.Bname for each factor')
-    end
-else
-    % MDP.Bname = MDP.label.factor;
 end
 

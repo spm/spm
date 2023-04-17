@@ -150,7 +150,7 @@ P      = F;
 P(:)   = exp(P(:) - max(P(:)));
 P(:)   = P/sum(P(:));
 
-% family wise inference over mmodels and design
+% family wise inference over models and design
 %--------------------------------------------------------------------------
 Px     = sum(P,1);
 Pw     = sum(P,2);
