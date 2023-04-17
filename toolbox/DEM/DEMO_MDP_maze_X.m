@@ -111,6 +111,7 @@ for i = 1:No(2)
     C{2}(i) = -sqrt((x - X)^2 + (y -Y)^2);
 end
 
+
 % basic MDP structure
 %--------------------------------------------------------------------------
 mdp.T = 8 + 1;                  % time horizon
@@ -122,7 +123,7 @@ mdp.C = C;                      % preferred outcomes
 mdp.D = D;                      % prior over initial states
 
 mdp.label = label;
-mdp       = spm_MDP_check(mdp);
+mdp       = spm_MDP_checkX(mdp);
 
 
 % illustrate shortest path to target with suitable policy depth

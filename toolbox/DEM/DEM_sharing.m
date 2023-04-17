@@ -111,6 +111,8 @@ Attribute{2} = {'close','near','gone'};
 Attribute{3} = {'slowly','right','left','away','closer'};
 Attribute{4} = {'Girl','Boy'};
 
+Scene        = {'location','proximity','movement','disposition'};
+
 % number of levels for each attribute
 %--------------------------------------------------------------------------
 for i = 1:numel(Attribute)
@@ -439,8 +441,8 @@ end
 % prior transitions and preferences. Now, specify prior beliefs about
 % initial states
 %--------------------------------------------------------------------------
-D{1} = ones(1,prod(N));                                    % uninformative
-D{2} = [0,1,0];                                            % centre gaze
+D{1} = ones(prod(N),1);                                    % uninformative
+D{2} = [0;1;0];                                            % centre gaze
 
 % allowable actions (with an action for each controllable state)
 %--------------------------------------------------------------------------
@@ -479,13 +481,11 @@ for i = 1:numel(Am)
     MDP(i,1).A = Am{i};
 end
 
-% Solve - an example with multiple epochs to illustrate how the agent
-% resolves uncertainty about where she is looking and comes to track
-% anybody who might be looking at her
+% Solve - an example with multiple epochs
 %==========================================================================
 disp('inverting generative model (c.f., active inference)'), disp(' ')
-
-MDP  = spm_MDP_VB_XX(MDP);
+OPTIONS.N = 1;
+MDP  = spm_MDP_VB_XXX(MDP,OPTIONS);
 
 % illustrate scene construction and perceptual synthesis
 %--------------------------------------------------------------------------
@@ -504,7 +504,7 @@ for i = 1:numel(Am)
     NDP(i,1).A{end} = ones(size(MDP(i,1).A{end})); % disable language
 end
 
-NDP  = spm_MDP_VB_XX(NDP);
+NDP  = spm_MDP_VB_XXX(NDP,OPTIONS);
 
 %% compare MDP and NDP
 %--------------------------------------------------------------------------
@@ -522,11 +522,14 @@ for m = 1:numel(MDP)
     subplot(6,2,(m*2) - 1), image(64*(1 - Q))
     xlabel('time'), ylabel('location')
     hold on
+
+    % show where the agents are looking
+    %----------------------------------------------------------------------
     i   = find(MDP(m).s(2,:) ~= NDP(m).s(2,:));
     plot(1:T,MDP(m).s(2,:) + cm(m) - 2,'.c','MarkerSize',16)
     plot(i,  MDP(m).s(2,i) + cm(m) - 2,'.r','MarkerSize',16)
 
-    % repeat for naïve agent
+    % repeat for naïve agents
     %----------------------------------------------------------------------
     for t = 1:T
         q = NDP(m).X{1}(:,t);
@@ -536,31 +539,40 @@ for m = 1:numel(MDP)
     subplot(6,2,(m*2) - 0), image(64*(1 - Q))
     xlabel('time'), ylabel('location')
     hold on
-    plot(1:T,NDP(m).s(2,:) + cm(m) - 2,'.c','MarkerSize',16)
 
+    % show where the agents are looking
+    %----------------------------------------------------------------------
+    plot(1:T,NDP(m).s(2,:) + cm(m) - 2,'.c','MarkerSize',16)
     subplot(4,1,3)
     i   = find(MDP(m).s(2,:) == NDP(m).s(2,:));
-
     plot(i,MDP(m).F(i) - NDP(m).F(i)), hold on
 
 end
+
+subplot(6,2,1)
+title('With comunication','FontSize',14)
+subplot(6,2,2)
+title('and without','FontSize',14)
 
 subplot(4,1,3)
 plot([0,T],[0,0],'k'), hold on
 set(gca,'XLim',[0 T - 1]), box off
 xlabel('time'), ylabel('natural units')
 title('Free energy differences','FontSize',14)
+legend({'first','second','third'})
 
 % illustrate behavioural responses
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Figure 1'); clf
-spm_MDP_VB_trial(MDP(1));
+spm_MDP_VB_trial(MDP(2));
 
-% illustrate physiological responses (first unit at the fourth epoch)
+% illustrate physiological responses
 %--------------------------------------------------------------------------
-[i,j] = max(MDP(3).X{1}(:,3));
+t     = 3;
+[i,j] = max(MDP(2).X{1}(:,t) - NDP(2).X{1}(:,t));
 spm_figure('GetWin','Figure 2a with language'); clf
-spm_MDP_VB_LFP(MDP(3),[j;3],1);
+spm_MDP_VB_LFP(MDP(2),[j;t],1);
+subplot(3,2,6), d = axis;
 
 spm_figure('GetWin','Figure 2b without language'); clf
 spm_MDP_VB_LFP(NDP(3),[j;3],1);
@@ -575,6 +587,7 @@ for i = [2,3,4]
     subplot(3,2,i), set(gca,'XLim',[0 2])
     axis(a);
 end
+subplot(3,2,6), axis(d);
 
 
 %% now we turn to learning the likelihood tensor modelling language
@@ -582,21 +595,20 @@ end
 % it can learn linguistic mappings from heard modalities to concepts
 %==========================================================================
 rng('default')
-spm_figure('GetWin','belief updating'); clf
 spm_figure('GetWin','language acquisition'); clf
 spm_figure('GetWin','generations'); clf
 
 clear MDP
 ndp   = mdp;
-NG    = 3*2;                               % number of generations
-NT    = 128;                               % number of games
+NG    = 3;                                 % number of generations
+NT    = 512;                               % number of games
 ndp.T = 16;                                % number of epochs per game
 ndp.a = ndp.A;                             % initialise Dirichlet likelihood
 ndp   = rmfield(ndp,'A');                  % remove likelihood array
 
-BMR.g = 8;                    % - modality [default: 1]
-BMR.f = 2;                    % - hidden factors to sum over [default: 0]
-BMR.T = 1;                    % - Occam's window [default: 2]
+BMR.g = 8;                                 % - modality [default: 1]
+BMR.f = 2;                                 % - hidden factors to sum over
+BMR.T = 0;                                 % - Occam's window [default: 2]
 
 % set up parents
 %--------------------------------------------------------------------------
@@ -606,11 +618,13 @@ for m = 1:3                                % for each agent
     %----------------------------------------------------------------------
     MDP(m,1) = ndp;                        % initialise
     for i = 1:numel(Am{m})
-        MDP(m,1).a{i} = Am{m}{i}*128 + 1;
+        MDP(m,1).a{i} = Am{m}{i}*512;
     end
 end
 
-for g = 1:0%NG                               % for each generation
+OPTIONS.N = 0;
+OPTIONS.B = 0;
+for g = 1:NG                               % for each generation
 
     % add a child of agent 1 + rem(g,3)
     %======================================================================
@@ -619,29 +633,26 @@ for g = 1:0%NG                               % for each generation
 
     % initialise learnable language mapping for the child
     %----------------------------------------------------------------------
-    MDP(4).a{8}  = MDP(4).a{8}*0 + 1/256;
+    MDP(4).a{8}  = MDP(4).a{8}*0 + 2;
     MDP(4).a0{8} = MDP(4).a{8};
 
     % experience-dependent learning over NT exposures
     %======================================================================
     KL    = [];
+    CA    = [];
     FQ    = [];
     FA    = [];
     for t = 1:NT                           % for each exposure
 
+        % initial conditions
+        %------------------------------------------------------------------
+        for m = 1:numel(MDP)
+            MDP(m).s = [cm(parent); 0];
+        end
+
         % active inference and learning
         %------------------------------------------------------------------
-        PDP  = spm_MDP_VB_XX(MDP);
-
-        % illustrate belief updating and learning
-        %------------------------------------------------------------------
-        if g == 1 && t < 4
-            DDP(1,t) = PDP(4);
-            if t == 3
-                spm_figure('GetWin','belief updating');
-                spm_MDP_VB_game(DDP);
-            end
-        end
+        PDP  = spm_MDP_VB_XXX(MDP,OPTIONS);
 
         spm_figure('GetWin','language acquisition');
         %------------------------------------------------------------------
@@ -651,45 +662,45 @@ for g = 1:0%NG                               % for each generation
                 a = spm_contract_a(PDP(4).a{8},N,j);
                 a = spm_norm(a);
                 imagesc(a), axis image
+                if t == 1, ylabel(Scene{j}), end
             end
         end, drawnow
 
+        % Bayesian model reduction
+        %------------------------------------------------------------------
         PDP(4) = spm_MDP_VB_sleep(PDP(4),BMR);
 
         % update Dirichlet parameters
         %------------------------------------------------------------------
         MDP(4).a{8}  = PDP(4).a{8};
-        MDP(4).a0{8} = PDP(4).a0{8};
+        MDP(4).a0{8} = PDP(4).a{8};
 
-        % report acquisition in terms of divergence
-        %------------------------------------------------------------------
-        q     = MDP(4).a{8}(:,:);
-        p     = MDP(parent).a{8}(:,:);
-
-
-        % report acquisition in terms of correlations and free energies
-        %----------------------------------------------------------------------
-        subplot(3,3,7)
+        % report acquisition in terms of divergence and free energies
+        %==================================================================
         q     = MDP(4).a{8}(:,:);
         p     = MDP(parent).a{8}(:,:);
         c     = corrcoef(q(:),p(:));
-        KL(t) = c(1,2);
-        plot(1:t,KL), set(gca,'XLim',[1,NT]);
+        CA(t) = c(1,2);
+
+        subplot(3,4,9), plot(1:t,CA), set(gca,'XLim',[1,NT]);
         title({'Correlations','(likelihood)'}),xlabel('time'),ylabel('correlation')
+        box off, axis square
+
+        KL(t)   = spm_MDP_MI(q);
+        subplot(3,4,10), plot(1:t,KL), set(gca,'XLim',[1,NT]);
+        title({'MI [expected FE]','(likelihood)'}),xlabel('time'),ylabel('correlation')
         box off, axis square
 
         FQ(:,t) = sum(spm_cat({PDP.F}'),2);
         FA(:,t) = sum(spm_cat({PDP.Fa}'),2);
-        FQ      = spm_conv(FQ,0,16);
-        FA      = spm_conv(FA,0,16);
+%         FQ      = spm_conv(FQ,0,16);
+%         FA      = spm_conv(FA,0,16);
 
-        subplot(3,3,8)
-        plot(min(FQ(:)) - FQ'), set(gca,'XLim',[1,NT])
+        subplot(3,4,11), plot(-FQ'), set(gca,'XLim',[1,NT])
         title({'Free energy','(inference)'}),xlabel('time'),ylabel('natural units')
         box off, axis square
 
-        subplot(3,3,9)
-        plot(min(FA(:)) - FA'), set(gca,'XLim',[1,NT])
+        subplot(3,4,12), plot(-FA'), set(gca,'XLim',[1,NT])
         title({'Free energy','(learning)'}),xlabel('time'),ylabel('natural units')
         box off, axis square
 
@@ -704,6 +715,16 @@ for g = 1:0%NG                               % for each generation
             a = spm_contract_a(MDP(i).a{8},N,j);
             a = spm_norm(a);
             imagesc(a), axis image
+
+            if i == 1
+                ylabel(Scene{j})
+            end
+            if j == 1 && g == 1
+                title(sprintf('agent %i',i))
+            end
+            if j == 1 && i == 1 && g > 1
+                title(sprintf('generation %i',g))
+            end
         end
     end, drawnow
 
@@ -717,6 +738,7 @@ end
 
 %% finally, see if a language emerges via free energy minimisation
 %==========================================================================
+
 rng('default')
 spm_figure('GetWin','language emergence'); clf
 
@@ -733,6 +755,8 @@ BMR.T  = 2;
 clear OPTIONS
 OPTIONS.BMR = BMR;
 OPTIONS.eta = 1;
+OPTIONS.N   = 0;
+
 
 % set up naïve population
 %--------------------------------------------------------------------------
@@ -800,7 +824,7 @@ for t = 1:NT                                 % for each exposure
 
     % active inference and learning; i.e., exposure
     %----------------------------------------------------------------------
-    PDP = spm_MDP_VB_XX(MDP);
+    PDP = spm_MDP_VB_XXX(MDP,OPTIONS);
 
     % update Dirichlet parameters
     %----------------------------------------------------------------------

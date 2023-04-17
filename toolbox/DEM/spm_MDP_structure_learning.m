@@ -1,23 +1,24 @@
-function MDP = spm_MDP_structure_learning(MDP,mdp)
+function mdp = spm_MDP_structure_learning(mdp,MDP)
 % structure learning of factorised Markov decision processes
-% FORMAT mdp = spm_MDP_structure_learning(MDP,[mdp])
-% FORMAT mdp = spm_MDP_structure_learning(o,[mdp])
+% FORMAT mdp = spm_MDP_structure_learning(mdp,MDP)
+% FORMAT mdp = spm_MDP_structure_learning(mdp,o)
+% FORMAT mdp = spm_MDP_structure_learning(mdp)
 %
+% mdp.p - initial Dirichlet counts [exp(-3)]
+% mdp.q - precise Dirichlet counts [exp(16)]
 % MDP   - generative process or
-% o     - cell array of outcomes
-% mdp.p - initial Dirichlet counts [1/16]
-% mdp.q - precise Dirichlet counts [512]
+%
 %
 % mdp   - generative model: with mdp.a, mdp.b (and mdp.k)
 %
-% This routine returns a generative model in the form of an MDP, based upon
-% a sequence of outcomes. If the outcomes are not supplied, then they are
-% generated automatically from a generative process, specified with an MDP
-% structure. The generative model learns from successive epochs of data
-% generated under the first level of each factor of the process. By
+% This routine returns a generative model (mdp) in the form of an MDP,
+% based upon a sequence of outcomes. If the outcomes are not supplied, then
+% they are generated automatically from a generative process, specified
+% with an MDP structure. The generative model learns from successive epochs
+% of data generated under the first level of each factor of the process. By
 % exploring different extensions to the model (using Bayesian model
 % comparison) successive epochs are assimilated under a model structure
-% that accommodates context sensitive dynamics. This routine makes certain
+% that accommodates context sensitive paths. This routine makes certain
 % assumptions about the basic structural form of generative models at any
 % given level of a hierarchical model. These are minimal assumptions:
 % 
@@ -36,7 +37,7 @@ function MDP = spm_MDP_structure_learning(MDP,mdp)
 % modality) is a tensor whose trailing dimensions correspond to the
 % dimensions of each factor. The (transition) priors are tensors, with a
 % probability transition matrix for each path. In addition, the initial
-% state and path of each factor is specified with D and E. With this form,
+% state and path of each factor are specified with D and E. With this form,
 % structure learning can simply consider the addition of a latent state, a
 % latent path or a new factor.
 % 
@@ -48,8 +49,10 @@ function MDP = spm_MDP_structure_learning(MDP,mdp)
 % this means that adding a factor entails adding a second state to the
 % implicit first state of the new factor.
 %
-% If called with two arguments, the outcomes are assimilated into an
-% existing generative model.
+% If outcomes are specified in terms of an MDP structure, the generating
+% tensors are saved in the output for subsequent simulations
+%
+% If no outcomes are specified,  modeel priors (b) 
 %
 % See: spm_MDP_log_evidence.m, spm_MDP_VB_update and spm_MDP_VB_sleep.m
 %__________________________________________________________________________
@@ -60,14 +63,25 @@ function MDP = spm_MDP_structure_learning(MDP,mdp)
 %__________________________________________________________________________
 
 
+% initialise model (mdp)
+%==========================================================================
+try mdp.l; catch, mdp.l  = 1;       end      % structure learning
+try mdp.p; catch, mdp.p  = exp(-3); end      % initial Dirichlet counts
+try mdp.q; catch, mdp.q  = exp(16); end      % precise Dirichlet counts
+try mdp.r; catch, mdp.r  = 1;       end      % repetitions
+
+% initialise mdp.b if necessary
+%----------------------------------------------------------------------
+mdp = spm_MDP_initialise(mdp);
+
 % options for model inversion (and evaluation)
 %==========================================================================
 OPTIONS.N = 0;                             % suppress neuronal responses
 OPTIONS.P = 0;                             % suppress plotting
 OPTIONS.B = 1;                             % replay
-OPTIONS.G = 1;                             % suppress graphics
+OPTIONS.G = 2;                             % suppress graphics
 
-% generate sequence of outcomes if necessary
+% generate outcomes if necessary
 %==========================================================================
 if isstruct(MDP)
 
@@ -75,6 +89,7 @@ if isstruct(MDP)
     %----------------------------------------------------------------------
     [Nf,Ns,Nu,Ng,No] = spm_MDP_size(MDP);
     T = max(Ns) + 2;
+    mdp.No = No;
 
     % ensure factors with dynamics generate sequences first
     %----------------------------------------------------------------------
@@ -117,71 +132,70 @@ if isstruct(MDP)
             end
         end
     end
-
 else
 
     % MDP are outcomes
     %----------------------------------------------------------------------
     o     = MDP;
-    if isnumeric(o{1})
 
         % number of modalities
-        %------------------------------------------------------------------
+    %----------------------------------------------------------------------
         Ng    = size(o{1},1);
 
         % number of outcomes for each modality
-        %------------------------------------------------------------------
-        O     = spm_cat(o);
+    %----------------------------------------------------------------------
+    if ~isfield(mdp,'No')
+
+        if isnumeric(o{1})
+
+            % index outcomes
+            %--------------------------------------------------------------
+            oo    = spm_cat(o);
         for g = 1:Ng
-            No(g) = max(max(O(g,:)),2);
+                mdp.No(g) = max(max(oo(g,:)),2);
         end
 
     else  
 
         % probabilistic outcomes
-        %------------------------------------------------------------------
-        Ng    = size(o{1},1);
-
-        % number of outcomes for each modality
-        %------------------------------------------------------------------
+            %--------------------------------------------------------------
         for g = 1:Ng
-            No(g) = numel(o{1}{g,1});
+                mdp.No(g) = numel(o{1}{g,1});
+            end
+        end
+    end
         end
 
-    end
-
-end
-
-% initialise model (mdp)
-%==========================================================================
-try mdp.l; catch, mdp.l  = 1;       end      % structure learning
-try mdp.p; catch, mdp.p  = exp(-3); end      % initial Dirichlet counts
-try mdp.q; catch, mdp.q  = exp(16); end      % precise Dirichlet counts
-try mdp.r; catch, mdp.r  = 1;       end      % repetitions
-
-% check there are sufficient outcomes for each modality
+% specify single state prior (b) if necessary
 %--------------------------------------------------------------------------
-try
-    [nf,ns,nu,ng,no] = spm_MDP_size(mdp);
-    for g = 1:ng
-        do = No(g) - no(g);
-        if do > 0
-            i = (1:do) + no(g);
-            mdp.a{g}(i,:) = mdp.p;
+if ~isfield(mdp,'b')
+    for g = 1:numel(mdp.No)
+        mdp.b{1} = zeros([mdp.No(g),1]) + mdp.p;
         end
     end
 
-catch
-
-    % initialise model (one factor, one state, no dynamics)
-    %----------------------------------------------------------------------
-    for g = 1:Ng
-        mdp.a{g} = zeros([No(g),1]) + mdp.p;  % likelihood tensor
+% specify likelihoods (a) if necessary
+%--------------------------------------------------------------------------
+if ~isfield(mdp,'a')
+    for g = 1:numel(mdp.No)
+        mdp.a{g} = zeros([mdp.No(g),1]) + mdp.p;
     end
-    mdp.b = {eye(1,1)*mdp.q + mdp.p};         % transition probabilities
-
 end
 
+
+% upper bounds on states, paths and factors
+%==========================================================================
+
+%  preclude addition of latent states if specified by D
+%--------------------------------------------------------------------------
+if isfield(mdp,'D')
+    NF = numel(mdp.D);
+else
+    NF = 0;
+end
+NS     = [16,8,4,2];                          % maximum number of states
+NU     = [ 8,8,8,8];                          % maximum number of paths
+ 
 
 %  structure learning from observations
 %==========================================================================
@@ -196,39 +210,36 @@ for t = 1:size(o,2)                           % cycle over epochs
     % Bayesian model selection for this epoch
     %======================================================================
     [Nf,Ns,Nu] = spm_MDP_size(mdp);
+    mdp.T      = size(o{t},2);                % number of outcomes
+    mdp.U      = zeros(1,Nf);                 % suppress active sampling
 
     if isnumeric(o{t})
-        mdp.T     = size(o{t},2);             % number of outcomes
         mdp.o     = o{t};                     % outcomes
         OPTIONS.O = 0;                        % use o
     else
-        mdp.T     = size(o{t},2);             % number of outcomes
         mdp.O     = o{t};                     % outcomes
         OPTIONS.O = 1;                        % use O
     end
-    mdp.U  = zeros(1,Nf);                     % supress active sampling
 
     % no expansion
     %----------------------------------------------------------------------
-    hdp    = {mdp};
     if mdp.l
 
         % learning of the likelihood and transition probabilities
         %------------------------------------------------------------------
-        hdp{1} = spm_expand(mdp,1,0,0);
+        hdp = {spm_expand(mdp,1,0,0)};
 
     else
         % learning of the likelihood mapping
         %------------------------------------------------------------------
-        hdp{1} = spm_expand(mdp,0,0,0);
+        hdp = {spm_expand(mdp,0,0,0)};
     end
     F      = spm_evaluate(hdp{1},OPTIONS);
-
 
     % Bayesian model expansion: add state to each factor
     %----------------------------------------------------------------------
     for f = 1:Nf
-        if Nu(f) == 1 && mdp.l
+        if Nu(f) == 1 && mdp.l && f > NF && Ns(f) < NS(f) 
             hdp{end + 1} = spm_expand(mdp,f,1,0);              % expand
             F(end + 1)   = spm_evaluate(hdp{end},OPTIONS);     % evaluate
         end
@@ -237,7 +248,7 @@ for t = 1:size(o,2)                           % cycle over epochs
     % Bayesian model expansion: add path to each factor
     %----------------------------------------------------------------------
     for f = 1:Nf
-        if Ns(f) > 1 && f == Nf && mdp.l
+        if Ns(f) > 1 && f == Nf && mdp.l && mdp.T > 1 && Nu(f) < NU(f)
             hdp{end + 1} = spm_expand(mdp,f,0,1);              % expand
             F(end + 1)   = spm_evaluate(hdp{end},OPTIONS);     % evaluate
         end            
@@ -245,7 +256,7 @@ for t = 1:size(o,2)                           % cycle over epochs
 
     % Bayesian model expansion: add factor
     %----------------------------------------------------------------------
-    if min(Ns) > 1 && Nu(1) > 1 && mdp.l
+    if min(Ns) > 1 && (Nu(1) > 1 || mdp.T == 1) && mdp.l && Nf < 4
         hdp{end + 1} = spm_expand(mdp,Nf + 1,0,0);
         F(end + 1)   = spm_evaluate(hdp{end},OPTIONS);
     end
@@ -282,13 +293,18 @@ for t = 1:size(o,2)                           % cycle over epochs
     %======================================================================
     if OPTIONS.G
         
-        spm_figure('getwin','Structure learning'); clf
+        % state estimation
+        %------------------------------------------------------------------
+        if OPTIONS.G == 2
+            spm_figure('getwin','Inference'); clf
+            spm_MDP_VB_trial(hdp{h});
+        end
 
-        if mdp.l
+        spm_figure('getwin','Structure learning'); clf
             for f = 1:numel(mdp.b)
 
                 % plot transistions and likelihood mapping
-                %----------------------------------------------------------
+            %--------------------------------------------------------------
                 for u = 1:size(mdp.b{f},3)
                     subplot(6,6,u + (f - 1)*6)
                     imagesc(spm_dir_norm(mdp.b{f}(:,:,u)))
@@ -308,7 +324,7 @@ for t = 1:size(o,2)                           % cycle over epochs
                 axis square, title('Likelihood')
 
                 % free energies (ELBO)
-                %----------------------------------------------------------
+            %--------------------------------------------------------------
                 subplot(4,2,6)
                 bar(F - min(F))
                 axis square, title('ELBO')
@@ -316,49 +332,35 @@ for t = 1:size(o,2)                           % cycle over epochs
                 bar(FF)
                 axis square, title('Successive ELBO')
             end
-        else
-
-            % state estimation
-            %--------------------------------------------------------------
-            spm_MDP_VB_trial(hdp{h});
-
-            for f = 1:numel(mdp.b)
-                
-                % plot likelihood mapping
-                %----------------------------------------------------------
-                subplot(2,2,4)
-                for g = 1:Ng
-                    a{g} = spm_dir_norm(mdp.a{g}(:,:));
-                end
-                A = spm_cat(a');
-                if size(A,1) > 256
-                    spm_spy(A);
-                else
-                    imagesc(A)
-                end
-                axis square, title('Likelihood')
-
-            end
-
-        end
         drawnow
     end
 end
 
-
-% transcribe Dirichlet parameters to output
+% default priors
 %--------------------------------------------------------------------------
-mdp    = spm_expand(mdp,1,0,0);   % default priors
-try
-    MDP.a  = mdp.a;                   % Dirichlet likelihood parameters
-    MDP.b  = mdp.b;                   % Dirichlet transition parameters
-    MDP.D  = mdp.D;                   % initial states
-    MDP.E  = mdp.E;                   % initial control
-    MDP.k  = mdp.U;                   % controllable factors
-catch
-    mdp.k  = mdp.U;
-    MDP    = mdp;
+[Nf,Ns,Nu] = spm_MDP_size(mdp);
+for f = 1:Nf
+    mdp.D{f} = ones(Ns(f),1);              % initial state
+    mdp.E{f} = ones(Nu(f),1);              % initial control
 end
+mdp.k   = zeros(1,Nf);                      % suppress active sampling
+mdp     = rmfield(mdp,'T');
+try
+    mdp = rmfield(mdp,'o');
+end
+try
+    mdp = rmfield(mdp,'O');
+end
+
+% transcribe generative tensors to output
+%--------------------------------------------------------------------------
+try
+    mdp.U = MDP.U;                         % controllable factors
+    mdp.A = MDP.A;                         % likelihood probabilities
+    mdp.B = MDP.B;                         % transition probabilities
+    mdp.C = MDP.C;                         % prior preferences
+end
+
 return
 
 % NOTES: 
@@ -366,7 +368,7 @@ return
 %     % Bayesian model reduction
 %     %--------------------------------------------------------------------
 %     for g = 1:Ng
-%         mdp.a{g} = spm_MDP_VB_prune(mdp.a{g},a0{g},0,2,0,'SIMPLE');
+%         mdp.a{g} = spm_MDP_VB_prune(mdp.a{g},a0{g},0,0,0,'SIMPLE');
 %     end
 %
 %     NB: a0 = hdp{h}.a;               % priors for BMR
@@ -389,24 +391,33 @@ function mdp = spm_expand(mdp,f,s,u)
 %__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
-% size of factor
+% size of factors
 %--------------------------------------------------------------------------
 [Nf,Ns,Nu,Ng,No] = spm_MDP_size(mdp);
 
 % preclude learning of transitions
 %--------------------------------------------------------------------------
 if f == 0
+
     for f = 1:Nf
         mdp.b{f} = (mdp.b{f} - mdp.p)*exp(16);
     end
 
 else
 
-    %  default priors over states and control
+    % priors over initial states and control (first state and control)
     %----------------------------------------------------------------------
     for i = 1:Nf
-        mdp.D{i} = ones(Ns(i),1);        % initial state
-        mdp.E{i} = ones(Nu(i),1);        % initial control
+        try
+            mdp.D{i};                                % initial state
+        catch
+            mdp.D{i} = sparse(1,1,1,Ns(i),1);        % initial state
+        end
+        try
+            mdp.E{i};                                % initial control
+        catch
+            mdp.E{i} = sparse(1,1,1,Nu(i),1);        % initial control
+        end
     end
 
 end
@@ -420,6 +431,7 @@ if f > Nf
     % ---------------------------------------------------------------------
     mdp.b{end + 1} = eye(2,2)*mdp.q + mdp.p;
     Nf             = Nf + 1;
+    f              = Nf;
     Ns(Nf)         = 2;
     Nu(Nf)         = 1;
 
@@ -432,17 +444,10 @@ if f > Nf
         mdp.a{g}  = a{g};
     end
 
-    % priors over initial states and control (first state and control)
-    %----------------------------------------------------------------------
-    for i = 1:Nf
-        mdp.D{i} = sparse(1,1,1,Ns(i),1);        % initial state
-        mdp.E{i} = sparse(1,1,1,Nu(i),1);        % initial control
-    end
-
     % starting in the second state of the new factor
     %----------------------------------------------------------------------
-    mdp.D{Nf}    = sparse(2,1,1,Ns(Nf),1);       % initial state
-    mdp.E{Nf}    = sparse(1,1,1,Nu(Nf),1);       % initial control
+    mdp.D{f}    = sparse(2,1,1,Ns(f),1);       % initial state
+    mdp.E{f}    = sparse(1,1,1,Nu(f),1);       % initial control
 
     [Nf,Ns,Nu,Ng,No] = spm_MDP_size(mdp);
 
@@ -469,13 +474,6 @@ if logical(s)
         mdp.a{g}  = a{g};
     end
 
-    % priors over initial states and control (first state and control)
-    %----------------------------------------------------------------------
-    for i = 1:Nf
-        mdp.D{i} = sparse(1,1,1,Ns(i),1);        % initial state
-        mdp.E{i} = sparse(1,1,1,Nu(i),1);        % initial control
-    end
-
     % new state is the initial state
     %----------------------------------------------------------------------
     mdp.D{f}     = sparse(Ns(f),1,1,Ns(f),1);
@@ -491,13 +489,6 @@ if logical(u)
     % ---------------------------------------------------------------------
     mdp.b{f}(:,:,end + 1) = mdp.p;
     Nu(f)                 = Nu(f) + 1;
-
-    % priors over initial states and control (first state and control)
-    %----------------------------------------------------------------------
-    for i = 1:Nf
-        mdp.D{i} = sparse(1,1,1,Ns(i),1);        % initial state
-        mdp.E{i} = sparse(1,1,1,Nu(i),1);        % initial control
-    end
 
     % new path is the initial path
     %----------------------------------------------------------------------
@@ -541,7 +532,6 @@ function mdp = spm_reduce(mdp,f)
 % reduction operator (R): lossless compression
 %==========================================================================
 Nu       = size(mdp.b{f},3);         % number of hidden controls
-mdp.E{f} = ones(Nu,1)/Nu;
 
 if Nu == 1, return, end
 
@@ -549,7 +539,8 @@ if Nu == 1, return, end
 %--------------------------------------------------------------------------
 p     = mdp.p;                       % prior counts
 b     = mdp.b{f};                    % factor to reduce
-E     = mdp.E{f};                    % initial control states
+EE    = ones(Nu,1);                  % initial control states
+E     = EE;
 M0    = spm_MDP_MI(b);
 for i = 1:Nu
     for j = (i + 1):Nu
@@ -567,18 +558,18 @@ for i = 1:Nu
         M  = spm_MDP_MI(b);
         if M >= M0
             mdp.b{f} = b;
-            mdp.E{f} = E;
+            EE       = E;
             M0       = spm_MDP_MI(b);
         else
             b = mdp.b{f};
-            E = mdp.E{f};
+            E = EE;
         end
     end
 end
 
 % remove redundant paths
 %--------------------------------------------------------------------------
-i        = find(mdp.E{f});
+i        = find(EE);
 mdp.b{f} = mdp.b{f}(:,:,i);
 
 
@@ -721,7 +712,29 @@ F   = mdp.F;
 return
 
 
+function mdp = spm_MDP_initialise(mdp)
+% compplete model specification based upon initial states (D)
+% FORMAT mdp = spm_MDP_initialise(mdp)
+% mdp   - MDP structure
+% mdp.D - initial states
+%
+% This subroutine fills in transition priors (b) if initial states (D) are
+% specified; otherwise, it returns a structure with one latent state
+% encoded in (b).
+%__________________________________________________________________________
+% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
+% Default hidden states
+%--------------------------------------------------------------------------
+try D = mdp.D; catch, D = {1}; end
 
-
+% specify transition priors (b) if necessary
+%--------------------------------------------------------------------------
+if ~isfield(mdp,'b')
+    for f = 1:numel(D)
+        Ns(f)    = numel(D{f});
+        mdp.b{f} = eye(Ns(f),Ns(f))*mdp.q + mdp.p;
+    end
+end
+return
 

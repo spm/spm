@@ -42,7 +42,7 @@ clear global VOX TRAIN
 rng('default')
 
 global TRAIN
-TRAIN = 1;
+TRAIN = 0;
  
 % first level (lexical)
 %==========================================================================
@@ -140,7 +140,7 @@ end
 levels = {'1','2','3','4','5','6','7','8'};
 label.modality{1} = 'word';       label.outcome{1} = outcome;
 label.modality{2} = 'amplitude';  label.outcome{2} = levels;
-label.modality{3} = 'duration';     label.outcome{3} = levels;
+label.modality{3} = 'duration';   label.outcome{3} = levels;
 label.modality{4} = 'pitch';      label.outcome{4} = levels;
 label.modality{5} = 'frequency';  label.outcome{5} = levels;
 label.modality{6} = 'inflexion';  label.outcome{6} = levels;
@@ -258,8 +258,8 @@ mdp.B = B;                      % transition probabilities
 mdp.D = D;                      % prior over initial states
 mdp.o = [];
 
-mdp.VOX   = [0,0,0];
-mdp.label = label;
+mdp.VOX   = [0,0,0];            % who genertes speach
+mdp.label = label;              % labels
 mdp.tau   = 4;                  % time constant of belief updating
 mdp.erp   = 1;                  % initialization
 
@@ -468,10 +468,10 @@ mdp.link = spm_MDP_link(mdp);   % map outputs to initial (lower) states
 % spm_MDP_factor_graph(mdp);
 
 
-%% deep model
+%% deep model inversion
 %==========================================================================
 scene = {'upper shape','lower shape','upper color','lower color'};
-OPTIONS.D = ismember(mdp.label.factor,scene);
+OPTIONS.D = ismember(mdp.label.factor,scene);   % conserved states
 [mdp.MDP(1,1:3)] = deal(mdp.MDP);
 
 
@@ -491,7 +491,7 @@ if TRAIN
     %----------------------------------------------------------------------
     clear MDP
     M.C   = spm_zeros(M.C);
-    [MDP(1,1:32)] = deal(M);
+    [MDP(1,1:16)] = deal(M);
     MDP   = spm_MDP_VB_X(MDP,OPTIONS);
     
     % retrieve accumulated Dirichlet concentration parameters
@@ -506,7 +506,7 @@ if TRAIN
         a{g} = spm_norm_a(a{g}) + spm_norm_a(da{g});
     end
     
-    % save updated Dirichlet parameters and place illustrate prosody
+    % save updated Dirichlet parameters
     %======================================================================
     DIR   = fileparts(which('spm_voice.m'));
     save(fullfile(DIR,'DEMOVOX'),'a')
@@ -517,19 +517,25 @@ end
 
 %% illustrate questioning
 %==========================================================================
+TRAIN = 0;
+
 
 % agent asks (by setting VOX to [0 1 2]
 %--------------------------------------------------------------------------
-VOX   = [0 1 0];
+VOX   = [0 1 2];
 M     = mdp;
 for t = 1:M.T
     M.MDP(t).VOX = VOX(t);
 end
 clear MDP
-[MDP(1,1:8)] = deal(M);
+[MDP(1,1:6)] = deal(M);
 MDP          = spm_MDP_VB_X(MDP,OPTIONS);
 
-return
+
+%--------------------------------------------------------------------------
+disp('now switch roles – press any key to continue'), pause
+%--------------------------------------------------------------------------
+
 
 % agent answers by setting VOX to  [0 2 1]
 %==========================================================================
@@ -545,33 +551,17 @@ for t = 1:M.T
     M.MDP(t).VOX = VOX(t);
 end
 clear MDP
-[MDP(1,1:6)] = deal(M);
+[MDP(1,1:4)] = deal(M);
 MDP          = spm_MDP_VB_X(MDP,OPTIONS);
 
-
-% illustrate belief updating
-%==========================================================================
-spm_figure('GetWin','20 Questions'); clf; 
-MDP   = spm_MDP_VB_X(MDP,OPTIONS);
-
-% show belief updates (and behaviour)
-%--------------------------------------------------------------------------
-spm_figure('GetWin','Figure 1'); clf
-spm_MDP_VB_trial(MDP(1),[1 2 4],[1 3 4]);
-
-% illustrate phase-precession and responses
-%--------------------------------------------------------------------------
-spm_figure('GetWin','Figure 2'); clf
-spm_MDP_VB_LFP(MDP,[],4);
-
-
 return
+
 
 function a = spm_norm_a(a,n)
 % FORMAT a = spm_norm_a(a,n)
 % normalises a conditional (Dirichlet) probability matrix
 % a   - conditional probability matrix
-% n   - required some of concentration parameters (i.e., events)
+% n   - required sum of concentration parameters (i.e., events)
 %
 % this subroutine scales a conditional matrix of Dirichlet concentration
 % parameters such that the sum of any column is equal to n

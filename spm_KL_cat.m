@@ -8,7 +8,7 @@ function [D] = spm_KL_cat(Q,P)
 % If supplied with arrays, the KL divergence will be summed over the first
 % dimension. The arrays can be normalised (c.f., Dirichlet parameters).
 %
-% See also: spm_kl_dirichlet.m (for row vectors)
+% See also: spm_KL_dir (for arrays) and spm_kl_dirichlet.m (for row vectors)
 %__________________________________________________________________________
 
 % Karl Friston 

@@ -8,7 +8,7 @@ function [F,sA,dFdA] = spm_MDP_log_evidence(qA,pA,rA)
 %
 % F    - free energy or (negative) log evidence of reduced model
 % sA   - sufficient statistics of reduced posterior
-% dFdA - total (negative) free energy gradients with respect to rA
+% dFdA - total free energy gradients with respect to rA
 %
 % This routine computes the negative log evidence of a reduced model of a
 % categorical distribution parameterised in terms of Dirichlet

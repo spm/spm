@@ -59,7 +59,7 @@ dSprite{2} = [ ...
     0 0 0 0 0 0 0 0;
     0 0 1 1 0 1 1 0;
     0 1 1 1 1 1 1 1;
-    0 1 1 1 1 1 1 1;
+    0 1 1 1 0 1 1 1;
     0 0 1 1 1 1 1 0;
     0 0 0 1 1 1 0 0;
     0 0 0 0 1 0 0 0;
@@ -69,8 +69,8 @@ dSprite{3} = [ ...
     0 0 0 0 0 0 0 0;
     0 0 1 1 1 1 0 0;
     0 1 1 1 1 1 1 0;
-    1 1 1 1 1 1 1 1;
-    1 1 1 1 1 1 1 1;
+    1 1 1 0 0 1 1 1;
+    1 1 1 0 0 1 1 1;
     0 1 1 1 1 1 1 0;
     0 0 1 1 1 1 0 0;
     0 0 0 0 0 0 0 0];
@@ -235,15 +235,15 @@ U     = [1 1 0];                  % controlable factors
 
 % MDP Structure, specifying 64 epochs (i.e., 16 seconds of active vision)
 %==========================================================================
-mdp.T = 16;                       % numer of moves
-mdp.U = U;                        % controllable factors
-mdp.A = A;                        % likelihood probabilities
-mdp.B = B;                        % transition probabilities
-mdp.C = C;                        % prior preferences
-mdp.D = D;                        % prior over initial states
-mdp.E = E;                        % prior over initial paths
+MDP.T = 16;                       % numer of moves
+MDP.U = U;                        % controllable factors
+MDP.A = A;                        % likelihood probabilities
+MDP.B = B;                        % transition probabilities
+MDP.C = C;                        % prior preferences
+MDP.D = D;                        % prior over initial states
+MDP.E = E;                        % prior over initial paths
 
-mdp.label = label;
+MDP.label = label;
 
 % Solve an example with known (veridical) structure and parameters to
 % establish – and illustrate – optimal performance
@@ -253,7 +253,6 @@ disp('inverting generative model (c.f., active inference)'), disp(' ')
 % specify a trial, with initial conditions, s
 %--------------------------------------------------------------------------
 OPTIONS.N = 1;                    % simulate neuronal responses
-MDP   = mdp;
 MDP.s = [1,1,2];
 MDP   = spm_MDP_VB_XXX(MDP,OPTIONS);
 
@@ -276,12 +275,15 @@ spm_report(MDP)
 
 % Illustrate structure learning via assimilation of epochs of observations
 %==========================================================================
-mdp = spm_MDP_structure_learning(mdp);
+[Nf,Ns,Nu,Ng,No] = spm_MDP_size(MDP);
 
+mdp.No = No;
+mdp    = spm_MDP_structure_learning(mdp,MDP);
 
 % Illustrate mmotor babbling (motor learning)
 %==========================================================================
-mdp = spm_MDP_motor_learning(mdp);
+% mdp = spm_MDP_motor_learning(mdp);
+mdp.k = [1 1 0];
 
 % active learning
 %==========================================================================
@@ -298,17 +300,30 @@ spm_figure('GetWin','learning'); clf
 disp('inverting generative model (c.f., active inference)'), disp(' ')
 
 OPTIONS.A = 0;                             % suppress explicit action
+OPTIONS.B = 0;                             % suppress explicit action
 OPTIONS.N = 0;                             % suppress neuronal responses
+OPTIONS.O = 0;                             % suppress probabilistic outcomes
 OPTIONS.G = 1;                             % suppress graphics
 
+[Nf,Ns,Nu] = spm_MDP_size(mdp);
+
+% default priors
+%--------------------------------------------------------------------------
+[Nf,Ns,Nu] = spm_MDP_size(mdp);
 MDP   = mdp;
+MDP.tol = 4;
+for f = 1:Nf
+    MDP.D{f} = ones(Ns(f),1);              % initial state
+    MDP.E{f} = ones(Nu(f),1);              % initial control
+    MDP.b{f} = (mdp.b{f} > 1)*exp(16);     % initial control
+end
 MDP.T = 512;
 MDP.N = 0;
 for d = 1:numel(dSprite)
 
     % initial conditions for this object
     %----------------------------------------------------------------------
-    MDP.s = [1,1,d];
+    MDP.s    = [1,1,d];                    % initial state
 
     % active inference and learning
     %----------------------------------------------------------------------

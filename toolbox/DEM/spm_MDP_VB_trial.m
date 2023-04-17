@@ -1,6 +1,7 @@
 function spm_MDP_VB_trial(MDP,gf,gg)
 % auxiliary plotting routine for spm_MDP_VB - single trial
-% FORMAT spm_MDP_VB_trial(MDP,[f,g])
+% FORMAT spm_MDP_VB_trial(MDP,f,g)
+
 %
 % MDP.P(M,T)      - probability of emitting action 1,...,M at time 1,...,T
 % MDP.X           - conditional expectations over hidden states
@@ -8,6 +9,8 @@ function spm_MDP_VB_trial(MDP,gf,gg)
 % MDP.o           - outcomes at time 1,...,T
 % MDP.s           - states at time 1,...,T
 % MDP.u           - action at time 1,...,T
+% f               - hidden states to show [default: 1:3]
+% g               - outcomes to show [default: 1:3]
 %
 % MDP.un  = un;   - simulated neuronal encoding of hidden states
 % MDP.xn  = Xn;   - simulated neuronal encoding of policies
@@ -24,7 +27,7 @@ function spm_MDP_VB_trial(MDP,gf,gg)
 
 % graphics
 %==========================================================================
-MDP   = spm_MDP_check(MDP); clf
+clf
 
 % numbers of transitions, policies and states
 %--------------------------------------------------------------------------
@@ -92,7 +95,7 @@ for f  = 1:Np
     subplot(3*Np,2,f*2)
 
     if iscell(MDP.P)
-       P = MDP.P{f};
+       P = MDP.P{Nu(f)};
     elseif Nf > 1
             ind     = 1:Nf;
             P       = MDP.P;
@@ -113,9 +116,14 @@ for f  = 1:Np
         hold on, plot(MDP.u(Nu(f),:),'.c','MarkerSize',16), hold off
     end
     if f < 2
-        title(sprintf('Action - %s',MDP.label.factor{Nu(f)}));
+        title(sprintf('Paths - %s',MDP.label.factor{Nu(f)}));
     else
         title(MDP.label.factor{Nu(f)});
+    end
+    try
+        if any(MDP.U(:,Nu(f)))
+            title(MDP.label.factor{Nu(f)},'color','r')
+        end
     end
     set(gca,'XTickLabel',{});
     set(gca,'XTick',1:size(X{1},2));
@@ -132,19 +140,21 @@ for f  = 1:Np
     
     % policies
     %----------------------------------------------------------------------
-    subplot(3*Np,2,(Np + f - 1)*2 + 1)
-    imagesc(MDP.V(:,:,Nu(f))')
-    if f < 2
-        title(sprintf('Allowable policies - %s',MDP.label.factor{Nu(f)}));
-    else
-        title(MDP.label.factor{Nu(f)});
+    if isfield(MDP,'V')
+        subplot(3*Np,2,(Np + f - 1)*2 + 1)
+        imagesc(MDP.V(:,:,Nu(f))')
+        if f < 2
+            title(sprintf('Allowable policies - %s',MDP.label.factor{Nu(f)}));
+        else
+            title(MDP.label.factor{Nu(f)});
+        end
+        if f < Np
+            set(gca,'XTickLabel',{});
+        end
+        set(gca,'XTick',1:size(X{1},2) - 1);
+        set(gca,'YTickLabel',{});
+        ylabel('policy')
     end
-    if f < Np
-        set(gca,'XTickLabel',{});
-    end
-    set(gca,'XTick',1:size(X{1},2) - 1);
-    set(gca,'YTickLabel',{});
-    ylabel('policy')
     
 end
 
