@@ -156,7 +156,7 @@ end
 % dates to generate
 %--------------------------------------------------------------------------
 M.date = PCM.M.date;
-d0     = datenum(M.date,'dd-mm-yyyy');
+d0     = datenum(M.date);
 dates  = d0:max(spm_vec(D.date));
 
 % free parameters of local model (fixed effects - seeding and fluctuations)

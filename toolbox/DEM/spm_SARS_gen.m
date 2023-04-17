@@ -177,7 +177,7 @@ if isstruct(M.T)        % predictions from multiple data types are required
     d   = spm_vec(D.date);
     if isfield(M,'date')
         try
-            d0 = datenum(M.date,'dd-mm-yyyy');
+            d0 = datenum(M.date);
         catch
             d0 = M.date;
         end
@@ -399,7 +399,7 @@ for i = 1:M.T
         Q{n}.tes = R{n}.tes*Ptra^(-R{n}.s(4)/4);   % testing bias PCR
         Q{n}.tts = R{n}.tts*Ptra^(-R{n}.s(5)/4);   % testing bias LFD
 
-        Q{n}.Tnn = R{n}.Tnn*exp(i*R{n}.s(6)/512);  % T-cell immunity
+        Q{n}.Tnn = R{n}.Tnn*(1+i*R{n}.s(6)/512);   % T-cell immunity
 
         Q{n}.sev = R{n}.sev*Ptra^(-R{n}.lat);      % P(ARDS | infected)
         Q{n}.fat = R{n}.fat*Ptra^(-R{n}.sur);      % P(fatality | ARDS)
