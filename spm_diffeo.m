@@ -11,16 +11,15 @@ function varargout = spm_diffeo(varargin)
 %           - [4] Absolute displacements need to be penalised by a tiny
 %                 amount.  The first element encodes the amount of
 %                 penalty on these.  Ideally, absolute displacements
-%                 should not be penalised, but it is usually necessary
+%                 should not be penalised, but it is often necessary
 %                 for technical reasons.
 %           - [5] The `membrane energy' of the deformation is penalised,
 %                 usually by a relatively small amount. This penalises
 %                 the sum of squares of the derivatives of the velocity
 %                 field (ie the sum of squares of the elements of the
 %                 Jacobian tensors).
-%           - [6] The `bending energy' is penalised (3rd element). This
-%                 penalises the sum of squares of the 2nd derivatives of
-%                 the velocity.
+%           - [6] The `bending energy' is penalised. This penalises the
+%                 sum of squares of the 2nd derivatives of the parameters.
 %           - [7][8] Linear elasticity regularisation is also included.
 %                    The first parameter (mu) is similar to that for
 %                    linear elasticity, except it penalises the sum of
@@ -383,18 +382,30 @@ function varargout = spm_diffeo(varargin)
 % g     - first image n1*n2*n3*n4 (single precision float)
 % f     - second image n1*n2*n3*n4 (single precision float)
 % param - 9 parameters (settings)
-%         - [1] Regularisation type, can take values of
-%           - 0 Linear elasticity
-%           - 1 Membrane energy
-%           - 2 Bending energy
-%         - [2][3][4] Regularisation parameters
-%           - For "membrane energy", the parameters are
-%             lambda, unused and id.
-%           - For "linear elasticity", the parameters are
-%             mu, lambda, and id
-%           - For "bending energy", the parameters are
-%             lambda, id1 and id2, such that regularisation is by
-%             (-lambda*\grad^2 + id1)^2 + id2
+%       - [1][2][3][4][5] Regularisation parameters
+%       - [1] Absolute displacements need to be penalised by a tiny
+%             amount.  The first element encodes the amount of
+%             penalty on these.  Ideally, absolute displacements
+%             should not be penalised.
+%       - [2] The `membrane energy' of the deformation is penalised,
+%             usually by a relatively small amount. This penalises
+%             the sum of squares of the derivatives of the velocity
+%             field (ie the sum of squares of the elements of the
+%             Jacobian tensors).
+%       - [3] The `bending energy' is penalised. This penalises the
+%             sum of squares of the 2nd derivatives of the velocity.
+%       - [4][5] Linear elasticity regularisation is also included.
+%                The first parameter (mu) is similar to that for
+%                linear elasticity, except it penalises the sum of
+%                squares of the Jacobian tensors after they have been
+%                made symmetric (by averaging with the transpose).
+%                This term essentially penalises length changes,
+%                without penalising rotations.
+%                The final term also relates to linear elasticity,
+%                and is the weight that denotes how much to penalise
+%                changes to the divergence of the velocities (lambda).
+%                This divergence is a measure of the rate of volumetric
+%                expansion or contraction.
 %         - [5] Levenberg-Marquardt regularisation
 %         - [6] Number of Full Multigrid cycles
 %         - [7] Number of relaxation iterations per cycle
