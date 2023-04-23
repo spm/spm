@@ -406,7 +406,6 @@ function varargout = spm_diffeo(varargin)
 %                changes to the divergence of the velocities (lambda).
 %                This divergence is a measure of the rate of volumetric
 %                expansion or contraction.
-%         - [5] Levenberg-Marquardt regularisation
 %         - [6] Number of Full Multigrid cycles
 %         - [7] Number of relaxation iterations per cycle
 %         - [8] K, such that 2^K time points are used to
