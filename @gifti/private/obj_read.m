@@ -14,12 +14,16 @@ function M = obj_read(filename)
 % Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 
-fid = fopen(filename,'rt');
+fid = fopen(filename,'r');
 if fid == -1
     error('Cannot open %s.',filename);
 end
 
-M = struct('vertices',[],'faces',[]);
+cellv={};
+cellf = {};
+nv = 0;
+nf = 0;
+currentfmt = '%d %d %d';
 
 while true
     l = fgetl(fid);
@@ -40,7 +44,8 @@ while true
                 otherwise
                     v = sscanf(l(2:end),'%f %f %f');
                     if numel(v) > 3, v = v(1:3); end
-                    M.vertices(size(M.vertices,1)+1,:) = v;
+                    nv = nv+1;
+                    cellv{nv}=v;
             end
         case 'f'
             f = sscanf(l(2:end),'%d %d %d');
@@ -64,8 +69,9 @@ while true
                 end
             end
             i = find(f<0);
-            if isempty(i), f(i) = size(M.vertices,1) + f(i); end
-            M.faces(size(M.faces,1)+1,:) = f;
+            if isempty(i), f(i) = size(cellv,2) + f(i); end
+            nf = nf+1;
+            cellf{nf}=f;
         case 'o'
             fprintf('Ignoring named objects.\n');
         case 'g'
@@ -81,4 +87,9 @@ while true
     end
 end
 
+M = [];
+M.vertices = cell2mat(cellv)';
+M.faces = cell2mat(cellf)';
+
 fclose(fid);
+end 
