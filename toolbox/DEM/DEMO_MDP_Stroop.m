@@ -325,22 +325,34 @@ for i = 1:size(X,1)
     mdp.T  = 32;
     rng default % Standardise stimulus stream
     mdp.s(2) = 1;
-    MDP(i) = spm_MDP_VB_X(mdp,OPTIONS);
+    MDP(i,1) = spm_MDP_VB_X(mdp,OPTIONS);                                  
+    mdp.s(2) = 2;                                                          
+    MDP(i,2) = spm_MDP_VB_X(mdp,OPTIONS);                                  
 end
 
 % Performance summaries:
 B = zeros(1,size(X,1));
-R = zeros(MDP(1).T-1,size(X,1));
-for k = 1:length(MDP)
-    [stim{k}, resp{k}] = MDP_Stroop_SR(MDP(k));
+R = zeros(2*(MDP(1).T-1),size(X,1));
+for k = 1:size(MDP,1)
+    [stim{k}, resp{k}] = MDP_Stroop_SR(MDP(k,1));
     H = zeros(2,numel(resp{k}));
     for i = 1:numel(resp{k})
         H(1,i) = strcmp(stim{k}.color{i},stim{k}.word{i});       % Congruent?
         H(2,i) = strcmp(['"' stim{k}.color{i} '"'],resp{k}{i});  % Correct?
     end
     B(k)     = sum(H(2,:))/length(H(2,:));
-    R(:,k)   = MDP_Stroop_RT(MDP(k));                           % Reaction time
-    R(:,k)   = exp(R(:,k) + randn(size(R(:,k)))/16)/2;
+    R(1:MDP(1).T-1,k)   = MDP_Stroop_RT(MDP(k,1));               % Reaction time 
+    R(1:MDP(1).T-1,k)   = exp(R(1:MDP(1).T-1,k) + randn(size(R(1:MDP(1).T-1,k)))/16)/2; 
+
+    [stim{k}, resp{k}] = MDP_Stroop_SR(MDP(k,2));                          
+    H = zeros(2,numel(resp{k}));
+    for i = 1:numel(resp{k})
+        H(1,i) = strcmp(stim{k}.color{i},stim{k}.word{i});       % Congruent?
+        H(2,i) = strcmp(['"' stim{k}.word{i} '"'],resp{k}{i});   % Correct? 
+    end
+    B(k)     = (B(k) + sum(H(2,:))/length(H(2,:)))/2;
+    R(MDP(1).T:end,k)   = MDP_Stroop_RT(MDP(k,2));               % Reaction time
+    R(MDP(1).T:end,k)   = exp(R(MDP(1).T:end,k) + randn(size(R(MDP(1).T:end,k)))/16)/2;
 end
 
 % Fit linear model to synthetic data
@@ -439,10 +451,10 @@ M.pC      = eye(spm_length(M.pE))/256; % prior variance (parameters)
 M.ch      = 1; % Include choice data
 M.rt      = 1; % Include reaction time data
 
-for i = 1:length(MDP)
+for i = 1:size(MDP,1)
     Y.o = {};
-    for j = 1:length(MDP(i).mdp)
-        Y.o{j} = MDP(i).mdp(j).o;
+    for j = 1:length(MDP(i,1).mdp)                                         
+        Y.o{j} = [MDP(i,1).mdp(j).o MDP(i,2).mdp(j).o];                    
     end
     Y.r = R(:,i);
     [EP,CP,~] = spm_nlsi_Newton(M,U,Y);
@@ -483,10 +495,10 @@ save('Z','Z')
 % gained from each source).
 %--------------------------------------------------------------------------
 M.ch      = 0; % Omit choice data
-for i = 1:length(MDP)
+for i = 1:size(MDP,1)                                                      
     Y.o = {};
-    for j = 1:length(MDP(i).mdp)
-        Y.o{j} = MDP(i).mdp(j).o;
+    for j = 1:length(MDP(i,1).mdp)                                         
+        Y.o{j} = [MDP(i,1).mdp(j).o MDP(i,2).mdp(j).o];                    
     end
     Y.r = R(:,i);
     [EP,CP,~] = spm_nlsi_Newton(M,U,Y);
@@ -526,10 +538,10 @@ save('Z','Z')
 M.ch      = 1; % Include choice data
 M.rt      = 0; % Omit reaction time data
 
-for i = 1:length(MDP)
+for i = 1:size(MDP,1)                                                      
     Y.o = {};
-    for j = 1:length(MDP(i).mdp)
-        Y.o{j} = MDP(i).mdp(j).o;
+    for j = 1:length(MDP(i,1).mdp)                                         
+        Y.o{j} = [MDP(i,1).mdp(j).o MDP(i,2).mdp(j).o];                    
     end
     Y.r = R(:,i);
     [EP,CP,~] = spm_nlsi_Newton(M,U,Y);
@@ -822,31 +834,41 @@ function L = MDP_Stroop_L(P,M,~,Y)
 
 L = 0;
 
-mdp   = M.G(P);
+mdp(1)   = M.G(P);
+mdp(2)   = M.G(P); 
 
 % Assign outcomes
 %--------------------------------------------------------------------------
-for i = 1:mdp.T
-    mdp.mdp(i).o = Y.o{i};
+for i = 1:mdp(1).T                                                         
+    mdp(1).mdp(i).o = Y.o{i}(:,1:2);                                       
+    mdp(2).mdp(i).o = Y.o{i}(:,3:4);                                       
 end
 
 % Invert model (forcing it to take same actions)
 %--------------------------------------------------------------------------
 OPTIONS.gamma = 1;
-MDP = spm_MDP_VB_X(mdp,OPTIONS);
+MDP(1) = spm_MDP_VB_X(mdp(1),OPTIONS);                                     
+MDP(2) = spm_MDP_VB_X(mdp(2),OPTIONS); 
 
 if M.ch == 1
     
 % Evaluate likelihood of actions
 %--------------------------------------------------------------------------
-    for i = 2:length(MDP.mdp)
-        x = [];
-        for k = 1:size(MDP.mdp(i).xn{1},1)
-            for j = 1:numel(MDP.mdp(i).xn)
-                xn{j} = MDP.mdp(i).xn{j}(end,:,2,1);
+    for i = 2:length(MDP(1).mdp)
+        x1 = [];
+        x2 = [];
+        for k = 1:size(MDP(1).mdp(i).xn{1},1)                              
+            for j = 1:numel(MDP(1).mdp(i).xn)                              
+                xn{j} = MDP(1).mdp(i).xn{j}(end,:,2,1);                    
             end
-            x(:,end+1) = spm_softmax(MDP.mdp(i).lambda*spm_log(spm_dot(MDP.mdp(i).A{4},xn)));
-            L = L + spm_log(x(mdp.mdp(i).o(4,2),end));
+            x1(:,end+1) = spm_softmax(MDP(1).mdp(i).lambda*spm_log(spm_dot(MDP(1).mdp(i).A{4},xn)));
+
+            for j = 1:numel(MDP(2).mdp(i).xn)                              
+                xn{j} = MDP(2).mdp(i).xn{j}(end,:,2,1);                    
+            end
+            x2(:,end+1) = spm_softmax(MDP(2).mdp(i).lambda*spm_log(spm_dot(MDP(2).mdp(i).A{4},xn))); 
+
+            L = L + spm_log(x1(MDP(1).mdp(i).o(4,2),end)) + spm_log(x2(MDP(2).mdp(i).o(4,2),end));
         end
     end
     
@@ -855,7 +877,9 @@ end
 if M.rt == 1
 % Evaluate likelihood of reaction times
 %--------------------------------------------------------------------------
-    R = MDP_Stroop_RT(MDP);
+    R1 = MDP_Stroop_RT(MDP(1));
+    R2 = MDP_Stroop_RT(MDP(2));
+    R  = [R1 R2];
     L = L + sum(log( spm_Npdf(log(Y.r), R' - log(2), 1/256 )));
 end
 
