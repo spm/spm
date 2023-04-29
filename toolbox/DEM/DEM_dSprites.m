@@ -68,10 +68,10 @@ dSprite{2} = [ ...
 dSprite{3} = [ ...
     0 0 0 0 0 0 0 0;
     0 0 1 1 1 1 0 0;
-    0 1 1 1 1 1 1 0;
+    0 1 1 0 0 1 1 0;
     1 1 1 0 0 1 1 1;
-    1 1 1 0 0 1 1 1;
-    0 1 1 1 1 1 1 0;
+    1 1 0 0 0 0 1 1;
+    0 1 1 0 0 1 1 0;
     0 0 1 1 1 1 0 0;
     0 0 0 0 0 0 0 0];
 
@@ -88,7 +88,7 @@ dSprite{3} = [ ...
 %--------------------------------------------------------------------------
 label.factor  = {'x','y','kind'};
 
-Nx    = 8;                          % number of pixels
+Nx    = 9;                          % number of pixels
 Nk    = numel(dSprite);             % number of dSprite kinds
 
 for i = 1:Nx, label.name{1}{i} = sprintf('x%i',i); end
@@ -204,7 +204,6 @@ for x = 1:Nf(1)
 end
 
 
-
 %% priors: (cost) C
 %--------------------------------------------------------------------------
 % Finally, specify the prior preferences in terms of log probabilities over
@@ -215,10 +214,8 @@ end
 for g = 1:numel(A)
     C{g} = zeros(1,size(A{g},1));
 end
+C{end}   = [8; 0]; %%%%
 
-% with a preference for rewarding outcomes
-%--------------------------------------------------------------------------
-C{end}   = [128,0];
 
 % This concludes the ABC of the model; namely, the likelihood mapping,
 % prior transitions and preferences. Now, specify (uninformative) prior
@@ -305,17 +302,14 @@ OPTIONS.N = 0;                             % suppress neuronal responses
 OPTIONS.O = 0;                             % suppress probabilistic outcomes
 OPTIONS.G = 1;                             % suppress graphics
 
-[Nf,Ns,Nu] = spm_MDP_size(mdp);
-
 % default priors
 %--------------------------------------------------------------------------
 [Nf,Ns,Nu] = spm_MDP_size(mdp);
 MDP   = mdp;
-MDP.tol = 4;
+MDP          = rmfield(MDP,'b');           % transition priors
 for f = 1:Nf
     MDP.D{f} = ones(Ns(f),1);              % initial state
     MDP.E{f} = ones(Nu(f),1);              % initial control
-    MDP.b{f} = (mdp.b{f} > 1)*exp(16);     % initial control
 end
 MDP.T = 512;
 MDP.N = 0;
@@ -328,11 +322,11 @@ for d = 1:numel(dSprite)
     % active inference and learning
     %----------------------------------------------------------------------
     PDP   = spm_MDP_VB_XXX(MDP,OPTIONS);   % invert
-    MDP.a = PDP.a;                         % update likelihood parameters
+    MDP   = spm_MDP_VB_update(MDP,PDP,OPTIONS);  % update parameters
 
 
     % report graphically
-    %==================================================================
+    %======================================================================
     if OPTIONS.G
 
         spm_figure('GetWin','inference'); clf
@@ -342,7 +336,7 @@ for d = 1:numel(dSprite)
         spm_report(PDP)
 
         % illustrate learning over trials
-        %----------------------------------------------------------------------
+        %------------------------------------------------------------------
         spm_figure('GetWin','learning');
 
         subplot(4,1,1), plot(PDP.F)             % free energy (states)
@@ -362,7 +356,7 @@ for d = 1:numel(dSprite)
 
 
         % reward outcomes
-        %----------------------------------------------------------------------
+        %------------------------------------------------------------------
         subplot(4,1,4), plot(conv(PDP.o(end,:) == 1, ones(32,1)/32,'same'))
         xlabel('trials'), ylabel('number')
         title('Performance (rewards)','FontSize',14)
@@ -461,13 +455,13 @@ end
 %--------------------------------------------------------------------------
 for f = 1:Nf(3)
     if isfield(MDP,'a')
-        R = sum(MDP.a{end}(:,:,:,f),1);
+        R = sum(MDP.a{1}(:,:,:,f),1);
     else
-        R = sum(MDP.A{end}(:,:,:,f),1);
+        R = sum(MDP.A{1}(:,:,:,f),1);
     end
     R = squeeze(R(1,:,:));
     subplot(6,3,f + 3*3)
-    image(64*R/(MDP.T/prod(Nf(1:2))))
+    image(32*R/(MDP.T/prod(Nf(1:2))))
     axis image, title(sprintf('Dirichlet counts (%i)',f))
 end
 
@@ -519,8 +513,8 @@ K = spm_cat(K');
 DEMO_MDP_maze_X
 DEM_surveillance
 DEM_dSprites
+DEM_sharingX
 DEM_syntax
-
 
 
 

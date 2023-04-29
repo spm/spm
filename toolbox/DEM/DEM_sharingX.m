@@ -333,7 +333,8 @@ mdp.n = n;                        % shared states
 
 mdp.label = label;                % labels
 mdp.id    = ID{1};                % domains
-mdp.eta   = 32;                   % Dirichlet hyperprior [learnability]
+mdp.eta   = 32;                   % Dirichlet hyperprior [512]
+mdp.beta  = 64;                   % learning precision [1]
 
 % create a cohort of agents, each with their unique likelihood mapping
 %--------------------------------------------------------------------------
@@ -593,7 +594,7 @@ for gn = 1:NG                              % for each generation
             if j == 1 && gn == 1
                 title(sprintf('agent %i',i))
             end
-            if j == 1 && i == 1 && g > 1
+            if j == 1 && i == 2 && gn > 1
                 title(sprintf('generation %i',gn))
             end
         end
@@ -669,7 +670,7 @@ for t = 1:NT % for each exposure
             %--------------------------------------------------------------
             subplot(6,4,numel(MDP)*4 + tt)
             for m = (i + 1):numel(MDP)
-                plot(MDP(i).a{k}(:),MDP(m).a{k}(:),'.'), axis square, hold on
+                plot(MDP(i).a{k}(:),MDP(m).a{k}(:),'.'), axis image, hold on
                 xlabel('Dirichlet counts')
             end
 
@@ -688,6 +689,21 @@ for t = 1:NT % for each exposure
     %----------------------------------------------------------------------
     MDP = spm_MDP_VB_update(MDP,PDP,OPTIONS);
 
+    % check on inference
+    %----------------------------------------------------------------------
+    [f,m] = min(sum(spm_cat({PDP.F}'),2));
+    if f < -128 && false
+        spm_figure('GetWin','inference');
+        spm_MDP_VB_trial(PDP(m),1:4,1:8);
+
+        subplot(6,2,5)
+        bar(PDP(m).F)
+        title('Free energies'),ylabel('agent')
+
+        subplot(6,2,7)
+        image(64 + full(spm_cat({PDP.F}')))
+        title('Free energies'),ylabel('agent')
+    end
 
     % report acquisition
     %======================================================================
@@ -695,7 +711,7 @@ for t = 1:NT % for each exposure
     for i = 1:numel(MDP)
         for j = (i + 1):numel(MDP)
             KL(t,i,j) = spm_KL_cat(MDP(i).a{k},MDP(j).a{k});
-            plot(1:t,KL(:,i,j)), set(gca,'XLim',[1,NT]); hold on
+            plot(1:t,KL(:,i,j)), set(gca,'XLim',[1,NT]), hold on
         end
         MI(t,i) = spm_MDP_MI(MDP(i).a{k}(:,:));
         CI(t,i) = spm_KL_dir(MDP(i).a{k}(:,:),a0{i,k});
@@ -707,12 +723,12 @@ for t = 1:NT % for each exposure
     FA(:,t) = sum(spm_cat({PDP.Fa}'),2);
 
     subplot(3,4,10)
-    plot(-FQ'), axis([1 NT 0 256])
+    plot(-FQ'/ndp.T/Ng), axis([1 NT -1 3])
     title({'Free energy','(inference)'}),xlabel('time'),ylabel('nats')
     box off, axis square
 
     subplot(3,4,11)
-    plot(-FA'), axis([1 NT -2 2])
+    plot(-FA'), axis([1 NT -1 3])
     title({'Free energy','(learning)'}),xlabel('time'),ylabel('nats')
     box off, axis square
 
@@ -731,7 +747,7 @@ end
 spm_figure('GetWin','Generalised synchrony');
 %--------------------------------------------------------------------------
 subplot(3,2,1)
-imagesc(FQ > -128)
+imagesc(FQ/ndp.T/Ng > -1)
 title('Joint free energy','FontSize',14)
 xlabel('episodes'),ylabel('agent')
 axis square

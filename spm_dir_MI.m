@@ -27,7 +27,7 @@ for i = 1:numel(E)
     E(i) = spm_H(a(:,i));
 end
 E     = sum(a)*E/sum(a,'all');                 % H(Y|X)
-E     = spm_H(sum(a,2)) - E;                   % M = IH(Y) - H(Y|X)
+E     = spm_H(sum(a,2)) - E;                   % MI = H(Y) - H(Y|X)
 
 return
 
