@@ -45,11 +45,11 @@ function [qA,pA] = spm_MDP_VB_prune(qA,pA,f,T,C,OPT)
 %--------------------------------------------------------------------------
 nd  = size(qA);                           % size of tensor
 
-if nargin < 2, pA  = 0*qA + exp(-3); end  % default priors
-if nargin < 3, f   = 0;              end  % no contraction
-if nargin < 4, T   = 0;              end  % Occam's threshold
-if nargin < 5, C   = 0;              end  % no preferences
-if nargin < 6, OPT = 'MI';           end  % BMR type
+if nargin < 2, pA  = 0*qA + 1; end  % default priors
+if nargin < 3, f   = 0;        end  % no contraction
+if nargin < 4, T   = 0;        end  % Occam's threshold
+if nargin < 5, C   = 0;        end  % no preferences
+if nargin < 6, OPT = 'MI';     end  % BMR type
 
 s   = prod(nd(f + 1));                    % contraction scaling
 
@@ -99,7 +99,7 @@ if ~T
 
     % Bayesian model averaging based on reduced free energy
     %----------------------------------------------------------------------
-    P   = spm_softmax(512*[F; spm_zeros(F)]);
+    P   = spm_softmax(32*[F; spm_zeros(F)]);
     qA  = times(sA,P(1,:)) + times(qA,P(2,:));
     pA  = times(rA,P(1,:)) + times(pA,P(2,:));
 

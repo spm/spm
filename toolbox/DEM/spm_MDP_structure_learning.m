@@ -4,7 +4,7 @@ function mdp = spm_MDP_structure_learning(mdp,MDP)
 % FORMAT mdp = spm_MDP_structure_learning(mdp,o)
 % FORMAT mdp = spm_MDP_structure_learning(mdp)
 %
-% mdp.p - initial Dirichlet counts [exp(-3)]
+% mdp.p - initial Dirichlet counts [exp( 0)]
 % mdp.q - precise Dirichlet counts [exp(16)]
 % MDP   - generative process or
 %
@@ -66,7 +66,7 @@ function mdp = spm_MDP_structure_learning(mdp,MDP)
 % initialise model (mdp)
 %==========================================================================
 try mdp.l; catch, mdp.l  = 1;       end      % structure learning
-try mdp.p; catch, mdp.p  = exp(-3); end      % initial Dirichlet counts
+try mdp.p; catch, mdp.p  = 1;       end      % initial Dirichlet counts
 try mdp.q; catch, mdp.q  = exp(16); end      % precise Dirichlet counts
 try mdp.r; catch, mdp.r  = 1;       end      % repetitions
 
@@ -79,7 +79,7 @@ mdp = spm_MDP_initialise(mdp);
 OPTIONS.N = 0;                             % suppress neuronal responses
 OPTIONS.P = 0;                             % suppress plotting
 OPTIONS.B = 1;                             % replay
-OPTIONS.G = 2;                             % suppress graphics
+OPTIONS.G = 1;                             % suppress graphics
 
 % generate outcomes if necessary
 %==========================================================================
@@ -193,7 +193,7 @@ if isfield(mdp,'D')
 else
     NF = 0;
 end
-NS     = [16,8,4,2];                          % maximum number of states
+NS     = [16,16,16,4];                        % maximum number of states
 NU     = [ 8,8,8,8];                          % maximum number of paths
  
 
@@ -700,7 +700,7 @@ mdp = spm_MDP_VB_XXX(mdp,OPTIONS);
 
 % path integral of ELBO
 %--------------------------------------------------------------------------
-F   = mdp.F;
+F   = sum(mdp.F);
 
 % mutual information of likelihood
 %--------------------------------------------------------------------------

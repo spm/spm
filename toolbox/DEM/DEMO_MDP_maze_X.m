@@ -104,7 +104,7 @@ U     = (1:nu)';
 % priors: (negative cost) C: does not like what shocks and wants to be near
 % the target location
 %--------------------------------------------------------------------------
-C{1}  = [2,-2];
+C{1}  = [1;-1]*2;
 [X,Y] = ind2sub(size(MAZE),END);
 for i = 1:No(2)
     [x,y]   = ind2sub(size(MAZE),i);
@@ -164,6 +164,7 @@ spm_MDP_VB_LFP(MDP); subplot(3,2,5); delete(gca)
 clear MDP
 mdp.a{1}   = ones(size(mdp.A{1}));
 mdp.a{2}   = mdp.A{2}*128;
+mdp.N      = 2;
 [MDP(1:5)] = deal(mdp);
 MDP = spm_MDP_VB_XXX(MDP);
 
@@ -172,13 +173,13 @@ spm_maze_plot(MDP,END)
 
 
 %% pure exploration
-% removing preferences about proximity to target location
+% removing preferences about proximity to target location (and shocks)
 %==========================================================================
 rng(1)
 clear MDP
 mdp.a{1}  = ones(size(mdp.A{1}));
-mdp.a{2}  = mdp.A{2}*128;
-mdp.C{2}  = spm_zeros(C{2});
+mdp.a{2}  = mdp.A{2}*512;
+mdp.C     = spm_zeros(C);
 mdp.s     = START;
 mdp.D     = D;
 mdp.T     = 128;

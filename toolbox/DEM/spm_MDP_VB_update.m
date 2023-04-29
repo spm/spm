@@ -8,7 +8,7 @@ function [MDP] = spm_MDP_VB_update(MDP,PDP,OPTIONS)
 % OPTIONS.d   - update of initial states of hidden factors d [default: []]
 % OPTIONS.BMR - Bayesian model reduction options:
 %
-% BMR.g - Bayesian model reduction of modality g [default: 1]
+% BMR.g - Bayesian model reduction of modality g [default: all]
 % BMR.f - hidden factors to contract over [default: 0]
 % BMR.o - outcomes - that induce REM [default: {}]
 % BMR.T - Occams threshold [default: 2]
@@ -67,10 +67,14 @@ if isfield(OPTIONS,'BMR')
     % BMR options
     %----------------------------------------------------------------------
     BMR = OPTIONS.BMR;
-    try, BMR.g; catch, BMR.g = 1;  end       % outcome modality
+    try, BMR.g; catch, BMR.g = 0;  end       % outcome modality
     try, BMR.f; catch, BMR.f = 0;  end       % factors to contract over
     try, BMR.o; catch, BMR.o = {}; end       % outcomes for empirical BMS
     try, BMR.T; catch, BMR.T = 0;  end       % outcomes for empirical BMS
+
+    % default: all modalities
+    %----------------------------------------------------------------------
+    if ~BMR.g, BMR.g = 1:numel(MDP.a); end
 
     % Baysian model reduction - likelihood parameters
     %----------------------------------------------------------------------

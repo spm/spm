@@ -1,6 +1,6 @@
-function [P,F] = spm_VBX(O,P,A,id,TOL)
+function [P,F] = spm_VBX(O,P,A,id)
 % vvariational Bayes estimate of categorical posterior over factors
-% FORMAT [Q,F] = spm_VBX(O,P,A,id,[tol,METHOD])
+% FORMAT [Q,F] = spm_VBX(O,P,A,id)
 %
 % O{g}    -  outcome probabilities over each of G modalities
 % P{f}    -  (empirical) prior over each of F factors
@@ -10,16 +10,19 @@ function [P,F] = spm_VBX(O,P,A,id,TOL)
 % F       -  (-ve)  variational free energy or ELBO
 %
 % This routine is a simple implementation of variational Bayes for discrete
-% state space models  under a mean field approximation, in which latent
+% state space models under a mean field approximation, in which latent
 % states are partitioned into factors (and the distribution over outcomes
 % is also assumed to be conditionally independent). It takes cell arrays of
-% outcome probabilities,  prior probabilities over factors and a likelihood
-% tensor parameterising the  likelihood of an outcome for any combination
-% of latent states. The optional argument METHOD [default: exact] switches
+% outcome probabilities, prior probabilities over factors and a likelihood
+% tensor parameterising the likelihood of an outcome for any combination
+% of latent states. The optional argument METHOD [default: full] switches
 % among number of approximate schemes:
 %
 % 'full'    :  a vanilla variational scheme that uses a coordinate descent
-% over a small number (four) iterations
+% over a small number (8) iterations (fixed point iteration). This is
+% computationally efficient, using only nontrivial posterior probabilities
+% and the domain of the likelihood mapping in tensor operations.
+% 
 %
 % 'exact'   :  a non-iterative heuristic but numerically accurate scheme
 % that replaces the variational density over hidden factors with the
@@ -39,8 +42,8 @@ function [P,F] = spm_VBX(O,P,A,id,TOL)
 
 % preliminaries
 %--------------------------------------------------------------------------
-if nargin < 5, TOL    = 16;      end
-if nargin < 6, METHOD = 'full'; end
+TOL    = 16;
+METHOD = 'full';
 
 switch METHOD
 
@@ -63,6 +66,7 @@ switch METHOD
         for g = 1:numel(O)
             j  = id.A{g};
             LL = spm_log(spm_dot(A{g}(:,i{j}),O{g}));
+            
             k  = ones(1,8); k(j) = size(LL,1:numel(j));
             L  = plus(L,reshape(LL,k));
         end
