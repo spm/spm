@@ -22,7 +22,7 @@ function DCM = spm_dcm_specify_ui(SPM,xY,settings)
 % DCM      - DCM structure (see spm_dcm_ui)
 %__________________________________________________________________________
 
-% Karl Friston
+% Karl Friston & Peter Zeidman
 % Copyright (C) 2002-2022 Wellcome Centre for Human Neuroimaging
 
 
@@ -68,35 +68,30 @@ elseif iscell(xY) && iscell(xY{1}) && isfield(settings,'induced') ...
     xY = xY_multisess{1};
 end
 
-m = numel(xY);
+% Get 
+m   = numel(xY);
+Sess = SPM.Sess(xY(1).Sess);
 
 %==========================================================================
-% Inputs
+% Inputs or 'causes' U
 %==========================================================================
-
-%-Get (nc) 'causes' or inputs U
-%--------------------------------------------------------------------------
-spm_input('Input specification:...  ',1,'d');
-Sess   = SPM.Sess(xY(1).Sess);
-if isempty(Sess.U)
+if isempty(Sess.U) || ...
+        (isfield(settings,'u') && isempty(settings.u)) || ...
+        (isfield(settings,'cond') && isempty(fieldnames(settings.cond)))
     
-    % spontaneous activity, i.e. no stimuli
-    %----------------------------------------------------------------------
+    % Output structure for resting state experiments
     U.u    = zeros(length(xY(1).u),1);
     U.name = {'null'};
     U.idx  = 0;
-    
-else
-    
-    % with stimuli
-    %----------------------------------------------------------------------
+else   
+    % Output structure for task-based experiments
     U.dt   = Sess.U(1).dt;
     u      = length(Sess.U);
     U.name = {};
     U.u    = [];
-    U.idx  = [];
-    
+        
     % Perform checks related to timeseries adjustment
+    %----------------------------------------------------------------------
     ex = [];
     try Ic = xY(1).Ic; catch, Ic = []; end    
     if ~isempty(Ic)        
@@ -106,44 +101,143 @@ else
                      'This may not have been intentional.']);
         end
         
-        % Identify excluded regressors
+        % Identify excluded regressors for subsequent checks
         if isnan(Ic)
             ex = 1:size(SPM.xX.X,2);
         elseif Ic > 0
             ex = find(~any(SPM.xCon(Ic).c'));
         end
     end        
+    
+    % Check form of input specification
+    %----------------------------------------------------------------------
+    if isfield(settings,'cond') && isfield(settings,'u')
+        error('Please provide either settings.cond or settings.u, not both');
+    end
+        
+    %-If condition names were provided for inputs, build input structure
+    %----------------------------------------------------------------------
+    if isfield(settings,'cond')                
+        U.idx  = {};
 
-    for i = 1:u
-        for j = 1:length(Sess.U(i).name)
-            str = ['include ' Sess.U(i).name{j} '?'];
+        for a = 1:length(settings.cond)
+            % Get name for the new condition
+            name = strtrim(settings.cond(a).name);
             
-            try
-                include_condition = (settings.u(i,j) == 1);
-            catch
-                include_condition = spm_input(str,'+1','y/n',[1 0],1);
+            % Get cell array of corresponding SPM condition names
+            if isfield(settings.cond(a),'spmname')
+                spmname = settings.cond(a).spmname;
+            else
+                spmname = name;
             end
-            
-            if include_condition
-                U.u             = [U.u Sess.U(i).u(33:end,j)];
-                U.name{end + 1} = Sess.U(i).name{j};
-                U.idx           = [U.idx; i j];
-                
-                % Check this condition wasn't excluded using an F-contrast
-                if isfield(Sess,'Fc')
-                    col = Sess.col(Sess.Fc(i).i(j));
-                    if ismember(col, ex)
-                        str = (['Condition %s was excluded using an ' ...
-                            'effects of interest F-contrast during VOI ' ...
-                            'extraction, but was included in the DCM. Please ' ...
-                            'revisit VOI extraction.']);
-                        warning(str,Sess.U(i).name{j});
+            if ~iscell(spmname)
+                spmname = {spmname};
+            end
+
+            % Get timeseries for this new condition (Ucond) and original
+            % condition indices (idx_all)
+            Ucond = [];
+            idx_all = [];
+            for b = 1:length(spmname) 
+                % Locate this condition within the SPM
+                target = strtrim(spmname{b});
+                idx = [];
+                for i = 1:u % condition
+                    for j = 1:length(Sess.U(i).name) % regressor
+                        if strcmpi(strtrim(Sess.U(i).name{j}),target)
+                            idx = [idx; i j];
+                        end
                     end
-                end                
+                end
+
+                % Check for ambiguity
+                if size(idx,1) > 1
+                    error('Ambiguous condition name requested: %s',target);
+                end
+
+                % Store condition indices
+                idx_all = [idx_all; idx];
+                
+                % Get timeseries (concatenate horizontally)
+                Ucond = [Ucond, Sess.U(idx(1)).u(33:end,idx(2))];
             end
             
+            % Combine regressors within condition by summing
+            Ucond = sum(Ucond,2);
+            
+            % Store for use in DCM
+            U.name{a} = name;
+            U.u       = [U.u Ucond];
+            U.idx{a}  = idx_all;
+            
+        end % settings.cond
+          
+    % Alternatively, build inputs from GUI or condition indices
+    %----------------------------------------------------------------------
+    else        
+        spm_input('Input specification:...  ',1,'d');
+        U.idx = [];
+        
+        % Requested matrix of conditions to include
+        if isfield(settings,'u')
+            request = settings.u; 
+            
+            % Ensure column vector
+            if isvector(request)
+                request = request(:);
+            end
+        else
+            request = [];
+        end
+                
+        % Loop through each condition
+        for i = 1:u           
+            
+            % Include if requested
+            for j = 1:length(Sess.U(i).name)
+                str = ['include ' Sess.U(i).name{j} '?'];
+
+                try
+                    include_condition = (request(i,j) == 1);
+                catch
+                    include_condition = spm_input(str,'+1','y/n',[1 0],1);
+                end
+
+                if include_condition
+                    U.u             = [U.u Sess.U(i).u(33:end,j)];
+                    U.name{end + 1} = Sess.U(i).name{j};
+                    U.idx           = [U.idx; i j];
+                end
+
+            end
         end
     end
+    
+    % Check no included condition was excluded using an F-contrast
+    %----------------------------------------------------------------------
+    if isfield(Sess,'Fc')
+        str = (['Condition %s was excluded using an ' ...
+            'effects of interest F-contrast during VOI ' ...
+            'extraction, but was included in the DCM. Please ' ...
+            'revisit VOI extraction.']);
+
+        % each row is a tuple with [condition_index regressor_index];
+        if iscell(U.idx)
+            idx = cell2mat(U.idx(:));
+        else
+            idx = U.idx;
+        end
+        
+        for k = 1:size(idx,1)
+            i = idx(k,1);
+            j = idx(k,2);
+            
+            col = Sess.col(Sess.Fc(i).i(j));
+            if ismember(col, ex)
+                warning(str,Sess.U(i).name{j});
+            end
+        end
+    end                    
     
     % Check for at least one (null) input
     %----------------------------------------------------------------------
