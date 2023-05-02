@@ -75,7 +75,7 @@ switch spm_file(f,'ext')
         delete(fz{:});
         rmdir(spm_file(fz{1},'path'));
         if ~sts, error('Cannot load ''%s''.',f); end
-        
+
     otherwise
         try
             x = load(f);
@@ -140,8 +140,16 @@ eol   = sprintf('\n');
 %--------------------------------------------------------------------------
 S   = fileread(f); % spm_file(f,'local','content');
 if isempty(S), x = []; return; end
+% New line at end of file
 if S(end) ~= eol, S = [S eol]; end
-if S(1) == 65279, S(1) = []; end % Byte order mark (BOM),U+FEFF,0xEF,0xBB,0xBF
+% Byte order mark (BOM): U+FEFF, 0xEF,0xBB,0xBF
+if S(1) == 65279
+    S(1) = [];
+end
+if numel(S) > 2 && isequal(S(1:3),[239 187 191])
+    S(1:3) = [];
+end
+% Remove carriage returns and consecutive newlines
 S   = regexprep(S,{'\r\n','\r','(\n)\1+'},{'\n','\n','$1'});
 
 %-Get column names from header line (non-numeric first line)
