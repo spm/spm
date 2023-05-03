@@ -12,7 +12,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        version: ["R2020a", "R2020b", "R2021a", "R2021b", "R2022a", "R2022b"]
+        version: ["R2020a", "R2020b", "R2021a", "R2021b", "R2022a", "R2022b", "R2023a"]
         os: ["ubuntu-latest", "macos-latest", "windows-latest"]
         exclude:
           - os: windows-latest
