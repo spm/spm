@@ -39,20 +39,20 @@ DCM = run_specify(cond,SPM,testCase);
 k = 33:(size(SPM.Sess.U(1).u,1));
 
 testCase.assertEqual(DCM.U.u(:,1), ...
-    SPM.Sess.U(1).u(k,1) + SPM.Sess.U(2).u(k,1) + ...
-    SPM.Sess.U(3).u(k,1) + SPM.Sess.U(4).u(k,1));
+    double(SPM.Sess.U(1).u(k,1) | SPM.Sess.U(2).u(k,1) | ...
+    SPM.Sess.U(3).u(k,1) | SPM.Sess.U(4).u(k,1)));
 
 testCase.assertEqual(DCM.U.u(:,2), ...
-    SPM.Sess.U(3).u(k,1) + SPM.Sess.U(4).u(k,1));
+    double(SPM.Sess.U(3).u(k,1) | SPM.Sess.U(4).u(k,1)));
 
 testCase.assertEqual(DCM.U.u(:,3), ...
-    SPM.Sess.U(2).u(k,1) + SPM.Sess.U(4).u(k,1));
+    double(SPM.Sess.U(2).u(k,1) | SPM.Sess.U(4).u(k,1)));
 
 testCase.assertEqual(DCM.U.u(:,4), ...
-    SPM.Sess.U(2).u(k,2) + SPM.Sess.U(4).u(k,2));
+    double(SPM.Sess.U(2).u(k,2) | SPM.Sess.U(4).u(k,2)));
 
 testCase.assertEqual(DCM.U.u(:,5), ...
-    SPM.Sess.U(2).u(k,3) + SPM.Sess.U(4).u(k,3));
+    double(SPM.Sess.U(2).u(k,3) | SPM.Sess.U(4).u(k,3)));
 
 
 % -------------------------------------------------------------------------

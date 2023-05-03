@@ -9,7 +9,6 @@ function DCM = spm_dcm_specify_ui(SPM,xY,settings)
 % settings - (optional) Structure of pre-populated settings for testing the
 %            GUI without mouse clicks.
 %
-%             .u(i,j)      whether to include condition i regressor j
 %             .delays      vector of delays [1 x n]
 %             .TE          echo time
 %             .nonlinear   non-linear DCM
@@ -18,6 +17,13 @@ function DCM = spm_dcm_specify_ui(SPM,xY,settings)
 %             .centre      mean-centring of inputs
 %             .induced     induced responses)
 %             .a .b .c .d  connectivity matrices
+%
+%             .cond(k).name    desired name for the k-th condition (input)
+%             .cond(k).spmname corresponding condition name in SPM.Sess.U,
+%                              or cell array of names to binarize and merge
+%
+%          	  .u(i,j)          whether to include condition i regressor j
+%                              (as an alternative to .cond)
 %
 % DCM      - DCM structure (see spm_dcm_ui)
 %__________________________________________________________________________
@@ -162,8 +168,8 @@ else
                 Ucond = [Ucond, Sess.U(idx(1)).u(33:end,idx(2))];
             end
             
-            % Combine regressors within condition by summing
-            Ucond = sum(Ucond,2);
+            % Combine regressors within condition by an OR operation
+            Ucond = double(any(Ucond,2));
             
             % Store for use in DCM
             U.name{a} = name;
@@ -190,10 +196,8 @@ else
             request = [];
         end
                 
-        % Loop through each condition
+        % Loop through each condition and include if requested
         for i = 1:u           
-            
-            % Include if requested
             for j = 1:length(Sess.U(i).name)
                 str = ['include ' Sess.U(i).name{j} '?'];
 
@@ -208,9 +212,9 @@ else
                     U.name{end + 1} = Sess.U(i).name{j};
                     U.idx           = [U.idx; i j];
                 end
-
             end
         end
+        
     end
     
     % Check no included condition was excluded using an F-contrast
@@ -356,6 +360,41 @@ catch
     d = query_user_for_d(a, xY, options.nonlinear, f);
 end
 
+%==========================================================================
+% GUI-only option: offer to merge driving inputs into a single input
+%==========================================================================
+inputs_per_region = sum(c,2);
+max_inputs        = max(inputs_per_region);
+
+if ~isfield(settings,'u') && ~isfield(settings,'cond') && max_inputs > 1
+    
+    spm_input('Additional options:...  ',-1,'d');
+    
+    do_merge = ...
+        spm_input('Merge & binarize driving inputs?','+1','b',{'no','yes'},[0 1],1);
+    
+    if do_merge
+        % Create the new merged condition
+        is_condition_driving = sum(c) > 0;
+        U.u(:,end+1)  = any(U.u(:,is_condition_driving), 2);
+        U.name{end+1} = 'Task';
+        if iscell(U.idx)
+            U.idx{end+1} = 0;
+        else
+            U.idx(end+1,:) = [0 0];
+        end
+        
+        % Switch off current driving inputs
+        c = c .* 0;
+        
+        % Switch on the new driving input
+        c(inputs_per_region > 0,end+1) = 1;
+        
+        % Set the new driving input not to modulate
+        b(:,:,end+1) = zeros(size(b,1),size(b,2));
+    end
+end
+    
 % Finish
 spm_input('Thank you',1,'d')
 

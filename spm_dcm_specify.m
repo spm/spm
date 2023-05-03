@@ -24,7 +24,8 @@ function DCM = spm_dcm_specify(SPM,xY,settings)
 %                                 % conditions in the SPM.mat file, see
 %                                 % SPM.Sess(s).U.name. If multiple names 
 %                                 % are provided then they will be combined 
-%                                 % by summing the regressors.
+%                                 % by binarizing the regressors and performing 
+%                                 an 'OR' operation.
 %
 % cond(2).name    = 'Condition2';
 % cond(2).spmname = {'c3','c4'}; 
