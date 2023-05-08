@@ -1846,8 +1846,47 @@ try,  MDP.MDP(1).e = OUT.mdp(end).e; end
 
 return
 
+function r = spm_gamrnd(h,l)
+% samples from a gamma distribution
+% FORMAT r = spm_gamrnd(h,lambda)
+% h - shape parameter
+% l - scale parameter
+%
+% generates a random number from the gamma distribution with the shape
+% parameter h and the scale parameter l.
+%
+% e.g.: r = spm_gamrnd(1,2)
+% r = 
+%     7.1297
+%
+% see also: spm_Gpdf(x,h,l)
+%__________________________________________________________________________
 
+U = rand(10000,h);
+r = sum(-log(U),2)/l;
 
+return
+
+function r = spm_drchrnd(a,n)
+% samples from a Dirichlet distribution
+% FORMAT r = spm_drchrnd(a,n)
+% a - Dirichlet paramters
+% l - scale parameter
+%
+% e.g.: A = spm_drchrnd([1 1 1 1], 3)
+% 
+% A =
+% 
+% 0.3889 0.1738 0.0866 0.3507
+% 0.0130 0.0874 0.6416 0.2579
+% 0.0251 0.0105 0.2716 0.6928
+%__________________________________________________________________________
+
+p = length(a);
+r = spm_gamrnd(repmat(a,n,1),1,n,p);
+r = r ./ repmat(sum(r,2),1,p);
+
+return
 
 
 
@@ -1963,12 +2002,12 @@ legend({'assimilation','new state'})
 psi_norm = @(a) minus(psi(a),psi(sum(a,1)));
 
 n = 8;
-a = eye(8,8)*2 + rand(8,8);
-q = spm_softmax(randn(8,1).^2);
+a = eye(8,8)*4 + rand(8,8);
+q = spm_softmax(randn(8,1).^4);
 
-L1 = spm_dot(psi_norm(a),{q});
-L2 = spm_dot(spm_log(spm_dir_norm(a)),{q});
-L3 = spm_log(spm_dot(spm_dir_norm(a),{q}));
+L1 = spm_dot(psi_norm(a),q);
+L2 = spm_dot(spm_log(spm_dir_norm(a)),q);
+L3 = spm_log(spm_dot(spm_dir_norm(a),q));
 
 
 subplot(2,1,1), hold off

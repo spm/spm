@@ -206,11 +206,13 @@ end
 %  proximity:     Close and far
 %  pose:          friend or foe
 %--------------------------------------------------------------------------
-for g = 1:5
+for g = 1:4
     A0{g}     = zeros([No(g),Ns]);        % agent-specific outcomes
 end
-for f = 1:3
-    A0{f + 5} = zeros([Ns(f),Ns(f)]);     % shared (communication) outcomes
+g     = 5;
+A0{g}         = zeros([No(g),No(g)]);     % proprioception
+for g = 6:8
+    A0{g}     = zeros([No(g),No(g)]);     % shared (communication) outcomes
 end
 
 % for each agent
@@ -253,7 +255,7 @@ for m = 1:nm
 
                     % proprioception
                     %------------------------------------------------------
-                    A{5}(u,s1,s2,s3,u) = 1;
+                    % A{5}(u,s1,s2,s3,u) = 1;
 
                     % communication (see belief sharing)
                     %------------------------------------------------------
@@ -272,12 +274,16 @@ for m = 1:nm
         end
     end
 
+    % proprioception
+    %----------------------------------------------------------------------
+    A{5}    = eye(No(5),No(5));
+    id.A{5} = 4;
+
     % belief sharing and domains of likelihood mappings (ID)
     %----------------------------------------------------------------------
-    for g = Cg
-        f       = g - 5;
-        A{g}    = eye(Ns(f),Ns(f));
-        id.A{g} = f;
+    for g = 6:8
+        A{g}    = eye(No(g),No(g));
+        id.A{g} = g - 5;
     end
     ID{m} = id;                  
 
@@ -334,7 +340,7 @@ mdp.n = n;                        % shared states
 mdp.label = label;                % labels
 mdp.id    = ID{1};                % domains
 mdp.eta   = 32;                   % Dirichlet hyperprior [512]
-mdp.beta  = 64;                   % learning precision [1]
+mdp.beta  = 512;                  % learning precision [1]
 
 % create a cohort of agents, each with their unique likelihood mapping
 %--------------------------------------------------------------------------
@@ -343,6 +349,7 @@ for m = 1:numel(Am)
     MDP(m,1)    = mdp;
     MDP(m,1).A  = Am{m};
 end
+mdp   = rmfield(mdp,'s');
 
 % Solve - an example with multiple epochs
 %==========================================================================
@@ -364,7 +371,8 @@ end
 % reproduce scene and disable language (with an imprecise likelihood)
 %----------------------------------------------------------------------
 for m = 1:numel(Am)
-    NDP(m,1).s = MDP(m,1).s;
+    NDP(m,1).s        = spm_zeros(MDP(m,1).s);
+    NDP(m,1).s(1:3,:) = MDP(m,1).s(1:3,:);
     for g = Cg
         NDP(m,1).A{g} = ones(size(MDP(m,1).A{g}));
     end
@@ -429,7 +437,7 @@ spm_MDP_VB_trial(MDP(2),1:4,1:5);
 % illustrate physiological responses with and withoout language
 %--------------------------------------------------------------------------
 t     = 3;                               % at time t
-m     = 2;                               % in agent m
+m     = 3;                               % in agent m
 [i,j] = max(MDP(m).X{1}(:,t) - NDP(m).X{1}(:,t));
 spm_figure('GetWin','Figure 2a with language'); clf
 spm_MDP_VB_LFP(MDP(m),[j;t],1);
@@ -438,17 +446,6 @@ subplot(3,2,6), d = axis;
 spm_figure('GetWin','Figure 2b without language'); clf
 spm_MDP_VB_LFP(NDP(m),[j;t],1);
 
-% focus on first two seconds
-%--------------------------------------------------------------------------
-for i = [2,3,4]
-    spm_figure('GetWin','Figure 2a with language');
-    subplot(3,2,i), set(gca,'XLim',[0 2])
-    a = axis;
-    spm_figure('GetWin','Figure 2b without language');
-    subplot(3,2,i), set(gca,'XLim',[0 2])
-    axis(a);
-end
-subplot(3,2,6), axis(d);
 
 
 %% Language acquisition and cultural niche construction
@@ -462,16 +459,13 @@ subplot(3,2,6), axis(d);
 % four times, all the parents are replaced by children. The idea here is to
 % see whether the language survives in a transgenerational sense.
 %==========================================================================
-clear MDP
 spm_figure('GetWin','language acquisition'); clf
 spm_figure('GetWin','generations'); clf
 
-ndp   = rmfield(mdp,'s');
 NG    = 4;                                 % number of generations
 NT    = 32;                                % number of episodes
-ndp.T = 16;                                % number of epochs per episodes
-ndp.a = ndp.A;                             % initialise Dirichlet likelihood
-ndp   = rmfield(ndp,'A');                  % remove likelihood array
+mdp.T = 16;                                % number of epochs per episodes
+mdp.a = mdp.A;                             % initialise Dirichlet likelihood
 
 BMR.g     = Cg;                            % modalities [default: 1]
 BMR.T     = 0;                             % Occam's window [default: 0]
@@ -481,11 +475,11 @@ OPTIONS.BMR = BMR;                         % enable BMR
 
 % set up likelihood mappings of parents
 %--------------------------------------------------------------------------
-for m = 1:3                                % for each agent
-    MDP(m,1) = ndp;                        % initialise
-    for i = 1:numel(Am{m})
-        MDP(m,1).a{i} = Am{m}{i}*exp(16);
-    end
+clear MDP
+for m = 1:numel(Am)
+    MDP(m,1)    = mdp;
+    MDP(m,1).a  = Am{m};
+    MDP(m,1).A  = Am{m};
 end
 
 for gn = 1:NG                              % for each generation
@@ -615,44 +609,84 @@ end
 % likelihood tensors converge to a common frame of reference or ground;
 % thereby enabling belief sharing.
 %--------------------------------------------------------------------------
-spm_figure('GetWin','language emergence'); clf
+spm_figure('GetWin','original'); clf
 
-% set up naïve population
+% SIM = 1;                               % language learning
+% SIM = 2;                               % supervised structure learning
+% SIM = 3;                               % structure learning
+SIM   = 1;
+
+% likelihood mappings
 %--------------------------------------------------------------------------
 clear MDP
+for m = 1:numel(Am)
+    MDP(m,1)    = mdp;
+    MDP(m,1).a  = Am{m};
+    MDP(m,1).A  = Am{m};
+end
 
-NT    = 512;                             % number of episodes
-ndp.T = 16;                              % number of epochs per episode
-for m = 1:3                              % for each agent
+if SIM == 1
 
-    % likelihood mappings
+    % set up language naïve population
     %----------------------------------------------------------------------
-    MDP(m,1) = ndp;                      % initialise
-    for i = 1:numel(Am)
-        MDP(m,1).a{i} = Am{m}{i}*exp(16);
-    end
+    Cg    = [6 7 8];                     % modalities to suppress
+    k     = Cg(1);                       % modality to plot
+    for m = 1:3                          % for each agent
 
-    % initialise learnable (random) language mapping for all agents
-    %----------------------------------------------------------------------
-    for g = Cg
-        MDP(m,1).a{g} = abs(randn(size(MDP(m).a{g}))) + 1;
-        a0{m,g}       = MDP(m,1).a{g};
+        % initialise learnable (random) language mapping for all agents
+        %------------------------------------------------------------------
+        for g = Cg
+            MDP(m,1).a{g} = abs(randn(size(MDP(m).a{g}))) + 1;
+        end
+
+        % plot likelihood tensor (target)
+        %----------------------------------------------------------------------
+        for g = 1:numel(Cg)
+            subplot(6,4,(m - 1)*4 + g)
+            imagesc(MDP(m).A{Cg(g)}(:,:)), axis square
+            ylabel(sprintf('agent %i',m))
+            title(sprintf('modality %i',Cg(g)))
+        end
     end
 
 end
 
+if SIM > 1
+
+    % supervised structure learning
+    %----------------------------------------------------------------------
+    Cg    = [1 2 3 4];                   % modalities to suppress
+    k     = Cg(3);                       % modality to plot
+    for g = Cg
+        MDP(end,1).a{g} = abs(randn(size(MDP(m).a{g}))) + 1;
+    end
+
+    % remove language
+    %----------------------------------------------------------------------
+    if SIM > 2
+        for g = [6,7,8]
+            MDP(end,1).a{g}(:) = 64;
+        end
+    end
+end
+
+
 %% experience-dependent learning over NT episodes
 %==========================================================================
+spm_figure('GetWin','language emergence'); clf
+
+OPTIONS.BMR.g = Cg;                      % BMR of these modalities
+
+NT    = 512;                             % number of episodes
+mdp.T = 16;                              % number of epochs per episode
 tp    = [1 NT/4 NT/2 NT];                % times to plot
 tt    = 1;
 
-k     = Cg(1);                           % modality to plot
 KL    = [];                              % divergence among agents
 FQ    = [];                              % Free energy (inference)
 FA    = [];                              % Free energy (learning)
 MI    = [];                              % Mutual information (likelihood)
-CI    = [];                              % complexity (Dirichlet KL)
-for t = 1:NT % for each exposure
+for t = 1:NT                             % for each exposure
 
     % report accumulation of Dirichlet counts
     %======================================================================
@@ -662,7 +696,7 @@ for t = 1:NT % for each exposure
             % plot likelihood tensor
             %--------------------------------------------------------------
             subplot(6,4,(i - 1)*4 + tt)
-            imagesc(spm_dir_norm(MDP(i).a{k})), axis image
+            imagesc(spm_dir_norm(MDP(i).a{k}(:,:))), axis square
             if t == 1, ylabel(sprintf('agent %i',i)),   end
             if i == 1, title(sprintf('t = %i',tp(tt))), end
 
@@ -714,7 +748,6 @@ for t = 1:NT % for each exposure
             plot(1:t,KL(:,i,j)), set(gca,'XLim',[1,NT]), hold on
         end
         MI(t,i) = spm_MDP_MI(MDP(i).a{k}(:,:));
-        CI(t,i) = spm_KL_dir(MDP(i).a{k}(:,:),a0{i,k});
     end
     title({'KL divergence','(likelihood)'}),xlabel('time'),ylabel('nats')
     box off, axis square
@@ -723,7 +756,7 @@ for t = 1:NT % for each exposure
     FA(:,t) = sum(spm_cat({PDP.Fa}'),2);
 
     subplot(3,4,10)
-    plot(-FQ'/ndp.T/Ng), axis([1 NT -1 3])
+    plot(-FQ'/mdp.T/Ng), axis([1 NT -1 3])
     title({'Free energy','(inference)'}),xlabel('time'),ylabel('nats')
     box off, axis square
 
@@ -747,13 +780,13 @@ end
 spm_figure('GetWin','Generalised synchrony');
 %--------------------------------------------------------------------------
 subplot(3,2,1)
-imagesc(FQ/ndp.T/Ng > -1)
+imagesc(FQ/mdp.T/Ng > -1)
 title('Joint free energy','FontSize',14)
 xlabel('episodes'),ylabel('agent')
 axis square
 
 subplot(3,2,2)
-plot(CI)
+plot(cumsum(MI))
 title('Structural complexity','FontSize',14)
 xlabel('episodes'),ylabel('nats')
 axis square, spm_axis tight

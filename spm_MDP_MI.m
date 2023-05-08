@@ -18,15 +18,16 @@ function [E,dEda,dEdA] = spm_MDP_MI(a,C)
 % Copyright (C) 2022 Wellcome Centre for Human Neuroimaging
 
 
+
 % deal with tensors
 %--------------------------------------------------------------------------
-a      = a(:,:);
+a     = a(:,:);
 
-% expected information gain
+% expected information gain (and negative cost)
 %--------------------------------------------------------------------------
-s      = sum(a,'all');
-A      = a/s;
-E      = spm_MI(A);
+s     = sum(a,'all');
+A     = a/s;
+E     = spm_MI(A);
 
 % expected (negative) cost
 %--------------------------------------------------------------------------
@@ -40,16 +41,16 @@ if nargout < 2, return, end
 %--------------------------------------------------------------------------
 dEdA   = spm_log(A./(sum(A,2)*sum(A,1))) - 1;
 
-% dEda = dEdA/sum(a(:)) - sum(dEdA(:).*A(:))/(sum(a(:)));
-%--------------------------------------------------------------------------
-dEda   = (dEdA - sum(sum(dEdA.*A)))/s;
-
-% expected (negative) cost: dCda = C/s - sum(C*sum(a,2))/(s^2)
+% expected (negative) cost
 %--------------------------------------------------------------------------
 if nargin > 1
-    dEdA = bsxfun(@plus,dEdA,C');
-    dEda = bsxfun(@plus,dEda,(C' - sum(C'*sum(A,2)))'/s);
+    dEdA = plus(dEdA,C);
 end
+
+% dEda = dEdA.*dAda, dAda.*(1/s - a/(s^2))
+%--------------------------------------------------------------------------
+dEda   = dEdA.*(1 - A)/s;
+
 
 return
 
