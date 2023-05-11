@@ -78,7 +78,8 @@ else
             'location of regions',...
             'inputs',...
             'outputs',...
-            'kernels'};
+            'kernels',...
+            'parameter correlation'};
     if isfield(DCM,'qP')
         str = {str{:} ,...
             'estimates of states',...
@@ -440,6 +441,24 @@ switch action
 
         end
 
+    case {'parameter correlation'}
+        % Identify switched-on parameters
+        pind = spm_find_pC(DCM);
+        
+        % Get their names
+        pnames = spm_fieldindices(DCM.Ep, pind);
+        
+        % Compute posterior correlation
+        R = abs(spm_cov2corr(DCM.Cp));
+        
+        % Plot
+        imagesc(R(pind,pind));
+        axis square;
+        colormap gray; colorbar;
+        set(gca,'XTickLabel',pnames,'XTick',1:length(pnames));
+        set(gca,'YTickLabel',pnames,'YTick',1:length(pnames));
+        title('Absolute correlation (parameters)','FontSize',16);
+        
     %======================================================================
     % DEM estimates (using standard format)
     %======================================================================

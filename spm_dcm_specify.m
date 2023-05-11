@@ -38,7 +38,7 @@ function DCM = spm_dcm_specify(SPM,xY,settings)
 %
 % s = struct();
 % s.name       = 'test';
-% s.u          = [1 1]';
+% s.cond       = cond;
 % s.delays     = repmat(TR/2, 1, n);
 % s.TE         = TE;
 % s.nonlinear  = false;
