@@ -214,8 +214,8 @@ spm_figure('Getwin','Graphics'); clf
 
 subplot(2,2,1)
 if length(P) > 32, plot(G,'k'), else, bar(diag(G),N), legend(name), end
-title('log-posterior','FontSize',16)
-xlabel('model','FontSize',12), ylabel('log-probability','FontSize',12)
+title('log-evidence','FontSize',16)
+xlabel('model','FontSize',12), ylabel('log-evidence (nats)','FontSize',12)
 axis square
 
 subplot(2,2,2), bar(p,'k')
