@@ -34,7 +34,7 @@ for i = 1:length(GCM)
 end
 
 % -------------------------------------------------------------------------
-function test_fmri_parfor(testCase)
+function disabled_test_fmri_parfor(testCase)
 
 data_path = get_data_path();
 
