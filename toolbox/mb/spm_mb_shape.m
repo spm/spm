@@ -395,8 +395,8 @@ if ~isempty(B)
         if isfield(sett.mu.create,'issym') && sett.mu.create.issym>0
             % Parameters that change x-coordinates are not mean
             % corrected when dealing with a symmetric template.
-            tmp = sum(B(:,1,:).^2,2);
-            tmp = squeeze(tmp==0)
+            tmp = sum(B(1,:,:).^2,2);
+            tmp = squeeze(tmp~=0);
             mq(tmp) = 0;
         end
 
@@ -735,8 +735,8 @@ if ~isempty(B)
         if isfield(sett.mu.create,'issym') && sett.mu.create.issym>0
             % Parameters that change x-coordinates are not mean
             % corrected when dealing with a symmetric template.
-            tmp = sum(B(:,1,:).^2,2);
-            tmp = squeeze(tmp==0)
+            tmp = sum(B(1,:,:).^2,2);
+            tmp = squeeze(tmp~=0);
             mq(tmp) = 0;
         end
 
