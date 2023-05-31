@@ -309,7 +309,11 @@ for m = 1:numel(modalities)
                             end
                         end
                     end
-                    
+                case 'manual'
+                    [~, SS, ~] = svd(BF.features.(modality_name).C);
+                    hold on
+                    semilogy(diag(SS), '-o');
+                    legend('Orignal','Regularised')
             end
         end
         
