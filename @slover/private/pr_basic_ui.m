@@ -32,8 +32,7 @@ spm_input('!SetNextPos', 1);
 nimgs = size(imgs);
 
 % process names
-nchars = 20;
-imgns = spm_str_manip(imgs, ['rck' num2str(nchars)]);
+imgns = spm_file(imgs,'filename');
 
 % Get new default object
 obj = slover;

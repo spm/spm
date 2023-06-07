@@ -8,7 +8,7 @@ function ret = spm_ov_mesh(varargin)
 %__________________________________________________________________________
 
 % Torben Lund, Guillaume Flandin & Christian Gaser
-% Copyright (C) 2017-2022 Wellcome Centre for Human Neuroimaging
+% Copyright (C) 2017-2023 Wellcome Centre for Human Neuroimaging
 
 
 switch lower(varargin{1})
@@ -297,7 +297,7 @@ global st
 m = st.vols{i}.mesh.meshes;
 for j=1:numel(m)
     H = spm_mesh_render(m(j));
-    set(H.figure,'Name',spm_str_manip(st.vols{i}.mesh.fname{j},'a60'))
+    set(H.figure,'Name',spm_file(st.vols{i}.mesh.fname{j},'filename'))
 end
 % data cursor should be linked to orthviews through spm_XYZreg
 % see spm_ovhelper_3Dreg.m

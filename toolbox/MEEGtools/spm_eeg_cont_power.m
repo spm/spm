@@ -3,7 +3,7 @@ function D = spm_eeg_cont_power(S)
 % FORMAT D = spm_eeg_cont_power(S)
 %
 % This function computes power from band-pass filtered data using hilbert
-% transform. Can also be used as a template fof any kind of computation on
+% transform. Can also be used as a template for any kind of computation on
 % continuous data.
 %
 % S           - input structure (optional)
@@ -14,7 +14,7 @@ function D = spm_eeg_cont_power(S)
 %__________________________________________________________________________
 
 % Vladimir Litvak
-% Copyright (C) 2011-2022 Wellcome Centre for Human Neuroimaging
+% Copyright (C) 2011-2023 Wellcome Centre for Human Neuroimaging
 
 
 %-Startup
@@ -42,7 +42,7 @@ D = spm_eeg_load(D);
 %--------------------------------------------------------------------------
 
 % generate new meeg object with new filenames
-Dnew = clone(D, ['h' spm_str_manip(fnamedat(D),'t')], [D.nchannels D.nsamples D.ntrials]);
+Dnew = clone(D, spm_file(fnamedat(D),'path','','prefix','h'), [D.nchannels D.nsamples D.ntrials]);
 
 % determine channels to process
 chanind = D.indchantype('MEEG');
