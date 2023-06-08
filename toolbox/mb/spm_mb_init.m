@@ -269,7 +269,6 @@ for p=1:numel(cfg.gmm)
                 if ~all(dmc==dm)
                     error(sprintf('Incompatible image dimensions for images of subject %d in population %d (%dx%dx%d ~= %dx%dx%d)', np, p, dmc, dm));
                 end
-                if ~all(lab.f.mat(:)==f(1).mat(:))
                 if sum((lab.f.mat(:)-f(1).mat(:)).^2) > 1e-9
                     warning('Incompatible s-form matrices for subject %d in population %d', np, p);
                 end
