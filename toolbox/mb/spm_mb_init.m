@@ -103,7 +103,7 @@ if numel(cfg.cat)>=1
         dat(n).Mat = f(1).mat;
         dat(n).q   = zeros(size(B,3),1);
         for c=2:Nc
-            if ~all(f(c).mat(:)==f(1).mat(:))
+            if sum((f(c).mat(:)-f(1).mat(:)).^2) > 1e-9 
                 warning('Incompatible s-form matrices for subject %d (tissue classes)', np);
             end
         end
@@ -207,7 +207,7 @@ for p=1:numel(cfg.gmm)
             end
 
             for c=2:Nc
-                if ~all(f(c).mat(:)==f(1).mat(:))
+                if sum((f(c).mat(:)-f(1).mat(:)).^2) > 1e-9
                     warning('Incompatible s-form matrices for subject %d in population %d', np, p);
                 end
             end
@@ -270,6 +270,7 @@ for p=1:numel(cfg.gmm)
                     error(sprintf('Incompatible image dimensions for images of subject %d in population %d (%dx%dx%d ~= %dx%dx%d)', np, p, dmc, dm));
                 end
                 if ~all(lab.f.mat(:)==f(1).mat(:))
+                if sum((lab.f.mat(:)-f(1).mat(:)).^2) > 1e-9
                     warning('Incompatible s-form matrices for subject %d in population %d', np, p);
                 end
                %if max(cellfun(@max,lab.cm_map)) > K+1 || min(cellfun(@min,lab.cm_map)) < 1
