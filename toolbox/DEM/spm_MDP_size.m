@@ -15,7 +15,13 @@ function [Nf,Ns,Nu,Ng,No] = spm_MDP_size(mdp)
 % checks
 %--------------------------------------------------------------------------
 if ~isfield(mdp,'a'), mdp.a = mdp.A; end
-if ~isfield(mdp,'b'), mdp.b = mdp.B; end
+if ~isfield(mdp,'b')
+    Ns = size(mdp.a{1},2:16);
+    Ns = Ns(Ns > 1);
+    for f = 1:numel(Ns)
+       mdp.b{f} = eye(Ns(f),Ns(f));
+    end
+end
 
 % sizes of factors and modilities
 %--------------------------------------------------------------------------

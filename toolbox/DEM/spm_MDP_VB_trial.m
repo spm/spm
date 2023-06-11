@@ -183,10 +183,12 @@ for g  = 1:ng
         imagesc(1 - c),  hold on
     end
     plot(MDP.o(gg(g),:),'.c','MarkerSize',16), hold off
-    if g < 2
-        title(sprintf('Outcomes and preferences - %s',MDP.label.modality{gg(g)}));
-    else
-        title(MDP.label.modality{gg(g)});
+    try
+        if g < 2
+            title(sprintf('Outcomes and preferences - %s',MDP.label.modality{gg(g)}));
+        else
+            title(MDP.label.modality{gg(g)});
+        end
     end
     if g == ng
         xlabel('time');

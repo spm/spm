@@ -1,13 +1,20 @@
-function mdp = spm_MDP_structure_learning(mdp,MDP)
+function mdp = spm_MDP_structure_learning(mdp,MDP,OPTIONS)
 % structure learning of factorised Markov decision processes
-% FORMAT mdp = spm_MDP_structure_learning(mdp,MDP)
-% FORMAT mdp = spm_MDP_structure_learning(mdp,o)
-% FORMAT mdp = spm_MDP_structure_learning(mdp)
+% FORMAT mdp = spm_MDP_structure_learning(mdp,MDP,[OPTIONS])
+% FORMAT mdp = spm_MDP_structure_learning(mdp,o,  [OPTIONS])
 %
 % mdp.p - initial Dirichlet counts [exp( 0)]
 % mdp.q - precise Dirichlet counts [exp(16)]
-% MDP   - generative process or
+% MDP   - generative process or exemplars [o{.} or O{{.}}]
 %
+% OPTIONS.N  [0]   - suppress neuronal responses
+% OPTIONS.P  [0]   - suppress plotting
+% OPTIONS.B  [1]   - replay
+% OPTIONS.G  [1]   - suppress graphics
+%
+% OPTIONS.NF [4]   - maxmium number of factors
+% OPTIONS.NS [32]  - maxmium number of states
+% OPTIONS.NU [8]   - maxmium number of paths
 %
 % mdp   - generative model: with mdp.a, mdp.b (and mdp.k)
 %
@@ -62,24 +69,44 @@ function mdp = spm_MDP_structure_learning(mdp,MDP)
 % $Id: spm_MDP_structure_learning.m 8439 2023-03-27 18:41:45Z guillaume $
 %__________________________________________________________________________
 
+% options for model inversion (and evaluation)
+%==========================================================================
+try OPTIONS.N; catch, OPTIONS.N = 0; end     % suppress neuronal responses
+try OPTIONS.P; catch, OPTIONS.P = 0; end     % suppress plotting
+try OPTIONS.B; catch, OPTIONS.B = 1; end     % replay
+try OPTIONS.G; catch, OPTIONS.G = 1; end     % suppress graphics
 
 % initialise model (mdp)
 %==========================================================================
-try mdp.l; catch, mdp.l  = 1;       end      % structure learning
-try mdp.p; catch, mdp.p  = 1;       end      % initial Dirichlet counts
+try mdp.p; catch, mdp.p  = 1/16;     end     % initial Dirichlet counts
 try mdp.q; catch, mdp.q  = exp(16); end      % precise Dirichlet counts
-try mdp.r; catch, mdp.r  = 1;       end      % repetitions
+try mdp.w; catch, mdp.w  = 0;        end     % Occam's window
 
-% initialise mdp.b if necessary
-%----------------------------------------------------------------------
-mdp = spm_MDP_initialise(mdp);
-
-% options for model inversion (and evaluation)
+% upper bounds on states, paths and factors
 %==========================================================================
-OPTIONS.N = 0;                             % suppress neuronal responses
-OPTIONS.P = 0;                             % suppress plotting
-OPTIONS.B = 1;                             % replay
-OPTIONS.G = 1;                             % suppress graphics
+NF     = 4;                                  % maximum number of factors
+NS     = [32,16,16,4];                       % maximum number of states
+NU     = [8,8,8,8];                          % maximum number of paths
+UB     = 1;                                  % model prior: bound on Ns
+UG     = 0;                                  % model prior: expected FE
+
+% maxmium number of states and paths for each factor
+%--------------------------------------------------------------------------
+try NF = OPTIONS.NF; end
+try NS = OPTIONS.NS; end
+try NU = OPTIONS.NU; end
+try UB = OPTIONS.UB; end
+try UG = OPTIONS.UG; end
+
+% precision of expected free energy priors
+%--------------------------------------------------------------------------
+if UG
+    try, zeta = mdp.zeta; catch, zeta = 1; end
+end
+
+% inversion scheme
+%--------------------------------------------------------------------------
+spm_evaluate = @spm_MDP_VB_XXX;
 
 % generate outcomes if necessary
 %==========================================================================
@@ -169,9 +196,7 @@ else
 % specify single state prior (b) if necessary
 %--------------------------------------------------------------------------
 if ~isfield(mdp,'b')
-    for g = 1:numel(mdp.No)
-        mdp.b{1} = zeros([mdp.No(g),1]) + mdp.p;
-        end
+    mdp.b{1} = mdp.q + mdp.p;
     end
 
 % specify likelihoods (a) if necessary
@@ -183,26 +208,12 @@ if ~isfield(mdp,'a')
 end
 
 
-% upper bounds on states, paths and factors
-%==========================================================================
-
-%  preclude addition of latent states if specified by D
-%--------------------------------------------------------------------------
-if isfield(mdp,'D')
-    NF = numel(mdp.D);
-else
-    NF = 0;
-end
-NS     = [16,16,16,4];                        % maximum number of states
-NU     = [ 8,8,8,8];                          % maximum number of paths
- 
-
 %  structure learning from observations
 %==========================================================================
 
 % cycle over latent factors to generate outcomes and grow the model
 %--------------------------------------------------------------------------
-U     = 0;                                    % Occam's razor (nats)
+spm_G = @spm_MDP_MI;
 FF    = [];                                   % successive ELBO
 for t = 1:size(o,2)                           % cycle over epochs
 
@@ -223,42 +234,48 @@ for t = 1:size(o,2)                           % cycle over epochs
 
     % no expansion
     %----------------------------------------------------------------------
-    if mdp.l
+    hdp    = {spm_expand(mdp,0,0,0,OPTIONS)};
+    hdp{1} = spm_evaluate(hdp{1},OPTIONS);
+    F      = sum(hdp{1}.F);
 
-        % learning of the likelihood and transition probabilities
-        %------------------------------------------------------------------
-        hdp = {spm_expand(mdp,1,0,0)};
-
-    else
-        % learning of the likelihood mapping
-        %------------------------------------------------------------------
-        hdp = {spm_expand(mdp,0,0,0)};
-    end
-    F      = spm_evaluate(hdp{1},OPTIONS);
-
-    % Bayesian model expansion: add state to each factor
+    % Bayesian model expansion: add state to last factor
     %----------------------------------------------------------------------
-    for f = 1:Nf
-        if Nu(f) == 1 && mdp.l && f > NF && Ns(f) < NS(f) 
-            hdp{end + 1} = spm_expand(mdp,f,1,0);              % expand
-            F(end + 1)   = spm_evaluate(hdp{end},OPTIONS);     % evaluate
-        end
+    if Nu(Nf) == 1 && Ns(Nf) <= NS(Nf)
+        hdp{end + 1} = spm_expand(mdp,0,1,0,OPTIONS);        % expand
+        hdp{end}     = spm_evaluate(hdp{end},OPTIONS);       % evaluate
+        F(end + 1)   = sum(hdp{end}.F);                      % record
+        
+        % model priors: expected free energy
+        %------------------------------------------------------------------
+        if UG
+            G      = spm_G(hdp{end}.a) - spm_G(hdp{1}.a);
+            F(end) = F(end) + zeta*G;
     end
 
-    % Bayesian model expansion: add path to each factor
-    %----------------------------------------------------------------------
-    for f = 1:Nf
-        if Ns(f) > 1 && f == Nf && mdp.l && mdp.T > 1 && Nu(f) < NU(f)
-            hdp{end + 1} = spm_expand(mdp,f,0,1);              % expand
-            F(end + 1)   = spm_evaluate(hdp{end},OPTIONS);     % evaluate
+        % model priors: (upper bound on) number of states
+        %------------------------------------------------------------------
+        if UB
+            G      = spm_log(1 - Ns(Nf)/NS(Nf));
+            F(end) = F(end) + zeta*G;
         end            
+
+    end
+
+    % Bayesian model expansion: add path to last factor
+    %----------------------------------------------------------------------
+    if Ns(Nf) > 1 && mdp.T > 1 && Nu(Nf) <= NU(Nf)
+        hdp{end + 1} = spm_expand(mdp,0,0,1,OPTIONS);
+        hdp{end}     = spm_evaluate(hdp{end},OPTIONS);
+        F(end + 1)   = sum(hdp{end}.F);
+
     end
 
     % Bayesian model expansion: add factor
     %----------------------------------------------------------------------
-    if min(Ns) > 1 && (Nu(1) > 1 || mdp.T == 1) && mdp.l && Nf < 4
-        hdp{end + 1} = spm_expand(mdp,Nf + 1,0,0);
-        F(end + 1)   = spm_evaluate(hdp{end},OPTIONS);
+    if min(Ns) > 1 &&  mdp.T > 1 && Nf <= NF
+        hdp{end + 1} = spm_expand(mdp,1,0,0,OPTIONS);
+        hdp{end}     = spm_evaluate(hdp{end},OPTIONS);
+        F(end + 1)   = sum(hdp{end}.F);
     end
 
     % Bayesian model selection
@@ -268,19 +285,8 @@ for t = 1:size(o,2)                           % cycle over epochs
 
     % Parameter learning under selected model
     %----------------------------------------------------------------------
-    for i = 1:mdp.r
-
-        % evidence accumulation
-        %------------------------------------------------------------------
-        hdp{h} = spm_MDP_VB_XXX(hdp{h},OPTIONS);
-
-    end
-    if mdp.l
         mdp.a = hdp{h}.a;
         mdp.b = hdp{h}.b;
-    else
-        mdp.a = hdp{h}.a;
-    end
 
     % lossless compression
     %----------------------------------------------------------------------
@@ -365,73 +371,84 @@ return
 
 % NOTES: 
 %==========================================================================
+%     % Contraction of likelihood mapping
+%     %--------------------------------------------------------------------
+%     [Nf,Ns,Nu] = spm_MDP_size(mdp);
+%     if Ns(1) > 4 && Nu(1) == 1 && Nf == 1 && h == 2
+%         mdp = spm_resolve(mdp);
+%     end
+
 %     % Bayesian model reduction
 %     %--------------------------------------------------------------------
 %     for g = 1:Ng
-%         mdp.a{g} = spm_MDP_VB_prune(mdp.a{g},a0{g},0,0,0,'SIMPLE');
+%         mdp.a{g} = spm_MDP_VB_prune(mdp.a{g},a0{g},0,0,0,'MI');
 %     end
 %
 %     NB: a0 = hdp{h}.a;               % priors for BMR
 
-%     % Contraction of likelihood mapping
-%     %--------------------------------------------------------------------
-%     [Nf,Ns,Nu] = spm_MDP_size(mdp);
-%     if Nu(end) == 1 && Nf < 3
-%         mdp = spm_resolve(mdp);
-%     end
 
 
-function mdp = spm_expand(mdp,f,s,u)
+
+function mdp = spm_expand(mdp,n,s,u,OPTIONS)
 % Augment with an additional path
 % FORMAT mdp = spm_expand(mdp)
 % mdp  - MDP structure
-% f    - factor to augment or add [if f > Nf] 
+% n    - if logical(f) then add factor 
 % s    - if logical(s) then add state
 % u    - if logical(u) then add path
 %__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
+OPTIONS.N = 0; % suppress neuronal responses
+OPTIONS.P = 0; % suppress plotting
+OPTIONS.G = 0; % suppress graphics
+OPTIONS.B = 1; % replay
+
 % size of factors
 %--------------------------------------------------------------------------
 [Nf,Ns,Nu,Ng,No] = spm_MDP_size(mdp);
 
-% preclude learning of transitions
-%--------------------------------------------------------------------------
-if f == 0
-
-    for f = 1:Nf
-        mdp.b{f} = (mdp.b{f} - mdp.p)*exp(16);
-    end
-
-else
-
     % priors over initial states and control (first state and control)
-    %----------------------------------------------------------------------
-    for i = 1:Nf
+%--------------------------------------------------------------------------
+for f = 1:Nf
         try
-            mdp.D{i};                                % initial state
+        mdp.D{f};                                % pre-specifed
         catch
-            mdp.D{i} = sparse(1,1,1,Ns(i),1);        % initial state
-        end
-        try
-            mdp.E{i};                                % initial control
-        catch
-            mdp.E{i} = sparse(1,1,1,Nu(i),1);        % initial control
+        mdp.D{f} = sparse(1,1,1,Ns(f),1);        % initial state
+        mdp.E{f} = sparse(1,1,1,Nu(f),1);        % initial control
         end
     end
+
+% ELBO under existing latent state
+%--------------------------------------------------------------------------
+if ~logical(n) && ~logical(s) && ~logical(u)
+
+    mdp.D{Nf} = ones(Ns(f),1);
+    pdp       = spm_MDP_VB_XXX(mdp,OPTIONS);
+    [d,i]     = max(pdp.X{Nf}(:,1));
+
+    mdp.D{Nf} = sparse(i(1),1,1,Ns(Nf),1);
+    mdp.E{Nf} = ones(Nu(f),1);
 
 end
+
+% NB: ELBO under most likely state of last factor
+%--------------------------------------------------------------------------
+% pdp       = spm_MDP_VB_XXX(mdp,OPTIONS);
+% [d,i]     = max(pdp.X{Nf}(:,1));
+% 
+% mdp.D{Nf} = sparse(i(1),1,1,Ns(Nf),1);
+% mdp.E{Nf} = ones(Nu(f),1);
 
 
 % add factor: with 2 states, because the first is shared by all factors
 %--------------------------------------------------------------------------
-if f > Nf
+if logical(n)
 
     % add prior transition parameters: a precise identity mapping
     % ---------------------------------------------------------------------
     mdp.b{end + 1} = eye(2,2)*mdp.q + mdp.p;
     Nf             = Nf + 1;
-    f              = Nf;
     Ns(Nf)         = 2;
     Nu(Nf)         = 1;
 
@@ -446,8 +463,8 @@ if f > Nf
 
     % starting in the second state of the new factor
     %----------------------------------------------------------------------
-    mdp.D{f}    = sparse(2,1,1,Ns(f),1);       % initial state
-    mdp.E{f}    = sparse(1,1,1,Nu(f),1);       % initial control
+    mdp.D{Nf}    = sparse(2,1,1,Ns(Nf),1);       % initial state
+    mdp.E{Nf}    = sparse(1,1,1,Nu(Nf),1);       % initial control
 
     [Nf,Ns,Nu,Ng,No] = spm_MDP_size(mdp);
 
@@ -460,10 +477,10 @@ if logical(s)
 
     % augment priors: the first path is a precise identity mapping  
     % ---------------------------------------------------------------------
-    mdp.b{f}(end + 1,:,:) = mdp.p;
-    mdp.b{f}(:,end + 1,:) = mdp.p;
-    mdp.b{f}(end,end,1)   = mdp.q + mdp.p;
-    Ns(f)                 = Ns(f) + 1;
+    mdp.b{Nf}(end + 1,:,:) = mdp.p;
+    mdp.b{Nf}(:,end + 1,:) = mdp.p;
+    mdp.b{Nf}(end,end,1)   = mdp.q + mdp.p;
+    Ns(Nf)                 = Ns(Nf) + 1;
 
     % likelihood: and imprecise otherwise
     % ---------------------------------------------------------------------
@@ -476,8 +493,8 @@ if logical(s)
 
     % new state is the initial state
     %----------------------------------------------------------------------
-    mdp.D{f}     = sparse(Ns(f),1,1,Ns(f),1);
-    mdp.E{f}     = ones(Nu(f),1);
+    mdp.D{Nf}     = sparse(Ns(Nf),1,1,Ns(Nf),1);
+    mdp.E{Nf}     = ones(Nu(Nf),1);
 
 end
 
@@ -487,13 +504,13 @@ if logical(u)
 
     % augment priors: were the new path is imprecise  
     % ---------------------------------------------------------------------
-    mdp.b{f}(:,:,end + 1) = mdp.p;
-    Nu(f)                 = Nu(f) + 1;
+    mdp.b{Nf}(:,:,end + 1) = mdp.p;
+    Nu(Nf)                 = Nu(Nf) + 1;
 
     % new path is the initial path
     %----------------------------------------------------------------------
-    mdp.D{f}     = ones(Ns(f),1);
-    mdp.E{f}     = sparse(Nu(f),1,1,Nu(f),1);
+    mdp.D{Nf}     = ones(Ns(Nf),1);
+    mdp.E{Nf}     = sparse(Nu(Nf),1,1,Nu(Nf),1);
 end
 
 % priors over controllable factors
@@ -622,23 +639,16 @@ end
 % reduce likelihood matrix
 %--------------------------------------------------------------------------
 p     = mdp.p;                       % prior counts
-F     = zeros(1,Ns(end) - 1);
 for i = 1:(Ns(end) - 1)
 
     % evaluate reduced likelihood
     %----------------------------------------------------------------------
     M     = 0;
     for g = 1:numel(mdp.a)
+        
         a{g}  = mdp.a{g};
-        if Nf == 1
             a{g}(:,i)   = a{g}(:,i) + a{g}(:,end) - p;
             a{g}(:,end) = p;
-
-        elseif Nf == 2
-            a{g}(:,:,i)   = a{g}(:,:,i) + a{g}(:,:,end) - p;
-            a{g}(:,:,end) = p;
-
-        end
 
         % mutual information
         %------------------------------------------------------------------
@@ -648,93 +658,44 @@ for i = 1:(Ns(end) - 1)
 
     % score loss of mutual information
     %----------------------------------------------------------------------
-    F(i) = M - M0;
+    G(i) = M - M0;
+
 end
+
+% reduce likelihood matrix
+%--------------------------------------------------------------------------
+% F     = zeros((Ns(end) - 1),1);
+% for i = 1:(Ns(end) - 1)
+% 
+%     % evaluate reduced likelihood
+%     %----------------------------------------------------------------------
+%     for g = 1:numel(mdp.a)
+% 
+%         qa = mdp.a{g}(:,end);
+%         pa = qa - qa + p;
+%         ra = mdp.a{g}(:,i);
+% 
+%         % score loss of mutual information
+%         %----------------------------------------------------------------------
+%         F(i) = F(i) - spm_MDP_log_evidence(qa,pa,ra);
+% 
+%     end
+% 
+% end
+
 
 % ccontract likelihood matrix if there is no loss of information
 %--------------------------------------------------------------------------
-i = find(F > 0,1);
-if isempty(i), return, end
+[G,i] = max(G); i = i(1);
+
+if G < 0, return, end
 
 for g = 1:numel(mdp.a)
-    if Nf == 1
         mdp.a{g}(:,i)   = mdp.a{g}(:,i) + mdp.a{g}(:,end) - p;
         mdp.a{g}        = mdp.a{g}(:,1:end - 1);
-
-    elseif Nf == 2
-        mdp.a{g}(:,:,i) = mdp.a{g}(:,:,i) + mdp.a{g}(:,:,end) - p;
-        mdp.a{g}        = mdp.a{g}(:,:,1:end - 1);
-
-    end
 end
 mdp.b{end}(i,i,:)   = mdp.b{end}(i,i,:) + mdp.b{end}(end,end,:) - p;
 mdp.b{end}          = mdp.b{end}(1:end - 1,1:end - 1,:);
 
-% remove b if there is only one state
-%--------------------------------------------------------------------------
-if numel(mdp.b{end}) == 1
-    mdp.b = mdp.b(1:end - 1);
-end
-
-return
-
-function F = spm_evaluate(mdp,OPTIONS)
-% Augment with an additional control state
-% FORMAT F = spm_evaluate(mdp,OPTIONS)
-% mdp  - MDP structure
-%
-% This subroutine evaluates the (negative) free energy (pertaining to
-% states) by inverting an epoch of outcomes.
-%__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
-
-% options
-%--------------------------------------------------------------------------
-if nargin < 2
-    OPTIONS.B = 1;
-end
-
-% accumulate free energy (ELBO)
-%--------------------------------------------------------------------------
-mdp = spm_MDP_VB_XXX(mdp,OPTIONS);
-
-% path integral of ELBO
-%--------------------------------------------------------------------------
-F   = sum(mdp.F);
-
-% mutual information of likelihood
-%--------------------------------------------------------------------------
-% for g = 1:numel(mdp.a)
-%     E(g) = spm_MDP_MI(mdp.a{g});
-% end
-% F     = F + sum(E);
-
-return
-
-
-function mdp = spm_MDP_initialise(mdp)
-% compplete model specification based upon initial states (D)
-% FORMAT mdp = spm_MDP_initialise(mdp)
-% mdp   - MDP structure
-% mdp.D - initial states
-%
-% This subroutine fills in transition priors (b) if initial states (D) are
-% specified; otherwise, it returns a structure with one latent state
-% encoded in (b).
-%__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
-
-% Default hidden states
-%--------------------------------------------------------------------------
-try D = mdp.D; catch, D = {1}; end
-
-% specify transition priors (b) if necessary
-%--------------------------------------------------------------------------
-if ~isfield(mdp,'b')
-    for f = 1:numel(D)
-        Ns(f)    = numel(D{f});
-        mdp.b{f} = eye(Ns(f),Ns(f))*mdp.q + mdp.p;
-    end
-end
 return
 
