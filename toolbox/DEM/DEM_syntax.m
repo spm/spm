@@ -75,7 +75,6 @@ return
 
 [Nf,Ns,Nu] = spm_MDP_size(mdp);
 
-mdp.l = 0;
 for i = 1:Nu(1)
     for j = 1:Ns(2)
         o        = syntax{i};

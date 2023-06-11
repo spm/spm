@@ -548,7 +548,7 @@ for t = 1:T
             end
         end
 
-        % posterior predictive density (i.e., prior) over hidden states
+        % prior predictive density over hidden states
         %==================================================================
         for f = 1:Nf(m)
             if t > 1
@@ -947,12 +947,14 @@ for t = 1:T
 
         % augment with prior probability over paths
         %------------------------------------------------------------------
+        if t == 1
         for k = 1:Np(m)
             LE     = 0;
             for f  = find(U{m})
                 LE = LE + spm_log(E{m,f}(V{m}(k,f)));
             end
             G(k)   = G(k) + LE;
+        end
         end
 
         % prior beliefs about policies (R) and precision (w)
@@ -1733,16 +1735,13 @@ return
 function A  = spm_log(A)
 % log of numeric array plus a small constant
 %--------------------------------------------------------------------------
-A           = log(A);
-A(isinf(A)) = -32;
-
+A           = max(log(A),-32);
 
 function A  = spm_norm(A)
 % normalisation of a probability transition matrix (columns)
 %--------------------------------------------------------------------------
 A           = rdivide(A,sum(A,1));
 A(isnan(A)) = 1/size(A,1);
-
 
 function A  = spm_wnorm(A)
 % expected information gain (likelihood parameters)

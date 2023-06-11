@@ -435,7 +435,7 @@ end
 subplot(3,2,2)
 set(gca,'Userdata',{vision,16})
 set(gca,'ButtonDownFcn','spm_DEM_ButtonDownFcn')
-title('Percept','FontSize',14)
+title('Final percept','FontSize',14)
 
 % show likelihood mapping to reward
 %--------------------------------------------------------------------------
@@ -514,6 +514,7 @@ DEMO_MDP_maze_X
 DEM_surveillance
 DEM_dSprites
 DEM_sharingX
+DEM_MNIST
 DEM_syntax
 
 

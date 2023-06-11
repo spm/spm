@@ -82,8 +82,12 @@ if isfield(OPTIONS,'BMR')
         
         % structure learning with BMR
         %==================================================================
-        [qa,pa] = spm_MDP_VB_prune(PDP.a{g},MDP.a{g},BMR.f,BMR.T,MDP.C{g});
-                
+        try
+            [qa,pa] = spm_MDP_VB_prune(PDP.a{g},MDP.a{g},BMR.f,BMR.T,MDP.C{g});
+        catch
+            [qa,pa] = spm_MDP_VB_prune(PDP.a{g},MDP.a{g},BMR.f,BMR.T);
+        end
+
         % Dirichlet accumulation under reduced model and outcomes
         % (c.f., consolidation during rapid eye movement sleep)
         %==================================================================

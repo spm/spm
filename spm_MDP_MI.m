@@ -17,10 +17,23 @@ function [E,dEda,dEdA] = spm_MDP_MI(a,C)
 % Karl Friston
 % Copyright (C) 2022 Wellcome Centre for Human Neuroimaging
 
+% deal cells of (multimodal) tensors (omitting gradients)
+%==========================================================================
+if iscell(a)
+    E     = 0;
+    for g = 1:numel(a)
+        if nargin > 1
+            E = E + spm_MDP_MI(a{g},C{g});
+        else
+            E = E + spm_MDP_MI(a{g});
+        end
+    end
+    return
+end
 
 
 % deal with tensors
-%--------------------------------------------------------------------------
+%==========================================================================
 a     = a(:,:);
 
 % expected information gain (and negative cost)
@@ -47,7 +60,7 @@ if nargin > 1
     dEdA = plus(dEdA,C);
 end
 
-% dEda = dEdA.*dAda, dAda.*(1/s - a/(s^2))
+% dEda = dEdA.*dAda, dAda = (1/s - a/(s^2))
 %--------------------------------------------------------------------------
 dEda   = dEdA.*(1 - A)/s;
 
@@ -58,8 +71,8 @@ return
 function I  = spm_MI(A)
 % expected information gain of joint distribution
 %--------------------------------------------------------------------------
-I    =  A(:)'*spm_log(A(:)) - ...
-        sum(A,1)*spm_log(sum(A,1)') - ...
+I    =      A(:)'*spm_log(A(:)) - ...
+        sum(A,1) *spm_log(sum(A,1)') - ...
         sum(A,2)'*spm_log(sum(A,2));
 
 return

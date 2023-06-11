@@ -48,9 +48,19 @@ if numel(MDP) > 1
     return
 end
 
+
 % fill in (posterior or  process) likelihood and priors
 %--------------------------------------------------------------------------
 if ~isfield(MDP,'A'), MDP.A = MDP.a; end
+
+if ~isfield(MDP,'B') && ~isfield(MDP,'b')
+    Ns = size(MDP.A{1},2:16);
+    Ns = Ns(Ns > 1);
+    for f = 1:numel(Ns)
+       MDP.B{f} = eye(Ns(f),Ns(f));
+    end
+end
+
 if ~isfield(MDP,'B'), MDP.B = MDP.b; end
 
 % check format of likelihood and priors
@@ -129,6 +139,12 @@ if ~isfield(MDP,{'D'})
     for f = 1:Nf
         MDP.D{f} = ones(Ns(f),1);
     end
+else
+    for f = 1:Nf
+        if isempty(MDP.D{f})
+            MDP.D{f} = ones(Ns(f),1);
+        end
+    end
 end
 if Nf  ~= numel(MDP.D)
     error('please check MDP.D')
@@ -142,6 +158,12 @@ end
 if ~isfield(MDP,{'E'})
     for f = 1:Nf
         MDP.E{f} = ones(Nu(f),1);
+    end
+else
+    for f = 1:Nf
+        if isempty(MDP.E{f})
+            MDP.E{f} = ones(Nu(f),1);
+        end
     end
 end
 if Nf  ~= numel(MDP.E)
@@ -157,19 +179,6 @@ end
 for f = 1:Nf
     if Ns(f) ~= size(MDP.D{f},1)
         error(['please ensure B{' num2str(f) '} and D{' num2str(f) '} are consistent'])
-    end
-end
-
-% check probability matrices are properly specified
-%--------------------------------------------------------------------------
-for f = 1:numel(MDP.B)
-    if ~all(spm_vec(any(MDP.B{f},1)))
-        error(['please check B{' num2str(f) '} for missing entries'])
-    end
-end
-for g = 1:numel(MDP.A)
-    if ~all(spm_vec(any(MDP.A{g},1)))
-        error(['please check A{' num2str(g) '} for missing entries'])
     end
 end
 
@@ -253,7 +262,7 @@ end
 
 % name of outcomes under each modality
 %--------------------------------------------------------------------------
-for i = 1:min(Ng,8)
+for i = 1:min(Ng,4)
     try
         MDP.label.modality(i);
     catch
@@ -267,4 +276,5 @@ for i = 1:min(Ng,8)
         end
     end
 end
+
 

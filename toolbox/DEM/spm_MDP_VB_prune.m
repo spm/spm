@@ -25,7 +25,7 @@ function [qA,pA] = spm_MDP_VB_prune(qA,pA,f,T,C,OPT)
 % mutual information are plausible and accepts these new priors if there is
 % sufficient evidence for them. This can be regarded as a generic form of
 % structure learning.
-
+%
 % OPT - 'SIMPLE':  simple suppression of implausible likelihoods
 %
 % This option suppresses entries of the likelihood tensor with small values
@@ -50,6 +50,12 @@ if nargin < 3, f   = 0;        end  % no contraction
 if nargin < 4, T   = 0;        end  % Occam's threshold
 if nargin < 5, C   = 0;        end  % no preferences
 if nargin < 6, OPT = 'MI';     end  % BMR type
+
+% assume uniform priors if pA is a scalar
+%--------------------------------------------------------------------------
+if numel(pA) == 1
+    pA = zeros(size(qA)) + pA;
+end
 
 s   = prod(nd(f + 1));                    % contraction scaling
 
@@ -82,9 +88,9 @@ switch OPT
 
         % simple pruning based on sparsity hyperprior
         %------------------------------------------------------------------
-        rA       = spm_psi(pA);                 % reduced (log) prior
+        rA       = spm_psi(qA);                 % reduced (log) prior
         rA       = minus(rA,max(rA));           % normalise
-        rA       = times(pA,rA > -3);           % prune
+        rA       = times(pA,rA > -log(16));     % prune
         rA       = times(rA,sum(pA)./sum(rA));  % preserve probability mass
 
     otherwise
@@ -95,21 +101,21 @@ end
 %==========================================================================
 [F,sA]  = spm_MDP_log_evidence(qA,pA,rA);
 
-if ~T
+if T || strcmpi(OPT,'SIMPLE')
+
+    % apply Occam's razor
+    %---------------------------------------------------------------------
+    j        = F < -T;
+    qA(:,j)  = sA(:,j);
+    pA(:,j)  = rA(:,j);
+
+else
 
     % Bayesian model averaging based on reduced free energy
     %----------------------------------------------------------------------
     P   = spm_softmax(32*[F; spm_zeros(F)]);
     qA  = times(sA,P(1,:)) + times(qA,P(2,:));
     pA  = times(rA,P(1,:)) + times(pA,P(2,:));
-
-else
-
-    % Otherwise apply Occam’s razor
-    %---------------------------------------------------------------------
-    j        = F < -T;
-    qA(:,j)  = sA(:,j);
-    pA(:,j)  = rA(:,j);
 
 end
 
