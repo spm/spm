@@ -87,7 +87,7 @@ for it0=1:nit_aff
 
         if it0<=12 && ~rem(it0,3), dat = spm_mb_appearance('restart',dat,sett); end
 
-        [mu,sett,dat,te,E] = iterate_mean(mu,sett,dat,te,nit_mu);
+        [mu,sett,dat,te,E] = iterate_mean(mu,sett,dat,nit_mu);
     end
 
     % For visual debugging (disable/enable in debug_show_mu())
@@ -139,7 +139,7 @@ for zm=numel(sz):-1:1 % loop over zoom levels
     if ~updt_mu
         mu = spm_mb_shape('shrink_template',mu0,Mmu,sett);
     else
-        [mu,sett,dat,te] = iterate_mean(mu,sett,dat,te,nit_mu);
+        [mu,sett,dat,te] = iterate_mean(mu,sett,dat,nit_mu);
     end
 
     if updt_aff
@@ -157,7 +157,7 @@ for zm=numel(sz):-1:1 % loop over zoom levels
 
         oE  = E/nvox(dat);
         if updt_mu
-            [mu,sett,dat,te,E] = iterate_mean(mu,sett,dat,te,nit_mu);
+            [mu,sett,dat,te,E] = iterate_mean(mu,sett,dat,nit_mu);
         end
 
         % For visual debugging (disable/enable in debug_show_mu())
@@ -224,21 +224,32 @@ samp  = min(samp,5);
 %==========================================================================
 
 %==========================================================================
-function [mu,sett,dat,te,E] = iterate_mean(mu,sett,dat,te,nit_mu)
+function [mu,sett,dat,te,E] = iterate_mean(mu,sett,dat,nit_mu)
 % UPDATE: mean
-if nargin<5, nit_mu = 1; end
+if nargin<4, nit_mu = 1; end
 E      = Inf;
+sampd  = mean_samp_dens(dat);
+te     = spm_mb_shape('template_energy',mu, sett.ms.mu_settings, sampd);
 for it=1:nit_mu
-    [mu,dat] = spm_mb_shape('update_mean',dat, mu, sett);
+    [mu,dat] = spm_mb_shape('update_mean',dat, mu, sett, sampd);
     oE       = E;
     E        = sum(sum(cat(2,dat.E),2),1) + te; % Cost function after previous update
     sett     = spm_mb_appearance('update_prior',dat, sett);
-    te       = spm_mb_shape('template_energy',mu,sett.ms.mu_settings);
+    te       = spm_mb_shape('template_energy',mu, sett.ms.mu_settings, sampd);
     fprintf('%8.4f', E/nvox(dat));
     spm_plot_convergence('Set',E/nvox(dat));
     do_save(mu,sett,dat);
     if it>1 && oE-E < sett.tol*nvox(dat); break; end
 end
+%==========================================================================
+
+%==========================================================================
+function s = mean_samp_dens(dat)
+s = 0;
+for n=1:numel(dat)
+    s = s + prod(dat(n).samp);
+end
+s = s/numel(dat);
 %==========================================================================
 
 %==========================================================================

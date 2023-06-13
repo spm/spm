@@ -13,9 +13,9 @@ function varargout = spm_mb_shape(varargin)
 % FORMAT varargout = spm_mb_shape('shoot',v0,kernel,args)
 % FORMAT mu1       = spm_mb_shape('shrink_template',mu,oMmu,sett)
 % FORMAT P         = spm_mb_shape('softmax0',mu,ax)
-% FORMAT E         = spm_mb_shape('template_energy',mu,sett)
+% FORMAT E         = spm_mb_shape('template_energy',mu,sett, sampd)
 % FORMAT dat       = spm_mb_shape('update_affines',dat,mu,sett)
-% FORMAT [mu,dat]  = spm_mb_shape('update_mean',dat, mu, sett)
+% FORMAT [mu,dat]  = spm_mb_shape('update_mean',dat, mu, sett, sampd)
 % FORMAT dat       = spm_mb_shape('update_simple_affines',dat,mu,sett)
 % FORMAT dat       = spm_mb_shape('update_velocities',dat,mu,sett)
 % FORMAT dat       = spm_mb_shape('update_warps',dat,sett)
@@ -105,21 +105,21 @@ elseif g.dim==3
         B(2,3,6) =  1;
         B(3,2,6) = -1;
     case 'SEZ'
-            % I don't know what this one should be called
-            % but it is SE(3) with an isotropic zoom.
-            B        = zeros(4,4,7);
-            B(1,4,1) =  1;
-            B(2,4,2) =  1;
-            B(3,4,3) =  1;
-            B(1,2,4) =  1;
-            B(2,1,4) = -1;
-            B(1,3,5) =  1;
-            B(3,1,5) = -1;
-            B(2,3,6) =  1;
-            B(3,2,6) = -1;
-            B(1,1,7) =  1;
-            B(2,2,7) =  1;
-            B(3,3,7) =  1;
+        % I don't know what this one should be called
+        % but it is SE(3) with an isotropic zoom.
+        B        = zeros(4,4,7);
+        B(1,4,1) =  1;
+        B(2,4,2) =  1;
+        B(3,4,3) =  1;
+        B(1,2,4) =  1;
+        B(2,1,4) = -1;
+        B(1,3,5) =  1;
+        B(3,1,5) = -1;
+        B(2,3,6) =  1;
+        B(3,2,6) = -1;
+        B(1,1,7) =  1;
+        B(2,2,7) =  1;
+        B(3,3,7) =  1;
     case 'Aff'
         % Aff(3) - Affine
         B        = zeros(4,4,12);
@@ -364,8 +364,10 @@ P   = bsxfun(@rdivide,E,den);
 %==========================================================================
 
 %==========================================================================
-function E = template_energy(mu,mu_settings)
+function E = template_energy(mu,mu_settings, sampd)
+if nargin<3, sampd = 1; end
 % mu(:)'*kron(eye(K)-1/(K+1),L)*mu(:), where L is the vel2mom regulariser
+mu_settings = [mu_settings(1:3) mu_settings(4:end)/sampd];
 if ~isempty(mu_settings)
     g = reg_mu(mu, mu_settings);
     E = 0.5*mu(:)'*g(:);
@@ -509,13 +511,15 @@ end
 %==========================================================================
 
 %==========================================================================
-function [mu,dat] = update_mean(dat, mu, sett)
+function [mu,dat] = update_mean(dat, mu, sett, sampd)
+if nargin<4, sampd = 1; end
 
 [dat,mu] = adjust_delta(dat,mu);
 
 % Parse function settings
 accel       = sett.accel;
 mu_settings = sett.ms.mu_settings;
+mu_settings = [mu_settings(1:3) mu_settings(4:end)/sampd];
 
 g  = reg_mu(mu,mu_settings);
 w  = zeros(sett.ms.d,'single');
