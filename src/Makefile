@@ -50,7 +50,7 @@ SPMMEX  =\
 	spm_unlink.$(MEXEXT) spm_existfile.$(MEXEXT) spm_gamrnd.$(MEXEXT)\
 	spm_hist.$(MEXEXT) spm_krutil.$(MEXEXT) spm_project.$(MEXEXT) spm_hist2.$(MEXEXT)\
 	spm_dilate_erode.$(MEXEXT) spm_bwlabel.$(MEXEXT) spm_get_lm.$(MEXEXT)\
-	spm_voronoi.$(MEXEXT) spm_mesh_utils.$(MEXEXT) \
+	spm_voronoi.$(MEXEXT) spm_mesh_dist.$(MEXEXT) spm_mesh_utils.$(MEXEXT) \
 	spm_mrf.$(MEXEXT) spm_diffeo.$(MEXEXT) spm_field.$(MEXEXT) \
 	spm_cat.$(MEXEXT) spm_jsonread.$(MEXEXT) spm_mesh_reduce.$(MEXEXT) \
 	spm_mesh_geodesic.$(MEXEXT) spm_gmmlib.$(MEXEXT)
@@ -330,6 +330,9 @@ spm_gmmlib.$(MEXEXT): spm_gmmlib.c gmmlib.c gmmlib.h
 
 spm_jsonread.$(MEXEXT): spm_jsonread.c external/jsmn/jsmn.h external/jsmn/jsmn.c
 	$(MEX) spm_jsonread.c external/jsmn/jsmn.c -DJSMN_PARENT_LINKS $(MEXEND)
+
+spm_mesh_dist.$(MEXEXT):spm_mesh_dist.cpp external/TriangleMeshDistance/TriangleMeshDistance.h
+	$(MEX) spm_mesh_dist.cpp $(MEXEND)
 
 spm_mesh_reduce.$(MEXEXT): spm_mesh_reduce.c external/nii2mesh/quadric.c\
 		external/nii2mesh/quadric.h external/nii2mesh/meshtypes.h
