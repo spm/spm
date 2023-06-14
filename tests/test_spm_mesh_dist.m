@@ -101,6 +101,15 @@ for x=-2:0.13:2
 end
 testCase.verifyEqual(act, exp, 'AbsTol',1e-10);
 
+[X,Y,Z] = meshgrid(-2:0.13:2,-2:0.13:2,-2:0.13:2);
+XYZ = [X(:) Y(:) Z(:)];
+act = spm_mesh_dist(M,XYZ);
+exp = zeros(size(act));
+for i=1:size(XYZ,1)
+    exp(i) = dist_cube(XYZ(i,:));
+end
+testCase.verifyEqual(act, exp, 'AbsTol',1e-10);
+
 
 function d = dist_cube(XYZ)
 dx = max([[-1 -1 -1] - XYZ; XYZ - [1 1 1]], [], 1);
