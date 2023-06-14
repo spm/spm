@@ -1,5 +1,5 @@
 function D = spm_mesh_dist(M, XYZ)
-% Compute the signed distance function (SDF) to a triangle mesh
+% Compute signed distance to a triangle mesh
 % FORMAT D = spm_mesh_dist(M, XYZ)
 % M        - a patch structure with fields 'faces' and 'vertices'
 % XYZ      - a n x 3 array of coordinates {mm}
