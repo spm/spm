@@ -430,10 +430,9 @@ if ~isempty(SPM.Sess.U)
         % Set sample weight for channel 
         W = ones(nt, 1);
         W(D.badsamples(channels(c), ':', 1)) = exp(-256);
-        W = spdiags(W, 0, nt, nt);
         
         % Compute svd with sample weight for that channel
-        axX    = spm_sp('Set', spm_filter(K, W*X));
+        axX    = spm_sp('Set', spm_filter(K, W.*X));
 
         % Compute pinv(X'X)*X'
         if ~isfield(axX,'pX')
@@ -443,7 +442,7 @@ if ~isempty(SPM.Sess.U)
         % Reshape and filter M/EEG for that channel
         % -----------------------------------------
         Y = reshape(D(channels(c), :, :, :), nf, nt);
-        Y = spm_filter(K, W*Y');
+        Y = spm_filter(K, W.*Y');
         
         % Compute beta coefficients (B =(X'X)^{-1} X'Y)
         % ---------------------------------------------
