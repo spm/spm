@@ -129,7 +129,6 @@ eventtype.help    = {''};
 eventvalue         = cfg_entry;
 eventvalue.tag     = 'eventvalue';
 eventvalue.name    = 'Event value';
-eventvalue.strtype = 'r';
 eventvalue.help    = {''};
 
 trlshift         = cfg_entry;
