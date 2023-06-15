@@ -28,6 +28,7 @@
 #include <algorithm>
 #include <unordered_map>
 #include <cmath>
+#include <limits>
 
 namespace tmd
 {
