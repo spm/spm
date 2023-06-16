@@ -26,6 +26,10 @@ else
     setenv('SPM_NUM_THREADS', sprintf('%d',-1));
 end
 
+% Delete any velocities and deformation files that could confuse things
+%--------------------------------------------------------------------------
+spm_mb_io('delete_files',dat)
+
 % Get zoom (multi-scale) settings
 %--------------------------------------------------------------------------
 dmu     = sett.mu.d;
@@ -45,7 +49,8 @@ if isfield(sett.mu,'exist')
 else
     % Random template
     nit_mu  = 1;
-    mu      = randn([sett.ms.d sett.K], 'single')*1.0;
+    mu      = bsxfun(@minus, randn([sett.ms.d sett.K], 'single'), ...
+                             randn([sett.ms.d      1], 'single'));
     updt_mu = true;
 end
 

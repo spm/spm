@@ -17,6 +17,18 @@ function varargout = spm_mb_io(varargin)
 %==========================================================================
 
 %==========================================================================
+function delete_files(dat)
+for n=1:numel(dat)
+    if isa(dat(n).v,'char') && exist(dat(n).v,'file')
+        delete(dat(n).v);
+    end
+    if isa(dat(n).psi,'char') && exist(dat(n).psi,'file')
+        delete(dat(n).psi);
+    end
+end
+%==========================================================================
+
+%==========================================================================
 function out = save_mat(in,mat)
 % Write mat to header
 if isa(in,'char')
