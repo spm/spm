@@ -18,6 +18,7 @@ if isfield(sett.mu,'exist')
 elseif isfield(sett.mu,'create')
     mu = sett.mu.create.mu;
 end
+if mu(1) == '.', mu = fullfile(fileparts(cfg.result{1}), mu); end
 mu = nifti(mu);
 mu = single(mu.dat(:,:,:,:,:));
 

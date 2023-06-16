@@ -19,10 +19,15 @@ function varargout = spm_mb_io(varargin)
 %==========================================================================
 function out = save_mat(in,mat)
 % Write mat to header
-out = in;
 if isa(in,'char')
-    in = nifti(in);
+    if exist(in,'file')
+        in = nifti(in);
+    else
+        out = in;
+        return
+    end
 end
+out = in;
 if isa(in,'nifti') && numel(in)==1
     out.mat = mat;
     create(out);
@@ -115,6 +120,11 @@ if isnumeric(in)
     return
 end
 if isa(in,'char')
+    if ~exist(in,'file')
+        out = [];
+        Mn  =[]; % eye(4);
+        return
+    end
     in = nifti(in);
 end
 if isa(in,'nifti')

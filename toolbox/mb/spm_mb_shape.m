@@ -5,7 +5,7 @@ function varargout = spm_mb_shape(varargin)
 % FORMAT B         = spm_mb_shape('affine_bases',code)
 % FORMAT psi       = spm_mb_shape('compose',psi1,psi0)
 % FORMAT id        = spm_mb_shape('identity',d)
-% FORMAT dat       = spm_mb_shape('init_def',dat,sett.ms)
+% FORMAT dat       = spm_mb_shape('init_def',dat,sett)
 % FORMAT l         = spm_mb_shape('LSE0',mu,ax)
 % FORMAT a1        = spm_mb_shape('pull1',a0,psi,r)
 % FORMAT [f1,w1]   = spm_mb_shape('push1',f,psi,d,r)
@@ -19,9 +19,10 @@ function varargout = spm_mb_shape(varargin)
 % FORMAT dat       = spm_mb_shape('update_simple_affines',dat,mu,sett)
 % FORMAT dat       = spm_mb_shape('update_velocities',dat,mu,sett)
 % FORMAT dat       = spm_mb_shape('update_warps',dat,sett)
-% FORMAT [dat,mu]  = spm_mb_shape('zoom_volumes',dat,mu,sett,oMmu)
+% FORMAT [mu,te]   = spm_mb_shape('zoom_mean',mu,sett,oMmu)
+% FORMAT dat       = spm_mb_shape('zoom_defs',dat,sett,oMmu,d0)
 % FORMAT sz        = spm_mb_shape('zoom_settings', v_settings, mu, n)
-% FORMAT psi       = get_def(dat,sett.ms.Mmu)
+% FORMAT psi       = spm_mb_shape('get_def',dat,sett.ms.Mmu)
 %__________________________________________________________________________
 
 % John Ashburner
@@ -204,7 +205,7 @@ if isempty(a0)
 elseif isempty(psi)
     a1 = a0;
 else
-    if r==1
+    if all(r==1)
         a1 = spm_diffeo('pull',reshape(a0,[d(1:3) prod(d(4:end))]),psi);
         d1 = size(a1);
         a1 = reshape(a1,[d1(1:3) d(4:end)]);
@@ -389,8 +390,7 @@ if ~isempty(B)
         for n=1:numel(dat), dat(n) = update_affines_sub(dat(n),mu,sett); end
     end
 
-    groupwise = isa(sett.mu,'struct') && isfield(sett.mu,'create');
-    if groupwise
+    if isa(sett.mu,'struct') && isfield(sett.mu,'create')
         % Zero-mean the affine parameters
         mq = sum(cat(2,dat(:).q),2)/numel(dat);
 
@@ -714,7 +714,6 @@ function dat = update_simple_affines(dat,mu,sett)
 accel = sett.accel;
 B     = sett.B;
 if ~isempty(B)
-    groupwise = isa(sett.mu,'struct') && isfield(sett.mu,'create') && numel(dat)>1;
 
     % Update the affine parameters
     spm_diffeo('boundary',1);
@@ -732,7 +731,7 @@ if ~isempty(B)
         end
     end
 
-    if groupwise
+    if isa(sett.mu,'struct') && isfield(sett.mu,'create') && numel(dat)>1
         % Zero-mean the affine parameters
         mq = sum(cat(2,dat(:).q),2)/numel(dat);
 
@@ -833,8 +832,7 @@ end
 function dat = update_velocities(dat,mu,sett)
 
 % Parse function settings
-groupwise = isa(sett.mu,'struct') && isfield(sett.mu,'create');
-if groupwise
+if isa(sett.mu,'struct') && isfield(sett.mu,'create')
     scal = 1-1/numel(dat);
 else
     scal = 1;
@@ -955,11 +953,10 @@ end
 function dat = update_warps(dat,sett)
 
 % Parse function settings
-groupwise  = isa(sett.mu,'struct') && isfield(sett.mu,'create');
 v_settings = sett.ms.v_settings;
 d          = sett.ms.d;
 
-if groupwise
+if isa(sett.mu,'struct') && isfield(sett.mu,'create')
     nw    = get_num_workers(sett,dat,9,0);
     % Total initial velocity should be zero (Khan & Beg), so mean correct
     avg_v = single(0);
@@ -1009,54 +1006,52 @@ datn       = set_def(datn,sett.ms.Mmu,psi1);
 %==========================================================================
 
 %==========================================================================
-function [dat,mu] = zoom_volumes(dat,mu,sett,oMmu)
+function [mu,te] = zoom_mean(mu,sett,oMmu)
+ms    = sett.ms;
+y     = affine(ms.d, oMmu\ms.Mmu);
+spm_diffeo('boundary',1);  % Neumann bounday for template
+mu    = spm_diffeo('pullc', mu, y);
+if nargout>=2
+    te = template_energy(mu, ms.mu_settings);
+end
+%==========================================================================
 
-% Parse function settings
-d     = sett.ms.d;
-Mmu   = sett.ms.Mmu;
+%==========================================================================
+function dat = zoom_defs(dat,sett,oMmu,d0)
 B     = sett.B;
-
-d0    = [size(mu,1) size(mu,2) size(mu,3)];
+ms    = sett.ms;
+d     = ms.d;
+Mmu   = ms.Mmu;
+d0    = d0(1:3);
 z     = single(reshape(d./d0,[1 1 1 3]));
-Mzoom = oMmu\Mmu;
-y     = affine(d,Mzoom);
-if nargout > 1 || ~isempty(mu) % only resize template if updating it
-    spm_diffeo('boundary',1);  % Neumann bounday for template
-    mu = spm_diffeo('pullc',mu,y);
-end 
-
+y     = affine(d, oMmu\Mmu);
 if ~isempty(dat)
     nw = get_num_workers(sett,dat,6+0.5*6,0);
     if nw > 1 && numel(dat) > 1 % PARFOR
         parfor(n=1:numel(dat),nw)
-            v          = spm_mb_io('get_data',dat(n).v);
-            spm_diffeo('boundary',0); % Circulant for velocities
-            v          = spm_diffeo('pullc',bsxfun(@times,v,z),y);
-            dat(n).v   = resize_file(dat(n).v  ,d,Mmu);
-            dat(n).v   = spm_mb_io('set_data',dat(n).v,v);
-            if ~isempty(B)
-                Mdef   = spm_dexpm(dat(n).q,B)\Mmu;
-            else
-                Mdef   = Mmu;
-            end
-            dat(n).psi = resize_file(dat(n).psi,d,Mdef);
+            dat(n) = zoom_defs_sub1(dat(n), z, y, d, Mmu, B);
         end
     else % FOR
         for n=1:numel(dat)
-            v          = spm_mb_io('get_data',dat(n).v);
-            spm_diffeo('boundary',0); % Circulant for velocities
-            v          = spm_diffeo('pullc',bsxfun(@times,v,z),y);
-            dat(n).v   = resize_file(dat(n).v  ,d,Mmu);
-            dat(n).v   = spm_mb_io('set_data',dat(n).v,v);
-            if ~isempty(B)
-                Mdef   = spm_dexpm(dat(n).q,B)\Mmu;
-            else
-                Mdef   = Mmu;
-            end
-            dat(n).psi = resize_file(dat(n).psi,d,Mdef);
+            dat(n) = zoom_defs_sub1(dat(n), z, y, d, Mmu, B);
         end
     end
 end
+%==========================================================================
+
+%==========================================================================
+function datn = zoom_defs_sub1(datn, z, y, d, Mmu, B)
+v        = spm_mb_io('get_data',datn.v);
+spm_diffeo('boundary',0); % Circulant for velocities
+v        = spm_diffeo('pullc',bsxfun(@times, v, z), y);
+datn.v   = resize_file(datn.v, d, Mmu);
+datn.v   = spm_mb_io('set_data', datn.v, v);
+if ~isempty(B)
+    Mdef = spm_dexpm(datn.q,B)\Mmu;
+else
+    Mdef = Mmu;
+end
+datn.psi = resize_file(datn.psi, d, Mdef);
 %==========================================================================
 
 %==========================================================================
@@ -1352,12 +1347,14 @@ end
 %==========================================================================
 
 %==========================================================================
-function dat = init_def(dat,ms)
+function dat = init_def(dat,sett)
 % Possibly break up this function and put parts of it in the io file.
 
 % Parse function settings
-d       = ms.d;
-Mmu     = ms.Mmu;
+ms   = sett.ms;
+d    = ms.d;
+Mmu  = ms.Mmu;
+B    = sett.B;
 
 v    = zeros([d,3],'single');
 psi1 = identity(d);
@@ -1396,6 +1393,9 @@ for n=1:numel(dat)
         create(nii);
         dat(n).psi  = nii;
         dat(n)      = set_def(dat(n),Mmu,psi1);
+
+        Mdef       = spm_dexpm(dat(n).q,B)\ms.Mmu;
+        dat(n).psi = spm_mb_io('save_mat',dat(n).psi,Mdef);
     end
 end
 %==========================================================================
