@@ -47,22 +47,22 @@ rng(1)
 %--------------------------------------------------------------------------
 dSprite{1} = [ ...
     0 0 0 0 0 0 0 0;
-    0 1 1 1 1 1 1 0;
-    0 1 1 1 1 1 1 0;
-    0 1 1 1 1 1 1 0;
-    0 1 1 1 1 1 1 0;
-    0 1 1 1 1 1 1 0;
-    0 1 1 1 1 1 1 0;
+    0 0 0 0 0 0 0 0;
+    0 0 1 1 1 1 0 0;
+    0 0 1 1 1 1 0 0;
+    0 0 1 1 1 1 0 0;
+    0 0 1 1 1 1 0 0;
+    0 0 0 0 0 0 0 0;
     0 0 0 0 0 0 0 0];
 
 dSprite{2} = [ ...
     0 0 0 0 0 0 0 0;
-    0 0 1 1 0 1 1 0;
-    0 1 1 1 1 1 1 1;
-    0 1 1 1 0 1 1 1;
-    0 0 1 1 1 1 1 0;
-    0 0 0 1 1 1 0 0;
-    0 0 0 0 1 0 0 0;
+    0 0 1 0 0 1 0 0;
+    0 1 1 1 1 1 1 0;
+    0 1 1 0 0 1 1 0;
+    0 0 1 1 1 1 0 0;
+    0 0 0 1 1 0 0 0;
+    0 0 0 0 0 0 0 0;
     0 0 0 0 0 0 0 0];
 
 dSprite{3} = [ ...
@@ -161,10 +161,10 @@ end
 
 %  spatial targets for different kinds  of objects
 %--------------------------------------------------------------------------
-target{1} = [3,1]*Nx/4;
-target{2} = [3,3]*Nx/4;
-target{3} = [1,2]*Nx/4;
-precision = eye(2,2)/(Nx/4)^2;
+target{1} = 1 + [3,1]*(Nx - 1)/4;
+target{2} = 1 + [3,3]*(Nx - 1)/4;
+target{3} = 1 + [1,2]*(Nx - 1)/4;
+precision = eye(2,2)/((Nx - 1)/4)^2;
 
 % for every combination  of latent states, specify an outcome
 %--------------------------------------------------------------------------
@@ -214,7 +214,7 @@ end
 for g = 1:numel(A)
     C{g} = zeros(1,size(A{g},1));
 end
-C{end}   = [8; 0]; %%%%
+C{end}   = [4; 0]; %%%%
 
 
 % This concludes the ABC of the model; namely, the likelihood mapping,
@@ -247,10 +247,11 @@ MDP.label = label;
 %==========================================================================
 disp('inverting generative model (c.f., active inference)'), disp(' ')
 
-% specify a trial, with initial conditions, s
+% specify a trial, with initial conditions (s)
 %--------------------------------------------------------------------------
 OPTIONS.N = 1;                    % simulate neuronal responses
-MDP.s = [1,1,2];
+c     = (Nx - 1)/2;
+MDP.s = [c,c,2];
 MDP   = spm_MDP_VB_XXX(MDP,OPTIONS);
 
 
@@ -269,20 +270,35 @@ spm_MDP_VB_LFP(MDP(1),[],3);
 spm_figure('GetWin','optimal behaviour'); clf
 spm_report(MDP)
 
+% add dSprites to figure
+%--------------------------------------------------------------------------
+for i = 1:numel(dSprite)
+    subplot(6,numel(dSprite),9 + i)
+    imagesc(1 - dSprite{i}), title(sprintf('dSprite %i',i))
+    axis square
+end
 
 % Illustrate structure learning via assimilation of epochs of observations
 %==========================================================================
-[Nf,Ns,Nu,Ng,No] = spm_MDP_size(MDP);
 
-mdp.No = No;
-mdp    = spm_MDP_structure_learning(mdp,MDP);
+% Generate training sequence
+%--------------------------------------------------------------------------
+[o,O]   = spm_MDP_structure_teaching(MDP);
 
-% Illustrate mmotor babbling (motor learning)
+% Structure learning
+%--------------------------------------------------------------------------
+mdp     = spm_MDP_structure_learning([],O);
+
+% Illustrate motor learning
 %==========================================================================
-% mdp = spm_MDP_motor_learning(mdp);
-mdp.k = [1 1 0];
+mdp     = rmfield(mdp,'b');                % assume B has been learned
+mdp.U   = U;
+mdp.A   = A;
+mdp.B   = B;
+mdp.C   = C;
+mdp     = spm_MDP_motor_learning(mdp);
 
-% active learning
+% active learning (c.f., motor babbling)
 %==========================================================================
 % So far, only a small number of likelihood parameters have been learned.
 % We can now call upon the active learning aspect of active inference
@@ -306,7 +322,6 @@ OPTIONS.G = 1;                             % suppress graphics
 %--------------------------------------------------------------------------
 [Nf,Ns,Nu] = spm_MDP_size(mdp);
 MDP   = mdp;
-MDP          = rmfield(MDP,'b');           % transition priors
 for f = 1:Nf
     MDP.D{f} = ones(Ns(f),1);              % initial state
     MDP.E{f} = ones(Nu(f),1);              % initial control

@@ -329,7 +329,7 @@ for m = 1:numel(MDP)
         % prior concentration parameters and novelty (W)
         %------------------------------------------------------------------
         if isfield(MDP,'a')
-            W{m,g} = spm_wnorm(a{m,g}).*(a{m,g} > 0);
+            W{m,g} = spm_wnorm(a{m,g});
         else
             W{m,g} = false;
         end
@@ -339,10 +339,13 @@ for m = 1:numel(MDP)
         if islogical(a{m,g})
             H{m,g} = false;
         else
-            H{m,g} = sum(A{m,g}.*spm_psi(a{m,g}),1);
+            H{m,g} = spm_hnorm(a{m,g});
 
-            if ~any(H{m,g},'all'), H{m,g} = false;  end
+            if ~any(H{m,g},'all')
+                H{m,g} = false;
         end
+    end
+
     end
 
     % transition probabilities (priors)
@@ -1487,20 +1490,30 @@ if t < N
     % probability over action (terminating search at a suitable threshold)
     %----------------------------------------------------------------------
     u     = spm_softmax(G);
-    k     = u <= max(u)/16;
+    k     = u > max(u)/16;
+    u(~k) = 0;
+    G(~k) = max(G) - 32;
+
+    % if there is only one plausible action
+    %----------------------------------------------------------------------
+    if sum(k) == 1
     u(k)  = 0;
-    G(k)  = - 64;
+    end
+
+    % otherwise, accumulate the path integral of expected free energy
+    %----------------------------------------------------------------------
     for k = 1:size(B,3)                      % search over actions
-        q = spm_vec(spm_cross(Q(:,k)));      % vectorise posterior
-        if u(k)                              % evaluating plausible paths
+        if u(k)                                  % evaluate plausible paths
 
             %  evaluate expected free energy for plausible hidden states
             %--------------------------------------------------------------
+            q     = spm_vec(spm_cross(Q(:,k)));  % vectorise posterior
             j     = find(q > max(q)/16);
             if length(j) > 16
                 [q,j] = sort(q,'descend');
                 j     = j(1:16);
             end
+
             for i = j(:)'
 
                 % outcome probabilities under hidden state (i)
@@ -1751,6 +1764,16 @@ function A  = spm_wnorm(A)
 A   = max(A,exp(-16));
 A0  = sum(A);
 A   = minus(log(A0),log(A)) + minus(1./A,1./A0) + minus(psi(A),psi(A0));
+A   = max(A,0);
+
+function A  = spm_hnorm(A)
+% expected conditional entropy (ambiguity)
+%--------------------------------------------------------------------------
+A   = max(A,exp(-16));
+A   = spm_norm(A).*minus(psi(A),psi(sum(A,1)));
+A   = sum(A);
+A   = min(A,0);
+
 
 
 function A  = spm_margin(A,i)

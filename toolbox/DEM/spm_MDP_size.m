@@ -14,26 +14,36 @@ function [Nf,Ns,Nu,Ng,No] = spm_MDP_size(mdp)
 
 % checks
 %--------------------------------------------------------------------------
-if ~isfield(mdp,'a'), mdp.a = mdp.A; end
-if ~isfield(mdp,'b')
-    Ns = size(mdp.a{1},2:16);
-    Ns = Ns(Ns > 1);
-    for f = 1:numel(Ns)
-       mdp.b{f} = eye(Ns(f),Ns(f));
+if isfield(mdp,'a')
+    a = mdp.a;
+else
+    a = mdp.A;
+end
+if isfield(mdp,'b')
+    b = mdp.b;
+else
+    if isfield(mdp,'B')
+        b = mdp.B;
+    else
+        Ns = size(a{1},2:16);
+        Ns = Ns(Ns > 1);
+        for f = 1:numel(Ns)
+            b{f} = eye(Ns(f),Ns(f));
+        end
     end
 end
 
 % sizes of factors and modilities
 %--------------------------------------------------------------------------
-Nf    = numel(mdp.b);                    % number of hidden factors
-Ng    = numel(mdp.a);                    % number of outcome modalities
-Ns    = zeros(1,Nf);
-Nu    = zeros(1,Nf);
-No    = zeros(1,Ng);
+Nf    = numel(b);                    % number of hidden factors
+Ng    = numel(a);                    % number of outcome modalities
+Ns    = zeros(1,Nf);                 % number of hidden states
+Nu    = zeros(1,Nf);                 % number of hidden controls
+No    = zeros(1,Ng);                 % number of outcomes
 for f = 1:Nf
-    Ns(f) = size(mdp.b{f},1);            % number of hidden states
-    Nu(f) = size(mdp.b{f},3);            % number of hidden controls
+    Ns(f) = size(b{f},1);
+    Nu(f) = size(b{f},3);
 end
 for g = 1:Ng
-    No(g) = size(mdp.a{g},1);            % number of outcomes
+    No(g) = size(a{g},1);
 end

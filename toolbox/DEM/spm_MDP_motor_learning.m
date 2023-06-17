@@ -3,18 +3,21 @@
 function MDP = spm_MDP_motor_learning(MDP)
 % FORMAT MDP = spm_MDP_motor_learning(MDP)
 % MDP - generative model
+% MDP.U - true control
+%
+% returns
+% MDP.k - inferred control
 %
 % This routine illustrates a particular kind of structure learning, with a
 % special focus on whether or not a particular path is controllable. This
 % can be implemented simply and efficiently by evaluating the ELBO under
 % different models of control (encoded by the indicator variables in
-% MDP.k). And selecting the model with the greatest evidence. The a priori
-% imperative for action is the expected information gain inherent in the
-% expected free energy. If these prior beliefs about the consequences of
-% action are realised, then the model evidence is high. If these prior
-% beliefs are inconsistent with what the agent can realise, then model
-% evidence will fall. The evidence in question here is the
-% variiational free energy due to posterior beliefs over paths (MDP.Z).
+% MDP.k), and selecting the model with the greatest evidence. In this
+% implementation, the outcomes are generated under true control (i.e.,
+% under planning as inference). Using these outcomes, the evidence for
+% various models of control (i.e., the indicator variables in MDP.k) is
+% assessed. The evidence in question here is the variiational free energy
+% due to posterior beliefs over paths (MDP.Z).
 % 
 % In short, this routine updates structural knowledge about controllable
 % dynamics by updating MDP.k.
@@ -55,13 +58,22 @@ for f = 1:Nf
     MDP.E{f} = sparse(1,1,1,Nu(f),1);        % initial control
 end
 
+% generate outcomes under true control
+%--------------------------------------------------------------------------
+MDP.T = 16;
+mdp   = MDP;
+mdp.k = MDP.U;                              % true contol
+mdp   = spm_MDP_VB_XXX(mdp,OPTIONS);        % generate observations
+o     = mdp.o;
+
 % motor babbling (evaluate the path integral of free energy  under
 % different beliefs about controllable factors)
 %==========================================================================
-MDP.T  = 8;
 for c  = 1:Nc
+
     mdp   = MDP;
     mdp.k = U(c,:);                         % what the agent thinks
+    mdp.o = o;                              % what the agent sees
     mdp   = spm_MDP_VB_XXX(mdp,OPTIONS);    % motor babbling
     F(c)  = sum(mdp.F);                     % assess evidence: ELBO(u)
 
@@ -76,8 +88,20 @@ end
 
 % select the best control model
 %--------------------------------------------------------------------------
-[F,c] = min(F);
+[f,c] = max(F);
 MDP.k = U(c,:);
+
+if OPTIONS.G
+    spm_figure('getwin','Motor learning'); clf
+    mdp   = spm_MDP_VB_XXX(MDP,OPTIONS);
+    spm_MDP_VB_trial(mdp);
+
+    subplot(3,2,3), imagesc(1 - U); title('Models of control')
+    xlabel('hidden factor'); ylabel('model'); axis square
+    subplot(3,2,4); bar(F - min(F)); title('Log evidence')
+    xlabel('Models of control'); ylabel('ELBO (nats)'); axis square
+
+end
 
 return
 
