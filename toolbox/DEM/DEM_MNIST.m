@@ -42,7 +42,7 @@ function mdp = DEM_MNIST
 
 % Load (pre-processed) MNIST dataset
 %--------------------------------------------------------------------------
-spm_MNIST_prepare;
+% spm_MNIST_prepare;
 load spm_MNIST
 
 % train
@@ -61,7 +61,7 @@ spm_figure('GetWin','Disentangled');
 spm_show_a(mdp.a);
 
 
-% test (e.g., accuracy 95.1 %)
+% test
 %==========================================================================
 % Posterior predictive classification accuracy using a test set of data
 %--------------------------------------------------------------------------
@@ -111,32 +111,39 @@ title('Unlikely digits','FontSize',14)
 % Illustrate Bayesian model reduction by simply setting tensor elements
 % with small values zero
 %--------------------------------------------------------------------------
-% Number of parameters before and after reduction
-%    1253376
-%    1194895
-% ELBO before and after reduction (per modality)
-%   -5.3413e+03
-%   -5.3255e+03
-%    15.8223
-%--------------------------------------------------------------------------
 rdp   = mdp;
 Ng    = numel(mdp.a);
 for g = 1:Ng
     rdp.a{g} = spm_MDP_VB_prune(mdp.a{g},mdp.p,0,0,0,'SIMPLE');
 end
 
-disp('number parameters before and after reduction')
-disp(sum(~~spm_vec(mdp.a)))
-disp(sum(~~spm_vec(rdp.a)))
 
 % Evaluate the predictive accuracy of the reduced model
 %--------------------------------------------------------------------------
 [Cr,Fr] = spm_MNIST_test(rdp,test,10000);
 
+disp('Classification accuracy before and after reduction')
+disp(100*mean(C))
+disp(100*mean(Cr))
+disp('Number parameters before and after reduction')
+disp(sum(~~spm_vec(mdp.a)))
+disp(sum(~~spm_vec(rdp.a)))
 disp('ELBO before and after reduction (per modality)')
 disp(sum(F)/Ng)
 disp(sum(Fr)/Ng)
 disp(sum(Fr)/Ng - sum(F)/Ng)
+%--------------------------------------------------------------------------
+% Classification accuracy before and after reduction
+%    95.1 %
+%    95.0 %
+% Number of parameters before and after reduction
+%    1253376
+%    1194895
+% ELBO before and after reduction (per modality)
+%   -5.3413e+03
+%   -5.3255e+03
+%    15.8223 nats
+%--------------------------------------------------------------------------
 
 % graphics: increasing classification accuracy with marginal likelihood
 %--------------------------------------------------------------------------
@@ -340,7 +347,7 @@ for j = 1:NT
     %----------------------------------------------------------------------
     C(j) = d == p;
     G(j) = F*spm_softmax(F(:));
-    clc, disp(100*mean(C)),disp(j)
+    clc, disp(100*mean(C)), disp(j)
 
 end
 

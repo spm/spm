@@ -1,11 +1,10 @@
-function mdp = spm_MDP_structure_learning(mdp,MDP,OPTIONS)
+function mdp = spm_MDP_structure_learning(mdp,o,OPTIONS)
 % structure learning of factorised Markov decision processes
-% FORMAT mdp = spm_MDP_structure_learning(mdp,MDP,[OPTIONS])
-% FORMAT mdp = spm_MDP_structure_learning(mdp,o,  [OPTIONS])
+% FORMAT mdp = spm_MDP_structure_learning(mdp,O,[OPTIONS])
 %
 % mdp.p - initial Dirichlet counts [exp( 0)]
 % mdp.q - precise Dirichlet counts [exp(16)]
-% MDP   - generative process or exemplars [o{.} or O{{.}}]
+% O     - generative process or exemplars [o{.} or O{{.}}]
 %
 % OPTIONS.N  [0]   - suppress neuronal responses
 % OPTIONS.P  [0]   - suppress plotting
@@ -13,21 +12,25 @@ function mdp = spm_MDP_structure_learning(mdp,MDP,OPTIONS)
 % OPTIONS.G  [1]   - suppress graphics
 %
 % OPTIONS.NF [4]   - maxmium number of factors
-% OPTIONS.NS [32]  - maxmium number of states
-% OPTIONS.NU [8]   - maxmium number of paths
+% OPTIONS.NS [32,...] - maxmium number of states
+% OPTIONS.NU [16,...] - maxmium number of paths
+% OPTIONS.UB [1]      - model prior: bound on Ns
+% OPTIONS.UG [0]      - model prior: expected FE
+%
 %
 % mdp   - generative model: with mdp.a, mdp.b (and mdp.k)
 %
 % This routine returns a generative model (mdp) in the form of an MDP,
-% based upon a sequence of outcomes. If the outcomes are not supplied, then
-% they are generated automatically from a generative process, specified
-% with an MDP structure. The generative model learns from successive epochs
-% of data generated under the first level of each factor of the process. By
-% exploring different extensions to the model (using Bayesian model
-% comparison) successive epochs are assimilated under a model structure
-% that accommodates context sensitive paths. This routine makes certain
-% assumptions about the basic structural form of generative models at any
-% given level of a hierarchical model. These are minimal assumptions:
+% given a sequence of outcomes. If the outcomes are not available, then
+% they can be generated automatically from a generative process, specified
+% with an MDP structure (see spm_MDP_structure_teaching). The generative
+% model learns from successive epochs of data generated under the first
+% level of each factor of the process. By exploring different extensions to
+% the model (using Bayesian model comparison) successive epochs are
+% assimilated under a model structure that accommodates paths. This routine
+% makes certain assumptions about the structural form of generative models
+% at any given level of a hierarchical model. These are minimal
+% assumptions:
 % 
 % (i) Dynamics are conditionally independent of outcomes. This means that
 % the generative model can be factorised into a likelihood mapping (A) and
@@ -78,7 +81,7 @@ try OPTIONS.G; catch, OPTIONS.G = 1; end     % suppress graphics
 
 % initialise model (mdp)
 %==========================================================================
-try mdp.p; catch, mdp.p  = 1/16;     end     % initial Dirichlet counts
+try mdp.p; catch, mdp.p  = 1/32;     end     % initial Dirichlet counts
 try mdp.q; catch, mdp.q  = exp(16); end      % precise Dirichlet counts
 try mdp.w; catch, mdp.w  = 0;        end     % Occam's window
 
@@ -100,77 +103,16 @@ try UG = OPTIONS.UG; end
 
 % precision of expected free energy priors
 %--------------------------------------------------------------------------
-if UG
     try, zeta = mdp.zeta; catch, zeta = 1; end
-end
 
 % inversion scheme
 %--------------------------------------------------------------------------
-spm_evaluate = @spm_MDP_VB_XXX;
-
-% generate outcomes if necessary
-%==========================================================================
-if isstruct(MDP)
-
-    % number of outcomes, states, controls and policies
-    %----------------------------------------------------------------------
-    [Nf,Ns,Nu,Ng,No] = spm_MDP_size(MDP);
-    T = max(Ns) + 2;
-    mdp.No = No;
-
-    % ensure factors with dynamics generate sequences first
-    %----------------------------------------------------------------------
-    disp('generating outcomes for structure learning'), disp(' ')
-    if any(diff(Nu) > 0)
-        warning('Please reorder B{i} with descending number of paths: size(B{i},3)')
-    end
-
-    % passive generation
-    %----------------------------------------------------------------------
-    MUP   = MDP;
-    MUP.U = zeros(1,Nf);
-    MUP.T = T;                              % number of outcomes
-
-    % cycle over latent factors to generate outcomes
-    %----------------------------------------------------------------------
-    o     = {};                             % initialise outcome cell array
-    for i = 1:Nf                            % cycle over factors
-
-        % cycle over paths
-        %------------------------------------------------------------------
-        for j = 1:Nu(i)
-
-            % cycle over states
-            %--------------------------------------------------------------
-            for k = 1:Ns(i)
-
-                % generate outcomes from initial states (and paths) of this
-                % factor, under the first states (and paths) of others
-                %----------------------------------------------------------
-                MUP.s = ones(Nf,1); MUP.s(i) = k;
-                MUP.u = ones(Nf,1); MUP.u(i) = j;
-                MUP.o = [];
-                MUP   = spm_MDP_VB_XXX(MUP);
-
-                % outcomes for this epoch
-                %==========================================================
-                o{end + 1} = MUP.o;
-
-            end
-        end
-    end
-else
-
-    % MDP are outcomes
-    %----------------------------------------------------------------------
-    o     = MDP;
-
-        % number of modalities
-    %----------------------------------------------------------------------
-        Ng    = size(o{1},1);
+spm_evaluate = @spm_MDP_VB_XXX;              % free energy evaluation
+spm_G        = @spm_MDP_MI;                  % expected free energy
 
         % number of outcomes for each modality
-    %----------------------------------------------------------------------
+%--------------------------------------------------------------------------
+Ng = size(o{1},1);
     if ~isfield(mdp,'No')
 
         if isnumeric(o{1})
@@ -191,7 +133,6 @@ else
             end
         end
     end
-        end
 
 % specify single state prior (b) if necessary
 %--------------------------------------------------------------------------
@@ -213,10 +154,8 @@ end
 
 % cycle over latent factors to generate outcomes and grow the model
 %--------------------------------------------------------------------------
-spm_G = @spm_MDP_MI;
 FF    = [];                                   % successive ELBO
 for t = 1:size(o,2)                           % cycle over epochs
-
 
     % Bayesian model selection for this epoch
     %======================================================================
@@ -358,14 +297,6 @@ try
     mdp = rmfield(mdp,'O');
 end
 
-% transcribe generative tensors to output
-%--------------------------------------------------------------------------
-try
-    mdp.U = MDP.U;                         % controllable factors
-    mdp.A = MDP.A;                         % likelihood probabilities
-    mdp.B = MDP.B;                         % transition probabilities
-    mdp.C = MDP.C;                         % prior preferences
-end
 
 return
 
@@ -385,8 +316,6 @@ return
 %     end
 %
 %     NB: a0 = hdp{h}.a;               % priors for BMR
-
-
 
 
 function mdp = spm_expand(mdp,n,s,u,OPTIONS)
@@ -419,11 +348,10 @@ for f = 1:Nf
         end
     end
 
-% ELBO under existing latent state
+% ELBO under most likely state of last factor
 %--------------------------------------------------------------------------
 if ~logical(n) && ~logical(s) && ~logical(u)
 
-    mdp.D{Nf} = ones(Ns(f),1);
     pdp       = spm_MDP_VB_XXX(mdp,OPTIONS);
     [d,i]     = max(pdp.X{Nf}(:,1));
 
@@ -431,15 +359,6 @@ if ~logical(n) && ~logical(s) && ~logical(u)
     mdp.E{Nf} = ones(Nu(f),1);
 
 end
-
-% NB: ELBO under most likely state of last factor
-%--------------------------------------------------------------------------
-% pdp       = spm_MDP_VB_XXX(mdp,OPTIONS);
-% [d,i]     = max(pdp.X{Nf}(:,1));
-% 
-% mdp.D{Nf} = sparse(i(1),1,1,Ns(Nf),1);
-% mdp.E{Nf} = ones(Nu(f),1);
-
 
 % add factor: with 2 states, because the first is shared by all factors
 %--------------------------------------------------------------------------
@@ -662,7 +581,7 @@ for i = 1:(Ns(end) - 1)
 
 end
 
-% reduce likelihood matrix
+% for comparison: reduce likelihood matrix using BMR
 %--------------------------------------------------------------------------
 % F     = zeros((Ns(end) - 1),1);
 % for i = 1:(Ns(end) - 1)
@@ -684,7 +603,7 @@ end
 % end
 
 
-% ccontract likelihood matrix if there is no loss of information
+% contract likelihood matrix if there is no loss of information
 %--------------------------------------------------------------------------
 [G,i] = max(G); i = i(1);
 

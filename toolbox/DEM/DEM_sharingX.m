@@ -609,7 +609,7 @@ end
 % likelihood tensors converge to a common frame of reference or ground;
 % thereby enabling belief sharing.
 %--------------------------------------------------------------------------
-spm_figure('GetWin','original'); clf
+spm_figure('GetWin','original (i.e., target)'); clf
 
 % SIM = 1;                               % language learning
 % SIM = 2;                               % supervised structure learning
