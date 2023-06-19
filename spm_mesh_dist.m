@@ -1,10 +1,12 @@
-function D = spm_mesh_dist(M, XYZ)
-% Compute signed distance to a triangle mesh
-% FORMAT D = spm_mesh_dist(M, XYZ)
+function D = spm_mesh_dist(M, XYZ, S)
+% Compute signed or unsigned distance from a point to a triangle mesh
+% FORMAT D = spm_mesh_dist(M, XYZ, S)
 % M        - a patch structure with fields 'faces' and 'vertices'
-% XYZ      - a n x 3 array of coordinates {mm}
+% XYZ      - a n x 3 array of points coordinates {mm}
+% S        - logical scalar for signed or unsigned distances
+%            [default: true, i.e. signed]
 %
-% D        - a n x 1 vector of signed distances to the triangle mesh
+% D        - a n x 1 vector of signed or unsigned distances from XYZ to M
 %__________________________________________________________________________
 %
 % Based on C++ library:

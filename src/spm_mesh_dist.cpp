@@ -16,10 +16,11 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     double *f = NULL, *v = NULL, *xyz = NULL;
     mwSize nv, nf, n;
     mwIndex i;
+    bool signed_dist = true;
     
     /* Check for proper number of arguments. */
     if (nrhs < 2) mexErrMsgTxt("Not enough input arguments.");
-    if (nrhs > 2) mexErrMsgTxt("Too many input arguments.");
+    if (nrhs > 3) mexErrMsgTxt("Too many input arguments.");
     if (nlhs > 1) mexErrMsgTxt("Too many output arguments.");
     
     if ((!mxIsStruct(prhs[0])) || (mxIsClass(prhs[0],"gifti")))
@@ -62,14 +63,23 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     xyz = mxGetPr(prhs[1]);
     n = mxGetM(prhs[1]);
 
+    /* Get signed/unsigned */
+    if (nrhs > 2)
+    {
+        signed_dist = mxIsLogicalScalarTrue(prhs[2]);
+    }
+
     /* Computes the signed distance from coordinates to the triangle mesh */
     plhs[0] = mxCreateDoubleMatrix(n, 1, mxREAL);
     
+    tmd::Result result;
     for (i=0;i<n;i++)
     {
-        tmd::Result result = mesh_distance.signed_distance({ xyz[i], xyz[i+n], xyz[i+2*n] });
+        if (signed_dist)
+            result = mesh_distance.signed_distance({ xyz[i], xyz[i+n], xyz[i+2*n] });
+        else
+            result = mesh_distance.unsigned_distance({ xyz[i], xyz[i+n], xyz[i+2*n] });
         mxGetPr(plhs[0])[i] = result.distance;
-        //std::cout << result.distance << std::endl;
     }
         
 }
