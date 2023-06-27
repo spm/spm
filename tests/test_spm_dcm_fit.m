@@ -2,7 +2,7 @@ function tests = test_spm_dcm_fit
 % Unit Tests for spm_dcm_fit
 %__________________________________________________________________________
 
-% Copyright (C) 2016-2022 Wellcome Centre for Human Neuroimaging
+% Copyright (C) 2016-2023 Wellcome Centre for Human Neuroimaging
 
 
 tests = functiontests(localfunctions);
@@ -34,7 +34,7 @@ for i = 1:length(GCM)
 end
 
 % -------------------------------------------------------------------------
-function disabled_test_fmri_parfor(testCase)
+function test_fmri_parfor(testCase)
 
 data_path = get_data_path();
 
