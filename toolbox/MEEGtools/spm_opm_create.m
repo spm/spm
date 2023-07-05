@@ -1,6 +1,6 @@
 function [D,L] = spm_opm_create(S)
 % Read magnetometer data and optionally set up forward model
-% FORMAT [D,L] = spm_opm_create(S)
+% FORMAT D = spm_opm_create(S)
 %   S               - input structure
 % Optional fields of S:
 % SENSOR LEVEL INFO
@@ -23,14 +23,13 @@ function [D,L] = spm_opm_create(S)
 %   S.meshres       - mesh resolution(1,2,3)                   - Default: 1
 %   S.lead          - flag to compute lead field               - Default: 0
 % Output:
-%   D               - MEEG object (also written to disk)
-%   L               - Lead field (also written on disk)
+%  D           - MEEG object (also written to disk)
+%  L           - Lead field (also written on disk)
 %__________________________________________________________________________
+% Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
 
 % Tim Tierney
-% Copyright (C) 2018-2023 Wellcome Centre for Human Neuroimaging
-
-
+% $Id$
 spm('FnBanner', mfilename);
 
 %-Set default values
@@ -47,14 +46,14 @@ if ~isfield(S, 'fname'),       S.fname = 'sim_opm';         end
 if ~isfield(S, 'path'),        S.path = [];                 end
 if ~isfield(S, 'precision'),   S.precision = 'single';      end
 if ~isfield(S, 'lead'),        S.lead = 0;                  end
-if ~isfield(S, 'headshape'),   S.headshape = [];            end
-if ~isfield(S, 'coordsystem'), S.coordsystem = [];          end
+if ~isfield(S, 'headshape');   S.headshape = [];            end
+if ~isfield(S, 'coordsystem'); S.coordsystem = [];          end
 
 %- identify Binary File
 %----------------------------------------------------------------------
 try % work out if data is a matrix or a file
     [direc, dataFile] = fileparts(S.data);
-    binData = true;
+    binData=1;
     
     %- Cerca magnetics support
     %----------------------------------------------------------------------
@@ -63,40 +62,39 @@ try % work out if data is a matrix or a file
         subjectSource=0;
         subjectNoStruct = 0;
         template = 0;
-        warning(['Cerca magnetics data currently requires separate'...
-            ' coregistration and forward modelling.']);
+        warning(['Cerca magnetics data currently requires seperate'...
+            ' coregistration and forward modelling']);
         args = [];
         args.filename = S.data;
         if isfield(S, 'positions')
-            positions = 1;
+            positions=1;
             args.positions = S.positions;
         else
-            positions = 0;
+            positions=0;
         end
         Data = read_cMEG_data(args);
         S.channels = Data.channels;
         if isfield(Data,'position')
-            S.positions = Data.position;
+			S.positions = Data.position;
         end
-        S.fs = Data.meg.SamplingFrequency;
-        binData = false;
-        S.data = Data.data;
+        S.fs=Data.meg.SamplingFrequency;
+        binData=0;
+        S.data=Data.data;
     end
     
 catch % if not readable check if it is numeric
-    if ~isa(S.data,'numeric')
-        error('A valid dataset or file was not supplied.');
+    if ~isa(S.data,'numeric') % if not numeric throw error
+        error('A valid dataset or file was not supplied')
     end
-    binData = false;
+    binData=0;
     direc = pwd();
-    dataFile = S.fname;
+    dataFile=S.fname;
     if ~isfield(S, 'channels')
-        error('A channels.tsv file must be supplied.');
+        error('A channels.tsv file must be supplied');
     end
 end
-
 %- identify potential BIDS Files
-%--------------------------------------------------------------------------
+%----------------------------------------------------------------------
 base = strsplit(dataFile,'meg');
 chanFile = fullfile(direc,[base{1},'channels.tsv']);
 megFile = fullfile(direc,[base{1},'meg.json']);
@@ -124,10 +122,12 @@ else
         try  % use channel struct if supplied
             channels = spm_load(chanFile);
         catch % create channel struct
-            error('A valid channels.tsv file or struct was not found.');
+            error('A valid channels.tsv file or struct was not found');
         end
     end
 end
+
+
 
 %- Check for MEG Info
 %--------------------------------------------------------------------------
@@ -141,35 +141,35 @@ catch
             meg = S.meg;
         catch
             try % to use S.fs argument to get sampling frequency
-                meg = [];
-                meg.SamplingFrequency = S.fs;
+                meg =[];
+                meg.SamplingFrequency=S.fs;
             catch
-                error('A meg.json file is required if S.fs is empty.');
+                error('A meg.json file is required if S.fs is empty');
             end
         end
     end
 end
 
 %- Position File check
-%--------------------------------------------------------------------------
+%----------------------------------------------------------------------
 try % to load a channels file
     posOri = spm_load(S.positions);
-    positions = 1;
+    positions =1;
 catch
     try % to load a BIDS channel file
         posOri = spm_load(posFile);
-        positions = 1;
+        positions =1;
     catch
         try % to assign a BIDS struct of positions
             if (isstruct(S.positions))
                 posOri = S.positions;
-                positions = 1;
+                positions=1;
             else
-                positions = 0;
+                positions =0;
             end
         catch
-            warning('No sensor position information found.');
-            positions = 0;
+            warning('No sensor position information found')
+            positions=0;
         end
     end
 end
@@ -178,18 +178,18 @@ end
 %--------------------------------------------------------------------------
 nChans = size(channels.name,1);
 
-if binData
-    fprops = dir(S.data);
-    if strcmp(S.precision,'single')
-        bytesPerSample = 4;
+if(binData)
+    fprops= dir(S.data);
+    if(S.precision == 'single')
+        bytesPerSample=4;
     else
-        bytesPerSample = 8;
+        bytesPerSample=8;
     end
     nSamples = fprops.bytes/(nChans*bytesPerSample);
     nTrials = 1;
 else
-    nSamples = size(S.data,2);
-    nTrials = size(S.data,3);
+    nSamples=size(S.data,2);
+    nTrials=size(S.data,3);
 end
 
 %- Check for a custom save path
@@ -198,7 +198,7 @@ if ~isempty(S.path)
     if exist(S.path,'dir')
         direc = S.path;
     else
-        error('Specified output directory does not exist.');
+        error('specified output directory does not exist!')
     end
 end % will use original direc variable otherwise
 
@@ -217,30 +217,31 @@ D = chantype(D,1:size(D,1),channels.type);
 ma = fullfile(direc,[dataFile,'.mat']);
 da = fullfile(direc,[dataFile,'.dat']);
 
-if exist(fullfile(path(D),fname(D)),'file') == 2
+ae = exist(fullfile(path(D),fname(D)),'file')==2;
+if(ae)
     delete(ma);
     delete(da);
 end
 D.save();
 
-%- Reformat data according to channel info
+%- reformat data according to channel info
 %--------------------------------------------------------------------------
-D = blank(D,[dataFile,'.dat']);
+D= blank(D,[dataFile,'.dat']);
 
 if binData
-    maxMem = 100e6;
-    samplesPerChunk = round(maxMem/(8*nChans));
-    begs = 1:samplesPerChunk:nSamples;
-    ends = begs+samplesPerChunk-1;
+    maxMem= 100e6;
+    samplesPerChunk= round(maxMem/(8*nChans));
+    begs= 1:samplesPerChunk:nSamples;
+    ends= begs+samplesPerChunk-1;
     
-    if ends(end) > nSamples
-        ends(end) = nSamples;
+    if(ends(end)>nSamples)
+        ends(end)=nSamples;
     end
     
     dat = fopen(S.data);
     for j=1:length(begs)
-        asamplesPerChunk = length(begs(j):ends(j));
-        inds = begs(j):ends(j);
+        asamplesPerChunk=length(begs(j):ends(j));
+        inds= begs(j):ends(j);
         D(:,inds,1) = fread(dat,[nChans,asamplesPerChunk],S.precision,0,'b');
     end
     fclose(dat);
@@ -257,9 +258,9 @@ if positions
     ori = [posOri.Ox,posOri.Oy,posOri.Oz];
     cl = posOri.name;
     
-    [sel1, sel2] = match_str(cl,channels.name);
+    [sel1 sel2] = match_str(cl,channels.name);
     
-    grad = [];
+    grad= [];
     grad.label = cl;
     grad.coilpos = pos;
     grad.coilori = ori;
@@ -272,42 +273,42 @@ if positions
     
     
     %- 2D view based on mean orientation of sensors
-    n1 = mean(grad.coilori); n1= n1./sqrt(dot(n1,n1));
-    t1 = cross(n1,[0 0 1]);
-    t2 = cross(t1,n1);
-    pos2d = zeros(size(grad.coilpos,1),2);
+    n1=mean(grad.coilori); n1= n1./sqrt(dot(n1,n1));
+    t1=cross(n1,[0 0 1]);
+    t2=cross(t1,n1);
+    pos2d =zeros(size(grad.coilpos,1),2);
     for i=1:size(grad.coilpos,1)
-        pos2d(i,1) = dot(grad.coilpos(i,:),t1);
-        pos2d(i,2) = dot(grad.coilpos(i,:),t2);
+        pos2d(i,1)=dot(grad.coilpos(i,:),t1);
+        pos2d(i,2)=dot(grad.coilpos(i,:),t2);
     end
     
     nMEG = length(indchantype(D,'MEG'));
-    if nMEG ~= size(pos2d,1)
+    if nMEG~=size(pos2d,1)
         m1 = '2D positions could not be set as there are ';
-        m2 = num2str(nMEG);
+        m2 =num2str(nMEG);
         m3 = ' channels but only ';
         m4 = num2str(size(pos2d,1));
-        m5 = ' channels with position information.';
+        m5 =  ' channels with position information.';
         message = [m1,m2,m3,m4,m5];
         warning(message);
     else
-        args = [];
+        args=[];
         try
-            args.xy = Data.xy';
+            args.xy =   Data.xy';
             args.label = Data.xylabs;
         catch
-            args.xy = pos2d';
-            args.label = grad.label;
+            args.xy= pos2d';
+            args.label=grad.label;
         end
-        args.D = D;
-        args.task = 'setcoor2d';
-        D = spm_eeg_prep(args);
+        args.D=D;
+        args.task='setcoor2d';
+        D=spm_eeg_prep(args);
         D.save;
     end
 end
 
 %- prep for headmodel processing
-%--------------------------------------------------------------------------
+%-------------------------------------------------------
 if positions
     
     % auto-populate fields for spm_opm_headmodel
@@ -328,10 +329,11 @@ if positions
 end
 D.save();
 
+
 fprintf('%-40s: %30s\n','Completed',spm('time'));
 
-end
 
+end
 
 function [bids] = read_cMEG_data(S)
 % Read OPM data from cerca magnetics in bids structs suitable for
@@ -340,22 +342,26 @@ function [bids] = read_cMEG_data(S)
 %   S               - input structure
 % Optional fields of S:
 % SENSOR LEVEL INFO
-%   S.filename      - filepath                          - Default:required
-%   S.positions     - cerca positions.mat file          - Default: not used
+%   S.filename      - filepath                                 - Default:required
+%   S.positions     - cerca positions.mat file                 - Default: not used
 % Output:
-%  bids             - struct containing info for channels.tsv,meg.json and
-%                     positions.tsv
+%  bids           - struct containing info for channels.tsv,meg.json and
+%                   positions.tsv
 %__________________________________________________________________________
+% Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
 
+% Tim Tierney
+% $Id$
 
 if strcmpi(num2str(S.filename(end-4:end)),'.cMEG')
     filename = S.filename(1:end-5);
 end
 
+
 if ~isfield(S, 'positions')
-    pos = false;
+    pos = 0;
 else
-    pos = true;
+    pos=1;
 end
 
 %disp('Get data')
@@ -409,7 +415,7 @@ for n = 1:size(data1,1)
 end
 
 %disp('Read session info')
-Session_info_file = [filename(1:15) '_SessionInfo.txt'];
+Session_info_file = [filename(1:(end-8)) '_SessionInfo.txt'];
 fidSI = fopen(Session_info_file);
 finfoSI = dir(Session_info_file);
 fsizeSI = finfoSI.bytes;
@@ -420,7 +426,7 @@ while fsizeSI ~= ftell(fidSI)
 end
 fclose(fidSI);
 
-channels = spm_load([filename(1:15) '_channels.tsv']);
+channels = spm_load([filename(1:(end-8)) '_channels.tsv']);
 Chan_names = channels.name;
 for i = 1:size(Chan_names,1)
 basespl = strsplit(channels.name{i},'[');
@@ -432,18 +438,20 @@ f = round(1/(data(1,2)-data(1,1)));
 time = linspace(0,size(data,2)./f,size(data,2));
 data = data(2:end,:);
 
+
+
 % Convert to fT (1x Mode, so 2.7 V/nT)
-gainIndex = find(not(cellfun('isempty',strfind(Session_info,'OPM Gain'))));
+gainIndex =  find(not(cellfun('isempty',strfind(Session_info,'OPM Gain'))));
 gain = Session_info{gainIndex};
 gainString = strsplit(gain, ': ');
-gainFac = str2num((gainString{2}(1:4)));
+gainFac= str2num((gainString{2}(1:4)));
 opminds = strcmp(channels.type,'MEGMAG');
 data(opminds,:) = (1e6.*data(opminds,:))./(2.7*gainFac);
 channels.units(opminds)={'fT'};
 
 %- positions
-%--------------------------------------------------------------------------
-if pos
+%----------------------------------------------------------------------
+if(pos)
     positions=[];
     helm = spm_load(S.positions);
     
@@ -487,23 +495,23 @@ if pos
     
     xy = zeros(size(positions.name,1),2);
     xylabs = positions.name;
-    xy(:,1) = helm.Layx(b);
-    xy(:,2) = helm.Layy(b);
+    xy(:,1)= helm.Layx(b);
+    xy(:,2)= helm.Layy(b);
     
-    bids.xy = xy;
-    bids.xylabs = xylabs;
+    bids.xy= xy;
+    bids.xylabs=xylabs;
     bids.position = positions;
 end
 
 
 %- MEG.json - only crucial fields populated
-%--------------------------------------------------------------------------
-meg = [];
+%----------------------------------------------------------------------
+meg=[];
 meg.SamplingFrequency = f;
 
 %- 1 output struct
-%--------------------------------------------------------------------------
-bids.data = data;
+%----------------------------------------------------------------------
+bids.data= data;
 bids.channels = channels;
 bids.meg = meg;
 
