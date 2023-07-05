@@ -2,7 +2,7 @@ function spmjobs = spm_cfg
 % SPM Configuration file for MATLABBATCH
 %__________________________________________________________________________
 
-% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+% Copyright (C) 2008-2023 Wellcome Centre for Human Neuroimaging
 
 
 %--------------------------------------------------------------------------
@@ -38,7 +38,10 @@ stats.values = { spm_cfg_fmri_spec spm_cfg_fmri_design spm_cfg_fmri_data spm_cfg
 spm_cfg_dcm_spec        = cfg_choice;
 spm_cfg_dcm_spec.tag    = 'spec';
 spm_cfg_dcm_spec.name   = 'DCM specification';
-spm_cfg_dcm_spec.values = { spm_cfg_dcm_fmri spm_cfg_dcm_meeg };
+spm_cfg_dcm_spec.values = { spm_cfg_dcm_fmri };
+if exist('spm_cfg_dcm_meeg','file') == 2
+    spm_cfg_dcm_spec.values{end+1} = spm_cfg_dcm_meeg;
+end
 
 dcm        = cfg_choice;
 dcm.tag    = 'dcm';
@@ -138,5 +141,10 @@ spmjobs.help   = {
    ['The current release is designed for the analysis of fMRI, PET, ', ...
     'SPECT, EEG and MEG.'], ...
     ''};
-spmjobs.values = { temporal spatial stats dcm spm_cfg_eeg util tools };
+if exist('spm_cfg_eeg','file') == 3
+    eeg = { spm_cfg_eeg };
+else
+    eeg = {};
+end
+spmjobs.values = { temporal spatial stats dcm eeg{:} util tools };
 spmjobs.rewrite_job = @spm_rewrite_job;
