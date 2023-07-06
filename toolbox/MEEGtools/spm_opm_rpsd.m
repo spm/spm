@@ -14,10 +14,9 @@ function [shield,f] = spm_opm_rpsd(S)
 %   sf              - Shielding factor ( in data units or decibels)
 %   f               - frequencies psd is sampled at
 %__________________________________________________________________________
-
-% Tim Tierney
 % Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
 
+% Tim Tierney
 
 %-ArgCheck
 %--------------------------------------------------------------------------
@@ -59,28 +58,13 @@ args.channels=S.channels;
 
 %- Ratio (or difference) of corresponding sensor in each dataset
 %--------------------------------------------------------------------------
-if strcmp(S.channels,'ALL')
-chan1 = chanlabels(S.D1);
-chan2 = chanlabels(S.D2);
-else
-   chan1 = S.channels;
-   chan2 = S.channels; 
-end
-inCommon=zeros(size(p1));
-keep = zeros(size(p1,2),1);
 
-for i =1:length(chan1)
-    index= strcmp(chan1{i},chan2);
-    if (any(index))
-        keep(i)=1;
-        if(S.dB)
-            inCommon(:,i)=20*log10(p1(:,i)./p2(:,index));
-        else
-            inCommon(:,i)=p1(:,i)-p2(:,index);
-        end
-    end
+if(S.dB)
+    shield=20*log10(p1./p2);
+else
+    shield=p1-p2;
 end
-shield = inCommon(:,boolean(keep));
+
 %- Plot
 %--------------------------------------------------------------------------
 if(S.plot)
@@ -101,7 +85,7 @@ if(S.plot)
         ax.TickLength = [0.02 0.02];
         fig= gcf;
         fig.Color=[1,1,1];
-        legend(chan1{boolean(keep)});
+       % legend(chan1{boolean(keep)});
     else
         figure()
         plot(f,shield,'LineWidth',2);
@@ -119,7 +103,7 @@ if(S.plot)
         ax.TickLength = [0.02 0.02];
         fig= gcf;
         fig.Color=[1,1,1];
-        legend(chan1{boolean(keep)});
+        %legend(chan1{boolean(keep)});
     end
 end
 
