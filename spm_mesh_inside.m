@@ -7,10 +7,8 @@ function T = spm_mesh_inside(M,XYZ)
 % T        - logical scalar indicating inside/outside mesh test
 %__________________________________________________________________________
 %
-% Compute generalised winding number from equations 5 and 6 from:
-% "Robust Inside-Outside Segmentation using Generalized Winding Numbers"
-% Alec Jacobson, Ladislav Kavan, Olga Sorkine-Hornung, ACM SIGGRAPH 2013.
-% https://igl.ethz.ch/projects/winding-number/
+% Uses the ray casting algorithm:
+% https://en.wikipedia.org/wiki/Point_in_polygon
 %__________________________________________________________________________
 %
 % M = gifti('mesh.gii');
@@ -34,6 +32,16 @@ function T = spm_mesh_inside(M,XYZ)
 % Guillaume Flandin
 % Copyright (C) 2023 Wellcome Centre for Human Neuroimaging
 
+
+ray = struct('orig',XYZ', 'vec',XYZ' + [0 0 1]');
+T = mod(nnz(spm_mesh_ray_intersect(M, ray)), 2);
+
+
+function T = generalised_winding_number(M,XYZ)
+% Compute generalised winding number from equations 5 and 6 from:
+% "Robust Inside-Outside Segmentation using Generalized Winding Numbers"
+% Alec Jacobson, Ladislav Kavan, Olga Sorkine-Hornung, ACM SIGGRAPH 2013.
+% https://igl.ethz.ch/projects/winding-number/
 
 V = M.vertices - XYZ;
 F = M.faces;
