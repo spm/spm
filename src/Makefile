@@ -53,7 +53,7 @@ SPMMEX  =\
 	spm_voronoi.$(MEXEXT) spm_mesh_dist.$(MEXEXT) spm_mesh_utils.$(MEXEXT) \
 	spm_mrf.$(MEXEXT) spm_diffeo.$(MEXEXT) spm_field.$(MEXEXT) \
 	spm_cat.$(MEXEXT) spm_jsonread.$(MEXEXT) spm_mesh_reduce.$(MEXEXT) \
-	spm_mesh_geodesic.$(MEXEXT) spm_gmmlib.$(MEXEXT)
+	spm_mesh_geodesic.$(MEXEXT) spm_mesh_ray_triangle.${MEXEXT} spm_gmmlib.$(MEXEXT)
 
 SUBDIRS =\
 	@file_array/private \
@@ -334,12 +334,16 @@ spm_jsonread.$(MEXEXT): spm_jsonread.c external/jsmn/jsmn.h external/jsmn/jsmn.c
 spm_mesh_dist.$(MEXEXT):spm_mesh_dist.cpp external/TriangleMeshDistance/TriangleMeshDistance.h
 	$(MEX) spm_mesh_dist.cpp $(MEXEND)
 
+spm_mesh_geodesic.$(MEXEXT): spm_mesh_geodesic.cpp
+	$(MEX) spm_mesh_geodesic.cpp $(MEXEND)
+
 spm_mesh_reduce.$(MEXEXT): spm_mesh_reduce.c external/nii2mesh/quadric.c\
 		external/nii2mesh/quadric.h external/nii2mesh/meshtypes.h
 	$(MEX) spm_mesh_reduce.c external/nii2mesh/quadric.c $(MEXEND)
 
-spm_mesh_geodesic.$(MEXEXT): spm_mesh_geodesic.cpp
-	$(MEX) spm_mesh_geodesic.cpp $(MEXEND)
+spm_mesh_ray_triangle.$(MEXEXT): spm_mesh_ray_triangle.c external/raytri/raytri.c
+	$(MEX) spm_mesh_ray_triangle.c $(MEXEND)
+
 
 ###############################################################################
 # Compile shared library libSPM
