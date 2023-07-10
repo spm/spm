@@ -141,7 +141,7 @@ spmjobs.help   = {
    ['The current release is designed for the analysis of fMRI, PET, ', ...
     'SPECT, EEG and MEG.'], ...
     ''};
-if exist('spm_cfg_eeg','file') == 3
+if exist('spm_cfg_eeg','file') == 2
     eeg = { spm_cfg_eeg };
 else
     eeg = {};
