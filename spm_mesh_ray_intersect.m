@@ -60,9 +60,9 @@ if isa(M,'struct') || isa(M,'gifti')
     v2 = M.vertices(M.faces(:,2),:)';
     v3 = M.vertices(M.faces(:,3),:)';
 else
-    v1 = M(1,:)';
-    v2 = M(2,:)';
-    v3 = M(3,:)';
+    v1 = M(1:3,:);
+    v2 = M(4:6,:);
+    v3 = M(7:9,:);
 end
 
 %-Edges sharing vertex v1
