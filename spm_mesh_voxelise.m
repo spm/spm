@@ -49,16 +49,20 @@ v2 = M.vertices(M.faces(:,2),:)';
 v3 = M.vertices(M.faces(:,3),:)';
 v  = [v1;v2;v3];
 
-h = -Inf(V.dim);
+% h = -Inf(V.dim);
+% ray = struct('orig',[], 'vec',[0,0,1]');
+% for i=1:V.dim(1)
+%     for j=1:V.dim(2)
+%         ray.orig = [i,j,1]';
+%         [~, P] = spm_mesh_ray_intersect(v, ray);
+%         h(i,j,1:size(P,1)) = P(:,3);
+%     end
+% end
 
-ray = struct('orig',[], 'vec',[0,0,1]');
-for i=1:V.dim(1)
-    for j=1:V.dim(2)
-        ray.orig = [i,j,1]';
-        [~, P] = spm_mesh_ray_intersect(v, ray);
-        h(i,j,1:size(P,1)) = P(:,3);
-    end
-end
+[x,y] = ndgrid(1:V.dim(1),1:V.dim(2));
+ray = [x(:)';y(:)';repmat([0,0,0,1]',1,numel(x))];
+[~,h] = spm_mesh_ray_triangle(double(v), ray);
+h = reshape(h,V.dim(1),V.dim(2),[]);
 
 %-Count number of intersections at Z > z
 %--------------------------------------------------------------------------

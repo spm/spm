@@ -21,7 +21,7 @@ end
 switch lower(t)
     case 'aabb'
         %-Axis-Aligned Bounding Box
-        bv = [min(M.vertices,[],1); max(M.vertices,[],1)];
+        bv = double([min(M.vertices,[],1); max(M.vertices,[],1)]);
     case 'obb'
         %-Oriented Bounding Box
         error('Not implemented yet');

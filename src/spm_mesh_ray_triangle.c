@@ -9,11 +9,12 @@
 /* Gateway Function */
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-    double *tri = NULL;
-    double * ray = NULL;
+    double *tri = NULL, *ray = NULL;
+    double *H = NULL, *P = NULL;
+    mwIndex *h = NULL;
     double t, u, v;
     mwSize nv, nr;
-    mwIndex i, j;
+    mwIndex i, j, n = 16;
     int hit;
     double v1[3], v2[3], v3[3];
     double orig[3], dir[3];
@@ -32,10 +33,14 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     nr = mxGetN(prhs[1]);
     ray = mxGetPr(prhs[1]);
 
-    plhs[0] = mxCreateLogicalMatrix(nr, nv);
+    plhs[0] = mxCreateDoubleMatrix(nr, n, mxREAL);
+    H = mxGetPr(plhs[0]);
+    h = mxCalloc(nr, sizeof(mwIndex));
     if (nlhs > 1)
     {
-        plhs[1] = mxCreateDoubleMatrix(nr, nv, mxREAL);
+        plhs[1] = mxCreateDoubleMatrix(nr, n, mxREAL);
+        P = mxGetPr(plhs[1]);
+        /* should initialise to -Inf */
     }
 
     for (i=0;i<nv;i++)
@@ -51,11 +56,18 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
             hit = intersect_triangle1(orig, dir, v1, v2, v3, &t, &u, &v);
 
-            if (hit)
+            if (hit) /* could store positive hits only */
             {
-                ((mxLogical *)mxGetData(plhs[0]))[i] = true;
-                if (nlhs > 1) mxGetPr(plhs[1])[i] = t;
+                H[j+nr*h[j]] = i + 1;
+                if (nlhs > 1) P[j+nr*h[j]] = t;
+                h[j] += 1;
+                if (h[j] == n)
+                {
+                    mexErrMsgTxt("Too many intersections.");
+                    /* instead, mxRealloc H and P to 2*n */
+                }
             }
         }
-    } 
+    }
+    mxFree(h);
 }
