@@ -3,13 +3,11 @@ function [D] = spm_opm_opreg(S)
 % FORMAT D = spm_opm_create(S)
 %   S               - input structure
 % Optional fields of S:
-%   S.helmetfile     - filepath/matrix(nchannels x timepoints)  - Default:required
-%   S.headfile     - filepath/matrix(nchannels x timepoints)  - Default:required
-%   S.helmetref    - filepath/matrix(nchannels x timepoints)  - Default:required
-%   S.headhelmetref - filepath/matrix(nchannels x timepoints)  - Default:required
-%   S.headfid
-%   S.headhelmetfid
-%   S.affine  
+%   S.headfile     - path to headshapte file      - Default:required
+%   S.helmetref      - 3 x 3 matrix of fiducials  - Default:required
+%   S.headhelmetref  - 3 x 3 matrix of fiducials  - Default:required
+%   S.headfid        - 3 x 3 matrix of fiducials  - Default:required
+%   S.headhelmetfid  - 3 x 3 matrix of fiducials  - Default:required
 % Output:
 %  tHelm       - transformed helmet object
 %__________________________________________________________________________
@@ -28,15 +26,6 @@ if inmetres
 Native.vertices=Native.vertices*1000;
 end
 
-
-
-helmetInfo = load(S.helmetfile);
-helmet = gifti(helmetInfo.Helmet_info.helmet_surface);
-
-inmetres = sqrt(sum((max(helmet.vertices)-min(helmet.vertices)).^2))<10;
-if inmetres
-    helmet.vertices=helmet.vertices*1000;
-end
 
 %%-  helmet --> head with helmet
 %--------------------------------------------------------------------------
@@ -72,7 +61,7 @@ end
 
 head2templatescalp = spm_eeg_inv_rigidreg(fid_template,S.headfid');
 scalpTemplate6 = spm_mesh_transform(Native,head2templatescalp);
-mesh_plot(scalpTemplate6,scalp);
+%mesh_plot(scalpTemplate6,scalp);
 
 %- sensors --> template (6 paramater)
 %--------------------------------------------------------------------------
@@ -114,45 +103,6 @@ sens2temp= hmm*head2templatescalp*headhelm2head*helm2headhelm;
 sens=[];
 sens.vertices =  s;
 senstemplate = spm_mesh_transform(sens,sens2temp);
-helmettemplate = spm_mesh_transform(helmet,sens2temp);
-
-
-%-  check registration
-%--------------------------------------------------------------------------
-
-p1 = [];
-p1.faces = scalpTemplate12.faces;
-p1.vertices = scalpTemplate12.vertices;
-p2 = [];
-p2.faces = scalp.faces;
-p2.vertices = scalp.vertices;
-p3 = [];
-p3.vertices = helmettemplate.vertices; 
-p3.faces = helmettemplate.faces; 
-
-p4=[];
-p4.faces = brain.faces; 
-p4.vertice = brain.vertices; 
-
-
-
-f = figure()
-
-patch(p1,'FaceColor','red','FaceAlpha',.4,'EdgeColor','none')
-hold on 
-patch(p2,'FaceColor','blue','FaceAlpha',.3,'EdgeColor','none')
-patch(p3,'FaceColor','green','FaceAlpha',.15,'EdgeColor','none')
-patch(p4,'FaceColor','black','FaceAlpha',1,'EdgeColor','none')
-
-ax = gca();
-camlight;
-camlight(-80,-10);
-hold on 
- sensp = senstemplate.vertices;
-plot3(sensp(:,1),sensp(:,2),sensp(:,3),'.y','MarkerSize',20)
-%plot3(ps(:,1),ps(:,2),ps(:,3),'.b','MarkerSize',20)
-
-daspect([1,1,1])
 
 S.D.inv{1}.mesh = spm_eeg_inv_mesh([], 1);
 S.D.inv{1}.mesh.Affine=sens2temp;
