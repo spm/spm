@@ -14,7 +14,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     mwIndex *h = NULL;
     double t, u, v;
     mwSize nv, nr;
-    mwIndex i, j, n = 16;
+    mwIndex i, j, n = 32;
     int hit;
     double v1[3], v2[3], v3[3];
     double orig[3], dir[3];
@@ -63,8 +63,15 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
                 h[j] += 1;
                 if (h[j] == n)
                 {
-                    mexErrMsgTxt("Too many intersections.");
-                    /* instead, mxRealloc H and P to 2*n */
+                    mexWarnMsgTxt("Max number of intersections reached. Reallocating.");
+                    n *= 2;
+                    H = mxRealloc(H, nr*n*sizeof(double));
+                    mxSetPr(plhs[0],H); mxSetN(plhs[0],n);
+                    if (nlhs > 1) 
+                    {
+                        P = mxRealloc(P, nr*n*sizeof(double));
+                        mxSetPr(plhs[1],P); mxSetN(plhs[1],n);
+                    }
                 }
             }
         }
