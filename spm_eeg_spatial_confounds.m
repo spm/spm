@@ -109,7 +109,7 @@ switch upper(S.mode)
         cl = S.conditions;
         svdinput = [];
         for i = 1:numel(cl)
-            tmp      = D(D.indchantype('MEEG', 'GOOD'), D.indsample(1e-3*S.timewin(1)):D.indsample(1e-3*S.timewin(2)), D.indtrial(cl{i}));
+            tmp      = D(D.indchantype('MEEG', 'GOOD'), D.indsample(1e-3*S.timewin(1)):D.indsample(1e-3*S.timewin(2)), D.indtrial(cl{i}, 'GOOD'));
             svdinput = [svdinput, reshape(tmp, size(tmp, 1),  [])];
         end
         [U, L, V] = spm_svd(svdinput);
