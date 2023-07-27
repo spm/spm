@@ -45,7 +45,11 @@ end
 %==========================================================================
 Nt    = numel(MDP);                      % number of trials
 Ne    = MDP(1).T;                        % number of outcomes per trial
-Np    = size(MDP(1).V,2);                % number of policies
+try
+    Np = size(MDP(1).V,2);                % number of policies
+catch
+    Np = size(MDP(1).U,1);                % number of policies
+end
 for i = 1:Nt
     
     % assemble expectations of hidden states and outcomes

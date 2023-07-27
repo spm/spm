@@ -40,8 +40,9 @@ function mdp = DEM_MNIST
 %% set up and preliminaries
 %==========================================================================
 
-% Load (pre-processed) MNIST dataset
+% Load (pre-processed) MNIST dataset (uncomment to prepare spm_MNIST)
 %--------------------------------------------------------------------------
+cd 'C:\Users\karl\Dropbox\matlab'
 % spm_MNIST_prepare;
 load spm_MNIST
 
@@ -52,7 +53,7 @@ load spm_MNIST
 % factor (Digit) class
 %--------------------------------------------------------------------------
 NS    = 128;                                % number of styles
-NT    = 1024;                               % number of training digits
+NT    = 2048;                               % number of training digits
 mdp   = spm_MNIST_learn(training,NS,NT);    % supervised structure learning
 
 % Illustrate learned latent states as images
@@ -134,15 +135,15 @@ disp(sum(Fr)/Ng)
 disp(sum(Fr)/Ng - sum(F)/Ng)
 %--------------------------------------------------------------------------
 % Classification accuracy before and after reduction
-%    95.1 %
-%    95.0 %
-% Number of parameters before and after reduction
-%    1253376
-%    1194895
+%    96.0600
+%    96.0400
+% Number parameters before and after reduction
+%      2150400
+%      2069908 diff: 80492 = 3.7431%
 % ELBO before and after reduction (per modality)
-%   -5.3413e+03
-%   -5.3255e+03
-%    15.8223 nats
+%   -5.1696e+03
+%   -5.1576e+03
+%    diff: 12.0090 nats
 %--------------------------------------------------------------------------
 
 % graphics: increasing classification accuracy with marginal likelihood
@@ -157,7 +158,7 @@ plot(f,cr*100,'c'), hold off
 
 % illustrate information geometry
 %==========================================================================
-spm_dir_disentangle(mdp.a);
+spm_dir_disentangle(mdp.a,32);
 
 % Uncomment the following code to look at particular test digits (j)
 %----------------------------------------------------------------------
@@ -172,7 +173,6 @@ spm_dir_disentangle(mdp.a);
 % OPTIONS.A = 0;                             % suppress explicit action
 % OPTIONS.B = 0;                             % suppress explicit action
 % OPTIONS.N = 0;                             % suppress neuronal responses
-% OPTIONS.O = 1;                             % probabilistic outcomes
 % OPTIONS.P = 1;                             % inference graphics
 % pdp = spm_MDP_VB_XXX(pdp,OPTIONS);
 % subplot(6,4,9),  imagesc(spm_o2MNIST(O)),     axis image off
@@ -219,8 +219,7 @@ end
 
 % Structure learning
 %==========================================================================
-mdp.p    = 1/32;                           % initial Dirichlet prior
-mdp.zeta = 8;                              % precision of selection priors
+mdp.p = 1/16;                              % initial Dirichlet prior
 for n = 1:10                               % For each digit class
 
     % exemplars
@@ -304,9 +303,8 @@ end
 % test options
 %--------------------------------------------------------------------------
 OPTIONS.A = 0;                             % suppress explicit action
-OPTIONS.B = 0;                             % suppress explicit action
+OPTIONS.B = 0;                             % suppress replay
 OPTIONS.N = 0;                             % suppress neuronal responses
-OPTIONS.O = 1;                             % probabilistic outcomes
 
 mdp.A = mdp.a;                             % likelihood tensors
 mdp.T = 1;                                 % no transitions
@@ -401,8 +399,9 @@ function [O,D] = spm_MNIST2o(mnist,id,d)
 if isfield(mnist,'I')
     I = mnist.I(:,id);
     D = mnist.D(:,id);
-    o = [I, 1 - I];
-    O = num2cell(o,2);
+    o = [I,1 - I]';
+    O = num2cell(o,1);
+    O = O(:);
     return
 end
 
@@ -424,9 +423,9 @@ end
 
 % smooth and histogram equalisation
 %--------------------------------------------------------------------------
-I    = spm_conv(I,2,2);                       % convolve
-[m,i] = sort(I(:));                           % histogram equalisation
-I(i) = exp(-((1:n) - n).^2/(32*n));
+I     = spm_conv(I,2,2);                       % convolve
+[m,i] = sort(I(:));                            % histogram equalisation
+I(i)  = exp(-((1:n) - n).^2/(32*n));
 for i = 1:h
     for j = 1:w
         o           = I(i,j);
@@ -435,7 +434,7 @@ for i = 1:h
     end
 end
 
-% return a cell for this image
+% return a cell array for this image
 %--------------------------------------------------------------------------
 O = O(:);
 D = sparse(mnist.labels(id) + 1,1,1,10,1);
@@ -506,6 +505,7 @@ function [training,test,pixels] = spm_MNIST_prepare
 
 % load training and test data
 %--------------------------------------------------------------------------
+cd 'C:\Users\karl\Dropbox\matlab'
 load('mnist.mat');
 
 % create array of outcomes (one modality for each pixel)
@@ -520,7 +520,8 @@ n     = numel(training.images(:,:,1));            % number of pixels
 
 % smooth and histogram equalisation (training data)
 %--------------------------------------------------------------------------
-for id = 1:20000
+Ntrain = 30000;
+for id = 1:Ntrain
 
     I     = training.images(:,:,id);
     I     = spm_conv(I,s,s);                      % convolve
@@ -536,7 +537,8 @@ end
 
 % smooth and histogram equalisation  (test data)
 %--------------------------------------------------------------------------
-for id = 1:10000
+Ntest  = 10000;
+for id = 1:Ntest
 
     I     = test.images(:,:,id);
     I     = spm_conv(I,1,1);                      % convolve
@@ -552,11 +554,15 @@ end
 
 % prepare structures for saving
 %--------------------------------------------------------------------------
-test.count     = 10000;
-training.count = 20000;
-test           = rmfield(test,'images');
-training       = rmfield(training,'images');
-pixels         = d;
+training.count  = Ntrain;
+training.labels = training.labels(1:Ntrain);
+training        = rmfield(training,'images');
+
+test.count      = Ntest;
+test.labels     = test.labels(1:Ntest);
+test            = rmfield(test,'images');
+
+pixels          = d;
 
 % save in spm_MNIST
 %--------------------------------------------------------------------------
@@ -669,7 +675,7 @@ for n = 1:10
         spm_figure('GetWin','resolve');
 
         Nd(u,n) = size(mdp.a{1},2);
-        [nn jj] = sort(sum(mdp.a{1}),'descend');
+        [nn,jj] = sort(sum(mdp.a{1}),'descend');
         i       = 1:numel(nn);
         Nn(i,n) = nn;
 
@@ -687,9 +693,9 @@ for n = 1:10
 
         subplot(2,2,2),   plot(Nn)
         xlabel('styles'), ylabel('occurences')
-        title('Frequency'), axis square, drawnow
+        title('Frequency'), axis square
         if u > 1, legend(nstr(1:n)), legend('Location','SouthEast'), end
-
+        drawnow
         if size(mdp.a{1},2) == NS, break, end
 
     end
@@ -729,7 +735,6 @@ spm_figure('GetWin','train'); clf;
 OPTIONS.A = 0;                             % suppress explicit action
 OPTIONS.B = 0;                             % suppress explicit action
 OPTIONS.N = 0;                             % suppress neuronal responses
-OPTIONS.O = 1;                             % probabilistic outcomes
 OPTIONS.G = 1;                             % suppress graphics
 OPTIONS.P = 0;                             % suppress graphics
 
@@ -739,11 +744,10 @@ for f = 1:Nf
     mdp.E{f} = ones(Nu(f),1);              % initial control
 end
 
-% initial prior (Uncomment first line to invoke Bayesian model reduction)
+% Uncomment first line to invoke Bayesian model reduction
 %--------------------------------------------------------------------------
 % OPTIONS.BMR.T = 0;                       % Occam's window [default: 0]
-try mdp.p;    catch, mdp.p    = 1/32; end
-try mdp.beta; catch, mdp.beta = 1;    end
+
 
 %  train
 %--------------------------------------------------------------------------

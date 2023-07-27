@@ -1,5 +1,5 @@
-function MDP = DEMO_MDP_maze_X
-% Demo of sophisticated inference and novelty (i.e.,planning to learn)
+function MDP = DEMO_MDP_maze_XXX
+% Demo of inductive inference
 %__________________________________________________________________________
 %
 % This demonstration of active inference focuses on navigation and
@@ -11,16 +11,20 @@ function MDP = DEMO_MDP_maze_X
 % (whether the current location is aversive or not). This accumulated
 % experience is then used to plan a path from a start to an end (target
 % location) under a task set specified by prior preferences over locations.
-% These priors are based upon the distance between the current location and
-% a target location.
 %
 % This version uses a belief propagation scheme (with deep policy searches)
 % to illustrate prospective behaviour; namely, selecting policies or
-% trajectories that transiently increased Bayesian risk. The code below can
-% be edited to demonstrate different kinds of behaviour, under different
-% preferences, policy depth and precisions.
+% trajectories that transiently increased Bayesian risk. This search is
+% constrained using inductive inference; namely, placing priors over the
+% subsequent states that preclude regimes of state space that cannot access
+% the final state. These priors rest upon a time reversed protocol under
+% allowable (learned) state transitions. In effect, priors over the final
+% state contextualise priors over outcomes by precluding states that lie
+% ahead, on a path of least action that minimises expected free energy.The
+% code below can be edited to demonstrate different kinds of behaviour,
+% under different preferences, policy depth and precisions.
 %
-% see also: DEM_MDP_maze.m and spm_MPD_VB_X.m
+% see also: spm_MPD_VB_XXX.m
 %__________________________________________________________________________
 
 % Karl Friston
@@ -35,13 +39,12 @@ rng('default')
 % The generative model has two outcome modalities; namely, what (safe
 % versus aversive) and where (the current location in a maze). These
 % outcomes are generated from a single hidden factor (location), where the
-% structure of the maze is encoded in the likelihood of observation mapping
-% (that can be learned through experience). Allowable actions include four
-% moves (up, down, left, right) and staying at the current location. These
-% induce five transition matrices that play the role of empirical priors.
-% Finally, prior preferences to avoid aversive locations while approaching
-% a target location from an initial location (specified by START and END,
-% respectively)
+% structure of the maze is encoded in the likelihood mapping (that can be
+% learned through experience). Allowable actions include four moves (up,
+% down, left, right) and staying at the current location. These induce five
+% transition matrices that play the role of empirical priors. Finally,
+% prior constraints specify aversive locations while seeking a target
+% location from an initial location (i.e., START and END, respectively)
 %--------------------------------------------------------------------------
 label.factor     = {'where'};
 label.modality   = {'what','where'};
@@ -101,98 +104,74 @@ end
 %--------------------------------------------------------------------------
 U     = (1:nu)';
 
-% priors: (negative cost) C: does not like what shocks and wants to be near
-% the target location
+% Constraints: does not like shocks (C) and wants to be at END (H)
 %--------------------------------------------------------------------------
-C{1}  = [1;-1]*2;
-[X,Y] = ind2sub(size(MAZE),END);
-for i = 1:No(2)
-    [x,y]     = ind2sub(size(MAZE),i);
-    C{2}(i,1) = -sqrt((x - X)^2 + (y -Y)^2);
-end
+C{1}  = [1;0];
+C{2}  = ones(No(2),1);
+H{1}  = ones(No(2),1);
 
+H{1}(END) = 32;
 
 % basic MDP structure
 %--------------------------------------------------------------------------
-mdp.T = 8 + 1;                  % time horizon
-mdp.N = 2;                      % policy depth
+mdp.N = 1;                      % policy depth
 mdp.U = U;                      % allowable policies
 mdp.A = A;                      % observation model or likelihood
 mdp.B = B;                      % transition probabilities
 mdp.C = C;                      % preferred outcomes
 mdp.D = D;                      % prior over initial states
+mdp.H = H;                      % prior over initial states
 
 mdp.label = label;
-mdp       = spm_MDP_checkX(mdp);
+mdp.p     = 1/32;
 
-
-% illustrate shortest path to target with suitable policy depth
+% pure exploration: removing preferences about target location (and shocks)
 %==========================================================================
-% illustrate shortest path to target with suitable policy depth (e.g., N
-% = 4), when the safe locations are known
+MDP       = mdp;
+MDP.a{1}  = spm_zeros(mdp.A{1}) + mdp.p;
+MDP.a{2}  = mdp.A{2}*512;
+MDP.C     = spm_zeros(C);
+MDP.H     = spm_zeros(H);
+MDP.s     = START;
+MDP.D     = D;
+MDP.T     = 128;
+
+% Active learning
+%----------------------------------------------------------------------
+PDP       = spm_MDP_VB_XXX(MDP);
+MDP       = spm_MDP_VB_update(MDP,PDP);
+
+% show results - behavioural
 %--------------------------------------------------------------------------
-OPTIONS.N = 1;
-mdp.s = START;
+spm_figure('GetWin','Figure 1'); clf
+spm_maze_plot(PDP)
+
+
+% Paths of least action
+%==========================================================================
+% illustrate shortest path to target with suitable policy depth, when the
+% safe locations have been learned
+%--------------------------------------------------------------------------
+MDP.s = START;
+MDP.C = C;
+MDP.H = H;
+MDP.T = 16;
 for i = 1:4
-    MDP   = mdp;
-    MDP.N = i - 1;
-    MDP   = spm_MDP_VB_XXX(MDP,OPTIONS);
-    
-    % cumulative reward
+
+    % increase precision of constraints
     %----------------------------------------------------------------------
-    for j = 1:numel(C)
-        R(i) = sum(MDP.C{j}(MDP.o(j,:),1));
-    end
+    MDP.C{1} = [1;0]*i;
+    PDP      = spm_MDP_VB_XXX(MDP);
     
     % show results - behavioural
     %----------------------------------------------------------------------
     str = sprintf('Figure %i',i);
     spm_figure('GetWin',str); clf
-    spm_maze_plot(MDP,END)
-    subplot(2,2,1), title(sprintf('Path: N = %i',i))
+    spm_maze_plot(PDP,END)
+    subplot(2,2,1), title(sprintf('Path: C = %i',i))
     
 end
 
-% show results - electrophysiological
-%--------------------------------------------------------------------------
-spm_figure('GetWin','Figure 5'); clf
-spm_MDP_VB_LFP(MDP); subplot(3,2,5); delete(gca)
-
-%% evidence accumulation under task set: 
-% removing knowledge about safe locations
-%==========================================================================
-clear MDP
-mdp.a{1}   = ones(size(mdp.A{1}));
-mdp.a{2}   = mdp.A{2}*128;
-mdp.N      = 2;
-[MDP(1:5)] = deal(mdp);
-MDP = spm_MDP_VB_XXX(MDP);
-
-spm_figure('GetWin','Figure 6'); clf
-spm_maze_plot(MDP,END)
-
-
-%% pure exploration
-% removing preferences about proximity to target location (and shocks)
-%==========================================================================
-rng(1)
-clear MDP
-mdp.a{1}  = ones(size(mdp.A{1}));
-mdp.a{2}  = mdp.A{2}*512;
-mdp.C     = spm_zeros(C);
-mdp.s     = START;
-mdp.D     = D;
-mdp.T     = 128;
-mdp.N     = 3;
-
-% proceed with trial
-%----------------------------------------------------------------------
-MDP       = spm_MDP_VB_XXX(mdp);
-
-% show results - behavioural
-%--------------------------------------------------------------------------
-spm_figure('GetWin','Figure 7'); clf
-spm_maze_plot(MDP)
 
 return
 
@@ -210,8 +189,6 @@ title('Scanpath','fontsize',16);
 % Cycle of the trials
 %--------------------------------------------------------------------------
 h     = [];
-MS    = {};
-MC    = {};
 for p = 1:numel(MDP)
     
     %  current beliefs and preferences: A likelihood
@@ -221,7 +198,7 @@ for p = 1:numel(MDP)
     else
         Q = MDP(p).A{1};
     end
-    Q     = Q/diag(sum(Q));
+    Q     = spm_dir_norm(Q);
     Q     = Q(1,:);
     a     = reshape(Q(:),ni,ni);
     subplot(2,2,2), imagesc(a), axis image
@@ -230,9 +207,9 @@ for p = 1:numel(MDP)
     %  current beliefs and preferences: B transitions
     %----------------------------------------------------------------------
     try
-        b = diag(Q)*any(MDP(p).B{1},3);
+        b = sum(MDP(p).b{1},3);
     catch
-        b = diag(Q)*any(MDP(p).B{1},3);
+        b = sum(MDP(p).B{1},3);
     end
     subplot(2,2,4), imagesc(-b), axis image
     title('Allowable transitions','fontsize',16);
@@ -267,36 +244,7 @@ for p = 1:numel(MDP)
             i = [get(h(end - 1),'Ydata'), get(h(end),'Ydata')];
             plot(j,i,':r');
         end
-        
-        % save
-        %------------------------------------------------------------------
-        if numel(MS)
-            MS(end + 1) = getframe(gca);
-        else
-            MS = getframe(gca);
-        end
-        
     end
-    
-    % save
-    %----------------------------------------------------------------------
-    subplot(2,2,3)
-    if numel(MC)
-        MC(end + 1) = getframe(gca);
-    else
-        MC = getframe(gca);
-    end
-    
 end
 
-% save movie
-%--------------------------------------------------------------------------
-subplot(2,2,1)
-xlabel('click axis for movie')
-set(gca,'Userdata',{MS,16})
-set(gca,'ButtonDownFcn','spm_DEM_ButtonDownFcn')
-
-subplot(2,2,3)
-xlabel('click axis for movie')
-set(gca,'Userdata',{MC,16})
-set(gca,'ButtonDownFcn','spm_DEM_ButtonDownFcn')
+return

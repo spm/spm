@@ -1,6 +1,6 @@
 function spm_dir_disentangle(a,n)
 % information geometry of a likelihood mapping
-% FORMAT spm_dir_disentangle(a)
+% FORMAT spm_dir_disentangle(a,n)
 % a{g}    - Dirichlet tensor for modality g
 % n       - nummber of (first) latent states to plot
 %
@@ -19,9 +19,9 @@ function spm_dir_disentangle(a,n)
 % preliminaries
 %--------------------------------------------------------------------------
 a      = spm_dir_norm(a);
-spm_KL = @(q,p) q'*(spm_log(q) - spm_log(p));
+spm_KL = @(q,p) (q'*(spm_log(q) - spm_log(p))).^2;
 if nargin < 2
-    n  = 16; % number of latent states to plot
+    n  = 16; % number of classification states to plot
 end
 
 % reduce tensor if necessary
@@ -34,14 +34,14 @@ for g = 1:numel(a)
 end
 a     = A;
 Ns    = size(a{g}(:,:,:),2:3);
-
+N     = prod(Ns);
 
 % information geometry – divergence : likelihood mapping
 %--------------------------------------------------------------------------
-C     = zeros(prod(Ns),prod(Ns));
+C     = zeros(N,N);
 for g = 1:numel(a)
-    for i = 1:prod(Ns)
-        for j = i:prod(Ns)
+    for i = 1:N
+        for j = i:N
             C(i,j) = C(i,j) + spm_KL(a{g}(:,i),a{g}(:,j));
             C(i,j) = C(i,j) + spm_KL(a{g}(:,j),a{g}(:,i));
             C(j,i) = C(i,j);
@@ -53,40 +53,50 @@ end
 %==========================================================================
 spm_figure('GetWin','Information geometry'); clf;
 
-% similarity matrix
+% similarity matrix (assuming normalised vectors on a hypersphere)
 %--------------------------------------------------------------------------
-c     = exp(-C/numel(a));
-[e,v] = eig(c,'nobalance');
-v     = diag(v);
+C     = real(C);
+c     = C/max(C,[],'all');                      % normalise distance
+c     = 1 - 2*c;                                % correlation matrix
+
+X     = kron(eye(Ns(2),Ns(2)),ones(Ns(1),1));   % classification
+R     = eye(N,N) - X*pinv(X);                   % residual projector
+cs    = c - R*c*R;                              % classification ssq.
+
+[e,v] = svd(cs);                                % eigenvectors
+v     = diag(real(v));
 [v,i] = sort(v,'descend');
-e     = e(:,i);
+e     = real(e(:,i));
 
 % eigenspace
 %--------------------------------------------------------------------------
-subplot(2,2,2), bar(v(2:16)), 
+subplot(2,2,2), bar(v(1:16)), 
 xlabel('eigenvectors'), ylabel('eigenvalues'), title('Eigenvalues')
 axis square
 
-subplot(2,2,1), imagesc(c); axis image
-xlabel('latent states'), ylabel('latent states'), title('KL matrix')
+subplot(2,2,1), imagesc(c);
+xlabel('latent states'), ylabel('latent states')
+title('Correlation matrix'), axis image
 
-col   = get(gca,'ColorOrder');
-col   = [col; spm_softmax(2*randn(3,10))'];
-for n = 1:Ns(2)
+e(:,1) = [];                                    % supress 1st vector
+col    = get(gca,'ColorOrder');
+col    = [col; spm_softmax(2*randn(3,10))'];
+for n  = 1:Ns(2)
 
     subplot(2,1,2)
     j = (1:Ns(1)) + Ns(1)*(n - 1);
-    plot3(e(j,2),e(j,3),e(j,4),':','Color',col(n,:)), axis square, hold on
-    plot3(e(j,2),e(j,3),e(j,4),'.','Color',col(n,:)), axis square, hold on
-    plot3(e(j,2),e(j,3),e(j,4),'o','Color',col(n,:)), axis square, hold on
+    plot3(e(j,1),e(j,2),e(j,3),'.','Color',col(n,:)), axis square, hold on
+    plot3(e(j,1),e(j,2),e(j,3),'o','Color',col(n,:)), axis square, hold on
     xlabel('2nd'), ylabel('3rd'), zlabel('4th'), title('Embedding sapce')
     grid on
 
-    text(mean(e(j,2)),mean(e(j,3)),mean(e(j,4)), ...
+    text(mean(e(j,1)),mean(e(j,2)),mean(e(j,3)), ...
         num2str(n - 1),'Color',col(n,:),...
         'FontSize',24)
 
 end
+hold off
+
 
 return
 

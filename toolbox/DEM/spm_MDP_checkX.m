@@ -1,31 +1,30 @@
 function [MDP] = spm_MDP_checkX(MDP)
-% MDP structure checking
+% MDP structure checking for XXX routines
 % FORMAT [MDP] = spm_MDP_checkX(MDP)
 %
-% MDP.V(T - 1,P,F)      - P allowable policies of T moves over F factors
-% or
-% MDP.U(1,P,F)          - P allowable actions at each move
+% MDP.U(1,F)            - indices of controllable paths
 % MDP.T                 - number of outcomes
 %
-% MDP.A{G}(O,N1,...,NF) - likelihood of O outcomes given hidden states
-% MDP.B{F}(NF,NF,MF)    - transitions among hidden under MF control states
-% MDP.C{G}(O,T)         - prior preferences over O outcomes in modality G
-% MDP.D{F}(NF,1)        - prior probabilities over initial states
-% MDP.E{F}(NF,1)        - prior probabilities over initial control
+% MDP.A{g}(No(g),Ns(1),Ns(2),...)   - likelihood of outcomes given hidden states
+% MDP.B{f}(Ns(f),Ns(f),Nu(f))       - transitions among hidden under MF control states
+% MDP.C{g}(No(g),1)      - prior preferences over O outcomes in modality G
+% MDP.D{f}(Ns(f),1)      - prior probabilities over initial states
+% MDP.E{f}(Nu(f),1)      - prior probabilities over paths
+% MDP.H{f}(Ns(f),1)      - prior probabilities over final sates
 %
-% MDP.a{G}              - concentration parameters for A
-% MDP.b{F}              - concentration parameters for B
-% MDP.c{F}              - concentration parameters for C
-% MDP.d{F}              - concentration parameters for D
-% MDP.e{F}              - concentration parameters for E
+% MDP.a{g}              - concentration parameters for A
+% MDP.b{f}              - concentration parameters for B
+% MDP.c{g}              - concentration parameters for C
+% MDP.d{f}              - concentration parameters for D
+% MDP.e{f}              - concentration parameters for E
+% MDP.h{f}              - concentration parameters for H
 %
 % optional:
-% MDP.s(F,T)            - vector of true states - for each hidden factor
-% MDP.o(G,T)            - vector of outcome     - for each outcome modality
-% MDP.u(F,T - 1)        - vector of action      - for each hidden factor
-% MDP.w(1,T)            - vector of precisions
+% MDP.s(f,T)            - vector of true states - for each hidden factor
+% MDP.o(g,T)            - vector of outcome     - for each outcome modality
+% MDP.u(h,T - 1)        - vector of action      - for each hidden factor
 %
-% if C or D are not specified, they will be set to default values (of no
+% if c or d are not specified, they will be set to default values (of no
 % preferences and uniform priors over initial steps).
 %__________________________________________________________________________
 
@@ -48,14 +47,14 @@ if numel(MDP) > 1
     return
 end
 
+% check sizes of Dirichlet parameterisation
+%--------------------------------------------------------------------------
+[Nf,Ns,Nu,Ng,No] = spm_MDP_size(MDP);
 
-% fill in (posterior or  process) likelihood and priors
+% fill in (posterior or process) likelihood and priors
 %--------------------------------------------------------------------------
 if ~isfield(MDP,'A'), MDP.A = MDP.a; end
-
 if ~isfield(MDP,'B') && ~isfield(MDP,'b')
-    Ns = size(MDP.A{1},2:16);
-    Ns = Ns(Ns > 1);
     for f = 1:numel(Ns)
        MDP.B{f} = eye(Ns(f),Ns(f));
     end
@@ -77,7 +76,6 @@ if isfield(MDP,'b'), if ~iscell(MDP.b), MDP.b = {full(MDP.b)}; end; end
 
 % number of transitions, policies and states
 %--------------------------------------------------------------------------
-Nf    = numel(MDP.B);                      % number of hidden state factors
 for f = 1:Nf
 
     % ensure probabilities are normalised  : B
@@ -89,24 +87,16 @@ end
 
 % numbber of outcome modalities and outcomes
 %--------------------------------------------------------------------------
-Ng    = numel(MDP.A);                      % number of outcome factors
 for g = 1:Ng
 
     % ensure probabilities are normalised  : A
     %----------------------------------------------------------------------
-    No(g) = size(MDP.A{g},1);              % number of outcomes
-    if ~(issparse(MDP.A{g}) || islogical(MDP.A{g}))
-        MDP.A{g} = double(MDP.A{g});
-    end
     if ~islogical(MDP.A{g})
+        MDP.A{g} = double(MDP.A{g});
         MDP.A{g} = full(spm_dir_norm(MDP.A{g}));
     end
+
 end
-
-% check sizes of Dirichlet parameterisation
-%--------------------------------------------------------------------------
-[Nf,Ns,Nu] = spm_MDP_size(MDP);
-
 
 % check policy specification
 %--------------------------------------------------------------------------
@@ -122,27 +112,22 @@ if ~isfield(MDP,'C')
     end
 end
 for g = 1:Ng
-    if iscell(MDP.C)
-        if isvector(MDP.C{g})
-            MDP.C{g} = MDP.C{g}(:);
-        end
-        if No(g) ~= size(MDP.C{g},1)
-            error(['please ensure A{' num2str(g) '} and C{' num2str(g) '} are consistent'])
-        end
+    MDP.C{g} = MDP.C{g}(:);
+    if No(g) ~= size(MDP.C{g},1)
+        error(['please ensure A{' num2str(g) '} and C{' num2str(g) '} are consistent'])
     end
 end
-
 
 % check initial states
 %--------------------------------------------------------------------------
 if ~isfield(MDP,{'D'})
     for f = 1:Nf
-        MDP.D{f} = ones(Ns(f),1);
+        MDP.D{f} = spm_dir_norm(ones(Ns(f),1));
     end
 else
     for f = 1:Nf
         if isempty(MDP.D{f})
-            MDP.D{f} = ones(Ns(f),1);
+            MDP.D{f} = spm_dir_norm(ones(Ns(f),1));
         end
     end
 end
@@ -153,16 +138,16 @@ for f = 1:Nf
     MDP.D{f} = MDP.D{f}(:);
 end
 
-% check initial controls
+% check paths
 %--------------------------------------------------------------------------
 if ~isfield(MDP,{'E'})
     for f = 1:Nf
-        MDP.E{f} = ones(Nu(f),1);
+        MDP.E{f} = spm_dir_norm(ones(Nu(f),1));
     end
 else
     for f = 1:Nf
         if isempty(MDP.E{f})
-            MDP.E{f} = ones(Nu(f),1);
+            MDP.E{f} = spm_dir_norm(ones(Nu(f),1));
         end
     end
 end
@@ -173,6 +158,25 @@ for f = 1:Nf
     MDP.E{f} = MDP.E{f}(:);
 end
 
+% check initial states
+%--------------------------------------------------------------------------
+if ~isfield(MDP,{'H'})
+    for f = 1:Nf
+        MDP.H{f} = spm_dir_norm(ones(Ns(f),1));
+    end
+else
+    for f = 1:Nf
+        if isempty(MDP.H{f})
+            MDP.H{f} = spm_dir_norm(ones(Ns(f),1));
+        end
+    end
+end
+if Nf  ~= numel(MDP.H)
+    error('please check MDP.H')
+end
+for f = 1:Nf
+    MDP.H{f} = MDP.H{f}(:);
+end
 
 % check initial states and internal consistency
 %--------------------------------------------------------------------------
@@ -181,6 +185,23 @@ for f = 1:Nf
         error(['please ensure B{' num2str(f) '} and D{' num2str(f) '} are consistent'])
     end
 end
+
+% check paths and internal consistency
+%--------------------------------------------------------------------------
+for f = 1:Nf
+    if Nu(f) ~= size(MDP.E{f},1)
+        error(['please ensure B{' num2str(f) '} and E{' num2str(f) '} are consistent'])
+    end
+end
+
+% check final states and internal consistency
+%--------------------------------------------------------------------------
+for f = 1:Nf
+    if Ns(f) ~= size(MDP.H{f},1)
+        error(['please ensure B{' num2str(f) '} and H{' num2str(f) '} are consistent'])
+    end
+end
+
 
 % check id
 %--------------------------------------------------------------------------
@@ -241,7 +262,7 @@ for i = 1:Nf
     
     % name of levels of each factor
     %----------------------------------------------------------------------
-    for j = 1:Ns(i)
+    for j = 1:min(Ns(i),4)
         try
             MDP.label.name{i}(j);
         catch
@@ -251,7 +272,7 @@ for i = 1:Nf
     
     % name of actions under each factor
     %----------------------------------------------------------------------
-    for j = 1:Nu(i)
+    for j = 1:min(Nu(i),4)
         try
             MDP.label.action{i}(j);
         catch

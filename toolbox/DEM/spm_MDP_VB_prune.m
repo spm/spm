@@ -90,7 +90,7 @@ switch OPT
         %------------------------------------------------------------------
         rA       = spm_psi(qA);                 % reduced (log) prior
         rA       = minus(rA,max(rA));           % normalise
-        rA       = times(pA,rA > -log(16));     % prune
+        rA       = times(pA,rA > -log(32));     % prune
         rA       = times(rA,sum(pA)./sum(rA));  % preserve probability mass
 
     otherwise

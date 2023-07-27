@@ -99,7 +99,7 @@ switch METHOD
             % convergence
             %--------------------------------------------------------------
             if F > 0
-                warning('positive ELBO in spm_VBX')
+                %%% warning('positive ELBO in spm_VBX')
             end
             dF = F - Z;
             if dF < 1/128
@@ -121,26 +121,58 @@ switch METHOD
 
     case 'exact'
 
-        % approximation with marginals of exact posterior
+        % belief propagation with marginals of exact posterior
         %==================================================================
-        Nf    = size(A{1});
+
+        % prior
+        %------------------------------------------------------------------
+        for f = 1:numel(P)
+            i{f}  = find(P{f} > exp(-8));
+            R{f}  = P{f}(i{f});
+            Ns(f) = numel(P{f});
+        end
+
+        % accumulate likelihoods over modalities
+        %------------------------------------------------------------------
         L     = 1;
         for g = 1:numel(O)
-            L = L.*spm_dot(A{g},O{g});             % likelihood over modalities
+            j  = id.A{g};
+            LL = spm_dot(A{g}(:,i{j}),O{g});
+            
+            k  = ones(1,8); k(j) = size(LL,1:numel(j));
+            L  = times(L,reshape(LL,k));
         end
-        U     = L.*spm_cross(P);                   % posterior unnormalised
+        
+        % marginal posteriors and free energy (partition function)
+        %------------------------------------------------------------------
+        U     = L.*spm_cross(R);                   % posterior unnormalised
         Z     = sum(U,'all');                      % partition coefficient
-        F     = spm_log(Z);                        % negative free energy 
-        U     = reshape(U/Z,[Nf(2:end),1]);        % joint posterior
-        Q     = spm_marginal(U);                   % marginal  posteriors
+        if Z
+            F = spm_log(Z);                        % negative free energy
+            Q = spm_marginal(U/Z);                 % marginal  posteriors
+        else
+            F = -32;                               % negative free energy
+            Q = spm_marginal(U + 1/numel(U));      % marginal  posteriors
+        end
 
         % (-ve) free energy (partition coefficient)
         %------------------------------------------------------------------
         F     = 0;
         for f = 1:numel(P)
-            LL = spm_vec(spm_dot(spm_log(L),Q,f));
-            LP = spm_vec(spm_log(P{f}));
-            F  = F + Q{f}'*(LL + LP - spm_log(Q{f}));
+           LL = spm_vec(spm_dot(spm_log(L),Q,f));
+           LP = spm_vec(spm_log(R{f}));
+           F  = F + Q{f}'*(LL + LP - spm_log(Q{f}));
+        end
+
+        % Posterior
+        %------------------------------------------------------------------
+        for f = 1:numel(P)
+            P{f}(:)    = 0;
+            if numel(i{f}) > 1
+                P{f}(i{f}) = Q{f};
+            else
+                P{f}(i{f}) = 1;
+            end
         end
 
     case 'sparse'
@@ -157,34 +189,6 @@ switch METHOD
         F     = spm_log(Z);                        % negative free energy 
         U     = reshape(U/Z,[Nf(2:end),1]);        % joint posterior
         Q     = spm_marginal(U);                   % marginal  posteriors
-
-    case 'marginal'
-
-        %  marginalised likelihood
-        %==================================================================
-        for g = 1:numel(O)
-            L{g} = spm_marginal(spm_dot(A{g},O{g}));
-        end
-
-        % log prior
-        %------------------------------------------------------------------
-        for f = 1:numel(P)
-            LP{f} = spm_vec(spm_log(P{f}));
-        end
-
-        F     = 0;
-        for f = 1:numel(P)
-            LL    = 0;
-            for g = 1:numel(O)
-                LL = LL + spm_log(L{g}{f});
-            end
-            Q{f} = spm_softmax(LL + LP{f});
-
-            % (-ve) free energy (partition coefficient)
-            %--------------------------------------------------------------
-            F   = F + Q{f}'*(LL - spm_log(Q{f}));
-        end
-
 
     otherwise
         disp('unknown method')

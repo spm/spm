@@ -808,7 +808,7 @@ run_demo_Callback(hObject, handles, 'DEM_dSprites')
 % --- Executes on button press in pushbutton268.
 function pushbutton268_Callback(hObject, eventdata, handles)
 handles.web = 'Active Inference A Process Theory';
-run_demo_Callback(hObject, handles, 'DEM_syntax')
+run_demo_Callback(hObject, handles, 'DEM_Tower_of_Hanoi')
 
 % --- Executes on button press in pushbutton269.
 function pushbutton269_Callback(hObject, eventdata, handles)

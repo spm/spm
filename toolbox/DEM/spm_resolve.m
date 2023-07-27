@@ -33,9 +33,12 @@ for g = 1:numel(mdp.a)
     M0 = M0 + spm_MDP_MI(mdp.a{g});
 end
 
+% initial Dirichlet counts
+%--------------------------------------------------------------------------
+try p = mdp.p; catch, p  = 1/32; end    
+
 % reduce likelihood matrix
 %--------------------------------------------------------------------------
-p     = mdp.p;                                           % prior counts
 for i = 1:(Ns(end) - 1)
 
     % evaluate reduced likelihood
