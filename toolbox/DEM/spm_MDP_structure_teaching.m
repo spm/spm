@@ -1,11 +1,11 @@
-function [o,O] = spm_MDP_structure_teaching(MDP,OPTIONS)
+function [O,o] = spm_MDP_structure_teaching(MDP,OPTIONS)
 % Generates probabilistic training sequences for structure learning
-% FORMAT [o,O] = spm_MDP_structure_teaching(MDP,[OPTIONS])
+% FORMAT [O,o] = spm_MDP_structure_teaching(MDP,[OPTIONS])
 %
 % MDP     - generative process or exemplars
 %
-% o{[.]}  - indices of exemplars or training sequence
 % O{{.}}  - probabilistic exemplars or training sequence
+% o{[.]}  - indices of exemplars or training sequence
 %
 % OPTIONS.N  [0]   - suppress neuronal responses
 % OPTIONS.P  [0]   - suppress plotting
@@ -47,25 +47,25 @@ try OPTIONS.G; catch, OPTIONS.G = 0; end     % suppress graphics
 %--------------------------------------------------------------------------
 spm_evaluate = @spm_MDP_VB_XXX;
 
-% generate outcomes if necessary
+% generate outcomes
 %==========================================================================
 
 % number of outcomes, states, controls and policies
-%----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 [Nf,Ns,Nu] = spm_MDP_size(MDP);
-T          = max(Ns) + 2;
 
 % ensure factors with dynamics generate sequences first
 %--------------------------------------------------------------------------
-disp('generating outcomes for structure learning'), disp(' ')
 if any(diff(Nu) > 0)
     warning('Please reorder B{i} with descending number of paths: size(B{i},3)')
 end
 
-% passive generation
+% number of outcomes (T)
 %--------------------------------------------------------------------------
-MDP.U = zeros(1,Nf);
-MDP.T = T;                              % number of outcomes
+MDP.T = 2;                              % for state transitions
+MDP.U = zeros(1,Nf);                    % remove any control
+MDP.o = [];                             % remove any outcomes
+MDP.O = {};                             % remove any outcomes
 
 % cycle over latent factors to generate outcomes
 %--------------------------------------------------------------------------
@@ -86,13 +86,12 @@ for i = 1:Nf                            % cycle over factors
             %--------------------------------------------------------------
             MDP.s = ones(Nf,1); MDP.s(i) = k;
             MDP.u = ones(Nf,1); MDP.u(i) = j;
-            MDP.o = [];
-            MDP   = spm_evaluate(MDP,OPTIONS);
+            PDP   = spm_evaluate(MDP,OPTIONS);
 
             % outcomes for this epoch
             %==============================================================
-            o{end + 1} = MDP.o;
-            O{end + 1} = MDP.O;
+            o{end + 1} = PDP.o;
+            O{end + 1} = PDP.O;
         end
     end
 end

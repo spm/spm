@@ -283,7 +283,7 @@ end
 
 % Generate training sequence
 %--------------------------------------------------------------------------
-[o,O]   = spm_MDP_structure_teaching(MDP);
+O     = spm_MDP_structure_teaching(MDP);
 
 % Structure learning
 %--------------------------------------------------------------------------
@@ -315,7 +315,6 @@ disp('inverting generative model (c.f., active inference)'), disp(' ')
 OPTIONS.A = 0;                             % suppress explicit action
 OPTIONS.B = 0;                             % suppress explicit action
 OPTIONS.N = 0;                             % suppress neuronal responses
-OPTIONS.O = 0;                             % suppress probabilistic outcomes
 OPTIONS.G = 1;                             % suppress graphics
 
 % default priors
@@ -521,16 +520,6 @@ for i = 1:256
 end
 L = spm_cat(L');
 K = spm_cat(K');
-
-
-%% routines that call XXX
-%--------------------------------------------------------------------------
-DEMO_MDP_maze_X
-DEM_surveillance
-DEM_dSprites
-DEM_sharingX
-DEM_MNIST
-DEM_syntax
 
 
 

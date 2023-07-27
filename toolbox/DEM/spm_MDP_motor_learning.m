@@ -35,7 +35,7 @@ function MDP = spm_MDP_motor_learning(MDP)
 % number of outsomes, states, controls and policies
 %--------------------------------------------------------------------------
 [Nf,Ns,Nu] = spm_MDP_size(MDP);
-OPTIONS.A  = 0;                             % suppress explicit action
+OPTIONS.A  = 1;                             % engage explicit action
 OPTIONS.B  = 0;                             % suppress backward pass
 OPTIONS.N  = 0;                             % suppress neuronal responses
 OPTIONS.G  = 1;                             % suppress graphics

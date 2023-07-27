@@ -54,7 +54,7 @@ if numel(MDP) > 1
     return
 end
 
-% update initial states (post-diction)
+% update initial states (Bayesian belief updating)
 %==========================================================================
 for f = OPTIONS.d
     MDP.D{f} = PDP.X{f}(:,end);
