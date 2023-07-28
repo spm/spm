@@ -572,7 +572,7 @@ end
 function myView(obj,evt,H,varargin)
 view(H.axis,varargin{1});
 axis(H.axis,'image');
-camlight(H.light);
+if ~isempty(H.light), camlight(H.light); end
 
 %==========================================================================
 function myColourbar(obj,evt,H)
