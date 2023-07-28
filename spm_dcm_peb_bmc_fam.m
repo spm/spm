@@ -75,6 +75,17 @@ M      = BMA.M;                                % Original PEB model
 Nx     = length(BMA.Ep) / length(BMA.Pnames);  % Number of covariates
 nK     = length(unique(families));             % Number of families   
 
+% Import posterior precisions from PEB BMA (not averaged)
+Ce = BMA.Ce;
+Ch = BMA.Ch;
+Eh = BMA.Eh;
+
+% Import other optional metadata from PEB BMA (see spm_dcm_peb)
+try Snames = BMA.Snames; catch, Snames = nan; end
+try Xnames = BMA.Xnames; catch, Xnames = nan; end
+try Pind   = BMA.Pind;   catch, Pind   = nan; end
+try Pind0  = BMA.Pind;   catch, Pind0  = nan; end
+    
 % Set model priors given family priors
 %--------------------------------------------------------------------------
 
@@ -200,6 +211,15 @@ BMA.M      = M;
 BMA.K      = K;
 BMA.Pnames = Pnames;
 BMA.Kname  = Kname;
+
+% Re-insert metadata from the PEB
+BMA.Snames = Snames;
+BMA.Xnames = Xnames;
+BMA.Pind   = Pind;
+BMA.Pind0  = Pind0;
+BMA.Ce     = Ce;
+BMA.Ch     = Ch;
+BMA.Eh     = Eh;
 
 fam = struct();
 fam.model.post   = Pm;

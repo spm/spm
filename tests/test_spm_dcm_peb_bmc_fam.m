@@ -8,7 +8,7 @@ function tests = test_spm_dcm_peb_bmc_fam
 tests = functiontests(localfunctions);
 
 % -------------------------------------------------------------------------
-function test_peb_bmc(testCase)
+function test_peb_bmc_fam(testCase)
 
 data_path = get_data_path();
 
@@ -27,6 +27,9 @@ families = [1 1 2 2];
 
 % Model comparison under families
 [BMA,fam] = spm_dcm_peb_bmc_fam(BMA,BMR,families);
+
+% Uncomment to test output is compatible with GUI
+% spm_dcm_peb_review(BMA,GCM);
 
 % -------------------------------------------------------------------------
 % Should be equal priors as families were balanced
