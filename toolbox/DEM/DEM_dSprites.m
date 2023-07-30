@@ -297,6 +297,7 @@ mdp.A   = A;
 mdp.B   = B;
 mdp.C   = C;
 mdp     = spm_MDP_motor_learning(mdp);
+mdp.k = U;
 
 % active learning (c.f., motor babbling)
 %==========================================================================
@@ -355,12 +356,12 @@ for d = 1:numel(dSprite)
 
         subplot(4,1,1), plot(PDP.F)             % free energy (states)
         xlabel('trials'), ylabel('nats')
-        title('Variational free energy (ELBO: states)','FontSize',14)
+        title('Negative variational free energy (ELBO: states)','FontSize',14)
         set(gca,'XLim',[1 (MDP.T - 16)]), hold on
 
         subplot(4,1,2), plot(PDP.v)             % expected free energy
         xlabel('trials'), ylabel('nats')
-        title('Expected free energy','FontSize',14)
+        title('Negative expected free energy (expected information gain)','FontSize',14)
         set(gca,'XLim',[1 (MDP.T - 16)]), hold on
 
         subplot(4,1,3), plot(PDP.w)             % precision over policies

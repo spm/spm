@@ -15,8 +15,6 @@ function mdp = spm_MDP_structure_learning(mdp,O,OPTIONS)
 % OPTIONS.NS [32,...] - maxmium number of states
 % OPTIONS.NU [16,...] - maxmium number of paths
 % OPTIONS.UB [1]      - model prior: bound on Ns
-% OPTIONS.UG [0]      - model prior: expected FE
-%
 %
 % mdp   - generative model: with mdp.a, mdp.b
 %
@@ -94,11 +92,6 @@ try NF = OPTIONS.NF; end
 try NS = OPTIONS.NS; end
 try NU = OPTIONS.NU; end
 try UB = OPTIONS.UB; end
-try UG = OPTIONS.UG; end
-
-% precision of likelihood model priors
-%--------------------------------------------------------------------------
-try, zeta = mdp.zeta; catch, zeta = 1; end     % active selection
 
 % inversion scheme
 %--------------------------------------------------------------------------
@@ -155,15 +148,16 @@ for t = 1:size(O,2)                            % cycle over epochs
     % Bayesian model expansion: add state to last factor
     %----------------------------------------------------------------------
     if Nu(Nf) == 1 && Ns(Nf) < NS(Nf)
+
         hdp{end + 1} = spm_expand(mdp,0,1,0,OPTIONS);        % expand
         hdp{end}     = spm_evaluate(hdp{end},OPTIONS);       % evaluate
         F(end + 1)   = spm_F(hdp{end});                      % record
         
-        % model priors: expected free energy
+
+        % lossless compression (based on expected free energy)
         %------------------------------------------------------------------
-        if UG
-            G      = spm_G(hdp{end}.a) - spm_G(hdp{1}.a);
-            F(end)   = F(end) + G*zeta;
+        if F(end) == max(F) && NF == 1 && Ns(Nf) > 1
+            hdp{end} = spm_resolve(hdp{end});
     end
 
         % model priors: number of states
@@ -173,13 +167,12 @@ for t = 1:size(O,2)                            % cycle over epochs
             % Species discovery curve
             %--------------------------------------------------------------
             % p      = 1 - (1 - 1/Ns(Nf)/2).^sum(mdp.a{1},'all');
-            % p      = Ns(Nf)/NS(Nf);
-            p        = 1 - exp(-8*Ns(Nf)/NS(Nf));
-
+            % p      = 1 - exp(-8*Ns(Nf)/NS(Nf));
+            p        = Ns(Nf)/NS(Nf);
             G        = spm_log((1 - p)) - spm_log(p);
             F(end)   = F(end) + G;
-        end            
 
+    end
     end
 
     % Bayesian model expansion: add path to last factor
@@ -190,14 +183,14 @@ for t = 1:size(O,2)                            % cycle over epochs
         % priors over intial states
         %------------------------------------------------------------------
         hdp{end}.D{Nf} = hdp{1}.D{Nf};
-
-
         hdp{end}     = spm_evaluate(hdp{end},OPTIONS);
         F(end + 1)     = spm_F(hdp{end});
 
-        % lossless compression
-        %----------------------------------------------------------------------
+        % lossless compression (based on expected free energy)
+        %------------------------------------------------------------------
+        if F(end) == max(F) && Nu(Nf) > 1
         hdp{end}       = spm_reduce(hdp{end},Nf);
+        end
 
     end
 
@@ -274,21 +267,11 @@ return
 
 % NOTES: 
 %==========================================================================
-%     % Contraction of likelihood mapping
-%     %--------------------------------------------------------------------
-%     [Nf,Ns,Nu] = spm_MDP_size(mdp);
-%     if Ns(1) > 4 && Nu(1) == 1 && Nf == 1 && h == 2
-%         mdp = spm_resolve(mdp);
-%     end
-
 %     % Bayesian model reduction
 %     %--------------------------------------------------------------------
 %     for g = 1:Ng
-%         mdp.a{g} = spm_MDP_VB_prune(mdp.a{g},a0{g},0,0,0,'MI');
+%         mdp.a{g} = spm_MDP_VB_prune(mdp.a{g},mdp.p,0,0,0,'SIMPLE');
 %     end
-%
-%     NB: a0 = hdp{h}.a;               % priors for BMR
-
 
 function mdp = spm_expand(mdp,n,s,u,OPTIONS)
 % Augment with an additional path
@@ -398,10 +381,10 @@ else % original model
 
     pdp       = spm_MDP_VB_XXX(mdp,OPTIONS);
     [d,i]     = max(pdp.X{Nf}(:,1));
-    [d,j]     = max(pdp.P{Nf}(1));
+    [d,j]     = max(pdp.P{Nf}(:,1));
 
-    mdp.D{Nf} = sparse(i(1),1,1,Ns(Nf),1);
-    mdp.E{Nf} = sparse(j(1),1,1,Nu(Nf),1);
+    mdp.D{Nf} = sparse(i,1,1,Ns(Nf),1);
+    mdp.E{Nf} = sparse(j,1,1,Nu(Nf),1);
 
 end
 
@@ -413,7 +396,6 @@ mdp.U = zeros(1,Nf);                             % actionable controls
 %--------------------------------------------------------------------------
 if isfield(mdp,'A'), mdp = rmfield(mdp,'A'); end
 if isfield(mdp,'B'), mdp = rmfield(mdp,'B'); end
-
 if isfield(mdp,'d'), mdp = rmfield(mdp,'d'); end
 if isfield(mdp,'e'), mdp = rmfield(mdp,'e'); end
 if isfield(mdp,'k'), mdp = rmfield(mdp,'k'); end
@@ -445,10 +427,14 @@ Nu       = size(mdp.b{f},3);         % number of hidden controls
 
 if Nu == 1, return, end
 
+% initial Dirichlet counts
+%--------------------------------------------------------------------------
+try p = mdp.p; catch, p  = 1/32; end  
+
 % reduce transition matrices
 %--------------------------------------------------------------------------
-p     = mdp.p;                       % prior counts
-I     = ones(Nu,1);                  % EFE
+spm_G = @spm_MDP_MI;                            % expected free energy
+G     = ones(Nu,1);
 db    = mdp.b{f}(:,:,Nu) - p;
 for i = 1:Nu
 
@@ -459,27 +445,25 @@ for i = 1:Nu
     b(:,:,Nu) = b(:,:,Nu) - db;
     b(:,:,i)  = b(:,:,i)  + db;
 
-        %  accept reduction if no loss of mutual information
+    % mutual information (EFE)
     %----------------------------------------------------------------------
-    I(i) = spm_MDP_MI(b);
+    G(i) = spm_G(b);
 
 end
 
 % remove redundant paths
-% %------------------------------------------------------------------------
-[I,i] = max(I);
+%--------------------------------------------------------------------------
+[g,i] = max(G);
 if i < Nu
     b        = mdp.b{f};
     b(:,:,i) = b(:,:,i) + b(:,:,Nu) - p;
     mdp.b{f} = b(:,:,1:(Nu - 1));
 end
 
-
 %  remove A and B if necessary
 %--------------------------------------------------------------------------
 if isfield(mdp,'A'), mdp = rmfield(mdp,'A'); end
 if isfield(mdp,'B'), mdp = rmfield(mdp,'B'); end
-
 if isfield(mdp,'d'), mdp = rmfield(mdp,'d'); end
 if isfield(mdp,'e'), mdp = rmfield(mdp,'e'); end
 if isfield(mdp,'k'), mdp = rmfield(mdp,'k'); end
@@ -513,75 +497,75 @@ function mdp = spm_resolve(mdp)
 
 % reduction operator (R): lossless compression
 %==========================================================================
-[Nf,Ns] = spm_MDP_size(mdp);
+Ns    = size(mdp.a{1}(:,:),2);
+if Ns == 1, return, end
 
-% mutual information of likelihood
+% initial Dirichlet counts
 %--------------------------------------------------------------------------
-M0    = 0;
-for g = 1:numel(mdp.a)
-    M0 = M0 + spm_MDP_MI(mdp.a{g});
-end
+try p = mdp.p; catch, p  = 1/32; end    
 
 % reduce likelihood matrix
 %--------------------------------------------------------------------------
-p     = mdp.p;                       % prior counts
-for i = 1:(Ns(end) - 1)
+spm_G = @spm_MDP_MI;                            % expected free energy
+G     = ones(Ns,1);
+for i = 1:Ns
 
     % evaluate reduced likelihood
     %----------------------------------------------------------------------
-    M     = 0;
     for g = 1:numel(mdp.a)
         
-        a{g}  = mdp.a{g};
-            a{g}(:,i)   = a{g}(:,i) + a{g}(:,end) - p;
-            a{g}(:,end) = p;
-
-        % mutual information
+        % evaluate mutual information
         %------------------------------------------------------------------
-        M = M + spm_MDP_MI(a{g});
+        da      = mdp.a{g}(:,Ns) - p;
+        a       = mdp.a{g};
+        a(:,Ns) = a(:,Ns) - da;
+        a(:,i)  = a(:,i) + da;
+
+        % mutual information (EFE)
+        %------------------------------------------------------------------
+        G(i) = G(i) + spm_G(a);
 
     end
-
-    % score loss of mutual information
-    %----------------------------------------------------------------------
-    G(i) = M - M0;
-
 end
+
+% contract likelihood matrix if there is no loss of information
+%--------------------------------------------------------------------------
+[g,i] = max(G);
+if i < Ns
+    for g = 1:numel(mdp.a)
+        mdp.a{g}(:,i) = mdp.a{g}(:,i) + mdp.a{g}(:,Ns) - p;
+        mdp.a{g}      = mdp.a{g}(:,1:Ns - 1);
+    end
+    mdp.b{1}          = mdp.b{1}(1:end - 1,1:end - 1,:);
+end
+
+%  remove A and B if necessary
+%--------------------------------------------------------------------------
+if isfield(mdp,'A'), mdp = rmfield(mdp,'A'); end
+if isfield(mdp,'B'), mdp = rmfield(mdp,'B'); end
+if isfield(mdp,'d'), mdp = rmfield(mdp,'d'); end
+if isfield(mdp,'e'), mdp = rmfield(mdp,'e'); end
+if isfield(mdp,'k'), mdp = rmfield(mdp,'k'); end
+
+
+return
 
 % for comparison: reduce likelihood matrix using BMR
 %--------------------------------------------------------------------------
-% F     = zeros((Ns(end) - 1),1);
-% for i = 1:(Ns(end) - 1)
+% for i = 1:Ns
 % 
 %     % evaluate reduced likelihood
-%     %----------------------------------------------------------------------
+%     %--------------------------------------------------------------------
 %     for g = 1:numel(mdp.a)
 % 
 %         qa = mdp.a{g}(:,end);
 %         pa = qa - qa + p;
 %         ra = mdp.a{g}(:,i);
 % 
-%         % score loss of mutual information
-%         %----------------------------------------------------------------------
-%         F(i) = F(i) - spm_MDP_log_evidence(qa,pa,ra);
+%         % BMR
+%         %----------------------------------------------------------------
+%         G(i) = G(i) - spm_MDP_log_evidence(qa,pa,ra);
 % 
 %     end
 % 
 % end
-
-
-% contract likelihood matrix if there is no loss of information
-%--------------------------------------------------------------------------
-[G,i] = max(G); i = i(1);
-
-if G < 0, return, end
-
-for g = 1:numel(mdp.a)
-        mdp.a{g}(:,i)   = mdp.a{g}(:,i) + mdp.a{g}(:,end) - p;
-        mdp.a{g}        = mdp.a{g}(:,1:end - 1);
-end
-mdp.b{end}(i,i,:)   = mdp.b{end}(i,i,:) + mdp.b{end}(end,end,:) - p;
-mdp.b{end}          = mdp.b{end}(1:end - 1,1:end - 1,:);
-
-return
-
