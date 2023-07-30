@@ -302,7 +302,7 @@ for t = 1:NT
 
     subplot(2,2,4)
     plot(1:t,MI(:,2)), set(gca,'XLim',[1,NT])
-    title({'Mutual information (b) ','(likelihood)'})
+    title({'Mutual information (b) ','(priors)'})
     xlabel('time'), ylabel('nats'), box off, axis square
     drawnow
 
@@ -330,7 +330,7 @@ title('Allowable transitions','FontSize',14), axis square
 subplot(3,2,6)
 imagesc(~~sum(pdp.b{1} > 1/2,3)),axis square
 title('Discovered transitions','FontSize',14), axis square
-xlabel('latent states')
+xlabel('latent states'), drawnow
 
 
 % Illustrate solutions to increasingly difficult problems, with increasing

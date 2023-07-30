@@ -52,7 +52,7 @@ load spm_MNIST
 % latent factor style, under a supervised or precise prior over the latent
 % factor (Digit) class
 %--------------------------------------------------------------------------
-NS    = 128;                                % number of styles
+NS    = 256;                                % number of styles
 NT    = 2048;                               % number of training digits
 mdp   = spm_MNIST_learn(training,NS,NT);    % supervised structure learning
 
@@ -206,7 +206,6 @@ OPTIONS.NF = 1;    % maxmium number of factors
 OPTIONS.NS = NS;   % maxmium number of states
 OPTIONS.NU = 1;    % maxmium number of paths
 OPTIONS.UB = 1;    % upper bound prior
-OPTIONS.UG = 1;    % expected free energy prior
 
 Ng    = numel(spm_MNIST2o(training,1));
 for g = 1:Ng
@@ -577,8 +576,6 @@ return
 % formulations of active learning and selection
 %--------------------------------------------------------------------------
 
-
-
 function mdp = spm_initialise(training,NS)
 % FORMAT mdp = spm_initialise(training,NS)
 % training - training data
@@ -620,9 +617,6 @@ for n = 1:Ns(2)
 end
 
 return
-
-
-
 
 function mdp = spm_initialise_resolve(training,NS)
 % FORMAT mdp = spm_initialise_resolve(training,NS)
