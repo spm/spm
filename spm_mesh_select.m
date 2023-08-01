@@ -3,30 +3,35 @@ function P = spm_mesh_select(M,N)
 % FORMAT P = spm_mesh_select(M,N)
 % M        - a mesh filename or GIfTI object or patch structure
 % N        - number of points to be interactively selected [default: 3]
+%            or cell array of char vectors containing label of points
 %
 % P        - array of selected vertices coordinates [3xN]
 %__________________________________________________________________________
 
-% Tim Tierney + Dr. G
+% Tim Tierney, Guillaume Flandin
 % Copyright (C) 2023 Wellcome Centre for Human Neuroimaging
+
 
 %-Get input mesh
 M = gifti(M);
 if ~isfield(M,'cdata')
     M.cdata = repmat([0.7 0.7 0.7],size(M.vertices,1),1);
 end
-%M = export(M,'patch');
 
 %-Get number of points to be selected
 if nargin < 2
     N = 3;
 end
-
-% Mr = spm_mesh_reduce(M1,round(size(M.vertices,1)*.2));
-% Mr.cdata = repmat([0.7 0.7 0.7],size(Mr.vertices,1),1);
+if isnumeric(N)
+    labels = arrayfun(@(i) sprintf('P%d',i),1:N,'UniformOutput',false);
+else
+    labels = N;
+    N = numel(labels);
+end
 
 %-Display mesh in a new figure
-H = spm_mesh_render(M);
+F = figure;
+H = spm_mesh_render(M,'Parent',F);
 cameratoolbar(H.figure,'Show');
 cameratoolbar(H.figure,'SetMode','orbit');
 cameratoolbar(H.figure,'SetCoordSys','none');
@@ -39,7 +44,7 @@ hold(H.axis,'on');
 for i=1:N
     H.button(i) = uicontrol(H.figure,...
         'Style','togglebutton',...
-        'String',sprintf('P%d',i),...
+        'String',labels{i},...
         'Units','pixels',...
         'Position',[20,20,60,20].*[1 1+2*(i-1) 1 1],...
         'Interruptible','off',...
@@ -67,7 +72,7 @@ waitfor(H.figure);
 
 P = getappdata(0,'vertex');
 rmappdata(0,'vertex');
-end
+
 
 %==========================================================================
 function cb_fig(src, evt, idx)
@@ -76,7 +81,7 @@ if get(gcbo,'Value') == 1
 else
     set(gcbf, 'WindowButtonDownFcn', []);
 end
-end
+
 
 %==========================================================================
 function cb_select_vertex(src, evt, idx)
@@ -127,13 +132,11 @@ P = getappdata(0,'vertex');
 P(:,idx) = vertex;
 setappdata(0,'vertex',P);
 
-%-Display selected vextex
+%-Display selected vextex, print its coordinates and reset corresponding button
 set(H.dot(idx),'XData',vertex(1,:),'YData',vertex(2,:),'ZData',vertex(3,:),'Visible','on');
-
-set(H.button(idx),'Value',0);
 set(H.box(idx),'String',sprintf('%d %d %d',round(vertex)));
+set(H.button(idx),'Value',0);
 
-%fprintf('Selected vertex: [%f %f %f]\n', vertex);
-cameratoolbar('SetMode','orbit')
-cameratoolbar('SetCoordSys','none')
-end
+%-Return to orbit mode (and implicitly remove the figure callback)
+cameratoolbar('SetMode','orbit');
+cameratoolbar('SetCoordSys','none');
