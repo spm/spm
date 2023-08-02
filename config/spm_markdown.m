@@ -206,22 +206,3 @@ for k = 1:numel(biblist)
     n          = spm_file(biblist(k).name,'basename');
     bibcstr{k} = fullfile(bibdir,n);
 end
-
-
-%==========================================================================
-function clean_latex_compile
-p = fullfile(spm('Dir'),'man');
-[f, d] = spm_select('FPlist',p,'.*\.aux$');
-f = strvcat(f, spm_select('FPlist',p,'.*\.tex$'));
-f = strvcat(f, spm_select('FPlist',p,'^manual\..*$'));
-f(strcmp(cellstr(f),fullfile(spm('Dir'),'man','manual.tex')),:) = [];
-f(strcmp(cellstr(f),fullfile(spm('Dir'),'man','manual.pdf')),:) = [];
-for i=1:size(d,1)
-    f = strvcat(f, spm_select('FPlist',deblank(d(i,:)),'.*\.aux$'));
-end
-f(strcmp(cellstr(f),filesep),:) = [];
-disp(f); pause
-for i=1:size(f,1)
-    spm_unlink(deblank(f(i,:)));
-end
-

@@ -86,9 +86,6 @@ tarball: all tbx-tarball verb.tarball
 data:
 	@ $(SPMEXE) eval "cd('../toolbox/mb');fil_install;"
 
-doc:
-	@ $(MAKE) -C ../man --no-print-directory
-
 check:
 	@ $(SPMEXE) eval "spm_check_installation;"
 
