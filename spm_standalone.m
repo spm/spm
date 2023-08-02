@@ -10,7 +10,7 @@ function spm_standalone(varargin)
 %__________________________________________________________________________
 
 % Guillaume Flandin
-% Copyright (C) 2010-2022 Wellcome Centre for Human Neuroimaging
+% Copyright (C) 2010-2023 Wellcome Centre for Human Neuroimaging
 
 
 %-Options
@@ -45,7 +45,7 @@ switch lower(action)
     
     case {'-h','--help'}
     %----------------------------------------------------------------------
-        cmd = lower(spm('Ver'));
+        cmd = 'spm';
         fprintf([...
             '%s - Statistical Parametric Mapping\n',...
             'https://www.fil.ion.ucl.ac.uk/spm/\n',...

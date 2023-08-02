@@ -51,3 +51,6 @@ if [ "$(command -v octave)" != "" ]; then
   "${BASH_SOURCE%/*}"/spm-octave $@
   exit 0
 fi
+
+echo "spm: no runtime engine found." >&2
+exit 1

@@ -3,14 +3,14 @@ function spm_cli(varargin)
 %__________________________________________________________________________
 
 % Guillaume Flandin
-% Copyright (C) 2016-2022 Wellcome Centre for Human Neuroimaging
+% Copyright (C) 2016-2023 Wellcome Centre for Human Neuroimaging
 
 
 %-Input arguments
 %--------------------------------------------------------------------------
 if isempty(varargin), return; end
 if nargin == 1 && ismember(varargin{1},{'help','--help'})
-    cmd = lower(spm('Ver'));
+    cmd = 'spm';
     fprintf([...
         'Usage: %s [NODE] [arg...]\n',...
         '       %s [NODE] help\n',...
