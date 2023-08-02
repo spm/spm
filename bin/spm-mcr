@@ -51,4 +51,4 @@ if [ ! -x "${SPM_HOME}/${SPM_EXE}" ]; then
   exit 1
 fi
 
-${SPM_HOME}/${SPM_EXE} ${MCR_HOME} $@
+"${SPM_HOME}"/${SPM_EXE} ${MCR_HOME} $@

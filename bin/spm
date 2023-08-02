@@ -19,7 +19,7 @@ do
   shift
   case "${arg%%=*}" in
     MATLAB_EXEC|MCR_HOME|SPM_HOME|OCTAVE_EXEC)
-    eval export ${arg}
+    eval export "${arg}"
     ;;
   *)
     set -- "$@" "$arg"
@@ -28,26 +28,26 @@ do
 done
 
 if [[ ${MATLAB_EXEC} ]]; then
-  ${BASH_SOURCE%/*}/spm-matlab $@
+  "${BASH_SOURCE%/*}"/spm-matlab $@
   exit 0
 fi
 
 if [[ ${MCR_HOME} ]]; then
-  ${BASH_SOURCE%/*}/spm-mcr $@
+  "${BASH_SOURCE%/*}"/spm-mcr $@
   exit 0
 fi
 
 if [[ ${OCTAVE_EXEC} ]]; then
-  ${BASH_SOURCE%/*}/spm-octave $@
+  "${BASH_SOURCE%/*}"/spm-octave $@
   exit 0
 fi
 
 if [ "$(command -v matlab)" != "" ]; then
-  ${BASH_SOURCE%/*}/spm-matlab $@
+  "${BASH_SOURCE%/*}"/spm-matlab $@
   exit 0
 fi
 
 if [ "$(command -v octave)" != "" ]; then
-  ${BASH_SOURCE%/*}/spm-octave $@
+  "${BASH_SOURCE%/*}"/spm-octave $@
   exit 0
 fi

@@ -7,4 +7,4 @@
 # Copyright (C) 2017-2023 Wellcome Centre for Human Neuroimaging
 
 
-${BASH_SOURCE%/*}/spm-matlab $@
+"${BASH_SOURCE%/*}"/spm-matlab $@

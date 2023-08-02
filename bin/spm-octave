@@ -53,7 +53,7 @@ if [ "${PLATFORM}" = "Darwin" ] || [ "${PLATFORM}" = "arm64" ]; then
 else
   TMPFILE=$(mktemp --tmpdir -u spm_XXXXXX).m
 fi
-cat << EOF > ${TMPFILE}
+cat << EOF > "${TMPFILE}"
 addpath (canonicalize_file_name ("${SPM_HOME}"));
 
 try
@@ -76,7 +76,7 @@ EOF
 ${OCTAVE_EXEC} --norc --quiet --no-history ${OCTAVE_FLAGS} --eval "run('${TMPFILE}');"
 ERR=$?
 
-rm -f ${TMPFILE}
+rm -f "${TMPFILE}"
 
 if [[ ${ERR} -eq 0 ]]; then
   exit 0

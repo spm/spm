@@ -53,7 +53,7 @@ if [ "${PLATFORM}" = "Darwin" ] || [ "${PLATFORM}" = "arm64" ]; then
 else
   TMPFILE=$(mktemp --tmpdir -u spm_XXXXXX).m
 fi
-cat << EOF > ${TMPFILE}
+cat << EOF > "${TMPFILE}"
 warning('off','backtrace');
 cd(getenv('PWD'));
 spm_dir = '${SPM_HOME}';
@@ -77,7 +77,7 @@ EOF
 ${MATLAB_EXEC} -nosplash -nodesktop ${MATLAB_FLAGS} -r "run('${TMPFILE}');" | tail -n +11
 ERR=${PIPESTATUS[0]}
 
-rm -f ${TMPFILE}
+rm -f "${TMPFILE}"
 
 if [[ ${ERR} -eq 0 ]]; then
   exit 0
