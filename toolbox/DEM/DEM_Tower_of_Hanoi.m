@@ -225,7 +225,7 @@ O     = spm_MDP_structure_teaching(MDP);
 
 % Structure learning
 %--------------------------------------------------------------------------
-mdp.p = 1/512;      % adjust to make the agent more or less impressionable
+mdp.p = 1/64;       % adjust to make agent more or less impressionable
 mdp   = spm_MDP_structure_learning(mdp,O,OPTIONS);
 
 % Illustrate allowable and discovered transitions (i.e., the physics)

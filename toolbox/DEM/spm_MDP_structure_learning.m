@@ -156,15 +156,16 @@ for t = 1:size(O,2)                            % cycle over epochs
 
         % lossless compression (based on expected free energy)
         %------------------------------------------------------------------
-        if F(end) == max(F) && NF == 1 && Ns(Nf) > 1
-            hdp{end} = spm_resolve(hdp{end});
+        [d,s]     = max(hdp{1}.D{Nf});
+        if F(end) == max(F) && Nf == 1 && Ns(Nf) > 1
+            hdp{end} = spm_resolve(hdp{end},s);
     end
 
         % model priors: number of states
         %------------------------------------------------------------------
         if UB
 
-            % Species discovery curve
+            % Species discovery
             %--------------------------------------------------------------
             % p      = 1 - (1 - 1/Ns(Nf)/2).^sum(mdp.a{1},'all');
             % p      = 1 - exp(-8*Ns(Nf)/NS(Nf));
@@ -188,8 +189,9 @@ for t = 1:size(O,2)                            % cycle over epochs
 
         % lossless compression (based on expected free energy)
         %------------------------------------------------------------------
+        [d,u]     = max(hdp{1}.E{Nf});
         if F(end) == max(F) && Nu(Nf) > 1
-        hdp{end}       = spm_reduce(hdp{end},Nf);
+            hdp{end} = spm_reduce(hdp{end},u);
         end
 
     end
@@ -207,7 +209,7 @@ for t = 1:size(O,2)                            % cycle over epochs
     [m,h]       = max(F);
     FF(end + 1) = m;
 
-    % Parameter learning under selected model
+    % selected parameters
     %----------------------------------------------------------------------
         mdp.a = hdp{h}.a;
         mdp.b = hdp{h}.b;
@@ -404,10 +406,10 @@ if isfield(mdp,'k'), mdp = rmfield(mdp,'k'); end
 return
 
 
-function mdp = spm_reduce(mdp,f)
-% FORMAT mdp = spm_reduce(mdp,f)
+function mdp = spm_reduce(mdp,u)
+% FORMAT mdp = spm_reduce(mdp,u)
 % mdp  - MDP structure
-% f    - factor to reduce
+% u    - paths to evaluate: default [1:Nu]
 %
 % This subroutine compresses transition tensors of Dirichlet parameters
 % summarising the joint distribution over successive states and paths. This
@@ -423,24 +425,25 @@ function mdp = spm_reduce(mdp,f)
 
 % reduction operator (R): lossless compression
 %==========================================================================
-Nu       = size(mdp.b{f},3);         % number of hidden controls
+Nu = size(mdp.b{end},3);                        % number of hidden controls
 
 if Nu == 1, return, end
 
-% initial Dirichlet counts
+% factors and initial Dirichlet counts
 %--------------------------------------------------------------------------
+try iu = [s,Nu]; catch, iu = 1:Nu; end
 try p = mdp.p; catch, p  = 1/32; end  
 
 % reduce transition matrices
 %--------------------------------------------------------------------------
 spm_G = @spm_MDP_MI;                            % expected free energy
-G     = ones(Nu,1);
-db    = mdp.b{f}(:,:,Nu) - p;
-for i = 1:Nu
+G     = zeros(Nu,1);
+db    = mdp.b{end}(:,:,Nu) - p;
+for i = iu
 
     % evaluate mutual information
     %----------------------------------------------------------------------
-    b         = mdp.b{f};
+    b         = mdp.b{end};
         
     b(:,:,Nu) = b(:,:,Nu) - db;
     b(:,:,i)  = b(:,:,i)  + db;
@@ -455,9 +458,9 @@ end
 %--------------------------------------------------------------------------
 [g,i] = max(G);
 if i < Nu
-    b        = mdp.b{f};
+    b          = mdp.b{end};
     b(:,:,i) = b(:,:,i) + b(:,:,Nu) - p;
-    mdp.b{f} = b(:,:,1:(Nu - 1));
+    mdp.b{end} = b(:,:,1:(Nu - 1));
 end
 
 %  remove A and B if necessary
@@ -472,9 +475,10 @@ if isfield(mdp,'k'), mdp = rmfield(mdp,'k'); end
 return
 
 
-function mdp = spm_resolve(mdp)
+function mdp = spm_resolve(mdp,s)
 % FORMAT mdp = spm_resolve(mdp)
 % mdp  - MDP structure
+% s    - states to evaluate: default [1:Ns]
 %__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 %==========================================================================
@@ -500,15 +504,17 @@ function mdp = spm_resolve(mdp)
 Ns    = size(mdp.a{1}(:,:),2);
 if Ns == 1, return, end
 
-% initial Dirichlet counts
+
+% states and initial Dirichlet counts
 %--------------------------------------------------------------------------
+try is = [s,Ns]; catch, is = 1:Ns; end
 try p = mdp.p; catch, p  = 1/32; end    
 
 % reduce likelihood matrix
 %--------------------------------------------------------------------------
 spm_G = @spm_MDP_MI;                            % expected free energy
-G     = ones(Ns,1);
-for i = 1:Ns
+G     = zeros(Ns,1);
+for i = is
 
     % evaluate reduced likelihood
     %----------------------------------------------------------------------

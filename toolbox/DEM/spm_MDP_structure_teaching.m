@@ -13,16 +13,17 @@ function [O,o] = spm_MDP_structure_teaching(MDP,OPTIONS)
 % OPTIONS.G  [0]   - suppress graphics
 %
 % This routine generates a sequence of (probabilistic) outcomes from a
-% specified MDP structure. This sequence is appropriate for structure
+% specified POMDP structure. This sequence is appropriate for structure
 % learning. It comprises a sequence of epochs, where each epoch is
 % generated in a specific order: starting from the first factor, the
 % outcomes associated with each hidden state are generated under the first
 % path. By construction, the first path is stationary. After all hidden
-% states have generated the outcomes, for each hidden state, successive
-% paths are generated. After all paths have been generated, the process is
-% repeated for subsequent factors; under the first state and path of all
-% previous factors (noting, that the first path is always stationary; i.e.,
-% an identity transition mapping.
+% states have generated the outcomes, successive paths are generated
+% starting from each hidden state. After all paths have been generated, the
+% process is repeated for subsequent factors; under the first state and
+% path of previous factors (noting, that the first path is always
+% stationary; i.e., an identity transition mapping). Unless otherwise
+% specified, outcomes comprise two observations.
 %
 % This routine is used in conjunction with spm_MDP_structure_learning.m
 % that will, in principle, recover the factorial structure of MDP given,

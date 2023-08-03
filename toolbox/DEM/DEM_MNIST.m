@@ -135,15 +135,17 @@ disp(sum(Fr)/Ng)
 disp(sum(Fr)/Ng - sum(F)/Ng)
 %--------------------------------------------------------------------------
 % Classification accuracy before and after reduction
-%    96.0600
-%    96.0400
+% 96.1200
+% 96.1400
+% 
 % Number parameters before and after reduction
-%      2150400
-%      2069908 diff: 80492 = 3.7431%
+% 2336768
+% 2271320
+% 
 % ELBO before and after reduction (per modality)
-%   -5.1696e+03
-%   -5.1576e+03
-%    diff: 12.0090 nats
+% -5.2894e+03
+% -5.2839e+03
+% 5.5331 nats
 %--------------------------------------------------------------------------
 
 % graphics: increasing classification accuracy with marginal likelihood
