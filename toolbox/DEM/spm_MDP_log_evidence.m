@@ -11,10 +11,10 @@ function [F,sA,dFdA] = spm_MDP_log_evidence(qA,pA,rA)
 % dFdA - total free energy gradients with respect to rA
 %
 % This routine computes the negative log evidence of a reduced model of a
-% categorical distribution parameterised in terms of Dirichlet
-% hyperparameters (i.e., concentration parameters encoding probabilities).
-% It uses Bayesian model reduction to evaluate the evidence for models with
-% and without a particular parameter.
+% categorical distribution parameterised in terms of Dirichlet parameters
+% (i.e., parameters encoding probabilities). It uses Bayesian model
+% reduction to evaluate the evidence for models with and without a
+% particular parameter.
 %
 % A demonstration of the implicit pruning can be found at the end of this
 % routine
@@ -26,9 +26,16 @@ function [F,sA,dFdA] = spm_MDP_log_evidence(qA,pA,rA)
 
 % change in free energy or log model evidence
 %--------------------------------------------------------------------------
+p  = 1/512;                             % preclude numerical overflow
+rA = rA + p;
+pA = pA + p;
+qA = qA + p;
 sA = qA + rA - pA;
-sA = max(sA,0);
+
+% free energy and posterior
+%--------------------------------------------------------------------------
 F  = spm_betaln(qA) + spm_betaln(rA) - spm_betaln(pA) - spm_betaln(sA);
+sA = max(sA - p,0);
 
 if nargout < 3, return, end
 
@@ -38,8 +45,8 @@ if nargout < 3, return, end
 % gammaln    = log(gamma(x))
 % psi(x)     = digamma(x) = d(log(gamma(x)))/dx = (d(gamma(x))/dx)/gamma(x).
 %--------------------------------------------------------------------------
-d_betaln = @(x)psi(x) - psi(sum(x));
-dFdA     = d_betaln(rA) - d_betaln(sA);
+d_betaln = @(x)psi(x)   - psi(sum(x));
+dFdA     = d_betaln(rA) - d_betaln(sA + p);
 
 
 return
@@ -60,9 +67,9 @@ end
 
 subplot(2,2,1), imagesc(x,x,F + (F > 0)*4),
 title('Free energy landscape','FontSize',16), axis square xy
-xlabel('concentration parameter'), ylabel('concentration parameter')
-subplot(2,2,2), plot(x,F'),  title('log evidence','FontSize',16)
-xlabel('concentration parameter'), ylabel('Log-evidence'), axis square
+xlabel('2nd parameter'), ylabel('1st parameter')
+subplot(2,2,2), plot(x,F'),  title('(-) log evidence','FontSize',16)
+xlabel('2nd parameter'), ylabel('Log-evidence'), axis square
 
 
 
