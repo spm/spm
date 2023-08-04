@@ -157,7 +157,7 @@ for m = 1:numel(modalities)
         pos = BF.sources.pos;
         
         if isfield(BF.data.(modalities{m}), 'mesh_correction') && ~isempty(BF.data.(modalities{m}).mesh_correction)
-            disp(['Adjusting source points for volume type ' ft_voltype(vol)]);
+            disp(['Adjusting source points for volume type ' ft_headmodeltype(vol)]);
             cfg     = BF.data.(modalities{m}).mesh_correction;
             cfg.vol      = vol;
             cfg.grid.pos = pos;
