@@ -12,7 +12,7 @@ function spm_MDP_params(MDP,OPT)
 
 % deal with a sequence of trials
 %==========================================================================
-if nargin < 2,      OPT   = 'norm'; end
+if nargin < 2,        OPT   = 'norm'; end
 if ~isfield(MDP,'b'), MDP.b = MDP.B;  end
 if ~isfield(MDP,'a'), MDP.a = MDP.A;  end
 
@@ -45,5 +45,12 @@ if size(A,1) > 256
 else
     imagesc(A)
 end
-axis square, title('Likelihood')
+axis square, title('Likelihood','FontSize',14)
 xlabel('latent states'),ylabel('outcomes')
+
+% And allowable state transitions
+%--------------------------------------------------------------------------
+subplot(2,2,4)
+imagesc(sum(MDP.b{1},3) > 1/32),axis square
+title('Allowable transitions','FontSize',14), axis square
+xlabel('latent states'),ylabel('latent states')

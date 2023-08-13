@@ -22,7 +22,7 @@ function varargout = DEM_demo(varargin)
 
 % Edit the above text to modify the response to help DEM_demo
 
-% Last Modified by GUIDE v2.5 05-Mar-2023 10:35:20
+% Last Modified by GUIDE v2.5 13-Aug-2023 11:53:36
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -814,3 +814,21 @@ run_demo_Callback(hObject, handles, 'DEM_Tower_of_Hanoi')
 function pushbutton269_Callback(hObject, eventdata, handles)
 handles.web = 'Active Inference A Process Theory';
 run_demo_Callback(hObject, handles, 'DEM_MNIST')
+
+
+% --- Executes on button press in pushbutton282.
+function pushbutton282_Callback(hObject, eventdata, handles)
+handles.web = 'Active Inference A Process Theory';
+run_demo_Callback(hObject, handles, 'DEMO_MDP_maze_XXX')
+
+
+% --- Executes on button press in pushbutton283.
+function pushbutton283_Callback(hObject, eventdata, handles)
+handles.web = 'Active Inference A Process Theory';
+run_demo_Callback(hObject, handles, 'DEM_Tower')
+
+
+% --- Executes on button press in pushbutton284.
+function pushbutton284_Callback(hObject, eventdata, handles)
+handles.web = 'Active Inference A Process Theory';
+run_demo_Callback(hObject, handles, 'DEM_Pong')
