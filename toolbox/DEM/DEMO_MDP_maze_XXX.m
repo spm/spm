@@ -1,28 +1,27 @@
 function MDP = DEMO_MDP_maze_XXX
-% Demo of inductive inference
+% Demo of inductive inference based on a learned likelihood mapping
 %__________________________________________________________________________
 %
 % This demonstration of active inference focuses on navigation and
 % planning. The idea is to demonstrate how epistemic foraging and goal
 % (target) directed behaviour are integrated in the minimisation of
-% expected free energy. In this illustration, and 8 x 8 maze is learned
-% through novelty driven evidence accumulation - to learn the likelihood
+% expected free energy. In this illustration, and 10 x 10 maze is learned
+% through novelty-driven evidence accumulation - to learn the likelihood
 % mapping between hidden states (locations in the maze) and outcomes
 % (whether the current location is aversive or not). This accumulated
 % experience is then used to plan a path from a start to an end (target
 % location) under a task set specified by prior preferences over locations.
 %
 % This version uses a belief propagation scheme (with deep policy searches)
-% to illustrate prospective behaviour; namely, selecting policies or
-% trajectories that transiently increased Bayesian risk. This search is
-% constrained using inductive inference; namely, placing priors over the
-% subsequent states that preclude regimes of state space that cannot access
-% the final state. These priors rest upon a time reversed protocol under
-% allowable (learned) state transitions. In effect, priors over the final
-% state contextualise priors over outcomes by precluding states that lie
-% ahead, on a path of least action that minimises expected free energy.The
-% code below can be edited to demonstrate different kinds of behaviour,
-% under different preferences, policy depth and precisions.
+% to illustrate intentional behaviour. This search is constrained using
+% inductive inference; namely, placing priors over the subsequent states
+% that preclude regimes of state space that cannot access the final state.
+% These priors rest upon a time reversed protocol under allowable (learned)
+% state transitions. In effect, priors over the final state contextualise
+% priors over outcomes by precluding states that lie ahead, on a path of
+% least action that minimises expected free energy.The code below can be
+% edited to demonstrate different kinds of behaviour, under different
+% preferences, policy depth and precisions.
 %
 % see also: spm_MPD_VB_XXX.m
 %__________________________________________________________________________
@@ -52,16 +51,18 @@ label.outcome{1} = {'safe','aversive'};
 label.action{1}  = {'up','down','left','right','stay'};
 
 MAZE  = [...
-    1 1 1 1 1 1 1 1;
-    1 0 0 0 0 0 0 1;
-    1 1 1 0 1 1 0 1;
-    1 1 0 0 0 1 0 1;
-    1 1 0 1 0 0 0 1;
-    1 1 0 1 1 1 0 1;
-    1 0 0 0 0 0 0 1;
-    1 0 1 1 1 1 1 1];
-END   = sub2ind(size(MAZE),5,5);                  % goal or target location
-START = sub2ind(size(MAZE),8,2);                  % first or start location
+    1 1 1 1 1 1 1 1 1 1;
+    1 0 0 0 1 0 0 0 0 1;
+    1 1 1 0 1 1 0 1 0 1;
+    1 0 0 0 0 1 0 1 0 1;
+    1 1 1 0 1 1 1 1 0 1;
+    1 1 0 0 0 1 0 1 0 1;
+    1 1 0 1 0 0 0 1 0 1;
+    1 1 0 1 1 1 0 0 0 1;
+    1 0 0 0 0 0 0 1 0 1;
+    1 0 1 1 1 1 1 1 1 1];
+END   = sub2ind(size(MAZE),4,7);                  % goal or target location
+START = sub2ind(size(MAZE),10,2);                 % first or start location
 
 % prior beliefs about initial states: D 
 %--------------------------------------------------------------------------
@@ -107,14 +108,14 @@ U     = (1:nu)';
 % Constraints: does not like shocks (C) and wants to be at END (H)
 %--------------------------------------------------------------------------
 C{1}  = [1;0];
-C{2}  = ones(No(2),1);
-H{1}  = ones(No(2),1);
+C{2}  = ones(No(2),1);          % path   dependent preferences
+H{1}  = ones(No(2),1);          % path independent preferences
 
-H{1}(END) = 32;
+H{1}(END) = 32;                 % Target or end state
 
 % basic MDP structure
 %--------------------------------------------------------------------------
-mdp.N = 1;                      % policy depth
+mdp.N = 0;                      % policy depth
 mdp.U = U;                      % allowable policies
 mdp.A = A;                      % observation model or likelihood
 mdp.B = B;                      % transition probabilities
@@ -125,7 +126,7 @@ mdp.H = H;                      % prior over initial states
 mdp.label = label;
 mdp.p     = 1/32;
 
-% pure exploration: removing preferences about target location (and shocks)
+% Likelihood learning: removing preferences about target location (and shocks)
 %==========================================================================
 MDP       = mdp;
 MDP.a{1}  = spm_zeros(mdp.A{1}) + mdp.p;
@@ -134,7 +135,7 @@ MDP.C     = spm_zeros(C);
 MDP.H     = spm_zeros(H);
 MDP.s     = START;
 MDP.D     = D;
-MDP.T     = 128;
+MDP.T     = 256;
 
 % Active learning
 %----------------------------------------------------------------------
@@ -143,20 +144,20 @@ MDP       = spm_MDP_VB_update(MDP,PDP);
 
 % show results - behavioural
 %--------------------------------------------------------------------------
-spm_figure('GetWin','Figure 1'); clf
+spm_figure('GetWin','Learning'); clf
 spm_maze_plot(PDP)
 
 
 % Paths of least action
 %==========================================================================
-% illustrate shortest path to target with suitable policy depth, when the
-% safe locations have been learned
+% illustrate shortest path to target with suitable policy depth, Under
+% greater and lesser precision over (path independent) constraints C
 %--------------------------------------------------------------------------
 MDP.s = START;
 MDP.C = C;
 MDP.H = H;
-MDP.T = 16;
-for i = 1:4
+MDP.T = 32;
+for i = [1,8]
 
     % increase precision of constraints
     %----------------------------------------------------------------------

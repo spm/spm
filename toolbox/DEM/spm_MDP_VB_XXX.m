@@ -398,7 +398,6 @@ for m = 1:Nm
         %------------------------------------------------------------------
         H{m,f}     = spm_norm(h{m,f});
 
-
         % priors over paths (control states): concentration parameters
         %------------------------------------------------------------------
         if isfield(MDP,'e')
@@ -531,6 +530,16 @@ for m = 1:Nm
             catch
                 O{m,g,t}      = [];
             end
+        end
+    end
+
+    % replace marginal end states H{f} if specified as d
+    %----------------------------------------------------------------------
+    if isfield(MDP(m),'hid')
+        H   = cell(m,1);
+        hid = MDP(m).hid;
+        if numel(hid)
+            H{m,1} = hid;
         end
     end
 
@@ -1531,12 +1540,11 @@ P(m,:,t) = Q;
 
 % terminate search at time horizon
 %--------------------------------------------------------------------------
-if t == T || numel(G) == 1, return, end
+if t == T || size(B,3) == 1, return, end
 
-% Constraints on final state
+% Constraints on next state (inductive inference)
 %==========================================================================
-R     = spm_cost(A(m,:),B(m,:,:),C(m,:),H(m,:),Q,(T - t),id{m});
-
+R     = spm_induction(A(m,:),B(m,:,:),C(m,:),H(m,:),Q,(T - t),id{m});
 
 % Expected free energy of subsequent action
 %==========================================================================
@@ -1550,11 +1558,11 @@ for k = 1:size(B,3)                               % search over actions
         %------------------------------------------------------------------
         Q{f,k} = B{m,f,k}*P{m,f,t};
 
-        % G(k): risk over states
+        % G(k): risk over states (entropy)
         %------------------------------------------------------------------
-        G(k) = G(k) - Q{f,k}'*(spm_log(Q{f,k}) - R{f});
+        G(k)   = G(k) - Q{f,k}'*spm_log(Q{f,k});
 
-        % expected information gain (prior parameters: i.e., novelty)
+        % expected information gain (prior novelty)
         %------------------------------------------------------------------
         if any(I{m,f,k},'all')
             G(k) = G(k) + P{m,f,t}'*I{1,f,k}*Q{f,k};
@@ -1562,6 +1570,14 @@ for k = 1:size(B,3)                               % search over actions
 
     end
 
+    % inductive constraints over states
+    %----------------------------------------------------------------------
+    if any(R,'all')
+        G(k) = G(k) + spm_dot(R,Q(:,k));
+    end
+
+    % and outcomes
+    %----------------------------------------------------------------------
     for g  = 1:size(A,2)                          % for all modalities
 
         % domain of A{g}
@@ -1570,12 +1586,11 @@ for k = 1:size(B,3)                               % search over actions
 
         % predictive posterior and prior over outcomes
         %------------------------------------------------------------------
-        qo   = spm_dot(A{m,g},Q(j,k));            % predictive outcomes
-        po   = C{m,g};                            % predictive log prior
+        qo   = spm_dot(A{m,g},Q(j,k));
 
         % G(k): risk over outomes
         %-----------------------------------------------------------------
-        G(k) = G(k) - qo'*(spm_log(qo) - po);
+        G(k) = G(k) - qo'*(spm_log(qo) - C{m,g});
 
         % G(k): ambiguity
         %------------------------------------------------------------------
@@ -1583,7 +1598,7 @@ for k = 1:size(B,3)                               % search over actions
             G(k) = G(k) + spm_dot(K{m,g},Q(j,k));
         end
 
-        % expected information gain (likelihood parameters: i.e., novelty)
+        % expected information gain (likelihood novelty)
         %------------------------------------------------------------------
         if any(W{m,g},'all')
             G(k) = G(k) + qo'*spm_dot(W{m,g},Q(j,k));
@@ -1838,9 +1853,9 @@ end
 
 return
 
-function H = spm_cost(A,B,C,H,Q,N,id)
-% Inductive inference from final to next state
-% FORMAT P = spm_cost(A,B,C,H,Q,N,id)
+function R = spm_induction(A,B,C,H,Q,N,id)
+% Inductive inference about next state
+% FORMAT R = spm_induction(A,B,C,H,Q,N,id)
 %--------------------------------------------------------------------------
 % A{1,g}   - likelihood mappings from hidden states
 % B{1,f,k} - belief propagators (policy-dependent probability transitions)
@@ -1849,103 +1864,145 @@ function H = spm_cost(A,B,C,H,Q,N,id)
 % Q{1,f}   - cell array of posteriors over states
 %
 % N      - induction depth
+% id     - likelihood domain
 % 
-% P{f}   - cell array of priors over current state
+% R      - tensor over next state
 %
-% This subroutine estimates the next cost in terms of surprisal over future
-% states based upon backwards induction of a simple sort; i.e., using
-% backwards propagators to identify paths of least action.
+% This subroutine returns constraints on the next state based upon
+% backwards induction of a simple sort; i.e., using backwards propagators
+% to identify paths of least action using logical operators.
 %__________________________________________________________________________
 
-
-
-% Preliminary checks (no priors over final states)
+% Preliminary checks (for no priors over end states)
 %==========================================================================
 d     = true;
 for f = 1:numel(H)
-    d = d & ~any(diff(H{f}));
+    d = d & ~any(diff(H{f}(:)));
 end
-if d, return, end
+if d, R = false; return, end
 
 % Threshold transition probabilities
 %--------------------------------------------------------------------------
-u     = 1/16;
-for f = 1:numel(H)
-    b{f}  = 0;
-    Ns(f) = numel(H{f});
+u     = 1/16;                         % probability threshold
+Nf    = size(B,2);
+for f = 1:Nf
+    b{f}  = false;
+    Ns(f) = size(B{f},1);
     for k = 1:size(B,3)
-        b{f} = b{f} + B{1,f,k};
+        b{f} = b{f} | gt(B{1,f,k}, max(B{1,f,k})*u);
     end
-    b{f} = gt(b{f}, max(b{f})*u);
-    h{f} = gt(H{f}, max(H{f})*u);
 end
 
-% Kronecker tensor product
+% Kronecker tensor products (sparse)
 %--------------------------------------------------------------------------
 Bf    = 1;
-Pf    = 1;
 Qf    = 1;
 for f = 1:size(B,2)
-    Bf = spm_kron(Bf,b{f});
-    Pf = spm_kron(Pf,h{f});
-    Qf = spm_kron(Qf,Q{f});
+    Bf = spm_kron(b{f},Bf);           % unconstrained transitions
+    Qf = spm_kron(Q{f},Qf);           % predictive posterior over states
 end
 
 % Expected cost in latent state space
 %==========================================================================
-Ns    = [Ns,1];
+% U = U + shiftdim(K{g},1);           % expected ambiguity (disabled)
+Ns    = [Ns,1];                       % size of state space
 L     = zeros(Ns);
 for g = 1:numel(A)
     j = id.A{g};
-    U = spm_dot(A{g},C{g});
-
+    U = spm_dot(A{g},C{g});           % expected cost
     k = ones(1,numel(Ns)); k(j) = size(U,1:numel(j));
-    L = plus(L, reshape(U,k));
+    L = plus(L, reshape(U,k));        % likely states
 end
 
-% Constraint
+% Constraint from C
 %--------------------------------------------------------------------------
 L     = spm_vec(L);
 L     = L > (max(L) + log(u));
-Bf    = times(Bf,L);
-Bf    = logical(Bf);
-Pf    = logical(Pf);
+Cf    = times(Bf,L);
+Cf    = logical(Cf);                  % constrained transitions
 
-
-% Paths of least action
+% Backwards induction: from end states
 %==========================================================================
+if sum(H{1}(:,1)) < 2
 
-% backwards protocol
-%--------------------------------------------------------------------------
-for n = 1:N
-    p = any(Bf(Pf(:,n),:),1)' & ~any(Pf,2);
-    if any(p)
-        Pf(:,n + 1) = p;
-    else
-        break
+    % if H are marginal distributions
+    %----------------------------------------------------------------------
+    for f = 1:Nf
+        h{f}    = false(Ns(f),1);
+        [d,s]   = max(H{f});
+        h{f}(s) = true;
     end
+    Pf     = true;
+    for f  = 1:Nf
+        Pf = spm_kron(h{f},Pf);
+    end
+
+    else
+
+    % if H contains indices (of multiple endpoints)
+    %----------------------------------------------------------------------
+    for i = 1:size(H{1},2)
+        for f = 1:Nf
+            h{f}    = false(Ns(f),1);
+            s       = H{1}(f,i);
+            h{f}(s) = true;
+    end
+        pf     = true;
+        for f  = 1:Nf
+            pf = spm_kron(h{f},pf);
+        end
+        Pf(:,i) = logical(pf);
 end
 
-% Find most likely point on path of least action
-%--------------------------------------------------------------------------
-G     = zeros(size(Pf,2),1);
-for n = 1:size(Pf,2)
-    G(n) = G(n) + Qf'*Pf(:,n);
 end
-[d,n] = max(G);
 
-% log prior over next state
+% Backwards induction: paths of least action
 %==========================================================================
-Pf    = full(Pf(:,max(n - 1,1)));
+for i = 1:size(Pf,2)
 
-% Marginal constraints
-%--------------------------------------------------------------------------
-Pf    = reshape(Pf,Ns);
-H     = spm_marginal(Pf);
-for f = 1:numel(H)
-    H{f} = spm_log(spm_norm(double(H{f})));
+    % for this end state
+    %----------------------------------------------------------------------
+    pf = logical(Pf(:,i));
+
+    % backwards protocol (for paths with a well-defined end state)
+    %----------------------------------------------------------------------
+    for n = 1:min(N,64)
+
+        % any preceding states     % that have not been previously occupied
+        %------------------------------------------------------------------
+        p = any(Cf(pf(:,n),:),1)'; % & ~any(pf,2);
+        pf(:,n + 1) = p;           % are potential states for the next time
+
 end
 
+    % Find most likely point on paths of least action
+    %----------------------------------------------------------------------
+    G(:,i) = pf'*Qf;
+    P{i}   = pf;
+
+end
+
+% precise log prior over next state
+%==========================================================================
+[d,n] = max(G);                    % first end state
+i     = d > u;                     % provided it exists
+if any(i)
+
+    % eliminate inaccessible end states
+    %----------------------------------------------------------------------
+    P     = P(i);
+    n     = n(i);
+    [n,i] = min(n);                % to the i-th end state
+
+    % precise log prior over next state
+    %----------------------------------------------------------------------
+    P     = P{i}(:,max(n - 1,1));
+    R     = single(reshape(full(P),Ns));
+    R     = shiftdim(32*R,-1);
+
+else
+    R = false;
+end
 
 return
 
@@ -2116,3 +2173,20 @@ r = spm_gamrnd(repmat(a,n,1),1,n,p);
 r = r ./ repmat(sum(r,2),1,p);
 
 return
+
+%% routines that call spm_MDP_VB_XXX
+%--------------------------------------------------------------------------
+% Routine:                   Demonstrating
+%--------------------------------------------------------------------------
+DEM_demo_MDP_XXX            % Active inference
+DEMO_MDP_maze_X             % Sophisticated inference
+DEMO_MDP_maze_XXX           % Inductive inference
+DEM_surveillance            % Factorial problem
+DEM_sharingX                % Active selection with hyperlinks
+DEM_dSprites                % Structure learning with dynamics
+DEM_Tower_of_Hanoi          % Active inference and structure learning
+DEM_Tower                   % Inductive inference and problem solving
+DEM_Pong                    % Inductive inference and dynamics
+DEM_MNIST                   % Active selection without dynamics
+
+%%% DEM_syntax
