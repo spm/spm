@@ -266,8 +266,14 @@ spm_progress_bar('Init',V.dim(3),...
     ['Loading ' spm_file(V.fname,'filename')],...
     'Planes loaded');
 udat = zeros(V.dim,'uint8');
-st = rand('state'); % st = rng;
-rand('state',100); % rng(100,'v5uniform'); % rng('defaults');
+
+% Done the old way for compatibility with MATLAB versions older than R2011a
+warning('off','MATLAB:RandStream:ActivatingLegacyGenerators')
+st = rand('state');
+rand('state',100);
+% st = rng;           % Save old state
+% rng(100,'twister'); % Replicable random numbers
+
 for p=1:V.dim(3)
     img = spm_slice_vol(V,spm_matrix([0 0 p]),V.dim(1:2),1);
     acc = paccuracy(V,p);
@@ -281,8 +287,9 @@ for p=1:V.dim(3)
     spm_progress_bar('Set',p);
 end
 spm_progress_bar('Clear');
-rand('state',st); % rng(st);
-
+rand('state',st);
+warning('on','MATLAB:RandStream:ActivatingLegacyGenerators')
+% rng(st); % Return to old state
 
 %==========================================================================
 % function acc = paccuracy(V,p)

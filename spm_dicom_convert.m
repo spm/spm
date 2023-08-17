@@ -629,7 +629,12 @@ end
 if any(any(diff(pinfos,1)))
     % Ensure random numbers are reproducible (see later)
     % when intensities are dithered to prevent aliasing effects.
+
+    % Done the old way for compatibility with MATLAB versions older than R2011a
+    warning('off','MATLAB:RandStream:ActivatingLegacyGenerators')
+    st = rand('state');
     rand('state',0);
+    % rng(0,'twister'); % Replicable random numbers
 end
 
 volume = zeros(dim);
@@ -1774,8 +1779,12 @@ for n=1:size(ord,2)
         end
         
         % Ensure random numbers are reproducible (see later)
-        % when intensities are dithered to prevent aliasing effects.
+        % when intensities are jittered to prevent aliasing effects.
+        % Done the old way for compatibility with MATLAB versions older than R2011a
+        warning('off','MATLAB:RandStream:ActivatingLegacyGenerators')
+        st = rand('state');
         rand('state',0);
+        % rng(0,'twister'); % Replicable random numbers
     end
 
     % Define output NIfTI files

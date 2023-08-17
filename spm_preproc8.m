@@ -100,12 +100,12 @@ kron = @(a,b) spm_krutil(a,b);
 
 % Some random numbers are used, so initialise random number generators to
 % give the same results each time.
-%rng('default');
-
 % These will eventually need changing
 % because using character strings to control RAND and RANDN is deprecated.
+warning('off','MATLAB:RandStream:ActivatingLegacyGenerators')
 randn('state',0);
 rand('state',0);
+% rng(0,'twister'); % Replicable random numbers
 
 % Fudge Factor - to (approximately) account for non-independence of voxels.
 % Note that variances add, and that Var[a*x + b*y] = a^2*Var[x] + b^2*Var[y]

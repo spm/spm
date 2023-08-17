@@ -79,7 +79,9 @@ sf = [mn 1;mx 1]\[0;255];
 
 if spm_type(V.dt(1),'intt')
     scrand = V.pinfo(1);
+    warning('off','MATLAB:RandStream:ActivatingLegacyGenerators')
     rand('seed',1);
+    % rng(1,'twister'); % Replicable random numbers
 else
     scrand = 0;
 end

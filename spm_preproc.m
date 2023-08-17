@@ -128,14 +128,19 @@ for z=1:length(z0)
 end
 [thresh,mx]  = spm_minmax(f);
 mn           = zeros(K,1);
-% give same results each time
-st = rand('state'); % st = rng;
-rand('state',0); % rng(0,'v5uniform'); % rng('defaults');
+% Give same results each time. Random number seed done the old way for
+% compatibility with MATLAB versions older than R2011a
+warning('off','MATLAB:RandStream:ActivatingLegacyGenerators')
+st = rand('state');
+rand('state',0);
+% st = rng;           % Save old state
+% rng(0,'twister'); % Replicable random numbers
 for k1=1:Kb
     kk = sum(lkp==k1);
     mn(lkp==k1) = rand(kk,1)*mx;
 end
-rand('state',st); % rng(st);
+rand('state',st);
+%rng(st);
 vr           = ones(K,1)*mx^2;
 mg           = ones(K,1)/K;
 
