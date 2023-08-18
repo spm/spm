@@ -212,7 +212,6 @@ spm_report(PDP,Nb,Nc,r)
 %==========================================================================
 OPTIONS.N = 0;       % suppress neuronal responses
 OPTIONS.P = 0;       % suppress plotting
-OPTIONS.B = 1;       % replay
 OPTIONS.G = 1;       % suppress graphics
 
 OPTIONS.NF = 1;      % maxmium number of factors

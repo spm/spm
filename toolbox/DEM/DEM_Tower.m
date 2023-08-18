@@ -183,7 +183,7 @@ MDP.C = C;                            % prior preferences
 MDP.D = D;                            % prior over initial states
 MDP.H = H;                            % prior over final states
 MDP.E = E;                            % prior over initial paths
-MDP.N = 1;                            % planning depth (-1)
+MDP.N = 0;                            % planning depth (-1)
 
 % Solve an example with known (veridical) structure
 %==========================================================================

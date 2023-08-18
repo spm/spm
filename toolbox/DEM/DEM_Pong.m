@@ -37,7 +37,6 @@ function MDP = DEM_Pong
 %% set up and preliminaries
 %==========================================================================
 rng(1)
-spm_figure('GetWin','Ping Pong'); clf
 
 % size of problem
 %--------------------------------------------------------------------------
@@ -316,8 +315,8 @@ for t = 1:MDP.T
 
     % plot
     %----------------------------------------------------------------------
-    imagesc(reshape(MDP.o(:,t),Nr,Nc)), axis image, axis xy
-    title(sprintf('time %i',t),'FontSize',12)
+    imagesc(1 - reshape(MDP.o(:,t),Nr,Nc)), axis image, axis xy
+    title(sprintf('Time %i',t),'FontSize',12)
     drawnow
 
     % save movie
@@ -335,7 +334,7 @@ x  = find(ismember(MDP.s',hid','rows'));
 subplot(6,1,3)
 plot(MDP.F), hold on
 plot(x,x*0 + mean(MDP.F),'.k','MarkerSize',16), hold off 
-title('Expected Free Energy (negative)','FontSize',12)
+title('Negative variational free energy (ELBO)','FontSize',12)
 xlabel('time'), ylabel('nats'), spm_axis tight
 
 subplot(6,1,4)
