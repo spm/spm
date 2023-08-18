@@ -1736,6 +1736,8 @@ for v = 1:16
             j  = id{m}.A{g};
             LL = spm_dot(spm_norm(qa{g}),O{m,g,t});
             LL = spm_log(LL);
+            %  = spm_dot(spm_psi(qa{g}),O{m,g,t});
+
 
             k  = ones(1,8); k(j) = size(LL,1:numel(j));
             L  = plus(L, reshape(LL,k));
@@ -1899,7 +1901,7 @@ Bf    = 1;
 Qf    = 1;
 for f = 1:size(B,2)
     Bf = spm_kron(b{f},Bf);           % unconstrained transitions
-    Qf = spm_kron(Q{f},Qf);           % predictive posterior over states
+    Qf = spm_kron(Q{f},Qf);           % posterior over states
 end
 
 % Expected cost in latent state space
@@ -1947,11 +1949,11 @@ if sum(H{1}(:,1)) < 2
             s       = H{1}(f,i);
             h{f}(s) = true;
     end
-        pf     = true;
+        I     = true;
         for f  = 1:Nf
-            pf = spm_kron(h{f},pf);
+            I = spm_kron(h{f},I);
         end
-        Pf(:,i) = logical(pf);
+        Pf(:,i) = logical(I);
 end
 
 end
@@ -1962,23 +1964,21 @@ for i = 1:size(Pf,2)
 
     % for this end state
     %----------------------------------------------------------------------
-    pf = logical(Pf(:,i));
+    I = logical(Pf(:,i));
 
     % backwards protocol (for paths with a well-defined end state)
     %----------------------------------------------------------------------
     for n = 1:min(N,64)
 
-        % any preceding states     % that have not been previously occupied
+        % any preceding states % & that have not been previously occupied
         %------------------------------------------------------------------
-        p = any(Cf(pf(:,n),:),1)'; % & ~any(pf,2);
-        pf(:,n + 1) = p;           % are potential states for the next time
-
+        I(:,n + 1) = any(Cf(I(:,n),:),1)'; % & ~any(I,2);
 end
 
     % Find most likely point on paths of least action
     %----------------------------------------------------------------------
-    G(:,i) = pf'*Qf;
-    P{i}   = pf;
+    G(:,i) = I'*Qf;
+    P{i}   = I;
 
 end
 
@@ -2178,7 +2178,7 @@ return
 %--------------------------------------------------------------------------
 % Routine:                   Demonstrating
 %--------------------------------------------------------------------------
-DEM_demo_MDP_XXX            % Active inference
+DEM_demo_MDP_XXX            % Active inference with backwards pass
 DEMO_MDP_maze_X             % Sophisticated inference
 DEMO_MDP_maze_XXX           % Inductive inference
 DEM_surveillance            % Factorial problem

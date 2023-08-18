@@ -84,7 +84,6 @@ NF     = 4;                                  % maximum number of factors
 NS     = [32,16,16,4];                       % maximum number of states
 NU     = [8,8,8,8];                          % maximum number of paths
 UB     = 0;                                    % model prior: bound on Ns
-UG     = 0;                                  % model prior: expected FE
 
 % maxmium number of states and paths for each factor
 %--------------------------------------------------------------------------
@@ -98,9 +97,7 @@ try UB = OPTIONS.UB; end
 mdp.beta     = 0;                              % supress active learning
 mdp.eta      = exp(16);                        % supress forgetting
 spm_evaluate = @spm_MDP_VB_XXX;              % free energy evaluation
-spm_G        = @spm_MDP_MI;                  % expected free energy
 spm_F        = @(mdp)sum(mdp.F);               % variational free energy
-
 
         % number of outcomes for each modality
 %--------------------------------------------------------------------------

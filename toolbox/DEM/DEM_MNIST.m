@@ -220,7 +220,7 @@ end
 
 % Structure learning
 %==========================================================================
-mdp.p = 1/16;                              % initial Dirichlet prior
+mdp.p = 1/8;                               % initial Dirichlet prior
 for n = 1:10                               % For each digit class
 
     % exemplars

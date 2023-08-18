@@ -121,20 +121,16 @@ mdp.A = A;                      % observation model or likelihood
 mdp.B = B;                      % transition probabilities
 mdp.C = C;                      % preferred outcomes
 mdp.D = D;                      % prior over initial states
-mdp.H = H;                      % prior over initial states
 
 mdp.label = label;
 mdp.p     = 1/32;
 
-% Likelihood learning: removing preferences about target location (and shocks)
+% Likelihood learning: removing preferences about target location
 %==========================================================================
 MDP       = mdp;
 MDP.a{1}  = spm_zeros(mdp.A{1}) + mdp.p;
 MDP.a{2}  = mdp.A{2}*512;
-MDP.C     = spm_zeros(C);
-MDP.H     = spm_zeros(H);
 MDP.s     = START;
-MDP.D     = D;
 MDP.T     = 256;
 
 % Active learning
@@ -153,9 +149,8 @@ spm_maze_plot(PDP)
 % illustrate shortest path to target with suitable policy depth, Under
 % greater and lesser precision over (path independent) constraints C
 %--------------------------------------------------------------------------
-MDP.s = START;
-MDP.C = C;
 MDP.H = H;
+MDP.s = START;
 MDP.T = 32;
 for i = [1,8]
 
