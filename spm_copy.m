@@ -1,10 +1,20 @@
 function spm_copy(source, dest, varargin)
 % Copy file(s)
 % FORMAT spm_copy(source, dest [,opts])
+% source  - pathnames of files or directories to be copied
+%           character vector or cellstr
+% dest    - pathnames of destination files or directories [default: pwd]
+%           character vector or cellstr
+% opts    - structure or list of name/value pairs of optional parameters:
+%             gzip: compress uncompressed copied files at destination
+%             gunzip: uncompress compressed copied files at destination
+%             nifti: also copy sidecar .hdr/.img/.mat/.json if present
+%             gifti: also copy sidecar .dat file if present
+%             mode: copy mode (see copyfile's help)
 %__________________________________________________________________________
 
 % Guillaume Flandin
-% Copyright (C) 2017-2018 Wellcome Centre for Human Neuroimaging
+% Copyright (C) 2017-2023 Wellcome Centre for Human Neuroimaging
 
 
 %-Source and destination
@@ -56,22 +66,23 @@ for i=1:numel(source)
     else
         sts = copyfile(source{i}, dest{i}, opts.mode{:});
     end
+    ext = file_ext(source{i});
     if opts.nifti
-        if strcmp(spm_file(source{i},'ext'),'img')
-            sts = copyfile(spm_file(source{i},'ext','hdr'), dest{i}, opts.mode{:});
-            sts = copyfile(spm_file(source{i},'ext','mat'), dest{i}, opts.mode{:});
-            sts = copyfile(spm_file(source{i},'ext','json'), dest{i}, opts.mode{:});
-        elseif strcmp(spm_file(source{i},'ext'),'hdr')
-            sts = copyfile(spm_file(source{i},'ext','img'), dest{i}, opts.mode{:});
-            sts = copyfile(spm_file(source{i},'ext','mat'), dest{i}, opts.mode{:});
-            sts = copyfile(spm_file(source{i},'ext','json'), dest{i}, opts.mode{:});
-        elseif strcmp(spm_file(source{i},'ext'),'nii')
-            sts = copyfile(spm_file(source{i},'ext','mat'), dest{i}, opts.mode{:});
-            sts = copyfile(spm_file(source{i},'ext','json'), dest{i}, opts.mode{:});
+        if strcmp(ext,'img') || strcmp(ext,'img.gz')
+            sts = copyfile(file_ext(source{i},'hdr'), dest{i}, opts.mode{:});
+            sts = copyfile(file_ext(source{i},'mat'), dest{i}, opts.mode{:});
+            sts = copyfile(file_ext(source{i},'json'), dest{i}, opts.mode{:});
+        elseif strcmp(ext,'hdr') || strcmp(ext,'hdr.gz')
+            sts = copyfile(file_ext(source{i},'img'), dest{i}, opts.mode{:});
+            sts = copyfile(file_ext(source{i},'mat'), dest{i}, opts.mode{:});
+            sts = copyfile(file_ext(source{i},'json'), dest{i}, opts.mode{:});
+        elseif strcmp(ext,'nii') || strcmp(ext,'nii.gz')
+            sts = copyfile(file_ext(source{i},'mat'), dest{i}, opts.mode{:});
+            sts = copyfile(file_ext(source{i},'json'), dest{i}, opts.mode{:});
         end
     end
     if opts.gifti
-        if strcmp(spm_file(source{i},'ext'),'gii')
+        if strcmp(ext,'gii') || strcmp(ext,'gii.gz')
             sts = copyfile(spm_file(source{i},'ext','dat'), dest{i}, opts.mode{:});
             % edit ExternalFileName in .gii file if full path or renaming
         end
@@ -83,5 +94,23 @@ for i=1:numel(source)
     if opts.gunzip && strcmp(spm_file(source{i},'ext'),'gz')
         gunzip(spm_file(source{i},'path',dest{i}));
         spm_unlink(spm_file(source{i},'path',dest{i}));
+    end
+end
+
+
+%==========================================================================
+function ext = file_ext(file,ext)
+% Equivalent to spm_file(file,'ext') with special case for .gz extension
+if nargin == 1
+    if strcmp(spm_file(file,'ext'),'gz')
+        ext = [spm_file(file(1:end-3),'ext') '.gz'];
+    else
+        ext = spm_file(file,'ext');
+    end
+else
+    if strcmp(spm_file(file,'ext'),'gz')
+        ext = spm_file(file(1:end-3),'ext',ext);
+    else
+        ext = spm_file(file,'ext',ext);
     end
 end
