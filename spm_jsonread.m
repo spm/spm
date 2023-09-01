@@ -17,8 +17,16 @@ function json = spm_jsonread(filename, opts)
 %__________________________________________________________________________
 
 % Guillaume Flandin
-% Copyright (C) 2015-2022 Wellcome Centre for Human Neuroimaging
+% Copyright (C) 2015-2023 Wellcome Centre for Human Neuroimaging
 
 
 %-This is merely the help file for the compiled routine
-error('spm_jsonread.c not compiled - see Makefile')
+%error('spm_jsonread.c not compiled - see Makefile')
+
+persistent runonce
+if nargin > 1 && isempty(runonce)
+    warning('Optional parameters disabled when using builtin jsondecode.');
+    runonce = 1;
+end
+
+json = jsondecode(fileread(filename));
