@@ -507,6 +507,12 @@ iMT = inv(MT);
 x1  = x0*iMT(1,1)+iMT(1,4);
 y1  = y0*iMT(2,2)+iMT(2,4);
 z1  = (z0(z)*iMT(3,3)+iMT(3,4))*ones(size(x1));
+
+% Eliminate NaNs (see email from Pratik on 01/09/23)
+x1  = min(max(x1,1),size(sol{1},1));
+y1  = min(max(y1,1),size(sol{1},2));
+z1  = min(max(z1,1),size(sol{1},3));
+
 x1a = x0    + spm_bsplins(sol{1},x1,y1,z1,prm);
 y1a = y0    + spm_bsplins(sol{2},x1,y1,z1,prm);
 z1a = z0(z) + spm_bsplins(sol{3},x1,y1,z1,prm);
