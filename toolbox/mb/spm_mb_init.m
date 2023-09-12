@@ -18,7 +18,7 @@ if sum(cellfun(@(c)isfield(c,'gmm'),{dat.model}))==0, return; end
 function [dat,sett] = mb_init1(cfg)
 sett      = cfg;
 sett.odir = sett.odir{1};
-if sett.odir(1) == '.'
+if (numel(sett.odir>=1) && (sett.odir(1) == '.')) || (numel(sett.odir>=2) && strcmp(sett.odir(1:2),['.' filesep]))
     sett.odir = fullfile(pwd,sett.odir);
 end
 if ~isempty(sett.odir) && ~(exist(sett.odir, 'dir') == 7)
