@@ -3,7 +3,7 @@ function [D] = spm_opm_opreg(S)
 % FORMAT D = spm_opm_create(S)
 %   S               - input structure
 % Optional fields of S:
-%   S.headfile     - path to headshapte file      - Default:required
+%   S.headfile     - path to headshape file      - Default:required
 %   S.helmetref      - 3 x 3 matrix of fiducials  - Default:required
 %   S.headhelmetref  - 3 x 3 matrix of fiducials  - Default:required
 %   S.headfid        - 3 x 3 matrix of fiducials  - Default:required

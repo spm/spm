@@ -7,8 +7,9 @@ function [mfD] = spm_opm_amm(S)
 %   S.D             - SPM MEEG object                                - Default: no Default
 %   S.li             -  internal harmonic order   - Default: 9
 %   S.le             -  external harmonic order   - Default: 2
-%   S.window        - temporal window size        - 10
+%   S.window        - temporal window size (s)        - 10
 %   S.prefix        - prefix to filename          - Default 'm'
+%   S.corrLim       - correlation limit          - Default 1
 % Output:
 %   D               - denoised MEEG object (also written to disk)
 %__________________________________________________________________________
