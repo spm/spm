@@ -207,7 +207,7 @@ elseif isempty(psi)
 else
     if all(r==1)
         a1 = spm_diffeo('pull',reshape(a0,[d(1:3) prod(d(4:end))]),psi);
-        d1 = size(a1);
+        d1 = [size(a1) 1];
         a1 = reshape(a1,[d1(1:3) d(4:end)]);
     else
         if d(3)>1, zrange = range(r(3)); else, zrange = 0; end
