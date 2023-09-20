@@ -3,7 +3,7 @@ function spm_standalone(varargin)
 %
 % References:
 %
-%   SPM Standalone:  https://en.wikibooks.org/wiki/SPM/Standalone
+%   SPM Standalone:  https://www.fil.ion.ucl.ac.uk/spm/docs/installation/standalone/
 %   MATLAB Compiler: http://www.mathworks.com/products/compiler/
 %
 % See also: config/spm_make_standalone.m

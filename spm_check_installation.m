@@ -15,7 +15,7 @@ function varargout = spm_check_installation(action)
 %__________________________________________________________________________
 
 % Guillaume Flandin
-% Copyright (C) 2009-2022 Wellcome Centre for Human Neuroimaging
+% Copyright (C) 2009-2023 Wellcome Centre for Human Neuroimaging
 
 
 if isdeployed, return; end
@@ -168,16 +168,16 @@ try
     feval(@spm_bsplinc,1,ones(1,6));
 catch
     if ismac
-        url = 'https://en.wikibooks.org/wiki/SPM/Installation_on_64bit_Mac_OS_(Intel)';
+        url = 'https://www.fil.ion.ucl.ac.uk/spm/docs/development/compilation/macos/';
     elseif isunix
-        url = 'https://en.wikibooks.org/wiki/SPM/Installation_on_64bit_Linux';
+        url = 'https://www.fil.ion.ucl.ac.uk/spm/docs/development/compilation/linux/';
     elseif ispc
-        url = 'https://en.wikibooks.org/wiki/SPM/Installation_on_64bit_Windows';
+        url = 'https://www.fil.ion.ucl.ac.uk/spm/docs/development/compilation/windows/';
     else
-        url = 'https://www.wikibooks.org/wiki/SPM#Installation';
+        url = 'https://www.fil.ion.ucl.ac.uk/spm/docs/development/compilation/';
     end
     if strcmpi(platform,'octave')
-        url = 'https://en.wikibooks.org/wiki/SPM/Octave#Compilation';
+        url = 'https://www.fil.ion.ucl.ac.uk/spm/docs/installation/octave/';
     end
     error([...
         'SPM uses a number of MEX files, which are compiled functions.\n'...

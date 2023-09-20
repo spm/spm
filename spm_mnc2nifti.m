@@ -12,12 +12,10 @@ function [N,cdf] = spm_mnc2nifti(fname,opts)
 % The NetCDF documentation specifically recommends that people do not
 % write their own libraries for accessing the data.  This suggestion
 % was ignored.
-%
-% See: http://en.wikibooks.org/wiki/MINC
 %__________________________________________________________________________
 
 % John Ashburner
-% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
+% Copyright (C) 2005-2023 Wellcome Centre for Human Neuroimaging
 
 
 if nargin==1

@@ -27,11 +27,12 @@ function spm_make_standalone(outdir, gateway, contentsver, tbxs)
 % When deployed, compiled applications will require the MATLAB Runtime:
 %   https://www.mathworks.com/products/compiler/matlab-runtime.html
 % 
-% See spm_standalone.m and https://en.wikibooks.org/wiki/SPM/Standalone
+% See https://www.fil.ion.ucl.ac.uk/spm/docs/installation/standalone/ and
+% spm_standalone.m
 %__________________________________________________________________________
 
 % Guillaume Flandin
-% Copyright (C) 2010-2022 Wellcome Centre for Human Neuroimaging
+% Copyright (C) 2010-2023 Wellcome Centre for Human Neuroimaging
 
 
 %-Check startup.m
