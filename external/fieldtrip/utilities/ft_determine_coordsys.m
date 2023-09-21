@@ -19,7 +19,7 @@ function [data] = ft_determine_coordsys(data, varargin)
 %   axisscale    = scaling factor for the reference axes and sphere (default = 1)
 %   clim         = lower and upper anatomical MRI limits (default = [0 1])
 %
-% This function wil pop up a figure that allows you to check whether the
+% This function will pop up a figure that allows you to check whether the
 % alignment of the object relative to the coordinate system axes is correct
 % and what the anatomical labels of the coordinate system axes are. You
 % should switch on the 3D rotation option in the figure panel to rotate and
@@ -65,7 +65,7 @@ data  = ft_checkdata(data, 'hasunit', 'yes');
 dtype = ft_datatype(data);
 
 % the high-level data structures are detected with ft_datatype, but there are
-% also some low-level data structures that need to be supproted here
+% also some low-level data structures that need to be supported here
 if strcmp(dtype, 'unknown')
   if isfield(data, 'fid') || (isfield(data, 'tri') && isfield(data, 'pos'))
     dtype = 'headshape';
@@ -78,6 +78,9 @@ if strcmp(dtype, 'unknown')
   elseif ~strcmp(ft_senstype(data), 'unknown')
     dtype = 'sens';
   end
+elseif strcmp(dtype, 'volume+label')
+  % we don't care about the labels here
+  dtype = 'volume';
 elseif strcmp(dtype, 'mesh+label')
   % we don't care about the labels here
   dtype = 'mesh';

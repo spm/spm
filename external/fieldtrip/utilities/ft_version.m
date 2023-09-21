@@ -103,7 +103,7 @@ end
 
 if ~isempty(ftver) && ~isempty(ftpath) && nargin<1
   % use the previously determined values
-
+  
 elseif issvn
   % use svn system call to determine latest revision
   [status, output] = system(sprintf('cd %s && svn%s info', ftpath, ext));
@@ -118,7 +118,7 @@ elseif issvn
     rev = rev{1}{1};
     ftver = ['r' rev];
   end
-
+  
 elseif isgit
   % use git system call to determine latest revision
   switch command
@@ -138,31 +138,27 @@ elseif isgit
     otherwise
       ft_error('unsupported command "%s"', command);
   end % switch command
-
+  
 elseif isequal(regexp(ftpath, ['.*\' filesep '[fF]ieldtrip-fieldtrip-[[0-9][a-z]]{7}']), 1)
   % this corresponds with being downloaded from the Mathworks file exchange link to github
   % which results in a ftpath like /Users/robert/matlab/fieldtrip-fieldtrip-851478d
   ftver = ftpath(end-6:end);
-
+  
 elseif isequal(regexp(ftpath, ['.*\' filesep '[fF]ieldtrip-20[0-9]{6}']), 1)
   % this corresponds with the daily version from the ftp server
   % which results in a ftpath like /Users/robert/matlab/fieldtrip-20160317
   ftver = ftpath(end-7:end);
-
+  
 elseif isequal(regexp(ftpath, ['.*\' filesep '[fF]ieldtrip-lite20[0-9]{6}']), 1)
   % this corresponds with the daily version from the ftp server
   % which results in a ftpath like /Users/robert/matlab/fieldtrip-20160317
   ftver = ftpath(end-7:end);
-
+  
 else
   % get it from the Contents.m file in the FieldTrip directory
   if ~isdeployed
     tmp = ver(ftpath);
-    if isempty(tmp)
-      ftver = 'unknown';
-    else
-      ftver = tmp.Version;
-    end
+    ftver = tmp.Version;
   else
     ftver = 'deployed';
   end

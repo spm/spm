@@ -1,6 +1,7 @@
 function [volume] = ft_datatype_volume(volume, varargin)
 
-% FT_DATATYPE_VOLUME describes the FieldTrip MATLAB structure for volumetric data.
+% FT_DATATYPE_VOLUME describes the FieldTrip MATLAB structure for volumetric data
+% such as an anatomical MRI.
 %
 % The volume data structure represents data on a regular volumetric 3-D grid, like an
 % anatomical MRI, a functional MRI, etc. It can also represent a source reconstructed
@@ -44,7 +45,7 @@ function [volume] = ft_datatype_volume(volume, varargin)
 % with it here. However, keep this snippet of code for reference.
 %
 % (2011) The dimord field was deprecated and we agreed that volume
-% data should be 3-dimensional and not N-dimensional with arbitary
+% data should be 3-dimensional and not N-dimensional with arbitrary
 % dimensions. In case time-frequency recolved data has to be represented
 % on a 3-d grid, the source representation should be used.
 %
