@@ -206,7 +206,7 @@ end;
 function local_savedefs(varargin)
 appid = get(gcbo, 'Userdata');
 [tag, def] = cfg_util('harvestdef', appid);
-[file, path] = uiputfile({'*.m','MATLAB .m file'}, 'Save Defaults as', ...
+[file, path] = uiputfile({'*.m','MATLAB Code file (*.m)'}, 'Save Defaults as', ...
                         sprintf('%s_defaults.m', tag));
 if ~ischar(file)
     return;
@@ -636,8 +636,8 @@ if ~isempty(udmodlist.wd)
         cd(udmodlist.wd);
     end
 end;
-[file, pth, idx] = uiputfile({'*.mat','Matlab .mat File';...
-                    '*.m','Matlab .m Script File'}, 'Save Job');
+[file, pth, idx] = uiputfile({'*.mat','MAT-file (*.mat)';...
+                    '*.m','MATLAB Code file (*.m)'}, 'Save Job');
 cd(opwd);
 if isnumeric(file) && file == 0
     return;
@@ -677,7 +677,7 @@ if ~isempty(udmodlist.wd)
         cd(udmodlist.wd);
     end
 end;
-[file, pth, idx] = uiputfile({'*.m','Matlab .m Script File'},...
+[file, pth, idx] = uiputfile({'*.m','MATLAB Code file (*.m)'},...
     'Script File name');
 cd(opwd);
 if isnumeric(file) && file == 0

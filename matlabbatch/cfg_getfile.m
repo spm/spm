@@ -13,7 +13,7 @@ function [t,sts] = cfg_getfile(varargin)
 %            'batch' - matlabbatch batch files (.m, .mat and XML)
 %            'dir'   - select a directory. By default, hidden ('.xyz') and
 %                      MATLAB class directories are not shown.
-%            'mat'   - Matlab .mat files or .txt files (assumed to contain
+%            'mat'   - MATLAB .mat files or .txt files (assumed to contain
 %                      ASCII representation of a 2D-numeric array)
 %            'xml'   - XML files
 %            Other strings act as a filter to regexp.  This means
