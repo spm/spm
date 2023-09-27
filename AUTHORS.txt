@@ -28,6 +28,7 @@
 % Mohamed Seghier
 % Klaas Enno Stephan
 % Tim Tierney
+% Ryan Timms
 % Bernadette van Wijk
 % Peter Zeidman
 %
