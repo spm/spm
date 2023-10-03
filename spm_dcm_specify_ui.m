@@ -155,6 +155,11 @@ else
                         end
                     end
                 end
+                
+                % Check for failure to find the condition
+                if isempty(idx)
+                    error('Could not find condition: %s',target);
+                end
 
                 % Check for ambiguity
                 if size(idx,1) > 1
@@ -169,7 +174,9 @@ else
             end
             
             % Combine regressors within condition by an OR operation
-            Ucond = double(any(Ucond,2));
+            if size(Ucond,2) > 1
+                Ucond = double(any(Ucond,2));
+            end
             
             % Store for use in DCM
             U.name{a} = name;
