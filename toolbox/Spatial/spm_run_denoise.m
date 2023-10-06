@@ -15,7 +15,7 @@ vox = sqrt(sum(Nii(1).mat(1:3,1:3).^2));
 x   = cellfun(@(f)single(f(:,:,:,:,1,1)),{Nii.dat},'UniformOutput',false);
 x   = cat(4,x{:});
 
-if device==1
+if dev==1
     x   = gpuArray(x);
 end
 
