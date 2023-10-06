@@ -13,6 +13,8 @@ function y = spm_TVdenoise(x, vox, lambdap, lambdal, nit, y)
 
 % $Id$
 
+if ismac, error('Not ready for MAC yet.'); end
+
 if nargin<2, vox    = single([1,1,1]); end
 if nargin<3, lambdap = ones(1,20,'single'); end
 if nargin<4, lambdal = ones(1,20,'single'); end

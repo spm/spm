@@ -1,3 +1,28 @@
+function out = spm_run_denoise(opt,cfg)
+switch lower(opt)
+    case 'run'
+        N = numel(cfg.data{1});
+        if any(diff(cellfun(@(x)numel(x),cfg.data)))
+            error('Incompatible numbers of images.');
+        end
+        out.files = cell(N,1);
+        for n=1:N
+            P    = strvcat(cellfun(@(c)c{n},cfg.data,'UniformOutput',false));
+            lam0 = cfg.lambda;
+            nit  = cfg.nit;
+            dev  = cfg.dev;
+            out.files{n} = run_denoise(P,lam0,nit,dev);
+        end
+    case 'vout'
+            out(1)            = cfg_dep;
+            out(1).sname      = 'Denoised images';
+            out(1).src_output = substruct('.','files');
+            out(1).tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});
+    otherwise
+        error('Incorrect usage.');
+end
+
+
 function out = run_denoise(P,lam0,nit,dev)
 % Run total variation denoising
 if nargin<4, dev  = 0;   end
@@ -15,8 +40,12 @@ vox = sqrt(sum(Nii(1).mat(1:3,1:3).^2));
 x   = cellfun(@(f)single(f(:,:,:,:,1,1)),{Nii.dat},'UniformOutput',false);
 x   = cat(4,x{:});
 
-if device==1
-    x   = gpuArray(x);
+if dev==1
+    try
+        x   = gpuArray(x);
+    catch
+        warning('Can''t use GPU: Running on CPU.');
+    end
 end
 
 % Denoising
