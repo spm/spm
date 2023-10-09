@@ -14,7 +14,7 @@ function out = spm_deformations(job)
 
 
 [Def,mat] = get_comp(job.comp);
-out = struct('def',{{}},'warped',{{}},'surf',{{}},'jac',{{}});
+out = struct('def',{{}},'warped',{{}},'surf',{{}},'jac',{{}},'sparse',{{}});
 for i=1:numel(job.out)
     fn = fieldnames(job.out{i});
     fn = fn{1};
@@ -29,6 +29,8 @@ for i=1:numel(job.out)
         out.surf   = [out.surf;   surf_def(Def,mat,job.out{i}.(fn))];
     case 'savejac'
         out.jac    = [out.jac;    jac_def(Def,mat,job.out{i}.(fn))];
+    case 'def2sparse'
+        out.sparse = [out.sparse; def2sparse(Def,mat,job.out{i}.(fn))];
     otherwise
         error('Unknown option');
     end
@@ -816,3 +818,120 @@ for y3=1:d(3)
     Def(:,:,y3,2) = y1*M(2,1) + y2*M(2,2) + (y3*M(2,3) + M(2,4));
     Def(:,:,y3,3) = y1*M(3,1) + y2*M(3,2) + (y3*M(3,3) + M(3,4));
 end
+
+
+%==========================================================================
+% function [Phi,dim1,dim2] = spm_def2sparse(Def,mat,job)
+%==========================================================================
+function out = def2sparse(Def,mat,job)
+% Generate a sparse matrix encoding a deformation
+% [Phi,dim1,dim2] = spm_def2sparse(PY,PI)
+% PY - Filename of deformation field
+% PI - Filename of image defining field of view etc
+%__________________________________________________________________________
+
+if isfield(job.fov,'file')
+    N1   = nifti(job.fov.file);
+    mat2 = N1.mat;
+    dim2 = N1.dat.dim(1:3);
+elseif isfield(job.fov,'bbvox')
+    bb   = job.fov.bbvox.bb;
+    vox  = job.fov.bbvox.vox;
+    [mat2, dim2] = spm_get_matdim('', vox, bb);
+else
+    dim2 = job.fov.matdim.dim;
+    mat2 = job.fov.matdim.mat;
+end
+
+dim1 = size(Def);
+dim1 = dim1(1:3);
+
+X1   = Def(:,:,:,1);
+X2   = Def(:,:,:,2);
+X3   = Def(:,:,:,3);
+
+M    = inv(mat2);
+Y1   = M(1,1)*X1 + M(1,2)*X2 + M(1,3)*X3 + M(1,4);
+Y2   = M(2,1)*X1 + M(2,2)*X2 + M(2,3)*X3 + M(2,4);
+Y3   = M(3,1)*X1 + M(3,2)*X2 + M(3,3)*X3 + M(3,4);
+
+if false
+    % Nearest Neighbour
+    fY1 = (round(Y1));
+    fY2 = (round(Y2));
+    fY3 = (round(Y3));
+    I   = find(fY1>=1 & fY1<=dim2(1) & fY2>=1 & fY2<=dim2(2) & fY3>=1 & fY3<=dim2(3));
+    J   = fY1(I) + dim2(1)*(fY2(I)-1 + dim2(2)*(fY3(I)-1));
+    Phi = sparse(I,J,1,prod(dim1),prod(dim2));
+else
+    % Trilinear
+    fY1 = (floor(Y1));
+    fY2 = (floor(Y2));
+    fY3 = (floor(Y3));
+
+    I   = find(fY1>=1 & fY1<=dim2(1) & fY2>=1 & fY2<=dim2(2) & fY3>=1 & fY3<=dim2(3));
+    J   = double(fY1(I) + dim2(1)*(fY2(I)-1 + dim2(2)*(fY3(I)-1)));
+    S   = (1-Y1+fY1).*(1-Y2+fY2).*(1-Y3+fY3);
+    S   = double(S(I));
+    Phi = sparse(I,J,S,prod(dim1),prod(dim2));
+
+    I   = find(fY1>=0 & fY1<=dim2(1)-1 & fY2>=1 & fY2<=dim2(2) & fY3>=1 & fY3<=dim2(3));
+    J   = double(fY1(I)+1 + dim2(1)*(fY2(I)-1 + dim2(2)*(fY3(I)-1)));
+    S   = (Y1-fY1).*(1-Y2+fY2).*(1-Y3+fY3);
+    S   = double(S(I));
+    Phi = Phi + sparse(I,J,S,prod(dim1),prod(dim2));
+
+    I   = find(fY1>=1 & fY1<=dim2(1) & fY2>=0 & fY2<=dim2(2)-1 & fY3>=1 & fY3<=dim2(3));
+    J   = double(fY1(I) + dim2(1)*(fY2(I) + dim2(2)*(fY3(I)-1)));
+    S   = (1-Y1+fY1).*(Y2-fY2).*(1-Y3+fY3);
+    S   = double(S(I));
+    Phi = Phi + sparse(I,J,S,prod(dim1),prod(dim2));
+
+    I   = find(fY1>=0 & fY1<=dim2(1)-1 & fY2>=0 & fY2<=dim2(2)-1 & fY3>=1 & fY3<=dim2(3));
+    J   = double(fY1(I)+1 + dim2(1)*(fY2(I) + dim2(2)*(fY3(I)-1)));
+    S   = (Y1-fY1).*(Y2-fY2).*(1-Y3+fY3);
+    S   = double(S(I));
+    Phi = Phi + sparse(I,J,S,prod(dim1),prod(dim2));
+
+    I   = find(fY1>=1 & fY1<=dim2(1) & fY2>=1 & fY2<=dim2(2) & fY3>=0 & fY3<=dim2(3)-1);
+    J   = double(fY1(I) + dim2(1)*(fY2(I)-1 + dim2(2)*fY3(I)));
+    S   = (1-Y1+fY1).*(1-Y2+fY2).*(Y3-fY3);
+    S   = double(S(I));
+    Phi = Phi + sparse(I,J,S,prod(dim1),prod(dim2));
+
+    I   = find(fY1>=0 & fY1<=dim2(1)-1 & fY2>=1 & fY2<=dim2(2) & fY3>=0 & fY3<=dim2(3)-1);
+    J   = double(fY1(I)+1 + dim2(1)*(fY2(I)-1 + dim2(2)*fY3(I)));
+    S   = (Y1-fY1).*(1-Y2+fY2).*(Y3-fY3);
+    S   = double(S(I));
+    Phi = Phi + sparse(I,J,S,prod(dim1),prod(dim2));
+
+    I   = find(fY1>=1 & fY1<=dim2(1) & fY2>=0 & fY2<=dim2(2)-1 & fY3>=0 & fY3<=dim2(3)-1);
+    J   = double(fY1(I) + dim2(1)*(fY2(I) + dim2(2)*fY3(I)));
+    S   = (1-Y1+fY1).*(Y2-fY2).*(Y3-fY3);
+    S   = double(S(I));
+    Phi = Phi + sparse(I,J,S,prod(dim1),prod(dim2));
+
+    I   = find(fY1>=0 & fY1<=dim2(1)-1 & fY2>=0 & fY2<=dim2(2)-1 & fY3>=0 & fY3<=dim2(3)-1);
+    J   = double(fY1(I)+1 + dim2(1)*(fY2(I) + dim2(2)*fY3(I)));
+    S   = (Y1-fY1).*(Y2-fY2).*(Y3-fY3);
+    S   = double(S(I));
+    Phi = Phi + sparse(I,J,S,prod(dim1),prod(dim2));
+end
+
+ofname = job.ofname;
+if isempty(ofname), out = {}; return; end
+
+nam = spm_file(ofname,'basename');
+if isfield(job.savedir,'savepwd')
+    wd = pwd;
+elseif isfield(job.savedir,'saveusr')
+    wd = job.savedir.saveusr{1};
+else
+    wd = pwd;
+end
+fname = fullfile(wd,['y_' nam '_def2sparse.mat']);
+
+mat1 = mat;
+save(fname,'Phi','dim1','dim2','mat1','mat2');
+out  = {fname};
+
