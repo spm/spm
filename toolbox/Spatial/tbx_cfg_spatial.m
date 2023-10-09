@@ -11,7 +11,7 @@ if ~isdeployed, addpath(fullfile(spm('dir'),'toolbox','Spatial')); end
 spatial        = cfg_choice;
 spatial.tag    = 'spatial';
 spatial.name   = 'Spatial Tools';
-spatial.values = {spm_slice2vol_config spm_topup_config};
+spatial.values = {spm_slice2vol_config spm_topup_config spm_TVdenoise_config};
 spatial.help   = {[...
 'A selection of work-in-progress tools for various spatial processing tasks.',...
 ]};
