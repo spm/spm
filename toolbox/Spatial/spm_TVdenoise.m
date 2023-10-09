@@ -1,17 +1,17 @@
 function y = spm_TVdenoise(x, vox, lambdap, lambdal, nit, y)
 % Joint total variation denoising of 3D volumes
-% FORMAT y = denoise3d(x, vox, lambdap, lambdal, nit, y)
+% FORMAT y = spm_TVdenoise(x, vox, lambdap, lambdal, nit, y)
 % x       - a 3D or 4D array/gpuArray of floating point data
 % vox     - voxel sizes [1 1 1]
 % lambdap - regularisation of each channel (along 4th dimension) [1]
 % lambdal - reciprocals of variances (along 4th dimension) [1]
 % nit     - number of itarations [100]
 % y       - starting estimates [x]
-%
-%  _________________________________________________________________________
-%  Copyright (C) 2022 Wellcome Centre for Human Neuroimaging
+%__________________________________________________________________________
 
-% $Id$
+% John Ashburner
+% Copyright (C) 2023 Wellcome Centre for Human Neuroimaging
+
 
 if ismac, error('Not ready for MAC yet.'); end
 

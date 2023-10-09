@@ -1,4 +1,11 @@
 function out = spm_run_denoise(opt,cfg)
+% FORMAT out = spm_run_denoise(opt,cfg)
+%__________________________________________________________________________
+
+% John Ashburner
+% Copyright (C) 2023 Wellcome Centre for Human Neuroimaging
+
+
 switch lower(opt)
     case 'run'
         N = numel(cfg.data{1});
@@ -66,4 +73,3 @@ create(Nio)
 Nio.dat(:,:,:,:) = gather(y);
 clear Nio
 out = oname;
-

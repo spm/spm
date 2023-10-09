@@ -56,6 +56,8 @@ ifeq (Darwin,$(PLATFORM))
   MEXBIN    ?= mex
   # https://stackoverflow.com/questions/37362414/
   OMPFLAG    = -fopenmp=libiomp5
+  CC         = gcc
+  NVCC       = nvcc -m64
   LIBDIR     = ../lib/libmaci64
   SOSUF      = dylib
   SONAME     = install_name
@@ -66,6 +68,7 @@ ifeq (arm64,$(PLATFORM))
   # https://stackoverflow.com/questions/37362414/
   OMPFLAG    = -fopenmp=libiomp5
   CC         = gcc
+  NVCC       = nvcc -m64
   LIBDIR     = ../lib/libmaca64
   SOSUF      = dylib
   SONAME     = install_name

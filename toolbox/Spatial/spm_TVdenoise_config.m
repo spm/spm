@@ -3,7 +3,7 @@ function cfg = spm_TVdenoise_config
 %__________________________________________________________________________
 
 % John Ashburner
-% Copyright (C) 2022-2023 Wellcome Centre for Human Neuroimaging
+% Copyright (C) 2023 Wellcome Centre for Human Neuroimaging
 
 %--------------------------------------------------------------------------
 % topup Topup
