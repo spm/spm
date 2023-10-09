@@ -4,12 +4,18 @@ include Makefile.var
 PTXFILES = pushpull.ptx lbessi.ptx operator.ptx TVdenoise3d.ptx TVdenoise2d.ptx
 LIBFILES = pushpull.$(SOSUF) TVdenoise3d.$(SOSUF)
 
-#CC       = x86_64-w64-mingw32-gcc-win32
+CUDA_VERSION := $(shell $(NVCC) --version 2> /dev/null)
+ifndef CUDA_VERSION
+	PTXFILES =
+	PTXDIR =
+endif
 
 all: $(PTXFILES) $(LIBFILES)
 
 install: all $(PTXDIR) $(LIBDIR)
+ifdef CUDA_VERSION
 	$(COPY) $(PTXFILES) $(PTXDIR)
+endif
 	$(COPY) $(LIBFILES) $(LIBDIR)
 
 clean:
@@ -34,14 +40,8 @@ clean:
 #	$(CC) -Wall -fPIC -O3 -c TVdenoise3.c
 #	$(CC) -shared -Wl,-soname,TVdenoise3.so -o TVdenoise3.so TVdenoise3.o
 
-%.so : %.c
-	$(CC) -O4 -shared -fPIC -Wl,-soname,$@ -o $@ -lm $<
-
-%.dll : %.c
-	$(CC) -O4 -shared -fPIC -Wl,-soname,$@ -o $@ -lm $<
-
-#%.so : %.c
-#	gcc -O4 -shared -fPIC -Wl,-soname,$@ -o $@ -lm $<
+%.$(SOSUF) : %.c
+	$(CC) -O4 -shared -fPIC -Wl,-$(SONAME),$@ -o $@ -lm $<
 
 %.ptx : %.cu
 	$(NVCC) -ptx --ptxas-options --verbose $< 
@@ -51,6 +51,3 @@ $(PTXDIR) :
 
 $(LIBDIR) :
 	$(MKDIR) $(LIBDIR)
-
-
-
