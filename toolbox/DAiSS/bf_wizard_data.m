@@ -1,4 +1,4 @@
-function [matlabbatch, data] = bf_wizard_data(S)
+function [BF, matlabbatch, data] = bf_wizard_data(S)
 
 % A handy command-line based batch filler with some defaults for DAiSS
 % data module, pick a few options, and it will default for unpopulated
@@ -15,7 +15,7 @@ function [matlabbatch, data] = bf_wizard_data(S)
 %   S.space         - which space to do calculations in
 %                       (MNI-Aligned | Head | Native)
 %                                                   - Default: MNI-Aligned
-%   S.overwite      - Overwrite existing BF.mat     - Default: 0
+%   S.overwite      - Overwrite existing BF.mat     - Default: 1
 
 % Output:
 %  matlabbatch      - matlabbatch job for spm_jobman to run
@@ -29,7 +29,7 @@ if ~isfield(S,'D');     error('I need a SPM MEEG dataset provided!');   end
 if ~isfield(S,'val');   S.val = 1;                                      end
 if ~isfield(S,'gradsource'); S.gradsource = 'inv';                      end
 if ~isfield(S,'space'); S.space = 'MNI-aligned';                        end
-if ~isfield(S,'overwrite'); S.overwrite = 0;                            end
+if ~isfield(S,'overwrite'); S.overwrite = 1;                            end
 
 % Check if dir is empty and determine path of S.D
 if isempty(S.dir)
@@ -72,3 +72,8 @@ if ~iscell(data.D)
     data.D = {data.D};
 end
 matlabbatch{jobID}.spm.tools.beamforming.data = data;
+out = spm_jobman('run',matlabbatch);
+BF = out{1,1}.BF{:};
+
+
+

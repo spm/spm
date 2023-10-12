@@ -1,4 +1,4 @@
-function [matlabbatch, sources] = bf_wizard_sources(S)
+function [BF,matlabbatch, sources] = bf_wizard_sources(S)
 
 % A handy command-line based batch filler with some defaults for DAiSS
 % source module, pick a few options, and it will default for unpopulated
@@ -70,4 +70,7 @@ sources.visualise = S.visualise;
 jobID = numel(matlabbatch) + 1;
 % generate matlabbatch
 matlabbatch{jobID}.spm.tools.beamforming.sources = sources;
+out = spm_jobman('run',matlabbatch);
+BF = out{1,1}.BF{:};
+
 

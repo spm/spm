@@ -1,4 +1,4 @@
-function [matlabbatch, features] = bf_wizard_features(S)
+function [BF, matlabbatch, features] = bf_wizard_features(S)
 
 % A handy command-line based batch filler with some defaults for DAiSS
 % features module, pick a few options, and it will default for unpopulated
@@ -11,10 +11,10 @@ if ~isfield(S,'modality');      S.modality = {'MEG'};                   end
 if ~isfield(S,'fuse');          S.fuse = 'no';                          end
 if ~isfield(S,'cross_terms');   S.cross_terms = 'megeeg';               end
 if ~isfield(S,'woi');           S.woi = [-Inf Inf];                     end
-if ~isfield(S,'method');        error('You need to specify a method!'); end
+if ~isfield(S,'method');        S.method = 'identity';                  end
 if ~isfield(S,'reg');           S.reg = 'none';                         end
 if ~isfield(S,'bootstrap');     S.bootstrap = false;                    end
-if ~isfield(S,'visualise');     S.visualise = true;                     end
+if ~isfield(S,'visualise');     S.visualise = false;                    end
 if ~isfield(S,S.method);        S.(S.method) = struct();                end
 if ~isfield(S,S.reg);           S.(S.reg) = struct();                   end
 
@@ -103,3 +103,5 @@ features.visualise = S.visualise;
 jobID = numel(matlabbatch) + 1;
 % generate matlabbatch
 matlabbatch{jobID}.spm.tools.beamforming.features = features;
+out = spm_jobman('run',matlabbatch);
+BF = out{1,1}.BF{:};

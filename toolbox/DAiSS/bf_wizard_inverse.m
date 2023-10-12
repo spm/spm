@@ -1,4 +1,4 @@
-function [matlabbatch, inverse] = bf_wizard_inverse(S)
+function [BF, matlabbatch, inverse] = bf_wizard_inverse(S)
 
 % A handy command-line based batch filler with some defaults for DAiSS
 % invert module, pick a few options, and it will default for unpopulated
@@ -42,3 +42,5 @@ end
 jobID = numel(matlabbatch) + 1;
 % generate matlabbatch
 matlabbatch{jobID}.spm.tools.beamforming.inverse = inverse;
+out = spm_jobman('run',matlabbatch);
+BF = out{1,1}.BF{:};
