@@ -350,7 +350,7 @@ The following papers should be cited when using the atlas:
 >  Unbiased nonlinear average age-appropriate brain templates from birth
 >  to adulthood,  NeuroImage, Volume 47, Supplement 1, July 2009, Page
 >  S102 Organization for Human Brain Mapping 2009 Annual Meeting,
->  DOI: http://dx.doi.org/10.1016/S1053-8119809970884-5 
+>  DOI: https://doi.org/10.1016/S1053-8119809970884-5 
 
 ## /TOOLBOX/OLDNORM/ DIRECTORY
 
