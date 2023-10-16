@@ -8,7 +8,7 @@ function [E,L] = spm_mesh_edges(M)
 %__________________________________________________________________________
 
 % Guillaume Flandin
-% Copyright (C) 2010-2022 Wellcome Centre for Human Neuroimaging
+% Copyright (C) 2010-2023 Wellcome Centre for Human Neuroimaging
 
 
 %-Parse input arguments
@@ -17,6 +17,8 @@ if ishandle(M)
     F = get(M,'Faces');
 elseif ~isnumeric(M)
     F = M.faces;
+else
+    F = M;
 end
 
 %-Compute edges
