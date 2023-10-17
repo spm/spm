@@ -5,6 +5,7 @@ function [E,L] = spm_mesh_edges(M)
 %
 % E        - a [mx2] edges array 
 % L        - a [m,1] edge length vector
+%            Only available if M is a patch structure.
 %__________________________________________________________________________
 
 % Guillaume Flandin
