@@ -239,6 +239,9 @@ for i = 1:numel(job.sess)
         elseif numel(U(j).dur) ~= numel(U(j).ons)
             error('Mismatch between number of onset and number of durations.');
         end
+        if any(isnan(U(j).ons)) || any(isnan(U(j).dur))
+            error('Onsets or Durations contain NaN values.');
+        end
 
         %-Modulations
         %------------------------------------------------------------------
@@ -266,6 +269,9 @@ for i = 1:numel(job.sess)
                 P(q1).name = cond.pmod(q).name;
                 P(q1).P    = cond.pmod(q).param(:);
                 P(q1).h    = cond.pmod(q).poly;
+                if any(isnan(P(q1).P))
+                    error('Parametric Modulations contain NaN values.');
+                end
             end
         end
         %-None
