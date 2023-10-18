@@ -9,7 +9,7 @@ tests = functiontests(localfunctions);
 
 
 function test_spm_eeg_load_1(testCase)
-fname = fullfile(spm('Dir'),'tests','data','test_opm.mat');
+fname = fullfile(spm('Dir'),'tests','data','OPM','test_opm.mat');
 D     = spm_eeg_load(fname);
 
 exp = 'meeg';
