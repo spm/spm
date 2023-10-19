@@ -1,3 +1,8 @@
+/*
+ * John Ashburner
+ * Copyright (C) 2023 Wellcome Centre for Human Neuroimaging
+ */
+
 #include "cuheader.h"
 
 /* Compute log(bessi(nu, z))
@@ -102,5 +107,3 @@ __device__ float lbessif(float const nu0, float const z0)
         }
     }
 }
-
-

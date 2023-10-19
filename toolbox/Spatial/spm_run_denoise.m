@@ -17,7 +17,7 @@ switch lower(opt)
             P    = strvcat(cellfun(@(c)c{n},cfg.data,'UniformOutput',false));
             lam0 = cfg.lambda;
             nit  = cfg.nit;
-            dev  = cfg.dev;
+            dev  = cfg.device;
             out.files{n} = run_denoise(P,lam0,nit,dev);
         end
     case 'vout'
@@ -32,9 +32,9 @@ end
 
 function out = run_denoise(P,lam0,nit,dev)
 % Run total variation denoising
-if nargin<4, dev  = 0;   end
-if nargin<3, nit  = 200; end
-if nargin<2, lam0 = 30;  end
+if nargin<4, dev  = 'cpu'; end
+if nargin<3, nit  = 200;   end
+if nargin<2, lam0 = 30;    end
 if nargin<1, P = spm_select(Inf,'nifti'); end
 
 [sd,mu,info] = spm_noise_estimate(P,2);
@@ -47,7 +47,7 @@ vox = sqrt(sum(Nii(1).mat(1:3,1:3).^2));
 x   = cellfun(@(f)single(f(:,:,:,:,1,1)),{Nii.dat},'UniformOutput',false);
 x   = cat(4,x{:});
 
-if dev==1
+if strcmpi(dev,'gpu')
     try
         x   = gpuArray(x);
     catch

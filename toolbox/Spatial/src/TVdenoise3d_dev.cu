@@ -1,3 +1,8 @@
+/*
+ * John Ashburner
+ * Copyright (C) 2023 Wellcome Centre for Human Neuroimaging
+ */
+
 #define SQUARE(x) (_t=(x), _t*_t)
 #define SMALL 1e-8f 
 
@@ -198,4 +203,3 @@ __device__ void TVdenoise3d_dev(USIZE_t i, USIZE_t j, USIZE_t k, float y[], cons
              /(lambdap[m]*w111 + lambdal[m]);
     }
 }
-

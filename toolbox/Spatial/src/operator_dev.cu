@@ -1,3 +1,8 @@
+/*
+ * John Ashburner
+ * Copyright (C) 2023 Wellcome Centre for Human Neuroimaging
+ */
+
 #include "cuheader.h"
 #include "patch.cu"
 #include "chol.cu"
@@ -169,4 +174,3 @@ __device__ void convN(USIZE_t i, USIZE_t j, USIZE_t k, float *u, const float *v,
     u += m; /* shift pointer */
     for(i=0; i<d3; i++) u[nd*i] = b[i];
 }
-

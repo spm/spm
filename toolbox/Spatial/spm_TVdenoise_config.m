@@ -6,7 +6,7 @@ function cfg = spm_TVdenoise_config
 % Copyright (C) 2023 Wellcome Centre for Human Neuroimaging
 
 %--------------------------------------------------------------------------
-% topup Topup
+% denoise Total-variation denoising
 %--------------------------------------------------------------------------
 cfg      = cfg_exbranch;
 cfg.tag  = 'denoise';
@@ -65,13 +65,12 @@ nit.labels = {'  10: Fastest/poorest', '  30: Fast/poor', ' 100: reasonable',' 3
 nit.val    = {100};
 nit.help   = {'Number of denoising relaxation iterations.'};
 
-dev        = cfg_menu;
-dev.tag    = 'dev';
-dev.name   = 'Device';
-dev.values = {0, 1};
-dev.labels = {'CPU', 'GPU'};
-dev.val    = {0};
-dev.help   = {'Run on CPU/GPU.'};
+device        = cfg_menu;
+device.tag    = 'device';
+device.name   = 'Device';
+device.values = {'cpu','gpu'};
+device.labels = {'CPU', 'GPU'};
+device.val    = {'cpu'};
+device.help   = {'Run on CPU/GPU.'};
 
-[cfg,varargout{1}] = deal({data lambda nit dev});
-
+[cfg,varargout{1}] = deal({data lambda nit device});

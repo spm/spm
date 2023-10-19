@@ -1,3 +1,8 @@
+/*
+ * John Ashburner
+ * Copyright (C) 2023 Wellcome Centre for Human Neuroimaging
+ */
+
 #define CUDA
 #include "cuheader.h"
 #include "lbessi_dev.cu"
@@ -15,4 +20,3 @@ __global__ void lbessi_element(float *out, const float nu, const float *z, const
     if (i >= numel) return;
     out[i] = lbessif(nu,z[i]);
 }
-

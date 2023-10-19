@@ -1,3 +1,8 @@
+/*
+ * John Ashburner
+ * Copyright (C) 2023 Wellcome Centre for Human Neuroimaging
+ */
+
 #define CUDA
 #include "cuheader.h"
 #include "pushpull_dev.cu"
@@ -38,4 +43,3 @@ __global__ void shootfun2_element(float *psi1, const float *psi0, const float *v
     psi1[o+n*1] = ff[1]-v[o+n*1]*s;
     psi1[o+n*2] = ff[2]-v[o+n*2]*s;
 }
-

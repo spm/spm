@@ -1,3 +1,8 @@
+/*
+ * John Ashburner
+ * Copyright (C) 2023 Wellcome Centre for Human Neuroimaging
+ */
+
 #ifndef _CUHDR
 #    define _CUHDR
 #    include<stddef.h>
@@ -14,4 +19,3 @@
 #    define SSIZE_t int
 */
 #endif
-

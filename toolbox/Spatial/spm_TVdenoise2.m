@@ -1,9 +1,17 @@
 function y = spm_TVdenoise2(x, lambda, nit, y)
-if nargin<3, nit = [1000 10]; end
-if nargin<2, lambda = single([1 1 1 1 1 1 1 1]*0.01); end
-if nargin<4, y = x; end
+%
+% FORMAT y = spm_TVdenoise2(x, lambda, nit, y)
+%__________________________________________________________________________
 
-if numel(lambda)==1,
+% John Ashburner
+% Copyright (C) 2023 Wellcome Centre for Human Neuroimaging
+
+
+if nargin < 3, nit = [1000 10]; end
+if nargin < 2, lambda = single([1 1 1 1 1 1 1 1]*0.01); end
+if nargin < 4, y = x; end
+
+if numel(lambda)==1
     lambda = lambda*ones(1,8,'single');
 end
 
@@ -40,7 +48,3 @@ if isa(x,'gpuArray')
 else
     warning('Done nothing.');
 end
-end
-%==========================================================================
-
-%==========================================================================

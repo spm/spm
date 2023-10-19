@@ -1,3 +1,8 @@
+/*
+ * John Ashburner
+ * Copyright (C) 2023 Wellcome Centre for Human Neuroimaging
+ */
+
 #include "cuheader.h"
 
 /*
@@ -242,4 +247,3 @@ __device__ SSIZE_t hweights(const USIZE_t d, float x, /*@OUT@*/float w[])
     }
     return i;
 }
-

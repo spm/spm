@@ -1,8 +1,14 @@
 function f1 = pull(f0, phi, sett)
-% GPU single precision f1 = pull(f0, phi, sett)
+% GPU single precision pull
+% FORMAT f1 = pull(f0, phi, sett)
 % f0   - 3D float array
 % phi  - 4D float array (dim(4)=3)
 % sett - Settings
+%__________________________________________________________________________
+
+% John Ashburner
+% Copyright (C) 2023 Wellcome Centre for Human Neuroimaging
+
 
 persistent kernel
 
@@ -49,4 +55,3 @@ else
     f1 = calllib('pushpull','pull', f1, phi, f0, ...
                  usize(d0), usize(n1), int32(sett.bnd), usize(sett.deg(1:3)+1), int32(sett.ext));
 end
-

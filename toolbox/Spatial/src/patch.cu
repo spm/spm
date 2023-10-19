@@ -1,3 +1,8 @@
+/*
+ * John Ashburner
+ * Copyright (C) 2023 Wellcome Centre for Human Neuroimaging
+ */
+
 #ifndef MAXD
 #    define MAXD 5
 #endif
@@ -137,4 +142,3 @@ __device__ void put_patch(const USIZE_t dp[], const float *fp, const int bnd[], 
         }
     }
 }
-

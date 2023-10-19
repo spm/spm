@@ -1,3 +1,8 @@
+/*
+ * John Ashburner
+ * Copyright (C) 2023 Wellcome Centre for Human Neuroimaging
+ */
+
 #include "cuheader.h"
 #include "pushpull_dev.cu"
 /* #define ISFINITE(x) (bool)(isfinite(x)) */
@@ -173,5 +178,3 @@ void pushg3(float *g0, const float *phi, const float *f1,
         }
     }
 }
-
-

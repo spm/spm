@@ -34,6 +34,7 @@ WARNFLAG     = -Wall -Wextra -Wpedantic
 USE_OPENMP  ?= 0
 SOSUF        = so
 SONAME       = soname
+NVCC        ?= nvcc
 
 ifndef PLATFORM
   PLATFORM   = $(shell $(UNAME))
@@ -44,7 +45,7 @@ ifeq (Linux,$(PLATFORM))
   MEXEXT     = mexa64
   MEXBIN    ?= mex
   #MEXOPTS   += CFLAGS='$$CFLAGS $(WARNFLAG)'
-  NVCC       = nvcc -m64
+  NVCC      += -m64
   PTXDIR     = ../lib/ptxa64
   LIBDIR     = ../lib/liba64
   CC         = gcc
@@ -57,7 +58,7 @@ ifeq (Darwin,$(PLATFORM))
   # https://stackoverflow.com/questions/37362414/
   OMPFLAG    = -fopenmp=libiomp5
   CC         = gcc
-  NVCC       = nvcc -m64
+  NVCC      += -m64
   LIBDIR     = ../lib/libmaci64
   SOSUF      = dylib
   SONAME     = install_name
@@ -68,28 +69,13 @@ ifeq (arm64,$(PLATFORM))
   # https://stackoverflow.com/questions/37362414/
   OMPFLAG    = -fopenmp=libiomp5
   CC         = gcc
-  NVCC       = nvcc -m64
+  NVCC      += -m64
   LIBDIR     = ../lib/libmaca64
   SOSUF      = dylib
   SONAME     = install_name
 endif
 
 ##### Windows #####
-ifeq (MINGW32,$(word 1,$(subst _, ,$(PLATFORM)))) # MSVC
-  MEXEXT     = mexw32
-  PTXDIR     = ../lib/ptxw32
-  LIBDIR     = ../lib/libw32
-  MEXBIN    ?= cmd /c "mex.bat
-  MEXOPTS   += -DSPM_WIN32
-  MEXEND     = "
-  MOSUF      = obj
-  AR         = lib.exe /out:
-  ARNOSPACE  = 
-  OMPFLAG    = /openmp
-  CC         = cc
-  SOSUF      = dll
-  NVCC       = nvcc.exe -m32
-endif
 ifeq (MINGW64,$(word 1,$(subst _, ,$(PLATFORM)))) # MSVC
   MEXEXT     = mexw64
   PTXDIR     = ../lib/ptxw64
@@ -109,6 +95,7 @@ ifeq (MSYS,$(word 1,$(subst _, ,$(PLATFORM)))) # GCC
   MEXOPTS   += -DSPM_WIN32
   SOSUF      = dll
   MOSUF      = obj
+  NVCC       = nvcc.exe -m64
 endif
 
 #### Octave ####

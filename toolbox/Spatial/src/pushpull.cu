@@ -1,3 +1,8 @@
+/*
+ * John Ashburner
+ * Copyright (C) 2023 Wellcome Centre for Human Neuroimaging
+ */
+
 #define CUDA
 #include "cuheader.h"
 #include "pushpull_dev.cu"
@@ -241,6 +246,3 @@ __global__ void affine_push_element(float *f0, const float *f1)
                 x[2]>=-0.01f && x[2]<=d0[2]-0.99f)))
         push1(d0, f0, (float *)0, bnd, dp, x, fo);
 }
-
-
-

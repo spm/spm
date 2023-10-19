@@ -1,13 +1,15 @@
 function ptx = ptxlocation(nam)
-% Location of a ptx file
+% Location of a PTX file used in GPU computations
+% FORMAT ptx = ptxlocation(nam)
+%__________________________________________________________________________
 
-pth = mfilename('fullpath');
-[d,~,~] = fileparts(pth);
-ptx = fullfile(d,"..","lib",parallel.gpu.ptxext);
+% John Ashburner
+% Copyright (C) 2023 Wellcome Centre for Human Neuroimaging
 
-if nargin>=1
-    [~,nam,ext] = fileparts(nam);
-    nam = [nam '.ptx'];
-    ptx = fullfile(ptx,nam);
+
+d = fileparts(mfilename('fullpath'));
+ptx = fullfile(d,'..','lib',parallel.gpu.ptxext);
+
+if nargin
+    ptx = spm_file(nam,'path',ptx,'ext','.ptx');
 end
-

@@ -1,8 +1,14 @@
 function g1 = pullg(f0, phi, sett)
-% GPU single precision g1 = pullg(f0, phi, sett)
+% GPU single precision pullg
+% FORMAT g1 = pullg(f0, phi, sett)
 % f0   - 3D float array
 % phi  - 4D float array (dim(4)=3)
 % sett - Settings
+%__________________________________________________________________________
+
+% John Ashburner
+% Copyright (C) 2023 Wellcome Centre for Human Neuroimaging
+
 
 persistent kernel
 if nargin<3, sett = pp_settings; end
@@ -48,4 +54,3 @@ else
                  usize(d0), usize(n1), int32(sett.bnd), usize(sett.deg(1:3)+1), int32(sett.ext));
     g1 = reshape(g1,[d1 3]);
 end
-

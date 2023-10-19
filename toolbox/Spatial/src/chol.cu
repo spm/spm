@@ -1,3 +1,8 @@
+/*
+ * John Ashburner
+ * Copyright (C) 2023 Wellcome Centre for Human Neuroimaging
+ */
+
 /* Cholesky decomposition
  * n  - dimension of matrix a
  * a  - an n \times n matrix
@@ -57,4 +62,3 @@ __device__ void chollsf(USIZE_t n, const float a[], const float p[],
         x[i] = t/p[i];
     }
 }
-

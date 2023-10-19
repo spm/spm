@@ -1,3 +1,8 @@
+/*
+ * John Ashburner
+ * Copyright (C) 2023 Wellcome Centre for Human Neuroimaging
+ */
+
 #define CUDA
 #include "cuheader.h"
 #include "operator_dev.cu"
@@ -42,4 +47,3 @@ __global__ void conv_element(float *u, const float *v)
 
     convN(i, j, k, u, v, d, dp, l, lc, bnd);
 }
-

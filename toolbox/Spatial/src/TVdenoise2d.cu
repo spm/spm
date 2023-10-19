@@ -1,3 +1,8 @@
+/*
+ * John Ashburner
+ * Copyright (C) 2023 Wellcome Centre for Human Neuroimaging
+ */
+
 #define CUDA
 #include "cuheader.h"
 #define SQUARE(x) (_t=(x), _t*_t)
@@ -178,4 +183,3 @@ __global__ void TVdenoise2d_fast(float *y, const float *x)
 
     TVdenoise2d_fast_dev(i, j, y, x, d, lambda);
 }
-

@@ -1,8 +1,12 @@
+/*
+ * John Ashburner
+ * Copyright (C) 2023 Wellcome Centre for Human Neuroimaging
+ */
+
 #define MAXD 5
 #include "cuheader.h"
 #include "bspline.cu"
 #include "patch.cu"
-
 
 __device__ float dotp_patch(const USIZE_t dp[], const float fp[], const float wi[], const float wj[], const float wk[])
 {
@@ -263,5 +267,3 @@ __device__ void comp1_dev(const USIZE_t d[], float ff[], const float f0[], const
     get_patch(dp, fp, bnd+3*1, o, d, f0+n  ); ff[1] = dotp_patch(dp, fp, wi, wj, wk);
     get_patch(dp, fp, bnd+3*2, o, d, f0+n*2); ff[2] = dotp_patch(dp, fp, wi, wj, wk);
 }
-
-

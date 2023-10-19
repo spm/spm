@@ -1,3 +1,8 @@
+/*
+ * John Ashburner
+ * Copyright (C) 2023 Wellcome Centre for Human Neuroimaging
+ */
+
 #include "cuheader.h"
 #define MAXVOL 20
 #include "TVdenoise3d_dev.cu"
@@ -31,4 +36,3 @@ void TVdenoise3d_fast(float *y, const float *x, const USIZE_t d[4], const float 
                             for(i=1+oi; i<d[0]-1; i+=3)
                                 TVdenoise3d_fast_dev(i, j, k, y, x, d, vox, lambdap, lambdal);
 }
-
