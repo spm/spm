@@ -1,11 +1,10 @@
 function res = bf_inverse_ebb(BF, S)
 % Computes Empirical Bayes Beamformer filters
-% Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
+%__________________________________________________________________________
 
 % George O'Neill
-% $Id: bf_inverse_ebb.m 8341 2022-11-09 21:18:12Z guillaume $
+% Copyright (C) 2020-2023 Wellcome Centre for Human Neuroimaging
 
-%--------------------------------------------------------------------------
 
 if nargin == 0
     
@@ -108,15 +107,15 @@ res = [];
 
 % Check for missing options and set defaults based on partial inputs
 %----------------------------------------------------------------
-if ~isfield(S,'keeplf');        S.keeplf = false;       end
-if ~isfield(S,'iid');           S.iid = false;          end
-if ~isfield(S,'reml');          S.reml = 'loose';       end
-if ~isfield(S,'corr');          S.corr = false;         end
-if ~isfield(S,'onlycorr');      S.onlycorr = false;     end
-if ~isfield(S,'diags');         S.diags = 'on';         end
-if ~isfield(S,'mixmethod');     S.mixmethod = 'sum';    end
-if ~isfield(S,'pairs');         S.pairs = [];           end
-if ~isfield(S,'noise');         S.noise = [];           end
+if ~isfield(S,'keeplf'),        S.keeplf = false;       end
+if ~isfield(S,'iid'),           S.iid = false;          end
+if ~isfield(S,'reml'),          S.reml = 'loose';       end
+if ~isfield(S,'corr'),          S.corr = false;         end
+if ~isfield(S,'onlycorr'),      S.onlycorr = false;     end
+if ~isfield(S,'diags'),         S.diags = 'on';         end
+if ~isfield(S,'mixmethod'),     S.mixmethod = 'sum';    end
+if ~isfield(S,'pairs'),         S.pairs = [];           end
+if ~isfield(S,'noise'),         S.noise = [];           end
 
 switch S.diags
     case 'on'

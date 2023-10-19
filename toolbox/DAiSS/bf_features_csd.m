@@ -1,11 +1,11 @@
 function res = bf_features_csd(BF, S)
 % Compute cross-spectral density matrix for DICS
-% Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Vladimir Litvak
-% $Id: bf_features_csd.m 7703 2019-11-22 12:06:29Z guillaume $
+% Copyright (C) 2015-2023 Wellcome Centre for Human Neuroimaging
 
-%--------------------------------------------------------------------------
+
 if nargin == 0   
 
     foi = cfg_entry;

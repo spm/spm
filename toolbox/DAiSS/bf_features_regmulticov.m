@@ -1,9 +1,10 @@
 function res = bf_features_regmulticov(BF, S)
 % Simple covariance computation with regularization
-%
+%__________________________________________________________________________
+
 % Mark Woolrich
 
-%--------------------------------------------------------------------------
+
 if nargin == 0
     regmulticov      = cfg_const;
     regmulticov.tag  = 'regmulticov';
@@ -41,7 +42,7 @@ for k = 1:NK
     
     num_of_invalid_covs=0;
     
-    for i = 1:ntrials,
+    for i = 1:ntrials
         if ~isempty(classchanind)
             sampleind = S.samples(D(classchanind, S.samples, S.trials(i)) == k);
         else
@@ -57,18 +58,18 @@ for k = 1:NK
             ns = ns + nsamps - 1;
         else
             num_of_invalid_covs=num_of_invalid_covs+1;
-        end;
+        end
         
-        if ismember(i, Ibar),
+        if ismember(i, Ibar)
             spm_progress_bar('Set', i); drawnow;
         end
     end
     
     spm_progress_bar('Clear');
     
-    if(ntrials-num_of_invalid_covs < 10),
+    if(ntrials-num_of_invalid_covs < 10)
         warning(['Only ' num2str(ntrials-num_of_invalid_covs) ' valid trial covariances for class ' num2str(k)]);
-    end;
+    end
     
     C = YY/ns;
     

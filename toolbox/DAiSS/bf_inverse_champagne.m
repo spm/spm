@@ -1,14 +1,15 @@
 function res = bf_inverse_champagne(BF, S)
 % Computes Champagne filters
+%
 % See Owen et al. Performance evaluation of the Champagne source 
-% reconstruction algorithm on simulated and real M/EEG data. Neuroimage. 2012 Mar;60(1):305-23
-% Code contributed by Sri Nagarajan
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
+% reconstruction algorithm on simulated and real M/EEG data. Neuroimage.
+% 2012 Mar;60(1):305-23
+%__________________________________________________________________________
 
-% Vladimir Litvak
-% $Id: bf_inverse_champagne.m 7703 2019-11-22 12:06:29Z guillaume $
+% Vladimir Litvak (Code contributed by Sri Nagarajan)
+% Copyright (C) 2015-2023 Wellcome Centre for Human Neuroimaging
 
-%--------------------------------------------------------------------------
+
 if nargin == 0
     nem = cfg_entry;
     nem.tag = 'nem';

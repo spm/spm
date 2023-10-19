@@ -1,11 +1,11 @@
 function res = bf_inverse_dics(BF, S)
 % Computes DICS filters
-% Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Vladimir Litvak
-% $Id: bf_inverse_dics.m 7703 2019-11-22 12:06:29Z guillaume $
+% Copyright (C) 2013-2023 Wellcome Centre for Human Neuroimaging
 
-%--------------------------------------------------------------------------
+
 if nargin == 0
     
     fixedori = cfg_menu;

@@ -1,11 +1,11 @@
 function res = bf_output_image_pac(BF, S)
 % Computes phase-amplitude coupling
-% Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Bernadette van Wijk, Vladimir Litvak
-% $Id: bf_output_image_pac.m 7703 2019-11-22 12:06:29Z guillaume $
+% Copyright (C) 2012-2023 Wellcome Centre for Human Neuroimaging
 
-%--------------------------------------------------------------------------
+
 if nargin == 0
     all = cfg_const;
     all.tag = 'all';

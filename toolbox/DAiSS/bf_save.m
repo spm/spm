@@ -1,9 +1,9 @@
 function bf_save(BF, overwrite)
-% Saves BF data in a mat file
-% Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
+% Save BF data in a MAT file
+%__________________________________________________________________________
 
 % Vladimir Litvak
-% $Id: bf_save.m 8223 2022-02-17 16:01:40Z george $
+% Copyright (C) 2012-2023 Wellcome Centre for Human Neuroimaging
 
 if nargin == 1 && exist(fullfile(pwd, 'BF.mat'), 'file')
     

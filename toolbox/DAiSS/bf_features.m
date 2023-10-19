@@ -1,10 +1,9 @@
 function out = bf_features
 % Prepare data features for filter computation
 %__________________________________________________________________________
-% Copyright (C) 2015-2021 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: bf_features.m 8307 2022-08-26 11:00:54Z george $
+% Copyright (C) 2015-2023 Wellcome Centre for Human Neuroimaging
 
 
 out          = cfg_exbranch;

@@ -1,11 +1,11 @@
 function res = bf_regularise_minkatrunc(BF, S)
 % Bayesian regularisation based on Minka's method
-% Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Gareth Barnes
-% $Id: bf_regularise_minkatrunc.m 7703 2019-11-22 12:06:29Z guillaume $
+% Copyright (C) 2013-2023 Wellcome Centre for Human Neuroimaging
 
-%--------------------------------------------------------------------------
+
 if nargin == 0   
     reduce = cfg_menu;
     reduce.tag = 'reduce';

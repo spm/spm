@@ -11,23 +11,25 @@ function [BF, matlabbatch, features] = bf_wizard_features(S)
 %  batch            - matlabbatch job for spm_jobman to run
 %  features         - simplified summary of options selected
 %__________________________________________________________________________
-% Copyright (C) 2022-23 Wellcome Centre for Human Neuroimaging
-% George O'Neill
 
-if ~isfield(S,'batch'); matlabbatch = []; else; matlabbatch = S.batch;  end
-if ~isfield(S,'BF'); error('I need a BF.mat file specified!');          end
-if ~isfield(S,'conditions');    S.conditions = 'all';                   end
-if ~isfield(S,'modality');      S.modality = {'MEG'};                   end
-if ~isfield(S,'fuse');          S.fuse = 'no';                          end
-if ~isfield(S,'cross_terms');   S.cross_terms = 'megeeg';               end
-if ~isfield(S,'woi');           S.woi = [-Inf Inf];                     end
-if ~isfield(S,'method');        S.method = 'identity';                  end
-if ~isfield(S,'reg');           S.reg = 'none';                         end
-if ~isfield(S,'bootstrap');     S.bootstrap = false;                    end
-if ~isfield(S,'visualise');     S.visualise = false;                    end
-if ~isfield(S,S.method);        S.(S.method) = struct();                end
-if ~isfield(S,S.reg);           S.(S.reg) = struct();                   end
-if ~isfield(S,'run');           S.run = 1;                              end
+% George O'Neill
+% Copyright (C) 2022-2023 Wellcome Centre for Human Neuroimaging
+
+
+if ~isfield(S,'batch'), matlabbatch = []; else; matlabbatch = S.batch;  end
+if ~isfield(S,'BF'), error('I need a BF.mat file specified!');          end
+if ~isfield(S,'conditions'),    S.conditions = 'all';                   end
+if ~isfield(S,'modality'),      S.modality = {'MEG'};                   end
+if ~isfield(S,'fuse'),          S.fuse = 'no';                          end
+if ~isfield(S,'cross_terms'),   S.cross_terms = 'megeeg';               end
+if ~isfield(S,'woi'),           S.woi = [-Inf Inf];                     end
+if ~isfield(S,'method'),        S.method = 'identity';                  end
+if ~isfield(S,'reg'),           S.reg = 'none';                         end
+if ~isfield(S,'bootstrap'),     S.bootstrap = false;                    end
+if ~isfield(S,'visualise'),     S.visualise = false;                    end
+if ~isfield(S,S.method),        S.(S.method) = struct();                end
+if ~isfield(S,S.reg),           S.(S.reg) = struct();                   end
+if ~isfield(S,'run'),           S.run = 1;                              end
 
 % specify BF, ensure its a cell...
 if ~iscell(S.BF)

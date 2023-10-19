@@ -1,11 +1,11 @@
 function res = bf_output_image_sensitivity(BF, S)
 % Sensitivity profile for a group of sensors
-% Copyright (C) 2017 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Vladimir Litvak
-% $Id: bf_output_image_sensitivity.m 8341 2022-11-09 21:18:12Z guillaume $
+% Copyright (C) 2017-2023 Wellcome Centre for Human Neuroimaging
 
-%--------------------------------------------------------------------------
+
 if nargin == 0      
     modality         = cfg_menu;
     modality.tag     = 'modality';

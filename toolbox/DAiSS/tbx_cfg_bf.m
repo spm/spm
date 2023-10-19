@@ -1,10 +1,10 @@
 function bf = tbx_cfg_bf
 % Configuration file for toolbox 'Beamforming'
-%_______________________________________________________________________
-% Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Vladimir Litvak
-% $Id: tbx_cfg_bf.m 8213 2022-01-27 15:33:26Z george $
+% Copyright (C) 2012-2023 Wellcome Centre for Human Neuroimaging
+
 
 tbxdir = fileparts(mfilename('fullpath'));
 

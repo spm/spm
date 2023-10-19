@@ -1,12 +1,11 @@
 function res = bf_features_vbfa(BF, S)
 % Variational Bayes Factor Analysis for computing noise covariance
-% Code contributed by Sri Nagarajan
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
-% Vladimir Litvak
-% $Id: bf_features_vbfa.m 7703 2019-11-22 12:06:29Z guillaume $
+% Vladimir Litvak (Code contributed by Sri Nagarajan)
+% Copyright (C) 2015-2023 Wellcome Centre for Human Neuroimaging
 
-%--------------------------------------------------------------------------
+
 if nargin == 0
     nl = cfg_entry;
     nl.tag = 'nl';

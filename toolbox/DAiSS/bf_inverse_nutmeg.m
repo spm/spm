@@ -1,12 +1,11 @@
 function res = bf_inverse_nutmeg(BF, S)
 % Interface to NUTMEG inverse methods 
 % http://www.nitrc.org/plugins/mwiki/index.php/nutmeg:MainPage
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
+
+% Copyright (C) 2015-2023 Wellcome Centre for Human Neuroimaging
 
 
-% $Id: bf_inverse_nutmeg.m 7703 2019-11-22 12:06:29Z guillaume $
-
-%--------------------------------------------------------------------------
 if nargin == 0
     method = cfg_menu;
     method.tag = 'method';

@@ -1,14 +1,14 @@
 function mesh = bf_sources_scalp(BF, S)
 % Generate source space on the scalp surface, as a part of measuring a
-% magnetomyogram (MMG) of the face. See  https://doi.org/10.1111/psyp.13507
-% for more informaiton
+% magnetomyogram (MMG) of the face.
+% 
+% See https://doi.org/10.1111/psyp.13507 for more information.
+%__________________________________________________________________________
 
-% Copyright (C) 2022 Wellcome Centre for Human Neuroimaging
 
 % George O'Neill
-% $Id: bf_sources_scalp.m 8307 2022-08-26 11:00:54Z george $
+% Copyright (C) 2022-2023 Wellcome Centre for Human Neuroimaging
 
-%--------------------------------------------------------------------------
 if nargin == 0
     
     orient         = cfg_menu;
@@ -35,7 +35,7 @@ elseif nargin < 2
     error('Two input arguments are required');
 end
 
-% if ~isfield(S,'warp'); S.warp = 'affine'; end
+% if ~isfield(S,'warp'), S.warp = 'affine'; end
 
 original = BF.data.mesh.tess_scalp;
 istemplate = BF.data.mesh.template;

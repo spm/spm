@@ -1,11 +1,11 @@
 function res = bf_write_nifti(BF, S)
 % Writes out nifti images of beamformer results
-% Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Vladimir Litvak
-% $Id: bf_write_nifti.m 7703 2019-11-22 12:06:29Z guillaume $
+% Copyright (C) 2013-2023 Wellcome Centre for Human Neuroimaging
 
-%--------------------------------------------------------------------------
+
 if nargin == 0
     normalise         = cfg_menu;
     normalise.tag     = 'normalise';

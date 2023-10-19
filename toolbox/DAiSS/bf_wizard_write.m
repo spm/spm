@@ -8,13 +8,15 @@ function [BF, matlabbatch, write] = bf_wizard_write(S)
 %   - gifti (for surface data)
 %   - spmmeeg (for virtual electrodes)
 %__________________________________________________________________________
-% Copyright (C) 2022-23 Wellcome Centre for Human Neuroimaging
-% George O'Neill
 
-if ~isfield(S,'batch'); matlabbatch = []; else; matlabbatch = S.batch;  end
-if ~isfield(S,'BF'); error('I need a BF.mat file specified!');          end
-if ~isfield(S,'method'); error('You need to specify an output method!');end
-if ~isfield(S,'run');       S.run = 1;                                  end
+% George O'Neill
+% Copyright (C) 2022-2023 Wellcome Centre for Human Neuroimaging
+
+
+if ~isfield(S,'batch'), matlabbatch = []; else; matlabbatch = S.batch;  end
+if ~isfield(S,'BF'), error('I need a BF.mat file specified!');          end
+if ~isfield(S,'method'), error('You need to specify an output method!');end
+if ~isfield(S,'run'),       S.run = 1;                                  end
 
 % specify BF, ensure its a cell...
 if ~iscell(S.BF)

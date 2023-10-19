@@ -72,18 +72,20 @@ function [BF,matlabbatch, sources] = bf_wizard_sources(S)
 %  batch            - matlabbatch job for spm_jobman to run
 %  sources          - simplified summary of options selected
 %__________________________________________________________________________
-% Copyright (C) 2022-23 Wellcome Centre for Human Neuroimaging
-% George O'Neill
 
-if ~isfield(S,'batch'); matlabbatch = []; else; matlabbatch = S.batch;  end
-if ~isfield(S,'BF');        error('I need a BF.mat file specified!');   end
-if ~isfield(S,'reduce_rank'); S.reduce_rank = [2 3];                    end
-if ~isfield(S,'keep3d');    S.keep3d = true;                            end
-if ~isfield(S,'method');    error('You need to specify a method!');     end
-if ~isfield(S,S.method);    S.(S.method) = struct();                    end
-if ~isfield(S,'normalise_lf'); S.normalise_lf = false;                  end
-if ~isfield(S,'visualise'); S.visualise = true;                         end
-if ~isfield(S,'run'); S.run = 1;                                        end
+% George O'Neill
+% Copyright (C) 2022-2023 Wellcome Centre for Human Neuroimaging
+
+
+if ~isfield(S,'batch'), matlabbatch = []; else; matlabbatch = S.batch;  end
+if ~isfield(S,'BF'),        error('I need a BF.mat file specified!');   end
+if ~isfield(S,'reduce_rank'), S.reduce_rank = [2 3];                    end
+if ~isfield(S,'keep3d'),    S.keep3d = true;                            end
+if ~isfield(S,'method'),    error('You need to specify a method!');     end
+if ~isfield(S,S.method),    S.(S.method) = struct();                    end
+if ~isfield(S,'normalise_lf'), S.normalise_lf = false;                  end
+if ~isfield(S,'visualise'), S.visualise = true;                         end
+if ~isfield(S,'run'), S.run = 1;                                        end
 
 % specify BF, ensure its a cell...
 if ~iscell(S.BF)

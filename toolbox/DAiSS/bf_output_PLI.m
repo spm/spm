@@ -1,20 +1,20 @@
 function mont = bf_output_PLI(BF, S)
-% Generates a montage for source extraction, projects the sources one by
+% Generate a montage for source extraction, projects the sources one by
 % one and computes phase lag index on the fly, which is written out with no
 % need to call bf_write. Only one VOI allowed, which can be a sphere or a
 % mask image.
-
-% Copyright (C) 2015-2017 Wellcome Trust Centre for Neuroimaging & University of
-% Zurich
-
-% Dominik R Bach
+%
 % PLI computation using code published by Gerald Cooray (2010) Karolinska 
 % Institutet: EFFECT OF DIABETES MELLITUS ON HUMAN BRAIN FUNCTION 
 % (https://openarchive.ki.se/xmlui/bitstream/handle/10616/40241/ram_ber%C3%A4ttelse.pdf?sequence=1)
 % with a method based on Stam CJ, Nolte G, Daffertshofer A (Hum Brain Mapp 2007)
-% 
-% $Id: bf_output_PLI.m 8061 2021-02-10 15:14:57Z spm $
-%--------------------------------------------------------------------------
+%__________________________________________________________________________
+
+% Dominik R Bach
+% Copyright (C) 2015-2023 Wellcome Centre for Human Neuroimaging &
+% University of Zurich
+
+
 if nargin == 0
     label = cfg_entry;
     label.tag = 'label';
@@ -153,10 +153,10 @@ for m  = 1:numel(modalities)
                     for trl = 1:ntrials(D)
                         if ~strcmpi(C1{trl}, C2{trl})
                             error('Trial labels don''t match between reference source and BF source');
-                        end;
-                    end;
-                end;
-            end;
+                        end
+                    end
+                end
+            end
             mnipos = spm_eeg_inv_transform_points(BF.data.transforms.toMNI,  BF.sources.pos);
         else
             error('Don''t know what to do.');
@@ -184,10 +184,10 @@ for m  = 1:numel(modalities)
                     dist = sqrt(sum((mnipos-repmat(XYZmm(:,k)', size(mnipos, 1), 1)).^2, 2));
                     [minval, vxind(k)] = min(dist);
                     if minval>maxdist,vxind(k)=NaN;end;
-                end;
+                end
                 vxind(isnan(vxind))=[];
                 ind = unique(vxind);
-            end;
+            end
             
         elseif isfield(S.vois{v}, 'voidef')
             dist = sqrt(sum((mnipos-repmat(S.vois{v}.voidef.pos, size(mnipos, 1), 1)).^2, 2));
@@ -204,10 +204,10 @@ for m  = 1:numel(modalities)
             if nchannels(E) > 1
                 for chnl = 1:nchannels(E)
                     lbl{chnl} = [montage.labelnew{1}, '_', num2str(chnl)];
-                end;
+                end
             else
                 lbl = montage.labelnew;
-            end;
+            end
         else
             error('Don''t know what to do.');
         end
@@ -236,13 +236,13 @@ for m  = 1:numel(modalities)
                     for i = 1:size(W, 1)
                         lbl{end+1, 1} = [montage.labelnew{v} '_' num2str(i)];
                     end
-            end;
+            end
         else
             montage.tra = NaN(numel(lbl), numel(cat(1, BF.inverse.(modalities{m}).W{1})*U'));
-        end;
+        end
     else
         error('Reference source definition is required');
-    end;
+    end
     
     if ~isempty(lbl)
         montage.labelnew = lbl;
@@ -288,9 +288,9 @@ for m  = 1:numel(modalities)
                 Dnew = filtfilt(b, a, E(iRef, :, iTrl));
             else
                 Dnew = filtfilt(b, a, montage.tra(iRef, :) * D(:, :, iTrl));
-            end;
+            end
             complex_ref(iRef, :) = hilbert(Dnew);
-        end;
+        end
         
         % project, compute  and discard all other sources
         for iOther = 1:nsources
@@ -298,10 +298,10 @@ for m  = 1:numel(modalities)
             complex_temp = hilbert(Dtemp);
             for iRef = 1:nRef
                 PLI(iOther, iRef, iTrl) = abs(mean(sign(angle(complex_temp./complex_ref(iRef, :)))));
-            end;
-        end;
+            end
+        end
         spm_progress_bar('Set', iTrl);
-    end;
+    end
     spm_progress_bar('Clear');
     
     % average over trials
@@ -314,9 +314,9 @@ for m  = 1:numel(modalities)
         indx = indtrial(D, cl{iCond}, 'GOOD');
         if ~isempty(indx)
             aPLI(:, :, iCond) = mean(PLI(:, :, indx), 3);
-        end;
+        end
         spm_progress_bar('Set', iCond);
-    end;
+    end
     spm_progress_bar('Clear');
     
     % write into NIFTI-files
@@ -326,8 +326,8 @@ for m  = 1:numel(modalities)
             BF.output.image(cImage).val = aPLI(:, iRef, iCond);
             BF.output.image(cImage).label = ['BF_', montage.labelnew{iRef}, '_', cl{iCond}];
             cImage = cImage + 1;
-        end;
-    end;
+        end
+    end
     S.normalise = 'none';
     S.space = 'mni';
     bf_write_nifti(BF, S);

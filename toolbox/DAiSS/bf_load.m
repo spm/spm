@@ -1,9 +1,10 @@
 function BF = bf_load(file, fields)
-% Loads BF data into memory with just the requested fields
-% Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
+% Load BF data into memory with just the requested fields
+%__________________________________________________________________________
 
 % Vladimir Litvak
-% $Id: bf_load.m 7703 2019-11-22 12:06:29Z guillaume $
+% Copyright (C) 2012-2023 Wellcome Centre for Human Neuroimaging
+
 
 % get filename
 %-------------------------------------------------------------------------
@@ -35,4 +36,3 @@ end
 
 tmpcell = struct2cell(BF);
 BF = cell2struct(tmpcell([sel2 sel3(sel4)]), [bf_std_fields(sel1) other_fields_sorted], 1);
-

@@ -1,11 +1,11 @@
 function mesh = bf_sources_mesh(BF, S)
 % Generate cortical mesh
-% Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Vladimir Litvak
-% $Id: bf_sources_mesh.m 8405 2023-02-02 11:43:33Z vladimir $
+% Copyright (C) 2013-2023 Wellcome Centre for Human Neuroimaging
 
-%--------------------------------------------------------------------------
+
 if nargin == 0
     orient         = cfg_menu;
     orient.tag     = 'orient';

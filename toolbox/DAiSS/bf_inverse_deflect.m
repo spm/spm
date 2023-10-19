@@ -1,17 +1,18 @@
 function res = bf_inverse_deflect(BF, S)
-% Used DeFleCT framework to compute spatial filters.
-% Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
-
-% Vladimir Litvak, using the code from Matti Stenroos and Olaf Hauk
-% http://imaging.mrc-cbu.cam.ac.uk/meg/AnalyzingData/DeFleCT_SpatialFiltering_Tools
+% Used DeFleCT framework to compute spatial filters
 %
 % Please cite:
 % Hauk O, Stenroos M.
-% A framework for the design of flexible cross-talk functions for spatial filtering of EEG/MEG data: DeFleCT.
+% A framework for the design of flexible cross-talk functions for spatial
+% filtering of EEG/MEG data: DeFleCT.
 % Human Brain Mapping 2013
-% $Id: bf_inverse_deflect.m 7703 2019-11-22 12:06:29Z guillaume $
+% http://imaging.mrc-cbu.cam.ac.uk/meg/AnalyzingData/DeFleCT_SpatialFiltering_Tools
+%__________________________________________________________________________
 
-%--------------------------------------------------------------------------
+% Vladimir Litvak, using the code from Matti Stenroos and Olaf Hauk
+% Copyright (C) 2013-2023 Wellcome Centre for Human Neuroimaging
+
+
 if nargin == 0
     
     list = cfg_entry;

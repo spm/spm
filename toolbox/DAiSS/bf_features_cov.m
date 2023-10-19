@@ -1,11 +1,11 @@
 function res = bf_features_cov(BF, S)
 % Simple band limited covariance computation
-% Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
-% Gareth Barnes  
-% $Id: bf_features_cov.m 7703 2019-11-22 12:06:29Z guillaume $
+% Gareth Barnes
+% Copyright (C) 2015-2023 Wellcome Centre for Human Neuroimaging
 
-%--------------------------------------------------------------------------
+
 if nargin == 0
     foi = cfg_entry;
     foi.tag = 'foi';
@@ -40,13 +40,13 @@ D = BF.data.D;
 
 ntrials = length(S.trials);
 nchans  = length(S.channels);
-%% now identify frequency bands of interest
+% now identify frequency bands of interest
 
 nbands = size(S.foi,1);
 
-if length(unique(cellfun(@length, S.samples)))~=1,
+if length(unique(cellfun(@length, S.samples)))~=1
     error('all windows must be of equal length');
-end;
+end
 
 nwoi            = numel(S.samples);
 nsamples        = length(S.samples{1}); %% use length of first window to set up DCT (as all windows fixed at same length)
@@ -56,7 +56,7 @@ dctT            = spm_dctmtx(nsamples,nsamples);
 
 allfreqind=[];
 
-for fband = 1:nbands, %% allows one to break up spectrum and ignore some frequencies
+for fband = 1:nbands %% allows one to break up spectrum and ignore some frequencies
     
     freqrange  = S.foi(fband,:);
     
@@ -64,13 +64,13 @@ for fband = 1:nbands, %% allows one to break up spectrum and ignore some frequen
   
     allfreqind = sort(unique([allfreqind j]));
     
-end; % for fband=1:Nbands
+end % for fband=1:Nbands
 
 % Hanning operator (if requested)
 %----------------------------------------------------------------------
 
 switch lower(S.taper)
-    case 'hanning',
+    case 'hanning'
         W  = repmat(spm_hanning(nsamples)',nchans,1);
     case 'none'
         W  = ones(nchans,nsamples);

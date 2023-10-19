@@ -28,17 +28,19 @@ function [BF, matlabbatch, data] = bf_wizard_data(S)
 %  batch            - matlabbatch job for spm_jobman to run
 %  data             - simplified summary of options selected
 %__________________________________________________________________________
-% Copyright (C) 2022-23 Wellcome Centre for Human Neuroimaging
-% George O'Neill
 
-if ~isfield(S,'batch'); matlabbatch = []; else; matlabbatch = S.batch;  end
-if ~isfield(S,'dir');   S.dir = [];                                     end
-if ~isfield(S,'D');     error('I need a SPM MEEG dataset provided!');   end
-if ~isfield(S,'val');   S.val = 1;                                      end
-if ~isfield(S,'gradsource'); S.gradsource = 'inv';                      end
-if ~isfield(S,'space'); S.space = 'MNI-aligned';                        end
-if ~isfield(S,'overwrite'); S.overwrite = 1;                            end
-if ~isfield(S,'run'); S.run = 1;                                        end
+% George O'Neill
+% Copyright (C) 2022-2023 Wellcome Centre for Human Neuroimaging
+
+
+if ~isfield(S,'batch'), matlabbatch = []; else; matlabbatch = S.batch;  end
+if ~isfield(S,'dir'),   S.dir = [];                                     end
+if ~isfield(S,'D'),     error('I need a SPM MEEG dataset provided!');   end
+if ~isfield(S,'val'),   S.val = 1;                                      end
+if ~isfield(S,'gradsource'), S.gradsource = 'inv';                      end
+if ~isfield(S,'space'), S.space = 'MNI-aligned';                        end
+if ~isfield(S,'overwrite'), S.overwrite = 1;                            end
+if ~isfield(S,'run'), S.run = 1;                                        end
 
 % Check if dir is empty and determine path of S.D
 if isempty(S.dir)
