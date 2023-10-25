@@ -37,8 +37,7 @@ while abs(d) > 1e-6
     [P, P, q] = spm_P_RF(1,0,u + du,df,STAT,R,n);
     d         = (a - p)/((q - p)/du);
     u         = u + d;
-    if isinf(u), u=+Inf; return; end
-    if isnan(u), error('Can not determine a suitable threshold.'); end
+    if ~isfinite(u), u=+Inf; return; end
 end
 
 %-Refined estimate using 1 - exp(-E{m})
@@ -49,6 +48,5 @@ while abs(d) > 1e-6
     q         = spm_P_RF(1,0,u + du,df,STAT,R,n);
     d         = (a - p)/((q - p)/du);
     u         = u + d;
-    if isinf(u), u=+Inf; return; end
-    if isnan(u), error('Can not determine a suitable threshold.'); end
+    if ~isfinite(u), u=+Inf; return; end
 end
