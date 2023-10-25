@@ -38,6 +38,7 @@ while abs(d) > 1e-6
     d         = (a - p)/((q - p)/du);
     u         = u + d;
     if isinf(u), u=+Inf; return; end
+    if isnan(u), error('Can not determine a suitable threshold.'); end
 end
 
 %-Refined estimate using 1 - exp(-E{m})
@@ -49,4 +50,5 @@ while abs(d) > 1e-6
     d         = (a - p)/((q - p)/du);
     u         = u + d;
     if isinf(u), u=+Inf; return; end
+    if isnan(u), error('Can not determine a suitable threshold.'); end
 end
