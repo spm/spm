@@ -44,24 +44,18 @@ data.tag     = 'data';
 data.name    = 'Data';
 data.val     = {vols};
 data.help    = {
-'Specify the number of different channels (for multi-spectral classification). If you have scans of different contrasts for each of the subjects, then it is possible to combine the information from them in order to improve the segmentation accuracy. Note that only the first channel of data is used for the initial affine registration with the tissue probability maps.'
+'Specify the number of different image channels. If you have scans of different contrasts for each of the subjects, then it is possible to combine the information from them in a way that might improve the denoising.'
                }';
 data.values  = {vols};
 data.num     = [1 Inf];
 
-lambda        = cfg_menu;
-lambda.tag    = 'lambda';
-lambda.name   = 'Denoising strength';
-lambda.values = {10, 30, 100, 300, 1000};
-lambda.labels = {'  10: Weak', '  30: Reasonable', ' 100: Strong',' 300: Very strong', '1000: For testing'};
-lambda.val    = {30};
-lambda.help   = {['Vary the strength of denoising. '...
-                  'Note that the denoising strength is calibrated based on an estimate of the amount of noise '...
-                  'in the images and the mean intensity within the head. '...
-                  'For this to work properly, the images must be regular MRI scans containing signal from air, '...
-                  'which can be assumed to have a "true" value of zero. '...
-                  'The images can not have been skull-stripped, and the noise intensity estimation '...
-                  'works poorly for qMRI parameter maps where the assumptios do not hold.']};
+lambda         = cfg_entry;
+lambda.tag     = 'lambda';
+lambda.name    = 'Denoising strength';
+lambda.strtype = 'r';
+lambda.num     = [1 1];
+lambda.val     = {0.03};
+lambda.help    = {'Vary the strength of denoising. This setting may need tweaking to obtain the best results. Note that the standard deviation over the field of view is used to adjust this setting.'};
 
 nit        = cfg_menu;
 nit.tag    = 'nit';
