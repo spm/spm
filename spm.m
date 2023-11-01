@@ -325,7 +325,7 @@ spm_check_installation('basic');
 local_clc;
 spm('AsciiWelcome');
 [SPMver, SPMrev] = spm('Ver');
-spm('FnBanner', ['v' SPMrev]);
+spm('FnBanner', SPMrev);
 fprintf('%-40s: %18s', 'Initialising SPM', '');
 Modality = upper(Action);
 spm_figure('close',allchild(0));                           fprintf('.');

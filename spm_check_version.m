@@ -106,7 +106,7 @@ if strcmpi(tbx,'matlab') && strcmpi(spm_check_version,'octave')
     return;
 end
 
-% 
+% SPM-specific versioning
 %--------------------------------------------------------------------------
 if strcmpi(tbx,'spm')
     [v,r] = spm('Ver','',1);
