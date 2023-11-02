@@ -1,5 +1,6 @@
 function res = bf_output_image_powcorr(BF, S)
 % Compute phase-amplitude coupling
+%__________________________________________________________________________
 
 % Vladimir Litvak using code bits from OSL library
 % Copyright (C) 2012-2023 Wellcome Centre for Human Neuroimaging

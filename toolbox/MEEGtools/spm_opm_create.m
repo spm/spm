@@ -1,6 +1,6 @@
 function [D,L] = spm_opm_create(S)
 % Read magnetometer data and optionally set up forward model
-% FORMAT D = spm_opm_create(S)
+% FORMAT [D,L] = spm_opm_create(S)
 %   S               - input structure
 % Optional fields of S:
 % SENSOR LEVEL INFO
@@ -26,10 +26,11 @@ function [D,L] = spm_opm_create(S)
 %  D           - MEEG object (also written to disk)
 %  L           - Lead field (also written on disk)
 %__________________________________________________________________________
-% Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
 
 % Tim Tierney
-% $Id$
+% Copyright (C) 2018-2023 Wellcome Centre for Human Neuroimaging
+
+
 spm('FnBanner', mfilename);
 
 %-Set default values
@@ -46,8 +47,8 @@ if ~isfield(S, 'fname'),       S.fname = 'sim_opm';         end
 if ~isfield(S, 'path'),        S.path = [];                 end
 if ~isfield(S, 'precision'),   S.precision = 'single';      end
 if ~isfield(S, 'lead'),        S.lead = 0;                  end
-if ~isfield(S, 'headshape');   S.headshape = [];            end
-if ~isfield(S, 'coordsystem'); S.coordsystem = [];          end
+if ~isfield(S, 'headshape'),   S.headshape = [];            end
+if ~isfield(S, 'coordsystem'), S.coordsystem = [];          end
 
 %- identify Binary File
 %----------------------------------------------------------------------
@@ -62,7 +63,7 @@ try % work out if data is a matrix or a file
         subjectSource=0;
         subjectNoStruct = 0;
         template = 0;
-        warning(['Cerca magnetics data currently requires seperate'...
+        warning(['Cerca magnetics data currently requires separate'...
             ' coregistration and forward modelling']);
         args = [];
         args.filename = S.data;
@@ -187,7 +188,7 @@ nChans = size(channels.name,1);
 
 if(binData)
     fprops= dir(S.data);
-    if(S.precision == 'single')
+    if strcmp(S.precision,'single')
         bytesPerSample=4;
     else
         bytesPerSample=8;
@@ -580,12 +581,12 @@ function Snew = read_neuro1_data(Sold)
         end
 
         % Rename board slots from A1 to 1 (if there are any)
-        if isa(chan2sens.channel, "cell")
+        if isa(chan2sens.channel, 'cell')
             board_slots = cell(length(chan2sens.channel), 1);
             for slot = 1:length(chan2sens.channel)
-                if isa(chan2sens.channel{slot}, "char")
+                if isa(chan2sens.channel{slot}, 'char')
                     board_slots{slot} = regexp(chan2sens.channel{slot}, '[A-H]', 'match');
-                    if isa(board_slots{slot}, "cell")
+                    if isa(board_slots{slot}, 'cell')
                         board_slots{slot} = board_slots{slot}{1};
                     end
                 end
