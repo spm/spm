@@ -1,357 +1,178 @@
-function mdp = DEM_MNIST
-% Demo of structure learning (i.e.,disentanglement) of MNIST digits
+function mdp = DEM_MNIST_XXX
+% Active sampling of MNIST digits
 %__________________________________________________________________________
 %
-% This routine provides a simple illustration of disentanglement or
-% structure learning using a static (image) recognition problem; namely the
-% MNIST digits. It casts the structure learning problem as a data
-% assimilation problem by accumulating latent states as discrete levels of
-% a factor in a hidden Markov model with two factors — the second factor
-% being the digit class. The key procedure demonstrated here is the
-% addition of a new latent (style) state using Bayesian model comparison
-% under the prior that additional states will increase expected free
-% energy. In the absence of any prior costs or constraints; this reduces to
-% accepting a new training exemplar if adding Dirichlet counts to a new
-% state (i.e., Column of the likelihood tensor) decreases variational and
-% expected free energy. In other words, increases the marginal likelihood
-% of the new observation under the prior constraint that the resulting
-% likelihood mapping has a greater mutual information.
-% 
-% In this example, an upper bound of 128 styles is implemented as an
-% additional hyperprior and the model is learned during exposure to 1024
-% training exemplars for each digit class. The ensuing classification
-% accuracy is established using a test dataset of 10,000. Performance is
-% between 95 and 100%; depending upon whether one accepts all the test data
-% or just those with a sufficiently high marginal likelihood (as scored by
-% the variational free energy).
-% 
-% The code below contains a number of subroutines and alternative
-% formulations of structure learning. It also examines the information
-% geometry inherent in the discovered structures. This routine can take
-% some time to ingest the training data (and will require downloading of a
-% MATLAB file as described in the preparation subroutine).
-% 
+% This routine demonstrates smart or sparse sampling of outcomes to
+% accumulate evidence for posterior beliefs in an optimal way. Effectively,
+% it scores the expected free energy (i.e., expected information gain) of
+% different policies. Crucially, these policies reflect covert or internal
+% action; namely, subscribing to or querying different subsets of output
+% modalities. This can be regarded as one aspect of proactive message
+% passing; in the sense, it rests upon expected free energy to send
+% requests to nodes that evaluate outcome probabilities. The saving here is
+% in terms of compute time and message passing. Interestingly, this can
+% lead to characteristic overconfidence in classification. In other words,
+% by just sampling a limited subset of outcome modalities, the routine can
+% find a plausible explanation very quickly; however, not necessarily the
+% right explanation.
+%
 %__________________________________________________________________________
 % Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
 % $Id: DEM_surveillance.m 8313 2022-09-30 18:33:43Z karl $
 
+
 %% set up and preliminaries
 %==========================================================================
 
-% Load (pre-processed) MNIST dataset (uncomment to prepare spm_MNIST)
+% Load (pre-processed) MNIST dataset (uncomment to save mnist_mdp)
+%--------------------------------------------------------------------------
+% load mnist
+% NS  = 8;                                   % number of styles
+% mdp = spm_initialise_resolve(training,NS);
+% save mnist_mdp mdp
 %--------------------------------------------------------------------------
 cd 'C:\Users\karl\Dropbox\matlab'
-% spm_MNIST_prepare;
-load spm_MNIST
+load mnist
+load mnist_mdp
 
-% train
+% Indices of outcome nodes
 %==========================================================================
-% Learn by adding latent states if warranted by active selection to the
-% latent factor style, under a supervised or precise prior over the latent
-% factor (Digit) class
-%--------------------------------------------------------------------------
-NS    = 256;                                % number of styles
-NT    = 2048;                               % number of training digits
-mdp   = spm_MNIST_learn(training,NS,NT);    % supervised structure learning
-
-% Illustrate learned latent states as images
-%--------------------------------------------------------------------------
-spm_figure('GetWin','Disentangled');
-spm_show_a(mdp.a);
-
-
-% test
-%==========================================================================
-% Posterior predictive classification accuracy using a test set of data
-%--------------------------------------------------------------------------
-[C,F] = spm_MNIST_test(mdp,test,10000);
-
-
-% graphics: mutual information, free energy and classification accuracy
-%==========================================================================
-spm_figure('GetWin','Test'); clf
-
-subplot(2,2,1)
-histogram(F(C),32), hold on
-histogram(F(~C),32)
-xlabel('ELBO'), ylabel('frequency')
-title('Correct and incorrect classification'), axis square
-
-f     = linspace(min(F),max(F),64);
-for i = 1:numel(f)
-    c(i) = mean(C(F > f(i)));
-end
-subplot(2,2,2)
-plot(f,c*100)
-xlabel('ELBO threshold'), ylabel('classification accuracy')
-title('Classification and confidence'), axis square
-
-% illustrate images with a high and low marginal likelihood
-%--------------------------------------------------------------------------
-for n = 1:10
-    j    = find(test.labels == n - 1);
-    j    = j(C(j));
-    j    = j(F(j) == max(F(j)));
-    I{n} = spm_o2MNIST(spm_MNIST2o(test,j));
-end
-subplot(8,1,5), imagesc(spm_cat(I)), axis image off
-title('Platonic digits','FontSize',14)
-for n = 1:10
-    j    = find(test.labels == n - 1);
-    j    = j(~C(j));
-    j    = j(F(j) == min(F(j)));
-    I{n} = spm_o2MNIST(spm_MNIST2o(test,j));
-end
-subplot(8,1,6), imagesc(spm_cat(I)), axis image off
-title('Unlikely digits','FontSize',14)
-
-% Bayesian model reduction
-%==========================================================================
-% Illustrate Bayesian model reduction by simply setting tensor elements
-% with small values zero
-%--------------------------------------------------------------------------
-rdp   = mdp;
-Ng    = numel(mdp.a);
-for g = 1:Ng
-    rdp.a{g} = spm_MDP_VB_prune(mdp.a{g},mdp.p,0,0,1,'SIMPLE');
+d     = 9;
+id    = {};
+for i = 0:d:(28 - d)
+    for j = 0:d:(28 - d)
+        n  = sparse((1:d) + i,1,1,28,1)*sparse((1:d) + j,1,1,28,1)';
+        id{end + 1} = find(n(:));
+    end
 end
 
+% illustrate Sparse sampling of outcomes
+%--------------------------------------------------------------------------
+spm_figure('GetWin','train'); clf;
 
-% Evaluate the predictive accuracy of the reduced model
+% default priors
 %--------------------------------------------------------------------------
-[Cr,Fr] = spm_MNIST_test(rdp,test,10000);
+% test options
+%--------------------------------------------------------------------------
+OPTIONS.A = 0;                             % suppress explicit action
+OPTIONS.B = 0;                             % suppress replay
+OPTIONS.N = 0;                             % suppress neuronal responses
+OPTIONS.G = 1;                             % suppress neuronal responses
 
-disp('Classification accuracy before and after reduction')
-disp(100*mean(C))
-disp(100*mean(Cr))
-disp('Number parameters before and after reduction')
-disp(sum(~~spm_vec(mdp.a)))
-disp(sum(~~spm_vec(rdp.a)))
-disp('ELBO before and after reduction (per modality)')
-disp(sum(F)/Ng)
-disp(sum(Fr)/Ng)
-disp(sum(Fr)/Ng - sum(F)/Ng)
-%--------------------------------------------------------------------------
-% Classification accuracy before and after reduction
-% 96.1200
-% 96.1400
-% 
-% Number parameters before and after reduction
-% 2336768
-% 2271320
-% 
-% ELBO before and after reduction (per modality)
-% -5.2894e+03
-% -5.2839e+03
-% 5.5331 nats
-%--------------------------------------------------------------------------
+mdp.a = spm_vecfun(mdp.a,@times,128);      % likelihood tensors
 
-% graphics: increasing classification accuracy with marginal likelihood
-%--------------------------------------------------------------------------
-f     = linspace(min(Fr),max(Fr),64);
-for i = 1:numel(f)
-    cr(i) = mean(Cr(Fr > f(i)));
+[Nf,Ns,Nu]   = spm_MDP_size(mdp);
+for f = 1:Nf
+    mdp.D{f} = ones(Ns(f),1);              % initial state
+    mdp.E{f} = ones(Nu(f),1);              % initial control
 end
-subplot(2,2,2), hold on
-plot(f,cr*100,'c'), hold off
 
+mdp.beta  = 0;                             % active selection
+mdp.eta   = exp(16);                       % active forgetting
 
-% illustrate information geometry
-%==========================================================================
-spm_dir_disentangle(mdp.a,32);
+%  train
+%--------------------------------------------------------------------------
+mdp.id.ig = 1;
+mdp.id.g  = id;
+mdp.T = 6;
+mdp.U = zeros(1,Nf);
+for j = 1:4
 
-% Uncomment the following code to look at particular test digits (j)
-%----------------------------------------------------------------------
-% [O,D]    = spm_MNIST2o(test,j);
-% pdp      = mdp;
-% pdp.O    = O;
-% pdp.D{2} = D;
-% pdp.T    = 1;
-% 
-% % active inference
-% %----------------------------------------------------------------------
-% OPTIONS.A = 0;                             % suppress explicit action
-% OPTIONS.B = 0;                             % suppress explicit action
-% OPTIONS.N = 0;                             % suppress neuronal responses
-% OPTIONS.P = 1;                             % inference graphics
-% pdp = spm_MDP_VB_XXX(pdp,OPTIONS);
-% subplot(6,4,9),  imagesc(spm_o2MNIST(O)),     axis image off
-% subplot(6,4,10), imagesc(spm_o2MNIST(pdp.Y)), axis image off
+    % get training observation and place in MDP structure
+    %----------------------------------------------------------------------
+    [O,n]    = spm_MNIST2o(training,training.count - j);
+    pdp      = mdp;
+    pdp.O    = repmat(O,1,mdp.T);
+    % pdp.D{2} = D;                       % Cmt., precise veridical priors
+
+    % active inference and learning
+    %----------------------------------------------------------------------
+    pdp = spm_MDP_VB_XXX(pdp,OPTIONS);
+
+    % Graphics
+    %======================================================================
+    if OPTIONS.G
+
+        % Predicted and observed images
+        %------------------------------------------------------------------
+        subplot(4,3,10)
+        I     = spm_o2MNIST(O);
+        imagesc(I)
+        [m,d] = max(n); axis square
+        title(sprintf('Content: %i',d - 1))
+
+        for t = 1:min(mdp.T,6)
+
+            % Observations
+            %--------------------------------------------------------------
+            subplot(8,4,4*(t - 1) + 1)
+            i     = NaN(size(I));
+            ig    = pdp.id.g{pdp.id.ig(t)};
+            i(ig) = I(ig);
+            imagesc(i)
+            axis square, title(sprintf('Seen: %i',d - 1))
+
+            % Predictions
+            %--------------------------------------------------------------
+            subplot(8,4,4*(t - 1) + 2)
+            imagesc(spm_o2MNIST(pdp.Y(:,t)))
+            [m,s] = max(pdp.X{2}(:,end)); axis square
+            title(sprintf('Prediction: %i',s - 1))
+
+            % Posteriors
+            %--------------------------------------------------------------
+            subplot(8,4,4*(t - 1) + 3)
+            bar(pdp.X{1}(:,t))
+            title('Posteriors')
+
+            % Posteriors
+            %--------------------------------------------------------------
+            subplot(8,4,4*(t - 1) + 4)
+            bar(pdp.X{2}(:,t))
+            title('Posteriors')
+
+            % Dirichlet counts
+            %--------------------------------------------------------------
+            ax     = 0;
+            for g  = 1:numel(pdp.a)
+                ax = ax + sum(pdp.a{g},1);
+            end
+            subplot(4,3,11),
+            imagesc(reshape(squeeze(ax),Ns))
+            title('Dirichlet counts')
+
+            % Dirichlet counts
+            %--------------------------------------------------------------
+            xa     = I;
+            for g  = 1:numel(pdp.a)
+                xa(g) = sum(pdp.a{g},'all');
+            end
+            subplot(4,3,12),
+            imagesc(xa)
+            title('Dirichlet counts')
+
+            drawnow
+
+        end
+
+        % update Dirichlet parameters [with/out Bayesian model reduction]
+        %----------------------------------------------------------------------
+        mdp = spm_MDP_VB_update(mdp,pdp,OPTIONS);
+
+    end
+
+end
 
 return
+
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % subroutines
 %==========================================================================
-
-function mdp = spm_MNIST_learn(training,NS,NT)
-% FORMAT mdp = spm_MNIST_learn(training,NS,T)
-% training - training data
-% NS       - number of styles
-% NT       - number of training data
-% mdp      - model struct
-%
-%__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimagin
-
-% structure_learning
-%--------------------------------------------------------------------------
-spm_figure('GetWin','Structure_learning'); clf;
-spm_figure('GetWin','Disentangled'); clf;
-
-OPTIONS.G  = 0;    % suppress graphics
-OPTIONS.NF = 1;    % maxmium number of factors
-OPTIONS.NS = NS;   % maxmium number of states
-OPTIONS.NU = 1;    % maxmium number of paths
-OPTIONS.UB = 1;    % upper bound prior
-
-Ng    = numel(spm_MNIST2o(training,1));
-for g = 1:Ng
-    a{g} = zeros(2,NS,10);
-end
-Nd    = zeros(10000,10);
-for n = 1:10
-  nstr{n} = sprintf('%i', n - 1);
-end
-
-% Structure learning
-%==========================================================================
-mdp.p = 1/16;                               % initial Dirichlet prior
-for n = 1:10                               % For each digit class
-
-    % exemplars
-    %----------------------------------------------------------------------
-    spm_figure('GetWin','Structure_learning');
-
-    j     = find(training.labels == (n - 1));
-    pdp   = mdp;
-    for u = 1:NT
-
-        % structure_learning
-        %------------------------------------------------------------------
-        O       = spm_MNIST2o(training,j(u));
-        pdp     = spm_MDP_structure_learning(pdp,{O},OPTIONS);
-
-        % graphics
-        %------------------------------------------------------------------
-        Nd(u,n) = size(pdp.a{1},2);
-        [nn,jj] = sort(sum(pdp.a{1}),'descend');
-        i       = 1:numel(nn);
-        Nn(i,n) = nn;
-
-        % mutual information of likelihood
-        %------------------------------------------------------------------
-        MI(u,n) = spm_MDP_MI(pdp.a);
-
-        subplot(2,2,3)
-        plot(MI(1:u,:)), xlabel('number of exemplars'), ylabel('nats')
-        title('Mutual information'), axis square
-
-        subplot(2,2,1)
-        plot(Nd(1:u,:)), xlabel('number of exemplars'), ylabel('number of styles')
-        title('Style learning'), axis square
-
-        subplot(2,2,2)
-        plot(Nn), xlabel('styles'), ylabel('occurences')
-        title('Frequency'), axis square
-        if u > 1, legend(nstr(1:n)), end, drawnow
-
-    end
-    
-    % Illustrate learned styles
-    %----------------------------------------------------------------------
-    spm_figure('GetWin','Disentangled');
-    j     = 1:numel(jj);
-    for g = 1:numel(pdp.a)
-        a{g}(:,j,n) = pdp.a{g}(:,jj);
-    end
-    spm_show_a(a);
-
-end
-
-% save likelihood tensor in MDP structure
-%----------------------------------------------------------------------
-mdp.a = a;
-
-
-return
-
-
-function [C,G] = spm_MNIST_test(mdp,test,NT)
-% FORMAT [C,F] = spm_MNIST_test(mdp,test,NT)
-% mdp   - model struct
-% test  - test data
-% NT    - number of test images
-%
-% C     - correct classification vector
-% F     - ELBO (log marginal likelihood)
-%__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
-
-% number of test images
-%--------------------------------------------------------------------------
-if nargin < 3, NT = 10000; end
-if NT < 128
-    OPTIONS.P = get(gcf,'Number');
-else
-    OPTIONS.P = 0;
-end
-
-% test options
-%--------------------------------------------------------------------------
-OPTIONS.A = 0;                             % suppress explicit action
-OPTIONS.B = 0;                             % suppress replay
-OPTIONS.N = 0;                             % suppress neuronal responses
-
-mdp.A = mdp.a;                             % likelihood tensors
-mdp.T = 1;                                 % no transitions
-mdp   = rmfield(mdp,'a');                  % suppress learning
-for j = 1:NT
-    
-    % infer (i.e., classify)
-    %----------------------------------------------------------------------
-    for i = 1 %%%%:25                      % saccadic serach
-        [O,D]  = spm_MNIST2o(test,j);
-        pdp    = mdp;
-        pdp.O  = O;
-        pdp    = spm_MDP_VB_XXX(pdp,OPTIONS);
-        Q(:,i) = pdp.X{2};
-        F(i)   = pdp.F;
-    end
-
-    % Bayesian model averaging
-    %----------------------------------------------------------------------
-    Q     = Q*spm_softmax(F(:));
-    [m,d] = max(D);
-    [m,p] = max(Q);
-
-    % graphics
-    %----------------------------------------------------------------------
-    if OPTIONS.P
-        subplot(3,4,5)
-        imagesc(spm_o2MNIST(O)), axis image
-        title(sprintf('Content: %i',d - 1))
-
-        subplot(3,4,6)
-        imagesc(spm_o2MNIST(pdp.Y)), axis image
-        title(sprintf('Prediction: %i',p - 1))
-        drawnow
-    end
-
-    % classification accuracy (and ELBO)
-    %----------------------------------------------------------------------
-    C(j) = d == p;
-    G(j) = F*spm_softmax(F(:));
-    clc, disp(100*mean(C)), disp(j)
-
-end
-
-return
-
 
 function spm_show_a(a)
 % display learned images in likelihood tensors
@@ -514,9 +335,9 @@ load('mnist.mat');
 m     = mean(training.images,3);                  % average intensity
 [m,d] = sort(m(:),'descend');                     % sort
 N     = 512;                                      % number of modalities
-s     = 2;                                        % smoothing in pixels  
+s     = 2;                                        % smoothing in pixels
 S     = 32;                                       % histogram width
-d     = d(1:N);                                   % indices of pixels                                 
+d     = d(1:N);                                   % indices of pixels
 n     = numel(training.images(:,:,1));            % number of pixels
 
 % smooth and histogram equalisation (training data)
@@ -630,7 +451,7 @@ function mdp = spm_initialise_resolve(training,NS)
 %__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
-% resolve 
+% resolve
 %--------------------------------------------------------------------------
 spm_figure('GetWin','resolve'); clf
 
@@ -640,7 +461,7 @@ for g = 1:Ng
 end
 Nd    = zeros(10000,10);
 for n = 1:10
-  nstr{n} = sprintf('%i', n - 1);
+    nstr{n} = sprintf('%i', n - 1);
 end
 
 % initial Dirichlet prior
@@ -663,7 +484,7 @@ for n = 1:10
         for g = 1:Ng
             mdp.a{g}(:,end + 1) = O{g} + mdp.p;
         end
-        
+
         mdp = spm_resolve(mdp);
 
         % graphics
@@ -695,7 +516,7 @@ for n = 1:10
         if size(mdp.a{1},2) == NS, break, end
 
     end
-    
+
     % disentangle
     %----------------------------------------------------------------------
     spm_figure('GetWin','Disentangled');
@@ -800,5 +621,19 @@ for j = 1:NT
 end
 
 return
+
+
+%% NOTES
+
+%==========================================================================
+n = 8;
+Y = randn(n,n);
+subplot(4,4,1), imagesc(Y), axis image
+subplot(4,4,2), imagesc(spm_speye(n,n,1,2,2)'*Y), axis image
+subplot(4,4,3), imagesc(spm_speye(n,n,1,2,2)'*Y*spm_speye(n,n,-1,2)), axis image
+subplot(4,4,4), imagesc(reshape(kron(spm_speye(n,n,-1,2),spm_speye(n,n,1,2,2))'*Y(:),n,n)), axis image
+
+
+
 
 

@@ -1,9 +1,9 @@
-function [E,dEda,dEdA] = spm_MDP_MI(a,C)
+function [E,dEda,dEdA] = spm_MDP_MI(a,c)
 % Expected information gain (i.e., mutual information)
-% FORMAT [E,dEda,dEdA] = spm_MDP_MI(a,C)
+% FORMAT [E,dEda,dEdA] = spm_MDP_MI(a,c)
 %
 % a    - Dirichlet parameters of a joint distribution
-% C    - log preferences
+% c    - prior preferences
 %
 % E    - expected free energy (information gain minus cost)
 % dEda - derivative with respect to Dirichlet parameters (a)
@@ -23,7 +23,7 @@ if iscell(a)
     E     = 0;
     for g = 1:numel(a)
         if nargin > 1
-            E = E + spm_MDP_MI(a{g},C{g});
+            E = E + spm_MDP_MI(a{g},c{g});
         else
             E = E + spm_MDP_MI(a{g});
         end
@@ -45,6 +45,7 @@ E     = spm_MI(A);
 % expected (negative) cost
 %--------------------------------------------------------------------------
 if nargin > 1
+    C = spm_log(c);
     E = E + C'*sum(A,2);
 end
 

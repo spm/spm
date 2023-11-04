@@ -1,12 +1,12 @@
 % Bayesian model reduction subroutine
 %==========================================================================
-function [qA,pA] = spm_MDP_VB_prune(qA,pA,f,T,C,OPT)
-% FORMAT [sA,rA] = spm_MDP_VB_prune(qA,pA,f,T,C,OPT)
+function [qA,pA] = spm_MDP_VB_prune(qA,pA,f,T,pC,OPT)
+% FORMAT [sA,rA] = spm_MDP_VB_prune(qA,pA,f,T,pC,OPT)
 % qA  - posterior expectations
 % pA  - prior expectations
 % T   - threshold for Occam's window (natural units) [default: 0]
 % f   - hidden factor to contract over [default: 0]
-% C   - log preferences
+% pC  - prior preferences
 % OPT - 'MI' or 'SIMPLE'
 %
 % sA  - reduced posterior expectations
@@ -48,7 +48,7 @@ nd  = size(qA);                           % size of tensor
 if nargin < 2, pA  = 0*qA + 1; end  % default priors
 if nargin < 3, f   = 0;        end  % no contraction
 if nargin < 4, T   = 0;        end  % Occam's threshold
-if nargin < 5, C   = 0;        end  % no preferences
+if nargin < 5, pC  = 1;        end  % no preferences
 if nargin < 6, OPT = 'MI';     end  % BMR type
 
 % assume uniform priors if pA is a scalar
@@ -80,7 +80,7 @@ switch OPT
 
         % evaluate gradients of expected free energy
         %------------------------------------------------------------------
-        [E,dEdA] = spm_MDP_MI(pA,C);
+        [E,dEdA] = spm_MDP_MI(pA,pC);
         rA       = pA.*exp(pA.*dEdA);           % reduced prior
         rA       = times(rA,sum(pA)./sum(rA));  % preserve probability mass
 

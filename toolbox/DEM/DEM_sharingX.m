@@ -309,7 +309,7 @@ end
 %     'nothing'};
 %--------------------------------------------------------------------------
 for g = 1:Ng
-    C{g}  = zeros(No(g),1);
+    C{g}  = ones(No(g),1);
 end
 
 % This concludes the ABC of the model; namely, the likelihood mapping,
@@ -780,7 +780,7 @@ end
 spm_figure('GetWin','Generalised synchrony');
 %--------------------------------------------------------------------------
 subplot(3,2,1)
-imagesc(FQ/mdp.T/Ng > -1)
+imagesc(FQ/mdp.T > -3)
 title('Joint free energy','FontSize',14)
 xlabel('episodes'),ylabel('agent')
 axis square

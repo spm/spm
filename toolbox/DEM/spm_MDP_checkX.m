@@ -7,9 +7,9 @@ function [MDP] = spm_MDP_checkX(MDP)
 %
 % MDP.A{g}(No(g),Ns(1),Ns(2),...)   - likelihood of outcomes given hidden states
 % MDP.B{f}(Ns(f),Ns(f),Nu(f))       - transitions among hidden under MF control states
-% MDP.C{g}(No(g),1)      - prior preferences over O outcomes in modality G
+% MDP.C{g}(No(g),1)      - prior preferences over outcomes in modality g
 % MDP.D{f}(Ns(f),1)      - prior probabilities over initial states
-% MDP.E{f}(Nu(f),1)      - prior probabilities over paths
+% MDP.E{f}(Nu(f),1)      - prior probabilities over initial paths
 % MDP.H{f}(Ns(f),1)      - prior probabilities over final sates
 %
 % MDP.a{g}              - concentration parameters for A
@@ -108,11 +108,11 @@ end
 %--------------------------------------------------------------------------
 if ~isfield(MDP,'C')
     for g = 1:Ng
-        MDP.C{g} = zeros(No(g),1);
+        MDP.C{g} = spm_dir_norm(ones(No(g),1));
     end
 end
 for g = 1:Ng
-    MDP.C{g} = MDP.C{g}(:);
+    MDP.C{g} = spm_dir_norm(MDP.C{g}(:));
     if No(g) ~= size(MDP.C{g},1)
         error(['please ensure A{' num2str(g) '} and C{' num2str(g) '} are consistent'])
     end
@@ -203,12 +203,28 @@ for f = 1:Nf
 end
 
 
-% check id
-%--------------------------------------------------------------------------
+% check domains and co-domains
+%==========================================================================
+% id.g      -  Indices of selected output modalities              
+% id.A{g}   -  Indices of likelihood factors this modality (domain)
+
+
 if ~isfield(MDP,'id')
+    MDP.id.g  = {1:Ng};                         % Default (all modalities)
+    MDP.id.ig = 1;                              % Default (first)
     for g = 1:Ng
-        MDP.id.A{g} = 1:(ndims(MDP.A{g}) - 1);
+        MDP.id.A{g} = 1:(ndims(MDP.A{g}) - 1);  % Default (leading factors)
     end
+end
+try
+    MDP.id.g;
+catch
+    MDP.id.g = {1:Ng};
+end
+try
+    MDP.id.ig;
+catch
+    MDP.id.ig = 1;
 end
 for g = 1:Ng
     try
@@ -223,7 +239,7 @@ end
 
 
 % check initial states
-%--------------------------------------------------------------------------
+%==========================================================================
 if isfield(MDP,'s')
     if size(MDP.s,1) > numel(MDP.B)
         error('please specify an initial state MDP.s for %i factors',Nf)
@@ -250,7 +266,7 @@ end
 
 % check factors and outcome modalities have proper labels
 %--------------------------------------------------------------------------
-for i = 1:Nf
+for i = 1:min(Nf,4)
     
     % name of factors
     %----------------------------------------------------------------------

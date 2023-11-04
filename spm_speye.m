@@ -1,11 +1,12 @@
-function [D] = spm_speye(m,n,k,c)
+function [D] = spm_speye(m,n,k,c,o)
 % Sparse leading diagonal matrix
-% FORMAT [D] = spm_speye(m,n,k,c)
+% FORMAT [D] = spm_speye(m,n,k,c,o)
 %
-% returns an m x n matrix with ones along the k-th leading diagonal. If
+% Returns an m x n matrix with ones along the k-th leading diagonal. If
 % called with an optional fourth argument c = 1, a wraparound sparse matrix
 % is returned. If c = 2, then empty rows or columns are filled in on the
-% leading diagonal.
+% leading diagonal. The final (order) argument (o) returns D^o. The default
+% value is o = 1.
 %__________________________________________________________________________
 
 % Karl Friston
@@ -14,6 +15,7 @@ function [D] = spm_speye(m,n,k,c)
 
 % default k = 0
 %--------------------------------------------------------------------------
+if nargin < 5, o = 1; end
 if nargin < 4, c = 0; end
 if nargin < 3, k = 0; end
 if nargin < 2, n = m; end
@@ -33,5 +35,5 @@ if c == 1
 elseif c == 2
     i = find(~any(D));
     D = D + sparse(i,i,1,n,m);
-    
 end
+D  = D^o;

@@ -212,9 +212,9 @@ end
 % uninformative preferences over vision
 %--------------------------------------------------------------------------
 for g = 1:numel(A)
-    C{g} = zeros(1,size(A{g},1));
+    C{g} = ones(1,size(A{g},1));
 end
-C{end}   = [4; 0]; %%%%
+C{end}   = spm_softmax([4; 0]); %%%%
 
 
 % This concludes the ABC of the model; namely, the likelihood mapping,

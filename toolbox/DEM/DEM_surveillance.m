@@ -444,12 +444,12 @@ end
 %     'landmark-far',...        13
 %     'distance',...            14
 %--------------------------------------------------------------------------
-C{1}  = [2 -1 2 -1 2 -1 0 0 0 0 0 0 0 0];
+C{1}  = spm_softmax([2 -1 2 -1 2 -1 0 0 0 0 0 0 0 0]');
 
 % and uninformative preferences over peripheral vision
 %--------------------------------------------------------------------------
 for i = 2:numel(A)
-    C{i}  = zeros(1,size(A{i},1));
+    C{i} = ones(size(A{i},1),1);
 end
 
 % This concludes the ABC of the model; namely, the likelihood mapping,

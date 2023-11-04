@@ -112,8 +112,8 @@ B{2}  = eye(2);
 % Finally, we have to specify the prior preferences in terms of log
 % probabilities over outcomes. Here, the agent prefers rewards to losses
 %--------------------------------------------------------------------------
-C{1}  = [0 0 0 0 0]';
-C{2}  = [0  2 -4]';
+C{1}  = spm_softmax([0 0 0 0 0]');
+C{2}  = spm_softmax([0  2 -4]');
  
 % now specify prior beliefs about initial states, in terms of counts. Here
 % the hidden states are factorised into location and context:
