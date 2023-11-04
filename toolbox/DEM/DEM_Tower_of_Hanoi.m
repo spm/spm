@@ -310,10 +310,10 @@ end
 % consolidate learning, using Bayesian model reduction    
 %--------------------------------------------------------------------------
 for g = 1:Ng
-     mdp.a{g} = spm_MDP_VB_prune(mdp.a{g},mdp.p,0,0,0,'SIMPLE')*512;
+     mdp.a{g} = spm_MDP_VB_prune(mdp.a{g},mdp.p,0,0,1,'SIMPLE')*512;
 end
 for f = 1:Nf
-     mdp.b{f} = spm_MDP_VB_prune(mdp.b{f},mdp.p,0,0,0,'SIMPLE')*512;
+     mdp.b{f} = spm_MDP_VB_prune(mdp.b{f},mdp.p,0,0,1,'SIMPLE')*512;
 end
 
 % Illustrate learned transition priors
@@ -490,8 +490,6 @@ if MDP.T > 8
 end
 
 
-
-
 return
 
 function t = spm_target(s,n,B)
@@ -536,26 +534,10 @@ function C = spm_cost(r,A)
 % Cost
 %==========================================================================
 for g = 1:numel(A)
-    C{g} = A{g}(:,r);
+    C{g} = spm_softmax(A{g}(:,r));
 end
 
 return
-
-%% routines that call spm_MDP_VB_XXX
-%--------------------------------------------------------------------------
-% Routine:                   Demonstrating
-%--------------------------------------------------------------------------
-DEM_demo_MDP_XXX            % context learning
-DEMO_MDP_maze_X             % no inductive inference
-DEMO_MDP_maze_XXX           % Expected information gain (parameters)
-DEM_surveillance            % Factorial problem
-DEM_sharingX                % Active selection with hyperlinks
-DEM_dSprites                % Structure learning with dynamics
-DEM_Tower_of_Hanoi          % Active inference and structure learning
-DEM_MNIST                   % Active selection without dynamics
-
-%%% DEM_syntax
-
 
 
 

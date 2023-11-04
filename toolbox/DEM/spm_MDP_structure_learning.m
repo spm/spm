@@ -269,7 +269,7 @@ return
 %     % Bayesian model reduction
 %     %--------------------------------------------------------------------
 %     for g = 1:Ng
-%         mdp.a{g} = spm_MDP_VB_prune(mdp.a{g},mdp.p,0,0,0,'SIMPLE');
+%         mdp.a{g} = spm_MDP_VB_prune(mdp.a{g},mdp.p,0,0,1,'SIMPLE');
 %     end
 
 function mdp = spm_expand(mdp,n,s,u,OPTIONS)

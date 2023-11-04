@@ -51,6 +51,6 @@ xlabel('latent states'),ylabel('outcomes')
 % And allowable state transitions
 %--------------------------------------------------------------------------
 subplot(2,2,4)
-imagesc(sum(MDP.b{1},3) > 1/32),axis square
+imagesc(sum(MDP.b{1},3) > 1/4),axis square
 title('Allowable transitions','FontSize',14), axis square
 xlabel('latent states'),ylabel('latent states')

@@ -8,7 +8,7 @@ function [MDP] = spm_MDP_VB_XXX(MDP,OPTIONS)
 %
 % MDP.A{G}(O,N1,...,NF) - likelihood of O outcomes for modality G, given hidden states
 % MDP.B{F}(N,N,U)       - transitions among N states under U control states
-% MDP.C{G}(O,1)         - prior probabilities over outcomes       (log preferences)
+% MDP.C{G}(O,1)         - prior probabilities over outcomes       (Dirichlet counts)
 % MDP.D{F}(N,1)         - prior probabilities over initial states (Dirichlet counts)
 % MDP.E{F}(U,1)         - prior probabilities over paths          (Dirichlet counts)
 % MDP.H{F}(N,1)         - prior probabilities over final states   (Dirichlet counts)
@@ -299,7 +299,6 @@ for m = 1:Nm
     % allow for differences between the model (b) and process (B)
     %----------------------------------------------------------------------
     NF    = Nf;
-    NS    = Ns;
     NU    = Nu;
     if isfield(MDP(m),'b')
         Nf(m) = numel(MDP(m).b);               % number of hidden factors
@@ -319,30 +318,52 @@ for m = 1:Nm
         % parameters (concentration parameters): a
         %------------------------------------------------------------------
         if isfield(MDP,'a')
-            a{m,g} = MDP(m).a{g};
+            qa{m,g} = MDP(m).a{g};
         else
-            a{m,g} = MDP(m).A{g}*512;
+            qa{m,g} = MDP(m).A{g}*512;
         end
+
+        % Dirichlet prior
+        %------------------------------------------------------------------
+        pa{m,g} = qa{m,g};
 
         % normalised likelihood
         %------------------------------------------------------------------
-        A{m,g} = spm_norm(a{m,g});
+        A{m,g}  = spm_norm(qa{m,g});
 
         % prior concentration parameters and novelty (W)
         %------------------------------------------------------------------
         if isfield(MDP,'a')
-            W{m,g} = spm_wnorm(a{m,g});
+            W{m,g} = spm_wnorm(qa{m,g});
         else
             W{m,g} = false;
         end
 
         % and ambiguity (w) (for computation of expected free energy: G)
         %------------------------------------------------------------------
-        if islogical(a{m,g})
+        if islogical(qa{m,g})
             K{m,g} = false;
         else
-            K{m,g} = spm_hnorm(a{m,g});
+            K{m,g} = spm_hnorm(qa{m,g});
     end
+
+        % prior preferences over outcomes (concentration parameters) : C
+        %----------------------------------------------------------------------
+        if isfield(MDP,'c')
+            qc{m,g} = MDP(m).c{g};
+        elseif isfield(MDP,'C')
+            qc{m,g} = MDP(m).C{g}*512;
+        else
+            qc{m,g} = ones(No(m,g),1);
+        end
+
+        % Dirichlet prior
+        %------------------------------------------------------------------
+        pc{m,g} = qc{m,g};
+
+        % prior preferences (concentration parameters) : C
+        %------------------------------------------------------------------
+        C{m,g}  = spm_norm(qc{m,g});
 
     end
 
@@ -353,19 +374,23 @@ for m = 1:Nm
         % parameters (concentration parameters): b
         %--------------------------------------------------------------
         if isfield(MDP,'b')
-            b{m,f} = MDP(m).b{f};
+            qb{m,f} = MDP(m).b{f};
         else
-            b{m,f} = MDP(m).B{f}*512;
+            qb{m,f} = MDP(m).B{f}*512;
         end
+
+        % Dirichlet prior
+        %------------------------------------------------------------------
+        pb{m,f} = qb{m,f};
 
         % normalised transition probabilities
         %------------------------------------------------------------------
-        B{m,f}     = spm_norm(b{m,f});
+        B{m,f}  = spm_norm(qb{m,f});
 
         % prior concentration parameters and novelty (I)
         %------------------------------------------------------------------
         if isfield(MDP,'b')
-            I{m,f} = spm_wnorm(b{m,f});
+            I{m,f} = spm_wnorm(qb{m,f});
         else
             I{m,f} = false;
         end
@@ -373,65 +398,59 @@ for m = 1:Nm
         % priors over initial hidden states: concentration parameters
         %------------------------------------------------------------------
         if isfield(MDP,'d')
-            d{m,f} = MDP(m).d{f};
+            qd{m,f} = MDP(m).d{f};
         elseif isfield(MDP,'D')
-            d{m,f} = MDP(m).D{f}*512;
+            qd{m,f} = MDP(m).D{f}*512;
         else
-            d{m,f} = ones(Ns(m,f),1);
+            qd{m,f} = ones(Ns(m,f),1);
         end
+
+        % Dirichlet prior
+        %------------------------------------------------------------------
+        pd{m,f} = qd{m,f};
 
         % normalised prior probabilities
         %------------------------------------------------------------------
-        D{m,f}     = spm_norm(d{m,f});
+        D{m,f}  = spm_norm(qd{m,f});
 
         % priors over final hidden states: concentration parameters
         %------------------------------------------------------------------
         if isfield(MDP,'h')
-            h{m,f} = MDP(m).h{f};
+            qh{m,f} = MDP(m).h{f};
         elseif isfield(MDP,'H')
-            h{m,f} = MDP(m).H{f}*512;
+            qh{m,f} = MDP(m).H{f}*512;
         else
-            h{m,f} = ones(Ns(m,f),1);
+            qh{m,f} = ones(Ns(m,f),1);
         end
+
+        % Dirichlet prior
+        %------------------------------------------------------------------
+        ph{m,f} = qh{m,f};
 
         % normalised prior probabilities
         %------------------------------------------------------------------
-        H{m,f}     = spm_norm(h{m,f});
+        H{m,f}  = spm_norm(qh{m,f});
 
         % priors over paths (control states): concentration parameters
         %------------------------------------------------------------------
         if isfield(MDP,'e')
-            e{m,f} = MDP(m).e{f};
+            qe{m,f} = MDP(m).e{f};
         elseif isfield(MDP,'E')
-            e{m,f} = MDP(m).E{f}*512;
+            qe{m,f} = MDP(m).E{f}*512;
         else
-            e{m,f} = ones(Nu(m,f),1);
+            qe{m,f} = ones(Nu(m,f),1);
         end
+
+        % Dirichlet prior
+        %------------------------------------------------------------------
+        pe{m,g} = qe{m,f};
 
         % normalised prior probabilities
         %------------------------------------------------------------------
-        E{m,f}     = spm_norm(e{m,f});
+        E{m,f}  = spm_norm(qe{m,f});
 
     end
 
-
-    % prior preferences over outcomes (log probabilities) : C
-    %----------------------------------------------------------------------
-    for g = 1:Ng(m)
-
-        if isfield(MDP,'c')
-            c{m,g} = MDP(m).c{g};
-        elseif isfield(MDP,'C')
-            c{m,g} = MDP(m).C{g};
-        else
-            c{m,g} = zeros(No(m,g),1);
-        end
-
-        % prior preferences (log probabilities) : C
-        %------------------------------------------------------------------
-        C{m,g} = spm_log(spm_softmax(c{m,g}));
-
-    end
 
     % allowable actions (U)
     %----------------------------------------------------------------------
@@ -533,7 +552,7 @@ for m = 1:Nm
         end
     end
 
-    % replace marginal end states H{f} if specified as d
+    % replace marginal end states H{f} if specified as hid
     %----------------------------------------------------------------------
     if isfield(MDP(m),'hid')
         H   = cell(m,1);
@@ -624,7 +643,7 @@ for t = 1:T
 
                     % domain of A{g}
                     %------------------------------------------------------
-                    j     = id{m}.A{g};
+                    j     = spm_get_j(id{m},g,Q(m,:,t));
                     qo{g} = spm_dot(A{m,g},Q(m,j,t));
 
                 end
@@ -704,15 +723,23 @@ for t = 1:T
 
     % generate outcomes O{m,g,t} for each agent or model
     %======================================================================
+    
     for m = M(t,:)
+
+        % selected outcome modalities
+        %------------------------------------------------------------------
+        if numel(id{m}.ig) < t
+            id{m}.ig(t) = 1;
+        end
+        ig{m} = id{m}.g{id{m}.ig(t)}(:)';
 
         % sample outcome, if not specified
         %------------------------------------------------------------------
-        for g = 1:Ng(m)
+        for g = ig{m}
 
             % domain of A{g}
             %--------------------------------------------------------------
-            j  = id{m}.A{g};
+            j   = spm_get_j(id{m},g,MDP(m).s(:,t));
 
             % if outcome is not specified
             %--------------------------------------------------------------
@@ -750,8 +777,7 @@ for t = 1:T
 
                     % or default sample from likelihood, given hidden state
                     %======================================================
-                    ind           = MDP(m).s(:,t);
-                    ind           = num2cell(ind(j));
+                    ind           = num2cell(MDP(m).s(j,t));
                     O{m,g,t}      = MDP(m).A{g}(:,ind{:});
                     MDP(m).o(g,t) = find(rand < cumsum(O{m,g,t}),1);
 
@@ -772,7 +798,7 @@ for t = 1:T
     % shared probabilistic outcomes O{m,g,t} and realizatons MDP(m).o(g,t)
     %======================================================================
     for m = M(t,:)
-        for g = 1:Ng(m)
+        for g = ig{m}
 
             % share outcomes if specified in MDP.m
             %--------------------------------------------------------------
@@ -852,33 +878,6 @@ for t = 1:T
                 end
             end
 
-
-            % empirical prior preferences
-            %--------------------------------------------------------------
-            if isfield(MDP,'linkC')
-                for f = 1:size(MDP(m).linkC,1)
-                    for g = 1:size(MDP(m).linkC,2)
-                        if ~isempty(MDP(m).linkC{f,g})
-                            O{m,g,t} = spm_dot(A{m,g},Q(m,:,t));
-                            mdp.C{f} = spm_log(MDP(m).linkC{f,g}*O{m,g,t});
-                        end
-                    end
-                end
-            end
-
-            % empirical priors over policies
-            %--------------------------------------------------------------
-            if isfield(MDP,'linkE')
-                mdp.factorE = [];
-                for g = 1:size(MDP(m).linkE,2)
-                    if ~isempty(MDP(m).linkE{g})
-                        O{m,g,t} = spm_dot(A{m,g},Q(m,:,t));
-                        mdp.E    = MDP(m).linkE{g}*O{m,g,t};
-                    end
-                end
-            end
-
-
             % infer hidden states at lower level (outcomes at this level)
             %==============================================================
             OPT.B         = 1;
@@ -895,67 +894,7 @@ for t = 1:T
                 end
             end
 
-            % if hierarchical preferences, these contribute to outcomes ...
-            %--------------------------------------------------------------
-            if isfield(MDP,'linkC')
-                for f = 1:size(MDP(m).linkC,1)
-                    for g = 1:size(MDP(m).linkC,2)
-                        if ~isempty(MDP(m).linkC{f,g})
-                            indC     = sparse(MDP(m).mdp(t).o(f,:)',1:length(MDP(m).mdp(t).o(f,:)),ones(length(MDP(m).mdp(t).o(f,:)),1),size(MDP(m).mdp(t).C{f},1),size(MDP(m).mdp(t).C{f},2));
-                            O{m,g,t} = spm_softmax(spm_log(O{m,g,t}) + MDP(m).linkC{f,g}'*sum((indC.*(MDP(m).mdp(t).C{f})),2));
-                        end
-                    end
-                end
-            end
-
-            % ... and the same for policies
-            %--------------------------------------------------------------
-            if isfield(MDP,'linkE')
-                for g = 1:size(MDP(m).linkE,2)
-                    if ~isempty(MDP(m).linkE{g})
-                        O{m,g,t} = spm_softmax(spm_log(O{m,g,t}) + spm_log(MDP(m).linkE{g}'*MDP(m).mdp(t).R(:,end)));
-                    end
-                end
-            end
-
-            % ensure DEM starts with final states from previous inversion
-            %--------------------------------------------------------------
-            if isfield(MDP(m).MDP,'demi')
-                MDP(m).MDP.DEM.G(1).x = MDP(m).mdp(t).dem(end).pU.x{1}(:,end);
-                MDP(m).MDP.DEM.M(1).x = MDP(m).mdp(t).dem(end).qU.x{1}(:,end);
-            end
-
-        end % end of hierarchical mode (link)
-
-
-        % or generate outcome likelihoods from a variational filter
-        %==================================================================
-        if isfield(MDP,'demi')
-
-            % use previous inversions (if available)
-            %--------------------------------------------------------------
-            try
-                MDP(m).dem(t) = spm_ADEM_update(MDP(m).dem(t - 1));
-            catch
-                MDP(m).dem(t) = MDP(m).DEM;
-            end
-
-            % get prior over outcomes
-            %--------------------------------------------------------------
-            for g = 1:Ng(m)
-                O{m,g,t} = spm_dot(A{m,g},Q(m,:,t));
-            end
-
-            % get posterior outcome from Bayesian filtering
-            %--------------------------------------------------------------
-            MDP(m).dem(t) = spm_MDP_DEM(MDP(m).dem(t),...
-                MDP(m).demi,O(m,:,t),MDP(m).o(:,t));
-
-            for g = 1:Ng(m)
-                O{m,g,t} = MDP(m).dem(t).X{g}(:,end);
-            end
-
-        end % end outcomes from Bayesian filter
+        end % end of hierarchical mode
 
     end % end loop over models or agents
 
@@ -983,7 +922,12 @@ for t = 1:T
 
                     % transitions and novelty for this policy
                     %------------------------------------------------------
+                    if isscalar(P{m,f,t})
+                        BP{m,f,k} = B{m,f};
+                    else
                     BP{m,f,k} = spm_dot(B{m,f},P(m,f,t));
+                    end
+
                     if any(I{m,f},'all')
                         IP{m,f,k} = spm_dot(I{m,f},P(m,f,t));
                     else
@@ -997,7 +941,7 @@ for t = 1:T
 
         % posterior over hidden states (Q) and expected free energy (G)
         %==================================================================
-        [G,Q,F] = spm_forwards(O,Q,A,BP,C,H,K,W,IP,t,T,min(T,t + N),m,id);
+        [G,Q,F,id] = spm_forwards(O,Q,A,BP,C,H,K,W,IP,t,T,min(T,t + N),m,id);
 
         % augment with prior probability over paths
         %------------------------------------------------------------------
@@ -1079,27 +1023,27 @@ for t = 1:T
 
         % mapping from hidden states to outcomes: a
         %------------------------------------------------------------------
-        if isfield(MDP(m),'a') && any(U{m})
-            for g = 1:Ng(m)
+        if isfield(MDP(m),'a')
+            for g = ig{m}
 
                 % domain of A{g}
                 %----------------------------------------------------------
-                j      = id{m}.A{g};
+                j            = spm_get_j(id{m},g,Q(m,:,t));
                 da     = spm_cross(O(m,g,t),Q{m,j,t});
-                da     = da.*(a{m,g} > 0);
+                da(~qa{m,g}) = 0;
 
                 % update likelihood Dirichlet parameters
                 %----------------------------------------------------------
-                a{m,g} = a{m,g} + da;
-                A{m,g} = spm_norm(a{m,g});
+                qa{m,g} = qa{m,g} + da;
+                A{m,g}  = spm_norm(qa{m,g});
 
                 % prior concentration parameters and novelty (W)
                 %----------------------------------------------------------
-                W{m,g} = spm_wnorm(a{m,g});
+                W{m,g} = spm_wnorm(qa{m,g});
 
                 % and ambiguity (w)
                 %----------------------------------------------------------
-                K{m,g} = spm_hnorm(a{m,g});
+                K{m,g} = spm_hnorm(qa{m,g});
 
             end
         end
@@ -1112,16 +1056,16 @@ for t = 1:T
                 % domain of B{f}
                 %----------------------------------------------------------
                 db = spm_cross(spm_cross(Q{m,f,t},Q{m,f,t - 1}),P{m,f,t - 1});
-                db = db.*(MDP(m).b{f} > 0);
+                db(~qb{m,f}) = 0;
 
                 % update prior Dirichlet parameters
                 %----------------------------------------------------------
-                b{m,f} = b{m,f} + db;
-                B{m,f} = spm_norm(b{m,f});
+                qb{m,f} = qb{m,f} + db;
+                B{m,f}  = spm_norm(qb{m,f});
 
                 % prior concentration parameters and novelty (W)
                 %----------------------------------------------------------
-                I{m,f} = spm_wnorm(b{m,f});
+                I{m,f} = spm_wnorm(qb{m,f});
 
         end
         end
@@ -1195,23 +1139,7 @@ for m = 1:size(MDP,1)
         end
     end
 
-        % reset parameters (concentration parameters): a
-        %------------------------------------------------------------------
-        for g = 1:Ng(m)
-            if isfield(MDP,'a')
-                a{m,g} = MDP(m).a{g};
-            end
-        end
-        
-        % reset parameters (concentration parameters): b
-        %------------------------------------------------------------------
-        for f = 1:Nf(m)
-            if isfield(MDP,'b')
-                b{m,f} = MDP(m).b{f};
-            end
-        end
-        
-        [Q,P,F]  = spm_backwards(O,P,Q,D,E,a,b,U,m,id);
+        [Q,P,qa,qb,F]  = spm_backwards(O,P,Q,D,E,pa,pb,U,m,id);
 
         % update free energy
         %------------------------------------------------------------------
@@ -1220,60 +1148,26 @@ for m = 1:size(MDP,1)
     end
 
 
-    % prior Dirichlet parameters
-    %======================================================================
-
-    % over likelihood
-    %----------------------------------------------------------------------
-    for g = 1:Ng(m)
-        if isfield(MDP,'a')
-            pA{m,g} = MDP(m).a{g};
-        end
-        if isfield(MDP,'c')
-            pC{m,g} = MDP(m).c{g};
-        end
-    end
-
-    %  over hidden states
-    %----------------------------------------------------------------------
-    for f = 1:Nf(m)
-        if isfield(MDP,'b')
-            pB{m,f} = MDP(m).b{f};
-        end
-        if isfield(MDP,'d')
-            pD{m,f} = MDP(m).d{f};
-        end
-        if isfield(MDP,'e')
-            pE{m,f} = MDP(m).e{f};
-        end
-    end
-
-
     % learning - accumulate concentration parameters
     %======================================================================
 
         % likelihood mapping from hidden states to outcomes: a
-        %------------------------------------------------------------------
+    %----------------------------------------------------------------------
         if isfield(MDP(m),'a')
-            for g = 1:Ng(m)
-            da = 0;
-            for t = 1:T
-                j  = id{m}.A{g};
-                da = da + spm_cross(O(m,g,t),Q{m,j,t});
 
-            end
-            da = da.*(MDP(m).a{g} > 0);
+        for g = 1:Ng(m)
 
             % active learning (based on expected free energy)
             %--------------------------------------------------------------
             if beta
-            Fa(1,1)     = spm_MDP_MI(MDP(m).a{g},C{m,g});
-            Fa(2,1)     = spm_MDP_MI(MDP(m).a{g} + da,C{m,g});
+                Fa(1,1) = spm_MDP_MI(pa{m,g},C{m,g});
+                Fa(2,1) = spm_MDP_MI(qa{m,g},C{m,g});
             Pa          = spm_softmax(beta*Fa);
-            MDP(m).a{g} = (MDP(m).a{g} + Pa(2)*da)*eta/(eta + Pa(2));
             else
-                MDP(m).a{g} = (MDP(m).a{g} + da)*eta/(eta + 1);
+                Pa      = [0,1];
             end
+
+            MDP(m).a{g} = (Pa(1)*pa{m,g} + Pa(2)*qa{m,g})*eta/(eta + Pa(2));
 
             end
         end
@@ -1282,33 +1176,29 @@ for m = 1:size(MDP,1)
     %----------------------------------------------------------------------
     if isfield(MDP,'b')
             for f = 1:Nf(m)
-            db = 0;
-            for t = 1:(T - 1)
-                db = db + spm_cross(spm_cross(Q{m,f,t + 1},Q{m,f,t}),P{m,f,t});
-            end
-            db = db.*(MDP(m).b{f} > 0);
 
             % active learning (based on expected free energy)
             %--------------------------------------------------------------
             if beta
-                Fa(1,1)     = spm_MDP_MI(MDP(m).b{f});
-                Fa(2,1)     = spm_MDP_MI(MDP(m).b{f} + db);
+                Fa(1,1) = spm_MDP_MI(pb{m,f});
+                Fa(2,1) = spm_MDP_MI(qb{m,f});
                 Pa          = spm_softmax(beta*Fa);
-                MDP(m).b{f} = (MDP(m).b{f} + Pa(2)*db)*eta/(eta + Pa(2));
             else
-            MDP(m).b{f} = (MDP(m).b{f} + db)*eta/(eta + 1);
+                Pa      = [0,1];
         end
+
+            MDP(m).b{f} = (Pa(1)*pb{m,f} + Pa(2)*qb{m,f})*eta/(eta + Pa(2));
 
         end
     end
 
     % accumulation of prior preferences: (c)
     %----------------------------------------------------------------------
-    if isfield(MDP,'c') && t < T
-        for g = 1:Ng(m)
+    if isfield(MDP,'c')
+        for g  = ig{m}
             dc = O{m,g,t + 1};
-            dc = dc.*(MDP(m).c{g} > 0);
-            MDP(m).c{g} = (MDP(m).c{g} + dc)*eta/(eta + 1);
+            dc = dc.*(pc{m,g} > 0);
+            MDP(m).c{g} = (pc{m,g} + dc)*eta/(eta + 1);
         end
     end
 
@@ -1317,29 +1207,30 @@ for m = 1:size(MDP,1)
     if isfield(MDP,'d')
         for f = 1:Nf(m)
             dd = Q{m,f,1};
-            dd = dd.*(MDP(m).d{f} > 0);
-            MDP(m).d{f} = (MDP(m).d{f} + dd)*eta/(eta + 1);
+            dd = dd.*(pd{m,f} > 0);
+            MDP(m).d{f} = (pd{m,f} + dd)*eta/(eta + 1);
         end
     end
 
-    % initial hidden states:
+    % initial hidden paths:
     %----------------------------------------------------------------------
     if isfield(MDP,'e')
         for f = 1:Nf(m)
             de = P{m,f,1};
-            de = de.*(MDP(m).e{f} > 0);
-            MDP(m).e{f} = (MDP(m).e{f} + de)*eta/(eta + 1);
+            de = de.*(pe{m,f} > 0);
+            MDP(m).e{f} = (pe{m,f} + de)*eta/(eta + 1);
         end
     end
+
 
     % (negative) free energy of parameters (complexity): outcome specific
     %======================================================================
     for g = 1:Ng(m)
         if isfield(MDP,'a')
-            MDP(m).Fa(g) = - spm_KL_dir(MDP(m).a{g},pA{m,g});
+            MDP(m).Fa(g) = - spm_KL_dir(MDP(m).a{g},pa{m,g});
         end
         if isfield(MDP,'c')
-            MDP(m).Fc(f) = - spm_KL_dir(MDP(m).c{g},pC{g});
+            MDP(m).Fc(f) = - spm_KL_dir(MDP(m).c{g},pc{m,g});
         end
     end
 
@@ -1347,13 +1238,13 @@ for m = 1:size(MDP,1)
     %----------------------------------------------------------------------
     for f = 1:Nf(m)
         if isfield(MDP,'b')
-            MDP(m).Fb(f) = - spm_KL_dir(MDP(m).b{f},pB{m,f});
+            MDP(m).Fb(f) = - spm_KL_dir(MDP(m).b{f},pb{m,f});
         end
         if isfield(MDP,'d')
-            MDP(m).Fd(f) = - spm_KL_dir(MDP(m).d{f},pD{m,f});
+            MDP(m).Fd(f) = - spm_KL_dir(MDP(m).d{f},pd{m,f});
         end
         if isfield(MDP,'e')
-            MDP(m).Fe(f) = - spm_KL_dir(MDP(m).e{f},pE{m,f});
+            MDP(m).Fe(f) = - spm_KL_dir(MDP(m).e{f},pe{m,f});
         end
     end
 
@@ -1361,8 +1252,9 @@ for m = 1:size(MDP,1)
     %======================================================================
     for g = 1:Ng(m)
         for t = 1:T
-            j = id{m}.A{g};
+            j             = spm_get_j(id{m},g,Q(m,:,t));
             MDP(m).Y{g,t} = spm_dot(A{m,g},Q(m,j,t));
+            MDP(m).j{g,t} = j;
         end
     end
 
@@ -1452,9 +1344,8 @@ for m = 1:size(MDP,1)
     % assemble results and place in NDP structure
     %======================================================================
     MDP(m).T  = T;            % number of outcomes
-    MDP(m).U  = V{m};         % policies
+    MDP(m).U  = V{m};         % policies (combinations of controlled paths)
     MDP(m).R  = R{m};         % conditional expectations over policies
-    MDP(m).C  = C(m,:);       % utility
     MDP(m).X  = X(m,:);       % conditional expectations over states
     MDP(m).P  = S(m,:);       % conditional expectations over paths
     MDP(m).O  = O(m,:,:);     % outcomes
@@ -1463,6 +1354,8 @@ for m = 1:size(MDP,1)
 
     MDP(m).O  = shiftdim(MDP(m).O,1);
     MDP(m).P  = shiftdim(MDP(m).P,1);
+
+    MDP(m).id = id{m};        % indices or domain identifiers
 
     if OPTIONS.N
 
@@ -1492,7 +1385,7 @@ end
 
 % auxillary functions
 %==========================================================================
-function [G,P,F] = spm_forwards(O,P,A,B,C,H,K,W,I,t,T,N,m,id)
+function [G,P,F,id] = spm_forwards(O,P,A,B,C,H,K,W,I,t,T,N,m,id)
 % deep tree search over policies or paths
 %--------------------------------------------------------------------------
 % FORMAT [G,Q,F] = spm_forwards(O,P,A,B,C,H,K,W,I,t,T,N,m)
@@ -1530,7 +1423,10 @@ function [G,P,F] = spm_forwards(O,P,A,B,C,H,K,W,I,t,T,N,m,id)
 
 % Posterior over hidden states based on likelihood (A) and priors (P)
 %==========================================================================
-G        = zeros(size(B,3),1);                    % log priors over actions
+Ni       = numel(id{m}.g);                  % numer of covert policies
+Nk       = size(B,3);                       % number of overt policies
+Nf       = size(B,2);                       % number of factors
+G        = zeros(Nk,Ni);                    % log priors over policies
 
 % variational (Bayesian) belief updating and free energy (ELBO)
 %--------------------------------------------------------------------------
@@ -1540,7 +1436,7 @@ P(m,:,t) = Q;
 
 % terminate search at time horizon
 %--------------------------------------------------------------------------
-if t == T || size(B,3) == 1, return, end
+if t > T || numel(G) == 1, return, end
 
 % Constraints on next state (inductive inference)
 %==========================================================================
@@ -1548,24 +1444,21 @@ R     = spm_induction(A(m,:),B(m,:,:),C(m,:),H(m,:),Q,(T - t),id{m});
 
 % Expected free energy of subsequent action
 %==========================================================================
-for k = 1:size(B,3)                               % search over actions
+Q     = cell(Nf,Nk);                        % predictive posterior
+for k = 1:Nk                                % search over policies
 
     % (negative) expected free energy
     %----------------------------------------------------------------------
-    for f = 1:size(B,2)
+    for f = 1:Nf
 
         % predictive posterior
         %------------------------------------------------------------------
         Q{f,k} = B{m,f,k}*P{m,f,t};
 
-        % G(k): risk over states (entropy)
-        %------------------------------------------------------------------
-        G(k)   = G(k) - Q{f,k}'*spm_log(Q{f,k});
-
-        % expected information gain (prior novelty)
+        % expected information gain (transition novelty) (B)
         %------------------------------------------------------------------
         if any(I{m,f,k},'all')
-            G(k) = G(k) + P{m,f,t}'*I{1,f,k}*Q{f,k};
+            G(k,:) = G(k,:) + P{m,f,t}'*I{1,f,k}*Q{f,k};
         end
 
     end
@@ -1573,39 +1466,51 @@ for k = 1:size(B,3)                               % search over actions
     % inductive constraints over states
     %----------------------------------------------------------------------
     if any(R,'all')
-        G(k) = G(k) + spm_dot(R,Q(:,k));
+        G(k,:) = G(k,:) + spm_dot(R,Q(:,k));
     end
 
     % and outcomes
     %----------------------------------------------------------------------
-    for g  = 1:size(A,2)                          % for all modalities
+    for i = 1:Ni
 
-        % domain of A{g}
-        %------------------------------------------------------------------
-        j    = id{m}.A{g};
+        for g  = id{m}.g{i}(:)'           % for these modalities
+
+            % (state-dependent) domain of A{g}
+            %--------------------------------------------------------------
+            j      = spm_get_j(id{m},g,Q(:,k));
 
         % predictive posterior and prior over outcomes
-        %------------------------------------------------------------------
+            %--------------------------------------------------------------
         qo   = spm_dot(A{m,g},Q(j,k));
 
         % G(k): risk over outomes
-        %-----------------------------------------------------------------
-        G(k) = G(k) - qo'*(spm_log(qo) - C{m,g});
+            %--------------------------------------------------------------
+            G(k,i) = G(k,i) - qo'*(spm_log(qo) - spm_log(C{m,g}));
 
         % G(k): ambiguity
-        %------------------------------------------------------------------
+            %--------------------------------------------------------------
         if any(K{m,g},'all')
-            G(k) = G(k) + spm_dot(K{m,g},Q(j,k));
+                G(k,i) = G(k,i) + spm_dot(K{m,g},Q(j,k));
         end
 
-        % expected information gain (likelihood novelty)
-        %------------------------------------------------------------------
+            % expected information gain (likelihood novelty) (A)
+            %--------------------------------------------------------------
         if any(W{m,g},'all')
-            G(k) = G(k) + qo'*spm_dot(W{m,g},Q(j,k));
+                G(k,i) = G(k,i) + qo'*spm_dot(W{m,g},Q(j,k));
         end
 
     end
 end
+end
+
+% Covert policy (attentional selection of likelihood modalities)
+%--------------------------------------------------------------------------
+[i,j] = max(max(G,[],1));
+G     = G(:,j);
+
+% next covert policy
+%--------------------------------------------------------------------------
+id{m}.ig(t + 1) = j;
 
 
 % deep (recursive) search over action sequences ( i.e., paths)
@@ -1621,24 +1526,25 @@ if t < N
 
     % otherwise, accumulate the path integral of expected free energy
     %----------------------------------------------------------------------
-    for k = 1:size(B,3)                      % search over actions
+    for k = 1:Nk                                 % search over policies
         if u(k)                                  % evaluate plausible paths
 
             %  evaluate expected free energy for plausible hidden states
             %--------------------------------------------------------------
             q     = spm_vec(spm_cross(Q(:,k)));  % vectorise posterior
-            j     = find(q > max(q)/16);
-            if length(j) > 16
-                [q,j] = sort(q,'descend');
-                j     = j(1:16);
+            i     = find(q > max(q)/16);
+            if length(i) > 16
+                [q,i] = sort(q,'descend');
+                i     = i(1:16);
             end
 
-            for i = j(:)'
+            for s = i(:)'
 
-                % outcome probabilities under hidden state (i)
+                % outcome probabilities under this hidden state
                 %----------------------------------------------------------
+                % j     = spm_get_j(id{m},g);
                 for g = 1:size(A,2)
-                    O{m,g,t + 1} = A{m,g}(:,i);
+                    O{m,g,t + 1} = A{m,g}(:,s);
                 end
 
                 % prior over subsequent action under this hidden state
@@ -1648,13 +1554,13 @@ if t < N
 
                 % expected free energy marginalised over subsequent action
                 %----------------------------------------------------------
-                EFE(i) = spm_softmax(E)'*E;
+                EFE(s) = spm_softmax(E)'*E;
 
             end
 
             % accumulate expected free energy marginalised over states
             %--------------------------------------------------------------
-            G(k) = G(k) + EFE(j)*q(j);
+            G(k) = G(k) + EFE(i)*q(i);
 
         end % plausible paths
 
@@ -1664,7 +1570,7 @@ if t < N
 end
 
 
-function [Q,P,F] = spm_backwards(O,P,Q,D,E,a,b,U,m,id)
+function [Q,P,qa,qb,F] = spm_backwards(O,P,Q,D,E,pa,pb,U,m,id)
 % Backwards smoothing to evaluate posterior over initial states
 %--------------------------------------------------------------------------
 % O{m,g,t} - cell array of outcome probabilities for modality g
@@ -1672,8 +1578,8 @@ function [Q,P,F] = spm_backwards(O,P,Q,D,E,a,b,U,m,id)
 % Q{m,f,t} - cell array of posteriors over states
 % D{m,f}   - cell array of priors over initial states
 % E{m,k}   - belief propagators (action dependent probability transitions)
-% a{m,g}   - likelihood tensor  (Dirichlet parameters)
-% b{m,f}   - belief propagators (Dirichlet parameters)
+% pa{m,g}  - likelihood tensor  (Dirichlet parameters)
+% pb{m,f}  - belief propagators (Dirichlet parameters)
 % U{f}   - controllable factors
 % m      - agent or model
 %
@@ -1690,6 +1596,7 @@ function [Q,P,F] = spm_backwards(O,P,Q,D,E,a,b,U,m,id)
 %==========================================================================
 tr    = @(A) pagetranspose(A);
 T     = size(Q,3);
+Nf    = size(Q,2);
 
 % variational iterations
 %--------------------------------------------------------------------------
@@ -1699,8 +1606,8 @@ for v = 1:16
     % initialise posterior Dirichlet parameters
     %----------------------------------------------------------------------
     F    = zeros(1,T);                   % variational free energy (ELBO)
-    qa   = a(m,:);
-    qb   = b(m,:);
+    qa   = pa;
+    qb   = pb;
 
     % acccumulate posterior Dirichlet parameters
     %======================================================================
@@ -1708,18 +1615,19 @@ for v = 1:16
 
         % likelihood mapping from hidden states to outcomes: a
         %------------------------------------------------------------------
-        for g = 1:numel(qa)
-            j     = id{m}.A{g};
-            qa{g} = qa{g} + spm_cross(O{m,g,t},Q{m,j,t});
-            qa{g} = qa{g}.*(a{m,g} > 0);
+        ig    = id{m}.g{id{m}.ig(t)};    % attended modalities
+        for g = ig(:)'
+            j       = spm_get_j(id{m},g,Q(m,:,t));
+            qa{m,g} = qa{m,g} + spm_cross(O{m,g,t},Q{m,j,t});
+            qa{m,g} = qa{m,g}.*(pa{m,g} > 0);
         end
 
         % mapping from hidden states to hidden states: b(u)
         %------------------------------------------------------------------
         if t < T
             for f = 1:numel(qb)
-                qb{f} = qb{f} + spm_cross(spm_cross(Q{m,f,t + 1},Q{m,f,t}),P{m,f,t});
-                qb{f} = qb{f}.*(b{m,f} > 0);
+                qb{m,f} = qb{m,f} + spm_cross(spm_cross(Q{m,f,t + 1},Q{m,f,t}),P{m,f,t});
+                qb{m,f} = qb{m,f}.*(pb{m,f} > 0);
             end
         end
 
@@ -1732,28 +1640,35 @@ for v = 1:16
         % accumulate likelihoods over modalities
         %------------------------------------------------------------------
         L     = 0;
-        for g = 1:numel(qa)
-            j  = id{m}.A{g};
-            LL = spm_dot(spm_norm(qa{g}),O{m,g,t});
+        ig    = id{m}.g{id{m}.ig(t)};    % attended modalities
+        for g = ig(:)'
+            j  = spm_get_j(id{m},g,Q(m,:,t));
+            j  = unique(j,'stable');
+            LL = spm_dot(spm_norm(qa{m,g}),O{m,g,t});
             LL = spm_log(LL);
-            %  = spm_dot(spm_psi(qa{g}),O{m,g,t});
+            %  = spm_dot(spm_psi(qa{m,g}),O{m,g,t});
 
-
-            k  = ones(1,8); k(j) = size(LL,1:numel(j));
+            if numel(j) > 1
+                [j,i] = sort(j);
+                LL    = permute(LL,i);
+            end
+            k  = ones(1,Nf + 1); k(j) = size(LL,1:numel(j));
             L  = plus(L, reshape(LL,k));
         end
 
-        % preclude numerical overflow of log likelihood
+        % factors to update
         %------------------------------------------------------------------
-        L     = max(L,max(L,[],'all') - 16);
+        r     = find(size(L) > 1);
+        L     = squeeze(L);
         
         % posterior over hidden states
         %------------------------------------------------------------------
-        for f = 1:numel(qb)
+        for i = 1:numel(r)
 
             % log likelihood
             %--------------------------------------------------------------
-            LL   = spm_vec(spm_dot(L,Q(m,:,t),f));
+            f    = r(i);
+            LL   = spm_vec(spm_dot(L,Q(m,r,t),i));
 
             % log prior: smoothing
             %--------------------------------------------------------------
@@ -1911,7 +1826,7 @@ Ns    = [Ns,1];                       % size of state space
 L     = zeros(Ns);
 for g = 1:numel(A)
     j = id.A{g};
-    U = spm_dot(A{g},C{g});           % expected cost
+    U = spm_dot(A{g},spm_log(C{g}));  % expected cost
     k = ones(1,numel(Ns)); k(j) = size(U,1:numel(j));
     L = plus(L, reshape(U,k));        % likely states
 end
@@ -2005,6 +1920,40 @@ else
 end
 
 return
+
+function j  = spm_get_j(id,g,Q)
+% FORMAT j  = spm_get_j(id,g,s)
+% Returns the domain (indices) of factors for this likelihood mapping.
+% These domains may or may not be state-dependent. If they are
+% state-dependent, the maximum a posteriori domain is returned.
+%--------------------------------------------------------------------------
+if isfield(id,'fg')
+
+    % Most likely states
+    %----------------------------------------------------------------------
+    if iscell(Q)
+        Ns    = numel(id.ff);
+        s     = zeros(Ns,1);
+        for f = 1:Ns
+            [d,m] = max(Q{id.ff(f)});
+            s(f)  = m;
+        end
+    else
+        s = Q(id.ff);
+    end
+
+    % MAP domain
+    %----------------------------------------------------------------------
+    s  = num2cell(s);
+    j  = id.fg{g}{s{:}};
+
+else
+
+    % State-independent domain
+    %----------------------------------------------------------------------
+    j = id.A{g};
+
+end
 
 
 function A  = spm_log(A)
@@ -2178,15 +2127,21 @@ return
 %--------------------------------------------------------------------------
 % Routine:                   Demonstrating
 %--------------------------------------------------------------------------
-DEM_demo_MDP_XXX            % Active inference with backwards pass
 DEMO_MDP_maze_X             % Sophisticated inference
 DEMO_MDP_maze_XXX           % Inductive inference
-DEM_surveillance            % Factorial problem
-DEM_sharingX                % Active selection with hyperlinks
-DEM_dSprites                % Structure learning with dynamics
+DEM_demo_MDP_XXX            % Active inference with backwards pass
+DEM_MNIST                   % Active selection without dynamics
+DEM_MNIST_XXX               % Active selection of outcomes
+DEM_Pong                    % Inductive inference and dynamics
 DEM_Tower_of_Hanoi          % Active inference and structure learning
 DEM_Tower                   % Inductive inference and problem solving
-DEM_Pong                    % Inductive inference and dynamics
-DEM_MNIST                   % Active selection without dynamics
+DEM_dSprites                % Structure learning with dynamics
+DEM_sharingX                % Active selection with hyperlinks (id.A{g})
+DEM_surveillance            % Factorial problem
+DEM_drone                   % State-dependent likehood domains
+
+
+
+DEM_syntax                  % Under construction
 
 %%% DEM_syntax

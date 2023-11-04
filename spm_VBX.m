@@ -42,8 +42,8 @@ function [P,F] = spm_VBX(O,P,A,id)
 
 % preliminaries
 %--------------------------------------------------------------------------
-TOL    = 16;
-METHOD = 'full';
+METHOD = 'full';                             % belief propagation scheme
+ig     = id.g{id.ig(end)}(:)';               % modalities to sample
 
 switch METHOD
 
@@ -52,40 +52,97 @@ switch METHOD
         %  (iterative) variational scheme
         %==================================================================
 
-        % log prior
+        % log prior : i{f} plausible states of factor f
         %------------------------------------------------------------------
-        for f = 1:numel(P)
-            i{f}  = find(P{f} > exp(-8));
-            Q{f}  = P{f}(i{f});
+        Nf    = numel(P);
+        for f = 1:Nf
+            s{f}  = find(P{f} > exp(-8));
+            Q{f}  = P{f}(s{f});
             LP{f} = spm_vec(spm_log(Q{f}));
         end
 
-        % accumulate log likelihoods over modalities
-        %------------------------------------------------------------------
-        L     = 0 ;
-        for g = 1:numel(O)
-            j  = id.A{g};
-            LL = spm_log(spm_dot(A{g}(:,i{j}),O{g}));
-            
-            k  = ones(1,8); k(j) = size(LL,1:numel(j));
-            L  = plus(L,reshape(LL,k));
+
+        % Update domain factors Q{ff}, if specified
+        %==================================================================
+        if isfield(id,'fg')
+
+            % plausible domains id.fg{g}
+            %--------------------------------------------------------------
+            for g = 1:numel(id.fg)
+                fg{g} = id.fg{g}(s{id.ff});
+            end
+            Ns    = size(fg{1});
+            L     = zeros(Ns);
+
+            % log likelihood of domain factors
+            %--------------------------------------------------------------
+            for g = 1:numel(fg)
+                for l = 1:numel(fg{g})
+                    f    = fg{g}{l};
+                    LL   = spm_log(spm_dot(A{g}(:,s{f}),{O{g},Q{f}}));
+                    L(l) = L(l) + LL;
+                end
+            end
+
+            % posterior of domain factors
+            %--------------------------------------------------------------
+            map   = {};
+            for f = 1:numel(id.ff)
+
+                % marginal log likelihood
+                %----------------------------------------------------------
+                LL = spm_vec(spm_dot(L,Q(id.ff),f));
+
+                % posterior
+                %----------------------------------------------------------
+                Q{id.ff(f)} = spm_softmax(LL + LP{id.ff(f)});
+
+                % MAP
+                %----------------------------------------------------------
+                [d,m]  = max(Q{id.ff(f)});
+                map{f} = m;
+
+            end
+
+            % MAP domain
+            %--------------------------------------------------------------
+            for g = 1:numel(fg)
+                id.A{g} = fg{g}{map{:}};
+            end
+
         end
 
-        % preclude numerical overflow of log likelihood
-        %------------------------------------------------------------------
-        L     = max(L,max(L,[],'all') - TOL);
 
+        % accumulate log likelihoods over modalities
+        %==================================================================
+        L     = 1;
+        for g = ig
+            j     = unique(id.A{g},'stable');
+            LL    = spm_log(spm_dot(A{g}(:,s{j}),O{g}));
+            if numel(j) > 1
+                [j,i] = sort(j);
+                LL    = permute(LL,i);
+            end
+            k     = ones(1,Nf + 1); k(j) = size(LL,1:numel(j));
+            L     = plus(L,reshape(LL,k));
+        end
+
+        % factors to update
+        %------------------------------------------------------------------
+        r     = find(size(L) > 1);
+        L     = squeeze(L);
 
         % variational iterations
         %------------------------------------------------------------------
         Z     = -Inf;
         for v = 1:8
             F     = 0;
-            for f = 1:numel(P)
+            for i = 1:numel(r)
 
-                % log likelihood
+                % marginal log likelihood
                 %----------------------------------------------------------
-                LL   = spm_vec(spm_dot(L,Q,f));
+                f    = r(i);
+                LL   = spm_vec(spm_dot(L,Q(r),i));
 
                 % posterior
                 %----------------------------------------------------------
@@ -115,7 +172,7 @@ switch METHOD
         %------------------------------------------------------------------
         for f = 1:numel(P)
             P{f}(:)    = 0;
-            P{f}(i{f}) = Q{f};
+            P{f}(s{f}) = Q{f};
         end
 
 
@@ -126,23 +183,27 @@ switch METHOD
 
         % prior
         %------------------------------------------------------------------
-        for f = 1:numel(P)
-            i{f}  = find(P{f} > exp(-8));
-            R{f}  = P{f}(i{f});
+        Nf    = numel(P);
+        for f = 1:Nf
+            s{f}  = find(P{f} > exp(-8));
+            R{f}  = P{f}(s{f});
             Ns(f) = numel(P{f});
         end
 
         % accumulate likelihoods over modalities
         %------------------------------------------------------------------
         L     = 1;
-        for g = 1:numel(O)
-            j  = id.A{g};
-            LL = spm_dot(A{g}(:,i{j}),O{g});
-            
-            k  = ones(1,8); k(j) = size(LL,1:numel(j));
+        for g = ig
+            j  = unique(id.A{g},'stable');
+            LL = spm_dot(A{g}(:,s{j}),O{g});
+            if numel(j) > 1
+                [j,i] = sort(j);
+                LL    = permute(LL,i);
+            end
+            k  = ones(1,Nf + 1); k(j) = size(LL,1:numel(j));
             L  = times(L,reshape(LL,k));
         end
-        
+
         % marginal posteriors and free energy (partition function)
         %------------------------------------------------------------------
         U     = L.*spm_cross(R);                   % posterior unnormalised
@@ -168,10 +229,10 @@ switch METHOD
         %------------------------------------------------------------------
         for f = 1:numel(P)
             P{f}(:)    = 0;
-            if numel(i{f}) > 1
-                P{f}(i{f}) = Q{f};
+            if numel(s{f}) > 1
+                P{f}(s{f}) = Q{f};
             else
-                P{f}(i{f}) = 1;
+                P{f}(s{f}) = 1;
             end
         end
 
@@ -181,7 +242,7 @@ switch METHOD
         %==================================================================
         Nf    = size(A{1});
         L     = 1;
-        for g = 1:numel(O)
+        for g = ig
             L = L.*(O{g}'*A{g}(:,:));              % likelihood over modalities
         end
         U     = spm_vec(L).*spm_vec(spm_cross(P)); % posterior unnormalised

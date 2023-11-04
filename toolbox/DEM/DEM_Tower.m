@@ -154,6 +154,7 @@ n     = 8;
 r     = spm_target(s,n,B{1});
 C     = spm_cost(r,A);
 
+
 % This concludes the ABC of the model; namely, the likelihood mapping,
 % prior transitions and preferences. Now, specify (uninformative) prior
 % beliefs about initial states (D) and paths through those states (E)
@@ -183,7 +184,7 @@ MDP.C = C;                            % prior preferences
 MDP.D = D;                            % prior over initial states
 MDP.H = H;                            % prior over final states
 MDP.E = E;                            % prior over initial paths
-MDP.N = 0;                            % planning depth (-1)
+MDP.N = 1;                            % planning depth (-1)
 
 % Solve an example with known (veridical) structure
 %==========================================================================
@@ -415,7 +416,7 @@ if nargin < 3, c = 1; end
 % Cost
 %==========================================================================
 for g = 1:numel(A)
-    C{g} = A{g}(:,r)*c;
+    C{g} = spm_softmax(A{g}(:,r)*c);
 end
 
 return

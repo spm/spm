@@ -110,7 +110,9 @@ for i = 1:No(2)
     [x,y]     = ind2sub(size(MAZE),i);
     C{2}(i,1) = -sqrt((x - X)^2 + (y -Y)^2);
 end
-
+for g = 1:numel(C)
+    C{g} = spm_softmax(C{g}(:));
+end
 
 % basic MDP structure
 %--------------------------------------------------------------------------

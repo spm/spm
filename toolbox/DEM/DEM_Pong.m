@@ -27,7 +27,7 @@ function MDP = DEM_Pong
 % 
 % The depth of planning in the simulations is set to N = 1; i.e., looking
 % ahead to time steps. The agents have mild preferences for not being
-% overly stimulated; i.e., C{g} = [0;1].
+% overly stimulated; i.e., C{g} = spm_softmax([0;1]).
 %__________________________________________________________________________
 % Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
@@ -241,7 +241,7 @@ end
 % priors: (cost) C: mild preference for not being stimulated
 %--------------------------------------------------------------------------
 for g = 1:Ng
-    C{g} = [0; 1];
+    C{g} = spm_softmax([0; 1]);
 end
 
 % This concludes the ABC of the model; namely, the likelihood mapping,
@@ -315,7 +315,7 @@ for t = 1:MDP.T
 
     % plot
     %----------------------------------------------------------------------
-    imagesc(1 - reshape(MDP.o(:,t),Nr,Nc)), axis image, axis xy
+    imagesc(reshape(MDP.o(:,t),Nr,Nc)), axis image, axis xy
     title(sprintf('Time %i',t),'FontSize',12)
     drawnow
 

@@ -107,20 +107,20 @@ U     = (1:nu)';
 
 % Constraints: does not like shocks (C) and wants to be at END (H)
 %--------------------------------------------------------------------------
-C{1}  = [1;0];
-C{2}  = ones(No(2),1);          % path   dependent preferences
-H{1}  = ones(No(2),1);          % path independent preferences
+C{1}  = spm_softmax([1;0]);
+C{2}  = spm_softmax(ones(No(2),1));   % path   dependent preferences
+H{1}  = ones(No(2),1);                % path independent preferences
 
-H{1}(END) = 32;                 % Target or end state
+H{1}(END) = 32;                       % Target or end state
 
 % basic MDP structure
 %--------------------------------------------------------------------------
-mdp.N = 0;                      % policy depth
-mdp.U = U;                      % allowable policies
-mdp.A = A;                      % observation model or likelihood
-mdp.B = B;                      % transition probabilities
-mdp.C = C;                      % preferred outcomes
-mdp.D = D;                      % prior over initial states
+mdp.N = 0;                            % policy depth
+mdp.U = U;                            % allowable policies
+mdp.A = A;                            % observation model or likelihood
+mdp.B = B;                            % transition probabilities
+mdp.C = C;                            % preferred outcomes
+mdp.D = D;                            % prior over initial states
 
 mdp.label = label;
 mdp.p     = 1/32;
@@ -156,7 +156,7 @@ for i = [1,8]
 
     % increase precision of constraints
     %----------------------------------------------------------------------
-    MDP.C{1} = [1;0]*i;
+    MDP.C{1} = spm_softmax([1;0]*i);
     PDP      = spm_MDP_VB_XXX(MDP);
     
     % show results - behavioural
