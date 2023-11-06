@@ -14,6 +14,8 @@ spm('defaults','eeg');
 
 fname = fullfile(spm('Dir'),'tests','data','OPM','test_opm.mat');
 D     = spm_eeg_load(fname);
+D = chantype(D,1:110,'MEG');
+D.save();
 
 S=[];
 S.D =D;
