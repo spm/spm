@@ -15,6 +15,11 @@ spm('defaults','eeg');
 fname = fullfile(spm('Dir'),'tests','data','OPM','test_opm.mat');
 D     = spm_eeg_load(fname);
 D = chantype(D,1:110,'MEG');
+D.inv{1}.mesh.sMRI = fullfile(spm('Dir'),'canonical','single_subj_T1.nii');
+D.inv{1}.mesh.tess_ctx = fullfile(spm('Dir'),'canonical','cortex_5124.surf.gii');
+D.inv{1}.mesh.tess_scalp = fullfile(spm('Dir'),'canonical','scalp_2562.surf.gii');
+D.inv{1}.mesh.tess_oskull = fullfile(spm('Dir'),'canonical','oskull_2562.surf.gii');
+D.inv{1}.mesh.tess_iskull = fullfile(spm('Dir'),'canonical','iskull_2562.surf.gii');
 D.save();
 
 S=[];

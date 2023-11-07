@@ -55,9 +55,10 @@ H= [H,L3];
 % correlate general and brute force solution 
  cs = zeros(size(H2,2),1);
  for i=1:15
-     cs(i)=abs(corr(H2(:,i),H(:,i)));
+   Cmat = corrcoef(H2(:,i),H(:,i));
+     cs(i)=abs(Cmat(1,2));
  end
  
 act = sum(cs);
 
-testCase.verifyTrue(isequal(15, act));
+testCase.verifyTrue(((15-act)/15) < 1e-5);
