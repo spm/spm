@@ -1,5 +1,5 @@
 function tests = test_spm_opm_epoch_trigger
-% Unit Tests for spm_eeg_load
+% Unit Tests for spm_eeg_average
 %__________________________________________________________________________
 
 % Copyright (C) 2023 Wellcome Centre for Human Neuroimaging

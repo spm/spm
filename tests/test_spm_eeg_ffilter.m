@@ -1,5 +1,5 @@
 function tests = test_spm_eeg_ffilter
-% Unit Tests for spm_eeg_filter
+% Unit Tests for spm_eeg_ffilter
 %__________________________________________________________________________
 
 % Copyright (C) 2023 Wellcome Centre for Human Neuroimaging
