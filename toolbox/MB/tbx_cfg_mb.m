@@ -695,7 +695,8 @@ out.help = {[...
 %--------------------------------------------------------------------------
 
 %--------------------------------------------------------------------------
-images        = cfg_files;                                                                                              images.tag    = 'images';
+images        = cfg_files;
+images.tag    = 'images';
 images.name   = 'Scans';
 images.filter = 'nifti';
 images.num    = [1 Inf];
