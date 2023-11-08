@@ -6,7 +6,7 @@ function names = fieldnames(this)
 %__________________________________________________________________________
 
 % Guillaume Flandin
-% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+% Copyright (C) 2008-2023 Wellcome Centre for Human Neuroimaging
 
 
 if numel(this) > 1, warning('Only handle scalar objects yet.'); end

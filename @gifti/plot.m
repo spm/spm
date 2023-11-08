@@ -3,7 +3,8 @@ function varargout = plot(varargin)
 %__________________________________________________________________________
 
 % Guillaume Flandin
-% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+% Copyright (C) 2008-2023 Wellcome Centre for Human Neuroimaging
+
 
 % if ishandle(varargin{1})
 %     h = figure(varargin{1});
@@ -58,7 +59,7 @@ axes(ax);
 camlight;
 camlight(-80,-10);
 lighting(ax,'gouraud');
-if strcmp(spm_check_version,'matlab')
+if ~exist('OCTAVE_VERSION','builtin')
     cameratoolbar(h);
 end
 

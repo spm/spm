@@ -12,7 +12,7 @@ function mz3_write(M,filename,fmt)
 %__________________________________________________________________________
 
 % Guillaume Flandin
-% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+% Copyright (C) 2008-2023 Wellcome Centre for Human Neuroimaging
 
 
 if nargin < 3, fmt = false; end

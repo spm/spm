@@ -3,7 +3,7 @@ function varargout = subsref(this,subs)
 %__________________________________________________________________________
 
 % Guillaume Flandin
-% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+% Copyright (C) 2008-2023 Wellcome Trust Centre for Neuroimaging
 
 
 if length(this) > 1 && ~strcmp(subs(1).type,'()')
