@@ -210,6 +210,8 @@ if strcmp(field{1},'none'), return, end
 
 % Show results: Graphics
 %--------------------------------------------------------------------------
+if spm_get_defaults('cmdline'), return; end
+
 spm_figure('Getwin','Graphics'); clf
 
 subplot(2,2,1)

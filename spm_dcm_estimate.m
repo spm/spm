@@ -92,9 +92,14 @@ try, DCM.options.hE;         catch, DCM.options.hE         = 6;     end
 try, DCM.options.hC;         catch, DCM.options.hC         = 1/128; end
 try, DCM.n;                  catch, DCM.n = size(DCM.a,1);          end
 try, DCM.v;                  catch, DCM.v = size(DCM.Y.y,1);        end
- 
-try, M.nograph = DCM.options.nograph; catch, M.nograph = spm('CmdLine');end
- 
+
+try
+    M.nograph = DCM.options.nograph; 
+catch
+    M.nograph = spm_get_defaults('cmdline');
+end
+M.noprint = ~spm_get_defaults('dcm.verbose');
+
 % check max iterations
 %--------------------------------------------------------------------------
 try

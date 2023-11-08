@@ -182,6 +182,9 @@ defaults.old.preproc.output.cleanup = 0;
 %==========================================================================
 defaults.smooth.fwhm = [8 8 8];
 
+% DCM defaults
+%==========================================================================
+defaults.dcm.verbose = true;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %-Prevent users from making direct calls to spm_defaults

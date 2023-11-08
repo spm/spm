@@ -99,7 +99,7 @@ if nargin < 5 || isempty(oddsr)
     oddsr = 0;
 end
 
-noplot = spm_get_defaults('cmdline');
+verbose = spm_get_defaults('dcm.verbose');
 
 % inputs are DCMs - assemble input arguments
 %--------------------------------------------------------------------------
@@ -290,7 +290,7 @@ else % Use an FFX
     mp       = max(post);
     post_ind = find(post>mp*oddsr);
     Nocc     = length(post_ind);
-    if ~noplot
+    if verbose
         disp(' ');
         fprintf('%d models in Occams window:\n',Nocc);
     end
@@ -299,7 +299,7 @@ else % Use an FFX
 
     for occ = 1:Nocc,
         m = post_ind(occ);
-        if ~noplot
+        if verbose
             fprintf('\tModel %d, p(m|Y)=%1.2f\n',m,post(m));
         end
     end
@@ -329,7 +329,7 @@ else % Use an FFX
             if Nses > 1
 
                 clear miCp mEp
-                if ~noplot
+                if ~verbose
                     disp('Averaging sessions...')
                 end
 
@@ -417,7 +417,7 @@ if dcm_fmri
 end
 
 clear Ep
-if ~noplot
+if verbose
     disp('')
     disp('Averaging models in Occams window...')
 end

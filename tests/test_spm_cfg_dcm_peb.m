@@ -14,6 +14,7 @@ function setup(testCase)
 spm('defaults','fmri');
 spm_jobman('initcfg');
 spm_get_defaults('cmdline',true);
+spm_get_defaults('dcm.verbose',false);
 
 % Delete artefacts before each test
 model_dir = fullfile(get_data_path(),'models');

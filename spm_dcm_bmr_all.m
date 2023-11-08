@@ -77,7 +77,8 @@ if isfield(DCM,'gamma'), gamma = DCM.gamma; else, gamma = 0; end
 
 %-check for preference not to produce output
 %--------------------------------------------------------------------------
-noplot = spm_get_defaults('cmdline');
+noplot  = spm_get_defaults('cmdline');
+verbose = spm_get_defaults('dcm.verbose');
 
 %-Check fields of parameter structure (and options)
 %--------------------------------------------------------------------------
@@ -272,10 +273,11 @@ while GS
     
     % Show results
     % --------------------------------------------------------------------- 
-    if ~noplot
+    if verbose
         fprintf('%i out of %i free parameters removed \n',nelim,nparam)
+    end
     
-        if nmax <= 8
+    if ~noplot && nmax <= 8
             spm_figure('Getwin','BMR - all'); clf
             subplot(3,2,1)
             if numel(G) > 32, plot(G,'k'), else, bar(G,'c'), end
@@ -291,8 +293,7 @@ while GS
             ylabel('probability','FontSize',12)
             axis square
             drawnow
-        end
-    end
+     end
     
 end
 

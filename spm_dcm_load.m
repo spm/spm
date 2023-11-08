@@ -14,6 +14,8 @@ function DCM = spm_dcm_load(P, save_mem)
 % Peter Zeidman
 % Copyright (C) 2016-2022 Wellcome Centre for Human Neuroimaging
 
+verbose = spm_get_defaults('dcm.verbose');
+
 if ischar(P)    
     if size(P,1) > 1
         % A character array was provided
@@ -37,7 +39,10 @@ end
 
 DCM = cell(size(P));
 
-fprintf('Loading DCMs...');
+if verbose
+    fprintf('Loading DCMs...');
+end
+
 for s = 1:size(P,1)
     for m = 1:size(P,2)                
         

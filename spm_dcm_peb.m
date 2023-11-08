@@ -118,7 +118,7 @@ end
 
 % check preference for suppressing output
 %--------------------------------------------------------------------------
-noplot = isfield(M,'noplot') || spm_get_defaults('cmdline');
+verbose = spm_get_defaults('dcm.verbose');
 
 % check parameter fields and design matrices
 %--------------------------------------------------------------------------
@@ -590,14 +590,14 @@ for n = 1:maxit
     
     % Convergence
     %======================================================================
-    if ~noplot
+    if verbose
         fprintf('VL Iteration %-8d: F = %-3.2f dF: %2.4f  [%+2.2f]\n',n,full(F),full(dF),t); 
+   
+        if (n > 4) && (t <= -4 || dF < 1e-4)
+            fprintf('VL Iteration %-8d: F = %-3.2f dF: %2.4f  [%+2.2f]\n',n,full(F),full(dF),t); 
+            break
+        end                 
     end
-    
-    if (n > 4) && (t <= -4 || dF < 1e-4)
-        fprintf('VL Iteration %-8d: F = %-3.2f dF: %2.4f  [%+2.2f]\n',n,full(F),full(dF),t); 
-        break
-    end                 
 end
 
 

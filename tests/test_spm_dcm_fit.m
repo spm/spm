@@ -7,6 +7,9 @@ function tests = test_spm_dcm_fit
 
 tests = functiontests(localfunctions);
 
+function setup(testCase)
+spm_get_defaults('dcm.verbose',false);
+
 function test_fmri_noparfor(testCase)
 
 data_path = get_data_path();
