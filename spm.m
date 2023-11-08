@@ -933,9 +933,7 @@ case 'tblaunch'                                  %-Launch an SPM toolbox
 if nargin < 3, i   = 1;          else, i   = varargin{3}; end
 if nargin < 2, xTB = spm('TBs'); else, xTB = varargin{2}; end
 
-if i == 0
-    spm_toolbox;
-else
+if i > 0
     %-Addpath (& report)
     %-------------------------------------------------------------------
     if isempty(strfind(path,xTB(i).dir))
