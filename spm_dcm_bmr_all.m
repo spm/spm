@@ -75,6 +75,10 @@ function [DCM,BMR,BMA] = spm_dcm_bmr_all(DCM,field,OPT)
 if isfield(DCM,'beta'),  beta  = DCM.beta;  else, beta  = 0; end
 if isfield(DCM,'gamma'), gamma = DCM.gamma; else, gamma = 0; end
 
+%-check for preference not to produce output
+%--------------------------------------------------------------------------
+noplot = spm_get_defaults('cmdline');
+
 %-Check fields of parameter structure (and options)
 %--------------------------------------------------------------------------
 if nargin < 3
@@ -268,24 +272,26 @@ while GS
     
     % Show results
     % --------------------------------------------------------------------- 
-    fprintf('%i out of %i free parameters removed \n',nelim,nparam)
+    if ~noplot
+        fprintf('%i out of %i free parameters removed \n',nelim,nparam)
     
-    if nmax <= 8
-        spm_figure('Getwin','BMR - all'); clf
-        subplot(3,2,1)
-        if numel(G) > 32, plot(G,'k'), else, bar(G,'c'), end
-        title('log-posterior','FontSize',16)
-        xlabel('model','FontSize',12)
-        ylabel('log-probability','FontSize',12)
-        axis square
-        
-        subplot(3,2,2)
-        if numel(G) > 32, plot(p,'k'), else, bar(p,'r'), end
-        title('model posterior','FontSize',16)
-        xlabel('model','FontSize',12)
-        ylabel('probability','FontSize',12)
-        axis square
-        drawnow
+        if nmax <= 8
+            spm_figure('Getwin','BMR - all'); clf
+            subplot(3,2,1)
+            if numel(G) > 32, plot(G,'k'), else, bar(G,'c'), end
+            title('log-posterior','FontSize',16)
+            xlabel('model','FontSize',12)
+            ylabel('log-probability','FontSize',12)
+            axis square
+
+            subplot(3,2,2)
+            if numel(G) > 32, plot(p,'k'), else, bar(p,'r'), end
+            title('model posterior','FontSize',16)
+            xlabel('model','FontSize',12)
+            ylabel('probability','FontSize',12)
+            axis square
+            drawnow
+        end
     end
     
 end
@@ -418,23 +424,25 @@ if nargout > 1
     BMR.K    = K;
     BMR.k    = k;
     
-    subplot(3,2,3), spm_plot_ci(qE(i),qC(i,i))
-    title('MAP (full)','FontSize',16)
-    axis square, a = axis;
-    
-    subplot(3,2,4), spm_plot_ci(Ep(j),abs(Cp(j,j)))
-    title('MAP (reduced)','FontSize',16), axis square, axis(a)
-    
-    subplot(3,2,5), imagesc(1 - K')
-    xlabel('model'), ylabel('parameter'), title('model space','FontSize',16)
-    set(gca,'YTickLabel',BMR.name);
-    axis tight, axis square
-    
-    subplot(3,2,6)
-    bar(Pp(i))
-    xlabel('parameter'), title(' posterior','FontSize',16)
-    axis square
-    drawnow, axis([0 (numel(i) + 1) 0 1])
+    if ~noplot
+        subplot(3,2,3), spm_plot_ci(qE(i),qC(i,i))
+        title('MAP (full)','FontSize',16)
+        axis square, a = axis;
+
+        subplot(3,2,4), spm_plot_ci(Ep(j),abs(Cp(j,j)))
+        title('MAP (reduced)','FontSize',16), axis square, axis(a)
+
+        subplot(3,2,5), imagesc(1 - K')
+        xlabel('model'), ylabel('parameter'), title('model space','FontSize',16)
+        set(gca,'YTickLabel',BMR.name);
+        axis tight, axis square
+
+        subplot(3,2,6)
+        bar(Pp(i))
+        xlabel('parameter'), title(' posterior','FontSize',16)
+        axis square
+        drawnow, axis([0 (numel(i) + 1) 0 1])
+    end
     
 end
 
