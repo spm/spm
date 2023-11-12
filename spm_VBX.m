@@ -62,7 +62,7 @@ switch METHOD
         end
 
 
-        % Update domain factors Q{ff}, if specified
+        % Update domain factors Q{f}, if specified
         %==================================================================
         if isfield(id,'fg')
 
@@ -115,7 +115,7 @@ switch METHOD
 
         % accumulate log likelihoods over modalities
         %==================================================================
-        L     = 1;
+        L     = 0;
         for g = ig
             j     = unique(id.A{g},'stable');
             LL    = spm_log(spm_dot(A{g}(:,s{j}),O{g}));
@@ -127,10 +127,15 @@ switch METHOD
             L     = plus(L,reshape(LL,k));
         end
 
-        % factors to update
+        % factors to update (eliminate factors with precise posteriors)
         %------------------------------------------------------------------
-        r     = find(size(L) > 1);
-        L     = squeeze(L);
+        if numel(L) > 1
+            i = size(L);
+            r = find(i > 1);
+            L = reshape(L,[i(r) 1]);
+        else
+            r = 1;
+        end
 
         % variational iterations
         %------------------------------------------------------------------
@@ -257,198 +262,3 @@ switch METHOD
 end
 
 return
-
-
-
-%% NOTES on disentanglement in Dirichlet matrices
-%==========================================================================
-% create a multiset likelihood mapping by replicating a Dirichlet
-% likelihood
-
-n   = 4;
-m   = 3;
-a0  = eye(n,n);
-a   = kron(8*rand(1,m),a0) + 1/32;
-a   = a(:,randperm(size(a,2)));
-
-% now try to recover the original set (a0) by maximising the mutual
-% information MI = H(O,S) - H(O) - H(S)
-%--------------------------------------------------------------------------
-MI   = @(a,R)spm_MDP_MI(a*spm_softmax(R')');
-R    = randn(size(a,2),size(a,2))/16;
-
-%  maximise mutual information with respect to R
-%--------------------------------------------------------------------------
-for i = 1:128
-    [dFdR,f] = spm_diff(MI,a,R,2);
-    R        = R + 64*reshape(dFdR(:),size(R));
-    F(i)     = f;
-
-    subplot(2,2,2)
-    imagesc(a*spm_softmax(R')')
-    subplot(2,2,1)
-    plot(F), drawnow
-end
-
-
-
-%% now repeat but using MI = H(O) - H(O|S) where H(O) is constant under
-% the operation of R
-%--------------------------------------------------------------------------
-clf, clear F
-
-A    = @(a)a/sum(a,'all');
-L    = @(a)spm_dir_norm(a);
-HO   = @(a)sum(A(a),2)'*spm_log(sum(A(a),2));
-HOS  = @(a)sum(L(a).*spm_log(L(a)),1)*sum(A(a),1)';
-
-disp(HO(a*spm_softmax(R')'));
-disp(HO(a));
-disp(' ');
-disp(MI(a,1));
-disp(HOS(a) - HO(a));
-disp(' ');
-
-H    = @(a,R)HOS(a*spm_softmax(R')');
-R    = randn(size(a,2),size(a,2))/16;
-
-%  maximise mutual information with respect to R
-%--------------------------------------------------------------------------
-for i = 1:128
-    [dFdR,f] = spm_diff(H,a,R,2);
-    R        = R + 64*reshape(dFdR(:),size(R));
-    F(i)     = f;
-    subplot(2,2,1)
-    plot(F), drawnow
-end
-
-% plot distributed Dirichlet parameters
-%--------------------------------------------------------------------------
-subplot(2,2,2)
-imagesc(a*spm_softmax(R')')
-
-% illustrate evaluation for very large matrices
-%--------------------------------------------------------------------------
-hso   = 0;
-s     = sum(A(a),1);
-N     = L(a);
-for i = 1:size(a,2)
-    hso  = hso + s(i)*N(:,i)'*spm_log(N(:,i));
-end
-
-disp(HOS(a))
-disp(hso)
-
-
-%% now repeat but using a multimodal/multifactorial distribution
-%--------------------------------------------------------------------------
-clf, clear
-
-% specify a iikelihood tensor for three binary outcomes and two factors
-%--------------------------------------------------------------------------
-aa{1}(1,:,:) = [1 0;
-                1 0];    % if x1
-aa{2}(1,:,:) = [1 1;
-                0 0];    % if x2
-aa{3}(1,:,:) = [1 0;
-                0 0];    % if x1 & x2
-
-% vectorise likelihood tensor to matrix
-%--------------------------------------------------------------------------
-for g = 1:numel(aa)
-    aa{g}(2,:,:) = 1 - aa{g}(1,:,:);
-    ag{g}        = aa{g}(:,:);
-end
-
-% convert into a likelihood mapping to unique outcomes, for each state
-%--------------------------------------------------------------------------
-for i = 1:size(ag{1},2)  % for the total number of combinations of states
-    d = 1;
-    for g = 1:numel(ag)
-        d = kron(d,ag{g}(:,i));
-    end
-    a0(:,i) = d;
-end
-
-% simulate Dirichlet counts for three repetitions of each state
-%--------------------------------------------------------------------------
-m   = 8*rand(1,3);                  % three repetitions
-j   = randperm(size(ag{1},2)*3);    % assigned randomly to each combination
-for g = 1:numel(ag)
-    a{g}   = kron(m,ag{g}) + 1/32;
-    a{g}   = a{g}(:,j);
-end
-
-% set up objective function H(O|S) accumulated over modalities
-%--------------------------------------------------------------------------
-A    = @(a)a/sum(a,'all');
-L    = @(a)spm_dir_norm(a);
-HOS  = @(a)sum(L(a{1}).*spm_log(L(a{1})))*sum(A(a{1}))' + ...
-           sum(L(a{2}).*spm_log(L(a{2})))*sum(A(a{2}))' + ...
-           sum(L(a{3}).*spm_log(L(a{3})))*sum(A(a{3}))';
-
-% add reallocation (R)
-%--------------------------------------------------------------------------
-H    = @(a,R)HOS({a{1}*spm_softmax(R')',a{2}*spm_softmax(R')',a{3}*spm_softmax(R')'});
-R    = randn(size(a{1},2),size(a{1},2))/32;
-
-% maximise mutual information with respect to R
-%--------------------------------------------------------------------------
-for i = 1:256
-    [dFdR,f] = spm_diff(H,a,R,2);
-    R        = R + 32*reshape(dFdR(:),size(R));
-    F(i)     = f;
-    subplot(2,2,1)
-    plot(F), drawnow
-end
-
-%  redistribute Dirichlet parameters and plot results
-%--------------------------------------------------------------------------
-Na    = numel(a);
-for g = 1:Na
-    subplot(2*Na,2,2*g)
-    a{g} = a{g}*spm_softmax(R')'
-    imagesc(a{g})
-end
-
-
-%%  now recover factorisation  of the state space
-%==========================================================================
-
-%  remove redundant state combinations
-%--------------------------------------------------------------------------
-n     = 0;
-for g = 1:Na
-    n = n + sum(a{g});
-end
-[n,i] = sort(n,'descend');
-i     = i(1:4);
-for g = 1:Na
-    a{g} = a{g}(:,i);
-end
-
-
-%  redistribution operator
-%--------------------------------------------------------------------------
-R = eye(size(a{1},2),size(a{1},2))/2;
-T = @(a,R) reshape(a*spm_softmax(R')',size(a,1),2,2);
-G = @(a,R) {T(a{1},R) T(a{2},R) T(a{3},R)};
-
-% ....
-
-
-%  maximise mutual information with respect to R
-%--------------------------------------------------------------------------
-for i = 1:256
-    [dFdR,f] = spm_diff(H,a,R,2);
-    R        = R + 32*reshape(dFdR(:),size(R));
-    F(i)     = f;
-    subplot(2,2,1)
-    plot(F), drawnow
-end
-
-
-
-
-
-

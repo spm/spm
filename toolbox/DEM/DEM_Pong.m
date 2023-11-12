@@ -113,8 +113,8 @@ spm_report(PDP,Nr,Nc,hid)
 
 %% Now repeat with inductive inference
 %==========================================================================
-MDP.hid = hid;
-PDP     = spm_MDP_VB_XXX(MDP);
+MDP.id.hid = hid;
+PDP    = spm_MDP_VB_XXX(MDP);
 
 % illustrate action and action selection
 %--------------------------------------------------------------------------
@@ -251,7 +251,7 @@ end
 for f = 1:Nf
     D{f} = sparse(1,1,1,Ns(f),1);     % First state
     E{f} = sparse(1,1,1,Nu(f),1);     % First path
-    H{f} = ones(Ns(f),1);             % No intentions at this stage
+    H{f} = [];                        % No intentions at this stage
 end
 
 % Ambiguity and latent states corresponding to hits
