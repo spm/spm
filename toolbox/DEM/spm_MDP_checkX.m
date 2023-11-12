@@ -162,12 +162,14 @@ end
 %--------------------------------------------------------------------------
 if ~isfield(MDP,{'H'})
     for f = 1:Nf
-        MDP.H{f} = spm_dir_norm(ones(Ns(f),1));
+        MDP.H{f} = [];
     end
 else
     for f = 1:Nf
-        if isempty(MDP.H{f})
-            MDP.H{f} = spm_dir_norm(ones(Ns(f),1));
+        if ~isempty(MDP.H{f})
+            if ~any(diff(MDP.H{f}))
+                MDP.H{f} = [];
+            end
         end
     end
 end
@@ -197,8 +199,10 @@ end
 % check final states and internal consistency
 %--------------------------------------------------------------------------
 for f = 1:Nf
-    if Ns(f) ~= size(MDP.H{f},1)
-        error(['please ensure B{' num2str(f) '} and H{' num2str(f) '} are consistent'])
+    if numel(MDP.H{f})
+        if Ns(f) ~= size(MDP.H{f},1)
+            error(['please ensure B{' num2str(f) '} and H{' num2str(f) '} are consistent'])
+        end
     end
 end
 
@@ -209,6 +213,8 @@ end
 % id.A{g}   -  Indices of likelihood factors this modality (domain)
 
 
+% Check indices of domains and co-domains
+%--------------------------------------------------------------------------
 if ~isfield(MDP,'id')
     MDP.id.g  = {1:Ng};                         % Default (all modalities)
     MDP.id.ig = 1;                              % Default (first)
@@ -216,8 +222,14 @@ if ~isfield(MDP,'id')
         MDP.id.A{g} = 1:(ndims(MDP.A{g}) - 1);  % Default (leading factors)
     end
 end
+
+% ensure indices are row vectors id.g
+%--------------------------------------------------------------------------
 try
-    MDP.id.g;
+    MDP.id.g = MDP.id.g(:)';
+     for g = 1:numel(MDP.id.g)
+        MDP.id.g{g} = MDP.id.g{g}(:)';
+    end
 catch
     MDP.id.g = {1:Ng};
 end
@@ -226,9 +238,12 @@ try
 catch
     MDP.id.ig = 1;
 end
+
+% ensure indices are row vectors id.A{g}
+%--------------------------------------------------------------------------
 for g = 1:Ng
     try
-        MDP.id.A{g};
+        MDP.id.A{g} = MDP.id.A{g}(:)';
     catch
         MDP.id.A{g} = 1:(ndims(MDP.A{g}) - 1);
     end
