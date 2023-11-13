@@ -95,7 +95,7 @@ end
 % Refine Topup
 if rt == 1
     fprintf('|Du|:')
-    [u,wf1,wf2] = topup_jacobians(u, f1,f2, sig2, vx, reg(4:end), ord, 1e-3, 10, FG);
+    [u,wf1,wf2] = topup_jacobians(u, f1,f2, sig2, vx, reg, ord, 1e-3, 10, FG);
 end
 
 
