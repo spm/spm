@@ -73,7 +73,7 @@ data.help    = {[....*
 fwhm         = cfg_entry;
 fwhm.tag     = 'fwhm';
 fwhm.name    = 'FWHM';
-fwhm.val     = {[8 4 2 1 0.1]};
+fwhm.val     = {[8 4 2 1 0]};
 fwhm.strtype = 'e';
 fwhm.num     = [1 Inf];
 fwhm.help    = {[...
@@ -101,12 +101,12 @@ reg.help    = {...
 %--------------------------------------------------------------------------
 rinterp         = cfg_menu;
 rinterp.tag     = 'rinterp';
-rinterp.name        = 'Interpolation';
-rinterp.val     = {[1 1 1]};         % Default values 
+rinterp.name    = 'Interpolation';
 rinterp.help    = {[
 'Degree of B-spline (from 0 to 7) along different dimensions ' ...
 '(see ``spm_diffeo``).']};
 rinterp.labels = {
+                  'Linear              '
                   '2nd Degree B-spline '
                   '3rd Degree B-Spline'
                   '4th Degree B-Spline'
@@ -114,7 +114,8 @@ rinterp.labels = {
                   '6th Degree B-Spline'
                   '7th Degree B-Spline'
 }';
-rinterp.values = {[0 1 0] [1 1 0] [0 0 1] [1 0 1] [0 1 1] [1 1 1]};
+rinterp.values = {1,2,3,4,5,6,7};
+rinterp.val    = {2};
 
 %--------------------------------------------------------------------------
 % prefix VDM Filename Prefix
@@ -122,10 +123,10 @@ rinterp.values = {[0 1 0] [1 1 0] [0 0 1] [1 0 1] [0 1 1] [1 1 1]};
 %--------------------------------------------------------------------------
 rt         = cfg_menu;
 rt.tag     = 'rt';
-rt.name    = 'Refine topup';
+rt.name    = 'Jacobian scaling';
 rt.val     = {1};
 rt.help    = {
-    'Option to include refine topup after estimating the fields.'
+    'Option to include Jacobian scaling in the registration model.'
     ['It includes in the process the changes of intensities due to' ...
     ' stretching and compression.']
     }';
@@ -182,3 +183,5 @@ switch lower(cmd)
         out(1).tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});
 
 end
+
+
