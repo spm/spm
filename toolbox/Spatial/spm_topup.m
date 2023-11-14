@@ -320,7 +320,7 @@ for it = 1:nit
     % would be nicer if SPM's multigrid could handle this form of Hessian
     % - but sadly it can't.  Conjugate gradient is slow and often does not
     % converge.
-    [du,flg,relres,numit] = cgs(H,g,1e-3,1000,@precon,[],double(du(:)));
+    [du,flg,relres,numit] = cgs(H,g,1e-2,1000,@precon,[],double(du(:)));
     u(:) = u(:) - full(du(:));
     %fprintf(' (%d,%7.4f,%4d)', flg, relres, numit)
 
