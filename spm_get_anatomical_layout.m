@@ -1,37 +1,41 @@
 function [lay] = spm_get_anatomical_layout(sensor_positions, sensor_labels, head_positions, fiducials, plot_output)
-% Summary:
-% Produce anatomically valid 2D representation of 3D sensor positions.
+% Produce anatomically valid 2D representation of 3D sensor positions
 % FORMAT [lay] = spm_get_anatomical_layout(sensor_positions, sensor_labels, head_positions, fiducials, plot_output)
 %
 % Input Parameters:
-%     sensorPositions: An nx3 matrix representing the 3D Cartesian
-%            coordinates (x, y, z) of n sensors.
-%     sensorLabels: An nx1 cell array containing labels for each sensor.
-%     headPositions: An mx3 matrix representing the coordinates of
-%            positions on the head.
-%     fiducials: struct containing coordinates of fiducials.
-%            fiducials.NAS = [1 x 3]
-%            fiducials.LPA = [1 x 3]
-%            fiducials.RPA = [1 x 3]
-%            fiducials.INI = [1 x 3] - Optional
-%      Note, if fiducials.INI is not specified it will be estimated.
-%     plotOutput: A logical value indicating whether to generate a plot of
-%            measurements taken in 3D, as well as the output layout.
-%
+%     sensor_positions: An nx3 matrix representing the 3D Cartesian
+%                       coordinates (x, y, z) of n sensors.
+%     sensor_labels:    An nx1 cell array containing labels for each sensor.
+%     head_positions:   An mx3 matrix representing the coordinates of
+%                       positions on the head.
+%     fiducials:        Struct containing coordinates of fiducials.
+%         fiducials.NAS = [1 x 3]
+%         fiducials.LPA = [1 x 3]
+%         fiducials.RPA = [1 x 3]
+%         fiducials.INI = [1 x 3] - Optional
+%                       Note, if fiducials.INI is not specified it will be
+%                       estimated.
+%     plot_output:      A logical value indicating whether to generate a
+%                       plot of measurements taken in 3D, as well as the
+%                       output layout.
 %
 % Output:
-%     lay: A structure representing the anatomical sensor layout in the Fieldtrip style. It contains the following fields:
-%         lay.pos: A nx2 matrix representing the 2D coordinates of the
-%                sensors in the layout. Each column contains the [x, y]
-%                coordinates of a sensor relative to the vertex (Cz).
-%         lay.label: A cell array containing labels for each sensor.
-%         lay.outline: A cell array of matrices representing the 2D
-%                coordinates of the head surface outline, ears
-%                and nose.
-%          lay.mask: A cell array containing a matrix of positions which draw a
-%                convex hull around lay.pos to mask grid positions which would
-%                otherwise be extrapolated to when plotting. To allow extrapolation
-%                to a full circle, try setting lay.mask{1} = lay.outline{1}.
+%     lay: A structure representing the anatomical sensor layout in the
+%          FieldTrip style. It contains the following fields:
+%         lay.pos:      A nx2 matrix representing the 2D coordinates of the
+%                       sensors in the layout. Each column contains the
+%                       [x, y] coordinates of a sensor relative to the
+%                       vertex (Cz).
+%         lay.label:    A cell array containing labels for each sensor.
+%         lay.outline:  A cell array of matrices representing the 2D
+%                       coordinates of the head surface outline, ears and
+%                       nose.
+%          lay.mask:    A cell array containing a matrix of positions which
+%                       draw a convex hull around lay.pos to mask grid
+%                       positions which would otherwise be extrapolated to
+%                       when plotting.
+%                       To allow extrapolation to a full circle, try:
+%                       lay.mask{1} = lay.outline{1}.
 %__________________________________________________________________________
 %
 % Further help:
@@ -42,46 +46,41 @@ function [lay] = spm_get_anatomical_layout(sensor_positions, sensor_labels, head
 % in relation to this polar grid (angle and eccentricity) and applies this
 % to a standard 2D polar grid. For full details see Alexander et al (in
 % preparation).
+%
 % The function performs the following steps:
 %
-%     Get Anterior-Posterior and Left-Right Vectors:
+%   Get Anterior-Posterior and Left-Right Vectors:
 %     Vectors defining the anterior-posterior and left-right directions on
-%      the head surface are calculated. The vertex (Cz) position on the head
-%      is then estimated, such that, for measurements taken across the scalp,
-%      vertex->left, vertex->right are of equal length and vertex->anterior,
-%      vertex-posterior are of equal lengths.
+%     the head surface are calculated. The vertex (Cz) position on the head
+%     is then estimated, such that, for measurements taken across the scalp,
+%     vertex->left, vertex->right are of equal length and vertex->anterior,
+%     vertex-posterior are of equal lengths.
 %
-%     Create the approximate polar grid across the scalp.
-%      Lines across the scalp are made based on the vectors described above.
-%      These lines are then shortened according to the 10-20 method to produce
-%      a grid with Fz, Oz, T3, T4 positions are the periphery. The circumference
-%      around these points is then defined.
+%   Create the approximate polar grid across the scalp.
+%     Lines across the scalp are made based on the vectors described above.
+%     These lines are then shortened according to the 10-20 method to
+%     produce a grid with Fz, Oz, T3, T4 positions are the periphery. The
+%     circumference around these points is then defined.
 %
-%     Define Sensor Position Relative to Cz:
-%      Sensor positions are projected onto the scalp surface and their
-%      position in relation to the vertex and circumference are defined.
-%      Specifically, the distance from Cz to projected sensor position
-%      relative to the distance from Cz to the circumference along the same
-%      axis is taken. The relative distance from the point this axis crosses
-%      the circumference to the nearest peripheral landmarks (e.g. Fz, T3)
-%      determines the angle.
+%   Define Sensor Position Relative to Cz:
+%     Sensor positions are projected onto the scalp surface and their
+%     position in relation to the vertex and circumference are defined.
+%     Specifically, the distance from Cz to projected sensor position
+%     relative to the distance from Cz to the circumference along the same
+%     axis is taken. The relative distance from the point this axis crosses
+%     the circumference to the nearest peripheral landmarks (e.g. Fz, T3)
+%     determines the angle.
 %
-%     Define Sensor Position on a 2D Circle:
+%   Define Sensor Position on a 2D Circle:
 %     Using the eccentricity and angle measurements from the previous step,
-%      the position of each sensor is reproduced on a 2D polar grid. This is
-%      then formatted as a Fieldtrip style layout structure with a nose, ears,
-%      outline and mask.
-%__________________________________________________________________________
-%
-% TO DO:
-% Currently not integrated into SPM.
-% Add an example script to the description.
-% Additional testing of difference types of inputs needed.
-% Some rounding would benefits from knowing the unit of inputs.
-%
-%
+%     the position of each sensor is reproduced on a 2D polar grid. This is
+%     then formatted as a FieldTrip style layout structure with a nose,
+%     ears, outline and mask.
+%_________________________________________________________________________
+
 % Nicholas Alexander
 % Copyright (C) 2023 Wellcome Centre for Human Neuroimaging
+
 
 %==========================================================================
 % - S P M   G E T   A N A T O M I C A L   L A Y O U T
@@ -98,7 +97,7 @@ origin = mean([fiducials.LPA; fiducials.RPA], 1);
 % Get the distance from the origin to each sensor position
 sensor_distances = sqrt(sum((sensor_positions - origin).^2, 2));
 
-% Set a maximum distance proportional to the max distance to sensor.
+% Set a maximum distance proportional to the max distance to sensor
 max_distance = max(sensor_distances) * 1.2;
 
 % Calculate the Euclidean distance between the origin and each position
@@ -110,7 +109,7 @@ head_positions = head_positions(head_distances <= max_distance, :);
 if (length(head_distances(:, 1)) - length(head_positions(:, 1))) > 0
     disp(['Removed ', num2str((length(head_distances(:, 1)) - length(head_positions(:, 1)))), ...
         ' head positions that were far from the centre of the head.'])
-    disp('If you are having issues, try plotting the head positions along with the sensors');
+    disp('If you are having issues, try plotting the head positions along with the sensors.');
 end
 
 %-ESTIMATE the position of the inion if not provided
@@ -182,22 +181,22 @@ unused_head_positions(used_head_position_idx, :) = [];
 if ismember(fiducials.LPA, unused_head_positions, 'rows')
     tmpPos = fiducials.LPA;
     [fiducials.LPA, head_positions, tri] = find_line_triangle_intersection(l_vec, origin, head_positions, tri);
-    warning("LPA not on boundary of convex head surface. Adjusted by " + num2str(pdist([tmpPos;fiducials.LPA])) + "mm")
+    warning(['LPA not on boundary of convex head surface. Adjusted by ' num2str(pdist([tmpPos;fiducials.LPA])) 'mm']);
 end
 if ismember(fiducials.RPA, unused_head_positions, 'rows')
     tmpPos = fiducials.RPA;
     [fiducials.RPA, head_positions, tri] = find_line_triangle_intersection(r_vec, origin, head_positions, tri);
-    warning("RPA not on boundary of convex head surface. Adjusted by " + num2str(pdist([tmpPos;fiducials.RPA])) + "mm")
+    warning(['RPA not on boundary of convex head surface. Adjusted by ' num2str(pdist([tmpPos;fiducials.RPA])) 'mm']);
 end
 if ismember(fiducials.INI, unused_head_positions, 'rows')
     tmpPos = fiducials.INI;
     [fiducials.INI, head_positions, tri] = find_line_triangle_intersection(p_vec, origin, head_positions, tri);
-    warning("INI not on boundary of convex head surface. Adjusted by " + num2str(pdist([tmpPos;fiducials.INI])) + "mm")
+    warning(['INI not on boundary of convex head surface. Adjusted by ' num2str(pdist([tmpPos;fiducials.INI])) 'mm']);
 end
 if ismember(fiducials.NAS, unused_head_positions, 'rows')
     tmpPos = fiducials.NAS;
     [fiducials.NAS, head_positions, tri] = find_line_triangle_intersection(a_vec, origin, head_positions, tri);
-    warning("NAS not on boundary of convex head surface. Adjusted by " + num2str(pdist([tmpPos;fiducials.NAS])) + "mm")
+    warning(['NAS not on boundary of convex head surface. Adjusted by ' num2str(pdist([tmpPos;fiducials.NAS])) 'mm']);
 end
 
 % Update origin and vectors as they may have changed. Probably pointless?
@@ -517,7 +516,7 @@ for sens_idx = 1:height(sensor_positions(:, 1))
     pl_cross_point = get_plane_surface_intersect([(1:tmp_length-1)', (2:tmp_length)'], pl_intersect_points, cross(sens_vec, s_vec), origin_elec);
     pl_cross_point = remove_points_below_plane(pl_cross_point , sens_sup_vec, origin_elec);
 
-    if sum(~cellfun(@isempty, {la_cross_point, ar_cross_point, rp_cross_point, pl_cross_point})) ~= 1
+    if sum(~cellfun('isempty', {la_cross_point, ar_cross_point, rp_cross_point, pl_cross_point})) ~= 1
         % Decide which way to go
         dir_vec = (sens_pos - elec.Cz) / norm((sens_pos - elec.Cz));
 
@@ -672,7 +671,7 @@ end
 % - G E T   S U R F A C E   P O I N T S   A B O U T   P L A N E
 %==========================================================================
 function [intersect_points] = get_surface_points_about_plane(slice_vector, slice_origin, base_vector, base_origin, surface_points, edges, start_pos, plot)
-% Extracts intersection points of two planes with a 3D surface and orders them
+% Extract intersection points of two planes with a 3D surface and orders them
 % to form lines across the surface.
 %
 % Syntax:
@@ -744,7 +743,7 @@ if length(slice_end_points(:, 1)) > 2
 end
 
 if (length(slice_end_points(:, 1)) < 2)
-    error("Less than two points crossing. Something is wrong if this is happening.")
+    error('Less than two points crossing. Something is wrong if this is happening.')
 end
 
 % Remove points below the base plane
@@ -783,7 +782,7 @@ end
 % - G E T   P L A N E   S U R F A C E   I N T E R S E C T 
 %==========================================================================
 function [intersect_pos] = get_plane_surface_intersect(edges, pos, plane_vec, plane_pos)
-% Calculates the intersection points between a plane and a set of line segments.
+% Calculate the intersection points between a plane and a set of line segments.
 %
 % Syntax:
 %   [intersect_pos] = get_plane_surface_intersect(edges, pos, plane_vec, plane_pos)
