@@ -85,7 +85,7 @@ end
 
 unstable =1;
 while (unstable)
-    [B, A] = butter(S.order,S.freq/(S.D.fsample/2),S.band);
+    [B, A] = butter(S.order,S.freq/(D.fsample/2),S.band);
     unstable = any(abs(roots(A))>=1);
     if(unstable)
         ft_warning('instability detected - reducing the %dth order filter to an %dth order filter', S.order, S.order-1);
@@ -99,11 +99,11 @@ end
 
 %- Work out memory chunk size
 %--------------------------------------------------------------------------
-chunkSamples= round(S.chunkSize/(8*size(S.D,1))*1e6);
-begs=1:chunkSamples:size(S.D,2);
+chunkSamples= round(S.chunkSize/(8*size(D,1))*1e6);
+begs=1:chunkSamples:size(D,2);
 ends = (begs+chunkSamples-1);
-if(ends(end)>size(S.D,2))
-    ends(end)= size(S.D,2);
+if(ends(end)>size(D,2))
+    ends(end)= size(D,2);
 end
 
 %-Forward direcion
@@ -112,7 +112,7 @@ fprintf('%-40s: %30s\n','Filtering Channels (Forward)',spm('time'));
 zf = zeros(max(length(A),length(B))-1,length(Fchannels));
 for i =1:length(begs)
     %display(['completed chunk ' num2str(i) ' of ' num2str(length(begs))]);
-    input = squeeze(S.D(:,begs(i):ends(i),:))';
+    input = squeeze(D(:,begs(i):ends(i),:))';
     output = input;
     [output(:,Fchannels), zf] = filter(B,A,input(:,Fchannels),zf);
     Dnew(:,begs(i):ends(i),:)= output';
