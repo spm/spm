@@ -18,7 +18,7 @@ topup.vout = @(job)spm_run_topup('vout',job);
 topup.help = {[...
 'Utility to correct susceptibility distortions in EPI images using ',...
 'the topup algorithm (J.L.R. Andersson, S. Skare, J. Ashburner, 2003. ',...
-'How to correct susceptibility distortions in spin-echo echo-planar ',... 
+'How to correct susceptibility distortions in spin-echo echo-planar ',...
 'images: application to diffusion tensor imaging). This implementation ',...
 'requires two EPI images acquired with opposed phase-encode blips in ',...
 'the y-direction (for the moment).']};
@@ -86,7 +86,7 @@ fwhm.help    = {[...
 reg         = cfg_entry;
 reg.tag     = 'reg';
 reg.name    = 'Regularisation';
-reg.val     = {[0 10 100]}; % Default values 
+reg.val     = {[0 10 100]}; % Default values
 reg.strtype = 'e';
 reg.num     = [1 3];
 reg.help    = {...
@@ -97,7 +97,7 @@ reg.help    = {...
 '    3. Penalty on the *bending energy*.'};
 
 %--------------------------------------------------------------------------
-% Degree of B-spline  
+% Degree of B-spline
 %--------------------------------------------------------------------------
 rinterp         = cfg_menu;
 rinterp.tag     = 'rinterp';
@@ -149,7 +149,7 @@ prefix.val     = {'vdm5'};
 
 
 %--------------------------------------------------------------------------
-% Save VDM 
+% Save VDM
 %--------------------------------------------------------------------------
 outdir         = cfg_files;
 outdir.name    = 'Output directory';
@@ -175,7 +175,7 @@ switch lower(cmd)
                             job.fwhm,job.reg,job.rinterp,job.rt,job.prefix, ...
                             job.outdir{1});
         out.vdmfile       = {VDM.dat.fname};
-        
+
     case 'vout'
         out(1)            = cfg_dep;
         out(1).sname      = 'Voxel displacement map';

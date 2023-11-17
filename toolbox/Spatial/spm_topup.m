@@ -1,6 +1,6 @@
 % %==========================================================================
 % %==========================================================================
-function VDM = spm_topup(vol1, vol2, FWHM, reg, rinterp, rt, pref, outdir)
+function VDM = spm_topup(vol1, vol2, FWHM, reg, rinterp, jac, pref, outdir)
 % Correct susceptibility distortions using topup
 % FORMAT VDM = spm_topup(vol1, vol2, FWHM, reg, save)
 % vol1       - path to first image (blip up)
@@ -14,7 +14,7 @@ function VDM = spm_topup(vol1, vol2, FWHM, reg, rinterp, rt, pref, outdir)
 %               - [3] Penalty on the `bending energy'. This penalises
 %                  the sum of squares of the 2nd derivatives.
 % rinterp    - Degree of B-spline
-% rt         - Option to apply a supplementary refine over topup to include in the
+% jac        - Option to apply a supplementary refine over topup to include in the
 %              process the changes of intensities due to stretching and compression.
 % pref       - string to be prepended to the VDM files.
 % outdir     - output directory.
@@ -45,7 +45,7 @@ if nargin < 5
     rinterp = 1;          % Degree of B-spline
 end
 if nargin < 6
-    rt = 1;               % Refine topip
+    jac = 1;               % Refine topip
 end
 if nargin < 7
     pref = 'vdm5_';       % Prefix for files
@@ -89,13 +89,11 @@ for fwhm = FWHM % Loop over spatial scales
     spm_smooth(f1,f1,[1 1 1]*fwhm); % Note the side effects
     spm_smooth(f2,f2,[1 1 1]*fwhm); % Note the side effects
 
-    [u,wf1,wf2] = topup_basic(u, f1,f2, sig2, vx, reg, ord, 1e-3, 10, FG);
-end
-
-% Refine Topup
-if rt == 1
-    fprintf('|Du|:')
-    [u,wf1,wf2] = topup_jacobians(u, f1,f2, sig2, vx, reg, ord, 1e-3, 10, FG);
+    if jac==1
+        [u,wf1,wf2] = topup_jacobians(u, f1,f2, sig2, vx, reg, ord, 1e-3, 10, FG);
+    else
+        [u,wf1,wf2] = topup_basic(u, f1,f2, sig2, vx, reg, ord, 1e-3, 10, FG);
+    end
 end
 
 
@@ -183,12 +181,12 @@ E = 0;
 for it = 1:nit
 
     % Sample the blip up/down image and its gradients in y direction
-    phi(:,:,:,2) = id(:,:,:,2) + u;
-    [wf1,~,d1,~] = spm_diffeo('bsplins',f1,phi,ord);
+    phi(:,:,:,2)  = id(:,:,:,2) + u;
+    [wf1,~,gf1,~] = spm_diffeo('bsplins',f1,phi,ord);
 
     % Sample the blip down/up image and its gradients in y direction
-    phi(:,:,:,2) = id(:,:,:,2) - u;
-    [wf2,~,d2,~] = spm_diffeo('bsplins',f2,phi,ord);
+    phi(:,:,:,2)  = id(:,:,:,2) - u;
+    [wf2,~,gf2,~] = spm_diffeo('bsplins',f2,phi,ord);
 
     % Regularisation term is \tfrac{1}{2} u^T L u. Compute L u.
     gu  = spm_field('vel2mom', u, [vx reg]);
@@ -204,10 +202,10 @@ for it = 1:nit
     fprintf(' %7.4f', E)
 
     % Gradient of "log-likelihood" term
-    g   = (d1 + d2).*(wf1 - wf2)/sig2;
+    g   = (gf1 + gf2).*(wf1 - wf2)/sig2;
 
     % Diagonal of Hessian of "log-likelihood" term
-    h   = (d1 + d2).^2/sig2;
+    h   = (gf1 + gf2).^2/sig2;
 
     % Mask out missing data
     msk = ~isfinite(g);
@@ -228,7 +226,7 @@ for it = 1:nit
     end
     if n_acceptable >= 3, break; end        % Done
 
-    do_display(wf1,wf2,u,[],FG);
+    do_display(wf1,wf2,u,[],g, FG);
 end
 fprintf('\n');
 
@@ -257,103 +255,89 @@ if nargin<5 || isempty(vx),  vx  = [1 1 1]; end
 
 d   = size(f1);
 L   = regop(d, vx, reg);
-D   = vx(2)*kron(kron(idop(d(3)),diffop(d(2),vx(2))),idop(d(1)));
-D   = (D-D')/2;
+G   = vx(2)*kron(kron(idop(d(3)),diffop(d(2),vx(2))),idop(d(1))); % Difference operator
+G   = (G-G')/2; % Gradient operator (c.f. grad in MATLAB)
 u   = double(u);
 id  = identity2(d);
 phi = id;
 filter(d,vx,reg);
-
-if false
-    % Testing the operator
-    spm_field('bound',1);
-    gu1 = full(L*u(:));
-    gu2 = spm_field('vel2mom',single(u),[vx reg]);
-    disp(norm(gu1(:)-gu2(:))./norm(gu2(:)))
-end
-
 E   = Inf;
 
 % Iterate until convergence
 %----------------------------------------------------------------------
 for it = 1:nit
 
-    phi(:,:,:,2) = id(:,:,:,2) + single(u);
-    [wf1,~,d1,~] = spm_diffeo('bsplins',f1,phi,ord);
+    phi(:,:,:,2)  = id(:,:,:,2) + single(u);
+    [wf1,~,gf1,~] = spm_diffeo('bsplins',f1,phi,ord);
 
-    phi(:,:,:,2) = id(:,:,:,2) - single(u);
-    [wf2,~,d2,~] = spm_diffeo('bsplins',f2,phi,ord);
+    phi(:,:,:,2)  = id(:,:,:,2) - single(u);
+    [wf2,~,gf2,~] = spm_diffeo('bsplins',f2,phi,ord);
 
     % Deal with potential missing data
     msk = find(~isfinite(wf1) | ~isfinite(wf2));
     wf1(msk) = 0;
     wf2(msk) = 0;
-    d1(msk)  = 0;
-    d2(msk)  = 0;
+    gf1(msk) = 0;
+    gf2(msk) = 0;
     nvox     = numel(u) - numel(msk);
 
-    jd    = reshape(full(D*u(:)),d);
+    Gu    = reshape(full(G*u(:)),d);
     gu    = reshape(full(L*u(:)),d); % L*u
-    b     = wf1.*(1-jd) - wf2.*(1+jd);
+    b     = wf1.*(1+Gu) - wf2.*(1-Gu);
     Eprev = E;
     E     = b(:)'*b(:)/(2*sig2) + 0.5*(u(:)'*gu(:));
+
     fprintf(' %7.4f', E/nvox)
     if (Eprev-E)/nvox < tol, break; end
 
-    % Generate a very approximate solution using spm_field,
-    % which can be plugged in as a starting estimate for the
-    % conjugate gradient solver.  The multigrid implementation
-    % can not yet handle off-diagnoals in the likelihood part
-    % of the Hessian matrix.
-    g  = b.*(d1.*(1-jd) + d2.*(1+jd))/sig2 + single(gu);
-    h  =    (d1.*(1-jd) + d2.*(1+jd)).^2/sig2;
-    spm_field('bound',1); % Free boundary (needed for top and bottom slices)
-    du = spm_field(h,g,[vx reg 2 2]);
+    % Construct gradient (g) and Hessian (H) for the Gauss-Newton update. Note that
+    % the Hessian is only an approximation, but it is positive definite.
+    At = spdiags(double(gf1(:).*(1+Gu(:))+gf2(:).*(1-Gu(:))),0,numel(u),numel(u)) ...
+         - double(wf1(:)+wf2(:))'.*G;         % A'
+    g   = full(At*double(b(:)))/sig2 + gu(:); % A'*b + L*u
 
-    % Construct gradient (g) and Hessian (H) for the Gauss-Newton update.
-    At = spdiags(double(d1(:)+d2(:)),0,numel(u),numel(u)) +...
-         double(wf1(:)+wf2(:))'.*D;  % A'
-    g   = full(At*double(b(:)))/sig2 + gu(:); % A'*P*b + L*u
-    H   = (At*At')/sig2 + L;                  % A'*P*A + L
+    % H(i,i) (the diagonal) matches the true Hessian
+    % H(i,i+1) & H(i,i-1) do not match
+    % H(i,i+2) & H(i,i-2) match the true Hessian
+    % H(i,(i+3):end) &  H(i,1:(i-3)) match and are all zero
+    H   = (At*At')/sig2 + L;                  % A'*A + L
+
+    do_display(wf1,wf2,u,Gu,g,FG);
 
     % Gauss-Newton update via a preconditioned conjugate gradient.  It
     % would be nicer if SPM's multigrid could handle this form of Hessian
     % - but sadly it can't.  Conjugate gradient is slow and often does not
     % converge.
-    [du,flg,relres,numit] = cgs(H,g,1e-2,1000,@precon,[],double(du(:)));
+    [du,flg,relres,numit] = cgs(H,g,1e-2,1000,@precon,[]);
     u(:) = u(:) - full(du(:));
     %fprintf(' (%d,%7.4f,%4d)', flg, relres, numit)
-
-    do_display(wf1,wf2,u,jd,FG);
 end
 fprintf('\n');
 
 if nargout>=2
-    jd  = reshape(full(D*u(:)),d);
+    jd  = reshape(full(G*u(:)),d);
     phi(:,:,:,2) = id(:,:,:,2) + single(u);
-    wf1 = spm_diffeo('bsplins',f1,phi,ord).*(1-jd);
+    wf1 = spm_diffeo('bsplins',f1,phi,ord).*(1+jd);
     phi(:,:,:,2) = id(:,:,:,2) - single(u);
-    wf2 = spm_diffeo('bsplins',f2,phi,ord).*(1+jd);
+    wf2 = spm_diffeo('bsplins',f2,phi,ord).*(1-jd);
 end
 u = single(u);
 end
 % ===========================================================================
 
 % ===========================================================================
-function do_display(wf1,wf2,u,jd,FG)
+function do_display(wf1,wf2,u,jd,g, FG)
 % Display topup iterations in Graphics window
 if FG==0, return; end
-pl = ceil(size(wf1,3)*0.2);
+pl = ceil(size(wf1,3)*0.5);
 
 pic1 = wf1(:,:,pl);
 pic2 = wf2(:,:,pl);
 picu = u(:,:,pl);
 if ~isempty(jd)
-    jds = jd(:,:,pl);
-    pic1 = pic1.*(1-jds);
-    pic2 = pic2.*(1+jds);
-else
-    jds = zeros(size(pic1));
+    jds  = jd(:,:,pl);
+    pic1 = pic1.*(1+jds);
+    pic2 = pic2.*(1-jds);
 end
 
 ax = subplot(3,2,1,'Parent',FG);
@@ -375,6 +359,16 @@ imagesc(ax, (pic1-pic2)');
 axis(ax,'image','xy','off');
 colorbar(ax);
 title(ax,'Difference');
+
+if ~isempty(g)
+    g   = reshape(g,size(u));
+    pic = g(:,:,pl);
+    ax  = subplot(3,2,5,'Parent',FG);
+    imagesc(ax, pic');
+    axis(ax,'image','xy','off');
+    colorbar(ax);
+    title(ax,'1st derivatives');
+end
 
 drawnow
 end
