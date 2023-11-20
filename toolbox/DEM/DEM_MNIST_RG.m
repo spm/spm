@@ -148,7 +148,6 @@ end
 % Subroutines
 %==========================================================================
 
-
 function spm_show_a(a)
 % display learned images in likelihood tensors
 % FORMAT spm_show_a(a)

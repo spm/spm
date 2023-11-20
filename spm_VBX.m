@@ -64,50 +64,43 @@ switch METHOD
 
         % Update domain factors Q{f}, if specified
         %==================================================================
-        if isfield(id,'fg')
+        if isfield(id,'ff')
 
             % plausible domains id.fg{g}
             %--------------------------------------------------------------
+            Nd    = numel(id.ff);
             for g = 1:numel(id.fg)
                 fg{g} = id.fg{g}(s{id.ff});
             end
             Ns    = size(fg{1});
-            L     = zeros(Ns);
 
-            % log likelihood of domain factors
+            % likelihood of domain factors
             %--------------------------------------------------------------
+            L     = ones(Ns);
             for g = 1:numel(fg)
-                for l = 1:numel(fg{g})
-                    f    = fg{g}{l};
-                    LL   = spm_log(spm_dot(A{g}(:,s{f}),{O{g},Q{f}}));
-                    L(l) = L(l) + LL;
+                for i = 1:numel(fg{g})
+                    f    = fg{g}{i};
+                    L(i) = L(i)*spm_dot(A{g}(:,s{f}),{O{g},Q{f}});
                 end
             end
 
-            % posterior of domain factors
+            % prior
             %--------------------------------------------------------------
-            map   = {};
-            for f = 1:numel(id.ff)
-
-                % marginal log likelihood
-                %----------------------------------------------------------
-                LL = spm_vec(spm_dot(L,Q(id.ff),f));
-
-                % posterior
-                %----------------------------------------------------------
-                Q{id.ff(f)} = spm_softmax(LL + LP{id.ff(f)});
-
-                % MAP
-                %----------------------------------------------------------
-                [d,m]  = max(Q{id.ff(f)});
-                map{f} = m;
-
+            R     = cell(1,Nd);
+            for i = 1:Nd
+                f    = id.ff(i);
+                R{i} = P{f}(s{f});
             end
 
-            % MAP domain
+            % posterior
             %--------------------------------------------------------------
-            for g = 1:numel(fg)
-                id.A{g} = fg{g}{map{:}};
+            L     = L.*reshape(spm_cross(R{:}),Ns);
+            Z     = sum(L,'all');
+            L     = spm_marginal(L/Z);
+            for i = 1:numel(L)
+                f          = id.ff(i);
+                Q{f}       = L{i};
+                P{f}(s{f}) = Q{f};
             end
 
         end
@@ -117,7 +110,8 @@ switch METHOD
         %==================================================================
         L     = 0;
         for g = ig
-            j     = unique(id.A{g},'stable');
+            j     = spm_get_edges(id,g,P);
+            j     = unique(j,'stable');
             LL    = spm_log(spm_dot(A{g}(:,s{j}),O{g}));
             if numel(j) > 1
                 [j,i] = sort(j);
@@ -129,13 +123,9 @@ switch METHOD
 
         % factors to update (eliminate factors with precise posteriors)
         %------------------------------------------------------------------
-        if numel(L) > 1
-            i = size(L);
-            r = find(i > 1);
-            L = reshape(L,[i(r) 1]);
-        else
-            r = 1;
-        end
+        i = size(L);
+        r = find(i > 1);
+        L = reshape(L,[i(r) 1 1]);
 
         % variational iterations
         %------------------------------------------------------------------
@@ -156,18 +146,14 @@ switch METHOD
                 % (-ve) free energy (partition coefficient)
                 %----------------------------------------------------------
                 F    = F + Q{f}'*(LL + LP{f} - spm_log(Q{f}));
+
             end
 
             % convergence
             %--------------------------------------------------------------
-            if F > 0
-                %%% warning('positive ELBO in spm_VBX')
-            end
             dF = F - Z;
             if dF < 1/128
                 break
-            elseif dF < 0
-                warning('ELBO decreasing in spm_VBX')
             else
                 Z = F;
             end
@@ -175,7 +161,7 @@ switch METHOD
 
         % Posterior
         %------------------------------------------------------------------
-        for f = 1:numel(P)
+        for f = r
             P{f}(:)    = 0;
             P{f}(s{f}) = Q{f};
         end
@@ -197,7 +183,7 @@ switch METHOD
 
         % accumulate likelihoods over modalities
         %------------------------------------------------------------------
-        L     = 1;
+        L     = 0;
         for g = ig
             j  = unique(id.A{g},'stable');
             LL = spm_dot(A{g}(:,s{j}),O{g});
