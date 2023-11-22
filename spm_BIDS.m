@@ -159,7 +159,7 @@ if exist(pth,'dir')
         
         %-Anatomy imaging data file
         %------------------------------------------------------------------
-        p = parse_filename(f{i}, {'sub','ses','acq','ce','rec','fa','echo','inv','run'});
+        p = parse_filename(f{i}, {'sub','ses','task','acq','ce','rec','run','echo','part','chunk'});
         subject.anat = [subject.anat p];
         
     end
@@ -178,7 +178,7 @@ if exist(pth,'dir')
     if isempty(f), f = {}; else f = cellstr(f); end
     for i=1:numel(f)
         
-        p = parse_filename(f{i}, {'sub','ses','task','acq','rec','fa','echo','inv','run','recording', 'meta'});
+        p = parse_filename(f{i}, {'sub','ses','task','acq','ce','rec','dir','run','echo','recording','part','chunk','meta'});
         subject.func = [subject.func p];
         subject.func(end).meta = struct([]); % ?
         
@@ -192,7 +192,7 @@ if exist(pth,'dir')
     if isempty(f), f = {}; else f = cellstr(f); end
     for i=1:numel(f)
         
-        p = parse_filename(f{i}, {'sub','ses','task','acq','rec','fa','echo','inv','run','recording', 'meta'});
+        p = parse_filename(f{i}, {'sub','ses','task','acq','ce','rec','dir','run','echo','recording','part','chunk','meta'});
         subject.func = [subject.func p];
         subject.func(end).meta = spm_load(fullfile(pth,f{i})); % ?
 
@@ -207,7 +207,7 @@ if exist(pth,'dir')
     if isempty(f), f = {}; else f = cellstr(f); end
     for i=1:numel(f)
         
-        p = parse_filename(f{i}, {'sub','ses','task','acq','rec','fa','echo','inv','run','recording', 'meta'});
+        p = parse_filename(f{i}, {'sub','ses','task','acq','ce','rec','dir','run','echo','recording','part','chunk','meta'});
         subject.func = [subject.func p];
         subject.func(end).meta = struct([]); % ?
          
@@ -504,7 +504,7 @@ if exist(pth,'dir')
 
         %-Diffusion imaging file
         %------------------------------------------------------------------
-        p = parse_filename(f{i}, {'sub','ses','acq','run', 'bval','bvec'});
+        p = parse_filename(f{i}, {'sub','ses','task','acq','rec','dir','run','part','chunk','bval','bvec'});
         subject.dwi = [subject.dwi p];
 
         %-bval file
