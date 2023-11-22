@@ -4,6 +4,9 @@
   \__ \ )___/ )    (   Statistical Parametric Mapping
   (___/(__)  (_/\/\_)  SPM - https://www.fil.ion.ucl.ac.uk/spm/
 ```
+
+[![Platform: MATLAB](https://img.shields.io/badge/MATLAB-orange.svg?style=plastic)](https://www.mathworks.com)
+[![Open in MATLAB Online](https://www.mathworks.com/images/responsive/global/open-in-matlab-online.svg)](https://matlab.mathworks.com/open/github/v1?repo=spm/spm)
 [![License: GPL](https://img.shields.io/badge/license-GPL-blue.svg)](https://opensource.org/licenses/GPL-2.0)
 [![Tests](https://github.com/spm/spm/actions/workflows/matlab.yml/badge.svg)](https://github.com/spm/spm/actions/workflows/matlab.yml)
 
