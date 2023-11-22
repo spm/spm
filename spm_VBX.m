@@ -1,5 +1,5 @@
 function [P,F] = spm_VBX(O,P,A,id)
-% vvariational Bayes estimate of categorical posterior over factors
+% variational Bayes estimate of categorical posterior over factors
 % FORMAT [Q,F] = spm_VBX(O,P,A,id)
 %
 % O{g}    -  outcome probabilities over each of G modalities
@@ -23,15 +23,11 @@ function [P,F] = spm_VBX(O,P,A,id)
 % computationally efficient, using only nontrivial posterior probabilities
 % and the domain of the likelihood mapping in tensor operations.
 % 
-%
 % 'exact'   :  a non-iterative heuristic but numerically accurate scheme
 % that replaces the variational density over hidden factors with the
 % marginal over the exact posterior
 %
 % 'sparse'  :  as for the exact scheme but suitable for sparse tensors
-%
-% 'marginal':  a heuristic scheme  that uses the log of the marginalised
-% likelihood and log prior to estimate the log posterior
 %
 % see: spm_MDP_VB_XXX.m (NOTES)
 %__________________________________________________________________________
@@ -62,7 +58,7 @@ switch METHOD
         end
 
 
-        % Update domain factors Q{f}, if specified
+        % Update domain factors Q{ff} using exact inference
         %==================================================================
         if isfield(id,'ff')
 
@@ -92,11 +88,11 @@ switch METHOD
                 R{i} = P{f}(s{f});
             end
 
-            % posterior
+            % exact posterior and marginals
             %--------------------------------------------------------------
             L     = L.*reshape(spm_cross(R{:}),Ns);
             Z     = sum(L,'all');
-            L     = spm_marginal(L/Z);
+            L     = spm_margin(L/Z);
             for i = 1:numel(L)
                 f          = id.ff(i);
                 Q{f}       = L{i};
@@ -183,7 +179,7 @@ switch METHOD
 
         % accumulate likelihoods over modalities
         %------------------------------------------------------------------
-        L     = 0;
+        L     = 1;
         for g = ig
             j  = unique(id.A{g},'stable');
             LL = spm_dot(A{g}(:,s{j}),O{g});
@@ -201,10 +197,10 @@ switch METHOD
         Z     = sum(U,'all');                      % partition coefficient
         if Z
             F = spm_log(Z);                        % negative free energy
-            Q = spm_marginal(U/Z);                 % marginal  posteriors
+            Q = spm_margin(U/Z);                   % marginal  posteriors
         else
             F = -32;                               % negative free energy
-            Q = spm_marginal(U + 1/numel(U));      % marginal  posteriors
+            Q = spm_margin(U + 1/numel(U));        % marginal  posteriors
         end
 
         % (-ve) free energy (partition coefficient)
@@ -240,7 +236,7 @@ switch METHOD
         Z     = sum(U,'all');                      % partition coefficient
         F     = spm_log(Z);                        % negative free energy 
         U     = reshape(U/Z,[Nf(2:end),1]);        % joint posterior
-        Q     = spm_marginal(U);                   % marginal  posteriors
+        Q     = spm_margin(U);                     % marginal  posteriors
 
     otherwise
         disp('unknown method')
@@ -248,3 +244,25 @@ switch METHOD
 end
 
 return
+
+function [Y] = spm_margin(X)
+% Marginal densities over a multidimensional array of probabilities
+% FORMAT [Y] = spm_margin(X)
+% X  - numeric array of probabilities
+% Y  - cell array of marginals
+%
+% See also: spm_dot, spm_margin (with vectorization)
+%__________________________________________________________________________
+
+% Karl Friston
+% Copyright (C) 2020-2022 Wellcome Centre for Human Neuroimaging
+
+% evaluate marginals
+%--------------------------------------------------------------------------
+n     = ndims(X);
+Y     = cell(n,1);
+for i = 1:n
+    j    = 1:n;
+    j(i) = [];
+    Y{i} = reshape(spm_sum(X,j),[],1);
+end
