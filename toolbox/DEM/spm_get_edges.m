@@ -48,7 +48,7 @@ if isfield(id,'ff')
     % MAP codomain (children)
     %----------------------------------------------------------------------
     if isfield(id,'gg')
-        i = id.gg(s{:});
+        i = id.gg(g,s{:});
     else
         i = g;
     end
