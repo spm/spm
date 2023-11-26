@@ -1,5 +1,3 @@
-% %==========================================================================
-% %==========================================================================
 function VDM = spm_topup(vol1, vol2, FWHM, reg, rinterp, jac, pref, outdir)
 % Correct susceptibility distortions using topup
 % FORMAT VDM = spm_topup(vol1, vol2, FWHM, reg, save)
@@ -90,9 +88,9 @@ for fwhm = FWHM % Loop over spatial scales
     spm_smooth(f2,f2,[1 1 1]*fwhm); % Note the side effects
 
     if jac==1
-        [u,wf1,wf2] = topup_jacobians(u, f1,f2, sig2, vx, reg, ord, 1e-3, 10, FG);
+        [u,wf1,wf2] = topup_jacobians(u, f1,f2, sig2, vx, reg, ord, 2e-3, 6, FG);
     else
-        [u,wf1,wf2] = topup_basic(u, f1,f2, sig2, vx, reg, ord, 1e-3, 10, FG);
+        [u,wf1,wf2] = topup_basic(u, f1,f2, sig2, vx, reg, ord, 2e-3, 8, FG);
     end
 end
 
@@ -164,7 +162,7 @@ if isempty(u)
 end
 if nargin<10|| isempty(FG),  FG  = 0;     end
 if nargin<9 || isempty(nit), nit = 10;    end
-if nargin<8 || isempty(tol), tol = 0.001; end
+if nargin<8 || isempty(tol), tol = 2e-3;  end
 if nargin<7 || isempty(ord), ord = [1 1 1  0 0 0]; end
 if nargin<6 || isempty(reg), reg = [0 10 100]; end
 if nargin<5 || isempty(vx),  vx  = [1 1 1]; end
@@ -189,13 +187,13 @@ for it = 1:nit
     [wf2,~,gf2,~] = spm_diffeo('bsplins',f2,phi,ord);
 
     % Regularisation term is \tfrac{1}{2} u^T L u. Compute L u.
-    gu  = spm_field('vel2mom', u, [vx reg]);
+    Lu  = spm_field('vel2mom', u, [vx reg]);
 
     % Compute cost function. Note the slightly ad hoc treatment of
     % missing data (where one of the phis points outside the FOV).
     % Note that there isn't a clear underlying generative model
     % of the data (so "log-likelihood" is in scare quotes).
-    res = 0.5*((wf1 - wf2).^2/sig2 + gu.*u);
+    res = 0.5*((wf1 - wf2).^2/sig2 + Lu.*u);
     msk = isfinite(res);
     Eprev = E;
     E   = sum(res(msk(:)))/sum(msk(:));
@@ -212,7 +210,7 @@ for it = 1:nit
     g(msk) = 0;
     h(msk) = 0;
 
-    g   = g + gu; % Gradient of "log-likelihood" and log-prior terms
+    g   = g + Lu; % Gradient of "log-likelihood" and log-prior terms
 
     % Gauss-Newton update
     % u \gets u - (diag(h) + L)\(g + L u)
@@ -248,7 +246,7 @@ if isempty(u)
 end
 if nargin<10|| isempty(FG),  FG  = 0;     end
 if nargin<9 || isempty(nit), nit = 10;    end
-if nargin<8 || isempty(tol), tol = 0.001; end
+if nargin<8 || isempty(tol), tol = 2e-3;  end
 if nargin<7 || isempty(ord), ord = [1 1 1  0 0 0]; end
 if nargin<6 || isempty(reg), reg = [0 10 100]; end
 if nargin<5 || isempty(vx),  vx  = [1 1 1]; end
@@ -282,10 +280,10 @@ for it = 1:nit
     nvox     = numel(u) - numel(msk);
 
     Gu    = reshape(full(G*u(:)),d);
-    gu    = reshape(full(L*u(:)),d); % L*u
+    Lu    = reshape(full(L*u(:)),d); % L*u
     b     = wf1.*(1+Gu) - wf2.*(1-Gu);
     Eprev = E;
-    E     = b(:)'*b(:)/(2*sig2) + 0.5*(u(:)'*gu(:));
+    E     = b(:)'*b(:)/(2*sig2) + 0.5*(u(:)'*Lu(:));
 
     fprintf(' %7.4f', E/nvox)
     if (Eprev-E)/nvox < tol, break; end
@@ -294,13 +292,15 @@ for it = 1:nit
     % the Hessian is only an approximation, but it is positive definite.
     At = spdiags(double(gf1(:).*(1+Gu(:))+gf2(:).*(1-Gu(:))),0,numel(u),numel(u)) ...
          - double(wf1(:)+wf2(:))'.*G;         % A'
-    g   = full(At*double(b(:)))/sig2 + gu(:); % A'*b + L*u
+    g   = full(At*double(b(:)))/sig2 + Lu(:); % A'*b + L*u
 
     % H(i,i) (the diagonal) matches the true Hessian
     % H(i,i+1) & H(i,i-1) do not match
     % H(i,i+2) & H(i,i-2) match the true Hessian
     % H(i,(i+3):end) &  H(i,1:(i-3)) match and are all zero
-    H   = (At*At')/sig2 + L;                  % A'*A + L
+    H   = (At*At')/sig2;
+    h   = reshape(single(full(diag(H))),size(u));
+    H   = H + L;                  % A'*A + L
 
     do_display(wf1,wf2,u,Gu,g,FG);
 
@@ -308,9 +308,9 @@ for it = 1:nit
     % would be nicer if SPM's multigrid could handle this form of Hessian
     % - but sadly it can't.  Conjugate gradient is slow and often does not
     % converge.
-    [du,flg,relres,numit] = cgs(H,g,1e-2,1000,@precon,[]);
+    [du,flg,relres,numit] = cgs(H,g,1e-1,1000,@precon,[],[]);
     u(:) = u(:) - full(du(:));
-    %fprintf(' (%d,%7.4f,%4d)', flg, relres, numit)
+   %fprintf(' (%d,%7.4f,%4d)', flg, relres, numit)
 end
 fprintf('\n');
 
@@ -374,7 +374,7 @@ drawnow
 end
 % ===========================================================================
 
-% %==========================================================================
+% ===========================================================================
 function L = regop(d, vx, reg, bnd)
 % Generate the regulaser used by spm_field
     if nargin<4,      bnd = [1 1 1]; end
@@ -396,7 +396,7 @@ function L = regop(d, vx, reg, bnd)
 end
 
 % ===========================================================================
-% %==========================================================================
+% ===========================================================================
 function D = diffop(d, vx, bc)
 % Sparse matrix representation of difference operation
     if nargin<3, bc = 0; end
@@ -414,14 +414,14 @@ function D = diffop(d, vx, bc)
 end
 
 % ===========================================================================
-% %==========================================================================
+% ===========================================================================
 function I = idop(d)
 % Sparse identity transform
     I  = sparse(1:d,1:d,1,d,d);
 end
 
 % ===========================================================================
-% %==========================================================================
+% ===========================================================================
 function id = identity2(d)
 % Identity transform (alternative to concatenating outputs from ndgrid).
     d  = [d(:)' 1 1];
@@ -436,32 +436,36 @@ function id = identity2(d)
                   kron(iz,kron(ry,ix))...
                   kron(rz,kron(iy,ix))],[d 3]);
 end
-
 % ===========================================================================
-% %==========================================================================
-function Fi = filter(d,vx,prm)
-% Generate a Fourier transform of the Greens function
-% for use as a preconditioner in the conjugate gradient
-% solver
+% ===========================================================================
+function Fi = filter(d,vx,prm, c)
+    % Generate a Fourier transform of the Greens function
+    % for use as a preconditioner in the conjugate gradient
+    % solver. Note that the preconditioner involves DCTs, rather
+    % than FFTs, in order to allow more desirable boundary conditions.
     persistent F
     if nargin>=2
-        l = spm_diffeo('kernel',d(1:3),[vx prm 0 0])/vx(2);
-        l(1,1,1) = l(1,1,1) + 128; % Ad hoc
-        F = real(1./fftn(double(l)));
+        if nargin<4, c = 0.1; end
+        d2 = d;
+        d2(d2>1) = d2(d2>1)*2;
+        l = spm_diffeo('kernel',d2(1:3),[vx prm 0 0])/vx(2);
+        l(1,1,1) = l(1,1,1) + c;
+        F = real(fftn(double(l)));
+        F = 1./F(1:d(1),1:d(2),1:d(3));
     end
     Fi = F;
 end
 
 % ===========================================================================
-% %==========================================================================
+% ===========================================================================
 function v = precon(u)
-% Preconditioner for the conjugate gradient solver.  This
-% is slightly ad hoc, but it seems to help.
-    F = filter;
-    v = real(ifftn(fftn(reshape(u,size(F))).*F));
-    v = v(:);
+    % Preconditioner for the conjugate gradient solver. c.f. the use of
+    % the "Hilbert gradient" in Beg's LDDMM paper.
+    F   = filter;
+    fun = spm_dctdst;
+    v   = fun.idct2n(fun.dct2n(reshape(u,size(F))).*F);
+    v   = v(:);
 end
 
 % ===========================================================================
-% %==========================================================================
-
+% ===========================================================================
