@@ -326,10 +326,12 @@ if isfield(dss, 'sfP') && ~isempty(dss.sfP)
         [dss.sfield,~,dss.sjac] = spm_bsplins(c, txyz(:,1), txyz(:,2), txyz(:,3), dss.hold);
         dss.sfield = dss.sfield(:);
         dss.sjac   = dss.sjac(:);
+        dss.sjac(~isfinite(dss.sjac)) = 0; % Assume static field is zero outside FoV
     else
         dss.sfield = spm_bsplins(c, txyz(:,1), txyz(:,2), txyz(:,3), dss.hold);
         dss.sfield = dss.sfield(:);
     end
+    dss.sfield(~isfinite(dss.sfield)) = 0; % Assume static field is zero outside FoV
     clear c txyz;
 end
 
