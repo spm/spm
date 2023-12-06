@@ -8,6 +8,8 @@ function varargout = spm_dctdst(varargin)
 % where function can be:
 % dct2n  - Multidimensional type II discrete cosine transform
 % idct2n - Multidimensional inverse type II discrete cosine transform
+% dst1n  - Multidimensional type I discrete sin transform
+% idst1n - Multidimensional inverse type I discrete sin transform
 % dst2n  - Multidimensional type II discrete sin transform
 % idst2n - Multidimensional inverse type II discrete sin transform
 %
@@ -16,6 +18,8 @@ function varargout = spm_dctdst(varargin)
 % where function can be:
 % dct2   - Type II discrete cosine transform
 % idct2  - Inverse type II discrete cosine transform
+% dst1   - Type I discrete sin transform
+% idst1  - Inverse type I discrete sin transform
 % dst2   - Type II discrete sin transform
 % idst2  - Inverse type II discrete sin transform
 %
@@ -33,8 +37,9 @@ function varargout = spm_dctdst(varargin)
 %
 %__________________________________________________________________________
 %
-% This code is still a work in progress, so is likely to change
-% considerably. Some functions remain undocumented for now.
+% Code works only for real data. Note that it is still a work in progress,
+% so is likely to change considerably.
+% Some functions remain undocumented for now.
 %__________________________________________________________________________
 
 % John Ashburner
@@ -49,43 +54,37 @@ end
 %==========================================================================
 function unused
 N  = 5;
-f0 = [3; -1];
+f0 = [3; -1; 2; -2; 1];
 x  = randn(N,1);
 
 % Work with DCT
 % Convolve with f
-ff0 = [flipud(f0(2:end)); f0(1); f0(2:end)];
+ff0 = [flipud(f0(2:end)); f0];
 tmp = convn([flipud(x); x; flipud(x)],ff0,'same');
 tmp = tmp(N+(1:N));
 
 X   = dct2(x);
 f   = [f0; zeros(N-length(f0),1)];
-F   = fft([f; 0; flipud(f(2:end))]); F = real(F(1:N)); % DCT-I
+F   = fft([f; 0; flipud(f(2:end))]);
+F   = real(F(1:N)); % DCT-I
 FX  = F.*X;
 fx  = idct2(FX);
-fprintf('DCT:\n');
+fprintf('DCT-II:\n');
 disp([tmp fx])
 
 % Work with DST
 % Convolve with f
-ff0 = [flipud(f0(2:end)); f0(1); f0(2:end)];
-tmp = convn([-flipud(x); x; -flipud(x)],ff0,'same');
+ff0 = [flipud(f0(2:end)); f0];
+tmp = convn([-flipud(x); x; -flipud(x)], ff0,'same');
 tmp = tmp(N+(1:N));
 
 X   = dst2(x);
 f   = [f0; zeros(N-length(f0),1)];
-F   = fft([f; 0; flipud(f(2:end))]); F = real(F(1:N)); % DCT-I
+F   = fft([f; 0; flipud(f(2:end))]);
+F   = real(F((1:N)+1)); % ??
 FX  = F.*X;
 fx  = idst2(FX);
-fprintf('DST:\n');
-disp([tmp fx])
-
-X   = dst2(x);
-f   = [f0; zeros(N-length(f0),1)];
-F   = fft([f; 0; flipud(f(2:end))]); F = real(F((1:N)+1)); % ??
-FX  = F.*X;
-fx  = idst2(FX);
-fprintf('???:\n');
+fprintf('DST-II:\n');
 disp([tmp fx])
 
 N1 = 64;
@@ -94,7 +93,7 @@ ux = randn(N1,N2);
 uy = randn(N1,N2);
 
 f  = zeros(N1,N2,'single');
-f(1,1)   = 4;
+f(1,1)   =  4;
 f(1,2)   = -1;
 f(2,1)   = -1;
 f(end,1) = -1;
@@ -104,14 +103,14 @@ f  = gpuArray(f);
 ux = gpuArray(ux);
 uy = gpuArray(uy);
 
-Fx = dfts(dfta(f,1),2);
+Fx = multidim({@dfta1,@dfts1},f);
 Fx = (0.1*Fx.^2 + 2*Fx + 0.000001);
 
-Fy = dfta(dfts(f,1),2);
+Fy = multidim({@dfts1,@dfta1},f);
 Fy = (0.1*Fy.^2 + 2*Fy + 0.000001);
 
-vx = idct(idst(dct(dst(ux,1),2)./Fy,1),2);
-vy = idst(idct(dst(dct(uy,1),2)./Fx,1),2);
+vx = multidim({@idst2,@idct2},multidim({@dst2,@dct2},ux)./Fx);
+vy = multidim({@idct2,@idst2},multidim({@dct2,@dst2},uy)./Fy);
 
 subplot(4,2,1); imagesc(ux);  axis image; title('u_x');
 subplot(4,2,2); imagesc(uy);  axis image; title('u_y');
@@ -184,6 +183,20 @@ function x = idct2n(varargin)
 end
 
 %==========================================================================
+% Multidimensional type I DST
+%==========================================================================
+function x = dst1n(varargin)
+    x = multidim(@dst1,varargin{:});
+end
+
+%==========================================================================
+% Multidimensional inverse type I DST
+%==========================================================================
+function x = idst1n(varargin)
+    x = multidim(@idst1,varargin{:});
+end
+
+%==========================================================================
 % Multidimensional type II DST
 %==========================================================================
 function x = dst2n(varargin)
@@ -211,6 +224,12 @@ function x = dftan(varargin)
     x = multidim(@dfta1,varargin{:});
 end
 
+%==========================================================================
+% Multidimensional work in progress
+%==========================================================================
+function x = dftpadn(varargin)
+    x = real(multidim(@dftpad,varargin{:}));
+end
 
 %==========================================================================
 % Do multidimensional transforms
@@ -222,8 +241,19 @@ function x = multidim(fun,x,varargin)
     else,        dims = varargin{1};
     end
     d   = size(x);
-    for dim=dims
-        x = permute2vol(fun(permute2mat(x,dim)),dim,d);
+    if ~iscell(fun)
+        for dim=dims
+            x = permute2vol(fun(permute2mat(x,dim)),dim,d);
+        end
+    else
+        if length(fun) ~= length(dims)
+            error('Incompatible dimensions.');
+        end
+        for i = 1:length(dims)
+            dim  = dims(i);
+            funi = fun{i};
+            x    = permute2vol(funi(permute2mat(x,dim)),dim,d);
+        end
     end
 end
 
@@ -274,17 +304,28 @@ function X = dfta1(X)
     % FFT of matrix columns, after padding the middle with
     % zeros.  Assumes X is anti-symmetric, so the results are imaginary.
     X2  = padft(X);
-    X   = real(X2((1:size(X,1))+1,:));
+    X   = X2((1:size(X,1))+1,:);
 end
 
 
 %==========================================================================
+% Work in progress
+%==========================================================================
+function X = dftpad(X)
+    % FFT of matrix columns, after padding the middle with
+    % zeros.  Assumes X is anti-symmetric, so the results are imaginary.
+    X2  = padft(X);
+    X   = X2(1:size(X,1),:);
+end
+
+%==========================================================================
 %
 %==========================================================================
-function X2 = padft(X)
+function X2 = padft(X,N2)
     N   = size(X,1);
-    ind = [1:floor(N/2) (N+ceil((N+1)/2)):(2*N)];
-    X2  = zeros(2*size(X,1),size(X,2),'like',X);
+    if nargin<2, N2 = 2*N; end
+    ind = [1:ceil(N/2) ((1-floor(N/2)):0)+N2];
+    X2  = zeros(N2,size(X,2),'like',X);
     X2(ind,:) = X;
     X2  = fft(X2,[],1);
 end
@@ -297,7 +338,7 @@ function X = dct2(X)
     % Discrete cosine transform (type-II) of matrix columns.
     N   = size(X,1);
     t   = (pi/(2*N))*(0:(N-ones('like',X)))';
-    %w  = exp(-1i*t)/sqrt(2*N); w(1) =  w(1)/sqrt(2);
+   %w   = exp(-1i*t)/sqrt(2*N); w(1) =  w(1)/sqrt(2);
     wr  =  cos(t)/sqrt(2*N);   wr(1) = wr(1)/sqrt(2);
     wi  = -sin(t)/sqrt(2*N);   wi(1) = wi(1)/sqrt(2);
     if rem(N,2)==1
@@ -347,10 +388,11 @@ end
 
 
 %==========================================================================
-% 1D type I? DST
+% 1D type I DST
 %==========================================================================
 function X = dst1(X)
-    % Discrete sine transform (Type-I?) of matrix columns.
+    % Discrete sine transform (Type-I) of matrix columns.
+    % Output matches that from MATLAB's PDE toolbox
     N         = size(X,1);
     X2        = zeros((N+1)*2,size(X,2),'like',X);
     in1       = 2:(N+1);
@@ -358,16 +400,16 @@ function X = dst1(X)
     X2(in1,:) =  X;
     X2(in2,:) = -X;
     X2        = fft(X2,[],1);
-    %X        =  real(X2(2:(N+1),:)/(-2*1i));
     X         = -imag(X2(2:(N+1),:))/2;
+   %X         = -imag(X2([N+1,2:N],:))/2;
 end
 
 
 %==========================================================================
-% 1D type I? IDST
+% 1D type I IDST
 %==========================================================================
 function X = idst1(X)
-    % Inverse discrete sine transform (Type-I?) of matrix columns.
+    % Inverse discrete sine transform (Type-I) of matrix columns.
     N = size(X,1);
     X = dst1(X)*(2/(N+1));
 end
@@ -412,6 +454,4 @@ function X = idst2(X)
     X2   = ifft(X2,[],1);
     X    = real(X2(1:N,:));
 end
-
-
 

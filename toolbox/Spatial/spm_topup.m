@@ -1,5 +1,5 @@
 function VDM = spm_topup(vol1, vol2, FWHM, reg, rinterp, jac, pref, outdir)
-% Correct susceptibility distortions using topup
+% Correct susceptibility distortions using a topup-like approach
 % FORMAT VDM = spm_topup(vol1, vol2, FWHM, reg, save)
 % vol1       - path to first image (blip up)
 % vol2       - path to second image (blip down)
@@ -19,8 +19,10 @@ function VDM = spm_topup(vol1, vol2, FWHM, reg, rinterp, jac, pref, outdir)
 %
 % VDM        - voxel displacement map.
 %
-% Reference:
+% This is a re-implementation of the topup approach in FSL. Perhaps it
+% should be renamed to "putup" or something similar to avoid confusion.
 %
+% Reference:
 % J.L.R. Andersson, S. Skare, J. Ashburner. How to correct susceptibility
 % distortions in spin-echo echo-planar images: application to diffusion
 % tensor imaging. Neuroimage, 20(2):870-888, 2003.
