@@ -217,7 +217,6 @@ end
 %--------------------------------------------------------------------------
 if ~isfield(MDP,'id')
     MDP.id.g  = {1:Ng};                         % Default (all modalities)
-    MDP.id.ig = 1;                              % Default (first)
     for g = 1:Ng
         MDP.id.A{g} = 1:(ndims(MDP.A{g}) - 1);  % Default (leading factors)
     end
@@ -232,11 +231,6 @@ try
     end
 catch
     MDP.id.g = {1:Ng};
-end
-try
-    MDP.id.ig;
-catch
-    MDP.id.ig = 1;
 end
 
 % ensure indices are row vectors id.A{g}
