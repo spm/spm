@@ -1,10 +1,10 @@
 function [Y] = spm_cross(X,x,varargin)
 % Multidimensional cross (outer) product
-% FORMAT [Y] = spm_cross(X,x)
+% FORMAT [Y] = spm_cross(X,x,...)
 % FORMAT [Y] = spm_cross(X)
 %
-% X  - numeric array
-% x  - numeric array
+% X  - cell or numeric array
+% x  - cell or numeric array
 %
 % Y  - outer product
 %

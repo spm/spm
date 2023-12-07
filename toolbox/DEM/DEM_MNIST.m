@@ -593,7 +593,7 @@ function mdp = spm_initialise(training,NS)
 %--------------------------------------------------------------------------
 mdp.p = 1/32;
 
-% initialise learnable language mapping for all agents
+% initialise likelihood arrays
 %--------------------------------------------------------------------------
 Ns    = [NS,10];
 Nf    = numel(Ns);
@@ -605,7 +605,7 @@ for f = 1:Nf
     mdp.b{f} = eye(Ns(f),Ns(f));
 end
 
-% illustrate behavioural responses
+% populate with examples
 %--------------------------------------------------------------------------
 for n = 1:Ns(2)
     j     = find(training.labels == (n - 1));

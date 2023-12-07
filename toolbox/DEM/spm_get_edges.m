@@ -43,12 +43,16 @@ if isfield(id,'ff')
 
     % MAP domain (parents)
     %----------------------------------------------------------------------
-    j  = id.fg{g}{s{:}};
+    if isfield(id,'fg')
+        j = id.fg{g}{s{:}};
+    else
+        j = id.A{g};
+    end
 
     % MAP codomain (children)
     %----------------------------------------------------------------------
     if isfield(id,'gg')
-        i = id.gg(g,s{:});
+        i = id.gg{g}{s{:}};
     else
         i = g;
     end
