@@ -36,7 +36,6 @@ realignunwarp.help    = {
     'of the session. The parameter estimation is performed this way because it is ' ...
     'assumed (rightly or not) that there may be systematic differences in the ' ...
     'images between sessions (see ``spm_uw_estimate.m`` for a detailed description of the implementation).']
-    ''
     ['Even after realignment there is considerable variance in fMRI time series ' ...
     'that covary with, and is most probably caused by, subject movements/* ' ...
     '\cite{ja_geometric}*/. It is also the case that this variance is typically ' ...
@@ -159,7 +158,10 @@ realignunwarp.help    = {
     '    * SENSE/SMASH->short read-out time->small distortions'
     ['If you can tick off all points above chances are you have minimal distortions ' ...
     'to begin with and Unwarp might not be of use to you.']
-    }';
+    ''
+    ['For more information, please see:']
+    ''
+    ['Andersson, J.L., Hutton, C., Ashburner, J., Turner, R. and Friston, K., 2001. Modeling geometric deformations in EPI time series. Neuroimage, 13(5), pp.903-919.']}';
 realignunwarp.prog     = @spm_run_realignunwarp;
 realignunwarp.vout     = @vout_realignunwarp;
 realignunwarp.modality = {'PET','FMRI'};
