@@ -273,7 +273,7 @@ for iter=1:256
 
     if est_smo
         % Compute a smoothness correction from the residuals and their
-        % derivatives.  This is analagous to the one used in:
+        % derivatives.  This is analogous to the one used in:
         %   "Analysis of fMRI Time Series Revisited"
         %   Friston KJ, Holmes AP, Poline JB, Grasby PJ, Williams SCR,
         %   Frackowiak RSJ, Turner R.  Neuroimage 2:45-53 (1995).

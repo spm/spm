@@ -7,7 +7,7 @@ function [W] = spm_voice_iQ(Q)
 % G(2)  - log timing  (pitch) Tv
 
 %
-% W     - (Nu x Nv) log formant coeficients (weights)
+% W     - (Nu x Nv) log formant coefficients (weights)
 %
 %   Nu  - number of formant coefficients
 %   Nv  - number of timing  coefficients
@@ -37,5 +37,5 @@ try, Tv = VOX.Tv; catch, Tv  = 1;          end    % log scaling (interval)
 %--------------------------------------------------------------------------
 U  = spm_voice_dct(Ni,Nu,Tu);                % DCT over formants
 V  = spm_voice_dct(ni,Nv,Tv);                % DCT over intervals
-W  = U\Q/V';                                 % coeficients
+W  = U\Q/V';                                 % coefficients
 W  = W/std(W(:));                            % normalise

@@ -4895,7 +4895,7 @@ static void cumbet(double *x,double *y,double *a,double *b,double *cum,
 
                                    References
 
-     Didonato, Armido R. and Morris, Alfred H. Jr. (1992) Algorithim
+     Didonato, Armido R. and Morris, Alfred H. Jr. (1992) Algorithm
      708 Significant Digit Computation of the Incomplete Beta Function
      Ratios. ACM ToMS, Vol.18, No. 3, Sept. 1992, 360-373.
 

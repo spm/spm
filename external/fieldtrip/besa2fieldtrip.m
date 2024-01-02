@@ -385,7 +385,7 @@ if iscell(labels) && length(labels)>1
 elseif iscell(labels) && length(labels)==1
   % could be a cell with a single long string in it
   if length(tokenize(labels{1}, ' '))>1
-    % seems like a long string that accidentaly ended up in a single
+    % seems like a long string that accidentally ended up in a single
     cell
     newlabels = tokenize(labels{1}, ' ');
   else

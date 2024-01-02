@@ -428,7 +428,7 @@ if isequal(mod, 'Multimodal')
         handles.DCM.xY.modality = questdlg(qstr, 'Select modality', list{:}, options);
         
     else
-        % Ugly but can accomodate more buttons
+        % Ugly but can accommodate more buttons
         %------------------------------------------------------------------
         ind = menu(qstr, list);
         handles.DCM.xY.modality = list{ind};
@@ -857,7 +857,7 @@ for i = 1:n
                 set(A{k}(i,j),'Enable','off')
             end
 
-            % allow nonlinear self-connections when appriopriate
+            % allow nonlinear self-connections when appropriate
             %--------------------------------------------------------------
             if strcmpi(DCM.options.analysis,'IND') && k == 2
                 set(A{k}(i,j),'Enable','on')

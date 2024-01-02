@@ -6,8 +6,8 @@ function [mar,pcond] = spm_ccf2mar(ccf,p)
 % p              - AR(p) order [default: p = 8]
 %
 % mar.noise_cov  - (m,m)         covariance of innovations   
-% mar.mean       - (p*m,m)       MAR coeficients (matrix format - positive)
-% mar.lag        - lag(p).a(m,m) MAR coeficients (array format  - negative)
+% mar.mean       - (p*m,m)       MAR coefficients (matrix format - positive)
+% mar.lag        - lag(p).a(m,m) MAR coefficients (array format  - negative)
 % mar.p          - order of a AR(p) model
 %
 % See also:
@@ -23,7 +23,7 @@ function [mar,pcond] = spm_ccf2mar(ccf,p)
 %--------------------------------------------------------------------------
 if nargin < 2, p  = 8; end                           
 
-% MAR coeficients
+% MAR coefficients
 %==========================================================================
 N     = size(ccf,1);
 m     = size(ccf,2);

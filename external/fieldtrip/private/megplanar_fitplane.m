@@ -3,7 +3,7 @@ function montage = megplanar_fitplane(cfg, grad)
 % Fit a plane through the B=f(x,y) plane and compute its two gradients
 % The first point in the plane is the gradiometer itself,
 % the neighbours are the subsequent points. This method also returns the
-% offset of the B-plane at each sensor, which is appriximately equal to the
+% offset of the B-plane at each sensor, which is approximately equal to the
 % field itself.
 
 % Copyright (C) 2004-2009, Robert Oostenveld

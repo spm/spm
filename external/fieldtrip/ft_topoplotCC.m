@@ -17,7 +17,7 @@ function [cfg] = ft_topoplotCC(cfg, freq)
 %   cfg.position      = location and size of the figure, specified as [left bottom width height] (default is automatic)
 %   cfg.renderer      = string, 'opengl', 'zbuffer', 'painters', see RENDERERINFO (default is automatic, try 'painters' when it crashes)
 %
-% The widthparam should be indicated in pixels, e.g. usefull numbers are 1 and
+% The widthparam should be indicated in pixels, e.g. useful numbers are 1 and
 % larger.
 %
 % The alphaparam should be indicated as opacity between 0 (fully transparent)

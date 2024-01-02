@@ -2,7 +2,7 @@ function DEM_demo_hdm
 % demo for Hemodynamic deconvolution
 %__________________________________________________________________________
 
-% load emprical data and set-up
+% load empirical data and set-up
 %==========================================================================
 load HDM
 global dt

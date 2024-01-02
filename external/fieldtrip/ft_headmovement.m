@@ -50,7 +50,7 @@ function [varargout] = ft_headmovement(cfg)
 % If cfg.method = 'pertrial_clusters', the cell-array of output structures
 % contains sets of trials where the trial-specific head position was
 % considered to be positioned close to the corresponding kmeans-cluster's
-% centroid. The corresponding grad-structure is specified accordin to the
+% centroid. The corresponding grad-structure is specified according to the
 % cluster's centroid. This method requires cfg.numclusters to be specified.
 %
 % The updatesens method and related methods are described by Stolk et al., Online and

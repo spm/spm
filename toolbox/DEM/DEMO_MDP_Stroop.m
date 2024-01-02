@@ -491,7 +491,7 @@ Z.Ep = Ep;
 Z.Cp = Cp;
 save('Z','Z')
 
-% Repeat the above with each data-source omitted (to caculate information
+% Repeat the above with each data-source omitted (to calculate information
 % gained from each source).
 %--------------------------------------------------------------------------
 M.ch      = 0; % Omit choice data

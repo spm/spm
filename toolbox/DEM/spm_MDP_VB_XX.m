@@ -300,7 +300,7 @@ for m = 1:size(MDP,1)
             
         end
         
-        % prior concentration paramters for novelty
+        % prior concentration parameters for novelty
         %------------------------------------------------------------------
         if isfield(MDP,'b')
             pB{m,f} = MDP(m).b{f};
@@ -333,7 +333,7 @@ for m = 1:size(MDP,1)
             MDP(m).D{f} = D{m,f};
         end
         
-        % prior concentration paramters for novelty
+        % prior concentration parameters for novelty
         %------------------------------------------------------------------
         if isfield(MDP,'d')
             pD{m,f} = MDP(m).d{f};
@@ -351,7 +351,7 @@ for m = 1:size(MDP,1)
     end
     E{m}     = spm_log(E{m});
     
-    % prior concentration paramters for habits
+    % prior concentration parameters for habits
     %----------------------------------------------------------------------
     if isfield(MDP,'e')
         pE{m} = MDP(m).e;
@@ -851,7 +851,7 @@ for t = 1:T
         %==================================================================
         if t < T
             
-            % record emprical prior over policies (R) and sample a policy (K)
+            % record empirical prior over policies (R) and sample a policy (K)
             %--------------------------------------------------------------
             R{m}(:,t)      = u{m,t};
             Ru             = spm_softmax(alpha*log(u{m,t}));

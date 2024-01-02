@@ -302,7 +302,7 @@ end
 
 
 
-%% Illustrate mapping from formant space to coeficients
+%% Illustrate mapping from formant space to coefficients
 %==========================================================================
 spm_figure('GetWin','Formant priors'); clf
 VOX.analysis = 0;

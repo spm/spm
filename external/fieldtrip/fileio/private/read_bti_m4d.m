@@ -137,7 +137,7 @@ while ischar(line)
   % remove spaces from the begin and end of the string
   val = strtrim(val);
 
-  % try to convert the value string into something more usefull
+  % try to convert the value string into something more useful
   if ~iscell(val)
     % the value can contain a variety of elements, only some of which are decoded here
     if ~isempty(strfind(key, 'Index')) || ~isempty(strfind(key, 'Count')) || any(strcmp(key, numlist))

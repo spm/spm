@@ -30,7 +30,7 @@ function [csd,mtf,coh,pha] = spm_mar2csd(mar,Hz,ns)
 %--------------------------------------------------------------------------
 if nargin < 3, ns = 2*Hz(end); end
 
-% format coefficients into an array of negative coeficients (cf lag.a)
+% format coefficients into an array of negative coefficients (cf lag.a)
 %--------------------------------------------------------------------------
 if isvector(mar) && isnumeric(mar)
     mar = mar(:);

@@ -41,7 +41,7 @@ headerfile = fullfile(dataset, [file '.res4']);
 % read the header from the raw CTF data
 hdr = read_ctf_res4(headerfile);
 
-% number of samples to shift the assesment of the trigger value
+% number of samples to shift the assessment of the trigger value
 % this is needed because it takes some time for the rising flank to get to the correct value
 trigshift = fix(hdr.Fs * 9/1200);
 

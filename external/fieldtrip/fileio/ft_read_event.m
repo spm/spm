@@ -32,7 +32,7 @@ function [event] = ft_read_event(filename, varargin)
 %
 % You can specify optional arguments as key-value pairs for filtering the events,
 % e.g. to select only events of a specific type, of a specific value, or events
-% between a specific begin and end sample. This event filtering is especially usefull
+% between a specific begin and end sample. This event filtering is especially useful
 % for real-time processing. See FT_FILTER_EVENT for more details.
 %
 % Some data formats have trigger channels that are sampled continuously with the same
@@ -565,7 +565,7 @@ switch eventformat
     end
 
     try
-      % read the trigger codes from the STIM channel, usefull for (pseudo) continuous data
+      % read the trigger codes from the STIM channel, useful for (pseudo) continuous data
       % this splits the trigger channel into the lowers and highest 16 bits,
       % corresponding with the front and back panel of the electronics cabinet at the Donders Centre
       [backpanel, frontpanel] = read_ctf_trigger(filename);

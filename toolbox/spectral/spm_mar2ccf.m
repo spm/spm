@@ -27,7 +27,7 @@ function [ccf] = spm_mar2ccf(mar,n)
 if nargin < 2, n = 128; end
 
 
-% format coefficients into an array of negative coeficients (cf lag.a)
+% format coefficients into an array of negative coefficients (cf lag.a)
 %--------------------------------------------------------------------------
 if isvector(mar) && isnumeric(mar)
     mar = mar(:);

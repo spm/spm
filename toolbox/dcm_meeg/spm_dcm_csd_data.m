@@ -86,7 +86,7 @@ if ~isfield(DCM.xY, 'modality')
             DCM.xY.modality = questdlg(qstr, 'Select modality', list{:}, options);
         else
             
-            % accomodate more buttons
+            % accommodate more buttons
             %--------------------------------------------------------------
             ind = menu(qstr, list);
             DCM.xY.modality = list{ind};

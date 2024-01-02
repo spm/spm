@@ -595,7 +595,7 @@ for k=1:K
     % Diagonal elements of Hessian
     h_kk = hessel(k,k,K,accel,s).*w;
 
-    % Dot product betwen off-diagonals of likelihood Hessian and x
+    % Dot product between off-diagonals of likelihood Hessian and x
     g_k = zeros(d(1:3),'single');
     for k1=1:K
         if k1~=k, g_k = g_k + x(:,:,:,k1).*hessel(k,k1,K,accel,s); end
@@ -1009,7 +1009,7 @@ datn       = set_def(datn,sett.ms.Mmu,psi1);
 function [mu,te] = zoom_mean(mu,sett,oMmu)
 ms    = sett.ms;
 y     = affine(ms.d, oMmu\ms.Mmu);
-spm_diffeo('boundary',1);  % Neumann bounday for template
+spm_diffeo('boundary',1);  % Neumann boundary for template
 mu    = spm_diffeo('pullc', mu, y);
 if nargout>=2
     te = template_energy(mu, ms.mu_settings);

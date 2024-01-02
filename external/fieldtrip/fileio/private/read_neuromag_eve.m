@@ -13,7 +13,7 @@ function [col1, col2, col3, col4] = read_neuromag_eve(filename)
 %
 % The recording of the data to disk may start later than the actual data
 % acquisition. This is represented in hdr.orig.raw.first_samp. This potential
-% offset needs to be taken into acocunt when combining it with the data from the
+% offset needs to be taken into account when combining it with the data from the
 % file on disk.
 
 % Copyright (C) 2013, Robert Oostenveld

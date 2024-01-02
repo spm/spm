@@ -63,7 +63,7 @@ function [cfg] = prepare_design(cfg)
 %
 % $Id$
 
-% determine whether a beween or a within-units design is requested.
+% determine whether a between or a within-units design is requested.
 if any(strcmp(cfg.statistic,{'indepsamplesT','indepsamplesregrT','indepsamplesZcoh','indepsamplesF'}))
     designtype = 'between';
 end

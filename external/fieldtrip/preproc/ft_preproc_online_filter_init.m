@@ -76,5 +76,5 @@ M = [[0; -A(2:end); 0],[eye(state.N);zeros(2,state.N)],[B;1]];
 n = null(M-eye(2+state.N));  % = eigenvector of M corresponding to eigenvalue=1, that is n=M*n
 n = n(:,1);               % ensure that it is only the first eigenvector
 z = n(2:end-1);           % delay state part of it
-z = z*(1-B(1))/z(1);      % scale appropiately
+z = z*(1-B(1))/z(1);      % scale appropriately
 state.z = x*z';

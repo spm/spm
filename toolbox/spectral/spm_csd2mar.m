@@ -23,7 +23,7 @@ function [mar] = spm_csd2mar(csd,Hz,p,dt)
 if nargin < 3, p = 8;              end
 if nargin < 4, dt = 1/(2*Hz(end)); end
  
-% FFT and evaluate MAR coeficients
+% FFT and evaluate MAR coefficients
 %--------------------------------------------------------------------------
 ccf  = spm_csd2ccf(csd,Hz,dt);
 mar  = spm_ccf2mar(ccf,p);

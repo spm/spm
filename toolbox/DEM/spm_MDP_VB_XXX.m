@@ -1540,7 +1540,7 @@ for v = 1:4
     qa   = a(m,:);
     qb   = b(m,:);
 
-    % acccumulate posterior Dirichlet parameters
+    % accumulate posterior Dirichlet parameters
     %======================================================================
     for t = 1:T
 

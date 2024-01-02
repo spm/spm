@@ -29,7 +29,7 @@ function [cfg] = ft_layoutplot(cfg, data)
 %   cfg.opto        = structure with optode definition or filename, see FT_READ_SENS
 %   cfg.output      = filename to which the layout will be written (default = [])
 %   cfg.montage     = 'no' or a montage structure (default = 'no')
-%   cfg.image       = filename, use an image to construct a layout (e.g. usefull for ECoG grids)
+%   cfg.image       = filename, use an image to construct a layout (e.g. useful for ECoG grids)
 %   cfg.box         = string, 'yes' or 'no' whether box should be plotted around electrode (default = 'yes')
 %   cfg.mask        = string, 'yes' or 'no' whether the mask should be plotted (default = 'yes')
 %   cfg.visible     = string, 'on' or 'off' whether figure will be visible (default = 'on')

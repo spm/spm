@@ -110,7 +110,7 @@ DCM.M.Hz  = DCM.xY.Hz;
 DCM.xY.Q  = spm_Q(1/2,Nf,1);
 DCM.xY.X0 = sparse(Nf,0);
 
-% adjust priors on gain to accomodate scaling differences among models
+% adjust priors on gain to accommodate scaling differences among models
 %--------------------------------------------------------------------------
 Hc        = feval(DCM.M.IS,DCM.M.pE,DCM.M,DCM.xU);
 DCM.M.U   = U*sqrt(norm(spm_vec(DCM.xY.y),Inf)/norm(spm_vec(Hc),Inf));

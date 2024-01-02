@@ -73,7 +73,7 @@ else
 end
 
 if hdroffset
-  % read the ascii header from the file, it does not contain much usefull information
+  % read the ascii header from the file, it does not contain much useful information
   orig = neuralynx_getheader(filename);
 end
 
@@ -179,7 +179,7 @@ if needhdr
   % these have to be hardcoded, since the DMA logfile does not contain header information
   hdr              = [];
   if hdroffset
-    % remember the ascii header from the file, it does not contain much usefull information
+    % remember the ascii header from the file, it does not contain much useful information
     hdr.orig       = orig;
   end
   hdr.Fs           = 32556;                   % sampling frequency

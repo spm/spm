@@ -92,7 +92,7 @@ for jj=1:length(chosen_conds)
     X=[X;ones(length(new_trials),1)*DCM.xU.X(jj)];
 end
 
-% Change DCM.xU to accomodate these trial indices
+% Change DCM.xU to accommodate these trial indices
 DCM.xU.oldX=DCM.xU.X;
 DCM.xU.X=X;
 

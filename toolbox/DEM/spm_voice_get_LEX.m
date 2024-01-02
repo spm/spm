@@ -160,7 +160,7 @@ for i = 1:4
             
         end
         
-        % expected formant coeficients and moments of pitch
+        % expected formant coefficients and moments of pitch
         %------------------------------------------------------------------
         LEX(w).pE  = LEX(w).pE/2 + mean(dP,2)/2;
         LEX(w).pC  = LEX(w).pC/2 + cov(dP')/2;

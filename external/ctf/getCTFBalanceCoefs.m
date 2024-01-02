@@ -44,7 +44,7 @@ function [alphaMEG,MEGindex,MEGbalanceindex,alphaGref,Grefindex,Gbalanceindex]=.
 %            MEGbalanceindex=[], alphaGref=zeros(0,nGef), Grefindex=list of Gref channels
 %            and Gbalanceindex=[];
 
-%   alphaGref,Grefindex,Gbalanceindex : Reference-gradiometer balancing coeficients.
+%   alphaGref,Grefindex,Gbalanceindex : Reference-gradiometer balancing coefficients.
 %            These output arrays are optional.  If the calling statement includes
 %            them, then this program extracts a table of balance coefficients for
 %            the reference gradiometers from the G1BR table in the coefficient files.
@@ -255,7 +255,7 @@ function [betaMEG,MEGindex,Refindex,betaGref,Grefindex,Gbalanceindex]=...
 %            betaMEG=zeros(1,nMEG),Refindex=3 and nRef=1;
 
 
-%   betaGref,Grefindex,Gbalanceindex : Reference-gradiometer balancing coeficients.
+%   betaGref,Grefindex,Gbalanceindex : Reference-gradiometer balancing coefficients.
 %            These output arrays are optional.  If the calling statement includes
 %            them, then this program extracts a table of balance coefficients for
 %            the reference gradiometers from the G1BR table in the coefficient files.

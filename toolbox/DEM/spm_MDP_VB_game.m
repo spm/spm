@@ -129,7 +129,7 @@ end
 if nargout
     Q.X  = x;            % expected hidden states
     Q.R  = u;            % final policy expectations
-    Q.S  = s;            % inital hidden states
+    Q.S  = s;            % initial hidden states
     Q.O  = o;            % final outcomes
     Q.p  = p;            % performance
     Q.q  = q;            % reaction times

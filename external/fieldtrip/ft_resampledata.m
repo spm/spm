@@ -33,7 +33,7 @@ function [data] = ft_resampledata(cfg, data)
 %
 % The methods 'resample' and 'decimate' automatically apply an anti-aliasing low-pass
 % filter. You can also explicitly specify an anti-aliasing low pass filter. This is
-% particularly adviced when downsampling using the 'downsample' method, but also when
+% particularly advised when downsampling using the 'downsample' method, but also when
 % strong noise components are present just above the new Nyquist frequency.
 %   cfg.lpfilter    = 'yes' or 'no' (default = 'no')
 %   cfg.lpfreq      = scalar value for low pass frequency (there is no default, so needs to be always specified)

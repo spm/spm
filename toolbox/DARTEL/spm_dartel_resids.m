@@ -261,7 +261,7 @@ if false
             % Eq. 6.33
             sc1(i) = g(mu,x1)*inv(F)*g(mu,x2);
 
-            % The aproach used for binomial distributions
+            % The approach used for binomial distributions
             vr     = (1-mu)*mu;
             sc2(i) = (x1-mu)*inv(vr)*(x2-mu);
         end

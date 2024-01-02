@@ -185,7 +185,7 @@ S.method = 'ebb'
 S.ebb.iid = 0;
 ```
 #### corr <a name="ebb_corr"></a>
-Adds correlated source assumptions to the prior in addition to the uncorrelated source assmptions of EBB, this is the implementation of cEBB used in [O'Neill et al. (2021)](https://doi.org/10.1038/s41598-021-96933-0).
+Adds correlated source assumptions to the prior in addition to the uncorrelated source assumptions of EBB, this is the implementation of cEBB used in [O'Neill et al. (2021)](https://doi.org/10.1038/s41598-021-96933-0).
 Note: this automatically assumes the correlated sources are bilateral (i.e. mirrored along the central fissure). For a more flexible implementation of correlated sources see the [pairs](#ebb_pairs) option.
 ```matlab
 

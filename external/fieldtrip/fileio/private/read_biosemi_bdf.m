@@ -15,7 +15,7 @@ function dat = read_biosemi_bdf(filename, hdr, begsample, endsample, chanindx)
 %   hdr.nSamplesPre  number of pre-trigger samples in each trial
 %   hdr.nTrials      number of trials
 %   hdr.label        cell-array with labels of each channel
-%   hdr.orig         detailled EDF header information
+%   hdr.orig         detailed EDF header information
 %
 % Or use as
 %   [dat] = read_biosemi_bdf(filename, hdr, begsample, endsample, chanindx);
@@ -155,7 +155,7 @@ if nargin==1
   EDF.Cal(tmp) = ones(size(tmp));
   EDF.Off(tmp) = zeros(size(tmp));
 
-  % the following adresses https://github.com/fieldtrip/fieldtrip/pull/395
+  % the following addresses https://github.com/fieldtrip/fieldtrip/pull/395
   tmp = find(strcmpi(cellstr(EDF.Label), 'STATUS'));
   if EDF.Cal(tmp)~=1
     timeout = 60*15; % do not show it for the next 15 minutes

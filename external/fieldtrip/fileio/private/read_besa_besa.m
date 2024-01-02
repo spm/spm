@@ -513,7 +513,7 @@ while ~isempty(ab_idx)
     last_outbuffer_idx = last_outbuffer_idx+n_vals;
     last_ab_idx = ab_idx+n_skip;
   else
-    % not an alowed announcing byte value
+    % not an allowed announcing byte value
     fclose(fid);
     ft_error('ReadBesaMatlab:ErrorABOutOfRange','Announcing byte out of range: %d',inbuffer(ab_idx));
   end

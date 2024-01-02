@@ -72,7 +72,7 @@ end
 % Indices
 csi = cumsum(ind,1);
 
-% Assingn V to each z based on the average
+% Assign V to each z based on the average
 Vc  = cell(numel(mod),1);
 for l=1:numel(mod)
     Vc{l} = zeros([K K sum(ind(:,l))],'single');

@@ -175,7 +175,7 @@ for i = 1:nvox
     srcpos(i,:) = cent_e(indx,:);
 end
 
-% find an inital direction of photon movement 
+% find an initial direction of photon movement 
 % normal vector to tetrahedral volume face is calculated. 
 AB=node(face(:,2),1:3)-node(face(:,1),1:3);
 AC=node(face(:,3),1:3)-node(face(:,1),1:3);

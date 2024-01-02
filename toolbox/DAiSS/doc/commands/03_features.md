@@ -160,7 +160,7 @@ S.cross_terms = 'megeeg'; % for just EEG sensors
 ```
 
 #### bootstrap
-Generate the matrix using a bootstap selection of trials. e.g. instead of trials `[1 2 3 4 5 6 7 8 9]` you would make a matrix out of a random subset of the trials, but keeping the total number of trials the same, such as `[1 1 1 4 5 6 7 7 9]`. 
+Generate the matrix using a bootstrap selection of trials. e.g. instead of trials `[1 2 3 4 5 6 7 8 9]` you would make a matrix out of a random subset of the trials, but keeping the total number of trials the same, such as `[1 1 1 4 5 6 7 7 9]`. 
 
 ```matlab
 

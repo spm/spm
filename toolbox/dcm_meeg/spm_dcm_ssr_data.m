@@ -83,7 +83,7 @@ if ~isfield(DCM.xY, 'modality')
             options.Interpreter = 'none';
             DCM.xY.modality = questdlg(qstr, 'Select modality', list{:}, options);
         else
-            % Ugly but can accomodate more buttons
+            % Ugly but can accommodate more buttons
             ind = menu(qstr, list);
             DCM.xY.modality = list{ind};
         end

@@ -102,8 +102,8 @@ DCM.Ep.B{1} = [
 X           = [ones(Ns,1) kron([-1;1],ones(Ns/2,1)) randn(Ns,1)];
 DCM.Ex      = spm_zeros(DCM.Ep);
 DCM.Ex.B{1} = -B{mx}*2*sd;
-Tp          = spm_vec(DCM.Ep);           % true second level paramters
-Tx          = spm_vec(DCM.Ex);           % true second level paramters
+Tp          = spm_vec(DCM.Ep);           % true second level parameters
+Tx          = spm_vec(DCM.Ex);           % true second level parameters
 
 % create subject-specifc DCM
 %--------------------------------------------------------------------------

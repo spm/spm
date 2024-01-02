@@ -14,7 +14,7 @@ function [L] = spm_erp_L(P,dipfit)
 %    'ECD', 'LFP' or 'IMG'
 %
 % determines whether the model is ECD or not. For imaging reconstructions
-% the paramters P.L are a (m x n) matrix of coefficients that scale the
+% the parameters P.L are a (m x n) matrix of coefficients that scale the
 % contrition of n sources to m = dipfit.Nm modes encoded in dipfit.G.
 %
 % For LFP models (the default) P.L simply encodes the electrode gain for 
@@ -84,7 +84,7 @@ switch type
         %------------------------------------------------------------------
         n  = size(P.L,2);
 
-        % re-compute lead field only if any coeficients have changed
+        % re-compute lead field only if any coefficients have changed
         %------------------------------------------------------------------
         try
             Id = find(any(LastLpos ~= P.L));

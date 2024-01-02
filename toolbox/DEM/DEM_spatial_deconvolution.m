@@ -189,7 +189,7 @@ for i = 1:nD
  k    = k + D*(d.^2);
 end
 
-% cosine aproximation to Gaussian
+% cosine approximation to Gaussian
 %--------------------------------------------------------------------------
 i     = find(abs(k) < pi);
 K(i)  = (1 + cos(k(i)/pi))/2;

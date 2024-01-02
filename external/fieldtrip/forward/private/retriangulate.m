@@ -27,7 +27,7 @@ function [pnt3, tri3] = retriangulate(pnt1, tri1, pnt2, tri2, flag)
 
 % Copyright (C) 2003-2013, Robert Oostenveld
 
-% this can be used for printing detailled user feedback
+% this can be used for printing detailed user feedback
 fb = false;
 
 if nargin<5

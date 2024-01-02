@@ -3,7 +3,7 @@ function [coord_norm] = warp_fsaverage_sym(cfg, elec)
 % WARP_FSAVERAGE_SYM maps left or right hemisphere electrodes onto 
 % FreeSurfer's fsaverage_sym's left hemisphere. To perform this mapping, 
 % you first need to have processed the subject's MRI with FreeSurfer's 
-% recon-all functionality and additionaly have registered the subject's resulting 
+% recon-all functionality and additionally have registered the subject's resulting 
 % surfaces to freesurfer fsaverage_sym template using surfreg as described 
 % in section 1.2 of https://surfer.nmr.mgh.harvard.edu/fswiki/Xhemi
 %

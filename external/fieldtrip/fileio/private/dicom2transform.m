@@ -19,7 +19,7 @@ function M = dicom2transform(dcmheader)
 % The output argument M is a 4x4 homogenous transformation matrix that maps voxel
 % indices onto PCS world coordinates in millimeter.
 %
-% Here are some usefull DICOM references
+% Here are some useful DICOM references
 %   https://doi.org/10.1016/j.jneumeth.2016.03.001
 %   https://dicom.innolitics.com/ciods/mr-image/image-plane/00200032
 %   https://horosproject.org

@@ -282,7 +282,7 @@ for m = 1:size(MDP,1)
             A{m,g}  = spm_norm(MDP(m).A{g});
         end
         
-        % prior concentration paramters for complexity (and novelty)
+        % prior concentration parameters for complexity (and novelty)
         %------------------------------------------------------------------
         if isfield(MDP,'a')
             pA{m,g} = MDP(m).a{g};
@@ -312,7 +312,7 @@ for m = 1:size(MDP,1)
             
         end
         
-        % prior concentration paramters for complexity
+        % prior concentration parameters for complexity
         %------------------------------------------------------------------
         if isfield(MDP,'b')
             pB{m,f} = MDP(m).b{f};
@@ -333,7 +333,7 @@ for m = 1:size(MDP,1)
             MDP(m).D{f} = D{m,f};
         end
         
-        % prior concentration paramters for complexity
+        % prior concentration parameters for complexity
         %------------------------------------------------------------------
         if isfield(MDP,'d')
             pD{m,f} = MDP(m).d{f};
@@ -352,7 +352,7 @@ for m = 1:size(MDP,1)
     end
     qE{m}    = spm_log(E{m});
     
-    % prior concentration paramters for complexity
+    % prior concentration parameters for complexity
     %----------------------------------------------------------------------
     if isfield(MDP,'e')
         pE{m} = MDP(m).e;
@@ -839,7 +839,7 @@ for t = 1:T
                                 %------------------------------------------
                                 qx  = spm_log(sx);
                                 
-                                % emprical priors (forward messages)
+                                % empirical priors (forward messages)
                                 %------------------------------------------
                                 if j < 2
                                     px = spm_log(D{m,f});
@@ -849,7 +849,7 @@ for t = 1:T
                                     v  = v + px + qL - qx;
                                 end
                                 
-                                % emprical priors (backward messages)
+                                % empirical priors (backward messages)
                                 %------------------------------------------
                                 if j < R
                                     px = spm_log(rB{m,f}(:,:,V{m}(j    ,k,f))*x{m,f}(:,j + 1,k));
@@ -901,7 +901,7 @@ for t = 1:T
             if Np(m) > 1
                 for k = p{m}
                     
-                    % Bayesian surprise about inital conditions
+                    % Bayesian surprise about initial conditions
                     %------------------------------------------------------
                     if isfield(MDP,'d')
                         for f = 1:Nf(m)

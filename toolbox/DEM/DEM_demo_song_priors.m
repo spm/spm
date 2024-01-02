@@ -67,7 +67,7 @@ DEM      = spm_DEM_generate(M,N);
 DEM.M(1).x = [1; 1; 8];
 DEM.M(2).x = [1; 1; 8];
  
-% canoncial DEM
+% canonical DEM
 %--------------------------------------------------------------------------
 DEMc   = DEM;
  
