@@ -65,7 +65,11 @@ nit.labels = {'  10: Fastest/poorest', '  30: Fast/poor', ' 100: reasonable',' 3
 nit.val    = {100};
 nit.help   = {'Number of denoising relaxation iterations.'};
 
-if license('test','distrib_computing_toolbox')
+% Better disable this option because SPM is supposed to not require
+% additional toolbox licenses.
+% I'm not sure what the proper way to test if a license for the Distributed
+% Computing Toolbox exists.
+if false % license('test','distrib_computing_toolbox')
     device        = cfg_menu;
     device.tag    = 'device';
     device.name   = 'Device';
@@ -74,10 +78,11 @@ if license('test','distrib_computing_toolbox')
     device.val    = {'cpu'};
     device.help   = {'Run on CPU/GPU. Note that using gpuArrays requires MATLAB''s Distributed Computing Toolbox.'};
 else
-    cfg          = cfg_const;
-    cfg.tag      = 'device';
-    cfg.val      = {'cpu'};
-    cfg.hidden   = true;
+    device          = cfg_const;
+    device.tag      = 'device';
+    device.val      = {'cpu'};
+    device.hidden   = true;
 end
 
 [cfg,varargout{1}] = deal({data lambda nit device});
+
