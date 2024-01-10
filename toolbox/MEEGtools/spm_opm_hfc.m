@@ -30,7 +30,7 @@ if ~isfield(S, 'balance'),       S.balance = 1; end
 if ~isfield(S, 'L'),             S.L = 1; end
 if ~isfield(S, 'prefix'),        S.prefix = 'h'; end
 
-%-Get design matrix
+%-Find usable channels
 %--------------------------------------------------------------------------
 
 s = sensors(S.D,'MEG');
@@ -38,19 +38,17 @@ if isempty(s)==1
     error('Could not find sensor positions')
 end
 
+chaninds = indchantype(S.D,'MEG');
 if(S.usebadchans)
-    usedLabs= s.label;
-    sinds = 1:length(usedLabs);
+  usedLabs= chanlabels(S.D,chaninds);
 else
-    badLabels = chanlabels(S.D,badchannels(S.D));
-    indsRem = [];
-    for i =1:length(badLabels)
-        indsRem=[indsRem strmatch(badLabels{i},s.label)];
-    end
-    LabInds = 1:length(s.label);
-    sinds = setdiff(LabInds,indsRem);
-    usedLabs= s.label(sinds);
+  badinds = badchannels(S.D);
+  usedinds = setdiff(chaninds,badinds);
+  usedLabs= chanlabels(S.D,usedinds);
 end
+
+usedLabs = intersect(usedLabs,s.label);
+[~,sinds] = spm_match_str(usedLabs,s.label);
 
 %-Define harmonic Basis Set
 %--------------------------------------------------------------------------
