@@ -21,7 +21,7 @@ function [data,fid] = mne_read_epoch(epoch_info,which,prev_fid)
 %   License : BSD 3-clause
 %
 %
-%     $Id: mne_read_epoch.m 8776 2013-11-14 09:04:48Z roboos $
+%     $Id$
 %     
 %     Revision 1.6  2006/05/03 19:03:19  msh
 %     Eliminated the use of cast function for Matlab 6.5 compatibility
