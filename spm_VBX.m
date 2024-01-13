@@ -145,7 +145,12 @@ switch METHOD
 
         % accumulate likelihoods (L) over partition of modalities
         %==================================================================
-        L     = 1;
+        if isfield(id,'independent')
+            L      = cell(1,Nf);
+            [L{:}] = deal(1);
+        else
+            L = 1;
+        end
         for p = 1:numel(ig)
             for g = ig{p}
 
@@ -168,44 +173,84 @@ switch METHOD
                     LL = LL.*spm_dot(Ag(:,s{j}),O{o});
                 end
 
-                % accumulate
+                % accumulate likelihood
                 %----------------------------------------------------------
-                if numel(j) > 1
-                    [j,i] = sort(j);
-                    LL    = permute(LL,i);
+                if isfield(id,'independent')
+
+                    L{j} = L{j}.*LL(:);
+                    
+                else
+
+                    % sort domains if necessary
+                    %------------------------------------------------------
+                    if numel(j) > 1
+                        [j,i] = sort(j);
+                        LL    = permute(LL,i);
+                    end
+
+                    % accumulate likelihoods
+                    %------------------------------------------------------
+                    k    = ones(1,Nf + 1);
+                    k(j) = size(LL,1:numel(j));
+                    L    = times(L,reshape(LL,k));
+
                 end
-                k     = ones(1,Nf + 1); k(j) = size(LL,1:numel(j));
-                L     = times(L,reshape(LL,k));
             end
 
         end % partition of modalities
 
-        % factors to update (eliminate factors with precise posteriors)
-        %------------------------------------------------------------------
-        i = size(L);
-        r = find(i > 1);
-        L = reshape(L,[i(r) 1 1]);
-
-        if isempty(r), F = spm_log(L); return; end
-
         % Posterior marginals
         %------------------------------------------------------------------
-        U     = spm_times(L,R{r});                 % posterior unnormalised
-        Z     = sum(U,'all');                      % partition coefficient
-        if Z
-            F = spm_log(Z);                        % negative free energy
-            Q = spm_margin(U/Z);                   % marginal  posteriors
-        else
-            F = -32;                               % negative free energy
-            Q = spm_margin(U + 1/numel(U));        % marginal  posteriors
-        end
+        if isfield(id,'independent')
+            F     = zeros(Nf,1);
+            for f = 1:Nf
+                if numel(L{f}) > 1
+                    U    = times(L{f},R{f});      % posterior unnormalised
+                    Z    = sum(U,'all');          % partition coefficient
+                    if Z
+                        F(f) = spm_log(Z);        % negative free energy
+                        Q    = U/Z;               % marginal  posteriors
+                    else
+                        F(f) = -32;
+                        Q    = U + 1/numel(U);
+                    end
 
-        % Posterior
-        %------------------------------------------------------------------
-        for i = 1:numel(r)
-            f          = r(i);
-            P{f}(:)    = 0;
-            P{f}(s{f}) = Q{i};
+                    P{f}(:)    = 0;
+                    P{f}(s{f}) = Q;
+                end
+            end
+            F = sum(F);
+
+        else
+
+            % factors to update (eliminate factors with precise posteriors)
+            %--------------------------------------------------------------
+            i = size(L);
+            r = find(i > 1);
+            L = reshape(L,[i(r) 1 1]);
+
+            if isempty(r), F = spm_log(L); return; end
+
+            % Posterior marginals
+            %------------------------------------------------------------------
+            U     = spm_times(L,R{r});           % posterior unnormalised
+            Z     = sum(U,'all');                % partition coefficient
+            if Z
+                F = spm_log(Z);                  % negative free energy
+                Q = spm_margin(U/Z);             % marginal  posteriors
+            else
+                F = -32;
+                Q = spm_margin(U + 1/numel(U));
+            end
+
+            % Posterior
+            %------------------------------------------------------------------
+            for i = 1:numel(r)
+                f          = r(i);
+                P{f}(:)    = 0;
+                P{f}(s{f}) = Q{i};
+            end
+
         end
 
 

@@ -16,16 +16,26 @@ if nargin < 2,        OPT   = 'norm'; end
 if ~isfield(MDP,'b'), MDP.b = MDP.B;  end
 if ~isfield(MDP,'a'), MDP.a = MDP.A;  end
 
+[Nf,Ns,Nu] = spm_MDP_size(MDP);
 
-for f = 1:numel(MDP.b)
+for f = 1:Nf
 
     % plot priors (transition probabilities)
     %----------------------------------------------------------------------
-    for u = 1:size(MDP.b{f},3)
+    for u = 1:Nu(f)
         subplot(6,6,u + (f - 1)*6)
         if strcmp(OPT,'norm')
-            imagesc(spm_dir_norm(MDP.b{f}(:,:,u)))
+            if Ns(f) > 128
+                spm_spy(spm_dir_norm(MDP.b{f}(:,:,u)));
+            else
+                imagesc(spm_dir_norm(MDP.b{f}(:,:,u)))
+            end
         else
+            if Ns(f) > 128
+                spm_spy(MDP.b{f}(:,:,u));
+            else
+                imagesc(MDP.b{f}(:,:,u))
+            end
             imagesc(MDP.b{f}(:,:,u))
         end
         title('Transition priors')
@@ -35,22 +45,32 @@ end
 
 % plot likelihood mapping
 %--------------------------------------------------------------------------
-subplot(2,2,3)
-for g = 1:numel(MDP.a)
-    a{g} = spm_dir_norm(MDP.a{g}(:,:));
+try
+    for g = 1:numel(MDP.a)
+        a{g} = spm_dir_norm(MDP.a{g}(:,:));
+    end
+    A = spm_cat(a');
+
+    subplot(2,2,3)
+    if size(A,1) > 128
+        spm_spy(A);
+    else
+        imagesc(A)
+    end
+    axis square, title('Likelihood','FontSize',14)
+    xlabel('latent states'),ylabel('outcomes')
 end
-A = spm_cat(a');
-if size(A,1) > 256
-    spm_spy(A);
-else
-    imagesc(A)
-end
-axis square, title('Likelihood','FontSize',14)
-xlabel('latent states'),ylabel('outcomes')
+
 
 % And allowable state transitions
 %--------------------------------------------------------------------------
 subplot(2,2,4)
-imagesc(sum(MDP.b{1},3) > 1/4),axis square
+if Ns(f) > 128
+    spm_spy(sum(MDP.b{1},3) > 1/4);
+else
+    imagesc(sum(MDP.b{1},3) > 1/4),
+end
+axis square
 title('Allowable transitions','FontSize',14), axis square
 xlabel('latent states'),ylabel('latent states')
+

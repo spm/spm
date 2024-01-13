@@ -19,7 +19,11 @@ if isstruct(S{1})
     
     % play movie
     %----------------------------------------------------------------------
+    if strcmp(get(gcbo,'type'),'figure')
+        movie(gcf,S{1},1,S{2});
+    else
     movie(S{1},1,S{2});
+    end
     
     if strcmp(get(gcf,'SelectionType'),'normal')
         return

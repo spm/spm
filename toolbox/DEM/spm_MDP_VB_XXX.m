@@ -4,6 +4,7 @@ function [MDP] = spm_MDP_VB_XXX(MDP,OPTIONS)
 %
 % Input; MDP(m,n)       - structure array of m models over n epochs
 % MDP.U(1,Nf)           - controllable factors
+% MDP.V(Np,Nf)          - combinations of latent factors (policies)
 % MDP.T                 - number of time steps
 %
 % MDP.A{Ng}(No(g),Ns(1),...,Ns(Nf)) - likelihood of outcomes, given hidden states
@@ -85,7 +86,7 @@ function [MDP] = spm_MDP_VB_XXX(MDP,OPTIONS)
 % This implementation equips agents with the prior beliefs that they will
 % maximise expected free energy. Expected free energy can be interpreted in
 % several ways - most intuitively as minimising the KL divergence between
-% predicted and preferred outcomes (specified as prior beliefs) -i.e., risk
+% predicted and preferred outcomes (specified as prior beliefs); i.e., risk
 % while simultaneously minimising ambiguity. Alternatively, this can be
 % rearranged into expected information gain and expected value, where value
 % is the log of prior preferences (overstates or outcomes).
@@ -118,12 +119,21 @@ function [MDP] = spm_MDP_VB_XXX(MDP,OPTIONS)
 % generating process and generative model. The generative model is, by
 % default, specified in terms of Dirichlet parameters, while the generative
 % process is specified in terms of expected (likelihood and prior
-% transition) probabilities: b and B, respectively. If the number or
-% dimensionality of b and B do not correspond, then select OPTIONS.A = 1.
-% This will automatically evaluate the most likely policy (combination of
-% controllable paths) to reproduce the predicted outcomes (i.e. that which
-% minimises variational free energy or maximises accuracy); as opposed to
-% using the path selected by the model.
+% transition) probabilities: A and B, respectively.
+%
+% This allows the generative model to learn the generative process, when
+% the structure or form of the process and its models are the same. If the
+% generative process as a different structure (e.g., a different number of
+% latent factors) then the generative model can be specified in terms of
+% the likelihood and prior tensors; MDP.GA and MDP.GB, respectively. The
+% controllable factors of the generative process are specified in MDP.GU.
+% Specifying a generative process will automatically invoke explicit
+% action; namely, the most likely policy (combination of controllable
+% paths) will automatically realise predicted outcomes. I.e., the policy
+% that minimises variational free energy or maximises accuracy (as opposed
+% to directly implementing the path selected under the generative model).
+% Explicit action is a more biomimetic, if vicarious, approach to realising
+% inferred paths.
 %
 % This scheme is designed for any allowable policies or control variables
 % specified in MDP.U. Constraints on allowable policies can limit the
@@ -133,7 +143,7 @@ function [MDP] = spm_MDP_VB_XXX(MDP,OPTIONS)
 % respectively. This means, for each factor or subset of hidden states
 % there are corresponding control states that determine the transition
 % probabilities. in this implementation, hidden factors are combined using
-% a Kronecker intensive product to enable exact Bayesian inference using
+% a Kronecker tensor product to enable exact Bayesian inference using
 % belief propagation (the Kronecker tensor form ensures that conditional
 % dependencies among hidden factors are evaluated).
 %
@@ -151,10 +161,9 @@ function [MDP] = spm_MDP_VB_XXX(MDP,OPTIONS)
 %
 % In brief, the agent encodes beliefs about hidden states in the past
 % conditioned on realised outcomes and actions. The resulting conditional
-% expectations determine the (path integral) of free energy that then
-% determines an empirical prior over the next action, from which the next
-% realised action sampled
-%
+% expectations determine the (path integral) of expected free energy that
+% then determines an empirical prior over the next action, from which the
+% next realised action sampled
 %
 % If supplied with a structure array, this routine will automatically step
 % through the implicit sequence of epochs (implicit in the number of
@@ -188,6 +197,7 @@ function [MDP] = spm_MDP_VB_XXX(MDP,OPTIONS)
 %--------------------------------------------------------------------------
 try, OPTIONS.A; catch, OPTIONS.A = 0; end      % action selection
 try, OPTIONS.B; catch, OPTIONS.B = 0; end      % backwards pass
+try, OPTIONS.C; catch, OPTIONS.C = 0; end      % check sizes and labels
 try, OPTIONS.D; catch, OPTIONS.D = 0; end      % final states
 try, OPTIONS.N; catch, OPTIONS.N = 0; end      % neuronal responses
 try, OPTIONS.P; catch, OPTIONS.P = 0; end      % graphics
@@ -195,6 +205,7 @@ try, OPTIONS.P; catch, OPTIONS.P = 0; end      % graphics
 % check MDP specification
 %--------------------------------------------------------------------------
 MDP = spm_MDP_checkX(MDP);
+
 
 % handle multiple trials, ensuring parameters (and posteriors) are updated
 %==========================================================================
@@ -270,11 +281,9 @@ end
 % defaults
 %--------------------------------------------------------------------------
 try, alpha = MDP(1).alpha; catch, alpha = 512;  end % action precision
-try, beta  = MDP(1).beta ; catch, beta  = 0;    end % learing precision
+try, beta  = MDP(1).beta ; catch, beta  = 0;    end % learning precision
 try, eta   = MDP(1).eta;   catch, eta   = 512;  end % learnability
-try, chi   = MDP(1).chi;   catch, chi   = 1/64; end % Occam window updates
 try, N     = MDP(1).N;     catch, N     = 0;    end % depth of policy search
-
 
 % initialise model-specific parameters
 %==========================================================================
@@ -282,32 +291,61 @@ T     = MDP(1).T;                              % number of updates
 Nm    = numel(MDP);
 for m = 1:Nm
 
-    % number of outcomes, states, controls and policies
+    % Check for generative process
+    %======================================================================
+    if all(isfield(MDP(m),{'GA','GB','GU'}))
+
+        % invoke explicit action
+        %------------------------------------------------------------------
+        OPTIONS.A = 1;
+    else
+
+        % assume generative process is the model
+        %------------------------------------------------------------------
+        MDP(m).GA = MDP(m).A;
+        MDP(m).GB = MDP(m).B;
+        MDP(m).GD = MDP(m).D;
+        MDP(m).GE = MDP(m).E;
+        MDP(m).GU = MDP(m).U;
+
+    end
+
+    % number of outcomes and latent states
     %----------------------------------------------------------------------
-    Ng(m) = numel(MDP(m).A);                   % number of outcome factors
-    Nf(m) = numel(MDP(m).B);                   % number of hidden factors
+    Ng(m) = numel(MDP(m).A);                   % number of modalities
+    Nf(m) = numel(MDP(m).B);                   % number of factors
     for g = 1:Ng(m)
         No(m,g) = size(MDP(m).A{g},1);         % number of outcomes
     end
     for f = 1:Nf(m)
         Ns(m,f) = size(MDP(m).B{f},1);         % number of hidden states
-        Nu(m,f) = size(MDP(m).B{f},3);         % number of hidden controls
+        Nu(m,f) = size(MDP(m).B{f},3);         % number of hidden paths
     end
 
-    % allow for differences between the model (b) and process (B)
+    % number of states and paths in generative process
     %----------------------------------------------------------------------
-    NF    = Nf;
-    NU    = Nu;
-    if isfield(MDP(m),'b')
-        Nf(m) = numel(MDP(m).b);               % number of hidden factors
-        for f = 1:Nf(m)
-            Ns(m,f) = size(MDP(m).b{f},1);     % number of hidden states
-            Nu(m,f) = size(MDP(m).b{f},3);     % number of hidden controls
+    NF(m) = numel(MDP(m).GB);                  % number of factors
+    for f = 1:NF(m)
+        NS(m,f) = size(MDP(m).GB{f},1);        % number of states
+        NU(m,f) = size(MDP(m).GB{f},3);        % number of paths
+    end
+
+    % Check for priors over initial states and paths of generative process
+    %----------------------------------------------------------------------
+    if OPTIONS.A
+        if ~all(isfield(MDP(m),{'GD','GE'}))
+            for f = 1:NF
+                MDP(m).GD{f} = spm_norm(ones(NS(m,f),1));
+                MDP(m).GE{f} = spm_norm(ones(NU(m,f),1));
+            end
+        end
         end
     end
 
     % parameters of generative model and policies
-    %======================================================================
+%==========================================================================
+O     = cell(Nm,max(Ng),T);                   % outcomes
+for m = 1:Nm
 
     % likelihood model (for a partially observed MDP)
     %----------------------------------------------------------------------
@@ -411,6 +449,24 @@ for m = 1:Nm
         %------------------------------------------------------------------
         D{m,f}  = spm_norm(qd{m,f});
 
+        % priors over paths (control states): concentration parameters
+        %------------------------------------------------------------------
+        if isfield(MDP,'e')
+            qe{m,f} = MDP(m).e{f};
+        elseif isfield(MDP,'E')
+            qe{m,f} = MDP(m).E{f}*512;
+        else
+            qe{m,f} = ones(Nu(m,f),1);
+        end
+
+        % Dirichlet prior
+        %------------------------------------------------------------------
+        pe{m,f} = qe{m,f};
+
+        % normalised prior probabilities
+        %------------------------------------------------------------------
+        E{m,f}  = spm_norm(qe{m,f});
+
         % priors over final hidden states: concentration parameters
         %------------------------------------------------------------------
         if isfield(MDP,'h')
@@ -429,57 +485,35 @@ for m = 1:Nm
         %------------------------------------------------------------------
         H{m,f}  = spm_norm(qh{m,f});
 
-        % priors over paths (control states): concentration parameters
-        %------------------------------------------------------------------
-        if isfield(MDP,'e')
-            qe{m,f} = MDP(m).e{f};
-        elseif isfield(MDP,'E')
-            qe{m,f} = MDP(m).E{f}*512;
-        else
-            qe{m,f} = ones(Nu(m,f),1);
         end
 
-        % Dirichlet prior
-        %------------------------------------------------------------------
-        pe{m,g} = qe{m,f};
-
-        % normalised prior probabilities
-        %------------------------------------------------------------------
-        E{m,f}  = spm_norm(qe{m,f});
-
-    end
-
-
-    % allowable actions (U)
-    %----------------------------------------------------------------------
-    U{m}      = any(MDP(m).U,1);                % controllable factors
-
-    % actual policies (J)
-    %----------------------------------------------------------------------
-    if OPTIONS.A
-        k         = find(U{m});
-        u         = spm_combinations(NU(m,k));
-        J{m}      = zeros(size(u,1),NF(m));
-        J{m}(:,k) = u;
-    end
 
     % controllable factors
-    %----------------------------------------------------------------------
-    if isfield(MDP(m),'k')
-        U{m} = any(MDP(m).k,1);
-    end
+    %======================================================================
 
-    % beliefs about policies (V)
+    % policies (GV) - generative factors
     %----------------------------------------------------------------------
-    if size(MDP(m).U,1) == 1
+    k          = find(any(MDP(m).GU,1));
+    u          = spm_combinations(NU(m,k));
+    GV{m}      = zeros(size(u,1),NF(m));
+    GV{m}(:,k) = u;
+    Na(m)     = size(GV{m},1);                 % number of action policies
+
+    % policies (V) - latent factors
+    %----------------------------------------------------------------------
+    U{m}       = any(MDP(m).U,1);
         k         = find(U{m});
         u         = spm_combinations(Nu(m,k));
         V{m}      = zeros(size(u,1),Nf(m));
         V{m}(:,k) = u;
-    else
-        V{m} = MDP(m).U;
+
+    % replace with V if specified
+    %----------------------------------------------------------------------
+    if isfield(MDP(m),'V')
+        V{m}  = MDP(m).V;
+        U{m}  = any(MDP(m).V,1);
     end
-    Np(m)    = size(V{m},1);                  % number of policies
+    Np(m)     = size(V{m},1);                 % number of latent policies
 
     
     % initialise posterior expectations of hidden states (X) and paths (S)
@@ -533,21 +567,23 @@ for m = 1:Nm
 
     % if outcomes are specified probabilistically
     %----------------------------------------------------------------------
+    if isfield(MDP(m),'O')
     for g  = 1:Ng(m)
         for t = 1:T
             try
                 % Probabilistic outcomes
-                %----------------------------------------------------------
+                    %-------------------------------------------------------
                 O{m,g,t}      = MDP(m).O{g,t};
 
                 % Overwrite deterministic outcomes
-                %----------------------------------------------------------
-                MDP(m).o(g,t) = find(rand < cumsum(O{m,g,t}),1);
+                    %------------------------------------------------------
+                    MDP(m).o(g,t) = spm_sample(O{m,g,t});
 
             catch
                 O{m,g,t}      = [];
             end
         end
+    end
     end
 
     % domains (id)
@@ -559,7 +595,6 @@ end % end model (m)
 
 % ensure any outcome generating agent is updated first
 %--------------------------------------------------------------------------
-T       = max(T);                            % maximum number of updates
 N       = min(N,T);                          % depth of policy search
 [M,MDP] = spm_MDP_get_M(MDP,T,Ng);           % order of model updating
 
@@ -572,9 +607,64 @@ for t = 1:T
     %======================================================================
     for m = M(t,:)
 
+        % explicit action to realise initial state
+        %==================================================================
+        if OPTIONS.A && t == 1 && isfield(MDP(m),'s0')
+
+            % prior over outcomes
+            %--------------------------------------------------------------
+            qo    = cell(Ng(m),1);
+            for g = 1:Ng(m)
+
+                % domain of A{g}
+                %----------------------------------------------------------
+                [j,i] = spm_get_edges(id{m},g,D(m,:));
+                qo{i} = spm_dot(A{m,g},Q(m,j,t));
+
+            end
+
+            % find actions that minimise prediction error
+            %--------------------------------------------------------------
+            l     = any(GV{m},1);
+            F     = zeros(Na(m),1);
+            qs    = cell(NF(m),Na(m));
+            po    = cell(Ng(m),1);
+            for k = 1:Na(m)
+
+                % predicted states under this policy
+                %----------------------------------------------------------
+                u     = MDP(m).u0;
+                u(l)  = GV{m}(k,l);
+                for f = 1:NF(m)
+                    qs{f,k} = MDP(m).GB{f}(:,MDP(m).s0(f),u(f));
+                end
+
+                % free energy or prediction error (i.e., inaccuracy)
+                %----------------------------------------------------------
+                for g = 1:Ng(m)
+                    po{g} = spm_dot(MDP(m).GA{g},qs(:,k));
+                    F(k)  = F(k) + qo{g}'*spm_log(po{g});
+                end
+
+            end
+
+            % action
+            %--------------------------------------------------------------
+            k             = spm_sample(spm_softmax(alpha*F));
+            MDP(m).u(:,t) = MDP(m).u0;
+            MDP(m).u(l,t) = GV{m}(k,l)';
+
+            % and realised initial state
+            %--------------------------------------------------------------
+            for f = 1:NF(m)
+                MDP(m).s(f,t) = spm_sample(qs{f,k});
+            end
+
+        end
+
         % initialise and propagate control state (path)
         %==================================================================
-        for f = 1:Nf(m)
+        for f = 1:NF(m)
             if ~MDP(m).u(f,t)
                 if t > 1
 
@@ -586,8 +676,8 @@ for t = 1:T
 
                     % otherwise sample a path
                     %------------------------------------------------------
-                    pu            = spm_norm(MDP(m).E{f});
-                    MDP(m).u(f,t) = find(rand < cumsum(pu),1);
+                    pu            = spm_norm(MDP(m).GE{f});
+                    MDP(m).u(f,t) = spm_sample(pu);
 
                 end
             end
@@ -597,23 +687,24 @@ for t = 1:T
         %==================================================================
         if t > 1
 
-
-            % implcit action
+            % implicit action
             %--------------------------------------------------------------
-            k     = find(rand < cumsum(Pu),1);
+            k     = spm_sample(Pu);
             for f = 1:Nf(m)
 
                 if U{m}(f)
 
-                    % selected action
-                    %------------------------------------------------------
-                    u                 = V{m}(k,f);
-                    MDP(m).u(f,t - 1) = u;
-
                     % prior postdictive density (paths)
                     %------------------------------------------------------
+                    u               = V{m}(k,f);
                     P{m,f,t - 1}(:)   = 0;
                     P{m,f,t - 1}(u)   = 1;
+
+                    % selected action
+                    %------------------------------------------------------
+                    if ~OPTIONS.A
+                        MDP(m).u(f,t - 1) = u;
+                    end
 
                 end
 
@@ -630,6 +721,7 @@ for t = 1:T
 
                 % predicted outcomes
                 %----------------------------------------------------------
+                qo    = cell(Ng(m),1);
                 for g = 1:Ng(m)
 
                     % domain of A{g}
@@ -641,31 +733,34 @@ for t = 1:T
 
                 % find actions that minimise prediction error
                 %----------------------------------------------------------
-                l     = any(J{m},1);
-                for k = 1:size(J{m},1)
+                l     = any(GV{m},1);
+                F     = zeros(Na(m),1);
+                qs    = cell(NF(m),1);
+                po    = cell(Ng(m),1);
+                for k = 1:Na(m)
 
                     % predicted states under this policy
                     %------------------------------------------------------
                     u     = MDP(m).u(:,t - 1);
-                    u(l)  = J{m}(k,l);
-                    for f = 1:numel(MDP(m).B)
-                        qs{f} = MDP(m).B{f}(:,MDP(m).s(f,t - 1),u(f));
+                    u(l)  = GV{m}(k,l);
+                    for f = 1:NF(m)
+                        qs{f} = MDP(m).GB{f}(:,MDP(m).s(f,t - 1),u(f));
                     end
 
                     % free energy or prediction error (i.e., inaccuracy)
                     %------------------------------------------------------
                     F(k)  = 0;
                     for g = 1:Ng(m)
-                        [j,i] = spm_get_edges(id{m},g,qs);
-                        po    = spm_dot(MDP(m).A{g},qs(j));
-                        F(k)  = F(k) - qo{i}'*spm_log(po);
+                        po{g} = spm_dot(MDP(m).GA{g},qs);
+                        F(k)  = F(k) + qo{g}'*spm_log(po{g});
                     end
+
                 end
 
                 % most likely control state
                 %----------------------------------------------------------
-                [F,k] = min(F);
-                MDP(m).u(l,t - 1) = spm_vec(J{m}(k,l));
+                k                 = spm_sample(spm_softmax(alpha*F));
+                MDP(m).u(l,t - 1) = GV{m}(k,l)';
 
                 end
 
@@ -681,17 +776,17 @@ for t = 1:T
 
                 % the next state is generated by state transititions
                 %----------------------------------------------------------
-                    ps = MDP(m).B{f}(:,MDP(m).s(f,t - 1),MDP(m).u(f,t - 1));
+                    ps = MDP(m).GB{f}(:,MDP(m).s(f,t - 1),MDP(m).u(f,t - 1));
 
                 else
 
                     % unless it is the initial state
                     %------------------------------------------------------
-                    ps = spm_norm(MDP(m).D{f});
+                    ps = spm_norm(MDP(m).GD{f});
 
                 end
 
-                MDP(m).s(f,t) = find(rand < cumsum(ps),1);
+                MDP(m).s(f,t) = spm_sample(ps);
 
             end
 
@@ -715,7 +810,6 @@ for t = 1:T
 
     % generate outcomes O{m,g,t} for each agent or model
     %======================================================================
-    
     for m = M(t,:)
 
         % selected outcome modalities
@@ -746,7 +840,7 @@ for t = 1:T
                             %----------------------------------------------
                             F             = spm_log(spm_dot(A{m,g},Q(m,j,t)));
                             O{m,o,t}      = spm_softmax(F*512);
-                            MDP(m).o(o,t) = find(rand < cumsum(O{m,o,t}),1);
+                            MDP(m).o(o,t) = spm_sample(O{m,o,t});
 
                     else
 
@@ -765,11 +859,17 @@ for t = 1:T
 
                 else
 
-                    % or default sample from likelihood, given hidden state
+                        % or sample from likelihood, given hidden state
                         %==================================================
+                        if OPTIONS.A
+                            ind       = num2cell(MDP(m).s(:,t));
+                            O{m,o,t}  = MDP(m).GA{g}(:,ind{:});
+                        else
                     ind           = num2cell(MDP(m).s(j,t));
                         O{m,o,t}      = MDP(m).A{g}(:,ind{:});
-                        MDP(m).o(o,t) = find(rand < cumsum(O{m,o,t}),1);
+                        end
+
+                        MDP(m).o(o,t) = spm_sample(O{m,o,t});
 
                 end
 
@@ -800,7 +900,7 @@ for t = 1:T
                 F             = sum([Fm{g,j}],2);
                 O{m,g,t}      = spm_softmax(F);
                 po            = spm_softmax(F*512);
-                MDP(m).o(g,t) = find(rand < cumsum(po),1);
+                MDP(m).o(g,t)  = spm_sample(po);
 
             end
         end
@@ -811,86 +911,93 @@ for t = 1:T
     %======================================================================
     for m = M(t,:)
 
-        if isfield(MDP,'link')
+        if isfield(MDP,'MDP')
 
-            % use previous inversions (if available) to generate outcomes
+            % get child and initialise record of outcomes (Q)
             %--------------------------------------------------------------
-            try
-                mdp = MDP(m).mdp(t);
-            catch
-                try
-                    mdp = spm_MDP_update(MDP(m).MDP(t),MDP(m).mdp(t - 1));
-                catch
-                    try
-                        mdp = spm_MDP_update(MDP(m).MDP(1),MDP(m).mdp(t - 1));
-                    catch
                         mdp = MDP(m).MDP(1);
-                    end
-                end
-            end
 
-            % priors over states (of subordinate level)
+            % priors over states and paths of children
             %--------------------------------------------------------------
-            mdp.factor = [];
-            for f = 1:size(MDP(m).link,1)
-                for g = 1:size(MDP(m).link,2)
-                    if ~isempty(MDP(m).link{f,g})
-
-                        % subordinate factor has hierarchical constraints
-                        %--------------------------------------------------
-                        mdp.factor(end + 1) = f;
+            for f = 1:numel(mdp.id.D)
 
                         % empirical priors over initial states
-                        %--------------------------------------------------
-                        O{m,g,t} = spm_dot(A{m,g},Q(m,:,t));
-                        mdp.D{f} = MDP(m).link{f,g}*O{m,g,t};
-
-                        % outcomes (i.e., states) are generated by model n
-                        %--------------------------------------------------
-                        if MDP(m).n(g,t)
-                            n    = MDP(m).n(g,t);
-                            if m == n
-                                ps         = MDP(m).link{f,g}(:,MDP(m).o(g,t));
-                                mdp.s(f,1) = find(ps);
-                            else
-                                mdp.s(f,1) = MDP(n).mdp(t).s(f,1);
-                            end
-                        end
-
-                        % hidden state for lower level is the outcome
-                        %--------------------------------------------------
-                        try
-                            mdp.s(f,1) = mdp.s(f,1);
-                        catch
-                            ps         = MDP(m).link{f,g}(:,MDP(m).o(g,t));
-                            mdp.s(f,1) = find(ps);
-                        end
+                %----------------------------------------------------------
+                g        = mdp.id.D{f};
+                j        = spm_get_edges(id{m},g,Q(m,:,t));
+                O{m,g,t} = spm_dot(A{m,g},Q(m,j,t));
+                mdp.D{f} = O{m,g,t};
 
                     end
+
+            for f = 1:numel(mdp.id.E)
+
+                % empirical priors over paths
+                %----------------------------------------------------------
+                g        = mdp.id.E{f};
+                j        = spm_get_edges(id{m},g,Q(m,:,t));
+                O{m,g,t} = spm_dot(A{m,g},Q(m,j,t));
+                mdp.E{f} = O{m,g,t};
+
                 end
+
+            % previous states and outcomes (s0,u0,& O) for this level
+            %==============================================================
+            if isfield(MDP(m),'Q')
+                mdp.Q  = MDP(m).Q;
+                if isfield(mdp,'a' ), mdp.a = mdp.Q.a{mdp.L}; end
+                if isfield(mdp,'b' ), mdp.b = mdp.Q.b{mdp.L}; end
+                mdp.s0 = mdp.Q.s{mdp.L};
+                mdp.u0 = mdp.Q.u{mdp.L};
             end
 
             % infer hidden states at lower level (outcomes at this level)
             %==============================================================
-            OPT.B         = 1;
-            MDP(m).mdp(t) = spm_MDP_VB_XXX(mdp,OPT);
+            mdp   = spm_MDP_VB_XXX(mdp);
 
+            % posteriors over states and paths of children
+            %--------------------------------------------------------------
+            for f = 1:numel(mdp.id.D)
 
-            % get inferred outcomes from subordinate MDP
-            %==============================================================
-            for f = 1:size(MDP(m).link,1)
-                for g = 1:size(MDP(m).link,2)
-                    if ~isempty(MDP(m).link{f,g})
-                        O{m,g,t} = MDP(m).link{f,g}'*MDP(m).mdp(t).X{f}(:,1);
-                    end
-                end
+                % posterior over initial states
+                %----------------------------------------------------------
+                g        = mdp.id.D{f};
+                O{m,g,t} = mdp.X{f}(:,1);
             end
+
+            for f = 1:numel(mdp.id.E)
+
+                % posterior over paths
+                %----------------------------------------------------------
+                g        = mdp.id.E{f};
+                O{m,g,t} = mdp.P{f}(:,end);
+
+            end
+
+            % final states  (s0,u0) and parameters (a,b)
+            %==============================================================
+            if isfield(mdp,'a' ), mdp.Q.a{mdp.L} = mdp.a; end
+            if isfield(mdp,'b' ), mdp.Q.b{mdp.L} = mdp.b; end
+            mdp.Q.s{mdp.L} = mdp.s(:,end);
+            mdp.Q.u{mdp.L} = mdp.u(:,end);
+
+            % and outcomes (O,Y)
+            %--------------------------------------------------------------
+            try
+                mdp.Q.Y{mdp.L} = [mdp.Q.Y{mdp.L} mdp.Y];
+                mdp.Q.O{mdp.L} = [mdp.Q.O{mdp.L} mdp.O];
+                mdp.Q.o{mdp.L} = [mdp.Q.o{mdp.L} mdp.o];
+            catch
+                mdp.Q.Y{mdp.L} = mdp.Y;
+                mdp.Q.O{mdp.L} = mdp.O;
+                mdp.Q.o{mdp.L} = mdp.o;
+            end
+            MDP(m).Q = mdp.Q;
+
 
         end % end of hierarchical mode
 
     end % end loop over models or agents
-
-
 
 
     % Bayesian belief updating hidden states (Q) and controls (P)
@@ -1028,6 +1135,7 @@ for t = 1:T
                 for i = k
                     da   = da + spm_cross(O(m,i,t),Q{m,j,t});
                 end
+                da     = reshape(da,size(A{m,g}));
                 da(~qa{m,g}) = 0;
 
                 % update likelihood Dirichlet parameters
@@ -1084,24 +1192,6 @@ for t = 1:T
                 end
             end
         end
-
-        % return to supraordinate level
-        %==================================================================
-
-        % check for residual uncertainty (in hierarchical schemes)
-        %------------------------------------------------------------------
-        if isfield(MDP,'factor')
-
-            % break if there is no further uncertainty to resolve
-            %--------------------------------------------------------------
-            for f = MDP(m).factor(:)'
-                sq(m,f) = Q{m,f,t}'*spm_log(Q{m,f,t});
-            end
-            if sum(sq(:)) > - chi
-                T = t;
-            end
-        end
-
 
     end % end of loop over models (agents)
 
@@ -1194,7 +1284,7 @@ for m = 1:size(MDP,1)
     %----------------------------------------------------------------------
     if isfield(MDP,'c')
         for g  = ig{m}
-            dc = O{m,g,t + 1};
+            dc = O{m,g,end};
             dc = dc.*(pc{m,g} > 0);
             MDP(m).c{g} = (pc{m,g} + dc)*eta/(eta + 1);
         end
@@ -1700,8 +1790,56 @@ for v = 1:16
     %======================================================================
     for t = 1:T
 
-        % accumulate likelihoods over modalities
-        %------------------------------------------------------------------
+        if isfield(id{m},'independent')
+
+            %  conditionally independent factors
+            %--------------------------------------------------------------
+            L      = cell(1,Nf);
+            [L{:}] = deal(0);
+            ig     = spm_get_g(id{m},t);              % attended modalities
+
+            for g = ig
+                [j,k] = spm_get_edges(id{m},g,Q(m,:,t));
+                j     = unique(j,'stable');
+                LL    = 0;
+                for o = k
+                    LL = LL + spm_log(spm_dot(spm_norm(qa{m,g}),O{m,o,t}));
+                    %  = LL + spm_dot(spm_psi(qa{m,g}),O{m,o,t});
+                end
+                L{j} = L{j} + LL;
+            end
+
+            % posterior over hidden states
+            %--------------------------------------------------------------
+            for i = 1:Nf
+
+                % log prior: smoothing
+                %----------------------------------------------------------
+                LP   = 0;
+                if t == 1
+                    LP = LP + spm_log(D{m,f});
+                end
+                if t < T
+                    LP = LP + spm_dot(spm_psi(tr(qb{f})),P(m,f,t))*Q{m,f,t + 1};
+                end
+                if t > 1
+                    LP = LP + spm_dot(spm_psi(qb{f}),P(m,f,t - 1))*Q{m,f,t - 1};
+                end
+
+                % posterior
+                %----------------------------------------------------------
+                Q{m,f,t} = spm_softmax(L{f} + LP);
+
+                % ELBO free energy of states (accuracy and complexity)
+                %----------------------------------------------------------
+                F(t)     = F(t) + Q{m,f,t}'*(L{f} + LP - spm_log(Q{m,f,t}));
+
+            end
+
+        else
+
+            %  conditionally dependent factors
+            %--------------------------------------------------------------
         L     = 0;
         ig    = spm_get_g(id{m},t);         % attended modalities
         for g = ig
@@ -1721,26 +1859,26 @@ for v = 1:16
         end
 
         % factors to update
-        %------------------------------------------------------------------
+            %--------------------------------------------------------------
             i = size(L);
             r = find(i > 1);
         L = reshape(L,[i(r) 1 1]);
 
         % only one latent state
-        %------------------------------------------------------------------
+            %--------------------------------------------------------------
         if isempty(r), F(t) = L; end
         
         % posterior over hidden states
-        %------------------------------------------------------------------
+            %--------------------------------------------------------------
         for i = 1:numel(r)
 
             % log likelihood
-            %--------------------------------------------------------------
+                %----------------------------------------------------------
             f    = r(i);
             LL   = spm_vec(spm_dot(L,Q(m,r,t),i));
 
             % log prior: smoothing
-            %--------------------------------------------------------------
+                %----------------------------------------------------------
             LP   = 0;
             if t == 1
                 LP = LP + spm_log(D{m,f});
@@ -1753,13 +1891,14 @@ for v = 1:16
             end
 
             % posterior
-            %--------------------------------------------------------------
+                %----------------------------------------------------------
             Q{m,f,t} = spm_softmax(LL + LP);
 
             % ELBO free energy of states (accuracy and complexity)
-            %--------------------------------------------------------------
+                %----------------------------------------------------------
             F(t)  = F(t) + Q{m,f,t}'*(LL + LP - spm_log(Q{m,f,t}));
 
+        end
         end
 
     end
@@ -1884,7 +2023,7 @@ else
     hid   = [];
     hif   = [];
 for f = 1:numel(H)
-        if ~isempty(H{f})
+        if any(diff(H{f}))
             [~,s]  = max(H{f});
             hid(end + 1,1) = s;
             hif(1,end + 1) = f;
@@ -1905,10 +2044,11 @@ if isfield(id,'cid')
     for f = hif
         Ns(f) = size(B{f},1);
     end
+    Ns    = [Ns,1];
     
     % constraint tensor over hid factors
     %----------------------------------------------------------------------
-    D     = true(Ns);
+    D     = true(Ns);                        % unconstrained states
     for i = 1:size(cid,2)
 
         % posterior of constraint violation
@@ -1938,7 +2078,7 @@ u     = 1/16;                         % probability threshold
 for f = hif
     b{f}  = false;
     for k = 1:size(B,3)
-        b{f} = b{f} | gt(B{1,f,k}, max(B{1,f,k})*u);
+        b{f} = b{f} | (B{1,f,k} > u);
     end
 end
 
@@ -1999,7 +2139,7 @@ end
 
 % Backwards induction: paths of least action
 %==========================================================================
-for i = 1:size(Pf,2)
+for i = 1:size(hid,2)
 
     % for this end state
     %----------------------------------------------------------------------
@@ -2023,7 +2163,8 @@ end
 
 % precise log prior over next state
 %==========================================================================
-[d,n] = max(G);                    % first end state
+G(1,:) = 0;                        % preclude current states
+[d,n]  = max(G,[],1);              % next intended state
 i     = d > u;                     % provided it exists
 if any(i)
 
@@ -2036,9 +2177,8 @@ if any(i)
     % precise log prior over next state
     %----------------------------------------------------------------------
     P     = P{i}(:,max(n - 1,1));
-    R     = single(reshape(full(P),Ns));
+    R     = single(reshape(full(P),[Ns,1]));
     R     = shiftdim(32*R,-1);
-
 else
     R = false;
 end
@@ -2058,9 +2198,20 @@ if isfield(id,'g')
 else
     g = 1:numel(id.A);
 end
+
 % ensure g is a row vector
 %--------------------------------------------------------------------------
 g = g(:)';
+
+
+function i  = spm_sample(P)
+% log of numeric array plus a small constant
+%--------------------------------------------------------------------------
+if islogical(P)
+    i = find(P,1);
+else
+    i = find(rand < cumsum(P),1);
+end
 
 function A  = spm_log(A)
 % log of numeric array plus a small constant
@@ -2070,15 +2221,17 @@ A           = max(log(A),-32);
 function A  = spm_norm(A)
 % normalisation of a probability transition matrix (columns)
 %--------------------------------------------------------------------------
+if isnumeric(A)
 A           = rdivide(A,sum(A,1));
 A(isnan(A)) = 1/size(A,1);
+end
 
 function A  = spm_wnorm(A)
 % expected information gain (likelihood parameters)
 % A = minus(log(A0),log(A)) + minus(1./A,1./A0) + minus(psi(A),psi(A0))
 %   = minus(1./A,1./A0)/2 + ...
 %--------------------------------------------------------------------------
-A   = max(A,1/32);
+A   = full(max(A,1/32));
 if max(A,[],'all') < 256
 A0  = sum(A);
 A   = minus(log(A0),log(A)) + minus(1./A,1./A0) + minus(psi(A),psi(A0));
@@ -2195,7 +2348,7 @@ function r = spm_gamrnd(h,l)
 % l - scale parameter
 %
 % generates a random number from the gamma distribution with the shape
-% parameter h and the scale parameter l.
+% parameter h and the scale paramemeter l.
 %
 % e.g.: r = spm_gamrnd(1,2)
 % r = 

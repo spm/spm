@@ -236,18 +236,3 @@ for f = 1:Nf
         set(gca,'YTickLabel',MDP(1).Bname{f});
     end
 end
-if isfield(MDP(1),'c')
-    title('Learning (C and D)')
-else
-    return
-end
-
-% Habit learning
-%--------------------------------------------------------------------------
-k     = round(linspace(1,Nt,6));
-for j = 1:length(k)
-    h = MDP(k(j)).c;
-    h = h*diag(1./sum(h));
-    subplot(6,6,30 + j), image(64*(1 - h))
-    axis image
-end

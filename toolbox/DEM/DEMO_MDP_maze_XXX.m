@@ -150,7 +150,7 @@ spm_maze_plot(PDP)
 % greater and lesser precision over (path independent) constraints C. With
 % imprecise constraints, the agent still likes to explore a bit
 %--------------------------------------------------------------------------
-MDP.H = H;
+MDP.h = H;
 MDP.s = START;
 MDP.T = 32;
 for i = [1,8]

@@ -158,8 +158,8 @@ if size(MDP,2) > 1
     GRAPH        = OPTIONS.plot;
     OPTIONS.plot = 0;
     
-    for i = 1:size(MDP,2)                  % number of MDPs
-        for m = 1:size(MDP,1)              % number of trials
+    for i = 1:size(MDP,2)                  % number of trials
+        for m = 1:size(MDP,1)              % number of MDPs
             if i > 1                       % if previous inversions
                 
                 % update concentration parameters
@@ -182,7 +182,7 @@ if size(MDP,2) > 1
             end
         end
         
-        % solve this trial (for all models synchronously)
+        % solve this trial (for all MDPs synchronously)
         %------------------------------------------------------------------
         OUT(:,i) = spm_MDP_VB_X(MDP(:,i),OPTIONS);
         

@@ -28,10 +28,7 @@ if Ns == 1, return, end
 
 % mutual information of likelihood
 %--------------------------------------------------------------------------
-M0    = 0;
-for g = 1:numel(mdp.a)
-    M0 = M0 + spm_MDP_MI(mdp.a{g});
-end
+M0    = spm_MDP_MI(mdp.a{g});
 
 % initial Dirichlet counts
 %--------------------------------------------------------------------------

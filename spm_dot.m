@@ -65,8 +65,14 @@ end
 
 % inner product using tensorprod
 %--------------------------------------------------------------------------
+if islogical(X),X = single(X); end
+if issparse(X), X = full(X);   end
 for d = 1:numel(x)
-    X    = tensorprod(X,full(x{d}(:)),DIM(d),1);
+    
+    if islogical(x{d}),x{d} = single(x{d}); end
+    if issparse(x{d}), x{d} = full(x{d});   end
+
+    X    = tensorprod(X,x{d}(:),DIM(d),1);
     DIM  = DIM - 1;
 end
 
