@@ -292,12 +292,13 @@ mdp     = spm_MDP_structure_learning([],O);
 % Illustrate motor learning
 %==========================================================================
 mdp     = rmfield(mdp,'b');                % assume B has been learned
-mdp.U   = U;
 mdp.A   = A;
 mdp.B   = B;
 mdp.C   = C;
+
+mdp.GU = U;
 mdp     = spm_MDP_motor_learning(mdp);
-mdp.k = U;
+mdp.U  = U; %%%
 
 % active learning (c.f., motor babbling)
 %==========================================================================

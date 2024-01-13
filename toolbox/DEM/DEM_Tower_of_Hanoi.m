@@ -253,10 +253,11 @@ OPTIONS.B = 0;                           % suppress replay
 OPTIONS.N = 0;                           % suppress neuronal responses
 OPTIONS.G = 0;                           % suppress graphics
 
-mdp.A = MDP.A;                           % Generative process (likelihood)
-mdp.B = MDP.B;                           % Generative process (transition)
-mdp.U = 1;
-mdp.N = 1;
+mdp.GA = MDP.A;                          % Generative process (likelihood)
+mdp.GB = MDP.B;                          % Generative process (transition)
+mdp.GU = 1;
+mdp.U  = 1;
+mdp.N  = 1;
 
 % engage active learning (i.e., accept parameter updates if G increases)
 %--------------------------------------------------------------------------

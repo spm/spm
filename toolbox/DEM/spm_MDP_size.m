@@ -1,5 +1,5 @@
 function [Nf,Ns,Nu,Ng,No] = spm_MDP_size(mdp)
-% Dimensions of MDP
+% Dimensions (shape) of MDP based on generative model (a,b,...) 
 % FORMAT [Nf,Ns,Nu,Ng,No] = spm_MDP_size(mdp)
 % Nf  - number of factors
 % Ns  - states per factor
@@ -25,8 +25,7 @@ else
     if isfield(mdp,'B')
         b = mdp.B;
     else
-        Ns = size(a{1},2:16);
-        Ns = Ns(Ns > 1);
+        Ns    = size(a{1},2:ndims(A));
         for f = 1:numel(Ns)
             b{f} = eye(Ns(f),Ns(f));
         end

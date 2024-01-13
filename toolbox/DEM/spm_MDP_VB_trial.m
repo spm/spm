@@ -27,7 +27,8 @@ function spm_MDP_VB_trial(MDP,gf,gg)
 
 % graphics
 %==========================================================================
-clf
+clf; MDP = spm_MDP_check_labels(MDP);
+
 
 % numbers of transitions, policies and states
 %--------------------------------------------------------------------------
