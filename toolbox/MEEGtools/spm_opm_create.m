@@ -58,7 +58,9 @@ try % work out if data is a matrix or a file
     
     %- Cerca magnetics support
     %----------------------------------------------------------------------
-    if strcmpi(num2str(S.data(end-4:end)),'.cMEG')
+    [~,~,ext] = spm_fileparts(S.data);
+    
+    if strcmpi(ext,'.cMEG')
         forward = 0;
         subjectSource=0;
         subjectNoStruct = 0;
@@ -85,8 +87,16 @@ try % work out if data is a matrix or a file
 
     %- Neuro-1 LVM files support
     %----------------------------------------------------------------------
-    if strcmpi(num2str(S.data(end-3:end)),'.lvm')
+    if strcmpi(ext,'.lvm')
         S = read_neuro1_data(S);
+        binData = 0;
+    end
+    
+    %- Fieldline .fif files support
+    %----------------------------------------------------------------------
+    
+    if strcmpi(ext,'.fif')
+        S = read_fieldline_data(S);
         binData = 0;
     end
     
@@ -310,8 +320,12 @@ if positions
         end
         args.D=D;
         args.task='setcoor2d';
+        try
         D=spm_eeg_prep(args);
         D.save;
+        catch
+          warning('Could not create 2D layout')
+        end 
     end
 end
 
@@ -524,6 +538,41 @@ bids.channels = channels;
 bids.meg = meg;
 
 end
+
+function Snew = read_fieldline_data(S)
+hdr = ft_read_header(S.data);
+data = ft_read_data(S.data);
+
+
+chans = [];
+chans.name = {hdr.orig.chs.ch_name}';
+chans.type = hdr.chantype;
+chans.units = cellstr(repmat('fT',size(hdr.label,1),1));
+chans.status = cellstr(repmat('good',size(hdr.label,1),1));
+
+
+nchans = size(hdr.orig.chs,2);
+pos = [hdr.orig.chs.loc]';
+
+
+% currently only radial support. 
+positions = [];
+positions.Px = pos(:,1);
+positions.Py = pos(:,2);
+positions.Pz = pos(:,3);
+positions.Ox = pos(:,10);
+positions.Oy = pos(:,11);
+positions.Oz = pos(:,12);
+positions.name = {hdr.orig.chs.ch_name}';
+
+
+Snew=S;
+Snew.data =data*1e15;
+Snew.channels =chans;
+Snew.positions= positions;
+Snew.fs = hdr.Fs;
+
+end 
 
 function Snew = read_neuro1_data(Sold)
     
