@@ -35,6 +35,7 @@ B{1} = false(NS,NS,3);
 
 % specify likelihood and transitions for every combination of states
 %--------------------------------------------------------------------------
+WIDTH = 1;
 hid   = [];             % hits
 cid   = [];             % misses
 
@@ -78,7 +79,7 @@ for x = 1:Ns(1)
                             % likelihoods for target
                             %----------------------------------------------
                             if ind(1) <= h
-                                if abs(ind(2) - Nc/2) < Nc/4
+                                if abs(ind(2) - Nc/2) > WIDTH
                                     A{g}(3,s) = true;
                                     A{g}(5,s) = false;
                                 else
@@ -145,7 +146,7 @@ for x = 1:Ns(1)
                             % reset game
                             %==============================================
                             if j == 2 && q == 1
-                                if  abs(i - Nc/2) < Nc/4
+                                if  abs(i - Nc/2) > WIDTH
                                     it = x;
                                     jt = j0;
                                     pt = p0;

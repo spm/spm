@@ -1,10 +1,12 @@
-function RDP = spm_mdp2rdp(MDP,T)
+function RDP = spm_mdp2rdp(MDP,T,p,q)
 % Converts a cell array of MDPs into a recursive MDP
 % FORMAT RDP = spm_mdp2rdp(MDP,T)
 % MDP{n} - Cell array of MDPs
 %  MDP{n}.id.D - cell array of parents of D in supraordinate outcomes
 %  MDP{n}.id.E - cell array of parents of E in supraordinate outcomes
 % T      - path lengths [default: T = 2]
+% p      - likelihood precision (concentration parameters) [p = 1/256]
+% q      - transition precision (concentration parameters) [q = p]
 % 
 % RDP    - likelihood and transition tensors for generating this sequence
 %  RDP.L - level or depth
@@ -24,7 +26,26 @@ function RDP = spm_mdp2rdp(MDP,T)
 
 % Assume time scaling with a scale doubling
 %--------------------------------------------------------------------------
-if nargin < 2, T = 2; end
+if nargin < 2, T = 2;     end
+if nargin < 3, p = 1/256; end
+if nargin < 4, q = p;     end
+
+% prior concentration parameters
+%--------------------------------------------------------------------------
+for n = 1:numel(MDP)
+
+    % introduce ambiguity at the first level
+    %----------------------------------------------------------------------
+    for g = 1:numel(MDP{n}.A)
+        MDP{n}.A{g} = MDP{n}.A{g} + p;
+    end
+
+    % introduce high level ambiguity about transitions
+    %----------------------------------------------------------------------
+    for f = 1:numel(MDP{n}.B)
+        MDP{n}.B{f} = MDP{n}.B{f} + q;
+    end
+end
 
 % Recursively place MDP in MDP.MDP and specify path lengths
 %--------------------------------------------------------------------------

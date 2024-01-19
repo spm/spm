@@ -136,11 +136,11 @@ for u = 1:size(B,3)
     for s = 1:Ns
         if ~any(B(:,s,u))
             i = find(any(squeeze(B(:,s,:)),2),1);
-            if numel(i)
-                B(i,s,u) = 1;
-            else
-                B(s,s,u) = 1;
-            end
+%             if numel(i)
+%                 B(i,s,u) = 1;
+%             else
+%                 B(s,s,u) = 1;
+%             end
         end
     end
 end
