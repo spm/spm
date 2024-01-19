@@ -298,6 +298,7 @@ for m = 1:Nm
         % invoke explicit action
         %------------------------------------------------------------------
         OPTIONS.A = 1;
+        
     else
 
         % assume generative process is the model

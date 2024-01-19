@@ -60,8 +60,8 @@ clc, rng(1)
 Nr = 6;                              % number of rows
 Nc = 9;                              % number of columns
 
-% [mdp,hid,cid] = spm_MDP_breakout(Nr,Nc);
-[mdp,hid,cid] = spm_MDP_pong(Nr,Nc);
+[mdp,hid,cid] = spm_MDP_breakout(Nr,Nc);
+% [mdp,hid,cid] = spm_MDP_pong(Nr,Nc);
 
 
 %% Simulate learning and subsequent performance
@@ -71,7 +71,7 @@ Nc = 9;                              % number of columns
 %==========================================================================
 s = find(mdp.D{1},1);
 u = find(mdp.E{1},1);
-for n = 1:2048
+for n = 1:4098
 
     % initialise this batch of training exemplars
     %----------------------------------------------------------------------
@@ -84,7 +84,8 @@ for n = 1:2048
     % smart data selection
     %----------------------------------------------------------------------
     t = find(ismember(GDP.s',hid','rows'),1,'first');
-    if numel(t) && t < GDP.T
+    c = find(ismember(GDP.s',cid','rows'),1,'first');
+    if numel(t) && t < GDP.T && isempty(c)
 
         % accumulate (rewarded) sequences
         %------------------------------------------------------------------
@@ -167,7 +168,7 @@ spm_figure('GetWin','Generative AI'); clf
 
 % Create deep recursive model
 %--------------------------------------------------------------------------
-RDP       = spm_mdp2rdp(MDP);
+RDP       = spm_mdp2rdp(MDP,2,0);
 [~,Ns,Nu] = spm_MDP_size(RDP);
 
 RDP.T    = 32;
@@ -202,22 +203,13 @@ ADP        = MDP;
 ADP{1}.GA  = GDP.A;
 ADP{1}.GB  = GDP.B;
 ADP{1}.GU  = GDP.U;
-ADP{1}.s   = 1;
-ADP{1}.u   = 1;
 
-% introduce ambiguity at the first level
+
+% create hierarchical model with prior concentration parameters
 %--------------------------------------------------------------------------
-for g = 1:numel(ADP{1}.A)
-    ADP{1}.A{g} = ADP{1}.A{g} + 1/256;
-end
-
-% introduce high level ambiguity about transitions
-%--------------------------------------------------------------------------
-ADP{end}.B{1} = ADP{end}.B{1} + 1/512;
-
-ADP        = spm_mdp2rdp(ADP);
+ADP        = spm_mdp2rdp(ADP,2,1/512);
 ADP.U      = 1;
-ADP.T      = 64;
+ADP.T      = 128;
 ADP.id.hid = HID;
 
 PDP   = spm_MDP_VB_XXX(ADP);
@@ -227,7 +219,7 @@ Y     = PDP.Q(1).Y;
 spm_figure('GetWin','Active inference'); clf
 spm_show_outcomes(Q,RG,Nr,Nc,Y)
 
-i = find(ismember(PDP.Q.o{1}',HITS','rows'));
+i = find(ismember(PDP.Q.o{1}',HITS','rows'))
 subplot(2*Nm,1,Nm + 1), hold on
 plot(i,ones(size(i)),'.r','MarkerSize',32), hold off, drawnow
 
