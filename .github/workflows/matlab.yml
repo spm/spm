@@ -41,6 +41,7 @@ jobs:
           repository: spm/spm-tests-data
           token: ${{ secrets.TESTS_DATA_REPO_TOKEN }}
           path: spm-tests-data
+          ref: 'main'
         # name: Download and extract test data
         # uses: robinraju/release-downloader@v1.8
         # with:
