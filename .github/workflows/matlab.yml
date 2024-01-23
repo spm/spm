@@ -43,37 +43,37 @@ jobs:
           token: ${{ secrets.TESTS_DATA_REPO_TOKEN }}
           path: tests/data
           lfs: true
-      # - name: Set up MATLAB
-      #   uses: matlab-actions/setup-matlab@v1
-      #   with:
-      #     release: ${{matrix.version}}
-      # - name: Run regression tests with existing MEX files
-      #   if: github.event.schedule == '00 14 * * 2'
-      #   uses: matlab-actions/run-command@v1
-      #   with:
-      #     command: addpath(pwd); results = spm_tests('test','spm_opm_hfc','display',true); assert(all(~[results.Failed]));
-      # - name: Run unit tests with existing MEX files
-      #   uses: matlab-actions/run-command@v1
-      #   with:
-      #     command: addpath(pwd); results = spm_tests('display',true); assert(all(~[results.Failed]));
-      # - name: Compile MEX files
-      #   run: |
-      #     make -C src distclean
-      #     make -C src
-      #     make -C src install
-      #   # make -C src external-distclean
-      #   # make -C src external
-      #   # make -C src external-install
-      # - name: Get MEX extension on Linux/macOS
-      #   if: runner.os != 'Windows'
-      #   run: echo "MEXEXT=$(mexext)" >> $GITHUB_ENV
-      # - name: Get MEX extension on Windows
-      #   if: runner.os == 'Windows'
-      #   run: echo "MEXEXT=$(mexext.bat)" >> $env:GITHUB_ENV
-      # - name: Upload Artifact
-      #   uses: actions/upload-artifact@v3
-      #   with:
-      #     name: spm-${{env.MEXEXT}}-${{runner.os}}-${{matrix.version}}
-      #     path: ./**/*.${{env.MEXEXT}}
+      - name: Set up MATLAB
+        uses: matlab-actions/setup-matlab@v1
+        with:
+          release: ${{matrix.version}}
+      - name: Run regression tests with existing MEX files
+        if: github.event.schedule == '00 14 * * 2'
+        uses: matlab-actions/run-command@v1
+        with:
+          command: addpath(pwd); results = spm_tests('test','spm_opm_hfc','display',true); assert(all(~[results.Failed]));
+      - name: Run unit tests with existing MEX files
+        uses: matlab-actions/run-command@v1
+        with:
+          command: addpath(pwd); results = spm_tests('display',true); assert(all(~[results.Failed]));
+      - name: Compile MEX files
+        run: |
+          make -C src distclean
+          make -C src
+          make -C src install
+        # make -C src external-distclean
+        # make -C src external
+        # make -C src external-install
+      - name: Get MEX extension on Linux/macOS
+        if: runner.os != 'Windows'
+        run: echo "MEXEXT=$(mexext)" >> $GITHUB_ENV
+      - name: Get MEX extension on Windows
+        if: runner.os == 'Windows'
+        run: echo "MEXEXT=$(mexext.bat)" >> $env:GITHUB_ENV
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: spm-${{env.MEXEXT}}-${{runner.os}}-${{matrix.version}}
+          path: ./**/*.${{env.MEXEXT}}
           retention-days: 1
   
