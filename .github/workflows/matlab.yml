@@ -33,7 +33,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ${{ github.workspace }}/tests/data
-          key: data-tests
+          key: tests-data
           enableCrossOsArchive: true
       - if: ${{ steps.cache-data-tests.outputs.cache-hit != 'true' }}
         name: Fetching test data 
