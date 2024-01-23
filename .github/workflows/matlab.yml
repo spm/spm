@@ -38,22 +38,14 @@ jobs:
           key: data-tests
           enableCrossOsArchive: true
       - if: ${{ steps.cache-data-tests.outputs.cache-hit != 'true' }}
-        # name: Download and extract test data
-        # uses: robinraju/release-downloader@v1.8
-        # with:
-        #   repository: "spm/spm-tests-data"
-        #   token: ${{ secrets.TESTS_DATA_REPO_TOKEN }}
-        #   latest: true
-        #   tarBall: false
-        #   zipBall: true
-        #   extract: true
-        
         name: Download and extract test data
-        uses: actions/checkout@v4
+        uses: robinraju/release-downloader@v1.8
         with:
-          repository: spm/spm-tests-data
-          token: ${{ secrets.TESTS_DATA_REPO_TOKEN }} # `GH_PAT` is a secret that contains your PAT
-          path: .
+          repository: "spm/spm-tests-data"
+          token: ${{ secrets.TESTS_DATA_REPO_TOKEN }}
+          tag: "v1.0.1"
+          filename: "v1.0.1.zip"
+          extract: true
       - name: Set up MATLAB
         uses: matlab-actions/setup-matlab@v1
         with:
