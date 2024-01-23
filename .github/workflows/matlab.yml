@@ -41,7 +41,6 @@ jobs:
           repository: spm/spm-tests-data
           token: ${{ secrets.TESTS_DATA_REPO_TOKEN }}
           path: tests/data
-          lfs: true 
       - name : machine ls $GITHUB_WORKSPACE
         run : "ls -la $GITHUB_WORKSPACE"
       - name : machine ls $HOME
