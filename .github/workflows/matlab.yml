@@ -40,6 +40,7 @@ jobs:
         uses: robinraju/release-downloader@v1.8
         with:
           repository: "spm/spm-tests-data"
+          token: ${{ secrets.GITHUB_TOKEN }}
           latest: true
           tarBall: false
           zipBall: true
