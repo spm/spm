@@ -42,10 +42,7 @@ jobs:
           token: ${{ secrets.TESTS_DATA_REPO_TOKEN }}
           path: tests/data
       - name : machine ls $GITHUB_WORKSPACE
-        run : "ls -la $GITHUB_WORKSPACE"
-      - name : machine ls $HOME
-        working-directory : "."
-        run : "ls -la $HOME"
+        run : "ls -R $GITHUB_WORKSPACE/tests"
         # name: Download and extract test data
         # uses: robinraju/release-downloader@v1.8
         # with:
