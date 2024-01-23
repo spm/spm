@@ -48,7 +48,7 @@ jobs:
         #   zipBall: true
         #   extract: true
         
-      - name: Download and extract test data
+        name: Download and extract test data
         uses: actions/checkout@v4
         with:
           repository: spm/spm-tests-data
