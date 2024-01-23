@@ -26,30 +26,21 @@ jobs:
             version: "R2021b" # Compiler not available
     runs-on: ${{matrix.os}}
     steps:
-    #   - name: Check out repository
-    #     uses: actions/checkout@v3
-    #   - name: Cache data file
-    #     id: cache-data-tests
-    #     uses: actions/cache@v3
-    #     with:
-    #       path: ~/tests/data
-    #       key: data-tests
-    #       enableCrossOsArchive: true
-    #   - if: ${{ steps.cache-data-tests.outputs.cache-hit != 'true' }}
-       
-      - uses: actions/checkout@master
-      - name: Get Latest Release
-        id: latest_version
-        uses: abatilo/release-info-action@v1.3.3
+      - name: Check out repository
+        uses: actions/checkout@v3
+      - name: Cache data file
+        id: cache-data-tests
+        uses: actions/cache@v3
         with:
-          owner: abatilo
-          repo: release-info-action
-      - name: Example of consumption of the output
-        env:
-          LATEST: ${{ steps.latest_version.outputs.latest_tag }}
-          LATEST_DATE: ${{ steps.latest_version.outputs.latest_tag_published_at }}
-        run: |
-          echo "Version $LATEST was released at $LATEST_DATE"
+          path: ~/tests/data
+          key: data-tests
+          enableCrossOsArchive: true
+      - if: ${{ steps.cache-data-tests.outputs.cache-hit != 'true' }}
+        uses: actions/checkout@v3
+        with: 
+          repository: spm/spm-tests-data
+          token: ${{ secrets.TESTS_DATA_REPO_TOKEN }}
+          path: spm-tests-data
         # name: Download and extract test data
         # uses: robinraju/release-downloader@v1.8
         # with:
