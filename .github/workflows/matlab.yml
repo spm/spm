@@ -32,7 +32,7 @@ jobs:
         id: cache-data-tests
         uses: actions/cache@v3
         with:
-          path: ~/tests/data
+          path: tests/data
           key: data-tests
           enableCrossOsArchive: true
       - if: ${{ steps.cache-data-tests.outputs.cache-hit != 'true' }}
