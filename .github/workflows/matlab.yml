@@ -36,11 +36,13 @@ jobs:
           key: data-tests
           enableCrossOsArchive: true
       - if: ${{ steps.cache-data-tests.outputs.cache-hit != 'true' }}
+        name: Fetching test data 
         uses: actions/checkout@v3
         with: 
           repository: spm/spm-tests-data
           token: ${{ secrets.TESTS_DATA_REPO_TOKEN }}
           path: tests/data
+          lfs: true
       - name: Set up MATLAB
         uses: matlab-actions/setup-matlab@v1
         with:
