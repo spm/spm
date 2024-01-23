@@ -25,6 +25,8 @@ jobs:
           - os: windows-latest
             version: "R2021b" # Compiler not available
     runs-on: ${{matrix.os}}
+    permissions: 
+      contents: read
     steps:
       - name: Check out repository
         uses: actions/checkout@v3
@@ -78,3 +80,4 @@ jobs:
           name: spm-${{env.MEXEXT}}-${{runner.os}}-${{matrix.version}}
           path: ./**/*.${{env.MEXEXT}}
           retention-days: 1
+  
