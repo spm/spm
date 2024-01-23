@@ -32,16 +32,18 @@ jobs:
         id: cache-data-tests
         uses: actions/cache@v3
         with:
-          path: tests_data.zip
+          path: ~/tests/data
           key: data-tests
           enableCrossOsArchive: true
       - if: ${{ steps.cache-data-tests.outputs.cache-hit != 'true' }}
-        name: Download data file
-        run: |
-          curl -o tests_data.zip https://www.fil.ion.ucl.ac.uk/spm/download/data/tests/tests_data.zip 
-      - name: Unzip data for unit tests
-        run: |
-          unzip tests_data.zip
+        name: Download and extract test data
+        uses: robinraju/release-downloader@v1.8
+        with:
+          repository: "spm/spm-tests-data"
+          latest: true
+          tarBall: false
+          zipBall: true
+          extract: true
       - name: Set up MATLAB
         uses: matlab-actions/setup-matlab@v1
         with:
