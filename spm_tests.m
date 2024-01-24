@@ -9,7 +9,7 @@ function results = spm_tests(varargin)
 %     tag:       test tag selector [default: '', ie all tests]
 %     tap:       save a Test Anything Protocol (TAP) file [default: false]
 %     test:      name of function to test [default: '', ie all tests]
-% 
+%     class:     class of test 'regression' or 'unit'. [deault: 'unit']
 % results     - TestResult array containing information describing the
 %               result of running the test suite.
 %__________________________________________________________________________
@@ -27,7 +27,8 @@ spm('FnBanner',mfilename);
 %-Input parameters
 %--------------------------------------------------------------------------
 options = struct('verbose',2, 'display',false, 'coverage',false, ...
-                 'cobertura',false, 'tag', '', 'tap',false, 'test','');
+                 'cobertura',false, 'tag', '', 'tap',false, 'test','',...
+                 'class','unit');
 if nargin
     if isstruct(varargin{1})
         fn = fieldnames(varargin{1});
@@ -73,6 +74,16 @@ else
         % end
     end
 end
+
+testNames ={suite.ProcedureName}';
+regressTests = strncmp(testNames,'test_regress',12);
+
+if strcmp(options.class,'regression')
+  suite = suite(regressTests);
+else 
+  suite = suite(~regressTests);
+end
+
 if ~isempty(options.tag)
     suite = suite.selectIf(~HasTag | HasTag(options.tag));
 end
