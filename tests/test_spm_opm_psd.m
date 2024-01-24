@@ -1,5 +1,5 @@
 function tests = test_spm_opm_psd
-% Unit Tests for spm_eeg_average
+% Unit Tests for spm_opm_psd
 %__________________________________________________________________________
 
 % Copyright (C) 2023 Wellcome Centre for Human Neuroimaging
