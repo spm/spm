@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
   schedule:
     - cron: '15 3 * * *'
-    - cron: '30 16 * * 3'
+    - cron: '40 16 * * 3'
 jobs:
   matlab-tests:
     name: Run MATLAB Tests
@@ -47,12 +47,12 @@ jobs:
         with:
           release: ${{matrix.version}}
       - name: Run regression tests with existing MEX files
-        if: github.event.schedule == '30 16 * * 3'
+        if: github.event.schedule == '40 16 * * 3'
         uses: matlab-actions/run-command@v1
         with:
           command: addpath(pwd); results = spm_tests('class','regression','display',true); assert(all(~[results.Failed]));
       - name: Run unit tests with existing MEX files
-        if: github.event.schedule ~= '30 16 * * 3'
+        if: github.event.schedule != '40 16 * * 3'
         uses: matlab-actions/run-command@v1
         with:
           command: addpath(pwd); results = spm_tests('class','unit','display',true); assert(all(~[results.Failed]));
