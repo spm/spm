@@ -343,7 +343,7 @@ reg.help    = {...
     'The amount of regularisation determines the tradeoff between the terms. More regularisation gives smoother deformations, where the smoothness measure is determined by the bending energy of the deformations.'};
 reg.strtype = 'r';
 reg.num     = [1  5];
-reg.val     = {[0 0.001 0.5 0.05 0.2]};
+reg.val     = {[0 0 0.1 0.01 0.04]};
 
 %--------------------------------------------------------------------------
 % affreg Affine Regularisation
