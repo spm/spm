@@ -48,7 +48,6 @@ function [MDP] = spm_MDP_VB_XXX(MDP,OPTIONS)
 %                         unless m(f) = 0, when states are updated for the
 %                         agent in question
 %
-% OPTIONS.A             - switch to evaluate explicit action
 % OPTIONS.B             - switch to evaluate backwards pass (replay)
 % OPTIONS.N             - switch to evaluate neuronal responses
 % OPTIONS.P             - switch to plot graphics: [default: 0]
@@ -195,7 +194,6 @@ function [MDP] = spm_MDP_VB_XXX(MDP,OPTIONS)
 
 % options
 %--------------------------------------------------------------------------
-try, OPTIONS.A; catch, OPTIONS.A = 0; end      % action selection
 try, OPTIONS.B; catch, OPTIONS.B = 0; end      % backwards pass
 try, OPTIONS.C; catch, OPTIONS.C = 0; end      % check sizes and labels
 try, OPTIONS.D; catch, OPTIONS.D = 0; end      % final states
@@ -289,17 +287,24 @@ try, N     = MDP(1).N;     catch, N     = 0;    end % depth of policy search
 %==========================================================================
 T     = MDP(1).T;                              % number of updates
 Nm    = numel(MDP);
+
+% Check for generative process
+%--------------------------------------------------------------------------
+process = zeros(Nm,1);
+for m = 1:Nm
+
+    % invoke explicit action (process specified)
+    %----------------------------------------------------------------------
+    if all(isfield(MDP(m),{'GA','GB','GU'}))
+        process(m) = 1;
+    end
+end
+
 for m = 1:Nm
 
     % Check for generative process
     %======================================================================
-    if all(isfield(MDP(m),{'GA','GB','GU'}))
-
-        % invoke explicit action
-        %------------------------------------------------------------------
-        OPTIONS.A = 1;
-        
-    else
+    if ~process(m)
 
         % assume generative process is the model
         %------------------------------------------------------------------
@@ -333,15 +338,18 @@ for m = 1:Nm
 
     % Check for priors over initial states and paths of generative process
     %----------------------------------------------------------------------
-    if OPTIONS.A
-        if ~all(isfield(MDP(m),{'GD','GE'}))
+    if process(m)
             for f = 1:NF
+            if ~isfield(MDP(m),'GD') || isempty(MDP(m).GD)
                 MDP(m).GD{f} = spm_norm(ones(NS(m,f),1));
+            end
+            if ~isfield(MDP(m),'GE') || isempty(MDP(m).GE)
                 MDP(m).GE{f} = spm_norm(ones(NU(m,f),1));
             end
         end
         end
     end
+
 
     % parameters of generative model and policies
 %==========================================================================
@@ -610,7 +618,7 @@ for t = 1:T
 
         % explicit action to realise initial state
         %==================================================================
-        if OPTIONS.A && t == 1 && isfield(MDP(m),'s0')
+        if process(m) && t == 1 && isfield(MDP(m),'s0')
 
             % prior over outcomes
             %--------------------------------------------------------------
@@ -703,7 +711,7 @@ for t = 1:T
 
                     % selected action
                     %------------------------------------------------------
-                    if ~OPTIONS.A
+                    if ~process(m)
                         MDP(m).u(f,t - 1) = u;
                     end
 
@@ -718,7 +726,7 @@ for t = 1:T
 
             % explicit action
             %--------------------------------------------------------------
-            if OPTIONS.A
+            if process(m)
 
                 % predicted outcomes
                 %----------------------------------------------------------
@@ -862,7 +870,7 @@ for t = 1:T
 
                         % or sample from likelihood, given hidden state
                         %==================================================
-                        if OPTIONS.A
+                        if process(m)
                             ind       = num2cell(MDP(m).s(:,t));
                             O{m,o,t}  = MDP(m).GA{g}(:,ind{:});
                         else

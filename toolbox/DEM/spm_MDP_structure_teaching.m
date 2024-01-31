@@ -51,6 +51,12 @@ spm_evaluate = @spm_MDP_VB_XXX;
 % generate outcomes
 %==========================================================================
 
+% remove redundant fields
+%--------------------------------------------------------------------------
+try, MDP = rmfield(MDP,'GA'); end
+try, MDP = rmfield(MDP,'GB'); end
+try, MDP = rmfield(MDP,'GU'); end
+
 % number of outcomes, states, controls and policies
 %--------------------------------------------------------------------------
 [Nf,Ns,Nu] = spm_MDP_size(MDP);

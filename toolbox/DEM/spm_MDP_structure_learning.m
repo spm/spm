@@ -255,9 +255,6 @@ try
     mdp = rmfield(mdp,'O');
 end
 try
-    mdp = rmfield(mdp,'k');
-end
-try
     mdp = rmfield(mdp,'U');
 end
 
@@ -397,7 +394,6 @@ if isfield(mdp,'A'), mdp = rmfield(mdp,'A'); end
 if isfield(mdp,'B'), mdp = rmfield(mdp,'B'); end
 if isfield(mdp,'d'), mdp = rmfield(mdp,'d'); end
 if isfield(mdp,'e'), mdp = rmfield(mdp,'e'); end
-if isfield(mdp,'k'), mdp = rmfield(mdp,'k'); end
 
 
 return
@@ -466,7 +462,6 @@ if isfield(mdp,'A'), mdp = rmfield(mdp,'A'); end
 if isfield(mdp,'B'), mdp = rmfield(mdp,'B'); end
 if isfield(mdp,'d'), mdp = rmfield(mdp,'d'); end
 if isfield(mdp,'e'), mdp = rmfield(mdp,'e'); end
-if isfield(mdp,'k'), mdp = rmfield(mdp,'k'); end
 
 
 return
@@ -548,7 +543,6 @@ if isfield(mdp,'A'), mdp = rmfield(mdp,'A'); end
 if isfield(mdp,'B'), mdp = rmfield(mdp,'B'); end
 if isfield(mdp,'d'), mdp = rmfield(mdp,'d'); end
 if isfield(mdp,'e'), mdp = rmfield(mdp,'e'); end
-if isfield(mdp,'k'), mdp = rmfield(mdp,'k'); end
 
 
 return
