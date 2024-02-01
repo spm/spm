@@ -36,4 +36,9 @@ elseif c == 2
     i = find(~any(D));
     D = D + sparse(i,i,1,n,m);
 end
-D  = D^o;
+
+% and raise to the power o if necessary (or possible)
+%--------------------------------------------------------------------------
+if m == n
+    D = D^o;
+end

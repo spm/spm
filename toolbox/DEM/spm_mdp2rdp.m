@@ -36,14 +36,14 @@ for n = 1:numel(MDP)
 
     % introduce ambiguity at the first level
     %----------------------------------------------------------------------
-    for g = 1:numel(MDP{n}.A)
-        MDP{n}.A{g} = MDP{n}.A{g} + p;
+    for g = 1:numel(MDP{n}.a)
+        MDP{n}.a{g} = MDP{n}.a{g} + p;
     end
 
     % introduce high level ambiguity about transitions
     %----------------------------------------------------------------------
-    for f = 1:numel(MDP{n}.B)
-        MDP{n}.B{f} = MDP{n}.B{f} + q;
+    for f = 1:numel(MDP{n}.b)
+        MDP{n}.b{f} = MDP{n}.b{f} + q;
     end
 end
 

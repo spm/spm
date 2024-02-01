@@ -73,20 +73,6 @@ for u = 1:Nu
     end
 end
 
-% fill in empty columns of transition tensor
-%--------------------------------------------------------------------------
-for u = 1:size(B{1},3)
-    for s = 1:size(B{1},2)
-        if ~any(B{1}(:,s,u))
-            r = find(any(squeeze(B{1}(:,s,:)),2),1);
-            if numel(i)
-                B{1}(r,s,u) = 1;
-            else
-                B{1}(s,s,u) = 1;
-            end
-        end
-    end
-end
 
 % check for lossless compression (expected free energy)
 %--------------------------------------------------------------------------
