@@ -61,7 +61,7 @@ Nr = 6;                              % number of rows
 Nc = 9;                              % number of columns
 
 [mdp,hid,cid] = spm_MDP_breakout(Nr,Nc);
-% [mdp,hid,cid] = spm_MDP_pong(Nr,Nc);
+[mdp,hid,cid] = spm_MDP_pong(Nr,Nc);
 
 
 %% Simulate learning and subsequent performance
@@ -71,7 +71,7 @@ Nc = 9;                              % number of columns
 %==========================================================================
 s = find(mdp.D{1},1);
 u = find(mdp.E{1},1);
-for n = 1:4098
+for n = 1:512
 
     % initialise this batch of training exemplars
     %----------------------------------------------------------------------

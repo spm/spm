@@ -18,7 +18,7 @@ function [Y] = spm_cross(X,x,varargin)
 % handle single inputs
 %--------------------------------------------------------------------------
 if nargin < 2
-    if isnumeric(X)
+    if isnumeric(X) || islogical(X)
         Y = X;
     else
         Y = spm_cross(X{:});

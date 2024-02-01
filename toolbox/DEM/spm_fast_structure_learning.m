@@ -43,8 +43,8 @@ for n = 1:8
 
         % place in hierarchical structure
         %------------------------------------------------------------------
-        MDP{n}.A(G{g},1) = mdp.a;
-        MDP{n}.B(g,1)    = mdp.b;
+        MDP{n}.a(G{g},1) = mdp.a;
+        MDP{n}.b(g,1)    = mdp.b;
         for j = 1:numel(G{g})
             MDP{n}.id.A{G{g}(j)} = g;
         end
@@ -102,6 +102,120 @@ function mdp = spm_structure(O)
 
 % Unique outputs
 %--------------------------------------------------------------------------
+o       = spm_cat(O)';
+[~,i,j] = unique(o,'rows','stable');
+
+% Likelihood tensors
+%--------------------------------------------------------------------------
+Ng    = size(O,1);
+a     = cell(Ng,1);
+n     = sum(j == 1);
+for g = 1:Ng
+    a{g} = full(n*O{g,i(1)});
+end
+
+p     = 1/32;
+I     = 1;
+for k = 2:numel(i)
+
+    % find closest predecessor
+    %----------------------------------------------------------------------
+    No    = sum(j == k);
+    Ns    = size(a{1},2);
+    KL    = zeros(Ng,Ns);
+    for g = 1:Ng
+        KL(g,:) = O{g,i(k)}'*spm_psi(a{g});
+    end
+    [~,m] = max(sum(KL));
+
+    % compressed and uncompressed likelihood mappings
+    %----------------------------------------------------------------------
+    for g = 1:Ng
+        a0{g} = a{g};
+        a0{g}(:,end + 1) = 0;
+        a0{g} = a0{g} + p;
+        a1{g} = a0{g};
+
+        da           = No*O{g,i(k)};
+        a0{g}(:,m)   = a0{g}(:,m)   + da;
+        a1{g}(:,end) = a1{g}(:,end) + da;
+    end
+
+    % test for mutual information (expected free energy)
+    %----------------------------------------------------------------------
+    if spm_MDP_MI(a0) >= spm_MDP_MI(a1)
+        for g = 1:Ng
+            a{g} = a0{g} - p;
+            I(k) = m;
+        end
+    else
+        for g = 1:Ng
+            a{g} = a1{g} - p;
+            I(k) = Ns + 1;
+        end
+    end
+
+end
+
+
+% Transition tensors
+%--------------------------------------------------------------------------
+Ns    = size(a{1},2);
+b     = zeros(Ns,Ns);
+J     = I(j);
+for t = 1:(numel(J) - 1)
+
+    % find previous transitions
+    %----------------------------------------------------------------------
+    v  = find(b(J(t + 1),J(t),:),1,'first');
+
+    % new transition
+    %----------------------------------------------------------------------
+    if isempty(v)
+
+        % new path
+        %------------------------------------------------------------------
+        u  = find(~any(b(:,J(t),:),1),1,'first');
+        if isempty(u)
+            b(J(t + 1),J(t),end + 1) = 1;
+        else
+
+            % old path
+            %--------------------------------------------------------------
+            b(J(t + 1),J(t),u) = b(J(t + 1),J(t),u) + 1;
+        end
+    else
+        % old transition
+        %--------------------------------------------------------------
+        b(J(t + 1),J(t),v) = b(J(t + 1),J(t),v) + 1;
+    end
+end
+
+
+% Vectorise cell array of likelihood tensors and place in structure
+%--------------------------------------------------------------------------
+mdp.a    = a;
+mdp.b{1} = b;
+
+return
+
+
+function mdp = spm_structure_fast(O)
+% A fast form of structure learning
+% FORMAT mdp = spm_structure(O)
+% O   - Cell array of (cells of) a sequence of probabilistic outcomes
+% mdp - likelihood (a) and transition (b) tensors for this sequence
+%
+% This routine emulates structure learning from deterministic sequences of
+% observations or outcomes. Effectively, it identifies all unique
+% combinations of outcomes and transitions among those combinations. The
+% likelihood matrix then maps from all unique combinations (i.e., latent
+% states) to outcomes, and the transition tensor encodes observed
+% transitions among latent states.
+%__________________________________________________________________________
+
+% Unique outputs
+%--------------------------------------------------------------------------
 [~,i,j] = unique(spm_cat(O)','rows','stable');
 
 % Likelihood tensors
@@ -130,20 +244,6 @@ for t = 1:(numel(j) - 1)
     end
 end
 
-% fill in empty columns of transition tensor
-%--------------------------------------------------------------------------
-for u = 1:size(B,3)
-    for s = 1:Ns
-        if ~any(B(:,s,u))
-            i = find(any(squeeze(B(:,s,:)),2),1);
-%             if numel(i)
-%                 B(i,s,u) = 1;
-%             else
-%                 B(s,s,u) = 1;
-%             end
-        end
-    end
-end
 
 % Vectorise cell array of likelihood tensors and place in structure
 %--------------------------------------------------------------------------
