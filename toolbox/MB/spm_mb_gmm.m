@@ -395,15 +395,17 @@ function ld = logdet(A)
 [C, p] = chol(A);
 
 if p > 0
-   % A should usually be positive definite, but check anyway.
-   warning(['Attempting to compute log determinant of matrix ' ...
-            'that is not positive definite (p=%d).'], p);
+    % A should usually be positive definite, but check anyway.
+    warning(['Attempting to compute log determinant of matrix ' ...
+             'that is not positive definite (p=%d).'], p);
+    e  = eig(A);
+    ld = sum(log(e(e>0)));
+else
+    % Because C is triangular, |C| = prod(diag(C))
+    % Hence: log|C| = sum(log(diag(C)))
+    % And:   log|A| = log|C'*C| = log(|C|^2) = 2 * sum(log(diag(C)))
+    ld = 2 * sum(log(diag(C)));
 end
-
-% Because C is triangular, |C| = prod(diag(C))
-% Hence: log|C| = sum(log(diag(C)))
-% And:   log|A| = log|C'*C| = log(|C|^2) = 2 * sum(log(diag(C)))
-ld = 2 * sum(log(diag(C)));
 %==========================================================================
 
 % === wishart_elogdet =====================================================
