@@ -40,7 +40,9 @@ val=Dtest{1}.val;
 Nvert=size(Dtest{1}.inv{val}.mesh.tess_mni.vert,1);
 Np=Dtest{1}.inv{val}.inverse.Np;
 
-allF=zeros(Npatchiter,1);
+
+Nwoi=size(Dtest{1}.inv{1}.inverse.woi,1);
+allF=zeros(Npatchiter,Nwoi);
 
 
 fprintf('Checking leadfields');
@@ -67,7 +69,7 @@ end
 
 
 modelF=[];
-bestF=-Inf;
+bestF=-Inf*ones(1,Nwoi);
 for patchiter=1:Npatchiter
     %Din=Dtest{1};
     %Dout=Din;
@@ -87,12 +89,14 @@ for patchiter=1:Npatchiter
     if (Dtest{1}.inv{val}.inverse.mergeflag==1) %% will need all posteriors to merge them (could consider getting rid of worst ones here to save memory
         modelF(patchiter).inverse=Dtest{1}.inv{val}.inverse;
     else %% just keep track of best inversion
-        if Dtest{1}.inv{val}.inverse.F>bestF
-            modelF(1).inverse=Dtest{1}.inv{val}.inverse;
-            bestF=Dtest{1}.inv{val}.inverse.F;
+        for i=1:Nwoi
+            if Dtest{1}.inv{val}.inverse.F(i)>bestF(i),
+                modelF(i).inverse=Dtest{1}.inv{val}.inverse;
+                bestF(i)=Dtest{1}.inv{val}.inverse.F(i);
+            end;
         end
     end
-    allF(patchiter)=Dtest{1}.inv{val}.inverse.F;
+    allF(patchiter,:)=Dtest{1}.inv{val}.inverse.F;
 end % for patchiter
 
 
@@ -100,7 +104,7 @@ end % for patchiter
 
 
 
-[bestF,bestind]=max(allF);
+[bestF,bestind]=max(allF(:));
 disp('model evidences relative to maximum:')
 
 sort(allF-bestF)
@@ -141,4 +145,6 @@ if Npatchiter>1 %% keep iterations if more than 1
     
 end
 
-spm_eeg_invert_display(Dtest{1});
+if ~spm('CmdLine')
+    spm_eeg_invert_display(Dtest{1});
+end
