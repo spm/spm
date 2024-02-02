@@ -23,7 +23,7 @@ if isempty(redo)
     redo = 0;
 end
 
-A = spm_mesh_area(M,1);
+A = spm_mesh_area(M,'face');
 
 allsmoothnames = [];
 
