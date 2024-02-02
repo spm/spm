@@ -244,34 +244,40 @@ whitenoise=whitenoise.*simscale;
 
 if ~isempty(ormni), %%%% DIPOLE SIMULATION
     disp('SIMULATING DIPOLE SOURCES');
+    
+    Nchans=length(chanind);
+    
     if size(ormni)~=size(patchmni),
         error('A 3D orientation must be specified for each source location');
     end;
     
     posdipmm=Dnew.inv{val}.datareg.fromMNI*[patchmni ones(size(ormni,1),1)]'; %% put into MEG space
-    posdipmm=posdipmm(1:3)';
+    posdipmm=posdipmm(1:3,:)';
     %% need to make a pure rotation for orientation transform to native space
-    M1 = Dnew.inv{val}.datareg.fromMNI;
-    [U, L, V] = svd(M1(1:3, 1:3));
-    ordip=ormni*(U*V');
-    ordip=ordip./sqrt(dot(ordip,ordip)); %% make sure it is unit vector
+    M=Dnew.inv{val}.datareg.fromMNI*Dnew.inv{val}.mesh.Affine;            
+    ordip=[ormni ones(size(ormni,1),1)]*inv(M')';
+    ordip=ordip(:,1:3);
+            
+    for i=1:size(ordip,1)
+        ordip(i,:)=ordip(i,:)./sqrt(dot(ordip(i,:),ordip(i,:))); %% make sure it is unit vector
+    end
     
     %% NB COULD ADD A PURE DIPOLE SIMULATION IN FUTURE
     sens=Dnew.inv{val}.forward.sensors;
     vol=Dnew.inv{val}.forward.vol;
     
-    
-    %% Get good channels
-    useind=Dnew.indchantype(Dnew.modality);
-    useind=setxor(Dnew.badchannels,goodchans);
-    
+    sensorind=Dnew.indchantype({'MEG', 'MEGPLANAR','REFMAG','REFGRAD'});
     
     tmp=zeros(length(chanind),Dnew.nsamples);
-    
+    [vol, sens] = ft_prepare_vol_sens(vol, sens);
+    mapping=[];
+    for i=1:length(chanind)
+        mapping(i)=find(strcmp(sens.label,Dnew.chanlabels{chanind(i)}));
+    end
     for i=1:Ndip,
-        gmn = ft_compute_leadfield(posdipmm(i,:)*1e-3, sens, vol,  'dipoleunit', 'nA*m','chanunit',sensorunits);
-        gain=gmn*ordip';
-        tmp(:,f1ind)=tmp(:,f1ind)+gain(usedind,:)*simsignal(i,:);
+        gmn = ft_compute_leadfield(posdipmm(i,:)*1e-3, sens, vol,  'dipoleunit', 'nA*m','chanunit',sensorunits(sensorind));
+        gain=gmn(mapping,:)*ordip(i,:)'*nAmdipmom(i);
+        tmp(:,f1ind)=tmp(:,f1ind)+gain*simsignal(i,:);
     end; % for i
     
     
@@ -360,37 +366,34 @@ for i=1:Ntrials
     n=n+size(y,2); %% number of samples
 end
 
-YY=YY./n; %% NORMALIZE HERE
-
-F=[];
-UL=L;
-save(priorfname,'Qp','Qe','UL','F', spm_get_defaults('mat.format'));
-
-figure;
-ploton=1;
-[LQpL,Q,sumLQpL,QE,Csensor]=spm_eeg_assemble_priors(L,Qp,{Qe},ploton);
-
-
-figure;
-subplot(3,1,1);
-imagesc(YY);colorbar;
-title('Empirical data covariance per sample: YY');
-subplot(3,1,2);
-imagesc(Csensor);colorbar;
-title('Prior total sensor covariance');
-subplot(3,1,3);
-imagesc(YY-Csensor);colorbar;
-title('Difference');
-
-
-
-
-
 %% Plot and save
 [dum,tmpind]=sort(allchanstd);
 dnewind=chanind(tmpind);
 
-if isempty(ormni)
+if isempty(ormni),
+    YY=YY./n; %% NORMALIZE HERE
+
+    F=[];
+    UL=L;
+    save(priorfname,'Qp','Qe','UL','F', spm_get_defaults('mat.format'));
+
+    figure;
+    ploton=1;
+    [LQpL,Q,sumLQpL,QE,Csensor]=spm_eeg_assemble_priors(L,Qp,{Qe},ploton);
+
+
+    figure;
+    subplot(3,1,1);
+    imagesc(YY);colorbar;
+    title('Empirical data covariance per sample: YY');
+    subplot(3,1,2);
+    imagesc(Csensor);colorbar;
+    title('Prior total sensor covariance');
+    subplot(3,1,3);
+    imagesc(YY-Csensor);colorbar;
+    title('Difference');
+
+
     hold on
     mnivert=Dnew.inv{val}.mesh.tess_mni.vert;
     
