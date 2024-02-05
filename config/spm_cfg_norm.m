@@ -85,23 +85,23 @@ biasreg.help    = {
                    }';
 biasreg.labels = {
                   'no regularisation (0)'
-                  'extremely light regularisation (0.00001)'
-                  'very light regularisation (0.0001)'
-                  'light regularisation (0.001)'
-                  'medium regularisation (0.01)'
-                  'heavy regularisation (0.1)'
-                  'very heavy regularisation (1)'
-                  'extremely heavy regularisation (10)'
+                  'extremely light regularisation (0.000001)'
+                  'very light regularisation (0.00001)'
+                  'light regularisation (0.0001)'
+                  'medium regularisation (0.001)'
+                  'heavy regularisation (0.01)'
+                  'very heavy regularisation (0.1)'
+                  'extremely heavy regularisation (1)'
                   }';
 biasreg.values = {
                   0
-                  1e-05
+                  1e-06
+                  0.00001
                   0.0001
                   0.001
                   0.01
                   0.1
                   1
-                  10
                   }';
 biasreg.val    = {0.0001};
 
