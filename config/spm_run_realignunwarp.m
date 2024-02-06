@@ -60,24 +60,25 @@ sfP = cell(size(job.data));
 for i = 1:numel(job.data)
     P{i} = char(job.data(i).scans{:});
     if ~isempty(job.data(i).pmscan)
-       if job.data(i).polarity == 1           
-          % Read the static field 
-          sfP_neg = replace(char(job.data(i).pmscan{1}),',1','');
-          Nii = nifti(sfP_neg);
-          u   = single(Nii.dat(:,:,:));
-          % Negate the static field and write VDM file
-          vi             = u*(-1);
-          pmscan_neg     = strrep(sfP_neg,'_pos_','_neg_');
-          Nio            = nifti;  
-          Nio.dat        = file_array(pmscan_neg,size(vi),'float32');
-          Nio.mat        = Nii.mat;  
-          create(Nio);          
-          Nio.dat(:,:,:) = vi; 
+        if job.data(i).polarity == 1
+            % Read the static field
+            fP_neg = replace(char(job.data(i).pmscan{1}),',1','');
+            Nii    = nifti(sfP_neg);
+            u      = single(Nii.dat(:,:,:));
 
-          % Change the .pmscan path to the inverted static field
-          sfP{i} = pmscan_neg;
+            % Negate the static field and write VDM file
+            vi             = u*(-1);
+            pmscan_neg     = strrep(sfP_neg,'_pos_','_neg_');
+            Nio            = nifti;
+            Nio.dat        = file_array(pmscan_neg,size(vi),'float32');
+            Nio.mat        = Nii.mat;
+            create(Nio);
+            Nio.dat(:,:,:) = vi;
+
+            % Change the .pmscan path to the inverted static field
+            sfP{i} = pmscan_neg;
        else
-            sfP{i} = job.data(i).pmscan{1};   
+            sfP{i} = job.data(i).pmscan{1};
        end
     else
         sfP{i} = [];
@@ -90,17 +91,26 @@ spm_realign(P,flags);
 
 %-Unwarp Estimate
 %--------------------------------------------------------------------------
+M1  = spm_get_space(deblank(P{1}(1,:))); % Space of first image overall
 for i = 1:numel(P)
-    uweflags.sfP = sfP{i};     
-    P1 = deblank(P{i}(1,:));
+    uweflags.sfP = sfP{i};
+    P1           = deblank(P{i}(1,:));
     if isempty(spm_file(P1,'number'))
         P1 = spm_file(P1,'number',1);
     end
-    VP1 = spm_vol(P1);
+    VP1        = spm_vol(P1);
     uweflags.M = VP1.mat;
-    ds = spm_uw_estimate(P{i},uweflags);
+
+    % Move the static field map for this session to match the
+    % first volume of the session
+    if ~isempty(uweflags.sfP)
+        uweflags.sfP     = spm_vol(uweflags.sfP);            % Map the file
+        uweflags.sfP.mat = (uweflags.M/M1)*uweflags.sfP.mat; % Adjust its position
+    end
+
+    ds         = spm_uw_estimate(P{i},uweflags);
     sess(i).ds = ds;
-    dsfile = spm_file(P{i}(1,:), 'suffix','_uw', 'ext','.mat');
+    dsfile     = spm_file(P{i}(1,:), 'suffix','_uw', 'ext','.mat');
     save(dsfile,'ds', spm_get_defaults('mat.format'));
 end
 
