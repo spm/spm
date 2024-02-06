@@ -48,20 +48,37 @@ for k=1:numel(allfwhm)
     sigma2 = sigma^2;
         
     fprintf('\n Smoothing with fwhm %3.2f (%d of %d) this make take some time (~20mins per FWHM with parallel toolbox)\n',fwhm,k,length(allfwhm))
-    %parfor j = 1:Ns
-    for j = 1:Ns
-        
-        % Patch locations determined by Ip
-        %------------------------------------------------------------------
-        q = zeros(1,Ns);
-        d = spm_mesh_geodesic(M,j);
-        
-        useind = find(d<=fwhm); %% maybe only extend just over 2 sigma in any one direction (i.e. cover 95% interval)
-        q(useind) = exp(-(d(useind).^2)/(2*sigma2));
-        q = q.*(q>exp(-8));
-        q = q./sum(q);
-        QG(:,j)=q;
-        
+    
+    if ~spm_get_defaults('use_parfor')
+        for j = 1:Ns
+
+            % Patch locations determined by Ip
+            %------------------------------------------------------------------
+            q = zeros(1,Ns);
+            d = spm_mesh_geodesic(M,j);
+
+            useind = find(d<=fwhm); %% maybe only extend just over 2 sigma in any one direction (i.e. cover 95% interval)
+            q(useind) = exp(-(d(useind).^2)/(2*sigma2));
+            q = q.*(q>exp(-8));
+            q = q./sum(q);
+            QG(:,j)=q;
+
+        end
+    else
+        parfor j = 1:Ns
+
+            % Patch locations determined by Ip
+            %------------------------------------------------------------------
+            q = zeros(1,Ns);
+            d = spm_mesh_geodesic(M,j);
+
+            useind = find(d<=fwhm); %% maybe only extend just over 2 sigma in any one direction (i.e. cover 95% interval)
+            q(useind) = exp(-(d(useind).^2)/(2*sigma2));
+            q = q.*(q>exp(-8));
+            q = q./sum(q);
+            QG(:,j)=q;
+
+        end
     end
     
     fprintf('Saving %s\n',smoothmeshname);
