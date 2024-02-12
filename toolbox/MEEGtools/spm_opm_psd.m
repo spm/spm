@@ -69,7 +69,13 @@ else
     nepochs=length(begs);
 end
 
-wind  = window(S.wind,N);
+try
+  wind  = window(S.wind,N);
+catch
+  % catch for environments without signal toolbox
+  wind = ones(N,1);
+end
+
 Nf= ceil((N+1)/2);
 coFac= max(wind)/mean(wind);
 wind = repmat(wind,1,length(chans));
