@@ -1,4 +1,4 @@
-function [mfD] = spm_opm_amm(S)
+function [mfD,Yinds] = spm_opm_amm(S)
 % models brain signal and interference as a set of geometrically adaptive
 % multipole moments
 % FORMAT D = spm_opm_amm(S)
@@ -34,17 +34,18 @@ s = sensors(S.D,'MEG');
 if isempty(s)==1
     error('Could not find sensor positions')
 end
+
 %-Get usable channels
 %--------------------------------------------------------------------------
- badLabels = chanlabels(S.D,badchannels(S.D));
-    indsRem = [];
-    for i =1:length(badLabels)
-        indsRem=[indsRem strmatch(badLabels{i},s.label)];
-    end
-    LabInds = 1:length(s.label);
-    sinds = setdiff(LabInds,indsRem);
-    usedLabs= s.label(sinds);
+chaninds = indchantype(S.D,'MEG');
+badinds = badchannels(S.D);
+usedinds = setdiff(chaninds,badinds);
+usedLabs= chanlabels(S.D,usedinds);
 
+usedLabs = intersect(usedLabs,s.label);
+[~,sinds] = spm_match_str(usedLabs,s.label);
+    
+    
 %-fit the ellipsoid
 %--------------------------------------------------------------------------
 v = s.chanpos(sinds,:);
