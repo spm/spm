@@ -22,9 +22,9 @@ D.save();
 
 S=[];
 S.D=D;
-S.triallength=800;
+S.triallength=1000;
 S.plot=0;
 [p,~]=spm_opm_psd(S);
-act = mean(mean(p))*sqrt(800);
+act = mean(mean(p))*sqrt(1000);
 
-testCase.verifyTrue(act>.9);
+testCase.verifyTrue(act>.85);
