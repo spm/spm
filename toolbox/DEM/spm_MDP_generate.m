@@ -132,24 +132,24 @@ for m = 1:Nm
     end
     MDP(m).u = k;
 
-    % if outcomes have not been specified set to 0
+    % set outcomes to 0
     %======================================================================
     k        = zeros(Ng(m),T);
-    try
-        i    = find(MDP(m).o);
-        k(i) = MDP(m).o(i);
-    end
     MDP(m).o = k;
 
     % domains (id)
     %----------------------------------------------------------------------
-    id{m} = MDP(m).id;
+    id{m}     = MDP(m).id;
 
 end % end model (m)
 
 % inital policy and transitions
 %--------------------------------------------------------------------------
-tau   = 2;
+try
+    tau = MDP(m).tau;
+catch
+    tau = 2;
+end
 K     = 1;
 PK    = (1 - 1/tau)*eye(Np(m),Np(m)) + (1/tau)/(Np(m));
 PK    = spm_norm(PK);
@@ -248,7 +248,7 @@ for t = 1:T
     %======================================================================
     for m = 1:Nm
 
-        % generate outcome, if not specified
+        % generate outcomes
         %------------------------------------------------------------------
         for g = 1:Ng(m)
 
@@ -257,25 +257,12 @@ for t = 1:T
             [j,i] = spm_get_edges(id{m},g,MDP(m).s(:,t));
             for o = i
 
-                % if outcome is not specified
-                %----------------------------------------------------------
-                if ~MDP(m).o(o,t)
+                % sample from likelihood, given hidden state
+                %==========================================================
+                ind           = num2cell(MDP(m).s(j,t));
+                O{m,o,t}      = MDP(m).A{g}(:,ind{:});
+                MDP(m).o(o,t) = spm_sample(O{m,o,t});
 
-                    % sample from likelihood, given hidden state
-                    %==================================================
-                    ind           = num2cell(MDP(m).s(j,t));
-                    O{m,o,t}      = MDP(m).A{g}(:,ind{:});
-                    MDP(m).o(o,t) = spm_sample(O{m,o,t});
-
-                else
-
-                    % use sampled outcomes if no probabilistic specification
-                    %------------------------------------------------------
-                    if isempty(O{m,o,t})
-                        O{m,o,t} = full(sparse(MDP(m).o(o,t),1,1,No(m,o),1));
-                    end
-
-                end
             end
         end
     end

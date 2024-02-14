@@ -39,12 +39,12 @@ for n = 1:8
 
         % structure_learning from unique exemplars
         %------------------------------------------------------------------
-        mdp  = spm_structure(O{n}(G{g},:));
+        mdp  = spm_structure_fast(O{n}(G{g},:));
 
         % place in hierarchical structure
         %------------------------------------------------------------------
-        MDP{n}.a(G{g},1) = mdp.a;
-        MDP{n}.b(g,1)    = mdp.b;
+        MDP{n}.A(G{g},1) = mdp.a;
+        MDP{n}.B(g,1)    = mdp.b;
         for j = 1:numel(G{g})
             MDP{n}.id.A{G{g}(j)} = g;
         end
@@ -84,121 +84,8 @@ for n = 1:8
     end
 
 end
-return
-
-function mdp = spm_structure(O)
-% A fast form of structure learning
-% FORMAT mdp = spm_structure(O)
-% O   - Cell array of (cells of) a sequence of probabilistic outcomes
-% mdp - likelihood (a) and transition (b) tensors for this sequence
-%
-% This routine emulates structure learning from deterministic sequences of
-% observations or outcomes. Effectively, it identifies all unique
-% combinations of outcomes and transitions among those combinations. The
-% likelihood matrix then maps from all unique combinations (i.e., latent
-% states) to outcomes, and the transition tensor encodes observed
-% transitions among latent states.
-%__________________________________________________________________________
-
-% Unique outputs
-%--------------------------------------------------------------------------
-o       = spm_cat(O)';
-[~,i,j] = unique(o,'rows','stable');
-
-% Likelihood tensors
-%--------------------------------------------------------------------------
-Ng    = size(O,1);
-a     = cell(Ng,1);
-n     = sum(j == 1);
-for g = 1:Ng
-    a{g} = full(n*O{g,i(1)});
-end
-
-p     = 1/32;
-I     = 1;
-for k = 2:numel(i)
-
-    % find closest predecessor
-    %----------------------------------------------------------------------
-    No    = sum(j == k);
-    Ns    = size(a{1},2);
-    KL    = zeros(Ng,Ns);
-    for g = 1:Ng
-        KL(g,:) = O{g,i(k)}'*spm_psi(a{g});
-    end
-    [~,m] = max(sum(KL));
-
-    % compressed and uncompressed likelihood mappings
-    %----------------------------------------------------------------------
-    for g = 1:Ng
-        a0{g} = a{g};
-        a0{g}(:,end + 1) = 0;
-        a0{g} = a0{g} + p;
-        a1{g} = a0{g};
-
-        da           = No*O{g,i(k)};
-        a0{g}(:,m)   = a0{g}(:,m)   + da;
-        a1{g}(:,end) = a1{g}(:,end) + da;
-    end
-
-    % test for mutual information (expected free energy)
-    %----------------------------------------------------------------------
-    if spm_MDP_MI(a0) >= spm_MDP_MI(a1)
-        for g = 1:Ng
-            a{g} = a0{g} - p;
-            I(k) = m;
-        end
-    else
-        for g = 1:Ng
-            a{g} = a1{g} - p;
-            I(k) = Ns + 1;
-        end
-    end
-
-end
-
-
-% Transition tensors
-%--------------------------------------------------------------------------
-Ns    = size(a{1},2);
-b     = zeros(Ns,Ns);
-J     = I(j);
-for t = 1:(numel(J) - 1)
-
-    % find previous transitions
-    %----------------------------------------------------------------------
-    v  = find(b(J(t + 1),J(t),:),1,'first');
-
-    % new transition
-    %----------------------------------------------------------------------
-    if isempty(v)
-
-        % new path
-        %------------------------------------------------------------------
-        u  = find(~any(b(:,J(t),:),1),1,'first');
-        if isempty(u)
-            b(J(t + 1),J(t),end + 1) = 1;
-        else
-
-            % old path
-            %--------------------------------------------------------------
-            b(J(t + 1),J(t),u) = b(J(t + 1),J(t),u) + 1;
-        end
-    else
-        % old transition
-        %--------------------------------------------------------------
-        b(J(t + 1),J(t),v) = b(J(t + 1),J(t),v) + 1;
-    end
-end
-
-
-% Vectorise cell array of likelihood tensors and place in structure
-%--------------------------------------------------------------------------
-mdp.a    = a;
-mdp.b{1} = b;
 
 return
-
 
 function mdp = spm_structure_fast(O)
 % A fast form of structure learning
@@ -216,39 +103,51 @@ function mdp = spm_structure_fast(O)
 
 % Unique outputs
 %--------------------------------------------------------------------------
-[~,i,j] = unique(spm_cat(O)','rows','stable');
+o       = spm_cat(O)';
+o       = fix(o*128);
+[~,i,j] = unique(o,'rows','stable');
 
 % Likelihood tensors
 %--------------------------------------------------------------------------
 Ng    = size(O,1);
-A     = cell(Ng,1);
+a     = cell(Ng,1);
 for g = 1:Ng
-    A{g} = full(spm_cat(O(g,i)));
+    a{g} = full(spm_cat(O(g,i)));
 end
 
 % Transition tensors
 %--------------------------------------------------------------------------
 Ns    = numel(i);
-B     = zeros(Ns,Ns);
+b     = zeros(Ns,Ns);
 for t = 1:(numel(j) - 1)
 
     % find empty paths
     %----------------------------------------------------------------------
-    if ~any(B(j(t + 1),j(t),:),'all')
-        u  = find(~any(B(:,j(t),:),1),1,'first');
+    if ~any(b(j(t + 1),j(t),:),'all')
+        u  = find(~any(b(:,j(t),:),1),1,'first');
         if isempty(u)
-            B(j(t + 1),j(t),end + 1) = 1;
+            b(j(t + 1),j(t),end + 1) = 1;
         else
-            B(j(t + 1),j(t),u) = 1;
+            b(j(t + 1),j(t),u) = 1;
         end
     end
 end
 
+% fill in empty columns of transition tensor
+%--------------------------------------------------------------------------
+for u = 1:size(b,3)
+    for s = 1:Ns
+        if ~any(b(:,s,u))
+            i = find(any(squeeze(b(:,s,:)),2),1);
+            b(i,s,u) = 1;
+        end
+    end
+end
 
 % Vectorise cell array of likelihood tensors and place in structure
 %--------------------------------------------------------------------------
-mdp.a    = A;
-mdp.b{1} = B;
+mdp.a    = a;
+mdp.b{1} = b;
 
 return
 
@@ -306,20 +205,130 @@ end
 
 return
 
-function b = spm_bcat(b1,b2)
-% Concatenation of transition tensors
-% FORMAT b = spm_bcat(b1,b2)
-% b1  - first transition tensor
-% b2  - second transition tensor
-%--------------------------------------------------------------------------
-% This auxiliary routine can be regarded as a generalisation of
-% concatenation for three tensors
-%--------------------------------------------------------------------------
-s1  = size(b1);
-s2  = size(b2);
-b   = zeros(s1 + s2);
-b(1:s1(1),1:s1(2),1:s1(3)) = b1;
-b(s1(1) + (1:s2(1)),s1(2) + (1:s2(2)),s1(3) + (1:s2(3))) = b2;
+function mdp = spm_structure(O)
+% structure learning (unused)
+% FORMAT mdp = spm_structure(O)
+% O   - Cell array of (cells of) a sequence of probabilistic outcomes
+% mdp - likelihood (a) and transition (b) tensors for this sequence
+%
+% This routine emulates structure learning from deterministic sequences of
+% observations or outcomes. Effectively, it identifies all unique
+% combinations of outcomes and transitions among those combinations. The
+% likelihood matrix then maps from all unique combinations (i.e., latent
+% states) to outcomes, and the transition tensor encodes observed
+% transitions among latent states.
+%
+% This version tests for changes in mutual information or expected free
+% energy by assigning new outcomes to the most likely previously encountered
+% state and a new state and testing for increases or decreases in mutual
+% information (with prior Dirichlet concentration parameters of a suitably
+% small value: p)
+%__________________________________________________________________________
 
+% Unique outputs
+%--------------------------------------------------------------------------
+o       = spm_cat(O)';
+[~,i,j] = unique(o,'rows','stable');
+
+% Likelihood tensors
+%--------------------------------------------------------------------------
+Ng    = size(O,1);
+a     = cell(Ng,1);
+n     = sum(j == 1);
+for g = 1:Ng
+    a{g} = full(n*O{g,i(1)});
+end
+
+% Dirichlet concentration parameter
+%--------------------------------------------------------------------------
+p     = 1/32;
+I     = 1;
+for k = 2:numel(i)
+
+    % find closest predecessor
+    %----------------------------------------------------------------------
+    No    = sum(j == k);
+    Ns    = size(a{1},2);
+    KL    = zeros(Ng,Ns);
+    for g = 1:Ng
+        KL(g,:) = O{g,i(k)}'*spm_psi(a{g});
+    end
+    [~,m] = max(sum(KL));
+
+    % compressed and uncompressed likelihood mappings
+    %----------------------------------------------------------------------
+    EFE   = zeros(Ng,1);
+    for g = 1:Ng
+        a0{g} = a{g};
+        a0{g}(:,end + 1) = 0;
+        a0{g} = a0{g} + p;
+        a1{g} = a0{g};
+
+        % information loss
+        %------------------------------------------------------------------
+        da           = No*O{g,i(k)};
+        a0{g}(:,m)   = a0{g}(:,m)   + da;
+        a1{g}(:,end) = a1{g}(:,end) + da;
+
+        EFE(g)       = spm_MDP_MI(a0{g}) - spm_MDP_MI(a1{g});
+    end
+
+    % test for mutual information (expected free energy)
+    %----------------------------------------------------------------------
+    if all(EFE > 0)
+        for g = 1:Ng
+            a{g} = a0{g} - p;
+            I(k) = m;
+        end
+    else
+        for g = 1:Ng
+            a{g} = a1{g} - p;
+            I(k) = Ns + 1;
+        end
+    end
+
+end
+
+% Transition tensors
+%--------------------------------------------------------------------------
+Ns    = size(a{1},2);
+b     = zeros(Ns,Ns);
+J     = I(j);
+for t = 1:(numel(J) - 1)
+
+    % find previous transitions
+    %----------------------------------------------------------------------
+    v  = find(b(J(t + 1),J(t),:),1,'first');
+
+    % new transition
+    %----------------------------------------------------------------------
+    if isempty(v)
+
+        % new path
+        %------------------------------------------------------------------
+        u  = find(~any(b(:,J(t),:),1),1,'first');
+        if isempty(u)
+            b(J(t + 1),J(t),end + 1) = 1;
+        else
+
+            % old path
+            %--------------------------------------------------------------
+            b(J(t + 1),J(t),u) = b(J(t + 1),J(t),u) + 1;
+        end
+
+    else
+
+        % old transition
+        %--------------------------------------------------------------
+        b(J(t + 1),J(t),v) = b(J(t + 1),J(t),v) + 1;
+    end
+end
+
+
+% Vectorise cell array of likelihood tensors and place in structure
+%--------------------------------------------------------------------------
+mdp.a    = a;
+mdp.b{1} = b;
 
 return
+

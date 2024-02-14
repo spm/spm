@@ -13,8 +13,9 @@ function spm_MDP_params(MDP,OPT)
 % deal with a sequence of trials
 %==========================================================================
 if nargin < 2,        OPT   = 'norm'; end
-if ~isfield(MDP,'b'), MDP.b = MDP.B;  end
 if ~isfield(MDP,'a'), MDP.a = MDP.A;  end
+if ~isfield(MDP,'b'), MDP.b = MDP.B;  end
+
 
 [Nf,Ns,Nu] = spm_MDP_size(MDP);
 
@@ -26,13 +27,13 @@ for f = 1:Nf
         subplot(6,6,u + (f - 1)*6)
         if strcmp(OPT,'norm')
             if Ns(f) > 128
-                spm_spy(spm_dir_norm(MDP.b{f}(:,:,u)));
+                spm_spy(spm_dir_norm(MDP.b{f}(:,:,u)),4);
             else
                 imagesc(spm_dir_norm(MDP.b{f}(:,:,u)))
             end
         else
             if Ns(f) > 128
-                spm_spy(MDP.b{f}(:,:,u));
+                spm_spy(MDP.b{f}(:,:,u),4);
             else
                 imagesc(MDP.b{f}(:,:,u))
             end
@@ -53,7 +54,7 @@ try
 
     subplot(2,2,3)
     if size(A,1) > 128
-        spm_spy(A);
+        spm_spy(A,8);
     else
         imagesc(A)
     end
@@ -66,7 +67,7 @@ end
 %--------------------------------------------------------------------------
 subplot(2,2,4)
 if Ns(f) > 128
-    spm_spy(sum(MDP.b{1},3) > 1/4);
+    spm_spy(sum(MDP.b{1},3) > 1/4,8);
 else
     imagesc(sum(MDP.b{1},3) > 1/4),
 end
