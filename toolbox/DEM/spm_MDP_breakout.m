@@ -41,7 +41,7 @@ cid   = [];             % misses
 
 x0    = 4;              % initial location
 i0    = 4;              % initial location
-j0    = 4;              % initial location
+j0    = 5;              % initial location
 p0    = 1;              % initial momentum
 q0    = 2;              % initial momentum
 h0    = 3;              % initial target
@@ -219,5 +219,6 @@ MDP.D = D;                            % prior over initial states
 MDP.H = H;                            % prior over final states
 MDP.E = E;                            % prior over initial paths
 MDP.N = 0;                            % planning depth (1)
+
 
 return

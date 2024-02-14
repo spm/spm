@@ -340,10 +340,18 @@ for m = 1:Nm
     %----------------------------------------------------------------------
     if process(m)
             for f = 1:NF
-            if ~isfield(MDP(m),'GD') || isempty(MDP(m).GD)
+            try
+                if numel(MDP(m).GD{f}) ~= NS(m,f)
                 MDP(m).GD{f} = spm_norm(ones(NS(m,f),1));
             end
-            if ~isfield(MDP(m),'GE') || isempty(MDP(m).GE)
+            catch
+                MDP(m).GD{f} = spm_norm(ones(NS(m,f),1));
+            end
+            try
+                if numel(MDP(m).GE{f}) ~= NU(m,f)
+                    MDP(m).GE{f} = spm_norm(ones(NU(m,f),1));
+                end
+            catch
                 MDP(m).GE{f} = spm_norm(ones(NU(m,f),1));
             end
         end
@@ -483,7 +491,7 @@ for m = 1:Nm
         elseif isfield(MDP,'H')
             qh{m,f} = MDP(m).H{f}*512;
         else
-            qh{m,f} = [];
+            qh{m,f} = false;
         end
 
         % Dirichlet prior
@@ -956,8 +964,8 @@ for t = 1:T
                 mdp.Q  = MDP(m).Q;
                 if isfield(mdp,'a' ), mdp.a = mdp.Q.a{mdp.L}; end
                 if isfield(mdp,'b' ), mdp.b = mdp.Q.b{mdp.L}; end
-                mdp.s0 = mdp.Q.s{mdp.L};
-                mdp.u0 = mdp.Q.u{mdp.L};
+                mdp.s0 = mdp.Q.s0{mdp.L};
+                mdp.u0 = mdp.Q.u0{mdp.L};
             end
 
             % infer hidden states at lower level (outcomes at this level)
@@ -987,16 +995,20 @@ for t = 1:T
             %==============================================================
             if isfield(mdp,'a' ), mdp.Q.a{mdp.L} = mdp.a; end
             if isfield(mdp,'b' ), mdp.Q.b{mdp.L} = mdp.b; end
-            mdp.Q.s{mdp.L} = mdp.s(:,end);
-            mdp.Q.u{mdp.L} = mdp.u(:,end);
+            mdp.Q.s0{mdp.L} = mdp.s(:,end);
+            mdp.Q.u0{mdp.L} = mdp.u(:,end);
 
-            % and outcomes (O,Y)
+            % and outcomes (s,u,Y,O,o)
             %--------------------------------------------------------------
             try
+                mdp.Q.s{mdp.L} = [mdp.Q.s{mdp.L} mdp.s];
+                mdp.Q.u{mdp.L} = [mdp.Q.u{mdp.L} mdp.u];
                 mdp.Q.Y{mdp.L} = [mdp.Q.Y{mdp.L} mdp.Y];
                 mdp.Q.O{mdp.L} = [mdp.Q.O{mdp.L} mdp.O];
                 mdp.Q.o{mdp.L} = [mdp.Q.o{mdp.L} mdp.o];
             catch
+                mdp.Q.s{mdp.L} = mdp.s;
+                mdp.Q.u{mdp.L} = mdp.u;
                 mdp.Q.Y{mdp.L} = mdp.Y;
                 mdp.Q.O{mdp.L} = mdp.O;
                 mdp.Q.o{mdp.L} = mdp.o;
@@ -1142,7 +1154,7 @@ for t = 1:T
                 [j,k] = spm_get_edges(id{m},g,Q(m,:,t));
                 da    = 0;
                 for i = k
-                    da   = da + spm_cross(O(m,i,t),Q{m,j,t});
+                    da = da + spm_cross(O{m,i,t},Q{m,j,t});
                 end
                 da     = reshape(da,size(A{m,g}));
                 da(~qa{m,g}) = 0;
@@ -1545,7 +1557,7 @@ if t > T || numel(G) == 1, return, end
 
 % Constraints on next state (inductive inference)
 %==========================================================================
-[R,r] = spm_induction(A(m,:),B(m,:,:),C(m,:),H(m,:),Q,(T - t),id{m});
+[R,r] = spm_induction(A(m,:),B(m,:,:),C(m,:),H(m,:),P(m,:,t),(T - t),id{m});
 
 % Expected free energy of subsequent action
 %==========================================================================
@@ -1560,10 +1572,16 @@ for k = 1:Nk                                % search over policies
         %------------------------------------------------------------------
         Q{f,k} = B{m,f,k}*P{m,f,t};
 
+        % G(k): risk over latent states
+        %------------------------------------------------------------------
+        if H{m,f}
+            G(k,:) = G(k,:) - Q{f,k}'*(spm_log(Q{f,k}) - spm_log(H{m,f}));
+        end
+
         % expected information gain (transition novelty) (B)
         %------------------------------------------------------------------
         if any(I{m,f,k},'all')
-            G(k,:) = G(k,:) + P{m,f,t}'*I{1,f,k}*Q{f,k};
+            G(k,:) = G(k,:) + P{m,f,t}'*I{m,f,k}*Q{f,k};
         end
 
     end
@@ -1571,7 +1589,7 @@ for k = 1:Nk                                % search over policies
     % inductive constraints over states
     %----------------------------------------------------------------------
     if any(R,'all')
-        G(k,:) = G(k,:) + spm_dot(R,Q(r,k));
+        G(k,:) = G(k,:) + spm_dot(R,Q{r,k});
     end
 
     % and outcomes
@@ -2096,7 +2114,7 @@ end
 Bf    = 1;
 Qf    = 1;
 for f = hif
-    Ns(f) = size(B{f},1);                % numer of states for hif
+    Ns(f) = size(B{f},1);                % number of states for hif
     Bf = spm_kron(b{f},Bf);           % unconstrained transitions
     Qf = spm_kron(Q{f},Qf);           % posterior over states
 end
@@ -2236,12 +2254,12 @@ A(isnan(A)) = 1/size(A,1);
 end
 
 function A  = spm_wnorm(A)
-% expected information gain (likelihood parameters)
+% expected information gain (parameters)
 % A = minus(log(A0),log(A)) + minus(1./A,1./A0) + minus(psi(A),psi(A0))
 %   = minus(1./A,1./A0)/2 + ...
 %--------------------------------------------------------------------------
 A   = full(max(A,1/32));
-if max(A,[],'all') < 256
+if min(max(A),[],'all') < 256
 A0  = sum(A);
 A   = minus(log(A0),log(A)) + minus(1./A,1./A0) + minus(psi(A),psi(A0));
 A   = max(A,0);

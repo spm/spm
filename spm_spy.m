@@ -12,7 +12,7 @@ function spm_spy(X,Markersize,m)
 
 % defaults
 %--------------------------------------------------------------------------
-if nargin < 1, X = defaultspy; end
+if nargin < 1, X = defaultspy;  end
 if nargin < 2, Markersize = 16; end
 if nargin < 3, m = max(max(X)); end
 

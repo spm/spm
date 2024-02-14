@@ -1,13 +1,13 @@
-function MDP = DEM_Atari
-% Structure learning from pixels
+function MDP = DEM_Atari_learning
+% learning from pixels
 %__________________________________________________________________________
 %
-% This routine is under construction. In brief, it addresses the problem of
-% learning a generative model from pixels, under the constraints supplied
-% by sparse rewards. The problem is solved in a fast and frugal way using a
-% structure learning approach based upon a generalised Markov decision
-% process (that treats states and their paths as pairs of random variables,
-% whose dynamics are encoded in transition tensors).
+% This routine addresses the problem of learning a generative model from
+% pixels, under the constraints supplied by sparse rewards. The problem is
+% solved in a fast and frugal way using a structure learning approach based
+% upon a generalised Markov decision process (that treats states and their
+% paths as pairs of random variables, whose dynamics are encoded in
+% transition tensors).
 % 
 % A key architectural aspect of these deep structures is an appeal to the
 % renormalisation group; in the sense that there is a recursive application
@@ -35,13 +35,17 @@ function MDP = DEM_Atari
 % structure is then sufficient to reproduce expert play; because this is
 % the kind of play that the model knows.
 % 
-% One can finesse expert play by the use of inductive inference; provided
-% initial conditions or novel trajectories to be recognised as such, and
-% actively reconfigured to recognisable (expert trajectories) through
+% One can finesse expert play by the use of inductive inference through
 % explicit action. Explicit action refers to (merely) reflexive active
 % inference; namely, selecting those actions that minimise free energy that
 % produce outcomes that match predicted outcomes. Here, the outcomes are
 % pixel-based outcomes.
+%
+% This example accumulates sequences of rewarded (random) play by appending
+% them to outcomes generated through gameplay using inductive inference. In
+% other words, structure learning proceeds on the basis of what the agent
+% has previously learned enabling the composition of long sequences of
+% rewarded behaviour.
 
 %__________________________________________________________________________
 % Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
@@ -56,6 +60,9 @@ clc, rng(1)
 
 % Get game: i.e., generative process (as a partially observed MDP)
 %==========================================================================
+
+% number of rows and columns
+%--------------------------------------------------------------------------
 Nr = 12; Nc = 9; [GDP,hid,cid] = spm_MDP_breakout(Nr,Nc);
 Nr = 12; Nc = 9; [GDP,hid,cid] = spm_MDP_pong(Nr,Nc);
 
@@ -65,163 +72,97 @@ Nr = 12; Nc = 9; [GDP,hid,cid] = spm_MDP_pong(Nr,Nc);
 
 % generate (probabilistic) outcomes under random actions
 %==========================================================================
-GDP.T = 32;
-O     = {};
-for n = 1:1024
+[O,o] = spm_generate_next(GDP,hid,cid);
 
-    % initialise this batch of training exemplars
+spm_figure('GetWin','Gameplay'); clf
+spm_report(o,Nr,Nc), drawnow
+
+% Accumulate training data (O) by appending (rewarded) random play to
+% self-generated outcomes
+%--------------------------------------------------------------------------
+for i = 1:64
+
+    % RG structure learning
     %----------------------------------------------------------------------
-    PDP = spm_MDP_generate(GDP);
+    tic, [MDP,RG]  = spm_fast_structure_learning(O,[Nr,Nc]); toc
 
-    % spm_report(PDP.o,Nr,Nc)
-
-    % smart data selection
+    % Get rewarding episodes
     %----------------------------------------------------------------------
-    t   = find(ismember(PDP.s',hid','rows'),1,'first');
-    c   = find(ismember(PDP.s',cid','rows'),1,'first');
-    c   = min([c; GDP.T]);
+    [HID,CID,HITS] = spm_get_rewards(hid,cid,GDP,MDP);
 
-    if numel(t) && t < GDP.T && c > t
+    % Equip model with generative process and initialise states
+    %======================================================================
+    Nm        = numel(MDP);
+    MDP{1}.GA = GDP.A;
+    MDP{1}.GB = GDP.B;
+    MDP{1}.GD = GDP.D;
+    MDP{1}.GE = GDP.E;
+    MDP{1}.GU = GDP.U;
 
-        % accumulate (rewarded) sequences
-        %------------------------------------------------------------------
-        t  = t(1);
-        if numel(O)
-            O = [O PDP.O(:,1:t)];
-            o = PDP.o(:,1:t);
-        else
-            O = PDP.O(:,1:t);
-            o = PDP.o(:,1:t);
-        end
-
-        % start after we left off
-        %------------------------------------------------------------------
-        GDP.s = PDP.s(:,t + 1);
-        GDP.u = PDP.u(:,t + 1);
-
-        % illustrate action and action selection
-        %------------------------------------------------------------------
-        if size(O,2) < 128
-            spm_figure('GetWin','Gameplay'); clf
-            spm_report(o,Nr,Nc), drawnow
-        end
-    end
-
-    % break if a sufficient number of friends have been accumulated
+    % create hierarchical model with small prior concentration parameters
     %----------------------------------------------------------------------
-    clc; fprintf('Number of samples %i (%i)\n',size(O,2),(n*GDP.T))
-    if size(O,2) > 1024
+    RDP    = spm_mdp2rdp(MDP);
+    T      = size(O,2);
+    RDP.U  = 1;
+    RDP.T  = ceil(T/(2^(Nm - 1))) + 16;
+
+    % Specify rewarded states for inductive inference
+    %----------------------------------------------------------------------
+    RDP.id.hid = HID;
+
+    % invert 
+    %======================================================================
+    PDP    = spm_MDP_VB_XXX(RDP);
+
+    % Mutual information (expected free energy)
+    %----------------------------------------------------------------------
+    MIA(i) = spm_MDP_MI(RDP.A);
+    MIB(i) = spm_MDP_MI(RDP.B{1}(:,:,1));
+    LEN(i) = T;
+
+    % break if MI decreases
+    %----------------------------------------------------------------------
+    if MIB(i) < max(MIB) && LEN(i) == max(LEN)
         break
     end
 
-end
-
-% RG structure learning
-%--------------------------------------------------------------------------
-tic, [MDP,RG] = spm_fast_structure_learning(O,[Nr,Nc]); toc
-
-
-% Illustrate depth (Nm) Learning
-%--------------------------------------------------------------------------
-Nm    = numel(MDP);
-spm_figure('GetWin',sprintf('Paramters: level %i',Nm)); clf
-spm_MDP_params(MDP{Nm})
-
-% Generate play by sampling from the resulting deep generative model
-%==========================================================================
-spm_figure('GetWin','Generative AI'); clf
-
-% sample outcomes
-%--------------------------------------------------------------------------
-pdp   = MDP{end};
-pdp.T = 32;
-pdp.s = 1;
-pdp.u = 1;
-pdp   = spm_MDP_VB_XXX(pdp);
-
-Q     = cell(Nm,1);
-Q{Nm} = pdp.O;
-for n = Nm:-1:2
-
-    % set empirical priors over states and paths
+    % or append next training sequence
     %----------------------------------------------------------------------
-    for t = 1:size(Q{n},2)
-        pdp   = MDP{n - 1};
-        pdp.T = 2;
-        for g = 1:numel(pdp.id.D)
-            pdp.D{g} = Q{n}{pdp.id.D{g},t};
-            pdp.E{g} = Q{n}{pdp.id.E{g},t};
-        end
-        pdp      = spm_MDP_VB_XXX(pdp);
-        Q{n - 1} = [Q{n - 1} pdp.O];
-    end
+    t     = find(ismember(PDP.Q.o{1}(:,1:T)',HITS','rows'),1,'last');
+    GDP.s = PDP.Q.s{1}(:,t + 1);
+    GDP.u = PDP.Q.u{1}(:,t + 1);
+    [O,o] = spm_generate_next(GDP,hid,cid);
+    O     = [PDP.Q.O{1}(:,1:t) O];
+    o     = [PDP.Q.o{1}(:,1:t) o];
+
+    % Illustrate structure
+    %----------------------------------------------------------------------
+    spm_figure('GetWin','Paramters'); clf
+    spm_MDP_params(MDP{end})
+
+    subplot(4,2,3), plot(LEN,MIA)
+    title('Mutual information (likelihood)','FontSize',14)
+    xlabel('number of samples (frames)')
+    ylabel('Mutual information'), drawnow
+    
+    subplot(4,2,4), plot(LEN,MIB)
+    title('Mutual information (priors)','FontSize',14)
+    xlabel('number of samples (frames)')
+    ylabel('Mutual information'), drawnow
 
 end
 
-spm_show_outcomes(Q,RG,Nr,Nc)
-
-% Generate play from recursive generative model
-%==========================================================================
-
-% Create deep recursive model
+% Illustrate belief updating
 %--------------------------------------------------------------------------
-RDP       = spm_mdp2rdp(MDP);
-[~,Ns,Nu] = spm_MDP_size(RDP);
-
-RDP.T    = 32;
-RDP.D{1} = sparse(1,1,1,Ns(1),1);
-RDP.E{1} = sparse(1,1,1,Nu(1),1);
-PDP      = spm_MDP_VB_XXX(RDP);
-
-% recover outcomes
-%--------------------------------------------------------------------------
-Q        = spm_get_O(PDP);
-Y        = PDP.Q(1).Y;
-
-% Illustrate deep recursive model
-%--------------------------------------------------------------------------
-spm_show_outcomes(Q,RG,Nr,Nc,Y)
-
-
-% Now repeat but engage action and active inference
-%==========================================================================
-% The above illustrations are simply generating outcomes from a
-% hierarchical or recursive generative model. In what follows, we engage
-% inductive planning as inference, with explicit action; namely, the
-% generative process is used to engage actions that reproduce predicted
-% outcomes (here, purely visual) at the lowest level.
-%--------------------------------------------------------------------------
-
-% Illustrate intentional planning as inference using rewarded states
-%==========================================================================
-[HID,~,HITS] = spm_get_rewards(hid,cid,GDP,MDP);
-
-% create hierarchical model with prior concentration parameters
-%--------------------------------------------------------------------------
-MDP{1}.GA  = GDP.A;
-MDP{1}.GB  = GDP.B;
-MDP{1}.GD  = GDP.D;
-MDP{1}.GE  = GDP.E;
-MDP{1}.GU  = GDP.U;
-
-RDP        = spm_mdp2rdp(MDP,2,4);
-RDP.U      = 1;
-RDP.T      = 256/(2^(Nm - 1));
-RDP.id.hid = HID;
-
-PDP   = spm_MDP_VB_XXX(RDP);
-Q     = spm_get_O(PDP);
-Y     = PDP.Q(1).Y;
-
-spm_figure('GetWin','Active inference'); clf
-spm_show_outcomes(Q,RG,Nr,Nc,Y)
-
-h     = find(ismember(PDP.Q.o{1}',HITS','rows'));
-subplot(2*Nm,1,Nm + 1), hold on
-plot(h,ones(size(h)),'.r','MarkerSize',32), hold off, drawnow
-
 spm_figure('GetWin','Inference'); clf
 spm_MDP_VB_trial(PDP);
+
+spm_figure('GetWin','Active inference'); clf
+spm_show_outcomes(spm_get_O(PDP),RG,Nr,Nc,PDP.Q(1).Y)
+
+h = find(ismember(PDP.Q.o{1}',HITS','rows'));
+subplot(2*Nm,1,Nm + 1), hold on
+plot(h,ones(size(h)),'.r','MarkerSize',32), drawnow
 
 return
 
@@ -229,6 +170,46 @@ return
 
 % subroutines
 %==========================================================================
+
+function [O,o] = spm_generate_next(GDP,hid,cid)
+% generates selected outcomes
+% FORMAT [O,o] = spm_generate_next(GDP,hid,cid)
+%
+% This auxiliary routine generates outcomes from the random play, from an
+% initial state, until a reward is encountered (indexed by hid in latent
+% state space) in the absence of any constraints (indexed by cid latent
+% state space).
+%__________________________________________________________________________
+
+% sample outcomes from initial state
+%--------------------------------------------------------------------------
+o     = [];
+O     = {};
+GDP.T = 32;
+for i = 1:1024
+
+    % generate outputs
+    %----------------------------------------------------------------------
+    PDP   = spm_MDP_generate(GDP);
+
+    % smart data selection
+    %----------------------------------------------------------------------
+    t = find(ismember(PDP.s',hid','rows'),1,'first');
+    c = find(ismember(PDP.s',cid','rows'),1,'first');
+    c = min([c; GDP.T]);
+    if numel(t) && c > t && t < GDP.T
+
+        % return selected sequences
+        %------------------------------------------------------------------
+        O   = PDP.O(:,1:(t + 1));
+        o   = PDP.o(:,1:(t + 1));
+
+        break
+    end
+end
+
+
+return
 
 function Q = spm_get_O(RDP)
 % hierarchical outcomes from a recursive MDP
@@ -490,6 +471,10 @@ for s = 1:Ns(1)
     % does this path elcit a reward?
     %----------------------------------------------------------------------
     o       = PDP.Q.o{1};
+    
+    % Uncomment to show paths
+    %------------------------------------------------------------------
+    % spm_report(o,6,9)
     if sum(ismember(o',HITS','rows'))
         HID = [HID,s];
     end
@@ -621,3 +606,50 @@ spm_show_outcomes(Q,G,Nr,Nc)
 
 return
 
+function O = spm_enrich(GDP,hid,cid)
+% Enriches outcomes from a generative process (unused)
+% FORMAT O = spm_enrich(GDP,hid,cid)
+%
+% This auxiliary routine generates outcomes from the random play and then
+% selects sequences that intervene between repetitions of the initial
+% state. A subset of sequences is then retained that has the greatest
+% number of its (as indexed by hid in latent state space).
+%__________________________________________________________________________
+
+% repeated instances of first state
+%--------------------------------------------------------------------------
+i     = find(ismember(GDP.s',GDP.s(:,1)','rows'));
+
+% for sequences between the most common output
+%--------------------------------------------------------------------------
+t     = {};
+for k = 2:numel(i)
+
+    %  indices of k-th sequence
+    %----------------------------------------------------------------------
+    t{k} = i(k - 1):(i(k) - 1);
+    s    = GDP.s(:,t{k});
+
+    % accept if there is a hit
+    %----------------------------------------------------------------------
+    h    = find(ismember(s',hid','rows'));
+    H(k) = numel(h)/numel(t{k});
+   
+end
+
+[i,j] = sort(H,'descend');
+t     = t(j(1:round(numel(j)/4)));
+
+% enriched outputs
+%--------------------------------------------------------------------------
+O = GDP.O(:,spm_cat(t));
+
+return
+
+% NOTES:
+%==========================================================================
+%     [Nf,Ns]  = spm_MDP_size(RDP);
+%     H        = zeros(Ns,1);
+%     H(HID)   =  4;
+%     H(CID)   = -4;
+%     RDP.H{1} = spm_softmax(H);
