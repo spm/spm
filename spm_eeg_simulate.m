@@ -268,17 +268,29 @@ if ~isempty(ormni), %%%% DIPOLE SIMULATION
     
     sensorind=Dnew.indchantype({'MEG', 'MEGPLANAR','REFMAG','REFGRAD'});
     
-    tmp=zeros(length(chanind),Dnew.nsamples);
     [vol, sens] = ft_prepare_vol_sens(vol, sens);
     mapping=[];
     for i=1:length(chanind)
         mapping(i)=find(strcmp(sens.label,Dnew.chanlabels{chanind(i)}));
     end
-    for i=1:Ndip,
-        gmn = ft_compute_leadfield(posdipmm(i,:)*1e-3, sens, vol,  'dipoleunit', 'nA*m','chanunit',sensorunits(sensorind));
-        gain=gmn(mapping,:)*ordip(i,:)'*nAmdipmom(i);
-        tmp(:,f1ind)=tmp(:,f1ind)+gain*simsignal(i,:);
-    end; % for i
+    
+    if length(size(simsignal))==2
+        tmp=zeros(length(chanind),Dnew.nsamples);
+        for i=1:Ndip,
+            gmn = ft_compute_leadfield(posdipmm(i,:)*1e-3, sens, vol,  'dipoleunit', 'nA*m','chanunit',sensorunits(sensorind));
+            gain=gmn(mapping,:)*ordip(i,:)'*nAmdipmom(i);
+            tmp(:,f1ind)=tmp(:,f1ind)+gain*simsignal(i,:);
+        end; % for i
+    else
+        tmp=zeros(length(chanind),Dnew.nsamples,Dnew.ntrials);
+        for i=1:Ndip,
+            gmn = ft_compute_leadfield(posdipmm(i,:)*1e-3, sens, vol,  'dipoleunit', 'nA*m','chanunit',sensorunits(sensorind));
+            gain=gmn(mapping,:)*ordip(i,:)'*nAmdipmom(i);
+            for j=1:Dnew.ntrials
+                tmp(:,f1ind,j)=tmp(:,f1ind,j)+gain*squeeze(simsignal(i,:,j));
+            end
+        end
+    end
     
     
 else %%% CURRENT DENSITY ON SURFACE SIMULATION
@@ -322,19 +334,33 @@ else %%% CURRENT DENSITY ON SURFACE SIMULATION
     
 
     % Add waveform of all smoothed sources to their equivalent dipoles
-    % QGs add up to 0.9854
-    fullsignal=zeros(Ndip,Dnew.nsamples); %% simulation padded with zeros
-    fullsignal(1:Ndip,f1ind)=simsignal;
+    % QGs add up to 0.9854        
     
-    tmp     = sparse(zeros(Nchans,Dnew.nsamples));                     % simulated data
     X=zeros(size(full(Qp{1}.q)));
-    for j=1:Ndip
-        Lq=L*Qp{j}.q; %% lead field * prior source distribution
-        X=X+full(Qp{j}.q);
-        for i=1:Dnew.nsamples,
-            tmp(:,i) = tmp(:,i) + Lq*fullsignal(j,i); %% +sqrt(Qe)*randn(size(Qe,1),1);
+    if length(size(simsignal))==2
+        fullsignal=zeros(Ndip,Dnew.nsamples); %% simulation padded with zeros
+        fullsignal(1:Ndip,f1ind)=simsignal;
+    
+        tmp     = sparse(zeros(Nchans,Dnew.nsamples));                     % simulated data
+        for j=1:Ndip
+            Lq=L*Qp{j}.q; %% lead field * prior source distribution
+            X=X+full(Qp{j}.q);
+            for i=1:Dnew.nsamples,
+                tmp(:,i) = tmp(:,i) + Lq*fullsignal(j,i); %% +sqrt(Qe)*randn(size(Qe,1),1);
+            end;
         end;
-    end;
+    else
+        fullsignal=zeros(Ndip,Dnew.nsamples,Dnew.ntrials); %% simulation padded with zeros
+        fullsignal(1:Ndip,f1ind,:)=simsignal;
+        tmp     = sparse(zeros(Nchans,Dnew.nsamples,Dnew.ntrials));                     % simulated data
+        for j=1:Ndip
+            Lq=L*Qp{j}.q; %% lead field * prior source distribution
+            X=X+full(Qp{j}.q);
+            for i=1:Dnew.nsamples,
+                tmp(:,i,:) = tmp(:,i,:) + Lq*fullsignal(j,i,:); %% +sqrt(Qe)*randn(size(Qe,1),1);
+            end;
+        end;
+    end
     tmp=tmp.*simscale; %% scale to sensor units
     
 end; % if ori
@@ -356,9 +382,13 @@ YY=zeros(length(chanind),length(chanind));
 n=0;
 for i=1:Ntrials
     if any(i == trialind), %% only add signal to specific trials
-        Dnew(chanind,:,i) = full(tmp);
+        if length(size(tmp))==2
+            Dnew(chanind,:,i) = full(tmp);
+        else
+            Dnew(chanind,:,i) = squeeze(tmp(:,:,i));
+        end
     else
-        Dnew(chanind,:,i)=zeros(size(tmp));
+        Dnew(chanind,:,i)=zeros(size(tmp,1),size(tmp,2));
     end;
     Dnew(:,:,i)=Dnew(:,:,i)+randn(size(Dnew(:,:,i))).*whitenoise; %% add white noise in fT
     y=squeeze(Dnew(chanind,:,i));
