@@ -366,7 +366,10 @@ else %%% CURRENT DENSITY ON SURFACE SIMULATION
 end; % if ori
 
 
-allchanstd=std(tmp');
+allchanstd=std(full(tmp),[],2);
+if length(size(simsignal))==3
+    allchanstd=squeeze(mean(allchanstd,3));
+end
 meanrmssignal=mean(allchanstd);
 
 
