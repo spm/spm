@@ -288,45 +288,6 @@ if positions
     grad = ft_datatype_sens(grad, 'amplitude', 'T', 'distance', 'mm');
     D = sensors(D, 'MEG', grad);
     save(D);
-    
-    
-    %- 2D view based on mean orientation of sensors
-    n1=mean(grad.coilori); n1= n1./sqrt(dot(n1,n1));
-    t1=cross(n1,[0 0 1]);
-    t2=cross(t1,n1);
-    pos2d =zeros(size(grad.coilpos,1),2);
-    for i=1:size(grad.coilpos,1)
-        pos2d(i,1)=dot(grad.coilpos(i,:),t1);
-        pos2d(i,2)=dot(grad.coilpos(i,:),t2);
-    end
-    
-    nMEG = length(indchantype(D,'MEG'));
-    if nMEG~=size(pos2d,1)
-        m1 = '2D positions could not be set as there are ';
-        m2 =num2str(nMEG);
-        m3 = ' channels but only ';
-        m4 = num2str(size(pos2d,1));
-        m5 =  ' channels with position information.';
-        message = [m1,m2,m3,m4,m5];
-        warning(message);
-    else
-        args=[];
-        try
-            args.xy =   Data.xy';
-            args.label = Data.xylabs;
-        catch
-            args.xy= pos2d';
-            args.label=grad.label;
-        end
-        args.D=D;
-        args.task='setcoor2d';
-        try
-        D=spm_eeg_prep(args);
-        D.save;
-        catch
-          warning('Could not create 2D layout')
-        end 
-    end
 end
 
 %- prep for headmodel processing
@@ -351,6 +312,69 @@ if positions
 end
 D.save();
 
+% Create 2D topography
+%-------------------------------------------------------
+if positions
+    if isfield(D, 'inv')
+        % 2D view based on fiducials from headmodel
+        % If there are any MEGMAG channels which don't have positions on
+        % the scanner-cast, set them to REFMAG type instead
+        D = chantype(D, setdiff(indchantype(D, 'MEGMAG', 'GOOD'), indchannel(D, D.sensors('MEG').label)), 'REFMAG');
+        save(D);
+
+        % Then create layout and set 2D positions
+        fid = fiducials(D);
+        fid_struct = struct('NAS', fid.fid.pnt(contains(fid.fid.label, 'nas'),:), ...
+            'LPA', fid.fid.pnt(contains(fid.fid.label, 'lpa'),:), ...
+            'RPA', fid.fid.pnt(contains(fid.fid.label, 'rpa'),:));
+        pos = grad.coilpos;
+        lay = spm_get_anatomical_layout(pos, grad.label, double(gifti(D.inv{1}.mesh.tess_scalp).vertices), fid_struct, 0);
+        pos2d = transpose(lay.pos);
+        
+        [sel1, sel2] = spm_match_str(lower(D.chanlabels), lower(lay.label));
+        D = coor2D(D, sel1, num2cell(pos2d(:, sel2)));
+        
+        D.save;
+    else
+        % 2D view based on mean orientation of sensors
+        n1=mean(grad.coilori); n1= n1./sqrt(dot(n1,n1));
+        t1=cross(n1,[0 0 1]);
+        t2=cross(t1,n1);
+        pos2d =zeros(size(grad.coilpos,1),2);
+        for i=1:size(grad.coilpos,1)
+            pos2d(i,1)=dot(grad.coilpos(i,:),t1);
+            pos2d(i,2)=dot(grad.coilpos(i,:),t2);
+        end
+        
+        nMEG = length(indchantype(D,'MEG'));
+        if nMEG~=size(pos2d,1)
+            m1 = '2D positions could not be set as there are ';
+            m2 =num2str(nMEG);
+            m3 = ' channels but only ';
+            m4 = num2str(size(pos2d,1));
+            m5 =  ' channels with position information.';
+            message = [m1,m2,m3,m4,m5];
+            warning(message);
+        else
+            args=[];
+            try
+                args.xy =   Data.xy';
+                args.label = Data.xylabs;
+            catch
+                args.xy= pos2d';
+                args.label=grad.label;
+            end
+            args.D=D;
+            args.task='setcoor2d';
+            try
+            D=spm_eeg_prep(args);
+            D.save;
+            catch
+              warning('Could not create 2D layout')
+            end 
+        end
+    end
+end
 
 fprintf('%-40s: %30s\n','Completed',spm('time'));
 
@@ -585,13 +609,23 @@ function Snew = read_neuro1_data(Sold)
     args.timeind = 1;
     args.decimalTriggerInds = [];
     args.binaryTriggerInds = [];
-    [lbv] = spm_opm_read_lvm(args);
+    try
+        [lbv] = spm_opm_read_lvm(args);
+    catch % allow for older UI where header was formatted slightly differently.
+        args.headerlength = 24;
+        [lbv] = spm_opm_read_lvm(args);
+    end
     data = lbv.B;
     time = lbv.time;
 
+    % Get sampling frequency
+    sf_opts = [375, 750, 1500];
+    [~, sf_opt] = min(abs(sf_opts - mean(1./diff(time))));
+    sf = sf_opts(sf_opt);
+
     % Read column headers
     fid = fopen(Sold.data);
-    for lin = 1:18
+    for lin = 1:args.headerlength-5
         line = fgetl(fid);
     end
     units = textscan(line, '%s', 'Delimiter', '\t');
@@ -600,7 +634,7 @@ function Snew = read_neuro1_data(Sold)
         idx = cellfun(@isempty, units);
         units(idx) = {'other'};
     end
-    for lin = 19:23
+    for lin = (args.headerlength-4):args.headerlength
         line = fgetl(fid);
     end
     channels = textscan(line, '%s', 'Delimiter', '\t');
@@ -608,6 +642,8 @@ function Snew = read_neuro1_data(Sold)
     channels(startsWith(channels, 'Comment')) = [];
     channels(startsWith(channels, 'Untitled')) = {'DataLogger'};
     fclose(fid);
+    
+    data = data(:,1:length(channels)); % remove comment channel
 
     % Re-scale data to femtoTesla
     meg_chans = contains(units, 'pT');
@@ -652,8 +688,24 @@ function Snew = read_neuro1_data(Sold)
         end
 
         % Rename channels
-        meg_channos = cellfun(@(x)str2double(x(2:end)), channels(meg_chans));
-        meg_chan_axes = cellfun(@(x)x(1), channels(meg_chans));
+
+        % Handle different naming systems in data
+        if ~any(contains(channels(meg_chans), '_'))
+        % If the .lvm channels are labeled 'X9' etc.
+            meg_channos = cellfun(@(x)str2double(x(2:end)), channels(meg_chans));
+            meg_chan_axes = cellfun(@(x)x(1), channels(meg_chans));
+        elseif all(cellfun(@length, channels(meg_chans)) == 4)
+        % If the .lvm channels are labeled 'B1_X' etc.
+            meg_boards = cellfun(@(x)x(1), channels(meg_chans));
+            meg_board_values = cellfun(@(x)double(upper(x))-double('A')+1, meg_boards);
+            meg_channos = (meg_board_values-1)*8 + cellfun(@(x)str2double(x(2)), channels(meg_chans));
+            meg_chan_axes = cellfun(@(x)x(end), channels(meg_chans));
+        else
+        % If the .lvm channels are labeled 'B9_X' etc.
+            meg_channos = cellfun(@(x)str2double(extractBefore(x(2:end), '_')), channels(meg_chans));
+            meg_chan_axes = cellfun(@(x)x(end), channels(meg_chans));
+        end
+       
         rename_inds = find(ismember(meg_channos, chan2sens.channel));
         meg_chan_inds = find(meg_chans);
         for rename_chan = rename_inds'
@@ -678,6 +730,11 @@ function Snew = read_neuro1_data(Sold)
         
         % Relabel channels in data
         meg_chan_names = channels(meg_chans);
+
+        % Update for new naming system, 'B9_X' (as opposed to B1_X or X9)
+        if all(contains(meg_chan_names, '_') & cellfun(@(x)isletter(x(1)), meg_chan_names))
+            meg_chan_names = cellfun(@(x)x(2:end), meg_chan_names, 'UniformOutput', false);
+        end
         chans_in_positions = find(ismember(meg_chan_names, position_data_names));
         for chan_to_rename = 1:length(chans_in_positions)
             meg_chan_names{chans_in_positions(chan_to_rename)} = position.name{ismember(position_data_names, meg_chan_names{chans_in_positions(chan_to_rename)})};
@@ -687,7 +744,7 @@ function Snew = read_neuro1_data(Sold)
 
     % Create a list of channel types
     chan_types = repmat({'other'}, length(channels), 1);
-    chan_types(startsWith(channels, 'T') | startsWith(channels, 'A')) = {'TRIG'};
+    chan_types(logical((startsWith(channels, 'T') | startsWith(channels, 'A') | startsWith(channels, 'DI')).*(~meg_chans))) = {'TRIG'};
     chan_types(meg_chans) = {'MEGMAG'};
 
     % Set all channels to good unless all values are zero (i.e. the channel
@@ -724,9 +781,6 @@ function Snew = read_neuro1_data(Sold)
     % Create channels.tsv file
     [direc, dataFile] = fileparts(Sold.data);
     writecell(chans,fullfile(direc, [dataFile,'_channels.tsv']), 'filetype','text', 'delimiter','\t')
-
-    % Get sampling frequency
-    sf = round(mean(1./diff(time)), 4);
 
     % Add in a warning if there's a datapoint missing
 
