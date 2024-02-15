@@ -27,6 +27,7 @@ if ~isfield(S, 'window'),        S.window = 10; end
 if ~isfield(S, 'skip'),          S.skip = 0; end
 if ~isfield(S, 'chunkSize'),     S.chunkSize = 512; end
 if ~isfield(S, 'prefix'),        S.prefix = 'm'; end
+if ~isfield(S, 'reducerank'),    S.reducerank = 0; end
 
 %-Get design matrix
 %--------------------------------------------------------------------------
@@ -42,9 +43,9 @@ badinds = badchannels(S.D);
 usedinds = setdiff(chaninds,badinds);
 usedLabs= chanlabels(S.D,usedinds);
 
-usedLabs = intersect(usedLabs,s.label);
+%usedLabs = intersect(usedLabs,s.label);
 [~,sinds] = spm_match_str(usedLabs,s.label);
-    
+Yinds = indchannel(S.D,usedLabs);    
     
 %-fit the ellipsoid
 %--------------------------------------------------------------------------
@@ -98,6 +99,13 @@ b = min(r);
 vtest = double(bsxfun(@minus,v,o'));
 external = spm_epharm(vtest,n,a,b,S.le);
 inelipse  = spm_ipharm(vtest,n,a,b,S.li);
+
+if(S.reducerank)
+  [Q,s] = svd(inelipse,'econ'); %S is always square.
+  Ve = cumsum(diag(s))/sum(diag(s));
+  inelipse = Q(:,Ve<.99);
+end
+
 Pout =external*pinv(external);
 M = eye(size(external,1))-Pout;
 Pin =M*inelipse*pinv(M*inelipse)*M;
@@ -106,7 +114,7 @@ fprintf('%-40s: %30s\n','Created Design Matrix',spm('time'));
 
 %-Get Data indices
 %--------------------------------------------------------------------------
-Yinds = indchannel(S.D,usedLabs);
+
 
 if (size(Yinds,1)~=size(Pin,1))
     error('data size ~= number of sensors with orientation information');
@@ -129,7 +137,7 @@ tmpTra(sinds,sinds)=Pin;
 grad.tra                = tmpTra*grad.tra;
 grad.balance.previous   = grad.balance.current;
 
-params = mat2str([S.li,S.le,[o',a,b]],6);
+params = ['amm: ' mat2str([S.li,S.le,[o',a,b]],6)];
 
 grad.balance.current    = params;
 mfD = sensors(mfD,'MEG',grad);
