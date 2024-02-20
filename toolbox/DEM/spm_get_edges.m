@@ -20,7 +20,7 @@ function [j,i] = spm_get_edges(id,g,Q)
 % If they are state-dependent, the maximum a posteriori [co] domain is
 % returned.
 %
-% see: spm_MDP_XXX.m
+% see: spm_MDP_VB_XXX.m
 %__________________________________________________________________________
 
 % Karl Friston
@@ -67,6 +67,4 @@ else
     i = g;
 
 end
-
-return
 

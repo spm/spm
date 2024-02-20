@@ -43,20 +43,20 @@ load mnist
 
 % Specify the number of styles (ONS) and create a generative model
 %--------------------------------------------------------------------------
-NS    = 8;
+NS    = 4;
 pdp   = spm_initialise(training,NS);
 
 % likelihood tensors
 %--------------------------------------------------------------------------
 Ng    = numel(pdp.a);
 for g = 1:Ng
-    mdp.a{g} = pdp.a{g};
+    mdp.A{g} = pdp.a{g} + 1;               % add ambiguity
 end
-Nf    = ndims(mdp.a{1}) - 1;
+Nf    = ndims(mdp.A{1}) - 1;
 
 % Partition of outcomes for selective (active) sampling
 %==========================================================================
-d     = 5;                                 % size of partition (pixels)
+d     = 6;                                 % size of partition (pixels)
 id.g  = {};
 for i = 0:d:(28 - d)
     for j = 0:d:(28 - d)
@@ -68,6 +68,7 @@ id.ig = 8;                                 % Initial selection
 
 % State dependent mapping from modalities to outcomes
 %==========================================================================
+d     = 1;                                 % size of translation
 id.gg = spm_MDP_conv([28,28],1);
 
 % Supplement hidden states with domain factors
@@ -75,24 +76,36 @@ id.gg = spm_MDP_conv([28,28],1);
 Nff   = ndims(id.gg{1});
 id.ff = Nf + (1:Nff);
 for f = 1:Nf
-    Ns(f) = size(mdp.a{1},f + 1);
+    Ns(f) = size(mdp.A{1},f + 1);
     Nu(f) = 1;
 end
 for f = 1:Nff
     Ns(f + Nf) = size(id.gg{1},f);
     Nu(f + Nf) = 1;
 end
-Nf    = numel(Ns);
+
+% latent states
+%--------------------------------------------------------------------------
 for f = 1:Nf
-    mdp.B{f} = eye(Ns(f),Ns(f));           % transitions
+    mdp.B{f} = eye(Ns(f),Ns(f));           % transitions (Class and Style)
     mdp.D{f} = ones(Ns(f),1);              % initial state
     mdp.E{f} = ones(Nu(f),1);              % initial control
 end
 
+% domain states
+%--------------------------------------------------------------------------
+for f = Nf + (1:Nff)
+    mdp.B{f} = eye(Ns(f),Ns(f));           % transitions
+    mdp.D{f} = sparse(2,1,8,Ns(f),1) + 1;  % initial state
+    mdp.E{f} = ones(Nu(f),1);              % initial control
+end
+
+Nf  = Nf + Nff;                            % number of factors
+
 % Show likelihood mappings to images
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Numbers and styles');
-spm_show_a(mdp.a); drawnow
+spm_show_a(mdp.A); drawnow
 
 % default priors
 %--------------------------------------------------------------------------
@@ -106,19 +119,16 @@ OPTIONS.N = 0;                             % suppress neuronal responses
 OPTIONS.G = 1;                             % enable graphics
 OPTIONS.P = get(gcf,'Number');             % enable graphics
 
-
-mdp.beta  = 0;                             % active selection
-mdp.eta   = exp(16);                       % active forgetting
 mdp.id    = id;                            % domains and co-domains
-mdp.T     = 16;                            % number of samples
+mdp.T     = 8;                             % number of samples
 mdp.U     = zeros(1,Nf);                   % no controlled paths
-
+mdp.N     = 0;                             % depth of planning
 
 % Illustrate classification (inference) among 10 x NS (translated) images
 %==========================================================================
 gdp   = mdp;
 gdp.T = 1;
-for j = 1:8
+for j = 1:4
 
     % Generate image
     %----------------------------------------------------------------------
@@ -128,12 +138,12 @@ for j = 1:8
 
     % get observation and place in MDP structure
     %----------------------------------------------------------------------
-    pdp      = mdp;
-    pdp.O    = repmat(O,1,mdp.T);
+    pdp   = mdp;
+    pdp.O = repmat(O,1,mdp.T);
 
     % active inference and sampling
     %----------------------------------------------------------------------
-    pdp = spm_MDP_VB_XXX(pdp,OPTIONS);
+    pdp   = spm_MDP_VB_XXX(pdp,OPTIONS);
 
     % Observed image
     %------------------------------------------------------------------
@@ -191,14 +201,14 @@ for j = 1:8
             %--------------------------------------------------------------
             subplot(8,5,5*(t - 1) + 3)
             imagesc(pdp.X{1}(:,t)*pdp.X{2}(:,t)')
-            title('Posteriors')
+            title('Posteriors (Class)')
 
             % Posteriors
             %--------------------------------------------------------------
             if Nf > 3
                 subplot(8,5,5*(t - 1) + 4)
                 imagesc(pdp.X{3}(:,t)*pdp.X{4}(:,t)')
-                title('Posteriors')
+                title('and translation')
             end
 
             % Posteriors
@@ -206,7 +216,7 @@ for j = 1:8
             if Nf > 4
                 subplot(8,5,5*(t - 1) + 5)
                 imagesc(pdp.X{5}(:,t)*pdp.X{6}(:,t)')
-                title('Posteriors')
+                title('and rotation')
             end
             drawnow
         end

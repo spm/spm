@@ -50,10 +50,6 @@ for n = 1:8
         end
     end
 
-    % this grouping renders factors conditionally independent
-    %----------------------------------------------------------------------
-    MDP{n}.id.independent = 1;
-    
     % solve at next time scale
     %----------------------------------------------------------------------
     for t = 1:numel(T)
