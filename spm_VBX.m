@@ -14,19 +14,12 @@ function [P,F] = spm_VBX(O,P,A,id)
 % states are partitioned into factors (and the distribution over outcomes
 % is also assumed to be conditionally independent). It takes cell arrays of
 % outcome probabilities, prior probabilities over factors and a likelihood
-% tensor parameterising the likelihood of an outcome for any combination
-% of latent states. METHOD switches among number of approximate schemes:
+% tensor parameterising the likelihood of an outcome for any combination of
+% latent states. This version uses belief propagation, read as:
 %
-% 'propagation' :  a non-iterative heuristic but numerically accurate scheme
+% Propagation:  a non-iterative heuristic but numerically accurate scheme
 % that replaces the variational density over hidden factors with the
-% marginal over the exact posterior [default]
-%
-% 'variational' :  a vanilla variational scheme that uses a coordinate descent
-% over a small number (8) iterations (fixed point iteration). This is
-% computationally efficient, using only nontrivial posterior probabilities
-% and the domain of the likelihood mapping in tensor operations.
-%
-% 'sparse'  :  as for the exact scheme but suitable for sparse tensors
+% marginal over the exact posterior
 %
 % see: spm_MDP_VB_XXX.m (NOTES)
 %__________________________________________________________________________
@@ -37,312 +30,138 @@ function [P,F] = spm_VBX(O,P,A,id)
 
 % preliminaries
 %--------------------------------------------------------------------------
-METHOD = 'propagation';                      % belief propagation scheme
 if isfield(id,'ig')                          % use a subset of outcomes
     i  = id.ig(end);
     ig = id.g(i);
 else
-    ig = id.g;                               % use complete partition 
+    ig = id.g;                               % use complete partition
 end
 
-switch METHOD
-
-    case 'propagation'
-
-        % belief propagation with marginals of exact posterior
-        %==================================================================
-
-        % log prior : s{f} plausible states of factor f
-        %------------------------------------------------------------------
-        Nf    = numel(P);
-        for f = 1:Nf
-            s{f}  = find(P{f} > exp(-8));
-            Ns(f) = numel(s{f});
-            R{f}  = P{f}(s{f});
-        end
-
-        % Update domain factors Q{ff} using exact inference
-        %==================================================================
-        if isfield(id,'ff')
-
-            % cycle over partition subsets
-            %--------------------------------------------------------------
-            for p = 1:numel(ig)
-
-                % domain factors for this partition
-                %----------------------------------------------------------
-                if iscell(id.ff)
-                    ff = id.ff{p};
-                else
-                    ff = id.ff;
-                end
-
-                % plausible domains id.fg{g}
-                %----------------------------------------------------------
-                for g = ig{p}
-                    if isfield(id,'fg')
-                        fg{g} = id.fg{g}(s{ff});
-                    else
-                        fg{g} = id.A{g};
-                    end
-                    if isfield(id,'gg')
-                        gg{g} = id.gg{g}(s{ff});
-                    else
-                        gg{g} = g;
-                    end
-                end
-
-                % likelihood of domain factors
-                %----------------------------------------------------------
-                L     = ones(Ns(ff));
-                for g = ig{p}
-                    for i = 1:numel(L)
-                        if iscell(fg{g})
-                            f = fg{g}{i};
-                        else
-                            f = fg{g};
-                        end
-                        if iscell(gg{g})
-                            j = gg{g}{i};
-                        else
-                            j = gg{g};
-                        end
-
-                        % predicted outcomes
-                        %--------------------------------------------------
-                        qo    = spm_dot(A{g}(:,s{f}),[O(g) R(f)],1);
-
-                        % likelihood for these domains and codomains
-                        %--------------------------------------------------
-                        for o = j
-                            L(i) = L(i)*spm_dot(qo,O{o});
-                        end
-                    end
-                end
-
-                % exact posterior and marginals
-                %----------------------------------------------------------
-                U     = spm_times(L,R{ff});
-                Z     = sum(U,'all');
-                if Z
-                    Q = spm_margin(U/Z);
-                else
-                    Q = spm_margin(U + 1/numel(U));
-                end
-
-                % update marginals
-                %----------------------------------------------------------
-                for i = 1:numel(Q)
-                    f          = ff(i);
-                    P{f}(:)    = 0;
-                    P{f}(s{f}) = Q{i};
-                end
-
-            end % partition of modalities
-
-        end % end state-dependent domains and co-domains
 
 
-        % accumulate likelihoods (L) over partition of modalities
-        %==================================================================
-        if isfield(id,'independent')
-            L      = cell(1,Nf);
-            [L{:}] = deal(1);
+% belief propagation with marginals of exact posterior
+%==================================================================
+
+% prior : s{f} plausible states of factor f
+%------------------------------------------------------------------
+Nf    = numel(P);
+for f = 1:Nf
+    s{f}  = find(P{f} > exp(-8));     % reduced states
+    Ns(f) = numel(s{f});              % number of reduced states
+    R{f}  = P{f}(s{f});               % reduced prior
+end
+
+% Update domain factors Q{ff} using exact inference
+%==================================================================
+if isfield(id,'ff')
+
+    % cycle over partition subsets
+    %--------------------------------------------------------------
+    for p = 1:numel(ig)
+
+        % domain factors for this partition
+        %----------------------------------------------------------
+        if iscell(id.ff)
+            ff = id.ff{p};
         else
-            L = 1;
+            ff = id.ff;
         end
-        for p = 1:numel(ig)
-            for g = ig{p}
 
-                % Get the latent factors (and outcomes) for this modality
-                %----------------------------------------------------------
-                [j,i] = spm_get_edges(id,g,P);
+        % plausible domains id.fg{g}
+        %----------------------------------------------------------
+        for g = ig{p}
+            if isfield(id,'fg')
+                fg{g} = id.fg{g}(s{ff});
+            else
+                fg{g} = id.A{g};
+            end
+            if isfield(id,'gg')
+                gg{g} = id.gg{g}(s{ff});
+            else
+                gg{g} = g;
+            end
+        end
 
-                % deal with degenerate mappings
-                %----------------------------------------------------------
-                l     = (1:numel(j))';
-                [j,k] = unique(j,'stable');
-                l(k)  = [];
-                k     = [0;k;l] + 1;
-
-                % likelihoods
-                %----------------------------------------------------------
-                LL    = 1;
-                for o = i
-                    Ag = permute(A{g},k);
-                    LL = LL.*spm_dot(Ag(:,s{j}),O{o});
+        % likelihood of domain factors
+        %----------------------------------------------------------
+        L     = ones(Ns(ff));
+        for g = ig{p}
+            for i = 1:numel(L)
+                if iscell(fg{g})
+                    f = fg{g}{i};
+                else
+                    f = fg{g};
+                end
+                if iscell(gg{g})
+                    j = gg{g}{i};
+                else
+                    j = gg{g};
                 end
 
-                % accumulate likelihood
-                %----------------------------------------------------------
-                if isfield(id,'independent')
+                % predicted outcomes
+                %--------------------------------------------------
+                qo    = spm_dot(A{g}(:,s{f}),[O(g) R(f)],1);
 
-                    L{j} = L{j}.*LL(:);
-                    
-                else
-
-                    % sort domains if necessary
-                    %------------------------------------------------------
-                    if numel(j) > 1
-                        [j,i] = sort(j);
-                        LL    = permute(LL,i);
-                    end
-
-                    % accumulate likelihoods
-                    %------------------------------------------------------
-                    k    = ones(1,Nf + 1);
-                    k(j) = size(LL,1:numel(j));
-                    L    = times(L,reshape(LL,k));
-
+                % likelihood for these domains and codomains
+                %--------------------------------------------------
+                for o = j
+                    L(i) = L(i)*spm_dot(qo,O{o});
                 end
             end
+        end
 
-        end % partition of modalities
+        % exact posterior and marginals
+        %----------------------------------------------------------
+        U     = spm_times(L,R{ff});
+        Z     = sum(U,'all');
+        if Z
+            Q = spm_margin(U/Z);
+        else
+            Q = spm_margin(U + 1/numel(U));
+        end
+
+        % update marginals
+        %----------------------------------------------------------
+        for i = 1:numel(Q)
+            f          = ff(i);
+            P{f}(:)    = 0;
+            P{f}(s{f}) = Q{i};
+            R{f}       = Q{i};
+        end
+
+    end % partition of modalities
+
+end % end state-dependent domains and co-domains
+
+
+% accumulate likelihoods (L) over partition of modalities
+%==========================================================================
+F     = 0;
+for p = 1:numel(ig)
+    for g = ig{p}
+
+        % Get the latent factors (and outcomes) for this modality
+        %------------------------------------------------------------------
+        [j,i] = spm_get_edges(id,g,P);
+
+        % deal with degenerate mappings
+        %------------------------------------------------------------------
+        l     = (1:numel(j))';
+        [j,k] = unique(j,'stable');
+        l(k)  = [];
+        k     = [0;k;l] + 1;
+
+        % likelihoods
+        %------------------------------------------------------------------
+        L     = 1;
+        for o = i
+            Ag = permute(A{g},k);
+            L  = L.*spm_dot(Ag(:,s{j}),O{o});
+        end
+
 
         % Posterior marginals
-        %------------------------------------------------------------------
-        if isfield(id,'independent')
-            F     = zeros(Nf,1);
-            for f = 1:Nf
-                if numel(L{f}) > 1
-                    U    = times(L{f},R{f});      % posterior unnormalised
-                    Z    = sum(U,'all');          % partition coefficient
-                    if Z
-                        F(f) = spm_log(Z);        % negative free energy
-                        Q    = U/Z;               % marginal  posteriors
-                    else
-                        F(f) = -32;
-                        Q    = U + 1/numel(U);
-                    end
-
-                    P{f}(:)    = 0;
-                    P{f}(s{f}) = Q;
-                end
-            end
-            F = sum(F);
-
-        else
-
-            % factors to update (eliminate factors with precise posteriors)
-            %--------------------------------------------------------------
-            i = size(L);
-            r = find(i > 1);
-            L = reshape(L,[i(r) 1 1]);
-
-            if isempty(r), F = spm_log(L); return; end
-
-            % Posterior marginals
-            %------------------------------------------------------------------
-            U     = spm_times(L,R{r});           % posterior unnormalised
-            Z     = sum(U,'all');                % partition coefficient
-            if Z
-                F = spm_log(Z);                  % negative free energy
-                Q = spm_margin(U/Z);             % marginal  posteriors
-            else
-                F = -32;
-                Q = spm_margin(U + 1/numel(U));
-            end
-
-            % Posterior
-            %------------------------------------------------------------------
-            for i = 1:numel(r)
-                f          = r(i);
-                P{f}(:)    = 0;
-                P{f}(s{f}) = Q{i};
-            end
-
-        end
-
-
-    case 'variational'
-
-        % (iterative) variational scheme (Not suitable for partitions)
         %==================================================================
-
-        % log prior : i{f} plausible states of factor f
-        %------------------------------------------------------------------
-        Nf    = numel(P);
-        for f = 1:Nf
-            s{f}  = find(P{f} > exp(-8));
-            Q{f}  = P{f}(s{f});
-            R{f}  = Q{f};
-            Ns(f) = numel(s{f});
-            LP{f} = spm_vec(spm_log(Q{f}));
-        end
-
-
-        % Update domain factors Q{ff} using exact inference
-        %==================================================================
-        if isfield(id,'ff')
-
-            % plausible domains id.fg{g}
-            %--------------------------------------------------------------
-            Ns    = Ns(id.ff);
-            for g = ig
-                if isfield(id,'fg')
-                    fg{g} = id.fg{g}(s{id.ff});
-                else
-                    fg{g} = id.A{g};
-                end
-                if isfield(id,'gg')
-                    gg{g} = id.gg{g}(s{id.ff});
-                else
-                    gg{g} = g;
-                end
-            end
-            
-
-            % likelihood of domain factors
-            %--------------------------------------------------------------
-            L     = ones(Ns);
-            for g = ig
-                for i = 1:numel(L)
-                    if iscell(fg{g})
-                        f = fg{g}{i};
-                    else
-                        f = fg{g};
-                    end
-                    if iscell(gg{g})
-                        j = gg{g}{i};
-                    else
-                        j = gg{g};
-                    end
-                    for o = j
-                        L(i) = L(i)*spm_dot(A{g}(:,s{f}),{O{o},Q{f}});
-                    end
-                end
-            end
-
-            % exact posterior and marginals
-            %--------------------------------------------------------------
-            U     = spm_times(L,R{id.ff});
-            Z     = sum(U,'all');
-            L     = spm_margin(U/Z);
-            for i = 1:numel(L)
-                f          = id.ff(i);
-                Q{f}       = L{i};
-                P{f}(s{f}) = Q{f};
-            end
-
-        end
-
-        % accumulate log likelihoods over modalities
-        %==================================================================
-        L     = 0;
-        for g = ig
-            [j,i] = spm_get_edges(id,g,P);
-            j     = unique(j,'stable');
-            LL    = 0;
-            for o = i
-                LL = LL + spm_log(spm_dot(A{g}(:,s{j}),O{o}));
-            end
-            if numel(j) > 1
-                [j,i] = sort(j);
-                LL    = permute(LL,i);
-            end
-            k     = ones(1,Nf + 1); k(j) = size(LL,1:numel(j));
-            L     = plus(L,reshape(LL,k));
-        end
 
         % factors to update (eliminate factors with precise posteriors)
         %------------------------------------------------------------------
@@ -350,67 +169,41 @@ switch METHOD
         r = find(i > 1);
         L = reshape(L,[i(r) 1 1]);
 
-        if isempty(r), F = spm_log(L); return; end
-
-        % variational iterations
+        % if L is not a vector
         %------------------------------------------------------------------
-        Z     = -Inf;
-        for v = 1:8
-            F     = 0;
-            for i = 1:numel(r)
+        if numel(j) > 1
+            j = j(r);
+        end
 
-                % marginal log likelihood
-                %----------------------------------------------------------
-                f    = r(i);
-                LL   = spm_vec(spm_dot(L,Q(r),i));
+        if numel(j)
 
-                % posterior
-                %----------------------------------------------------------
-                Q{f} = spm_softmax(LL + LP{f});
-
-                % (-ve) free energy (partition coefficient)
-                %----------------------------------------------------------
-                F    = F + Q{f}'*(LL + LP{f} - spm_log(Q{f}));
-
-            end
-
-            % convergence
+            % Posterior marginals
             %--------------------------------------------------------------
-            dF = F - Z;
-            if dF < 1/128
-                break
+            U     = spm_times(L,R{j});           % posterior unnormalised
+            Z     = sum(U,'all');                % partition coefficient
+            if Z
+                F = F + spm_log(Z);              % negative free energy
+                Q = spm_margin(U/Z);             % marginal  posteriors
             else
-                Z = F;
+                F = F - 32;
+                Q = spm_margin(U + 1/numel(U));
             end
+
+            % Posterior
+            %--------------------------------------------------------------
+            for i = 1:numel(j)
+                f          = j(i);
+                P{f}(:)    = 0;
+                P{f}(s{f}) = Q{i};
+                R{f}       = Q{i};
+            end
+
+        else
+            F = F + spm_log(L);
         end
+    end
 
-        % Posterior
-        %------------------------------------------------------------------
-        for f = r
-            P{f}(:)    = 0;
-            P{f}(s{f}) = Q{f};
-        end
-
-
-    case 'sparse'
-
-        % approximation with marginals suitable for sparse tensors
-        %==================================================================
-        Nf    = size(A{1});
-        L     = 1;
-        for g = ig
-            L = L.*(O{g}'*A{g}(:,:));              % likelihood over modalities
-        end
-        U     = spm_vec(L).*spm_vec(spm_cross(P)); % posterior unnormalised
-        Z     = sum(U,'all');                      % partition coefficient
-        F     = spm_log(Z);                        % negative free energy 
-        U     = reshape(U/Z,[Nf(2:end),1]);        % joint posterior
-        Q     = spm_margin(U);                     % marginal  posteriors
-
-    otherwise
-        disp('unknown method')
-
-end
+end % partition of modalities
 
 return
 

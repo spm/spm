@@ -445,7 +445,7 @@ for m = 1:Nm
         if isfield(MDP,'b')
             I{m,f} = spm_wnorm(qb{m,f});
         else
-            I{m,f} = false;
+            I{m,f} = [];
         end
 
         % priors over initial hidden states: concentration parameters
@@ -487,9 +487,17 @@ for m = 1:Nm
         % priors over final hidden states: concentration parameters
         %------------------------------------------------------------------
         if isfield(MDP,'h')
+            try
             qh{m,f} = MDP(m).h{f};
+            catch
+                qh{m,f} = false;
+            end
         elseif isfield(MDP,'H')
+            try
             qh{m,f} = MDP(m).H{f}*512;
+            catch
+                qh{m,f} = false;
+            end
         else
             qh{m,f} = false;
         end
@@ -615,6 +623,10 @@ end % end model (m)
 N       = min(N,T);                          % depth of policy search
 [M,MDP] = spm_MDP_get_M(MDP,T,Ng);           % order of model updating
 
+% pre-allocation of cell arrays
+%--------------------------------------------------------------------------
+BP      = cell(Nm,Nf(m),Np(m));
+IP      = cell(Nm,Nf(m),Np(m));
 
 % belief updating over successive time points
 %==========================================================================
@@ -1034,10 +1046,10 @@ for t = 1:T
                     % transitions and novelty for this policy
                     %------------------------------------------------------
                     BP{m,f,k} = B{m,f}(:,:,V{m}(k,f));
-                    if any(I{m,f},'all')
+                    if numel(I{m,f})
                         IP{m,f,k} = I{m,f}(:,:,V{m}(k,f));
                 else
-                        IP{m,f,k} = false;
+                        IP{m,f,k} = [];
                     end
 
                 else
@@ -1053,7 +1065,7 @@ for t = 1:T
                     if any(I{m,f},'all')
                         IP{m,f,k} = spm_dot(I{m,f},P(m,f,t));
                     else
-                        IP{m,f,k} = false;
+                        IP{m,f,k} = [];
                     end
 
                 end
@@ -1152,27 +1164,29 @@ for t = 1:T
                 % domain of A{g}
                 %----------------------------------------------------------
                 [j,k] = spm_get_edges(id{m},g,Q(m,:,t));
+                if numel(k)
+                    
                 da    = 0;
                 for i = k
                     da = da + spm_cross(O{m,i,t},Q{m,j,t});
                 end
-                da     = reshape(da,size(A{m,g}));
                 da(~qa{m,g}) = 0;
 
                 % update likelihood Dirichlet parameters
-                %----------------------------------------------------------
+                    %------------------------------------------------------
                 qa{m,g} = qa{m,g} + da;
                 A{m,g}  = spm_norm(qa{m,g});
 
                 % prior concentration parameters and novelty (W)
-                %----------------------------------------------------------
+                    %------------------------------------------------------
                 W{m,g} = spm_wnorm(qa{m,g});
 
                 % and ambiguity (w)
-                %----------------------------------------------------------
+                    %------------------------------------------------------
                 K{m,g} = spm_hnorm(qa{m,g});
 
             end
+        end
         end
 
         % mapping among hidden states: b
@@ -1546,7 +1560,7 @@ G        = zeros(Nk,Ni);                    % log priors over policies
 P(m,:,t) = Q;
 
 % next covert policy
-%----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if isfield(id{m},'ig')
     id{m}.ig(t + 1) = id{m}.ig(t);
 end
@@ -1574,13 +1588,13 @@ for k = 1:Nk                                % search over policies
 
         % G(k): risk over latent states
         %------------------------------------------------------------------
-        if H{m,f}
+        if any(H{m,f},'all')
             G(k,:) = G(k,:) - Q{f,k}'*(spm_log(Q{f,k}) - spm_log(H{m,f}));
         end
 
         % expected information gain (transition novelty) (B)
         %------------------------------------------------------------------
-        if any(I{m,f,k},'all')
+        if numel(I{m,f,k})
             G(k,:) = G(k,:) + P{m,f,t}'*I{m,f,k}*Q{f,k};
         end
 
@@ -1589,21 +1603,21 @@ for k = 1:Nk                                % search over policies
     % inductive constraints over states
     %----------------------------------------------------------------------
     if any(R,'all')
-        G(k,:) = G(k,:) + spm_dot(R,Q{r,k});
+        G(k,:) = G(k,:) + spm_dot(R,Q(r,k));
     end
 
     % and outcomes
     %----------------------------------------------------------------------
     No    = zeros(1,Ni);                     % log number of outcomes
-    for i = 1:Ni
+    for i = 1:Ni                             % covert policies
 
-        for g  = id{m}.g{i}                 % for these modalities
+        for ig = id{m}.g{i}                  % for selected modalities
 
             % (state-dependent) domain of A{g}
             %--------------------------------------------------------------
-            [j,gg] = spm_get_edges(id{m},g,Q(:,k));
+            [j,gg] = spm_get_edges(id{m},ig,Q(:,k));
 
-            for o = gg
+            for g = gg
 
         % predictive posterior and prior over outcomes
                 %----------------------------------------------------------
@@ -1615,7 +1629,7 @@ for k = 1:Nk                                % search over policies
 
         % G(k): risk over outomes
                 %----------------------------------------------------------
-            G(k,i) = G(k,i) - qo'*(spm_log(qo) - spm_log(C{m,o}));
+                G(k,i) = G(k,i) - qo'*(spm_log(qo) - spm_log(C{m,g}));
 
         % G(k): ambiguity
                 %----------------------------------------------------------
@@ -1643,7 +1657,7 @@ if isfield(id{m},'ig')
     [~,j] = max(max(G,[],1));
 G     = G(:,j);
 
-% next covert policy
+    % update next covert policy
     %----------------------------------------------------------------------
 id{m}.ig(t + 1) = j;
 
@@ -1717,9 +1731,9 @@ if t < N
                     %------------------------------------------------------
                     for g = ig
                         [f,gg] = spm_get_edges(id{m},g,Q(:,k));
-                        f      = num2cell(fi(f));
+                        ind    = num2cell(fi(f));
                         for o = gg
-                        O{m,o,t + 1} = A{m,g}(:,f{:});
+                            O{m,o,t + 1} = A{m,g}(:,ind{:});
                 end
                     end
 
@@ -2188,6 +2202,18 @@ end
 
 end
 
+% graphics for visualisation
+%----------------------------------------------------------------------
+if false
+    spm_figure('GetWin','Inductive inference');
+    for i = 1:min(size(hid,2),8)
+        subplot(4,4,i)
+        imagesc(P{i})
+    end
+    subplot(2,1,2)
+    imagesc(G), axis sqaure, drawnow
+end
+
 % precise log prior over next state
 %==========================================================================
 G(1,:) = 0;                        % preclude current states
@@ -2425,7 +2451,11 @@ DEM_dSprites                % Structure learning with dynamics
 DEM_sharingX                % Active selection with hyperlinks (id.A{g})
 DEM_surveillance            % Factorial problem
 DEM_drone                   % State-dependent likehood domains
+DEM_drone_vision            % State-dependent likehood domains
 DEM_MNIST_conv              % Active sampling and state-dependent codomains
+DEM_Atari                   % Conditionally independent factors
+DEM_Atari_learning          % Conditionally independent factors
+
 
 DEM_syntax                  % Under construction
 DEM_MNIST_RG                % Under construction
