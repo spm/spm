@@ -17,7 +17,7 @@ topup.prog = @(job)spm_run_topup('run',job);
 topup.vout = @(job)spm_run_topup('vout',job);
 topup.help = {[...
 'Utility to correct susceptibility distortions in EPI images using ',...
-'a re-implementation of FSL''s topup (J.L.R. Andersson, S. Skare, J. Ashburner, 2003. ',...
+'the topup algorithm (J.L.R. Andersson, S. Skare, J. Ashburner, 2003. ',...
 'How to correct susceptibility distortions in spin-echo echo-planar ',...
 'images: application to diffusion tensor imaging). This implementation ',...
 'requires two EPI images acquired with opposed phase-encode blips in ',...
@@ -38,8 +38,7 @@ volbup.tag     = 'volbup';
 volbup.name    = 'Blip up volume (.nii)';
 volbup.filter  = 'image';
 volbup.ufilter = '.*';
-volbup.num     = [0 1];
-volbup.val     = {''};
+volbup.num     = [1 inf];
 volbup.help    = {'Select an image with a blip up phase-encoding polarity.'};
 volbup.preview = @(f) spm_image('Display',char(f));
 
@@ -51,8 +50,7 @@ volbdown.tag     = 'volbdown';
 volbdown.name    = 'Blip down volume (.nii)';
 volbdown.filter  = 'image';
 volbdown.ufilter = '.*';
-volbdown.num     = [0 1];
-volbdown.val     = {''};
+volbdown.num     = [1 inf];
 volbdown.help    = {'Select an image with a blip down phase-encoding polarity.'};
 volbdown.preview = @(f) spm_image('Display',char(f));
 
@@ -121,20 +119,20 @@ rinterp.val    = {2};
 % prefix VDM Filename Prefix
 % Option for refine topup
 %--------------------------------------------------------------------------
-rt         = cfg_menu;
-rt.tag     = 'rt';
-rt.name    = 'Jacobian scaling';
-rt.val     = {1};
-rt.help    = {
+jac         = cfg_menu;
+jac.tag     = 'jac';
+jac.name    = 'Jacobian scaling';
+jac.val     = {1};
+jac.help    = {
     'Option to include Jacobian scaling in the registration model.'
     ['It includes in the process the changes of intensities due to' ...
     ' stretching and compression.']
     }';
-rt.labels  = {
+jac.labels  = {
               'Yes'
               'No'
 }';
-rt.values  = {1 0};
+jac.values  = {1 0};
 
 %--------------------------------------------------------------------------
 % prefix VDM Filename Prefix
@@ -163,7 +161,7 @@ outdir.help    = {[...
 'in the specified directory. The deformation field is saved to disk as ',...
 'a vdm file (``vdm5_*.nii``)']};
 
-[cfg,varargout{1}] = deal({data,fwhm,reg,rinterp,rt,prefix,outdir});
+[cfg,varargout{1}] = deal({data,fwhm,reg,rinterp,jac,prefix,outdir});
 
 
 %==========================================================================
@@ -171,9 +169,8 @@ function out = spm_run_topup(cmd, job)
 
 switch lower(cmd)
     case 'run'
-        VDM               = spm_topup(job.data.volbup{1},job.data.volbdown{1}, ...
-                            job.fwhm,job.reg,job.rinterp,job.rt,job.prefix, ...
-                            job.outdir{1});
+        VDM               = spm_topup(job.data,job.fwhm,job.reg,job.rinterp,...
+                           job.jac,job.prefix,job.outdir{1});
         out.vdmfile       = {VDM.dat.fname};
 
     case 'vout'
