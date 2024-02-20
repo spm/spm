@@ -62,7 +62,7 @@ for i = 1:numel(job.data)
     if ~isempty(job.data(i).pmscan)
         if job.data(i).polarity == 1
             % Read the static field
-            fP_neg = replace(char(job.data(i).pmscan{1}),',1','');
+            sfP_neg = replace(char(job.data(i).pmscan{1}),',1','');
             Nii    = nifti(sfP_neg);
             u      = single(Nii.dat(:,:,:));
 
@@ -82,6 +82,7 @@ for i = 1:numel(job.data)
        end
     else
         sfP{i} = [];
+        fprintf('\n\n WARNING: Phase map/vdm5 file not detected\n\n');
     end
 end
 
