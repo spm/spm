@@ -16,7 +16,7 @@ fname = fullfile(spm('Dir'),'tests','data','OPM','test_opm.mat');
 D     = spm_eeg_load(fname);
 D = chantype(D,1,'TRIG');
 D.save();
-
+D(:,:,:)=0;
 D(1,30:60,1)=3;
 D(1,200:230,1)=3;
 D(1,700:730,1)=3;

@@ -32,7 +32,8 @@ Do = spm_eeg_grandmean(S);
 mu = mean(Do(:));
 D2.delete();
 Do.delete();
-
+D=type(D,'continuous');
+D.save()
 err = abs(mu-4.5);
 
 testCase.verifyTrue(err < 1e-7);
