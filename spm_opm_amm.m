@@ -101,9 +101,9 @@ external = spm_epharm(vtest,n,a,b,S.le);
 inelipse  = spm_ipharm(vtest,n,a,b,S.li);
 
 if(S.reducerank)
-  [Q,s] = svd(inelipse,'econ'); %S is always square.
+  [Q,s] = svd(inelipse,'econ'); 
   Ve = cumsum(diag(s))/sum(diag(s));
-  inelipse = Q(:,Ve<.99);
+  inelipse = Q(:,Ve<S.reducerank);
 end
 
 Pout =external*pinv(external);
