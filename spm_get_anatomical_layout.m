@@ -530,6 +530,7 @@ for sens_idx = 1:height(sensor_positions(:, 1))
 
             magnitude_fiducial = sqrt(sum(fiducial.^2, 2));
             dot_product = sum(fiducial .* dir_vec, 2);
+			magnitude_dir_vec = sqrt(sum(dir_vec.^2, 2));
 
             cos_similarities(i) = dot_product ./ (magnitude_fiducial .* magnitude_dir_vec);
         end
@@ -657,12 +658,6 @@ lay.outline{1, 3}(8, 1:2) = lay.outline{1, 3}(1, 1:2) .* [1 -1]; % bottom end
 
 % Add right ear
 lay.outline{1, 4} = lay.outline{1, 3} .* [-1 1];
-
-% Plot layout
-if plot_output
-    figure
-    ft_plot_layout(lay)
-end
 
 end
 
@@ -1125,6 +1120,16 @@ total_length = cumd(end);
 
 % Find the point in the new lines array
 point_idx = find(ismember(lines, point, 'rows'), 1, 'first');
+
+% If the point is no longer there, a rounding issue has occured.
+if isempty(point_idx)
+	% Find the closest point (it should be clear).
+	[~, closestIdx] = min(vecnorm(lines - point,2,2));
+	point = lines(closestIdx,:);
+
+	% Find this replacement point in the new lines array
+	point_idx = find(ismember(lines, point, 'rows'), 1, 'first');
+end
 
 dist = cumd(point_idx);
 
