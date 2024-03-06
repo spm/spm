@@ -114,8 +114,16 @@ cfg.parameter = 'pow';
 cfg.downsample = 1;
 cfg.showcallinfo = 'no';
 cfg.interpmethod ='linear';
-ftMRI = ft_read_mri(sMRI, 'dataformat', 'nifti_spm');
-sourceint = ft_sourceinterpolate(cfg, source, ftMRI);
+
+hdr = spm_vol(sMRI);
+mri = [];
+mri.dim = hdr.dim;
+mri.anatomy = double(hdr.private.dat);
+mri.hdr = hdr;
+mri.transform = hdr.mat;
+mri.unit = 'mm';
+            
+sourceint = ft_sourceinterpolate(cfg, source, mri);
 
 %-Write output image
 %--------------------------------------------------------------------------
