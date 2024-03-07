@@ -1,7 +1,11 @@
-function VDM = spm_topup(data, FWHM, reg, rinterp, jac, pref, outdir)
+function VDM = spm_topup(data, acqorder , FWHM, reg, rinterp, jac, pref, outdir)
 % Correct susceptibility distortions using topup
 % FORMAT VDM = spm_topup(vol1, vol2, FWHM, reg, save)
 % data       - path to first image (blip up) followed for the second image (blip down)
+% acqorder   - indicates in which order were acquired the images with
+%              different polarities
+%               - 0 Blip up first (PA - AP)
+%               - 1 Blip down first (AP - PA)
 % fwhm       - Gaussian kernel spatial scales (default: [8 4 2 1 0.1])
 % reg        - regularisation settings (default: [0 10 100])
 %            See spm_field for details:
@@ -36,22 +40,24 @@ function VDM = spm_topup(data, FWHM, reg, rinterp, jac, pref, outdir)
 %-Optional input parameters
 %--------------------------------------------------------------------------
 if nargin < 2
-    FWHM = [8 4 2 1 0];   % spatial scales
+    acqorder = 0;         % order of Blip up/ down acquisition
 end
 if nargin < 3
-    reg = [0 10 100];     % regularisation
+    FWHM = [8 4 2 1 0];   % spatial scales
 end
 if nargin < 4
-    rinterp = 1;          % Degree of B-spline
+    reg = [0 10 100];     % regularisation
 end
 if nargin < 5
-    jac = 1;               % Refine topip
+    rinterp = 2;          % Degree of B-spline
 end
 if nargin < 6
+    jac = 1;               % Refine topip
+end
+if nargin < 7
     pref = 'vdm5_';       % Prefix for files
 end
-
-if nargin < 7
+if nargin < 8
     outdir = '';          % output directory
 end
 
@@ -94,8 +100,12 @@ dvol2 = size(vol2{1});
 
 %auxvol = cellstr(size(vol1));
 if dvol1(1) == dvol2(1)
-   if dvol1 > 1
-      vol1 = cellstr(flipud((vol1{:})));
+   if dvol1 > 1     
+      if acqorder == 0
+         vol1 = cellstr(flipud((vol1{:})));
+      elseif acqorder == 1
+           vol2 = cellstr(flipud((vol2{:})));
+      end 
       spm_realign(vol1,flags1);
       spm_reslice(vol1,flags1)
       spm_realign(vol2,flags2);

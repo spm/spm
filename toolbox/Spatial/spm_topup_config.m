@@ -55,7 +55,7 @@ volbdown.help    = {'Select an image with a blip down phase-encoding polarity.'}
 volbdown.preview = @(f) spm_image('Display',char(f));
 
 %--------------------------------------------------------------------------
-% data Volumes
+% Data Volumes
 %--------------------------------------------------------------------------
 data         = cfg_branch;
 data.tag     = 'data';
@@ -64,6 +64,22 @@ data.val     = {volbup volbdown};
 data.help    = {[....*
 'Select two images with opposite phase-encoding polarities. The first one ',...
 'a blip up and the second one a blip down.']};
+
+%--------------------------------------------------------------------------
+% Acquisition of images order
+%--------------------------------------------------------------------------
+acqorder         = cfg_menu;
+acqorder.tag     = 'acqorder';
+acqorder.name    = 'Acquisition order of images';
+acqorder.help    = {[
+'Order of acquisition of PA and AP images ' ...
+'(see ``spm_diffeo``).']};
+acqorder.labels = {
+                  'Blip up first (PA - AP)'
+                  'Blip down first (AP - PA) '
+}';
+acqorder.values = {0,1};
+acqorder.val    = {0};
 
 %--------------------------------------------------------------------------
 % fwhm values
@@ -161,7 +177,7 @@ outdir.help    = {[...
 'in the specified directory. The deformation field is saved to disk as ',...
 'a vdm file (``vdm5_*.nii``)']};
 
-[cfg,varargout{1}] = deal({data,fwhm,reg,rinterp,jac,prefix,outdir});
+[cfg,varargout{1}] = deal({data,acqorder,fwhm,reg,rinterp,jac,prefix,outdir});
 
 
 %==========================================================================
@@ -169,8 +185,8 @@ function out = spm_run_topup(cmd, job)
 
 switch lower(cmd)
     case 'run'
-        VDM               = spm_topup(job.data,job.fwhm,job.reg,job.rinterp,...
-                           job.jac,job.prefix,job.outdir{1});
+        VDM               = spm_topup(job.data,job.acqorder,job.fwhm,job.reg, ...
+                            job.rinterp,job.jac,job.prefix,job.outdir{1});
         out.vdmfile       = {VDM.dat.fname};
 
     case 'vout'
