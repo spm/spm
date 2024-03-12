@@ -132,7 +132,7 @@ end
 
 po = psdx;
 med = repmat(median(po,2),1,size(po,2));
-ma  = repmat(mad(po,1,2)*1.48,1,size(po,2));
+ma = repmat(median(abs(po-med),2)*1.48,1,size(po,2));
 Z = (po-med)./ma;
 
 bin = Z>abs(spm_invNcdf(.025/(size(po,2)*100),0,1));
