@@ -165,7 +165,8 @@ if(S.plot)
     xlim([0,100]);
     if(S.plotbad)
       for i = 1:size(po,2)
-        plot(freq(bin(:,i)), po(bin(:,i),i),'k*');
+        tag = [labs{i}, ', Index: ' num2str(indchannel(S.D,labs{i}))];
+        plot(freq(bin(:,i)), po(bin(:,i),i),'k*','tag',tag);
       end
     end
     
