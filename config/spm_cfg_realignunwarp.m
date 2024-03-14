@@ -194,6 +194,26 @@ scans.num     = [1 Inf];
 scans.preview = @(f) spm_check_registration(char(f));
 
 %--------------------------------------------------------------------------
+%  Polarity of the data (for vdm5 from Topup)
+%--------------------------------------------------------------------------
+poldata         = cfg_menu;                                                         
+poldata.tag     = 'poldata';                                     
+poldata.name    = 'Images polarity';                                
+poldata.help    = {...
+    ['Polarity of the data to be unwarped. This option enables to unwarp ' ...
+    'data acquired with different acquisition parameters in the phase ' ...
+    'encode direction (y axis in SPM). The options are:'] ...
+    '    * Data acquired with **Posterior-anterior polarity (Blip up)**'...
+    '    * Data acquired with **Anterior-posterior polarity (Blip down)**'...
+    }';
+poldata.labels  = {
+                    'Posterior-anterior polarity (Blip up)'
+                    'Anterior-posterior polarity (Blip down)'
+}';
+poldata.values  = {0 1};
+poldata.val     = {0};    % Default blip up
+
+%--------------------------------------------------------------------------
 % pmscan Phase map (vdm* file)
 %--------------------------------------------------------------------------
 pmscan         = cfg_files;
@@ -202,7 +222,7 @@ pmscan.name    = 'Phase map (vdm* file)';
 pmscan.help    = {
     ['Select pre-calculated phase map, or leave empty for no phase correction. ' ...
     'The vdm* file is assumed to be already in alignment with the first scan ' ...
-    'of the first session.']
+    'of the first session. vdm5 files are expected to have a positive polarity.']
     }';
 pmscan.filter  = 'image';
 pmscan.ufilter = '^vdm5_.*';
@@ -211,27 +231,24 @@ pmscan.val     = {''};
 pmscan.preview = @(f) spm_image('Display',char(f));
 
 %--------------------------------------------------------------------------
-%  Polarity of the data (for vdm5 from Topup)
+%  Polarity of the Phase map (vdm5)
 %--------------------------------------------------------------------------
-polarity         = cfg_menu;                                                         
-polarity.tag     = 'polarity';                                     
-polarity.name    = 'Phase map (vdm* file) Polarity';                                
-polarity.help    = {...
-    ['Polarity of the data to be unwarped. ' ...
-    'This option enables' ...
-    'to unwarp data acquired with different acquisition parameters in the phase ' ...
-    'encode direction. It must be set to properly unwarp the data when using the'...
-    'Topup algorithm for distortion correction. ' ...
-    'The options are:'] ...
-    '    * Data acquired with **Posterior-anterior polarity (Blip up)**'...
-    '    * Data acquired with **Anterior-posterior polarity (Blip down)**'...
+polvdm         = cfg_menu;                                                         
+polvdm.tag     = 'polvdm';                                     
+polvdm.name    = 'Phase map (vdm5) file polarity';  
+polvdm.help    = {...
+    ['Polarity of the phase map (vdm5) file to be used for unwarping process. ' ...
+     'This option enables to unwarp data acquired with different acquisition ' ...
+     'parameters in the phase encode direction (y axis in SPM) . The options are:'] ...
+    '    * Phase map/vdm5 file with positive polarity (to unwarp blip-up/PA data)**'...
+    '    * Phase map/vdm5 file with negative polarity (to unwarp blip-down/AP data)**'...
     }';
-polarity.labels  = {
-                    'Posterior-anterior polarity (Blip up)'
-                    'Anterior-posterior polarity (Blip down)'
+polvdm.labels  = {
+                    'Positive polarity (to unwarp blip-up/PA data)'
+                    'Negative polarity (to unwarp blip-down/AP data)'
 }';
-polarity.values  = {0 1};
-polarity.val     = {0};    % Default blip up
+polvdm.values  = {0 1};
+polvdm.val     = {0};    % Default blip up
 
 %--------------------------------------------------------------------------
 % data Session
@@ -239,7 +256,7 @@ polarity.val     = {0};    % Default blip up
 data         = cfg_branch;
 data.tag     = 'data';
 data.name    = 'Session';
-data.val     = {scans pmscan polarity};
+data.val     = {scans poldata pmscan polvdm};
 data.help    = {
     ['Only add similar session data to a realign+unwarp branch, i.e., choose ' ...
     'Data or Data+phase map for all sessions, but don''t use them interchangeably.']
@@ -253,7 +270,7 @@ data.help    = {
     ''
     ['To unwarp data acquired with different acquisition parameters in the ' ...
     'phase encode direction  (e.g. when using Topup for distortion correction), ' ...
-    'the polarity of the data to be unwarped must be specified.']
+    'the polarity of both, the data to be unwarped and the vdm to be used must be specified.']
     }';
 
 %--------------------------------------------------------------------------
