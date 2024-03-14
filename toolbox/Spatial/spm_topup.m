@@ -1,20 +1,22 @@
-function VDM = spm_topup(data, acqorder , FWHM, reg, rinterp, jac, pref, outdir)
+function VDM = spm_topup(data, acqorder, FWHM, reg, rinterp, jac, pref, outdir)
 % Correct susceptibility distortions using topup
 % FORMAT VDM = spm_topup(vol1, vol2, FWHM, reg, save)
-% data       - path to first image (blip up) followed for the second image (blip down)
+% data       - path to first image (blip-up/PA) followed for the second image (blip-down/AP)
 % acqorder   - indicates in which order were acquired the images with
 %              different polarities
 %               - 0 Blip up first (PA - AP)
 %               - 1 Blip down first (AP - PA)
-% fwhm       - Gaussian kernel spatial scales (default: [8 4 2 1 0.1])
+% fwhm       - Gaussian kernel spatial scales (default: [8 4 2 1 0])
 % reg        - regularisation settings (default: [0 10 100])
 %            See spm_field for details:
 %               - [1] Penalty on absolute values.
-%               - [2] Penalty on the `membrane energy'. This penalises
-%                  the sum of squares of the gradients of the values.
+%               - [2] Penalty on the `membrane energy' of the deformation. 
+%                 This penalises the sum of squares of the gradients of the
+%                 values.
 %               - [3] Penalty on the `bending energy'. This penalises
-%                  the sum of squares of the 2nd derivatives.
-% rinterp    - Degree of B-spline
+%                  the sum of squares of the 2nd derivatives of the parameters.
+% rinterp    - Order of B-spline by which the images are sampled. A higher 
+%              degree provides the better interpolation but it is slower.
 % jac        - Option to include jacobian scaling in the process to take 
 %              into account the changes of intensities due to stretching 
 %              and compression.
@@ -299,7 +301,7 @@ end
 
 % ===========================================================================
 function [u,wf1,wf2] = topup_jacobians(u, f1,f2, sig2, vx, reg, ord, tol, nit, FG, fwhm)
-% Refine topup. It include in the process the changes of intensities due to
+% It include in the process the changes of intensities due to
 % stretching and compression.
 if isempty(u)
     u   = zeros(size(f1));

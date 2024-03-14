@@ -35,7 +35,7 @@ if ~isempty(cfg), varargout = {cfg}; return; end
 %--------------------------------------------------------------------------
 volbup         = cfg_files;
 volbup.tag     = 'volbup';
-volbup.name    = 'Blip up volume (.nii)';
+volbup.name    = 'Blip-up / PA volumes (.nii)';
 volbup.filter  = 'image';
 volbup.ufilter = '.*';
 volbup.num     = [1 inf];
@@ -47,7 +47,7 @@ volbup.preview = @(f) spm_image('Display',char(f));
 %--------------------------------------------------------------------------
 volbdown         = cfg_files;
 volbdown.tag     = 'volbdown';
-volbdown.name    = 'Blip down volume (.nii)';
+volbdown.name    = 'Blip-down / AP volumes (.nii)';
 volbdown.filter  = 'image';
 volbdown.ufilter = '.*';
 volbdown.num     = [1 inf];
@@ -72,11 +72,10 @@ acqorder         = cfg_menu;
 acqorder.tag     = 'acqorder';
 acqorder.name    = 'Acquisition order of images';
 acqorder.help    = {[
-'Order of acquisition of PA and AP images ' ...
-'(see ``spm_diffeo``).']};
+'Order of acquisition of blip-reversed images ']};
 acqorder.labels = {
-                  'Blip up first (PA - AP)'
-                  'Blip down first (AP - PA) '
+                  'Blip-up first (PAs - APs)'
+                  'Blip-down first (APs - PAs) '
 }';
 acqorder.values = {0,1};
 acqorder.val    = {0};
