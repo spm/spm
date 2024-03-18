@@ -1,11 +1,13 @@
-function RDP = spm_mdp2rdp(MDP,T,p)
+function RDP = spm_mdp2rdp(MDP,p,q,T)
 % Converts a cell array of MDPs into a recursive MDP
-% FORMAT RDP = spm_mdp2rdp(MDP,T,p)
+% FORMAT RDP = spm_mdp2rdp(MDP,p,q,T)
 % MDP{n} - Cell array of MDPs
 %  MDP{n}.id.D - cell array of parents of D in supraordinate outcomes
 %  MDP{n}.id.E - cell array of parents of E in supraordinate outcomes
+%
+% p      - likelihood concentration; e.g., p = 1/32; [default: p = 0] 
+% q      - prior (transition) decay; e.g., q = 1/4;  [default: q = 0] 
 % T      - path lengths [default: T = 2]
-% p      - precision (rate constant) [p = 0] 
 %
 % RDP    - likelihood and transition tensors for generating this sequence
 %  RDP.L - level or depth
@@ -25,8 +27,18 @@ function RDP = spm_mdp2rdp(MDP,T,p)
 
 % Assume time scaling with a scale doubling
 %--------------------------------------------------------------------------
-if nargin < 2, T = 2; end
-if nargin < 3, p = 0; end
+if nargin < 2, p = 0; end
+if nargin < 3, q = 0; end
+if nargin < 4, T = 2; end
+
+% Check for single level models
+%--------------------------------------------------------------------------
+if numel(MDP) < 2
+    RDP   = MDP{1};
+    RDP.L = 1;
+    RDP.T = T;
+    return
+end
 
 % prior concentration parameters
 %--------------------------------------------------------------------------
@@ -35,7 +47,8 @@ for n = 1:numel(MDP)
     % normalised likelihoods
     %----------------------------------------------------------------------
     for g = 1:numel(MDP{n}.A)
-        MDP{n}.A{g} = spm_dir_norm(MDP{n}.A{g});
+        a           = spm_dir_norm(MDP{n}.A{g});
+        MDP{n}.A{g} = spm_dir_norm(a + p);
     end
 
     % normalised transitions
@@ -43,14 +56,12 @@ for n = 1:numel(MDP)
     for f = 1:numel(MDP{n}.B)
         b     = spm_dir_norm(MDP{n}.B{f});
         B     = b;
-        if p
-            for t = 1:4
-                for u = 1:size(B,3)
-                    B(:,:,u) = B(:,:,u) + exp(-t*p)*b(:,:,u)^(t + 1);
-                end
+        for t = 1:4
+            for u = 1:size(B,3)
+                B(:,:,u) = B(:,:,u) + (q^t)*(b(:,:,u)^(t + 1));
             end
         end
-        MDP{n}.B{f} = B;
+        MDP{n}.B{f} = spm_dir_norm(B);
     end
 
 

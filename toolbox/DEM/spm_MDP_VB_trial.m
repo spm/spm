@@ -50,7 +50,7 @@ end
 
 % factors and outcomes to plot
 %--------------------------------------------------------------------------
-maxg  = 3;
+maxg  = 4;
 if nargin < 2, gf = 1:min(Nf,maxg); end
 if nargin < 3, gg = 1:min(Ng,maxg); end
 nf    = numel(gf);
