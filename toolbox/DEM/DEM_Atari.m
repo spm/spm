@@ -204,7 +204,7 @@ MDP{1}.GD  = GDP.D;
 MDP{1}.GE  = GDP.E;
 MDP{1}.GU  = GDP.U;
 
-RDP        = spm_mdp2rdp(MDP,2,4);
+RDP        = spm_mdp2rdp(MDP,1/64);
 RDP.U      = 1;
 RDP.T      = 256/(2^(Nm - 1));
 RDP.id.hid = HID;

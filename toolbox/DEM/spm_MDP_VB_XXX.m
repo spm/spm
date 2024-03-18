@@ -980,6 +980,19 @@ for t = 1:T
                 mdp.u0 = mdp.Q.u0{mdp.L};
             end
 
+            % if outcomes (stimuli) are supplied
+            %--------------------------------------------------------------
+            if isfield(mdp,'S')
+                if isfield(mdp,'Q')
+                    st    = (1:mdp.T) + size(mdp.Q.O{mdp.L},2);
+                else
+                    st    = (1:mdp.T);
+                end
+                try 
+                    mdp.O = mdp.S(:,st);
+                end
+            end
+
             % infer hidden states at lower level (outcomes at this level)
             %==============================================================
             mdp   = spm_MDP_VB_XXX(mdp);
