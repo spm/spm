@@ -851,9 +851,9 @@ X2   = Def(:,:,:,2);
 X3   = Def(:,:,:,3);
 
 M    = inv(mat2);
-Y1   = M(1,1)*X1 + M(1,2)*X2 + M(1,3)*X3 + M(1,4);
-Y2   = M(2,1)*X1 + M(2,2)*X2 + M(2,3)*X3 + M(2,4);
-Y3   = M(3,1)*X1 + M(3,2)*X2 + M(3,3)*X3 + M(3,4);
+Y1   = double(M(1,1)*X1 + M(1,2)*X2 + M(1,3)*X3 + M(1,4));
+Y2   = double(M(2,1)*X1 + M(2,2)*X2 + M(2,3)*X3 + M(2,4));
+Y3   = double(M(3,1)*X1 + M(3,2)*X2 + M(3,3)*X3 + M(3,4));
 
 if false
     % Nearest Neighbour
@@ -868,55 +868,26 @@ else
     fY1 = (floor(Y1));
     fY2 = (floor(Y2));
     fY3 = (floor(Y3));
+    w1  = Y1-fY1;
+    w2  = Y2-fY2;
+    w3  = Y3-fY3;
+    inrange = @(r1,r2,r3,d,o1,o2,o3)   find(r1>=(1-o1) & r1<=d(1)-o1 & r2>=1-o2 & r2<=d(2)-o2 & r3>=(1-o3) & r3<=d(3)-o3);
+    j_index = @(r1,r2,r3,d,o1,o2,o3,I) r1(I)+o1 + d(1)*(r2(I)+(o2-1) + d(2)*(r3(I)+(o3-1)));
 
-    I   = find(fY1>=1 & fY1<=dim2(1) & fY2>=1 & fY2<=dim2(2) & fY3>=1 & fY3<=dim2(3));
-    J   = double(fY1(I) + dim2(1)*(fY2(I)-1 + dim2(2)*(fY3(I)-1)));
-    S   = (1-Y1+fY1).*(1-Y2+fY2).*(1-Y3+fY3);
-    S   = double(S(I));
-    Phi = sparse(I,J,S,prod(dim1),prod(dim2));
-
-    I   = find(fY1>=0 & fY1<=dim2(1)-1 & fY2>=1 & fY2<=dim2(2) & fY3>=1 & fY3<=dim2(3));
-    J   = double(fY1(I)+1 + dim2(1)*(fY2(I)-1 + dim2(2)*(fY3(I)-1)));
-    S   = (Y1-fY1).*(1-Y2+fY2).*(1-Y3+fY3);
-    S   = double(S(I));
-    Phi = Phi + sparse(I,J,S,prod(dim1),prod(dim2));
-
-    I   = find(fY1>=1 & fY1<=dim2(1) & fY2>=0 & fY2<=dim2(2)-1 & fY3>=1 & fY3<=dim2(3));
-    J   = double(fY1(I) + dim2(1)*(fY2(I) + dim2(2)*(fY3(I)-1)));
-    S   = (1-Y1+fY1).*(Y2-fY2).*(1-Y3+fY3);
-    S   = double(S(I));
-    Phi = Phi + sparse(I,J,S,prod(dim1),prod(dim2));
-
-    I   = find(fY1>=0 & fY1<=dim2(1)-1 & fY2>=0 & fY2<=dim2(2)-1 & fY3>=1 & fY3<=dim2(3));
-    J   = double(fY1(I)+1 + dim2(1)*(fY2(I) + dim2(2)*(fY3(I)-1)));
-    S   = (Y1-fY1).*(Y2-fY2).*(1-Y3+fY3);
-    S   = double(S(I));
-    Phi = Phi + sparse(I,J,S,prod(dim1),prod(dim2));
-
-    I   = find(fY1>=1 & fY1<=dim2(1) & fY2>=1 & fY2<=dim2(2) & fY3>=0 & fY3<=dim2(3)-1);
-    J   = double(fY1(I) + dim2(1)*(fY2(I)-1 + dim2(2)*fY3(I)));
-    S   = (1-Y1+fY1).*(1-Y2+fY2).*(Y3-fY3);
-    S   = double(S(I));
-    Phi = Phi + sparse(I,J,S,prod(dim1),prod(dim2));
-
-    I   = find(fY1>=0 & fY1<=dim2(1)-1 & fY2>=1 & fY2<=dim2(2) & fY3>=0 & fY3<=dim2(3)-1);
-    J   = double(fY1(I)+1 + dim2(1)*(fY2(I)-1 + dim2(2)*fY3(I)));
-    S   = (Y1-fY1).*(1-Y2+fY2).*(Y3-fY3);
-    S   = double(S(I));
-    Phi = Phi + sparse(I,J,S,prod(dim1),prod(dim2));
-
-    I   = find(fY1>=1 & fY1<=dim2(1) & fY2>=0 & fY2<=dim2(2)-1 & fY3>=0 & fY3<=dim2(3)-1);
-    J   = double(fY1(I) + dim2(1)*(fY2(I) + dim2(2)*fY3(I)));
-    S   = (1-Y1+fY1).*(Y2-fY2).*(Y3-fY3);
-    S   = double(S(I));
-    Phi = Phi + sparse(I,J,S,prod(dim1),prod(dim2));
-
-    I   = find(fY1>=0 & fY1<=dim2(1)-1 & fY2>=0 & fY2<=dim2(2)-1 & fY3>=0 & fY3<=dim2(3)-1);
-    J   = double(fY1(I)+1 + dim2(1)*(fY2(I) + dim2(2)*fY3(I)));
-    S   = (Y1-fY1).*(Y2-fY2).*(Y3-fY3);
-    S   = double(S(I));
-    Phi = Phi + sparse(I,J,S,prod(dim1),prod(dim2));
+    C   = cell(8,1);
+    I   = inrange(fY1,fY2,fY3,dim2,0,0,0); J = j_index(fY1,fY2,fY3,dim2,0,0,0,I); S = (1-w1).*(1-w2).*(1-w3); C{1} = [I,J,S(I)];
+    I   = inrange(fY1,fY2,fY3,dim2,1,0,0); J = j_index(fY1,fY2,fY3,dim2,1,0,0,I); S =    w1 .*(1-w2).*(1-w3); C{2} = [I,J,S(I)];
+    I   = inrange(fY1,fY2,fY3,dim2,0,1,0); J = j_index(fY1,fY2,fY3,dim2,0,1,0,I); S = (1-w1).*   w2 .*(1-w3); C{3} = [I,J,S(I)];
+    I   = inrange(fY1,fY2,fY3,dim2,1,1,0); J = j_index(fY1,fY2,fY3,dim2,1,1,0,I); S =    w1 .*   w2 .*(1-w3); C{4} = [I,J,S(I)];
+    I   = inrange(fY1,fY2,fY3,dim2,0,0,1); J = j_index(fY1,fY2,fY3,dim2,0,0,1,I); S = (1-w1).*(1-w2).*   w3 ; C{5} = [I,J,S(I)];
+    I   = inrange(fY1,fY2,fY3,dim2,1,0,1); J = j_index(fY1,fY2,fY3,dim2,1,0,1,I); S =    w1 .*(1-w2).*   w3 ; C{6} = [I,J,S(I)];
+    I   = inrange(fY1,fY2,fY3,dim2,0,1,1); J = j_index(fY1,fY2,fY3,dim2,0,1,1,I); S = (1-w1).*   w2 .*   w3 ; C{7} = [I,J,S(I)];
+    I   = inrange(fY1,fY2,fY3,dim2,1,1,1); J = j_index(fY1,fY2,fY3,dim2,1,1,1,I); S =    w1 .*   w2 .*   w3 ; C{8} = [I,J,S(I)];
+    IJV = cell2mat(C);
+    Phi = sparse(IJV(:,1),IJV(:,2),IJV(:,3),prod(dim1),prod(dim2));
+    save crap.mat
 end
+
 
 ofname = job.ofname;
 if isempty(ofname), out = {}; return; end
