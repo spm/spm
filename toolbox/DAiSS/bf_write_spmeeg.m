@@ -1,11 +1,11 @@
 function res = bf_write_spmeeg(BF, S)
 % Writes out beamformer results as M/EEG dataset
-% Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Vladimir Litvak
-% $Id: bf_write_spmeeg.m 7703 2019-11-22 12:06:29Z guillaume $
+% Copyright (C) 2013-2023 Wellcome Centre for Human Neuroimaging
 
-%--------------------------------------------------------------------------
+
 if nargin == 0
     mode         = cfg_menu;
     mode.tag     = 'mode';

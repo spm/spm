@@ -1,17 +1,18 @@
 function res = bf_group_GALA(BF, S)
 % Computes Minimum Norm projectors
-% Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
-
-% Vladimir Litvak, using the code from Matti Stenroos and Olaf Hauk
-% http://imaging.mrc-cbu.cam.ac.uk/meg/AnalyzingData/DeFleCT_SpatialFiltering_Tools
 %
 % Please cite:
 % Hauk O, Stenroos M.
-% A framework for the design of flexible cross-talk functions for spatial filtering of EEG/MEG data: DeFleCT.
+% A framework for the design of flexible cross-talk functions for spatial
+% filtering of EEG/MEG data: DeFleCT.
 % Human Brain Mapping 2013
-% $Id: bf_group_GALA.m 7703 2019-11-22 12:06:29Z guillaume $
+% http://imaging.mrc-cbu.cam.ac.uk/meg/AnalyzingData/DeFleCT_SpatialFiltering_Tools
+%__________________________________________________________________________
 
-%--------------------------------------------------------------------------
+% Vladimir Litvak, using the code from Matti Stenroos and Olaf Hauk
+% Copyright (C) 2013-2023 Wellcome Centre for Human Neuroimaging
+
+
 if nargin == 0
     iter = cfg_entry;
     iter.tag = 'iter';
@@ -55,7 +56,3 @@ for p=1:Nl
     bf_save_path(BFp,fullfile(outdir, 'BF.mat'));
     res(p) = {fullfile(outdir, 'BF.mat')};
 end
-
-end
-
-

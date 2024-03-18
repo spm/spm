@@ -3,7 +3,7 @@ function this = subsasgn(this, subs, A)
 %__________________________________________________________________________
 
 % Guillaume Flandin
-% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+% Copyright (C) 2008-2023 Wellcome Centre for Human Neuroimaging
 
 
 switch subs(1).type
@@ -49,7 +49,7 @@ switch subs(1).type
             this.data{n}.attributes.DataType = dt;
         end
         
-        switch subs(1).subs            
+        switch subs(1).subs
             %- .private
             %--------------------------------------------------------------
             case 'private'
@@ -127,7 +127,14 @@ switch subs(1).type
                             this.data{n}.attributes.Dim = size(A);
                         end
                     else
-                        error('Syntax not implemented.');
+                        if numel(n) == size(A,2)
+                            for i=n(:)'
+                                this.data{i}.data = single(A(:,i));
+                                this.data{i}.attributes.Dim = size(this.data{i}.data);
+                            end
+                        else
+                            error('Syntax not implemented.');
+                        end
                     end
                 end
         end

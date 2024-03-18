@@ -1,10 +1,9 @@
 function out = bf_inverse
 % Compute inverse projectors
 %__________________________________________________________________________
-% Copyright (C) 2015-2021 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: bf_inverse.m 8223 2022-02-17 16:01:40Z george $
+% Copyright (C) 2015-2023 Wellcome Centre for Human Neuroimaging
 
 
 out          = cfg_exbranch;

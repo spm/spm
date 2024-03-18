@@ -26,7 +26,7 @@ function ft_plot_layout(layout, varargin)
 %   'fontunits'   =
 %   'fontname'    =
 %   'fontweight'  =
-%   'interpreter' = string, 'none', 'tex' or 'latex'
+%   'interpreter' = string, 'none', 'tex' or 'latex' (default = 'none')
 %
 % It is possible to plot the object in a local pseudo-axis (c.f. subplot), which is specfied as follows
 %   'hpos'        = horizontal position of the lower left corner of the local axes
@@ -82,7 +82,7 @@ fontname    = ft_getopt(varargin, 'fontname',   get(0, 'defaulttextfontname'));
 fontweight  = ft_getopt(varargin, 'fontweight', get(0, 'defaulttextfontweight'));
 fontunits   = ft_getopt(varargin, 'fontunits',  get(0, 'defaulttextfontunits'));
 % these have to do with the font
-interpreter  = ft_getopt(varargin, 'interpreter', 'tex'); % none, tex or latex
+interpreter  = ft_getopt(varargin, 'interpreter', 'none'); % none, tex or latex
 
 % some stuff related to some refined label plotting
 labelrotate   = ft_getopt(varargin, 'labelrotate',  0);
@@ -115,10 +115,21 @@ end
 
 % make a selection of the channels
 if ~isempty(chanindx)
+  nchan = length(layout.label);
   layout.pos    = layout.pos(chanindx,:);
   layout.width  = layout.width(chanindx);
   layout.height = layout.height(chanindx);
   layout.label  = layout.label(chanindx);
+  if numel(pointsymbol)==nchan
+    pointsymbol = pointsymbol(chanindx);
+  end
+  if numel(pointsize)==nchan
+    pointsize = pointsize(chanindx);
+  end
+  if size(pointcolor,1)==nchan
+    pointcolor = pointcolor(chanindx,:); % these are RGB triplets
+  end
+  clear nchan
 end
 
 % the units can be arbitrary (e.g. relative or pixels), so we need to compute the right scaling factor and offset

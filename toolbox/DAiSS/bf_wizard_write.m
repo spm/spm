@@ -1,8 +1,22 @@
-function [matlabbatch, write] = bf_wizard_write(S)
+function [BF, matlabbatch, write] = bf_wizard_write(S)
+% A handy command-line based batch filler with some defaults for DAiSS
+% write module, pick a few options, and it will default for unpopulated
+% fields
+%
+% Currently supported output methods include:
+%   - nifti (for volumetric data)
+%   - gifti (for surface data)
+%   - spmmeeg (for virtual electrodes)
+%__________________________________________________________________________
 
-if ~isfield(S,'batch'); matlabbatch = []; else; matlabbatch = S.batch; end
-if ~isfield(S,'BF'); error('I need a BF.mat file specified!'); end
-if ~isfield(S,'method'); error('You need to specify an output method!'); end
+% George O'Neill
+% Copyright (C) 2022-2023 Wellcome Centre for Human Neuroimaging
+
+
+if ~isfield(S,'batch'), matlabbatch = []; else; matlabbatch = S.batch;  end
+if ~isfield(S,'BF'), error('I need a BF.mat file specified!');          end
+if ~isfield(S,'method'), error('You need to specify an output method!');end
+if ~isfield(S,'run'),       S.run = 1;                                  end
 
 % specify BF, ensure its a cell...
 if ~iscell(S.BF)
@@ -68,3 +82,11 @@ end
 jobID = numel(matlabbatch) + 1;
 % generate matlabbatch
 matlabbatch{jobID}.spm.tools.beamforming.write = write;
+
+% Run job (if required)
+if S.run
+    out = spm_jobman('run',matlabbatch);
+    BF = out{1,1}.BF{:};
+else
+    BF = [];
+end

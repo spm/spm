@@ -1,5 +1,5 @@
 % Statistical Parametric Mapping
-% Version 12.6 (SPM12) 13-Jan-2020
+% Version dev (SPM) 01-Jan-1970
 %__________________________________________________________________________
 %  ___  ____  __  __
 % / __)(  _ \(  \/  )  
@@ -27,14 +27,6 @@
 % terms of the GNU General Public License as published by the Free Software
 % Foundation, either version 2 of the License, or (at  your option) any
 % later version.
-%
-% SPM is distributed in the hope that it will be useful, but WITHOUT ANY
-% WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-% FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more 
-% details.
-%
-% You should have received a copy of the GNU General Public License along
-% with SPM. If not, see <https://www.gnu.org/licenses/>.
 %
 % See README.md for details of this release.
 %__________________________________________________________________________

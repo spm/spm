@@ -404,30 +404,52 @@ for k = 1:M.Nmax
         for i = 1:nh
             iS = iS + Q{i}*(exp(-32) + exp(h(i)));
         end
-        S     = spm_inv(iS);
+        
+        if nh > 1 
+            % Invert only if more than one ReML component
+            % -------------------------------------------------------------
+            S     = spm_inv(iS);
+        end
+        
         iS    = kron(speye(nq),iS);
         Pp    = real(J'*iS*J);
         Cp    = spm_inv(Pp + ipC);
-        
-        % precision operators for M-Step
-        %------------------------------------------------------------------
-        for i = 1:nh
-            P{i}   = Q{i}*exp(h(i));
-            PS{i}  = P{i}*S;
-            P{i}   = kron(speye(nq),P{i});
-            JPJ{i} = real(J'*P{i}*J);
-        end
-        
-        % derivatives: dLdh = dL/dh,...
-        %------------------------------------------------------------------
-        for i = 1:nh
-            dFdh(i,1)      =   trace(PS{i})*nq/2 ...
-                - real(e'*P{i}*e)/2 ...
-                - spm_trace(Cp,JPJ{i})/2;
-            for j = i:nh
-                dFdhh(i,j) = - spm_trace(PS{i},PS{j})*nq/2;
-                dFdhh(j,i) =   dFdhh(i,j);
+
+        if nh > 1
+            % precision operators for M-Step
+            %--------------------------------------------------------------
+            for i = 1:nh
+                P{i}   = Q{i}*exp(h(i));
+                PS{i}  = P{i}*S;
+                P{i}   = kron(speye(nq),P{i});
+                JPJ{i} = real(J'*P{i}*J);
             end
+            
+            % derivatives: dLdh = dL/dh,...
+            %--------------------------------------------------------------
+            for i = 1:nh
+                dFdh(i,1)      =   trace(PS{i})*nq/2 ...
+                    - real(e'*P{i}*e)/2 ...
+                    - spm_trace(Cp,JPJ{i})/2;
+                for j = i:nh
+                    dFdhh(i,j) = - spm_trace(PS{i},PS{j})*nq/2;
+                    dFdhh(j,i) =   dFdhh(i,j);
+                end
+            end
+        else 
+            % if nh == 1, do the followng simplifications:
+            % -------------------------------------------------------------
+            
+            % 1. replace trace(PS{1}) * nq by ny
+            % 2. replace JPJ{1} by Pp
+            % -------------------------------------------------------------
+            dFdh(1,1) = ny/2 ...
+                    - real(e'*iS*e)/2 ...
+                    - spm_trace(Cp,Pp)/2;
+                    
+            % 3. replace spm_trace(PS{1},PS{1}) * nq by ny
+            % -------------------------------------------------------------
+            dFdhh(1,1) = - ny/2;    
         end
         
         % add second order terms; noting diS/dh(i)h(i) = diS/dh(i) = P{i}

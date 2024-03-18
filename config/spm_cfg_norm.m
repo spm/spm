@@ -85,23 +85,23 @@ biasreg.help    = {
                    }';
 biasreg.labels = {
                   'no regularisation (0)'
-                  'extremely light regularisation (0.00001)'
-                  'very light regularisation (0.0001)'
-                  'light regularisation (0.001)'
-                  'medium regularisation (0.01)'
-                  'heavy regularisation (0.1)'
-                  'very heavy regularisation (1)'
-                  'extremely heavy regularisation (10)'
+                  'extremely light regularisation (0.000001)'
+                  'very light regularisation (0.00001)'
+                  'light regularisation (0.0001)'
+                  'medium regularisation (0.001)'
+                  'heavy regularisation (0.01)'
+                  'very heavy regularisation (0.1)'
+                  'extremely heavy regularisation (1)'
                   }';
 biasreg.values = {
                   0
-                  1e-05
+                  1e-06
+                  0.00001
                   0.0001
                   0.001
                   0.01
                   0.1
                   1
-                  10
                   }';
 biasreg.val    = {0.0001};
 
@@ -187,9 +187,7 @@ reg.name    = 'Warping Regularisation';
 reg.help    = {'The objective function for registering the tissue probability maps to the image to process, involves minimising the sum of two terms. One term gives a function of how probable the data is given the warping parameters. The other is a function of how probable the parameters are, and provides a penalty for unlikely deformations. Smoother deformations are deemed to be more probable. The amount of regularisation determines the tradeoff between the terms. Pick a value around one.  However, if your normalised images appear distorted, then it may be an idea to increase the amount of regularisation (by an order of magnitude). More regularisation gives smoother deformations, where the smoothness measure is determined by the bending energy of the deformations. '};
 reg.strtype = 'r';
 reg.num     = [1  5];
-reg.val     = {[0 0.001 0.5 0.05 0.2]};
-%%Eventually these values should be decreased (eg) to:
-%reg.val     = {[0 0.0001 0.05 0.005 0.005]};
+reg.val     = {[0 0 0.1 0.01 0.04]};
 
 %--------------------------------------------------------------------------
 % affreg Affine Regularisation

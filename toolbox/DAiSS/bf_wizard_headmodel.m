@@ -1,26 +1,30 @@
 function [matlabbatch, headmodel] = bf_wizard_headmodel(S)
-
 % A handy command-line based batch filler with some defaults for SPM
 % head model specification for MEEG data. Will generate the job which
 % performs coregistration between the data and the MRI
+%__________________________________________________________________________
 
-if ~isfield(S,'batch'); matlabbatch = []; else; matlabbatch = S.batch;  end
-if ~isfield(S,'D');       error('I need a SPM MEEG object specified!'); end
-if ~isfield(S,'fiducials');   error('I need fiducials specified!');     end
-if ~isfield(S,'val');           S.val = 1;                              end
-if ~isfield(S,'commment');      S.comment = '';                         end
-if ~isfield(S,'mri');           S.mri = [];                             end
-if ~isfield(S,'iskull');        S.iskull = [];                          end
-if ~isfield(S,'oskull');        S.oskull = [];                          end
-if ~isfield(S,'scalp');         S.scalp = [];                           end
-if ~isfield(S,'cortex');        S.cortex = [];                          end
-if ~isfield(S,'fsfix');         S.fsfix = false;                        end
-if ~isfield(S,'template');      S.template = false;                     end
-if ~isfield(S,'meshres');       S.meshres = 2;                         	end
-if ~isfield(S,'useheadshape');  S.useheadshape = false;                 end
-if ~isfield(S,'forward');       S.forward = struct;                     end
-if ~isfield(S.forward,'eeg');   S.forward.eeg = 'EEG BEM';              end
-if ~isfield(S.forward,'meg');   S.forward.meg = 'Single Shell';         end
+% George O'Neill
+% Copyright (C) 2022-2023 Wellcome Centre for Human Neuroimaging
+
+
+if ~isfield(S,'batch'), matlabbatch = []; else; matlabbatch = S.batch;  end
+if ~isfield(S,'D'),       error('I need a SPM MEEG object specified!'); end
+if ~isfield(S,'fiducials'),   error('I need fiducials specified!');     end
+if ~isfield(S,'val'),           S.val = 1;                              end
+if ~isfield(S,'commment'),      S.comment = '';                         end
+if ~isfield(S,'mri'),           S.mri = [];                             end
+if ~isfield(S,'iskull'),        S.iskull = [];                          end
+if ~isfield(S,'oskull'),        S.oskull = [];                          end
+if ~isfield(S,'scalp'),         S.scalp = [];                           end
+if ~isfield(S,'cortex'),        S.cortex = [];                          end
+if ~isfield(S,'fsfix'),         S.fsfix = false;                        end
+if ~isfield(S,'template'),      S.template = false;                     end
+if ~isfield(S,'meshres'),       S.meshres = 2;                         	end
+if ~isfield(S,'useheadshape'),  S.useheadshape = false;                 end
+if ~isfield(S,'forward'),       S.forward = struct;                     end
+if ~isfield(S.forward,'eeg'),   S.forward.eeg = 'EEG BEM';              end
+if ~isfield(S.forward,'meg'),   S.forward.meg = 'Single Shell';         end
 
 headmodel = struct();
 switch class(S.D)

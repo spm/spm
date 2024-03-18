@@ -6,14 +6,14 @@ function spm_make_standalone(outdir, gateway, contentsver, tbxs)
 % MATLAB, and therefore does not require a MATLAB licence.
 %
 % On Windows:
-%   spm12.exe <modality>
-%   spm12.exe batch <batch.m(at)>
-%   spm12.exe script script.m
+%   spm.exe <modality>
+%   spm.exe batch <batch.m(at)>
+%   spm.exe script script.m
 %
 % On Linux/Mac:
-%   ./run_spm12.sh <MCRroot> <modality>
-%   ./run_spm12.sh <MCRroot> batch <batch.m(at)>
-%   ./run_spm12.sh <MCRroot> script script.m
+%   ./run_spm.sh <MCRroot> <modality>
+%   ./run_spm.sh <MCRroot> batch <batch.m(at)>
+%   ./run_spm.sh <MCRroot> script script.m
 %
 % The first command starts SPM in interactive mode with GUI. The second
 % executes a batch file or starts the Batch Editor if none is provided,
@@ -22,7 +22,7 @@ function spm_make_standalone(outdir, gateway, contentsver, tbxs)
 % "inputs".
 %
 % Full list of options is accessible from:
-%   ./run_spm12.sh <MCRroot> --help
+%   ./run_spm.sh <MCRroot> --help
 %
 % When deployed, compiled applications will require the MATLAB Runtime:
 %   https://www.mathworks.com/products/compiler/matlab-runtime.html

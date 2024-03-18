@@ -19,6 +19,7 @@ function [PEB,P]   = spm_dcm_peb(P,M,field)
 % M.hE     - 2nd-level prior expectation of log precisions [default: 0]
 % M.hC     - 2nd-level prior covariances of log precisions [default: 1/16]
 % M.maxit  - maximum iterations [default: 64]
+% M.noplot - if this field exists then text output will be suppressed
 %
 % M.Q      - covariance components: {'single','fields','all','none'}
 % M.alpha  - optional scaling to specify M.bC [default = 1]
@@ -114,6 +115,10 @@ try
     DEM = P;
     P   = spm_dem2dcm(P);
 end
+
+% check preference for suppressing output
+%--------------------------------------------------------------------------
+verbose = spm_get_defaults('dcm.verbose');
 
 % check parameter fields and design matrices
 %--------------------------------------------------------------------------
@@ -585,14 +590,14 @@ for n = 1:maxit
     
     % Convergence
     %======================================================================
-    if ~isfield(M,'noplot')
+    if verbose
         fprintf('VL Iteration %-8d: F = %-3.2f dF: %2.4f  [%+2.2f]\n',n,full(F),full(dF),t); 
+   
+        if (n > 4) && (t <= -4 || dF < 1e-4)
+            fprintf('VL Iteration %-8d: F = %-3.2f dF: %2.4f  [%+2.2f]\n',n,full(F),full(dF),t); 
+            break
+        end                 
     end
-    if (n > 4) && (t <= -4 || dF < 1e-4)
-        fprintf('VL Iteration %-8d: F = %-3.2f dF: %2.4f  [%+2.2f]\n',n,full(F),full(dF),t); 
-        break
-    end
-     
 end
 
 

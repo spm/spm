@@ -1302,32 +1302,36 @@ switch lower(Action)
       % Get best possible positioning and scaling for
       % transversal and sagittal views.
       %
-      tra_pos = get(st.vols{varargin{4}}.ax{1}.ax,'Position');
-      sag_pos = get(st.vols{varargin{4}}.ax{3}.ax,'Position');
-      field_pos = varargin{3};
-      x_scale = field_pos(3) / (tra_pos(3) + sag_pos(3));
-      height = max([tra_pos(4) sag_pos(4)]);
-      y_scale = field_pos(4) / height;
-      if x_scale > y_scale % Height limiting
-         scale = y_scale;
-         dx = (field_pos(3) - scale*(tra_pos(3) + sag_pos(3))) / 3;
-         dy = 0;
-      else % Width limiting
-         scale = x_scale;
-         dx = 0;
-         dy = (field_pos(4) - scale*height) / 2;
+      varargin4 = find(~cellfun(@isempty,st.vols));
+      if ~isempty(varargin4)
+          varargin4 = varargin4(end);
+          tra_pos = get(st.vols{varargin4}.ax{1}.ax,'Position');
+          sag_pos = get(st.vols{varargin4}.ax{3}.ax,'Position');
+          field_pos = varargin{3};
+          x_scale = field_pos(3) / (tra_pos(3) + sag_pos(3));
+          height = max([tra_pos(4) sag_pos(4)]);
+          y_scale = field_pos(4) / height;
+          if x_scale > y_scale % Height limiting
+              scale = y_scale;
+              dx = (field_pos(3) - scale*(tra_pos(3) + sag_pos(3))) / 3;
+              dy = 0;
+          else % Width limiting
+              scale = x_scale;
+              dx = 0;
+              dy = (field_pos(4) - scale*height) / 2;
+          end
+          tra_pos = [field_pos(1)+dx field_pos(2)+dy scale*tra_pos([3 4])];
+          sag_pos = [field_pos(1)+tra_pos(3)+2*dx field_pos(2)+dy scale*sag_pos([3 4])];
+          label = {'Fieldmap in Hz',...
+                   'Warped EPI',...
+                   'Unwarped EPI',...
+                   'Structural'};
+          ID{varargin{4}} = struct('tra_pos',    tra_pos,...
+                                   'sag_pos',    sag_pos,...
+                                   'h',          h,...
+                                   'label',      label{varargin{4}});
+          FieldMap('RedrawImages');
       end
-      tra_pos = [field_pos(1)+dx field_pos(2)+dy scale*tra_pos([3 4])];
-      sag_pos = [field_pos(1)+tra_pos(3)+2*dx field_pos(2)+dy scale*sag_pos([3 4])];
-      label = {'Fieldmap in Hz',...
-                       'Warped EPI',...
-                       'Unwarped EPI',...
-                       'Structural'};
-      ID{varargin{4}} = struct('tra_pos',    tra_pos,...
-                               'sag_pos',    sag_pos,...
-                               'h',          h,...
-                               'label',      label{varargin{4}});
-      FieldMap('RedrawImages');
 
       st.in = uicontrol(PM,'Style','Text',...
           'Position',[340 280 50 020].*WS,...

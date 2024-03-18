@@ -1,4 +1,11 @@
 function out = spm_run_denoise(opt,cfg)
+% FORMAT out = spm_run_denoise(opt,cfg)
+%__________________________________________________________________________
+
+% John Ashburner
+% Copyright (C) 2023 Wellcome Centre for Human Neuroimaging
+
+
 switch lower(opt)
     case 'run'
         N = numel(cfg.data{1});
@@ -10,7 +17,7 @@ switch lower(opt)
             P    = strvcat(cellfun(@(c)c{n},cfg.data,'UniformOutput',false));
             lam0 = cfg.lambda;
             nit  = cfg.nit;
-            dev  = cfg.dev;
+            dev  = cfg.device;
             out.files{n} = run_denoise(P,lam0,nit,dev);
         end
     case 'vout'
@@ -25,22 +32,17 @@ end
 
 function out = run_denoise(P,lam0,nit,dev)
 % Run total variation denoising
-if nargin<4, dev  = 0;   end
-if nargin<3, nit  = 200; end
-if nargin<2, lam0 = 30;  end
+if nargin<4, dev  = 'cpu'; end
+if nargin<3, nit  = 200;   end
+if nargin<2, lam0 = 30;    end
 if nargin<1, P = spm_select(Inf,'nifti'); end
-
-[sd,mu,info] = spm_noise_estimate(P,2);
-for m=1:numel(sd)
-    fprintf('sd=%-8g mu=%-8g\n', sd(m), mu(m));
-end
 
 Nii = nifti(P);
 vox = sqrt(sum(Nii(1).mat(1:3,1:3).^2));
 x   = cellfun(@(f)single(f(:,:,:,:,1,1)),{Nii.dat},'UniformOutput',false);
 x   = cat(4,x{:});
 
-if dev==1
+if strcmpi(dev,'gpu')
     try
         x   = gpuArray(x);
     catch
@@ -49,7 +51,8 @@ if dev==1
 end
 
 % Denoising
-y   = spm_TVdenoise(x, vox, lam0./mu, 1./sd.^2, nit);
+sd  = get_sd(x);
+y   = spm_TVdenoise(x, vox, lam0./sd, 1./sd.^2, nit);
 
 mx  = gather(max(y(:)));
 
@@ -66,4 +69,13 @@ create(Nio)
 Nio.dat(:,:,:,:) = gather(y);
 clear Nio
 out = oname;
+
+
+
+function sd = get_sd(x)
+sd = zeros(size(x,4),1);
+for n=1:size(x,4)
+    mu    = mean(mean(mean(x(:,:,:,n))));
+    sd(n) = sqrt(mean(mean(mean((x(:,:,:,n)-mu).^2))));
+end
 

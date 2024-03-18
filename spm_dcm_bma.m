@@ -99,6 +99,8 @@ if nargin < 5 || isempty(oddsr)
     oddsr = 0;
 end
 
+verbose = spm_get_defaults('dcm.verbose');
+
 % inputs are DCMs - assemble input arguments
 %--------------------------------------------------------------------------
 if nargin == 1
@@ -288,14 +290,18 @@ else % Use an FFX
     mp       = max(post);
     post_ind = find(post>mp*oddsr);
     Nocc     = length(post_ind);
-    disp(' ');
-    fprintf('%d models in Occams window:\n',Nocc);
-
+    if verbose
+        disp(' ');
+        fprintf('%d models in Occams window:\n',Nocc);
+    end
+    
     if Nocc == 0, return; end
 
     for occ = 1:Nocc,
         m = post_ind(occ);
-        fprintf('\tModel %d, p(m|Y)=%1.2f\n',m,post(m));
+        if verbose
+            fprintf('\tModel %d, p(m|Y)=%1.2f\n',m,post(m));
+        end
     end
 
     % Renormalise post prob to Occam group
@@ -323,7 +329,9 @@ else % Use an FFX
             if Nses > 1
 
                 clear miCp mEp
-                disp('Averaging sessions...')
+                if ~verbose
+                    disp('Averaging sessions...')
+                end
 
                 % Average sessions
                 %----------------------------------------------------------
@@ -409,8 +417,10 @@ if dcm_fmri
 end
 
 clear Ep
-disp('')
-disp('Averaging models in Occams window...')
+if verbose
+    disp('')
+    disp('Averaging models in Occams window...')
+end
 
 Ep_all = zeros(Np,Nsub);
 Ep_sbj = zeros(Np,Nsub,Nsamp);

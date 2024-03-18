@@ -2,8 +2,8 @@ function this = gifti(varargin)
 % GIfTI Geometry file format class
 % Geometry format under the Neuroimaging Informatics Technology Initiative
 % (NIfTI):
-%                 https://www.nitrc.org/projects/gifti/
-%                      https://nifti.nimh.nih.gov/
+%                 http://www.nitrc.org/projects/gifti/
+%                      http://nifti.nimh.nih.gov/
 %__________________________________________________________________________
 
 % Guillaume Flandin
@@ -84,7 +84,7 @@ switch nargin
             elseif ismember(lower(e),{'.asc','.srf','.mgh','.mgz','.pial',...
                     '.white','.inflated','.nofix','.orig','.smoothwm',...
                     '.sphere','.reg','.surf','.curv','.area','.sulc','.annot'})
-                this = read_freesurfer_file(varargin{1});
+                this = freesurfer_read(varargin{1});
                 this = gifti(this);
             elseif strcmpi(e,'.vtk')
                 this = mvtk_read(varargin{1});
@@ -105,7 +105,7 @@ switch nargin
                 this = mz3_read(varargin{1});
                 this = gifti(this);
             else
-                this = read_gifti_file(varargin{1},giftistruct);
+                this = gifti_read(varargin{1},giftistruct);
                 this = class(this,'gifti');
             end
             

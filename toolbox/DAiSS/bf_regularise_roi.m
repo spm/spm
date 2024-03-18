@@ -1,12 +1,14 @@
 function res = bf_regularise_roi(BF, S)
 % ROI regularisation
-% See: Oswal et al. Optimising beamformer regions of interest analysis, Neuroimage, 2014
-% Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
+
+% See: Oswal et al. Optimising beamformer regions of interest analysis
+% Neuroimage, 2014
+%__________________________________________________________________________
 
 % Ashwini Oswal, Vladimir Litvak
-% $Id: bf_regularise_roi.m 7703 2019-11-22 12:06:29Z guillaume $
+% Copyright (C) 2014-2023 Wellcome Centre for Human Neuroimaging
 
-%--------------------------------------------------------------------------
+
 if nargin == 0   
     pos = cfg_entry;
     pos.tag = 'pos';
@@ -132,8 +134,7 @@ features.U    = U;
 
 res = features;
 
-%%
-%% plot the mean square root error here defined in the Van Veen paper as the sum of eigenvalues of components not taken over the sum of all eigenvalues
+% plot the mean square root error here defined in the Van Veen paper as the sum of eigenvalues of components not taken over the sum of all eigenvalues
 Fgraph  = spm_figure('GetWin','Graphics'); figure(Fgraph); clf
 all_eig = diag(Sv).^2;
 den = sum(all_eig);

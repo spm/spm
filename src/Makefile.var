@@ -26,11 +26,14 @@ AR           = ar rcs
 COPY         = cp -f
 DEL          = rm -f
 MOVE         = mv -f
+MKDIR        = mkdir
 TAR          = tar
 ZIP          = gzip -f
 OMPFLAG      = -fopenmp
 WARNFLAG     = -Wall -Wextra -Wpedantic
 USE_OPENMP  ?= 0
+SOSUF        = so
+SONAME       = soname
 
 ifndef PLATFORM
   PLATFORM   = $(shell $(UNAME))
@@ -49,12 +52,16 @@ ifeq (Darwin,$(PLATFORM))
   MEXBIN    ?= mex
   # https://stackoverflow.com/questions/37362414/
   OMPFLAG    = -fopenmp=libiomp5
+  SOSUF      = dylib
+  SONAME     = install_name
 endif
 ifeq (arm64,$(PLATFORM))
   MEXEXT     = mexmaca64
   MEXBIN    ?= mex
   # https://stackoverflow.com/questions/37362414/
   OMPFLAG    = -fopenmp=libiomp5
+  SOSUF      = dylib
+  SONAME     = install_name
 endif
 
 ##### Windows #####
@@ -64,6 +71,7 @@ ifeq (MINGW32,$(word 1,$(subst _, ,$(PLATFORM)))) # MSVC
   MEXOPTS   += -DSPM_WIN32
   MEXEND     = "
   MOSUF      = obj
+  SOSUF      = dll
   AR         = lib.exe /out:
   ARNOSPACE  = 
   OMPFLAG    = /openmp
@@ -73,12 +81,14 @@ ifeq (MINGW64,$(word 1,$(subst _, ,$(PLATFORM)))) # MSVC
   MEXBIN    ?= mex
   MEXOPTS   += -DSPM_WIN32
   MOSUF      = obj
+  SOSUF      = dll
 endif
 ifeq (MSYS,$(word 1,$(subst _, ,$(PLATFORM)))) # GCC
   MEXEXT     = mexw64
   MEXBIN    ?= mex
   MEXOPTS   += -DSPM_WIN32
   MOSUF      = obj
+  SOSUF      = dll
 endif
 
 #### Octave ####

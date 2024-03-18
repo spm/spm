@@ -1,10 +1,9 @@
 function out = bf_group
 % A module for applying a processing step to a group of subjects
 %__________________________________________________________________________
-% Copyright (C) 2015-2021 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: bf_group.m 8119 2021-07-06 13:51:43Z guillaume $
+% Copyright (C) 2015-2023 Wellcome Centre for Human Neuroimaging
 
 
 out          = cfg_exbranch;

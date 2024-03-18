@@ -224,6 +224,7 @@ headeropt  = ft_setopt(headeropt, 'coilaccuracy',   ft_getopt(cfg, 'coilaccuracy
 headeropt  = ft_setopt(headeropt, 'coildeffile',    ft_getopt(cfg, 'coildeffile'));         % is passed to low-level function
 headeropt  = ft_setopt(headeropt, 'checkmaxfilter', ft_getopt(cfg, 'checkmaxfilter'));      % this allows to read non-maxfiltered neuromag data recorded with internal active shielding
 headeropt  = ft_setopt(headeropt, 'chantype',       ft_getopt(cfg, 'chantype', {}));        % 2017.10.10 AB required for NeuroOmega files
+headeropt  = ft_setopt(headeropt, 'cache',          ft_getopt(cfg, 'cache'));
 
 if ~isfield(cfg, 'feedback')
   if strcmp(cfg.method, 'channel')
@@ -419,7 +420,8 @@ else
     cfg.trl = loadvar(cfg.trl, 'trl');
   end
 
-  % the code below expects an Nx3 matrix with begsample, endsample and offset
+  % the code further down expects an Nx3 matrix with begsample, endsample and offset
+  assert(size(cfg.trl,2)>=3, 'incorrect specification of cfg.trl');
   if istable(cfg.trl)
     trl = table2array(cfg.trl(:,1:3));
   else

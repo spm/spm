@@ -9,8 +9,14 @@ tests = functiontests(localfunctions);
 
 % -------------------------------------------------------------------------
 function setup(testCase)
-% Delete artefacts before each test
 
+% Initialize SPM
+spm('defaults','fmri');
+spm_jobman('initcfg');
+spm_get_defaults('cmdline',true);
+spm_get_defaults('dcm.verbose',false);
+
+% Delete artefacts before each test
 model_dir = fullfile(get_data_path(),'models');
 expected_output = {fullfile(model_dir,'PEB_test.mat');
                    fullfile(model_dir,'BMA_PEB_test.mat');

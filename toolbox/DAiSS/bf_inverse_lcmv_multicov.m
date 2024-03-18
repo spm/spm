@@ -1,6 +1,8 @@
 function res = bf_inverse_lcmv_multicov(BF, S)
 % Computes LCMV filters using spm_pca_order to constrain inverse of data
-% cov matrix. Based on the paper:
+% cov matrix.
+% 
+% Based on the paper:
 % MEG beamforming using Bayesian PCA for adaptive data covariance matrix regularization.
 % Woolrich M, Hunt L, Groves A, Barnes G.
 % Neuroimage. 2011 Aug 15;57(4)
@@ -9,9 +11,10 @@ function res = bf_inverse_lcmv_multicov(BF, S)
 % multiple states:
 % Dynamic State Allocation for MEG Source Reconstruction
 % Neuroimage. Woolrich et al. 2013.
-%
+
 % Mark Woolrich
-%--------------------------------------------------------------------------
+
+
 if nargin == 0      
     
     pca_order = cfg_entry;
@@ -51,21 +54,21 @@ if isfield(BF.features, S.modality)
     %reduce_rank = S.reduce_rank;
     reduce_rank = BF.sources.reduce_rank.(S.modality(1:3));
 
-    if isfield(BF.features.(S.modality),'class'),
+    if isfield(BF.features.(S.modality),'class')
         class = BF.features.(S.modality).class;
     else
         class={};
         class{1} = BF.features.(S.modality);
-    end;
+    end
 
     % multiple covariances -do separate weights for each one
-    for kk=1:length(class),
+    for kk=1:length(class)
 
-        if ~sum(isnan(squash(class{kk}.C))),
+        if ~sum(isnan(squash(class{kk}.C)))
             [invCy, pca_order_used] = pinv_plus(class{kk}.C, S.pca_order); % rank maybe not be detected properly by just using pinv - MWW
         else
             warning(['Nans in covariance matrix for class ' num2str(kk)]);
-        end;
+        end
 
         L = S.L;
 
@@ -79,21 +82,21 @@ if isfield(BF.features, S.modality)
         else Ibar = 1:nvert; end
 
         for i = 1:nvert
-            if ~sum(isnan(squash(L{i}))) && ~sum(isnan(squash(class{kk}.C))),
+            if ~sum(isnan(squash(L{i}))) && ~sum(isnan(squash(class{kk}.C)))
                 lf = L{i};
                 lf_single = lf; 
 
                 do_lat=0;
-                if S.bilateral, % beamform bilateral dipoles together
-                    if(BF.sources.mni.bilateral_index(i)~=i),
+                if S.bilateral % beamform bilateral dipoles together
+                    if(BF.sources.mni.bilateral_index(i)~=i)
                         do_lat=1;
                         lf_lat=L{BF.sources.mni.bilateral_index(i)};
 
                         lf=[lf_single, lf_lat];
 
-                    end;
+                    end
 
-                end;
+                end
 
                 switch lower(S.type)
 
@@ -105,7 +108,7 @@ if isfield(BF.features, S.modality)
                     eta = u(:,1);
                     lf_single  = lf_single * eta;
 
-                    if do_lat,
+                    if do_lat
                         [u, ~] = svd(real(pinv_plus(tmp(nn+1:2*nn,nn+1:2*nn),reduce_rank,0)),'econ'); % this is faster,  - MWW                                                
                         eta = u(:,1);
                         lf_lat  = lf_lat * eta;
@@ -120,7 +123,7 @@ if isfield(BF.features, S.modality)
                         % construct the spatial filter
                         %W{i} = pinv(lf' * invCy * lf) * lf' * invCy;
                         W{i} = lf'*invCy/(lf' * invCy * lf); % this is faster - MWW
-                    end;                       
+                    end                   
 
 
                   case 'vector'
@@ -139,7 +142,7 @@ if isfield(BF.features, S.modality)
 
         inverse.class{kk}.W = W;
         inverse.class{kk}.L = L;
-    end;
+    end
 
 end
 

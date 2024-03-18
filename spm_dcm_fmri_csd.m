@@ -60,7 +60,7 @@ try, DCM.options.stochastic; catch, DCM.options.stochastic = 0;     end
 try, DCM.options.centre;     catch, DCM.options.centre     = 0;     end
 try, DCM.options.analysis;   catch, DCM.options.analysis   = 'CSD'; end
 try, DCM.options.order;      catch, DCM.options.order      = 8;     end
-try, DCM.options.nograph;    catch, DCM.options.nograph    = spm('CmdLine');  end
+try, DCM.options.nograph;    catch, DCM.options.nograph    = spm_get_defaults('cmdline');  end
 
 % check max iterations
 %--------------------------------------------------------------------------
@@ -205,6 +205,8 @@ DCM.M.n  = length(spm_vec(x));
 DCM.M.m  = size(DCM.U.u,2);
 DCM.M.l  = n;
 DCM.M.p  = DCM.options.order;
+DCM.M.nograph = DCM.options.nograph;
+DCM.M.noprint = ~spm_get_defaults('dcm.verbose');
 
 % specify M.u - endogenous input (fluctuations) and initial states
 %--------------------------------------------------------------------------

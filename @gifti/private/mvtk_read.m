@@ -13,7 +13,7 @@ function M = mvtk_read(filename)
 %__________________________________________________________________________
 
 % Guillaume Flandin
-% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+% Copyright (C) 2008-2023 Wellcome Centre for Human Neuroimaging
 
 
 [pth,name,ext] = fileparts(filename);

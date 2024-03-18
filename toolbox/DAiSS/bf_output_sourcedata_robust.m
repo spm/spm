@@ -1,11 +1,11 @@
 function sourcedata_robust = bf_output_sourcedata_robust(BF, S)
-% Extracts source data, handling bad data segments
-% Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
+% Extract source data, handling bad data segments
+%__________________________________________________________________________
 
 % Vladimir Litvak
-% $Id: bf_output_sourcedata_robust.m 7703 2019-11-22 12:06:29Z guillaume $
+% Copyright (C) 2013-2023 Wellcome Centre for Human Neuroimaging
 
-%--------------------------------------------------------------------------
+
 if nargin == 0
     method = cfg_menu;
     method.tag = 'method';

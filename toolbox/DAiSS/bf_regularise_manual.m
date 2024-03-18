@@ -1,11 +1,11 @@
 function res = bf_regularise_manual(BF, S)
 % Manual specification of the regularisation parameter
-% Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Vladimir Litvak
-% $Id: bf_regularise_manual.m 7703 2019-11-22 12:06:29Z guillaume $
+% Copyright (C) 2013-2023 Wellcome Centre for Human Neuroimaging
 
-%--------------------------------------------------------------------------
+
 if nargin == 0   
     lambda = cfg_entry;
     lambda.tag = 'lambda';
@@ -28,11 +28,11 @@ end
 %%%%%%%%%
 %MWW 19/11/2014
 % added to be compatible with multi-class festures (see bf_features)
-if isfield(S,'class'),
+if isfield(S,'class')
     features_mod      = BF.features.(S.modality).class{S.class};
 else   
     features_mod      = BF.features.(S.modality);    
-end;
+end
 C = features_mod.C;
 %%%%%%%%%
 

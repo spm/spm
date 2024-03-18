@@ -1,11 +1,11 @@
 function res = bf_sources_mni_coords(BF, S)
 % Generate beamforming grid
-% Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Mark Woolrich
-% $Id: bf_sources_mni_coords.m 7703 2019-11-22 12:06:29Z guillaume $
+% Copyright (C) 2012-2023 Wellcome Centre for Human Neuroimaging
 
-%--------------------------------------------------------------------------
+
 if nargin == 0 
     pos = cfg_entry;
     pos.tag = 'pos';
@@ -35,11 +35,11 @@ res = ft_transform_geometry(M, grid);
 % establish index of nearest bilateral grid point
 % for potential use in lateral beamformer.
 res.bilateral_index=zeros(size(S.pos,1),1);
-for jj=1:size(S.pos,1),
+for jj=1:size(S.pos,1)
     mnic=S.pos(jj,:);
     mnic(1)=-mnic(1);
     res.bilateral_index(jj)=nearest_vec(S.pos,mnic);
-end;
+end
 
 %pos=S.pos;figure;scatter3(pos(:,1),pos(:,2),pos(:,3),'.');
 %hold on; jj=100; kk=res.bilateral_index(jj);

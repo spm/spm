@@ -1,16 +1,15 @@
 function res = bf_output_image_cfGLM(BF, S)
-% Computes phase-amplitude coupling using a general linear model
+% Compute phase-amplitude coupling using a general linear model
 % currently takes both low frequency phase and amplitude as regressors
 % needs epoched data - uses epochs for statistics
 % writes out images for summary phase-amplitude coupling and
 % amplitude-amplitude coupling, as well as B coefficients per trial
-
-% Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Bernadette van Wijk, Vladimir Litvak
-% $Id: bf_output_image_cfGLM.m 7703 2019-11-22 12:06:29Z guillaume $
+% Copyright (C) 2012-2023 Wellcome Centre for Human Neuroimaging
 
-%--------------------------------------------------------------------------
+
 if nargin == 0
     all = cfg_const;
     all.tag = 'all';
@@ -567,7 +566,7 @@ B1=squeeze(mean(mean(Beta(:,:,:,1,:),2),1));
 B2=squeeze(mean(mean(Beta(:,:,:,2,:),2),1));
 B3=squeeze(mean(mean(Beta(:,:,:,3,:),2),1));
 
-% seond level stats
+% second level stats
 for i=1:nvert
     
     V=[];
@@ -592,7 +591,6 @@ for i=1:nvert
     pb_total(i)=1-spm_Fcdf(F_total,df(1),df(2));
     
 end
-
 
 %%write out images
 
@@ -637,6 +635,5 @@ cnt=cnt+1;
 %     image(cnt).label   = ['trial',num2str(k),'_B1_'  spm_file(fname, 'basename')];
 %     cnt=cnt+1;
 % end
-
 
 res = image;

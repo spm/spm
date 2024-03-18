@@ -6,6 +6,8 @@ function varargout = spm_platform(varargin)
 %         - 'bigend'  - return whether this architecture is big endian
 %                       - false  - is little endian
 %                       - true   - is big endian
+%         - 'mexext'  - return MEX filename extension
+%         - 'soext'   - return shared library filename extension
 %         - 'user'    - return username
 %         - 'host'    - return system's host name
 %         - 'tempdir' - return name of temp directory
@@ -37,8 +39,8 @@ function varargout = spm_platform(varargin)
 % it exists.
 %__________________________________________________________________________
 
-% Matthew Brett
-% Copyright (C) 1999-2022 Wellcome Centre for Human Neuroimaging
+% Matthew Brett, Guillaume Flandin
+% Copyright (C) 1999-2023 Wellcome Centre for Human Neuroimaging
 
 
 %-Initialise
@@ -61,6 +63,14 @@ varargout = {PLATFORM.bigend};
 case 'filesys'                            %-Return file system (deprecated)
 %==========================================================================
 varargout = {PLATFORM.filesys};
+
+case 'mexext'                               %-Return MEX filename extension
+%==========================================================================
+varargout = {PLATFORM.mexext};
+
+case 'soext'                     %-Return shared library filename extension
+%==========================================================================
+varargout = {PLATFORM.soext};
 
 case 'user'                                              %-Return user name
 %==========================================================================
@@ -165,12 +175,12 @@ if ~issup
 end
 
 
-%-Set byte ordering
+%-Byte ordering
 %--------------------------------------------------------------------------
 PLATFORM.bigend = PDefs(ci).endian;
 
 
-%-Set filesystem type
+%-Filesystem type
 %--------------------------------------------------------------------------
 PLATFORM.filesys = PDefs(ci).filesys;
 
@@ -178,6 +188,25 @@ PLATFORM.filesys = PDefs(ci).filesys;
 %-File separator character
 %--------------------------------------------------------------------------
 PLATFORM.sepchar = filesep;
+
+
+%-MEX filename extension
+%--------------------------------------------------------------------------
+PLATFORM.mexext = mexext;
+
+
+%-Shared library filename extension
+%--------------------------------------------------------------------------
+switch comp
+    case {'MACI64','MACA64'}
+        PLATFORM.soext = 'dylib';
+    case {'GLNXA64','ARM'}
+        PLATFORM.soext = 'so';
+    case 'PCWIN64'
+        PLATFORM.soext = 'dll';
+    otherwise
+        error(['Unknown platform "' comp '"']);
+end
 
 
 %-Username

@@ -12,6 +12,11 @@ function sett = pp_settings(deg,bnd,ext)
 %       1 - reflected
 %       2 - reflected negative
 % ext - extrapolation flag 0/1
+%__________________________________________________________________________
+
+% John Ashburner
+% Copyright (C) 2023 Wellcome Centre for Human Neuroimaging
+
 
 if true
     usize = @uint64;
@@ -56,5 +61,4 @@ else
     ext = int32(ext);
 end
 
-sett = struct("deg",deg, "bnd",bnd, "ext",ext);
-
+sett = struct('deg',deg, 'bnd',bnd, 'ext',ext);

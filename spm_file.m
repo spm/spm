@@ -33,12 +33,12 @@ function str = spm_file(str,varargin)
 % spm_file('C:\data\myimage.nii', 'prefix','rp_', 'ext','.txt')
 % returns 'C:\data\rp_myimage.txt' on a Windows platform
 %
-% spm_file({'/home/karl/software/spm8/spm.m'},'path','/home/karl/spm12')
-% returns {'/home/karl/spm12/spm.m'}
+% spm_file({'/home/karl/software/spm.m'},'path','/home/karl/spm')
+% returns {'/home/karl/spm/spm.m'}
 %
-% spm_file('/home/karl/software/spm12/spm.m','filename')
+% spm_file('/home/karl/software/spm/spm.m','filename')
 % returns 'spm.m', and
-% spm_file('/home/karl/software/spm12/spm.m','basename')
+% spm_file('/home/karl/software/spm/spm.m','basename')
 % returns 'spm'
 %
 % spm_file('SPM.mat','fpath')
@@ -53,7 +53,7 @@ function str = spm_file(str,varargin)
 %__________________________________________________________________________
 
 % Guillaume Flandin
-% Copyright (C) 2011-2022 Wellcome Centre for Human Neuroimaging
+% Copyright (C) 2011-2023 Wellcome Centre for Human Neuroimaging
 
 
 needchar = ischar(str);

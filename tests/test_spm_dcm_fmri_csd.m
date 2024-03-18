@@ -6,11 +6,13 @@ function tests = test_spm_dcm_fmri_csd
 
 tests = functiontests(localfunctions);
 
+function setup(testCase)
+spm_get_defaults('dcm.verbose',false);
+spm_get_defaults('cmdline',true);
+
 % -------------------------------------------------------------------------
 function test_endogenous(testCase)
 % Tests a model with no driving inputs
-
-spm('defaults','fmri');
 DCM = load(fullfile(get_data_path(), 'DCM_attention_CSD_endogenous_r7259.mat'));
 DCM = DCM.DCM;
 
@@ -24,7 +26,6 @@ testCase.assertTrue(isfield(DCM,'F'));
 function test_driving(testCase)
 % Tests a model with no driving inputs
 
-spm('defaults','fmri');
 DCM = load(fullfile(get_data_path(), 'DCM_attention_CSD_r7259.mat'));
 DCM = DCM.DCM;
 

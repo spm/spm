@@ -7,7 +7,7 @@ function tf = isfield(this,field)
 %__________________________________________________________________________
 
 % Guillaume Flandin
-% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+% Copyright (C) 2008-2023 Wellcome Centre for Human Neuroimaging
 
 
 tf = ismember(field, fieldnames(this));

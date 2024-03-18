@@ -1,11 +1,11 @@
 function res = bf_inverse_lcmv(BF, S)
 % Computes LCMV filters
-% Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Vladimir Litvak
-% $Id: bf_inverse_lcmv.m 7703 2019-11-22 12:06:29Z guillaume $
+% Copyright (C) 2012-2023 Wellcome Centre for Human Neuroimaging
 
-%--------------------------------------------------------------------------
+
 if nargin == 0
     orient        = cfg_menu;
     orient.tag    = 'orient';

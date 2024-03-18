@@ -1,10 +1,11 @@
 function voi = bf_sources_voi(BF, S)
 % Generate a set of VOIs specified in MNI coordinates
-% Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
-% $Id: bf_sources_voi.m 8061 2021-02-10 15:14:57Z spm $
+% Vladimir Litvak
+% Copyright (C) 2013-2023 Wellcome Centre for Human Neuroimaging
 
-%--------------------------------------------------------------------------
+
 if nargin == 0
     label = cfg_entry;
     label.tag = 'label';
@@ -144,6 +145,5 @@ voi.pos2voi(~inside) = [];
 if any(any(ori))
     voi.ori = ori(inside, :);
 end
-
 
 voi = ft_transform_geometry(M, voi);

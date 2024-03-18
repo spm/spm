@@ -1,4 +1,12 @@
 function s = getthreads(kernel,d)
+% Size of block of threads on a CUDA kernel
+% FORMAT s = getthreads(kernel,d)
+%__________________________________________________________________________
+
+% John Ashburner
+% Copyright (C) 2023 Wellcome Centre for Human Neuroimaging
+
+
 nmax = kernel.MaxThreadsPerBlock;
 d    = d(1:min(3,numel(d)));
 d    = double(d);
@@ -26,4 +34,3 @@ if n>1
         end
     end
 end
-

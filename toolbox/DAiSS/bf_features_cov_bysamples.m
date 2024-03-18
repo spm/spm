@@ -2,11 +2,12 @@ function res = bf_features_cov_bysamples(BF, S)
 % Simple covariance computation to handle variable width WOIs, 
 % Requires S.samples as a [1 x samples x ntrials] matrix of logical indices
 % indicating which data points should be used in the cov estimation
-%
-% Mark Woolrich 2014
+%__________________________________________________________________________
 
-%--------------------------------------------------------------------------
-if nargin == 0,
+% Mark Woolrich
+
+
+if nargin == 0
     cov_bysamples      = cfg_const;
     cov_bysamples.tag  = 'cov_bysamples';
     cov_bysamples.name = 'Cov estimation with variable width WOIs';
@@ -33,7 +34,7 @@ else Ibar = 1:ntrials; end
 
 num_of_invalid_covs=0;
 
-for i = 1:ntrials,
+for i = 1:ntrials
     nsamps=sum(S.samples(1,:,S.trials(i))>0);
     
     if(nsamps>1)
@@ -43,18 +44,18 @@ for i = 1:ntrials,
         ns = ns + nsamps - 1;      
     else
         num_of_invalid_covs=num_of_invalid_covs+1;
-    end;    
+    end  
     
-    if ismember(i, Ibar),        
+    if ismember(i, Ibar)      
         spm_progress_bar('Set', i); drawnow;
     end
 end
 
 spm_progress_bar('Clear');
 
-if(ntrials-num_of_invalid_covs < 10),
+if(ntrials-num_of_invalid_covs < 10)
     warning(['Only ' num2str(ntrials-num_of_invalid_covs) ' valid trial covariances']);
-end;
+end
 
 C = YY/ns;
 

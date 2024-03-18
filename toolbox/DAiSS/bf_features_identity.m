@@ -1,11 +1,11 @@
 function res = bf_features_identity(BF, S)
-% Returns identity matrix for cases when covariance is not necessary
-% Copyright (C) 2016 Wellcome Trust Centre for Neuroimaging
+% Identity matrix for cases when covariance is not necessary
+%__________________________________________________________________________
 
 % Vladimir Litvak
-% $Id: bf_features_identity.m 7703 2019-11-22 12:06:29Z guillaume $
+% Copyright (C) 2016-2023 Wellcome Centre for Human Neuroimaging
 
-%--------------------------------------------------------------------------
+
 if nargin == 0
     identity      = cfg_branch;
     identity.tag  = 'identity';

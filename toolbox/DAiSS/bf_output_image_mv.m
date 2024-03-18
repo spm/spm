@@ -1,13 +1,12 @@
 function res = bf_output_image_mv(BF, S)
-% Computes multivariate test on a number of frequency bands
-% Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
+% Compute multivariate test on a number of frequency bands
+%__________________________________________________________________________
 
 % Gareth Barnes, modified from Vladimir Litvak's example code
-% $Id: bf_output_image_mv.m 8213 2022-01-27 15:33:26Z george $
+% Copyright (C) 2012-2023 Wellcome Centre for Human Neuroimaging
 
-%--------------------------------------------------------------------------
 
-%% no covariance matrix creation -so need to check bands are within this window
+% no covariance matrix creation -so need to check bands are within this window
 
 if nargin == 0
     all = cfg_const;

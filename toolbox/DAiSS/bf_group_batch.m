@@ -1,11 +1,11 @@
 function res = bf_group_batch(BF, S)
 % Run a DAiSS batch on a group of subjects
-% Copyright (C) 2015 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Vladimir Litvak
-% $Id: bf_group_batch.m 7703 2019-11-22 12:06:29Z guillaume $
+% Copyright (C) 2015-2023 Wellcome Centre for Human Neuroimaging
 
-%--------------------------------------------------------------------------
+
 if nargin == 0 
     batchfile = cfg_files;
     batchfile.tag = 'batchfile';
@@ -79,7 +79,7 @@ end
 
 res = cell(1, numel(BF));
 for i = 1:numel(BF)
-    if isfield(matlabbatch{1}.spm.tools.beamforming, 'data');
+    if isfield(matlabbatch{1}.spm.tools.beamforming, 'data')
         D = spm_eeg_load(BF{i});
         matlabbatch{1}.spm.tools.beamforming.data.D = {fullfile(D)};
         dum = mkdir(D.path, [S.prefix 'BF']);

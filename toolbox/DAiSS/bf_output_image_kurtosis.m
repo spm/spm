@@ -1,11 +1,11 @@
 function res = bf_output_image_kurtosis(BF, S)
-% Computes kurtosis image
-% Copyright (C) 2019 Wellcome Centre for Human Neuroimaging
+% Compute kurtosis image
+%__________________________________________________________________________
 
 % Vladimir Litvak
-% $Id: bf_output_image_kurtosis.m 7703 2019-11-22 12:06:29Z guillaume $
+% Copyright (C) 2019-2023 Wellcome Centre for Human Neuroimaging
 
-%--------------------------------------------------------------------------
+
 if nargin == 0
     all = cfg_const;
     all.tag = 'all';

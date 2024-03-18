@@ -6,6 +6,7 @@ on:
   workflow_dispatch:
   schedule:
     - cron: '15 3 * * *'
+    - cron: '40 16 * * 3'
 jobs:
   matlab-tests:
     name: Run MATLAB Tests
@@ -27,28 +28,34 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v3
-      - name: Cache data file
+      - name: Setup cached test data folder
         id: cache-data-tests
         uses: actions/cache@v3
         with:
-          path: tests_data.zip
-          key: data-tests
+          path: tests/data
+          key: tests-data
           enableCrossOsArchive: true
-      - if: ${{ steps.cache-data-tests.outputs.cache-hit != 'true' }}
-        name: Download data file
-        run: |
-          curl -o tests_data.zip https://www.fil.ion.ucl.ac.uk/spm/download/data/tests/tests_data.zip 
-      - name: Unzip data for unit tests
-        run: |
-          unzip tests_data.zip
+      - name: Check out test data to latest 
+        uses: actions/checkout@v3
+        with: 
+          repository: spm/spm-tests-data
+          token: ${{ secrets.TESTS_DATA_REPO_TOKEN }}
+          path: tests/data
+          lfs: true
       - name: Set up MATLAB
         uses: matlab-actions/setup-matlab@v1
         with:
           release: ${{matrix.version}}
-      - name: Run unit tests with existing MEX files
+      - name: Run regression tests with existing MEX files
+        if: github.event.schedule == '40 16 * * 3'
         uses: matlab-actions/run-command@v1
         with:
-          command: addpath(pwd); results = spm_tests('display',true); assert(all(~[results.Failed]));
+          command: addpath(pwd); results = spm_tests('class','regression','display',true); assert(all(~[results.Failed]));
+      - name: Run unit tests with existing MEX files
+        if: github.event.schedule != '40 16 * * 3'
+        uses: matlab-actions/run-command@v1
+        with:
+          command: addpath(pwd); results = spm_tests('class','unit','display',true); assert(all(~[results.Failed]));
       - name: Compile MEX files
         run: |
           make -C src distclean
@@ -69,3 +76,5 @@ jobs:
           name: spm-${{env.MEXEXT}}-${{runner.os}}-${{matrix.version}}
           path: ./**/*.${{env.MEXEXT}}
           retention-days: 1
+          
+  

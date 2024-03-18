@@ -1,9 +1,10 @@
 function bf_save_path(BF,path, overwrite)
-% Saves BF data in a mat file
-% Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
+% Saves BF data in a MAT file
+%__________________________________________________________________________
 
 % Vladimir Litvak
-% $Id: bf_save_path.m 8223 2022-02-17 16:01:40Z george $
+% Copyright (C) 2012-2023 Wellcome Centre for Human Neuroimaging
+
 
 if nargin == 2 && exist(path, 'file')
     % Orignal append option appears to make the structure exponentially

@@ -1,12 +1,11 @@
 function res = bf_regularise_tichonov_rankdef(BF, S)
 % Tichonov regularisation for rank deficient matrices based on the function
-% contribute by Olaf Hauk
-% Copyright (C) 2018 Wellcome Centre for Human Neuroimaging
+%__________________________________________________________________________
 
-% Vladimir Litvak
-% $Id: bf_regularise_tichonov_rankdef.m 7703 2019-11-22 12:06:29Z guillaume $
+% Vladimir Litvak (contribute by Olaf Hauk)
+% Copyright (C) 2018-2023 Wellcome Centre for Human Neuroimaging
 
-%--------------------------------------------------------------------------
+
 if nargin == 0   
     rank = cfg_entry;
     rank.tag = 'rank';

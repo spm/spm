@@ -1,11 +1,11 @@
 #!/usr/bin/env make -f
-# GIfTI Makefile called by {SPM}/src/Makefile
+# GIfTI Makefile
 #
-# Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+# Copyright (C) 2008-2023 Wellcome Centre for Human Neuroimaging
 
 include ../../src/Makefile.var
 
-SPMMEX = zstream.$(MEXEXT)
+SPMMEX = zstream.$(MEXEXT) xml_parser.$(MEXEXT) base64.$(MEXEXT)
 
 ifeq (mex,$(MEXEXT))
   export CFLAGS = $(shell $(MEX) -p CFLAGS) -std=c99
@@ -34,3 +34,6 @@ tarball: all
 
 %.$(MEXEXT) : %.c
 	$(MEX) $< $(MEXEND)
+
+xml_parser.$(MEXEXT): xml_parser.c yxml.c yxml.h
+	$(MEX) $< yxml.c $(MEXEND)

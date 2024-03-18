@@ -6,11 +6,13 @@ function [po,freq] = spm_opm_psd(S)
 %   S.D             - SPM MEEG object                       - Default: no Default
 %   S.triallength   - window size (ms)                      - Default: 1000
 %   S.bc            - boolean to dc correct                 - Default: 0
-%   S.channels      - channels to estimate PSD from         - Default: 'ALL'
+%   S.channels      - channel  to estimate PSD from         - Default: 'ALL'
 %   S.plot          - boolean to plot or not                - Default: 0
 %   S.units         - units of measurement                  - Default: 'fT'
 %   S.constant      - constant line to draw as reference    - Default: 15
 %   S.wind          - function handle for window            - Default: @hanning
+%   S.plotbad       - place asterisk over unusual channels  - Default: 0
+
 %
 % Output:
 %   psd             - power spectral density
@@ -33,7 +35,8 @@ if ~isfield(S, 'plot'),          S.plot = 0; end
 if ~isfield(S, 'D'),             error('D is required'); end
 if ~isfield(S, 'trials'),        S.trials=0; end
 if ~isfield(S, 'wind'),          S.wind=@hanning; end
-if ~isfield(S, 'interact'),      S.interact=1; end
+if ~isfield(S, 'interact'),      S.interact =1; end
+if ~isfield(S, 'plotbad'),       S.plotbad = 0; end
 
 
 %-channel Selection
@@ -69,7 +72,13 @@ else
     nepochs=length(begs);
 end
 
-wind  = window(S.wind,N);
+try
+  wind  = window(S.wind,N);
+catch
+  % catch for environments without signal toolbox
+  wind = ones(N,1);
+end
+
 Nf= ceil((N+1)/2);
 coFac= max(wind)/mean(wind);
 wind = repmat(wind,1,length(chans));
@@ -122,6 +131,11 @@ end
 %--------------------------------------------------------------------------
 
 po = psdx;
+med = repmat(median(po,2),1,size(po,2));
+ma = repmat(median(abs(po-med),2)*1.48,1,size(po,2));
+Z = (po-med)./ma;
+
+bin = Z>abs(spm_invNcdf(.025/(size(po,2)*100),0,1));
 
 if(S.plot)
     f= figure();
@@ -141,6 +155,7 @@ if(S.plot)
     xlabel('Frequency (Hz)')
     labY = ['$$PSD (' S.units ' \sqrt[-1]{Hz}$$)'];
     ylabel(labY,'interpreter','latex')
+    
     grid on
     ax = gca; % current axes
     ax.FontSize = 13;
@@ -148,6 +163,14 @@ if(S.plot)
     fig= gcf;
     fig.Color=[1,1,1];
     xlim([0,100]);
+    if(S.plotbad)
+      for i = 1:size(po,2)
+        tag = [labs{i}, ', Index: ' num2str(indchannel(S.D,labs{i}))];
+        plot(freq(bin(:,i)), po(bin(:,i),i),'k*','tag',tag);
+      end
+    end
+    
+    
     if(S.interact)
         datacursormode on
         dcm = datacursormode(gcf);

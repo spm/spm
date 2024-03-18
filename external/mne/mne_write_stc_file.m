@@ -19,7 +19,7 @@ function mne_write_stc_file(filename,stc)
 %   License : BSD 3-clause
 %
 %
-%     $Id: mne_write_stc_file.m 8776 2013-11-14 09:04:48Z roboos $
+%     $Id$
 %     
 %     Revision 1.7  2006/05/05 03:50:40  msh
 %     Added routines to compute L2-norm inverse solutions.

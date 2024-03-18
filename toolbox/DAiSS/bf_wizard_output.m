@@ -1,5 +1,4 @@
-function [matlabbatch, output] = bf_wizard_output(S)
-
+function [BF, matlabbatch, output] = bf_wizard_output(S)
 % A handy command-line based batch filler with some defaults for DAiSS
 % output module, pick a few options, and it will default for unpopulated
 % fields
@@ -8,11 +7,17 @@ function [matlabbatch, output] = bf_wizard_output(S)
 %   - image_dics
 %   - image_mv
 %   - image_power
+%__________________________________________________________________________
 
-if ~isfield(S,'batch'); matlabbatch = []; else; matlabbatch = S.batch; end
-if ~isfield(S,'BF'); error('I need a BF.mat file specified!'); end
-if ~isfield(S,'method'); error('You need to specify a method!'); end
-if ~isfield(S,S.method); S.(S.method) = struct(); end
+% George O'Neill
+% Copyright (C) 2022-2023 Wellcome Centre for Human Neuroimaging
+
+
+if ~isfield(S,'batch'), matlabbatch = []; else; matlabbatch = S.batch;  end
+if ~isfield(S,'BF'),        error('I need a BF.mat file specified!');   end
+if ~isfield(S,'method'),    error('You need to specify a method!');     end
+if ~isfield(S,S.method),    S.(S.method) = struct();                    end
+if ~isfield(S,'run'),       S.run = 1;                                  end
 
 % specify BF, ensure its a cell...
 if ~iscell(S.BF)
@@ -168,3 +173,10 @@ end
 jobID = numel(matlabbatch) + 1;
 % generate matlabbatch
 matlabbatch{jobID}.spm.tools.beamforming.output = output;
+
+if S.run
+    out = spm_jobman('run',matlabbatch);
+    BF = out{1,1}.BF{:};
+else
+    BF = [];
+end

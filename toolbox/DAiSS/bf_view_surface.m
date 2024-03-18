@@ -1,11 +1,11 @@
 function res = bf_view_surface(BF, S)
-% Diplays surface plot of DAISS output results
-% Copyright (C) 2022 Wellcome Trust Centre for Neuroimaging
+% Diplay surface plot of DAISS output results
+%__________________________________________________________________________
 
 % George O'Neill
-% $Id: bf_view_surface.m 8340 2022-11-09 20:49:05Z guillaume $
+% Copyright (C) 2022-2023 Wellcome Centre for Human Neuroimaging
 
-%--------------------------------------------------------------------------
+
 if nargin == 0
     
     imageno           = cfg_entry;

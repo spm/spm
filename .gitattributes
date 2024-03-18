@@ -2,8 +2,10 @@
 
 *.m text diff=matlab
 *.c text
+*.cu text
 *.cpp text
 *.h text
+*.ptx text
 
 *.bib text
 *.css text
@@ -27,6 +29,9 @@
 *.mlapp binary
 *.mlx binary
 *.p binary
+*.so binary
+*.dll binary
+*.dylib binary
 
 *.dat binary
 *.gif binary

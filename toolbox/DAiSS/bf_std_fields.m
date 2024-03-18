@@ -1,4 +1,10 @@
 function fields = bf_std_fields(sel)
+%
+%__________________________________________________________________________
+
+% Vladimir Litvak
+% Copyright (C) 2013-2023 Wellcome Centre for Human Neuroimaging
+
 
 fields = {
     'data'

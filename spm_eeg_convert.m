@@ -30,6 +30,8 @@ function D = spm_eeg_convert(S)
 %
 % S.inputformat    - data type (optional) to force the use of specific data
 %                    reader
+% S.chanindx       - list of channels to read in the case of different 
+%                    sampling frequencies (EDF only)
 % S.eventpadding   - the additional time period around each trial for which
 %                    the events are saved with the trial (to let the user
 %                    keep and use for analysis events which are outside
@@ -73,6 +75,7 @@ if ~isfield(S, 'eventpadding'),    S.eventpadding = 0;                          
 if ~isfield(S, 'saveorigheader'),  S.saveorigheader = 0;                                   end
 if ~isfield(S, 'conditionlabels'), S.conditionlabels = 'Undefined' ;                       end
 if ~isfield(S, 'inputformat'),     S.inputformat = [] ;                                    end
+if ~isfield(S, 'chanindx'),        S.chanindx = [];                                        end
 
 if ~iscell(S.conditionlabels)
     S.conditionlabels = {S.conditionlabels};
@@ -87,13 +90,14 @@ if ~isfield(S, 'mode') || ~isequal(S.mode, 'header')
     S1.dataset        = S.dataset;
     S1.outfile        = S.outfile;
     S1.inputformat    = S.inputformat;
+    S1.chanindx       = S.chanindx;
     Dhdr              = spm_eeg_convert(S1);
     hdr               = Dhdr.hdr;
     event             = Dhdr.events;
     eventsamples      = Dhdr.events(':', 'samples');
 else
     %--------- Read and check header
-    hdr = ft_read_header(S.dataset, 'headerformat', S.inputformat);
+    hdr = ft_read_header(S.dataset, 'headerformat', S.inputformat, 'chanindx', S.chanindx);
     
     if isfield(hdr, 'label')
         [unique_label,junk,ind] = unique(hdr.label);

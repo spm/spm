@@ -8,6 +8,10 @@ function tests = test_spm_dcm_peb
 tests = functiontests(localfunctions);
 
 % -------------------------------------------------------------------------
+function setup(testCase)
+spm_get_defaults('dcm.verbose', false);
+
+% -------------------------------------------------------------------------
 function test_peb(testCase)
 
 data_path = get_data_path();

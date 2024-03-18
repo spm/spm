@@ -1,0 +1,143 @@
+# Makefile default variables
+#
+# Copyright (C) 1991-2023 Wellcome Centre for Human Neuroimaging
+#
+###############################################################################
+#
+# This file defines variables used in Makefile and has been tested under
+# Linux, Windows and macOS.
+#
+# If you have to tweak this file to compile the SPM MEX-files for your
+# platform, please send the details to <fil.spm@ucl.ac.uk> so they can be
+# included here.
+#
+# You can find some more help on the SPM online documentation:
+#  https://www.fil.ion.ucl.ac.uk/spm/docs/development/compilation/
+#
+###############################################################################
+
+SHELL        = /bin/sh
+MAKE         = make
+MEXOPTS      = -O -largeArrayDims
+MEXEND       =
+MOSUF        = o # mex output object suffix
+UNAME        = uname
+AR           = ar rcs
+COPY         = cp -f
+DEL          = rm -f
+MOVE         = mv -f
+MKDIR        = mkdir
+TAR          = tar
+ZIP          = gzip -f
+OMPFLAG      = -fopenmp
+WARNFLAG     = -Wall -Wextra -Wpedantic
+USE_OPENMP  ?= 0
+SOSUF        = so
+SONAME       = soname
+NVCC        ?= nvcc
+
+ifndef PLATFORM
+  PLATFORM   = $(shell $(UNAME))
+endif
+
+##### Linux #####
+ifeq (Linux,$(PLATFORM))
+  MEXEXT     = mexa64
+  MEXBIN    ?= mex
+  #MEXOPTS   += CFLAGS='$$CFLAGS $(WARNFLAG)'
+  NVCC      += -m64
+  PTXDIR     = ../lib/ptxa64
+  LIBDIR     = ../lib/liba64
+  CC         = gcc
+endif
+
+##### macOS #####
+ifeq (Darwin,$(PLATFORM))
+  MEXEXT     = mexmaci64
+  MEXBIN    ?= mex
+  # https://stackoverflow.com/questions/37362414/
+  OMPFLAG    = -fopenmp=libiomp5
+  CC         = gcc
+  NVCC      += -m64
+  LIBDIR     = ../lib/libmaci64
+  SOSUF      = dylib
+  SONAME     = install_name
+endif
+ifeq (arm64,$(PLATFORM))
+  MEXEXT     = mexmaca64
+  MEXBIN    ?= mex
+  # https://stackoverflow.com/questions/37362414/
+  OMPFLAG    = -fopenmp=libiomp5
+  CC         = gcc
+  NVCC      += -m64
+  LIBDIR     = ../lib/libmaca64
+  SOSUF      = dylib
+  SONAME     = install_name
+endif
+
+##### Windows #####
+ifeq (MINGW64,$(word 1,$(subst _, ,$(PLATFORM)))) # MSVC
+  MEXEXT     = mexw64
+  PTXDIR     = ../lib/ptxw64
+  LIBDIR     = ../lib/libw64
+  MEXBIN    ?= mex
+  MEXOPTS   += -DSPM_WIN32
+  MOSUF      = obj
+  CC         = x86_64-w64-mingw32-gcc-win32
+  SOSUF      = dll
+  NVCC       = nvcc.exe -m64
+endif
+ifeq (MSYS,$(word 1,$(subst _, ,$(PLATFORM)))) # GCC
+  MEXEXT     = mexw64
+  PTXDIR     = ../lib/ptxw64
+  LIBDIR     = ../lib/libw64
+  MEXBIN    ?= mex
+  MEXOPTS   += -DSPM_WIN32
+  SOSUF      = dll
+  MOSUF      = obj
+  NVCC       = nvcc.exe -m64
+endif
+
+#### Octave ####
+ifeq (octave,$(PLATFORM))
+  MEXEXT     = mex
+  MEXBIN    ?= mkoctfile
+  MEXOPTS    = --mex -DOCTAVE_MEX_FILE
+  #MEXOPTS   += $(WARNFLAG)
+  override PLATFORM = $(shell $(UNAME))
+  ifeq (MINGW64,$(word 1,$(subst _, ,$(PLATFORM))))
+    MEXOPTS += -DSPM_WIN32
+  endif
+  ifeq (MSYS,$(word 1,$(subst _, ,$(PLATFORM))))
+    MEXOPTS += -DSPM_WIN32
+  endif
+  OMPFLAG    =
+endif
+
+#### Otherwise ####
+ifndef MEXEXT
+  $(error Unknowm platform $(PLATFORM))
+endif
+
+ifeq (1,$(USE_OPENMP))
+  ifneq ($(OMPFLAG),)
+    MEXOPTS += CFLAGS='$$CFLAGS $(OMPFLAG)' LDFLAGS='$$LDFLAGS $(OMPFLAG)'
+  endif
+endif
+MEX          = $(MEXBIN) $(MEXOPTS)
+SUF          = $(MEXEXT)
+
+MATLABROOT   = $(realpath $(shell which $(firstword $(MEXBIN))))
+ifeq (mex,$(MEXEXT))
+  SPMEXE    ?= ../bin/spm-octave
+else
+  SPMEXE    ?= ../bin/spm-matlab
+endif
+
+define verb
+	@ echo "_____________________________________________________________"
+	@ echo ""
+	@ echo "        " $(1)
+	@ echo "_____________________________________________________________"
+	@ echo ""
+endef

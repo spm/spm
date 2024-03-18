@@ -1,9 +1,15 @@
 function f0 = push(f1, phi, dm0, sett)
-% GPU single precision f0 = push(f1, phi, dm0, sett)
+% GPU single precision push
+% FORMAT f0 = push(f1, phi, dm0, sett)
 % f1   - 3D float array
 % phi  - 4D float array (dim(4)=3)
 % dm0  - Output dimensions
 % sett - Settings
+%__________________________________________________________________________
+
+% John Ashburner
+% Copyright (C) 2023 Wellcome Centre for Human Neuroimaging
+
 
 persistent kernel
 
@@ -60,4 +66,3 @@ else
                  usize(dm0), usize(N), int32(sett.bnd), usize(sett.deg(1:3)+1), int32(sett.ext));
     f0 = reshape(f0,dm0);
 end
-

@@ -1,11 +1,11 @@
 function res = bf_sources_grid(BF, S)
 % Generate beamforming grid
-% Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
 
 % Vladimir Litvak
-% $Id: bf_sources_grid.m 8061 2021-02-10 15:14:57Z spm $
+% Copyright (C) 2012-2023 Wellcome Centre for Human Neuroimaging
 
-%--------------------------------------------------------------------------
+
 if nargin == 0 
     resolution = cfg_entry;
     resolution.tag = 'resolution';

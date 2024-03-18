@@ -1,11 +1,11 @@
 function res = bf_features_tdcov(BF, S)
 % Simple band limited covariance computation with temporal decomposition
-% Copyright (C) 2020 Wellcome Centre for Human Neuroimaging
+%__________________________________________________________________________
 
 % George O'Neill
-% $Id: bf_features_tdcov.m 8135 2021-08-13 13:06:18Z george $
+% Copyright (C) 2020-2023 Wellcome Centre for Human Neuroimaging
 
-%--------------------------------------------------------------------------
+
 if nargin == 0
     
     foi = cfg_entry;
@@ -49,13 +49,13 @@ D = BF.data.D;
 
 ntrials = length(S.trials);
 nchans  = length(S.channels);
-%% now identify frequency bands of interest
+% now identify frequency bands of interest
 
 nbands = size(S.foi,1);
 
-if length(unique(cellfun(@length, S.samples)))~=1,
+if length(unique(cellfun(@length, S.samples)))~=1
     error('all windows must be of equal length');
-end;
+end
 
 nwoi            = numel(S.samples);
 nsamples        = length(S.samples{1}); %% use length of first window to set up DCT (as all windows fixed at same length)
@@ -65,7 +65,7 @@ dctT            = spm_dctmtx(nsamples,nsamples);
 
 allfreqind=[];
 
-for fband = 1:nbands, %% allows one to break up spectrum and ignore some frequencies
+for fband = 1:nbands %% allows one to break up spectrum and ignore some frequencies
     
     freqrange  = S.foi(fband,:);
     
@@ -73,7 +73,7 @@ for fband = 1:nbands, %% allows one to break up spectrum and ignore some frequen
     
     allfreqind = sort(unique([allfreqind j]));
     
-end; % for fband=1:Nbands
+end % for fband=1:Nbands
 
 % Hanning operator (if requested)
 %----------------------------------------------------------------------

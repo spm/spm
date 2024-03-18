@@ -52,7 +52,7 @@ defaults.mat.format     = '-v6'; % options: '-mat', '-v6', '-v7.0', '-v7.3'
 %==========================================================================
 defaults.tbx.dir = { fullfile(spm('Dir'),'toolbox') };
 
-defaults.tbx.mb.data = fullfile(defaults.tbx.dir{1},'mb','data');
+defaults.tbx.mb.data = fullfile(defaults.tbx.dir{1},'MB','data');
 
 % DICOM Import defaults
 %==========================================================================
@@ -102,8 +102,8 @@ defaults.imcalc.prefix                = 'i';
 defaults.realign.estimate.quality = 0.95;
 defaults.realign.estimate.interp  = 2;
 defaults.realign.estimate.wrap    = [0 0 0];
-defaults.realign.estimate.sep     = 2;
-defaults.realign.estimate.fwhm    = 2;
+defaults.realign.estimate.sep     = 1.5;
+defaults.realign.estimate.fwhm    = 1;
 defaults.realign.estimate.rtm     = 1;
 defaults.realign.write.mask       = 1;
 defaults.realign.write.interp     = 4;
@@ -182,6 +182,9 @@ defaults.old.preproc.output.cleanup = 0;
 %==========================================================================
 defaults.smooth.fwhm = [8 8 8];
 
+% DCM defaults
+%==========================================================================
+defaults.dcm.verbose = true;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %-Prevent users from making direct calls to spm_defaults

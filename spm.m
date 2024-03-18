@@ -52,7 +52,7 @@ function varargout=spm(varargin)
 %_______________________________________________________________________
 
 % Andrew Holmes
-% Copyright (C) 1991,1994-2022 Wellcome Centre for Human Neuroimaging
+% Copyright (C) 1991,1994-2023 Wellcome Centre for Human Neuroimaging
 
 
 %=======================================================================
@@ -147,10 +147,11 @@ function varargout=spm(varargin)
 % CmdLine    - CommandLine usage? [default spm('CmdLine')]
 % F (output) - Handle of figure named
 %
-% FORMAT Fs = spm('Show')
+% FORMAT Fs = spm('Show',which)
 % Opens all SPM figure windows (with HandleVisibility) using `figure`.
-%   Maintains current figure.
-% Fs - vector containing all HandleVisible figures (i.e. get(0,'Children'))
+% Maintains current figure.
+% Fs    - vector containing all HandleVisible figures (i.e. get(0,'Children'))
+% which - 'spm' or 'all' [default 'all']
 %
 % FORMAT spm('Clear',Finter, Fgraph)
 % Clears and resets SPM-GUI, clears and timestamps MATLAB command window.
@@ -280,7 +281,7 @@ Modalities = {'PET','FMRI','EEG'};
 
 %-Format arguments
 %-----------------------------------------------------------------------
-if nargin == 0, Action = 'Welcome'; else Action = varargin{1}; end
+if nargin == 0, Action = 'Welcome'; else, Action = varargin{1}; end
 
 
 %=======================================================================
@@ -324,7 +325,7 @@ spm_check_installation('basic');
 local_clc;
 spm('AsciiWelcome');
 [SPMver, SPMrev] = spm('Ver');
-spm('FnBanner', ['v' SPMrev]);
+spm('FnBanner', SPMrev);
 fprintf('%-40s: %18s', 'Initialising SPM', '');
 Modality = upper(Action);
 spm_figure('close',allchild(0));                           fprintf('.');
@@ -375,7 +376,7 @@ case 'chmod'                      %-Change SPM modality PET<->fMRI<->EEG
 
 %-Sort out arguments
 %-----------------------------------------------------------------------
-if nargin<2, Modality = ''; else Modality = varargin{2}; end
+if nargin<2, Modality = ''; else, Modality = varargin{2}; end
 Modality = spm('CheckModality',Modality);
 
 %-Sort out global defaults
@@ -392,7 +393,7 @@ case 'defaults'                  %-Set SPM defaults (as global variable)
 %=======================================================================
 % spm('defaults',Modality)
 %-----------------------------------------------------------------------
-if nargin<2, Modality=''; else Modality=varargin{2}; end
+if nargin<2, Modality=''; else, Modality=varargin{2}; end
 Modality = spm('CheckModality',Modality);
 
 %-Re-initialise, load defaults (from spm_defaults.m) and store modality
@@ -466,7 +467,7 @@ case 'checkmodality'              %-Check & canonicalise modality string
 %=======================================================================
 % [Modality,ModNum] = spm('CheckModality',Modality)
 %-----------------------------------------------------------------------
-if nargin<2, Modality=''; else Modality=upper(varargin{2}); end
+if nargin<2, Modality=''; else, Modality=upper(varargin{2}); end
 if isempty(Modality)
     try
         Modality = spm_get_defaults('modality');
@@ -507,7 +508,7 @@ case 'createintwin'                      %-Create SPM interactive window
 %=======================================================================
 % Finter = spm('CreateIntWin',Vis)
 %-----------------------------------------------------------------------
-if nargin<2, Vis='on'; else Vis=varargin{2}; end
+if nargin<2, Vis='on'; else, Vis=varargin{2}; end
 
 %-Close any existing 'Interactive' 'Tag'ged windows
 %-----------------------------------------------------------------------
@@ -547,9 +548,9 @@ case 'fnuisetup'                %-Robust UI setup for main SPM functions
 %=======================================================================
 % [Finter,Fgraph,CmdLine] = spm('FnUIsetup',Iname,bGX,CmdLine)
 %-----------------------------------------------------------------------
-if nargin<4, CmdLine=spm('CmdLine'); else CmdLine=varargin{4}; end
-if nargin<3, bGX=1; else bGX=varargin{3}; end
-if nargin<2, Iname=''; else Iname=varargin{2}; end
+if nargin<4, CmdLine=spm('CmdLine'); else, CmdLine=varargin{4}; end
+if nargin<3, bGX=1; else, bGX=varargin{3}; end
+if nargin<2, Iname=''; else, Iname=varargin{2}; end
 if CmdLine
     Finter = spm_figure('FindWin','Interactive');
     if ~isempty(Finter), spm_figure('Clear',Finter), end
@@ -607,7 +608,7 @@ case {'fontsize','fontsizes','fontscale'}                 %-Font scaling
 % [FS,sf] = spm('FontSizes',FS)
 % sf = spm('FontScale')
 %-----------------------------------------------------------------------
-if nargin<2, FS=1:36; else FS=varargin{2}; end
+if nargin<2, FS=1:36; else, FS=varargin{2}; end
 
 offset     = 1;
 %try, if ismac, offset = 1.4; end; end
@@ -626,8 +627,8 @@ case 'winsize'                 %-Standard SPM window locations and sizes
 %=======================================================================
 % Rect = spm('WinSize',Win,raw)
 %-----------------------------------------------------------------------
-if nargin<3, raw=0; else raw=1; end
-if nargin<2, Win=''; else Win=varargin{2}; end
+if nargin<3, raw=0; else, raw=1; end
+if nargin<2, Win=''; else, Win=varargin{2}; end
 
 Rect = [[108 466 400 445];...
         [108 045 400 395];...
@@ -733,9 +734,9 @@ case 'figname'                                %-Robust SPM figure naming
 %=======================================================================
 % F = spm('FigName',Iname,F,CmdLine)
 %-----------------------------------------------------------------------
-if nargin<4, CmdLine=spm('CmdLine'); else CmdLine=varargin{4}; end
-if nargin<3, F='Interactive'; else F=varargin{3}; end
-if nargin<2, Iname=''; else Iname=varargin{2}; end
+if nargin<4, CmdLine=spm('CmdLine'); else, CmdLine=varargin{4}; end
+if nargin<3, F='Interactive'; else, F=varargin{3}; end
+if nargin<2, Iname=''; else, Iname=varargin{2}; end
 
 if CmdLine, varargout={[]}; return, end
 F = spm_figure('FindWin',F);
@@ -749,11 +750,21 @@ varargout={F};
 %=======================================================================
 case 'show'                   %-Bring visible MATLAB windows to the fore
 %=======================================================================
-% Fs = spm('Show')
+% Fs = spm('Show',which)
 %-----------------------------------------------------------------------
+if nargin<2, whch = 'all'; else, whch = lower(varargin{2}); end
 cF = get(0,'CurrentFigure');
-Fs = get(0,'Children');
-Fs = findobj(Fs,'flat','Visible','on');
+if strcmpi(whch,'spm')
+    hMenu = spm_figure('FindWin','Menu');
+    hInt  = spm_figure('GetWin','Interactive');
+    hGra  = spm_figure('GetWin','Graphics');
+    hSat  = spm_figure('FindWin','Satellite');
+    hBat  = spm_figure('FindWin','cfg_ui');
+    Fs    = [hMenu; hInt; hGra; hSat; hBat];
+else % all
+    Fs = get(0,'Children');
+    Fs = findobj(Fs,'flat','Visible','on');
+end
 for F=Fs(:)', figure(F), end
 try, figure(cF), set(0,'CurrentFigure',cF); end
 varargout={Fs};
@@ -762,10 +773,10 @@ varargout={Fs};
 %=======================================================================
 case 'clear'                                             %-Clear SPM GUI
 %=======================================================================
-% spm('Clear',Finter, Fgraph)
+% spm('Clear',Finter,Fgraph)
 %-----------------------------------------------------------------------
-if nargin<3, Fgraph='Graphics'; else Fgraph=varargin{3}; end
-if nargin<2, Finter='Interactive'; else Finter=varargin{2}; end
+if nargin<3, Fgraph='Graphics'; else, Fgraph=varargin{3}; end
+if nargin<2, Finter='Interactive'; else, Finter=varargin{2}; end
 spm_figure('Clear',Fgraph)
 spm_figure('Clear',Finter)
 spm('Pointer','Arrow')
@@ -821,7 +832,7 @@ case 'dir'                           %-Identify specific (SPM) directory
 %=======================================================================
 % spm('Dir',Mfile)
 %-----------------------------------------------------------------------
-if nargin<2, Mfile='spm'; else Mfile=varargin{2}; end
+if nargin<2, Mfile='spm'; else, Mfile=varargin{2}; end
 SPMdir = which(Mfile);
 if isempty(SPMdir)             %-Not found or full pathname given
     if exist(Mfile,'file')==2  %-Full pathname
@@ -840,7 +851,7 @@ case 'ver'                                                 %-SPM version
 % [SPMver, SPMrel] = spm('Ver',Mfile,ReDo)
 %-----------------------------------------------------------------------
 if nargin > 3, error('Too many input arguments.'); end
-if nargin ~= 3, ReDo = false; else ReDo = logical(varargin{3}); end
+if nargin ~= 3, ReDo = false; else, ReDo = logical(varargin{3}); end
 if nargin == 1 || (nargin > 1 && isempty(varargin{2}))
     Mfile = ''; 
 else
@@ -919,12 +930,10 @@ case 'tblaunch'                                  %-Launch an SPM toolbox
 %=======================================================================
 % xTB = spm('TBlaunch',xTB,i)
 %-----------------------------------------------------------------------
-if nargin < 3, i   = 1;          else i   = varargin{3}; end
-if nargin < 2, xTB = spm('TBs'); else xTB = varargin{2}; end
+if nargin < 3, i   = 1;          else, i   = varargin{3}; end
+if nargin < 2, xTB = spm('TBs'); else, xTB = varargin{2}; end
 
-if i == 0
-    spm_toolbox;
-else
+if i > 0
     %-Addpath (& report)
     %-------------------------------------------------------------------
     if isempty(strfind(path,xTB(i).dir))
@@ -961,7 +970,7 @@ case 'cmdline'                                  %-SPM command line mode?
 %=======================================================================
 % CmdLine = spm('CmdLine',CmdLine)
 %-----------------------------------------------------------------------
-if nargin<2, CmdLine=[]; else CmdLine=varargin{2}; end
+if nargin<2, CmdLine=[]; else, CmdLine=varargin{2}; end
 if isempty(CmdLine)
     try
         CmdLine = spm_get_defaults('cmdline');
@@ -977,8 +986,8 @@ case 'popupcb'               %-Callback handling utility for PopUp menus
 %=======================================================================
 % spm('PopUpCB',h,hdr)
 %-----------------------------------------------------------------------
-if nargin<2, h=[]; else h=varargin{2}; end
-if nargin<3, hdr=1; else hdr=varargin{3}; end
+if nargin<2, h=[]; else, h=varargin{2}; end
+if nargin<3, hdr=1; else, hdr=varargin{3}; end
 if isempty(h), h=gcbo; end
 v   = get(h,'Value');
 if v==hdr, return, end
@@ -1044,7 +1053,7 @@ case 'pointer'                 %-Set mouse pointer in all MATLAB windows
 %=======================================================================
 % spm('Pointer',Pointer)
 %-----------------------------------------------------------------------
-if nargin<2, Pointer='Arrow'; else  Pointer=varargin{2}; end
+if nargin<2, Pointer='Arrow'; else, Pointer=varargin{2}; end
 set(get(0,'Children'),'Pointer',lower(Pointer))
 
 
@@ -1056,10 +1065,10 @@ case {'alert','alert"','alert*','alert!'}                %-Alert dialogs
 
 %- Globals 
 %-----------------------------------------------------------------------
-if nargin<5, wait    = 0;  else wait    = varargin{5}; end
-if nargin<4, CmdLine = []; else CmdLine = varargin{4}; end
-if nargin<3, Title   = ''; else Title   = varargin{3}; end
-if nargin<2, Message = ''; else Message = varargin{2}; end
+if nargin<5, wait    = 0;  else, wait    = varargin{5}; end
+if nargin<4, CmdLine = []; else, CmdLine = varargin{4}; end
+if nargin<3, Title   = ''; else, Title   = varargin{3}; end
+if nargin<2, Message = ''; else, Message = varargin{2}; end
 Message = cellstr(Message);
 
 if isreal(CmdLine)
@@ -1199,7 +1208,7 @@ case 'help'                                  %-Pass through for spm_help
 %=======================================================================
 % spm('Help',varargin)
 %-----------------------------------------------------------------------
-if nargin>1, spm_help(varargin{2:end}), else spm_help, end
+if nargin>1, spm_help(varargin{2:end}), else, spm_help, end
 
 
 %=======================================================================

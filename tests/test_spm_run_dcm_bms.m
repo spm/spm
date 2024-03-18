@@ -92,12 +92,16 @@ F_gen  = mean_F + std_F .* randn(sum(m(:) > 0),1);
 % Build free energy matrix (mean -13, STD 1)
 F    = -13 + randn(n,4);
 F(m > 0) = F_gen;
-save('output/F.mat','F');
+
+out_dir = get_output_dir();
+save(fullfile(out_dir,'F.mat'),'F');
 
 % Run
 run_bms_Fmatrix('RFX');
 
-load('output/BMS.mat');
+% Load
+BMS=load(fullfile(out_dir,'BMS.mat'));
+BMS=BMS.BMS;
 
 % Check expected frequencies are within 10%
 actual = BMS.DCM.rfx.model.exp_r;
@@ -115,6 +119,7 @@ function test_rfx_strong_evidence(testCase)
 import matlab.unittest.constraints.*
 rng('default');
 rng(1);
+out_dir = get_output_dir();
 
 n = 20;      % Subjects
 models = 4;  % Models per subject
@@ -141,12 +146,14 @@ F_gen  = mean_F + std_F .* randn(sum(m(:) > 0),1);
 % Build free energy matrix (mean -13, STD 1)
 F    = -13 + randn(n,4);
 F(m > 0) = F_gen;
-save('output/F.mat','F');
+save(fullfile(out_dir,'F.mat'),'F');
 
 % Run
 run_bms_Fmatrix('RFX');
 
-load('output/BMS.mat');
+% Load
+BMS=load(fullfile(out_dir,'BMS.mat'));
+BMS=BMS.BMS;
 
 % Check expected frequencies are within 10%
 actual = BMS.DCM.rfx.model.exp_r;
@@ -161,17 +168,19 @@ function test_ffx_strong_evidence(testCase)
 % Tests FFX in the context of strong evidence
 
 import matlab.unittest.constraints.*
+out_dir = get_output_dir();
 
 % Free energies for model 1 and model 2
 F = [-10.3 -10.3 -10.3 -10.3 -10.3;
      -9.7  -9.7  -9.7  -9.7  -9.7]';
-save('output/F.mat','F');
+save(fullfile(out_dir,'F.mat'),'F');
 
 % Run
 run_bms_Fmatrix('FFX');
 
 % Check    
-load('output/BMS.mat');    
+BMS=load(fullfile(out_dir,'BMS.mat'));
+BMS=BMS.BMS;  
 actual_group_log_bf   = BMS.DCM.ffx.SF - min(BMS.DCM.ffx.SF);
 actual_PP             = BMS.DCM.ffx.model.post(2);
 
@@ -186,17 +195,19 @@ function test_ffx_no_evidence(testCase)
 % Tests FFX in the context of no evidence
 
 import matlab.unittest.constraints.*
+out_dir = get_output_dir();
 
 % Free energies for model 1 and model 2
 F = [-10 -10 -10 -10 -10
      -10 -10 -10 -10 -10]';
-save('output/F.mat','F');
+save(fullfile(out_dir,'F.mat'),'F');
 
 % Run
 run_bms_Fmatrix('FFX');
 
 % Check    
-load('output/BMS.mat');    
+BMS=load(fullfile(out_dir,'BMS.mat'));
+BMS=BMS.BMS;      
 actual_group_log_bf   = BMS.DCM.ffx.SF - min(BMS.DCM.ffx.SF);
 actual_PP             = BMS.DCM.ffx.model.post(2);
 
@@ -209,11 +220,12 @@ testCase.verifyThat(actual_PP, ...
 % -------------------------------------------------------------------------
 function run_bms_Fmatrix(method)
 % Run BMS using saved log evidence matrix
+out_dir = get_output_dir();
 clear matlabbatch;
-matlabbatch{1}.spm.dcm.bms.inference.dir = {'output'};
+matlabbatch{1}.spm.dcm.bms.inference.dir = {out_dir};
 matlabbatch{1}.spm.dcm.bms.inference.sess_dcm = {};
 matlabbatch{1}.spm.dcm.bms.inference.model_sp = {''};
-matlabbatch{1}.spm.dcm.bms.inference.load_f = {'output/F.mat'};
+matlabbatch{1}.spm.dcm.bms.inference.load_f = {fullfile(out_dir,'F.mat')};
 matlabbatch{1}.spm.dcm.bms.inference.method = method;
 matlabbatch{1}.spm.dcm.bms.inference.family_level.family_file = {''};
 matlabbatch{1}.spm.dcm.bms.inference.bma.bma_no = 0;

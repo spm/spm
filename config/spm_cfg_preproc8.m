@@ -59,25 +59,25 @@ biasreg.help    = {
     }';
 biasreg.labels = {
                   'no regularisation (0)'
-                  'extremely light regularisation (0.00001)'
-                  'very light regularisation (0.0001)'
-                  'light regularisation (0.001)'
-                  'medium regularisation (0.01)'
-                  'heavy regularisation (0.1)'
-                  'very heavy regularisation (1)'
-                  'extremely heavy regularisation (10)'
+                  'extremely light regularisation (0.000001)'
+                  'very light regularisation (0.00001)'
+                  'light regularisation (0.0001)'
+                  'medium regularisation (0.001)'
+                  'heavy regularisation (0.01)'
+                  'very heavy regularisation (0.1)'
+                  'extremely heavy regularisation (1)'
                   }';
 biasreg.values = {
                   0
-                  1e-05
+                  1e-6
+                  0.00001
                   0.0001
                   0.001
                   0.01
                   0.1
                   1
-                  10
                   }';
-biasreg.val    = {0.001};
+biasreg.val    = {0.0001};
 
 %--------------------------------------------------------------------------
 % biasfwhm INU FWHM
@@ -343,7 +343,7 @@ reg.help    = {...
     'The amount of regularisation determines the tradeoff between the terms. More regularisation gives smoother deformations, where the smoothness measure is determined by the bending energy of the deformations.'};
 reg.strtype = 'r';
 reg.num     = [1  5];
-reg.val     = {[0 0.001 0.5 0.05 0.2]};
+reg.val     = {[0 0 0.1 0.01 0.04]};
 
 %--------------------------------------------------------------------------
 % affreg Affine Regularisation

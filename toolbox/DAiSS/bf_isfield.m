@@ -1,12 +1,10 @@
 function bool = bf_isfield(BF,field)
-%
-% bool = bf_isfield(BF,field)
-%
-% Tool to efficiently identify if a field is contained within a BF file,
-% returns a logical
-%
+% Efficiently identify if a field is contained within a BF file
+% FORMAT bool = bf_isfield(BF,field)
+%__________________________________________________________________________
+
 % George O'Neill
-% $Id:
+% Copyright (C) 2020-2023 Wellcome Centre for Human Neuroimaging
 
 if exist(BF,'file') || exist(BF,'var')
     if isstruct(BF)
@@ -22,8 +20,8 @@ if exist(BF,'file') || exist(BF,'var')
         end
         H5F.close(fid);
     else
-        error('BF must be either a struct or string!')
+        error('BF must be either a struct or string.')
     end
 else
-    bool = 0;
+    bool = false;
 end

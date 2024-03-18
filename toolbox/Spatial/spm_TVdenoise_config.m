@@ -3,10 +3,10 @@ function cfg = spm_TVdenoise_config
 %__________________________________________________________________________
 
 % John Ashburner
-% Copyright (C) 2022-2023 Wellcome Centre for Human Neuroimaging
+% Copyright (C) 2023 Wellcome Centre for Human Neuroimaging
 
 %--------------------------------------------------------------------------
-% topup Topup
+% denoise Total-variation denoising
 %--------------------------------------------------------------------------
 cfg      = cfg_exbranch;
 cfg.tag  = 'denoise';
@@ -44,18 +44,18 @@ data.tag     = 'data';
 data.name    = 'Data';
 data.val     = {vols};
 data.help    = {
-'Specify the number of different channels (for multi-spectral classification). If you have scans of different contrasts for each of the subjects, then it is possible to combine the information from them in order to improve the segmentation accuracy. Note that only the first channel of data is used for the initial affine registration with the tissue probability maps.'
+'Specify the number of different image channels. If you have scans of different contrasts for each of the subjects, then it is possible to combine the information from them in a way that might improve the denoising.'
                }';
 data.values  = {vols};
 data.num     = [1 Inf];
 
-lambda        = cfg_menu;
-lambda.tag    = 'lambda';
-lambda.name   = 'Denoising strength';
-lambda.values = {10, 30, 100, 300, 1000};
-lambda.labels = {'  10: Weak', '  30: Reasonable', ' 100: Strong',' 300: Very strong', '1000: For testing'};
-lambda.val    = {30};
-lambda.help   = {'Vary the strength of denoising.'};
+lambda         = cfg_entry;
+lambda.tag     = 'lambda';
+lambda.name    = 'Denoising strength';
+lambda.strtype = 'r';
+lambda.num     = [1 1];
+lambda.val     = {0.03};
+lambda.help    = {'Vary the strength of denoising. This setting may need tweaking to obtain the best results. Note that the standard deviation over the field of view is used to adjust this setting.'};
 
 nit        = cfg_menu;
 nit.tag    = 'nit';
@@ -65,13 +65,24 @@ nit.labels = {'  10: Fastest/poorest', '  30: Fast/poor', ' 100: reasonable',' 3
 nit.val    = {100};
 nit.help   = {'Number of denoising relaxation iterations.'};
 
-dev        = cfg_menu;
-dev.tag    = 'dev';
-dev.name   = 'Device';
-dev.values = {0, 1};
-dev.labels = {'CPU', 'GPU'};
-dev.val    = {0};
-dev.help   = {'Run on CPU/GPU.'};
+% Better disable this option because SPM is supposed to not require
+% additional toolbox licenses.
+% I'm not sure what the proper way to test if a license for the Distributed
+% Computing Toolbox exists.
+if false % license('test','distrib_computing_toolbox')
+    device        = cfg_menu;
+    device.tag    = 'device';
+    device.name   = 'Device';
+    device.values = {'cpu','gpu'};
+    device.labels = {'CPU', 'GPU'};
+    device.val    = {'cpu'};
+    device.help   = {'Run on CPU/GPU. Note that using gpuArrays requires MATLAB''s Distributed Computing Toolbox.'};
+else
+    device          = cfg_const;
+    device.tag      = 'device';
+    device.val      = {'cpu'};
+    device.hidden   = true;
+end
 
-[cfg,varargout{1}] = deal({data lambda nit dev});
+[cfg,varargout{1}] = deal({data lambda nit device});
 

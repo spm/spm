@@ -176,6 +176,7 @@ if ~isempty(N0)
             N.extras.mat(:,:,V.n(1)) = V.mat;
         end
     else
+        N.mat = N0.mat;
         if sum(sum((N0.mat-V.mat).^2))>1e-8
             N.extras.mat(:,:,V.n(1)) = V.mat;
         end

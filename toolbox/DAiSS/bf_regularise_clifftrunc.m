@@ -1,12 +1,11 @@
 function res = bf_regularise_clifftrunc(BF, S)
-% Regularisation based on the sudden drop-off in the covariance
-% Eigenspectrum
-% Copyright (C) 2021 Wellcome Centre for Human Neuroimaging
+% Regularisation based on the sudden drop-off in the covariance Eigenspectrum
+%__________________________________________________________________________
 
 % George O'Neill
-% $Id: bf_regularise_clifftrunc.m 8307 2022-08-26 11:00:54Z george $
+% Copyright (C) 2021-2023 Wellcome Centre for Human Neuroimaging
 
-%--------------------------------------------------------------------------
+
 if nargin == 0
     
     zthresh = cfg_entry;

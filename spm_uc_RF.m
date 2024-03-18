@@ -31,22 +31,27 @@ du = 1e-6;
 
 %-Approximate estimate using E{m}
 %--------------------------------------------------------------------------
-d  = 1;
+d        = 1;
+attempts = 0;
 while abs(d) > 1e-6
     [P, P, p] = spm_P_RF(1,0,u,df,STAT,R,n);
     [P, P, q] = spm_P_RF(1,0,u + du,df,STAT,R,n);
     d         = (a - p)/((q - p)/du);
     u         = u + d;
-    if isinf(u), u=+Inf; return; end
+    if ~isfinite(u) || attempts>10000, u=+Inf; return; end
+    attempts  = attempts + 1;
 end
 
 %-Refined estimate using 1 - exp(-E{m})
 %--------------------------------------------------------------------------
-d  = 1;
+d        = 1;
+attempts = 1;
 while abs(d) > 1e-6
     p         = spm_P_RF(1,0,u,df,STAT,R,n);
     q         = spm_P_RF(1,0,u + du,df,STAT,R,n);
     d         = (a - p)/((q - p)/du);
     u         = u + d;
-    if isinf(u), u=+Inf; return; end
+    if ~isfinite(u) || attempts>10000, u=+Inf; return; end
+    attempts  = attempts + 1;
 end
+

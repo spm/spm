@@ -1,9 +1,10 @@
 function out = bf_view
 % Display the results of beamforming analysis
-% Copyright (C) 2022 Wellcome Centre for Human Neuroimaging
+%__________________________________________________________________________
 
 % George O'Neill
-% $Id: bf_view.m 8213 2022-01-27 15:33:26Z george $
+% Copyright (C) 2022-2023 Wellcome Centre for Human Neuroimaging
+
 
 % dir Directory
 % ---------------------------------------------------------------------

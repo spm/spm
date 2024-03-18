@@ -1,11 +1,11 @@
 function mont = bf_output_montage(BF, S)
-% Generates a montage for source extraction
-% Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
+% Generate a montage for source extraction
+%__________________________________________________________________________
 
 % Vladimir Litvak
-% $Id: bf_output_montage.m 7703 2019-11-22 12:06:29Z guillaume $
+% Copyright (C) 2013-2023 Wellcome Centre for Human Neuroimaging
 
-%--------------------------------------------------------------------------
+
 if nargin == 0
     label = cfg_entry;
     label.tag = 'label';

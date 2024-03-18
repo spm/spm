@@ -1,10 +1,9 @@
 function out = bf_write
 % Write out the results of beamforming analysis
 %__________________________________________________________________________
-% Copyright (C) 2015-2021 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: bf_write.m 8223 2022-02-17 16:01:40Z george $
+% Copyright (C) 2015-2023 Wellcome Centre for Human Neuroimaging
 
 
 out          = cfg_exbranch;

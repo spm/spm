@@ -1,17 +1,18 @@
 function res = bf_group_functionalROI(BF, S)
 % Computes Minimum Norm projectors
-% Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
-
-% Vladimir Litvak, using the code from Matti Stenroos and Olaf Hauk
-% http://imaging.mrc-cbu.cam.ac.uk/meg/AnalyzingData/DeFleCT_SpatialFiltering_Tools
 %
 % Please cite:
 % Hauk O, Stenroos M.
-% A framework for the design of flexible cross-talk functions for spatial filtering of EEG/MEG data: DeFleCT.
+% A framework for the design of flexible cross-talk functions for spatial
+% filtering of EEG/MEG data: DeFleCT.
 % Human Brain Mapping 2013
-% $Id: bf_group_functionalROI.m 7706 2019-11-22 16:30:29Z spm $
+% http://imaging.mrc-cbu.cam.ac.uk/meg/AnalyzingData/DeFleCT_SpatialFiltering_Tools
+%__________________________________________________________________________
 
-%--------------------------------------------------------------------------
+% Vladimir Litvak, using the code from Matti Stenroos and Olaf Hauk
+% Copyright (C) 2013-2023 Wellcome Centre for Human Neuroimaging
+
+
 if nargin == 0
     measure = cfg_menu;
     measure.tag = 'measure';
@@ -259,8 +260,3 @@ for p=1:Nl
     bf_save_path(BFp{p},fullfile(outdir, 'BF.mat'));
     res(p) = {fullfile(outdir, 'BF.mat')};
 end
-
-
-end
-
-

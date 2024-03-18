@@ -15,7 +15,7 @@ function fiff_write_int_matrix(fid,kind,mat)
 %   License : BSD 3-clause
 %
 %
-%   $Id: fiff_write_int_matrix.m 7908 2020-07-24 18:30:35Z spm $
+%   $Id$
 
 %
 %

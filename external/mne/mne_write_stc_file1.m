@@ -19,7 +19,7 @@ function mne_write_stc_file1(filename,stc)
 %   License : BSD 3-clause
 %
 %
-%     $Id: mne_write_stc_file1.m 8776 2013-11-14 09:04:48Z roboos $
+%     $Id$
 %     
 me='MNE:mne_write_stc_file1';
 if(nargin ~= 2)

@@ -1,10 +1,9 @@
 function out = bf_data
 % Prepare the data and initialise the beamforming pipeline
 %__________________________________________________________________________
-% Copyright (C) 2012-2021 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: bf_data.m 8119 2021-07-06 13:51:43Z guillaume $
+% Copyright (C) 2012-2023 Wellcome Centre for Human Neuroimaging
 
 
 out          = cfg_exbranch;
