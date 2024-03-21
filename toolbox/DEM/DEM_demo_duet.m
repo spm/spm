@@ -29,7 +29,7 @@ function DEM_demo_duet
 %--------------------------------------------------------------------------
 rng('default')
 
-LEARN = 1;                                 % enables learning
+LEARN = 0;                                 % enables learning
 NULL  = 0;                                 % no communication
 PHASE = 0;                                 % phase portrait
 

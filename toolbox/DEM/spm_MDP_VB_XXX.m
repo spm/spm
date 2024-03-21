@@ -389,13 +389,13 @@ for m = 1:Nm
         if isfield(MDP,'a')
             W{m,g} = spm_wnorm(qa{m,g});
         else
-            W{m,g} = false;
+            W{m,g} = [];
         end
 
         % and ambiguity (w) (for computation of expected free energy: G)
         %------------------------------------------------------------------
         if islogical(qa{m,g})
-            K{m,g} = false;
+            K{m,g} = [];
         else
             K{m,g} = spm_hnorm(qa{m,g});
     end
@@ -490,16 +490,16 @@ for m = 1:Nm
             try
             qh{m,f} = MDP(m).h{f};
             catch
-                qh{m,f} = false;
+                qh{m,f} = [];
             end
         elseif isfield(MDP,'H')
             try
             qh{m,f} = MDP(m).H{f}*512;
             catch
-                qh{m,f} = false;
+                qh{m,f} = [];
             end
         else
-            qh{m,f} = false;
+            qh{m,f} = [];
         end
 
         % Dirichlet prior
@@ -1075,7 +1075,7 @@ for t = 1:T
                     BP{m,f,k} = spm_dot(B{m,f},P(m,f,t));
                     end
 
-                    if any(I{m,f},'all')
+                    if numel(I{m,f})
                         IP{m,f,k} = spm_dot(I{m,f},P(m,f,t));
                     else
                         IP{m,f,k} = [];
@@ -1601,7 +1601,7 @@ for k = 1:Nk                                % search over policies
 
         % G(k): risk over latent states
         %------------------------------------------------------------------
-        if any(H{m,f},'all')
+        if numel(H{m,f})
             G(k,:) = G(k,:) - Q{f,k}'*(spm_log(Q{f,k}) - spm_log(H{m,f}));
         end
 
@@ -1615,7 +1615,7 @@ for k = 1:Nk                                % search over policies
 
     % inductive constraints over states
     %----------------------------------------------------------------------
-    if any(R,'all')
+    if numel(R)
         G(k,:) = G(k,:) + spm_dot(R,Q(r,k));
     end
 
@@ -1646,13 +1646,13 @@ for k = 1:Nk                                % search over policies
 
         % G(k): ambiguity
                 %----------------------------------------------------------
-        if any(K{m,g},'all')
+                if numel(K{m,g})
                 G(k,i) = G(k,i) + spm_dot(K{m,g},Q(j,k));
         end
 
             % expected information gain (likelihood novelty) (A)
                 %----------------------------------------------------------
-        if any(W{m,g},'all')
+                if numel(W{m,g})
                 G(k,i) = G(k,i) + qo'*spm_dot(W{m,g},Q(j,k));
         end
             end
@@ -2123,7 +2123,7 @@ end
 
 % Return if there are no intended states or constraints
 %--------------------------------------------------------------------------
-if isempty(hif), R = false; return, end
+if isempty(hif), R = [];   return, end
 if isempty(hid), R = 32*D;  return, end
 
 % Threshold transition probabilities
@@ -2246,7 +2246,7 @@ if any(i)
     R     = single(reshape(full(P),[Ns,1]));
     R     = shiftdim(32*R,-1);
 else
-    R = false;
+    R     = [];
 end
 
 return
@@ -2303,7 +2303,7 @@ A0  = sum(A);
 A   = minus(log(A0),log(A)) + minus(1./A,1./A0) + minus(psi(A),psi(A0));
 A   = max(A,0);
 else
-    A   = false;
+    A   = [];
 end
 
 function A  = spm_hnorm(A)
@@ -2312,7 +2312,7 @@ function A  = spm_hnorm(A)
 A     = spm_norm(A);
 A     = full(sum(A.*spm_log(A),1));
 if ~any(A,'all')
-    A = false;
+    A = [];
 end
 
 % Dirichlet entropies
@@ -2456,7 +2456,6 @@ return
 DEMO_MDP_maze_X             % Sophisticated inference
 DEMO_MDP_maze_XXX           % Inductive inference
 DEM_demo_MDP_XXX            % Active inference with backwards pass
-DEM_MNIST                   % Active selection without dynamics
 DEM_Pong                    % Inductive inference and dynamics
 DEM_Tower_of_Hanoi          % Active inference and structure learning
 DEM_Tower                   % Inductive inference and problem solving
@@ -2469,7 +2468,7 @@ DEM_MNIST_conv              % Active sampling and state-dependent codomains
 DEM_Atari                   % Conditionally independent factors
 DEM_Atari_learning          % Conditionally independent factors
 
-
+DEM_MNIST                   % Active selection without dynamics
 DEM_syntax                  % Under construction
 DEM_MNIST_RG                % Under construction
 
