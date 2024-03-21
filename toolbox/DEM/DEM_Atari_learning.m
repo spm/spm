@@ -55,8 +55,7 @@ function MDP = DEM_Atari_learning
 
 %% set up and preliminaries
 %--------------------------------------------------------------------------
-close all
-clc, rng(1)
+rng(1)
 
 % Get game: i.e., generative process (as a partially observed MDP)
 %==========================================================================

@@ -55,15 +55,15 @@ function MDP = DEM_drone_vision
 % of lines of sight and the number of directions the drone can turn among.
 %==========================================================================
 rng(1)
-T   = 32;                                % number of moves
+T   = 128;                               % number of moves
 N   = 0;                                 % depth of planning
 Nx  = 16;                                % size of environment
 Ny  = 16;                                % size of environment
 Nz  = 4;                                 % size of environment
-Nd  = 4;                                 % depth of line of sight
+Nd  = 5;                                 % depth of line of sight
 Nc  = 4;                                 % number of classes
 Nr  = 5;                                 % number of lines of sight
-Na  = 8;                                 % number of drone angles
+Na  = 12;                                % number of drone angles
 
 % Create a random environment where the class or state of each location
 % increases with height
@@ -79,12 +79,8 @@ end
 
 % boundary conditions (e.g., walls and floors; the last class)
 %--------------------------------------------------------------------------
-W    = max(W,1);
-W(1,:,:)   = Nc;
-W(end,:,:) = Nc;
-W(:,1,:)   = Nc;
-W(:,end,:) = Nc;
-W(:,:,1)   = Nc;
+W        = max(W,1);
+W(:,:,1) = Nc;
 
 % Now specify the hidden states at each location (a MAP)
 %--------------------------------------------------------------------------
@@ -106,7 +102,8 @@ title('True environment'), drawnow
 %--------------------------------------------------------------------------
 for f = 1:numel(MAP)
     B{f}  = spm_dir_norm(eye(Nc,Nc));
-    D{f}  = spm_softmax(MAP{f}/8);
+    D{f}  = spm_softmax(MAP{f}/64);
+    %%%% D{f}  = MAP{f}; %%%%
 end
 
 % Likelihood mapping: given states along the line of sight (i.e., rays)
@@ -116,9 +113,10 @@ end
 % state of the first non-empty location, where the first state corresponds
 % to empty space.
 %--------------------------------------------------------------------------
+n     = 1/128;                               % uncertainty (noise)
 Ns    = kron(ones(1,Nd),Nc);
-depth = false([Nd + 1,Ns]);
-state = false([Nc,    Ns]);
+depth = zeros([Nd + 1,Ns]);
+state = zeros([Nc,    Ns]);
 for s = 1:prod(Ns)
 
     % combination of classes
@@ -127,20 +125,22 @@ for s = 1:prod(Ns)
     d   = find(c > 1,1,'first');           % first nonempty state
     ind = num2cell(c);
     if numel(d)
-        depth(d,   ind{:}) = true;         % depth of first occluder
-        state(c(d),ind{:}) = true;         % state of first occluder
+        depth(d,   ind{:}) = 1;            % depth of first occluder
+        state(c(d),ind{:}) = 1;            % state of first occluder
+
+        % add uncertainty to likelihood
+        %--------------------------------------------------------------------------
+        if d < Nd,    depth(d + 1,ind{:})    = n; end
+        if d > 1,     depth(d - 1,ind{:})    = n; end
+
+        if c(d) < Nc, state(c(d) + 1,ind{:}) = n; end
+        if c(d) > 1,  state(c(d) - 1,ind{:}) = n; end
+
     else
-        depth(end, ind{:}) = true;         % nothing in range
-        state(1,   ind{:}) = true;         % nothing in range (empty)
+        depth(end, ind{:}) = 1;            % nothing in range
+        state(1,   ind{:}) = 1;            % nothing in range (empty)
     end
 end
-
-% add uncertainty about likelihood
-%--------------------------------------------------------------------------
-depth = depth + 1/8;
-depth = spm_dir_norm(depth);
-state = state + 1/8;
-state = spm_dir_norm(state);
 
 % lines of sight : the same for every modality or ray
 %--------------------------------------------------------------------------
@@ -152,11 +152,41 @@ end
 
 % Now specify the hidden states of the drone (and their dynamics)
 %--------------------------------------------------------------------------
+d     = Nd - 1;
 u     = [-1,0,1];
 Nu    = numel(u);
 for i = 1:Nu
-    BX(:,:,i) = full(spm_speye(Nx,Nx,u(i),2));
+
+    % perimeter contraints on x
+    %----------------------------------------------------------------------
+    BX(:,:,i) = full(spm_speye(Nx,Nx,u(i),1));
+    for j = 1:Nx
+        if j < d
+            BX(:,j,i) = full(sparse(d,1,1,Nx,1));
+        end
+    end
+    for j = 1:Nx
+        if j > (Nx - d + 1)
+            BX(:,j,i) = full(sparse((Nx - d + 1),1,1,Nx,1));
+        end
+    end
+
+    % perimeter contraints on y
+    %----------------------------------------------------------------------
     BY(:,:,i) = full(spm_speye(Ny,Ny,u(i),2));
+    for j = 1:Ny
+        if j < d
+            BY(:,j,i) = full(sparse(d,1,1,Ny,1));
+        end
+    end
+    for j = 1:Ny
+        if j > (Ny - d + 1)
+            BY(:,j,i) = full(sparse((Ny - d + 1),1,1,Ny,1));
+        end
+    end
+
+    % vertical and rotational moves
+    %----------------------------------------------------------------------
     BZ(:,:,i) = full(spm_speye(Nz,Nz,u(i),2));
     BR(:,:,i) = full(spm_speye(Na,Na,u(i),1));
 end
@@ -166,11 +196,12 @@ B = [BZ, B];
 B = [BY, B];
 B = [BX, B];
 
-% add uncertainty about state transitions
+% add uncertainty about state transitions (noise)
 %--------------------------------------------------------------------------
-c     = 1/16;
-for f = 1:4
+n     = [1/16, 1/16, 1/64, 0];
+for f = 1:numel(n)
     b           = B{f};
+    c           = n(f);
     B{f}(:,:,1) = b(:,:,1) + c*b(:,:,2) + c*b(:,:,1)^2;
     B{f}(:,:,2) = b(:,:,2) + c*b(:,:,1) + c*b(:,:,3);
     B{f}(:,:,3) = b(:,:,3) + c*b(:,:,2) + c*b(:,:,3)^2;
@@ -351,7 +382,6 @@ fprintf('Compute time: %i ms/update\n',round(1000*t/MDP.T))
 spm_figure('GetWin','Belief updating'); clf
 spm_MDP_VB_trial(MDP);
 
-
 % illustrate scene construction and exploration
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Active inference');
@@ -370,8 +400,6 @@ end
 %--------------------------------------------------------------------------
 fprintf('I am fairly confident I found at least %i\n\n',n)
 %--------------------------------------------------------------------------
-
-return
 
 
 % Solve - an example of search and rescue
@@ -409,22 +437,27 @@ fprintf('I''ve found a big green thing\n\n')
 % latent states (e.g., providing it with a map)
 %--------------------------------------------------------------------------
 MDP   = mdp;
-MDP.T = Nx;
+MDP.T = Nx + 8;
 MDP.D(1 + Nu:end) = MAP;
 
 % Specify intial (home) and final hidden (goal) states (hid)
 %--------------------------------------------------------------------------
-s1         = XYZ(find(W == 1,1,'first'),:);
-s2         = XYZ(find(W == 1,1,'last'),:);
+s          = XYZ(find(W == 1),:);
+[~,c]      = min(sum(abs(minus(s,[Nx/2,Ny/2,1])),2));
+s1         = s(1,:);
+s2         = s(c,:);
 
 MDP.D{1}   = full(sparse(s1(1),1,1,Nx,1));   % inital state
 MDP.D{2}   = full(sparse(s1(2),1,1,Ny,1));   % inital state
 MDP.D{3}   = full(sparse(s1(3),1,1,Nz,1));   % inital state
+MDP.D{4}   = full(sparse(    1,1,1,Na,1));   % inital state
+
 MDP.id.hid = s2(:);                          % final  state
 MDP        = spm_MDP_VB_XXX(MDP);
 
-spm_figure('GetWin','Wayfinding');
+spm_figure('GetWin','Wayfinding'); clf
 spm_behaviour(MDP,Nx,Ny,Nz)
+subplot(2,2,1), hold on, plot(s2(1),s2(2),'ow','MarkerSize',48)
 
 %--------------------------------------------------------------------------
 fprintf('Drop-off completed\n\n')
@@ -456,10 +489,6 @@ MDP   = spm_MDP_VB_XXX(MDP);
 
 spm_figure('GetWin','Orientation');
 spm_MDP_VB_trial(MDP);
-
-spm_figure('GetWin','Wayfinding');
-spm_behaviour(MDP,Nx,Ny,Nz)
-
 
 return
 
@@ -693,5 +722,18 @@ set(gcf,'ButtonDownFcn','spm_DEM_ButtonDownFcn')
 return
 
 
-
+%             % and is not near its perimeter
+%             %--------------------------------------------------------------
+%             if i < d || i > (Nx - d + 1)
+%                 c           = c + 1;          % next constraint
+%                 id.cid(1,c) = i;              % contrained factor
+%                 id.cid(2,c) = j;              % contrained factor
+%                 id.cid(3,c) = k;              % contrained factor
+%             end
+%             if j < d || j > (Ny - d + 1)
+%                 c           = c + 1;          % next constraint
+%                 id.cid(1,c) = i;              % contrained factor
+%                 id.cid(2,c) = j;              % contrained factor
+%                 id.cid(3,c) = k;              % contrained factor
+%             end
 

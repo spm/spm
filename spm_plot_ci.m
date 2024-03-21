@@ -34,7 +34,7 @@ function spm_plot_ci(E,C,x,j,s)
 ax   = gca;
 col  = get(ax,'ColorOrder');
 coli = get(ax,'ColorOrderIndex');
-coll = col(coli,:);
+coll = col(1 + rem(coli - 1,7),:);
 colf = erf(coll + 1);
 
 % confidence region (CR) plotting
