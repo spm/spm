@@ -67,9 +67,9 @@ for i = 1:numel(job.data)
             % then read the static field and negate it.
             fprintf(['\n\n\n WARNING: Phase map/vdm5 file and data to unwarp ' ...
                      'have different polarity\n The phase map/vdm5 file will ' ...
-                     'be negated to match the polarity of the data to unwarp\n ' ...
-                     'A new phase map/vdm5 file will be generated with the ' ...
-                     'suffix "neg"\n\n\n']);
+                     'be negated to match the polarity of the data to unwarp.\n ' ...
+                     'A new voxel displacement map (vdm*) file will be generated '...
+                     'with the suffix "neg"\n\n\n']);
             sfP_neg = replace(char(job.data(i).pmscan{1}),',1','');
             Nii    = nifti(sfP_neg);
             u      = single(Nii.dat(:,:,:));
@@ -95,7 +95,7 @@ for i = 1:numel(job.data)
         end
     else
         sfP{i} = [];
-        fprintf('\n\n\n WARNING: Phase map/vdm5 file not detected\n\n\n');
+        fprintf('\n\n\n WARNING: Voxel displacement map (vdm*) not detected\n\n\n');
     end
 end
 
