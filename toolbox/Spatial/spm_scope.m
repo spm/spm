@@ -1,6 +1,6 @@
-function vdm = spm_blip_updown(data, acqorder, FWHM, reg, rinterp, jac, pref, outdir)
-% Correct susceptibility distortions using Blip updown
-% FORMAT vdm = spm_blip_updown(vol1, vol2, FWHM, reg, save)
+function vdm = spm_scope(data, acqorder, FWHM, reg, rinterp, jac, pref, outdir)
+% Susceptibility Correction using Opposite PE 
+% FORMAT vdm = spm_scope(vol1, vol2, FWHM, reg, save)
 % data       - path to first image (s)(positive polarity(ies)) followed for the second image(s) (negative polarity (ies))
 % acqorder   - indicates in which order were acquired the images with
 %              different polarities
@@ -160,9 +160,9 @@ for fwhm = FWHM % Loop over spatial scales
     spm_smooth(f2,f2,[1 1 1]*fwhm); % Note the side effects
 
     if jac==1
-        [u,wf1,wf2] = blip_updown_jacobians(u, f1,f2, sig2, vx, reg, ord, 2e-3, 6, FG, fwhm);
+        [u,wf1,wf2] = scope_jacobians(u, f1,f2, sig2, vx, reg, ord, 2e-3, 6, FG, fwhm);
     else
-        [u,wf1,wf2] = blip_updown_basic(u, f1,f2, sig2, vx, reg, ord, 2e-3, 8, FG, fwhm);
+        [u,wf1,wf2] = scope_basic(u, f1,f2, sig2, vx, reg, ord, 2e-3, 8, FG, fwhm);
     end
 end
 
@@ -214,8 +214,8 @@ end
 % ===========================================================================
 
 % ===========================================================================
-function [u,wf1,wf2] = blip_updown_basic(u, f1,f2, sig2, vx, reg, ord, tol, nit, FG, fwhm)
-% Basic blip_updown, without accounting for jacobian modulation for stretching and compression.
+function [u,wf1,wf2] = scope_basic(u, f1,f2, sig2, vx, reg, ord, tol, nit, FG, fwhm)
+% Basic scope, without accounting for jacobian modulation for stretching and compression.
 if isempty(u)
     u   = zeros(size(f1));
 end
@@ -298,7 +298,7 @@ end
 % ===========================================================================
 
 % ===========================================================================
-function [u,wf1,wf2] = blip_updown_jacobians(u, f1,f2, sig2, vx, reg, ord, tol, nit, FG, fwhm)
+function [u,wf1,wf2] = scope_jacobians(u, f1,f2, sig2, vx, reg, ord, tol, nit, FG, fwhm)
 % It include in the process the changes of intensities due to
 % stretching and compression.
 if isempty(u)

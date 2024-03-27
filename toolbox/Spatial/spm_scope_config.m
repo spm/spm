@@ -1,4 +1,4 @@
-function blip_updown = spm_blip_updown_config
+function scope = spm_scope_config
 % SPM Configuration file for Blip updown distortion correction
 %__________________________________________________________________________
 
@@ -8,14 +8,14 @@ function blip_updown = spm_blip_updown_config
 %--------------------------------------------------------------------------
 % Blip Updown
 %--------------------------------------------------------------------------
-blip_updown      = cfg_exbranch;
-blip_updown.tag  = 'blip_updown';
-blip_updown.name = 'Blip Updown';
-blip_updown.val  = @blip_updown_cfg;
-blip_updown.help = {'Correct susceptibility distortions using Blip Updown.'};
-blip_updown.prog = @(job)spm_run_blip_updown('run',job);
-blip_updown.vout = @(job)spm_run_blip_updown('vout',job);
-blip_updown.help = {[...
+scope      = cfg_exbranch;
+scope.tag  = 'scope';
+scope.name = 'Blip Updown';
+scope.val  = @scope_cfg;
+scope.help = {'Correct susceptibility distortions using Blip Updown.'};
+scope.prog = @(job)spm_run_scope('run',job);
+scope.vout = @(job)spm_run_scope('vout',job);
+scope.help = {[...
 'Utility to correct susceptibility distortions in EPI images using ',...
 'a re-implementation of FSL''s topup (J.L.R. Andersson, S. Skare, J. Ashburner, 2003. ',...
 'How to correct susceptibility distortions in spin-echo echo-planar ',...
@@ -24,7 +24,7 @@ blip_updown.help = {[...
 'the y-direction (for the moment).']};
 
 %==========================================================================
-function varargout = blip_updown_cfg
+function varargout = scope_cfg
 
 persistent cfg
 if ~isempty(cfg), varargout = {cfg}; return; end
@@ -180,11 +180,11 @@ outdir.help    = {[...
 
 
 %==========================================================================
-function out = spm_run_blip_updown(cmd, job)
+function out = spm_run_scope(cmd, job)
 
 switch lower(cmd)
     case 'run'
-        vdm               = spm_blip_updown(job.data,job.acqorder,job.fwhm,job.reg, ...
+        vdm               = spm_scope(job.data,job.acqorder,job.fwhm,job.reg, ...
                             job.rinterp,job.jac,job.prefix,job.outdir{1});
         out.vdmfile       = {vdm.dat.fname};
 
