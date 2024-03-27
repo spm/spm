@@ -10,7 +10,7 @@ function scope = spm_scope_config
 %--------------------------------------------------------------------------
 scope      = cfg_exbranch;
 scope.tag  = 'scope';
-scope.name = 'Blip Updown';
+scope.name = 'SCOPE';
 scope.val  = @scope_cfg;
 scope.help = {'Correct susceptibility distortions using Blip Updown.'};
 scope.prog = @(job)spm_run_scope('run',job);
