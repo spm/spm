@@ -1,18 +1,17 @@
 function scope = spm_scope_config
-% SPM Configuration file for Blip updown distortion correction
+% SPM Configuration file for SCOPE distortion correction
 %__________________________________________________________________________
 
 % Nicole Labra Avila
 % Copyright (C) 2022-2023 Wellcome Centre for Human Neuroimaging
 
 %--------------------------------------------------------------------------
-% Blip Updown
+% SCOPE
 %--------------------------------------------------------------------------
 scope      = cfg_exbranch;
 scope.tag  = 'scope';
 scope.name = 'SCOPE';
 scope.val  = @scope_cfg;
-scope.help = {'Correct susceptibility distortions using Blip Updown.'};
 scope.prog = @(job)spm_run_scope('run',job);
 scope.vout = @(job)spm_run_scope('vout',job);
 scope.help = {[...
@@ -91,7 +90,7 @@ fwhm.strtype = 'e';
 fwhm.num     = [1 Inf];
 fwhm.help    = {[...
 'Spatial scales (expressed as FWHM of Gaussian kernels used to smooth ',...
-'input images during Blip Updown estimation.']};
+'input images during SCOPE estimation.']};
 
 %--------------------------------------------------------------------------
 % Regularisation .*

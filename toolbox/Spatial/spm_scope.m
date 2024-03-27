@@ -64,7 +64,7 @@ end
 
 %-Check the amount of blip reversed pairs entered. If there is more
 % than one pair, the average image of every group of positive polarities or
-% negative polarities are computed with spm_realign.m.  Blip Updown is executed 
+% negative polarities are computed with spm_realign.m.  SCOPE is executed 
 % using the average of each goup of images.
 %--------------------------------------------------------------------------
 % Default parameters for spm_realign
@@ -147,7 +147,7 @@ u   = zeros(d,'single'); % Starting estimates of displacements
 % Set the windows figure
 FG = spm_figure('GetWin','Graphics');
 
-%-Blip Updown
+%-SCOPE
 %==========================================================================
 for fwhm = FWHM % Loop over spatial scales
 
@@ -389,7 +389,7 @@ end
 
 % ===========================================================================
 function do_display(wf1,wf2,u,jd,g,FG,fwhm,it)
-% Display Blip Updown iterations in Graphics window
+% Display SCOPE iterations in Graphics window
 if FG==0, return; end
 pl = ceil(size(wf1,3)*0.5);
 
@@ -402,7 +402,7 @@ if ~isempty(jd)
     pic2 = pic2.*(1-jds);
 end
 
-sgtitle(['Blip Updown! ----> fwhm : ' num2str(fwhm) ' it: ' num2str(it)]);
+sgtitle(['SCOPE! ----> fwhm : ' num2str(fwhm) ' it: ' num2str(it)]);
 ax = subplot(3,2,1,'Parent',FG);
 imagesc(ax, pic1');
 axis(ax,'image','xy','off');
