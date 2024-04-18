@@ -701,7 +701,9 @@ images.name   = 'Scans';
 images.filter = 'nifti';
 images.num    = [1 Inf];
 images.help   = {['Select one NIfTI format scan for each subject.']};
+%--------------------------------------------------------------------------
 
+%--------------------------------------------------------------------------
 fil      = cfg_exbranch;
 fil.tag  = 'fil';
 fil.name = 'Image Labelling';
@@ -718,10 +720,38 @@ fil.help = {...
 %--------------------------------------------------------------------------
 
 %--------------------------------------------------------------------------
+images        = cfg_files;
+images.tag    = 'images';
+images.name   = 'Scans';
+images.filter = 'nifti';
+images.num    = [1 Inf];
+images.help   = {['Select one NIfTI format scan for each subject.']};
+%--------------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
+mbnorm      = cfg_exbranch;
+mbnorm.tag  = 'mbnorm';
+mbnorm.name = 'Spatially normalise';
+mbnorm.val  = {images};
+mbnorm.prog = @spm_mbnorm;
+mbnorm.vout = @vout_mbnorm; % TODO
+mbnorm.help = {...
+    'Spatial normalisation using Multi-Brain.', ...
+    ['Spatially normalise by matching a pre-computed template to each image. '...
+    'The template is not in ICBM space, but a deformation is provided for composing '...
+    'with the inverse of the estimated deformations in order to obtain a suitable '...
+    'spatially normalising deformation. '...
+    'Note that the algorithm '...
+    'may need to download additional data from Figshare:'], ...
+    '    * https://figshare.com/articles/dataset/Deformation_field_mapping_from_ICMB_to_mu_X_nii/17143796/1',...
+    '    * https://figshare.com/articles/dataset/Head_Tissue_Template/17143289'};
+%--------------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 cfg        = cfg_choice;
 cfg.tag    = 'mb';
 cfg.name   = 'Multi-Brain toolbox';
-cfg.values = {mb,mrg,out,fil};
+cfg.values = {mb,mrg,out,fil,mbnorm};
 cfg.help   = {['The Multi-Brain (MB) toolbox has the general aim of integrating a number of disparate ' ...
                'image analysis components within a single unified generative modelling framework ' ...
                '(segmentation, nonlinear registration, image translation, etc.).']};
@@ -891,4 +921,17 @@ dep            = cfg_dep;
 dep.sname      = 'Labelled brains';
 dep.src_output = substruct('.','labels','()',{':'});
 dep.tgt_spec   = cfg_findspec({{'filter','nifti'}});
+%__________________________________________________________________________
+%
+%__________________________________________________________________________
+function dep = vout_mbnorm(cfg)
+vo1            = cfg_dep;
+vo1.sname      = 'Deformation';
+vo1.src_output = substruct('.','def');
+vo1.tgt_spec   = cfg_findspec({{'filter','nifti'}});
+vo2            = cfg_dep;
+vo2.sname      = 'Warped Images';
+vo2.src_output = substruct('.','warped');
+vo2.tgt_spec   = cfg_findspec({{'filter','image'}});
+dep            = [vo1, vo2];
 

@@ -87,6 +87,8 @@ switch fn
         [Def,mat] = get_id(job.(fn));
     case {'idbbvox'}
         [Def,mat] = get_idbbvox(job.(fn));
+    case {'supplied'}
+        [Def,mat] = get_supplied(job.(fn));
     otherwise
         error('Unrecognised job type');
 end
@@ -197,6 +199,15 @@ if numel(d)~=5 || d(4)~=1 || d(5)~=3
 end
 Def = reshape(Def,[d(1:3) d(5)]);
 mat = Nii.mat;
+
+
+%==========================================================================
+% function [Def,mat] = get_supplied(job)
+%==========================================================================
+function [Def,mat] = get_supplied(job)
+% Deformation field passed as an argument
+Def = single(job.Def);
+mat = job.mat;
 
 
 %==========================================================================

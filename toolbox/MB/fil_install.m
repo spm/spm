@@ -34,6 +34,11 @@ filename{2} = 'fil30-nuNaN-v1-d4-K24-r2-sd1.5.mat';
 %url{2} = 'https://figshare.com/ndownloader/files/31784579'; % Old HDF5 version
 url{2} = 'https://figshare.com/ndownloader/files/39594484'; % MATLAB -v6 file format
 
+% Deformation between ICBM-space and X
+filename{3} = 'y_icbm_to_X.nii';
+url{3} = 'https://figshare.com/ndownloader/files/31700369';
+
+
 for i=1:numel(filename)
     varargout{i} = fullfile(datadir, filename{i});
 
@@ -48,3 +53,4 @@ for i=1:numel(filename)
         end
     end
 end
+
