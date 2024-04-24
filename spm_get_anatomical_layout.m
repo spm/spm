@@ -464,7 +464,7 @@ head_positions = [head_positions; la_intersect_points; ar_intersect_points; ...
 lay = [];
 
 % Loop through each sensor position
-for sens_idx = 1:height(sensor_positions(:, 1))
+for sens_idx = 1:length(sensor_positions(:, 1))
     % Make a vector from the origin to the sensor
     sens_vec = (sensor_positions(sens_idx, :) - origin_elec) / norm(sensor_positions(sens_idx, :) - origin_elec);
 

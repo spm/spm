@@ -328,7 +328,8 @@ if positions
             'LPA', fid.fid.pnt(contains(fid.fid.label, 'lpa'),:), ...
             'RPA', fid.fid.pnt(contains(fid.fid.label, 'rpa'),:));
         pos = grad.coilpos;
-        lay = spm_get_anatomical_layout(pos, grad.label, double(gifti(D.inv{1}.mesh.tess_scalp).vertices), fid_struct, 0);
+        scalp_mesh = gifti(D.inv{1}.mesh.tess_scalp);
+        lay = spm_get_anatomical_layout(pos, grad.label, double(scalp_mesh.vertices), fid_struct, 0);
         pos2d = transpose(lay.pos);
         
         [sel1, sel2] = spm_match_str(lower(D.chanlabels), lower(lay.label));
@@ -780,7 +781,7 @@ function Snew = read_neuro1_data(Sold)
 
     % Create channels.tsv file
     [direc, dataFile] = fileparts(Sold.data);
-    writecell(chans,fullfile(direc, [dataFile,'_channels.tsv']), 'filetype','text', 'delimiter','\t')
+    spm_save(fullfile(direc, [dataFile,'_channels.tsv']), chans)
 
     % Add in a warning if there's a datapoint missing
 
