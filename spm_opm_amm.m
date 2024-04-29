@@ -10,6 +10,7 @@ function [mfD,Yinds] = spm_opm_amm(S)
 %   S.window        - temporal window size (s)        - 10
 %   S.prefix        - prefix to filename          - Default 'm'
 %   S.corrLim       - correlation limit          - Default 1
+%   S.plotSpheroid  - flag to plot spheroid      - Default 1
 % Output:
 %   D               - denoised MEEG object (also written to disk)
 %__________________________________________________________________________
@@ -28,6 +29,7 @@ if ~isfield(S, 'skip'),          S.skip = 0; end
 if ~isfield(S, 'chunkSize'),     S.chunkSize = 512; end
 if ~isfield(S, 'prefix'),        S.prefix = 'm'; end
 if ~isfield(S, 'reducerank'),    S.reducerank = 0; end
+if ~isfield(S, 'plotSpheroid'),  S.plotSpheroid = 0; end
 
 %-Get design matrix
 %--------------------------------------------------------------------------
@@ -45,6 +47,7 @@ usedLabs= chanlabels(S.D,usedinds);
 
 %usedLabs = intersect(usedLabs,s.label);
 [~,sinds] = spm_match_str(usedLabs,s.label);
+usedLabs = s.label(sinds);
 Yinds = indchannel(S.D,usedLabs);    
     
 %-fit the ellipsoid
@@ -69,10 +72,6 @@ if (ind~=2)
 error('Y is not longest axis.... fix please')
 end
 
-% figure()
-% plot3(v(:,1),v(:,2),v(:,3),'.k')
-% daspect([1,1,1])
-% hold on 
 
 inside = v(:,1).^2/r(1)^2+v(:,2).^2/r(2)^2+v(:,3).^2/r(3)^2;
 c = sum(inside<1);
@@ -87,10 +86,15 @@ while c>0
   
 end
 
-% [X,Y,Z]=ellipsoid(o(1),o(2),o(3),r(1),r(2),r(3),10);
-% plot3(X(:),Y(:),Z(:),'.')
-% daspect([1,1,1])
-
+if S.plotSpheroid
+  figure()
+  plot3(v(:,1),v(:,2),v(:,3),'.k')
+  daspect([1,1,1])
+  hold on
+  [X,Y,Z]=ellipsoid(o(1),o(2),o(3),r(1),r(2),r(3),10);
+  plot3(X(:),Y(:),Z(:),'.')
+  daspect([1,1,1])
+end
 %-construct the projectors
 %--------------------------------------------------------------------------
 a = max(r);
