@@ -579,17 +579,19 @@ chans.status = cellstr(repmat('good',size(hdr.label,1),1));
 nchans = size(hdr.orig.chs,2);
 pos = [hdr.orig.chs.loc]';
 
-
-% currently only radial support. 
-positions = [];
-positions.Px = pos(:,1);
-positions.Py = pos(:,2);
-positions.Pz = pos(:,3);
-positions.Ox = pos(:,10);
-positions.Oy = pos(:,11);
-positions.Oz = pos(:,12);
-positions.name = {hdr.orig.chs.ch_name}';
-
+try
+  positions = spm_load(S.positions);
+catch
+  % currently only radial support.
+  positions = [];
+  positions.Px = pos(:,1);
+  positions.Py = pos(:,2);
+  positions.Pz = pos(:,3);
+  positions.Ox = pos(:,10);
+  positions.Oy = pos(:,11);
+  positions.Oz = pos(:,12);
+  positions.name = {hdr.orig.chs.ch_name}';
+end
 
 Snew=S;
 Snew.data =data*1e15;
