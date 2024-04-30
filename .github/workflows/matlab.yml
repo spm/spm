@@ -16,6 +16,10 @@ jobs:
         version: ["R2020a", "R2020b", "R2021a", "R2021b", "R2022a", "R2022b", "R2023a", "R2023b"]
         os: ["ubuntu-latest", "macos-latest", "windows-latest"]
         exclude:
+          - os: macos-latest 
+            version: "R2020a" # MATLAB not available
+          - os: ubuntu-latest
+            version: "R2020a" # MATLAB not available
           - os: windows-latest
             version: "R2020a" # MATLAB not available
           - os: windows-latest
@@ -26,6 +30,10 @@ jobs:
             version: "R2021b" # Compiler not available
     runs-on: ${{matrix.os}}
     steps:
+      - name: Set up MATLAB
+        uses: matlab-actions/setup-matlab@v2
+        with:
+          release: ${{matrix.version}}
       - name: Check out repository
         uses: actions/checkout@v3
       - name: Setup cached test data folder
@@ -42,18 +50,14 @@ jobs:
           token: ${{ secrets.TESTS_DATA_REPO_TOKEN }}
           path: tests/data
           lfs: true
-      - name: Set up MATLAB
-        uses: matlab-actions/setup-matlab@v2
-        with:
-          release: ${{matrix.version}}
       - name: Run regression tests with existing MEX files
         if: github.event.schedule == '40 16 * * 3'
-        uses: matlab-actions/run-command@v1
+        uses: matlab-actions/run-command@v2
         with:
           command: addpath(pwd); results = spm_tests('class','regression','display',true); assert(all(~[results.Failed]));
       - name: Run unit tests with existing MEX files
         if: github.event.schedule != '40 16 * * 3'
-        uses: matlab-actions/run-command@v1
+        uses: matlab-actions/run-command@v2
         with:
           command: addpath(pwd); results = spm_tests('class','unit','display',true); assert(all(~[results.Failed]));
       - name: Compile MEX files
