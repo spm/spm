@@ -93,6 +93,7 @@ function out = eeg_reduce(job)
 S   = [];
 S.D = job.D{1};
 
+S.timewin   = job.timewin;
 S.prefix    = job.prefix;
 S.channels  = spm_cfg_eeg_channel_selector(job.channels);
 
