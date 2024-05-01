@@ -49,6 +49,7 @@ continuous.values = {timewin, readall};
 continuous.val = {readall};
 continuous.help = {''};
 
+
 usetrials = cfg_const;
 usetrials.tag = 'usetrials';
 usetrials.name = 'Trials defined in data';
@@ -105,10 +106,16 @@ epoched.name = 'Epoched';
 epoched.values = {usetrials trlfile define};
 epoched.help = {''};
 
+header = cfg_const;
+header.tag = 'header';
+header.name = 'Header only';
+header.val  = {1};
+header.help = {''};
+
 mode = cfg_choice;
 mode.tag = 'mode';
 mode.name = 'Reading mode';
-mode.values = {continuous, epoched};
+mode.values = {continuous, epoched, header};
 mode.val = {continuous};
 mode.help = {'Select whether you want to convert to continuous or epoched data.'};
 
@@ -202,10 +209,15 @@ switch  S.mode
         if isfield(job.mode.epoched, 'define')
             S.trialdef =  job.mode.epoched.define.trialdef;
             S.timewin  =  job.mode.epoched.define.timewin;          
-        end
+        end    
 end
 
 out.D = spm_eeg_convert(S);
+
+if isequal(S.mode, 'header')
+    save(out.D);
+end
+
 out.Dfname = {fullfile(out.D.path, out.D.fname)};
 
 
