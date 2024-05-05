@@ -1,8 +1,9 @@
-function [MDP,RG,LG] = spm_MB_structure_learning(O,L)
+function [MDP,RG,LG] = spm_MB_structure_learning(O,L,dt)
 % RG structure learning of a hierarchical POMDP
-% FORMAT [MDP,LG,RG] = spm_MB_structure_learning(O,L)
+% FORMAT [MDP,LG,RG] = spm_MB_structure_learning(O,L,dt)
 % O{N,T} - probabilitic exemplars of paths (cell aray)
 % L      - array of pixel locations
+% dt     - time dilation [1 for images]   
 % 
 % MDP{n} - cell aray of MDPs
 % RG{n}  - cell aray of group indices
@@ -22,7 +23,7 @@ function [MDP,RG,LG] = spm_MB_structure_learning(O,L)
 
 % options for model inversion (and evaluation)
 %==========================================================================
-dt    = 2;                              % time scaling
+if nargin < 3, dt = 2; end              % time scaling
 O     = {O};                            % outcomes
 
 % learn the dynamics in the form of a hierarchical MDP
@@ -35,20 +36,20 @@ for n = 1:8
     % locations
     %----------------------------------------------------------------------
     if true
-        hold on, plot(L(:,2),L(:,1),'.r'), axis ij image
-        hold on, plot(L(:,2),L(:,1),'ow'), axis ij image
+        hold on, plot(L(:,2),L(:,1),'.r','MarkerSize',2*n + 2), axis ij image
+        hold on, plot(L(:,2),L(:,1),'ow','MarkerSize',2*n + 2), axis ij image
         title(sprintf('Locations at scale %i',n)), drawnow
     end
 
     % Grouping into a partition of outcomes
     %----------------------------------------------------------------------
-    G     = spm_tile(L);
+    G     = spm_space(L);
     T     = spm_time(size(O{n},2),dt);
     for g = 1:numel(G)
 
         % structure_learning from unique exemplars
         %------------------------------------------------------------------
-        mdp  = spm_structure_fast(O{n}(G{g},:));
+        mdp  = spm_structure_fast(O{n}(G{g},:),dt);
 
         % place in hierarchical structure
         %------------------------------------------------------------------
@@ -80,27 +81,33 @@ for n = 1:8
 
         % initial states and paths
         %------------------------------------------------------------------
+        ig    = 1;
+        L     = zeros(1,size(L,2));
         for g = 1:numel(G)
 
-            % check for singletons
-            %------------------------------------------------------------------
-            if numel(MDP{n}.B{g}) > 1
-                MDP{n}.id.D{g} = 2*g - 1;
-                MDP{n}.id.E{g} = 2*g - 0;
-                O{n + 1}{MDP{n}.id.D{g},t} = pdp.X{g}(:,1);
-                O{n + 1}{MDP{n}.id.E{g},t} = pdp.P{g}(:,end);
-            end
+            % states, paths and average location for this goup
+            %--------------------------------------------------------------
+            qs = pdp.X{g}(:,1);
+            qu = pdp.P{g}(:,end);
+            ml = mean(MDP{n}.LG(G{g},:));     
+
+            % states (odd)
+            %--------------------------------------------------------------
+            MDP{n}.id.D{g} = ig;
+            O{n + 1}{ig,t} = qs;
+            L(ig,:)        = ml;
+            ig = ig + 1;
+
+            % paths (even)
+            %--------------------------------------------------------------
+            MDP{n}.id.E{g} = ig;
+            O{n + 1}{ig,t} = qu;
+            L(ig,:)        = ml;
+            ig = ig + 1;
+
         end
     end
-
-    % average location of next level outcomes
-    %----------------------------------------------------------------------
-    L     = zeros(size(O{n + 1},1),size(L,2));
-    for g = 1:numel(G)
-        L(2*g - 1,:) = mean(MDP{n}.LG(G{g},:));
-        L(2*g - 0,:) = L(2*g - 1,:);
-    end
-
+    
     % Check whether there is only one group or (generalised) object
     %----------------------------------------------------------------------
     if numel(G) == 1
@@ -111,9 +118,9 @@ end
 
 return
 
-function mdp = spm_structure_fast(O)
+function mdp = spm_structure_fast(O,dt)
 % A fast form of structure learning
-% FORMAT mdp = spm_structure(O)
+% FORMAT mdp = spm_structure_fast(O,dt)
 % O   - Cell array of (cells of) a sequence of probabilistic outcomes
 % mdp - likelihood (a) and transition (b) tensors for this sequence
 %
@@ -125,23 +132,35 @@ function mdp = spm_structure_fast(O)
 % transitions among latent states.
 %__________________________________________________________________________
 
+% defaults
+%--------------------------------------------------------------------------
+if nargin < 2, dt = 2; end
+
 % Unique outputs
 %--------------------------------------------------------------------------
-o       = spm_cat(O)';
-o       = fix(o*128);
-[~,i,j] = unique(o,'rows','stable');
+j     = spm_unique(O);
 
 % Likelihood tensors
 %--------------------------------------------------------------------------
-Ng    = size(O,1);
+Ng    = size(O,1);                          % number in group
+Ns    = numel(unique(j));                   % number of latent causes
 a     = cell(Ng,1);
 for g = 1:Ng
-    a{g} = full(spm_cat(O(g,i)));
+    for s = 1:Ns
+        a{g}(:,s) = full(mean(spm_cat(O(g,ismember(j,s))),2));
+    end
+end
+
+% return if no dynamics
+%--------------------------------------------------------------------------
+if dt < 2
+    mdp.a    = a;
+    mdp.b{1} = eye(Ns,Ns);
+    return
 end
 
 % Transition tensors
 %--------------------------------------------------------------------------
-Ns    = numel(i);
 b     = zeros(Ns,Ns);
 for t = 1:(numel(j) - 1)
 
@@ -175,9 +194,9 @@ mdp.b{1} = b;
 
 return
 
-function G = spm_tile(L)
+function G = spm_space(L)
 % Grouping into a partition of non-overlapping outcome tiles
-% FORMAT G = spm_tile(L)
+% FORMAT G = spm_space(L)
 %--------------------------------------------------------------------------
 % L  - Location array
 %
@@ -186,6 +205,11 @@ function G = spm_tile(L)
 % Effectively, this leverages the conditional independencies that inherit
 % from local interactions; of the kind found in metric spaces that preclude
 % action at a distance.
+%
+% The implicit grouping identifies a reduced number of group centroids and
+% assigns lower scale locations to the nearest centroid. The group averages
+% then constitute the locations for the next scale. In this example, the
+% number of locations is reduced by a factor of two in both dimensions.
 %--------------------------------------------------------------------------
 
 % locations
@@ -239,3 +263,77 @@ end
 
 return
 
+
+function [j] = spm_unique(a)
+% information geometry of a likelihood mapping
+% FORMAT [j] = spm_unique(a)
+% a{g}    - Dirichlet tensor for modality g
+%
+% This routine uses the information geometry inherent in a likelihood
+% mapping. It computes a similarity matrix based upon an approximation to
+% the information length between columns of a likelihood tensor (as
+% approximated by the KL divergence of the implicit categorical
+% distributions).
+%__________________________________________________________________________
+% Karl Friston
+% Copyright (C) 2012-2022 Wellcome Centre for Human Neuroimaging
+
+% Fast approximation by simply identifying unique locations in a
+% multinomial statistical manifold, after discretising to probabilities of
+% zero, half and one (using Matlab’s unique and fix operators).
+%--------------------------------------------------------------------------
+o       = spm_cat(a)';
+[~,~,j] = unique(fix(2*o),'rows','stable');
+
+return
+
+% information geometry – divergence : likelihood mapping
+%--------------------------------------------------------------------------
+C     = 0;
+for g = 1:size(a,1)
+    q  = spm_cat(a(g,:));
+    p  = spm_log(q);
+    KL = q'*p;
+    KL = minus(KL,diag(KL));
+    C  = C + (KL + KL').^2;
+end
+
+% similarity matrix (assuming normalised vectors on a hypersphere)
+%--------------------------------------------------------------------------
+C     = real(C);                                % distance metric
+c     = C/max(C,[],'all');                      % normalise distance
+c     = 1 - 2*c;                                % correlation matrix
+[u,s] = spm_svd(c,1/256);                       % eigenvectors
+o     = u*s;
+
+% discretise and return indices of unique outcomes
+%--------------------------------------------------------------------------
+[~,~,j] = unique(fix(o),'rows','stable');
+
+
+% cut and paste for graphics
+%==========================================================================
+
+% Display [eigen] space
+%==========================================================================
+spm_figure('GetWin','Information geometry'); clf;
+
+s     = diag(real(s));
+[s,i] = sort(s,'descend');
+u     = real(u(:,i));
+
+% eigenspace
+%--------------------------------------------------------------------------
+subplot(2,2,2), bar(s(1:16)), 
+xlabel('eigenvectors'), ylabel('eigenvalues'), title('Eigenvalues')
+axis square
+
+subplot(2,2,1), imagesc(c);
+xlabel('latent states'), ylabel('latent states')
+title('Correlation matrix'), axis image
+
+subplot(2,1,2)
+plot3(u(:,1),u(:,2),u(:,3),'.'), title('Embedding sapce')
+axis image, grid on
+
+return

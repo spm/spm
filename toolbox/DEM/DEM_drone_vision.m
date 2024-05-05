@@ -55,7 +55,7 @@ function MDP = DEM_drone_vision
 % of lines of sight and the number of directions the drone can turn among.
 %==========================================================================
 rng(1)
-T   = 128;                               % number of moves
+T   = 32;                               % number of moves
 N   = 0;                                 % depth of planning
 Nx  = 16;                                % size of environment
 Ny  = 16;                                % size of environment
@@ -103,7 +103,6 @@ title('True environment'), drawnow
 for f = 1:numel(MAP)
     B{f}  = spm_dir_norm(eye(Nc,Nc));
     D{f}  = spm_softmax(MAP{f}/64);
-    %%%% D{f}  = MAP{f}; %%%%
 end
 
 % Likelihood mapping: given states along the line of sight (i.e., rays)
@@ -113,7 +112,7 @@ end
 % state of the first non-empty location, where the first state corresponds
 % to empty space.
 %--------------------------------------------------------------------------
-n     = 1/128;                               % uncertainty (noise)
+n     = 1/512;                             % uncertainty (noise)
 Ns    = kron(ones(1,Nd),Nc);
 depth = zeros([Nd + 1,Ns]);
 state = zeros([Nc,    Ns]);
@@ -198,7 +197,7 @@ B = [BX, B];
 
 % add uncertainty about state transitions (noise)
 %--------------------------------------------------------------------------
-n     = [1/16, 1/16, 1/64, 0];
+n     = [1/32, 1/32, 1/128, 0];
 for f = 1:numel(n)
     b           = B{f};
     c           = n(f);
@@ -250,12 +249,6 @@ id.ff = (1:Nu);
 id.fg = cell(Ng + Ng,1);
 Nsf   = Ns(1:Nu);
 
-% location of hidden factors in rectangular coordinates
-%--------------------------------------------------------------------------
-for s = 1:prod([Nx,Ny,Nz])
-    XYZ(s,:) = spm_index([Nx,Ny,Nz],s);
-end
-
 % for every combination of (Nu) domain factors (i.e., id.ff)
 %--------------------------------------------------------------------------
 for s = 1:prod(Nsf)
@@ -281,7 +274,10 @@ for s = 1:prod(Nsf)
             % find nearest location in the latent state space
             %--------------------------------------------------------------
             xyz    = spm_spherical2rectang(origin,ph,th,d);
-            [~,j]  = min(sum(minus(XYZ,xyz).^2,2));
+            x      = uint8(max(min(xyz(1),Nx),1));
+            y      = uint8(max(min(xyz(2),Ny),1));
+            z      = uint8(max(min(xyz(3),Nz),1));
+            j      = sub2ind([Nx,Ny,Nz],x,y,z);
             loc(d) = j + Nu;
 
         end
@@ -301,9 +297,6 @@ end
 %--------------------------------------------------------------------------
 for g = 1:numel(A)
     C{g} = spm_dir_norm(ones(size(A{g},1),1));
-end
-for g = 1:Ng
-    C{g} = spm_softmax(sparse(1,1,-2,Nd + 1,1));
 end
 
 % Supplement with constraints in latent state space
@@ -442,7 +435,13 @@ MDP.D(1 + Nu:end) = MAP;
 
 % Specify intial (home) and final hidden (goal) states (hid)
 %--------------------------------------------------------------------------
-s          = XYZ(find(W == 1),:);
+% location of hidden factors in rectangular coordinates
+%--------------------------------------------------------------------------
+for s = 1:prod([Nx,Ny,Nz])
+    XYZ(s,:) = spm_index([Nx,Ny,Nz],s);
+end
+
+s          = XYZ(W == 1,:);
 [~,c]      = min(sum(abs(minus(s,[Nx/2,Ny/2,1])),2));
 s1         = s(1,:);
 s2         = s(c,:);

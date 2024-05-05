@@ -18,14 +18,18 @@ function spm_dir_disentangle(a,n)
 
 % preliminaries
 %--------------------------------------------------------------------------
-a      = spm_dir_norm(a);
-spm_KL = @(q,p) (q'*(spm_log(q) - spm_log(p))).^2;
 if nargin < 2
-    n  = 16; % number of classification states to plot
+    n = 16; % number of classification states to plot
 end
+
+% KL divergence squared
+%--------------------------------------------------------------------------
+spm_KL = @(q,p) (q'*(spm_log(q) - spm_log(p))).^2;
+
 
 % reduce tensor if necessary
 %--------------------------------------------------------------------------
+a     = spm_dir_norm(a);
 Ns    = size(a{1}(:,:,:),2:3);
 for g = 1:numel(a)
     for i = 1:Ns(2)

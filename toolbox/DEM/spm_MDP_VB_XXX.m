@@ -23,13 +23,13 @@ function [MDP] = spm_MDP_VB_XXX(MDP,OPTIONS)
 %
 % optional:
 % MDP.s(Nf,T)           - true states   - for each hidden factor
+% MDP.u(Nu,T)           - true paths    - for each hidden factor
 % MDP.o(Ng,T)           - true outcomes - for each outcome modality
 % MDP.O{Ng,T}           - likelihoods   - for each outcome modality
-% MDP.u(Nu,T)           - true controls - for each hidden factor
 %
-% MDP.alpha             - precision - action selection [512]
+% MDP.alpha             - precision - implicit control [512]
 % MDP.beta              - precision - active learning [0]
-% MDP.chi               - Occams window for deep updates
+% MDP.chi               - precision - explicit control
 % MDP.eta               - Forgetting hyperparameter [128]
 % MDP.N                 - depth of deep policy search [N = 0]
 % MDP.k(1,Nf)           - beliefs about controllable factors
@@ -238,10 +238,10 @@ if size(MDP,2) > 1
             end
         end
 
-        % solve this trial (for all models synchronously)
+        % solve this MDP (for all models synchronously)
         %------------------------------------------------------------------
         OUT(:,i) = spm_MDP_VB_XXX(MDP(:,i),OPTIONS);
-        fprintf('trial %i\n',i);
+        fprintf('Update %i\n',i);
 
         % Bayesian model reduction
         %------------------------------------------------------------------
@@ -278,8 +278,9 @@ end
 
 % defaults
 %--------------------------------------------------------------------------
-try, alpha = MDP(1).alpha; catch, alpha = 512;  end % action precision
+try, alpha = MDP(1).alpha; catch, alpha = 512;  end % planning precision
 try, beta  = MDP(1).beta ; catch, beta  = 0;    end % learning precision
+try, chi   = MDP(1).alpha; catch, chi   = 512;  end % action precision
 try, eta   = MDP(1).eta;   catch, eta   = 512;  end % learnability
 try, N     = MDP(1).N;     catch, N     = 0;    end % depth of policy search
 
@@ -313,6 +314,8 @@ for m = 1:Nm
         MDP(m).GD = MDP(m).D;
         MDP(m).GE = MDP(m).E;
         MDP(m).GU = MDP(m).U;
+
+        MDP(m).ID = MDP(m).id;
 
     end
 
@@ -355,6 +358,16 @@ for m = 1:Nm
                 MDP(m).GE{f} = spm_norm(ones(NU(m,f),1));
             end
         end
+
+        % Check indices of domains and co-domains
+        %--------------------------------------------------------------------------
+        if ~isfield(MDP(m),'ID')
+            MDP(m).ID.g  = {1:Ng};
+            for g = 1:Ng
+                MDP(m).ID.A{g} = 1:(ndims(MDP(m).GA{g}) - 1);
+            end
+        end
+
         end
     end
 
@@ -614,6 +627,13 @@ for m = 1:Nm
     % domains (id)
     %----------------------------------------------------------------------
     id{m} = MDP(m).id;
+    ID{m} = MDP(m).ID;
+
+    % predictable outcomes
+    %----------------------------------------------------------------------
+    if ~isfield(ID{m},'control')
+        ID{m}.control = 1:Ng(m);
+    end
 
 end % end model (m)
 
@@ -640,15 +660,15 @@ for t = 1:T
         %==================================================================
         if process(m) && t == 1 && isfield(MDP(m),'s0')
 
-            % prior over outcomes
+            % prior over control outcomes
             %--------------------------------------------------------------
             qo    = cell(Ng(m),1);
-            for g = 1:Ng(m)
+            for g = ID{m}.control
 
                 % domain of A{g}
                 %----------------------------------------------------------
-                [j,i] = spm_get_edges(id{m},g,D(m,:));
-                qo{i} = spm_dot(A{m,g},Q(m,j,t));
+                j     = spm_get_edges(id{m},g,D(m,:));
+                qo{g} = spm_dot(A{m,g},Q(m,j,t));
 
             end
 
@@ -657,7 +677,6 @@ for t = 1:T
             l     = any(GV{m},1);
             F     = zeros(Na(m),1);
             qs    = cell(NF(m),Na(m));
-            po    = cell(Ng(m),1);
             for k = 1:Na(m)
 
                 % predicted states under this policy
@@ -670,16 +689,17 @@ for t = 1:T
 
                 % free energy or prediction error (i.e., inaccuracy)
                 %----------------------------------------------------------
-                for g = 1:Ng(m)
-                    po{g} = spm_dot(MDP(m).GA{g},qs(:,k));
-                    F(k)  = F(k) + qo{g}'*spm_log(po{g});
+                for g = ID{m}.control
+                    j    = spm_get_edges(ID{m},g,qs(:,k));
+                    po   = spm_dot(MDP(m).GA{g},qs(j,k));
+                    F(k) = F(k) + qo{g}'*spm_log(po);
                 end
 
             end
 
             % action
             %--------------------------------------------------------------
-            k             = spm_sample(spm_softmax(alpha*F));
+            k             = spm_sample(spm_softmax(chi*F));
             MDP(m).u(:,t) = MDP(m).u0;
             MDP(m).u(l,t) = GV{m}(k,l)';
 
@@ -765,7 +785,6 @@ for t = 1:T
                 l     = any(GV{m},1);
                 F     = zeros(Na(m),1);
                 qs    = cell(NF(m),1);
-                po    = cell(Ng(m),1);
                 for k = 1:Na(m)
 
                     % predicted states under this policy
@@ -779,16 +798,17 @@ for t = 1:T
                     % free energy or prediction error (i.e., inaccuracy)
                     %------------------------------------------------------
                     F(k)  = 0;
-                    for g = 1:Ng(m)
-                        po{g} = spm_dot(MDP(m).GA{g},qs);
-                        F(k)  = F(k) + qo{g}'*spm_log(po{g});
+                    for g = ID{m}.control
+                        j     = spm_get_edges(ID{m},g,qs);
+                        po    = spm_dot(MDP(m).GA{g},qs(j));
+                        F(k)  = F(k) + qo{g}'*spm_log(po);
                     end
 
                 end
 
                 % most likely control state
                 %----------------------------------------------------------
-                k                 = spm_sample(spm_softmax(alpha*F));
+                k                 = spm_sample(spm_softmax(chi*F));
                 MDP(m).u(l,t - 1) = GV{m}(k,l)';
 
                 end
@@ -851,7 +871,7 @@ for t = 1:T
 
             % domain and codomain of A{g}
             %--------------------------------------------------------------
-            [j,i] = spm_get_edges(id{m},g,MDP(m).s(:,t));
+            [j,i] = spm_get_edges(ID{m},g,MDP(m).s(:,t));
             for o = i
 
             % if outcome is not specified
@@ -891,8 +911,12 @@ for t = 1:T
                         % or sample from likelihood, given hidden state
                         %==================================================
                         if process(m)
-                            ind       = num2cell(MDP(m).s(:,t));
+                            ind       = num2cell(MDP(m).s(j,t));
+                            if isa(MDP(m).GA{g},'function_handle')
+                                O{m,o,t} = MDP(m).GA{g}([ind{:}]);
+                            else
                             O{m,o,t}  = MDP(m).GA{g}(:,ind{:});
+                            end
                         else
                     ind           = num2cell(MDP(m).s(j,t));
                         O{m,o,t}      = MDP(m).A{g}(:,ind{:});
@@ -950,7 +974,8 @@ for t = 1:T
             %--------------------------------------------------------------
             for f = 1:numel(mdp.id.D)
 
-                        % empirical priors over initial states
+                % empirical priors over initial states: 
+                % mdp.s(f,1) = MDP(m).o(g,t);
                 %----------------------------------------------------------
                 g        = mdp.id.D{f};
                 j        = spm_get_edges(id{m},g,Q(m,:,t));
@@ -961,7 +986,8 @@ for t = 1:T
 
             for f = 1:numel(mdp.id.E)
 
-                % empirical priors over paths
+                % empirical priors over paths: 
+                % mdp.u(f,1) = MDP(m).o(g,t);
                 %----------------------------------------------------------
                 g        = mdp.id.E{f};
                 j        = spm_get_edges(id{m},g,Q(m,:,t));
@@ -983,11 +1009,17 @@ for t = 1:T
             % if outcomes (stimuli) are supplied
             %--------------------------------------------------------------
             if isfield(mdp,'S')
+
+                % time points for this iteration
+                %----------------------------------------------------------
                 if isfield(mdp,'Q')
                     st    = (1:mdp.T) + size(mdp.Q.O{mdp.L},2);
                 else
                     st    = (1:mdp.T);
                 end
+
+                % transcribe stimuli to outcomes if specified
+                %----------------------------------------------------------
                 try 
                     mdp.O = mdp.S(:,st);
                 end
@@ -1031,12 +1063,16 @@ for t = 1:T
                 mdp.Q.Y{mdp.L} = [mdp.Q.Y{mdp.L} mdp.Y];
                 mdp.Q.O{mdp.L} = [mdp.Q.O{mdp.L} mdp.O];
                 mdp.Q.o{mdp.L} = [mdp.Q.o{mdp.L} mdp.o];
+                mdp.Q.E{mdp.L} = [mdp.Q.E{mdp.L} mdp.F];
+                mdp.Q.F        =  mdp.Q.F + sum(mdp.F);
             catch
                 mdp.Q.s{mdp.L} = mdp.s;
                 mdp.Q.u{mdp.L} = mdp.u;
                 mdp.Q.Y{mdp.L} = mdp.Y;
                 mdp.Q.O{mdp.L} = mdp.O;
                 mdp.Q.o{mdp.L} = mdp.o;
+                mdp.Q.E{mdp.L} = mdp.F;
+                mdp.Q.F        = sum(mdp.F);
             end
             MDP(m).Q = mdp.Q;
 
@@ -1184,6 +1220,7 @@ for t = 1:T
                     da = da + spm_cross(O{m,i,t},Q{m,j,t});
                 end
                 da(~qa{m,g}) = 0;
+                    da      = reshape(da,size(qa{m,g}));
 
                 % update likelihood Dirichlet parameters
                     %------------------------------------------------------
@@ -1296,8 +1333,8 @@ for m = 1:size(MDP,1)
             % active learning (based on expected free energy)
             %--------------------------------------------------------------
             if beta
-                Fa(1,1) = spm_MDP_MI(pa{m,g},C{m,g});
-                Fa(2,1) = spm_MDP_MI(qa{m,g},C{m,g});
+                Fa(1,1) = spm_MDP_MI(pa{m,g},C{m,g},H(m,:));
+                Fa(2,1) = spm_MDP_MI(qa{m,g},C{m,g},H(m,:));
             Pa          = spm_softmax(beta*Fa);
             else
                 Pa      = [0,1];
@@ -1316,8 +1353,8 @@ for m = 1:size(MDP,1)
             % active learning (based on expected free energy)
             %--------------------------------------------------------------
             if beta
-                Fa(1,1) = spm_MDP_MI(pb{m,f});
-                Fa(2,1) = spm_MDP_MI(qb{m,f});
+                Fa(1,1) = spm_MDP_MI(pb{m,f},H{m,f});
+                Fa(2,1) = spm_MDP_MI(qb{m,f},H{m,f});
                 Pa          = spm_softmax(beta*Fa);
             else
                 Pa      = [0,1];
@@ -1585,6 +1622,9 @@ if t > T || numel(G) == 1, return, end
 % Constraints on next state (inductive inference)
 %==========================================================================
 [R,r] = spm_induction(A(m,:),B(m,:,:),C(m,:),H(m,:),P(m,:,t),(T - t),id{m});
+if isvector(R)
+    R = R(:)';
+end
 
 % Expected free energy of subsequent action
 %==========================================================================
@@ -2071,13 +2111,26 @@ function [R,hif] = spm_induction(A,B,C,H,Q,N,id)
 % Convert marginals to indices and find factors
 %--------------------------------------------------------------------------
 if isfield(id,'hid')
+
+    if isa(id.hid,'function_handle')
+
+        % intended states (hid) in factors hif
+        %------------------------------------------------------------------
+        [hid,hif] = id.hid(Q);
+
+    else
     hid   = id.hid;                           % intended states
     hif   = find(any(hid,2))';                % in hif factors
+    end
+
 else
+
+    % intended state from marginals (H)
+    %----------------------------------------------------------------------
     hid   = [];
     hif   = [];
 for f = 1:numel(H)
-        if any(diff(H{f}))
+        if numel(H{f})
             [~,s]  = max(H{f});
             hid(end + 1,1) = s;
             hif(1,end + 1) = f;
@@ -2088,25 +2141,34 @@ end
 % Deal with constraints
 %--------------------------------------------------------------------------
 if isfield(id,'cid')
+
+    if isa(id.cid,'function_handle')
+
+        % disallowed states (D) in factors hif
+        %------------------------------------------------------------------
+        [D,hif] = id.cid(Q);
+
+    else
+
     cid   = id.cid;                           % contrained factors
     nid   = cid;                              % conditioning factors
     hif   = find(all(cid,2))';                % in hif factors
     nid(hif,:) = 0;
 
     % size of contrained factors
-    %----------------------------------------------------------------------
+        %------------------------------------------------------------------
     for f = hif
         Ns(f) = size(B{f},1);
     end
     Ns    = [Ns,1];
     
     % constraint tensor over hid factors
-    %----------------------------------------------------------------------
+        %------------------------------------------------------------------
     D     = true(Ns);                        % unconstrained states
     for i = 1:size(cid,2)
 
         % posterior of constraint violation
-        %------------------------------------------------------------------
+            %--------------------------------------------------------------
         q     = 1;
         for f = find(nid(:,i))'
             q = q*Q{f}(cid(f,i));
@@ -2116,6 +2178,8 @@ if isfield(id,'cid')
             j    = sub2ind(Ns,ind{:});
             D(j) = false;
         end
+    end
+
     end
 else
     D = true;
@@ -2224,7 +2288,7 @@ if false
         imagesc(P{i})
     end
     subplot(2,1,2)
-    imagesc(G), axis sqaure, drawnow
+    imagesc(G), axis square, drawnow
 end
 
 % precise log prior over next state
@@ -2243,8 +2307,9 @@ if any(i)
     % precise log prior over next state
     %----------------------------------------------------------------------
     P     = P{i}(:,max(n - 1,1));
-    R     = single(reshape(full(P),[Ns,1]));
-    R     = shiftdim(32*R,-1);
+    R     = reshape(full(P),[Ns,1]);
+    R     = 32*and(R,D);
+
 else
     R     = [];
 end
@@ -2274,7 +2339,8 @@ function i  = spm_sample(P)
 % log of numeric array plus a small constant
 %--------------------------------------------------------------------------
 if islogical(P)
-    i = find(P,1);
+    i = find(P);
+    i = i(randperm(numel(i),1));
 else
     i = find(rand < cumsum(P),1);
 end
@@ -2464,11 +2530,16 @@ DEM_sharingX                % Active selection with hyperlinks (id.A{g})
 DEM_surveillance            % Factorial problem
 DEM_drone                   % State-dependent likehood domains
 DEM_drone_vision            % State-dependent likehood domains
+DEM_drone_telemetry         % functional forms for likehood and domains
 DEM_MNIST_conv              % Active sampling and state-dependent codomains
 DEM_Atari                   % Conditionally independent factors
 DEM_Atari_learning          % Conditionally independent factors
+DEM_compression             % RGM for movies (simple)
+DEM_video_compression       % RGM for movies (with learning)
+DEM_sound_compression       % RGM for WAV files
 
+DEM_image_compression       % RGM for MNIST
+DEM_MNIST_mixture           % RGM for mixture of MNIST experts (MDPs)
 DEM_MNIST                   % Active selection without dynamics
-DEM_syntax                  % Under construction
-DEM_MNIST_RG                % Under construction
+
 

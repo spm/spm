@@ -55,7 +55,7 @@ function MDP = DEM_Atari_learning
 
 %% set up and preliminaries
 %--------------------------------------------------------------------------
-rng(1)
+rng(2)
 
 % Get game: i.e., generative process (as a partially observed MDP)
 %==========================================================================
@@ -79,15 +79,15 @@ spm_report(o,Nr,Nc), drawnow
 % Accumulate training data (O) by appending (rewarded) random play to
 % self-generated outcomes
 %--------------------------------------------------------------------------
-for i = 1:64
+for i = 1:16
 
     % RG structure learning
     %----------------------------------------------------------------------
-    tic, [MDP,RG]  = spm_fast_structure_learning(O,[Nr,Nc]); toc
+    tic, MDP  = spm_fast_structure_learning(O,[Nr,Nc]); toc
 
     % Get rewarding episodes
     %----------------------------------------------------------------------
-    [HID,CID,HITS] = spm_get_rewards(hid,cid,GDP,MDP);
+    [HID,~,HITS] = spm_get_rewards(hid,cid,GDP,MDP);
 
     % Equip model with generative process and initialise states
     %======================================================================
@@ -157,10 +157,10 @@ spm_figure('GetWin','Inference'); clf
 spm_MDP_VB_trial(PDP);
 
 spm_figure('GetWin','Active inference'); clf
-spm_show_outcomes(spm_get_O(PDP),RG,Nr,Nc,PDP.Q(1).Y)
+spm_show_outcomes(spm_get_O(PDP),Nr,Nc,PDP.Q(1).Y)
 
 h = find(ismember(PDP.Q.o{1}',HITS','rows'));
-subplot(2*Nm,1,Nm + 1), hold on
+subplot(Nm + 2,1,3), hold on
 plot(h,ones(size(h)),'.r','MarkerSize',32), drawnow
 
 return
@@ -275,11 +275,10 @@ RGB = MAP*O;
 
 return
 
-function spm_show_outcomes(O,RG,Nr,Nc,Y)
+function spm_show_outcomes(O,Nr,Nc,Y)
 % Plots the inferred sequence of moves
-% FORMAT spm_show_outcomes(O,RG,Nr,Nc,[Y])
+% FORMAT spm_show_outcomes(O,Nr,Nc,[Y])
 % O{n}   - Cell array of probabilistic, hierarchal outcomes
-% RG{n}  - Cell array of hierarchical outcome groups
 % Nr     - Number of rows (x dimension)
 % Nc     - Number of columns (x dimension)
 % Y{1}   - Predicted outcomes
@@ -303,7 +302,7 @@ Nn    = numel(O);
 % Show predictive posteriors over hierarchical outcomes
 %--------------------------------------------------------------------------
 for n = 1:Nn
-    subplot(2*Nn,1,n + Nn)
+    subplot(Nn + 2,1,2 + n)
     imagesc(1 - spm_cat(O{n})), axis xy
     title(sprintf('Predictive posteriors at level %i',n),'FontSize',12)
 end
@@ -312,105 +311,49 @@ end
 %--------------------------------------------------------------------------
 for t = 1:T
 
-    % Cycle over hierarchical levels (n)
-    %----------------------------------------------------------------------
-    for n = 1:Nn
+    % observed outcomes
+    %--------------------------------------------------------------
+    X     = zeros(Nr*Nc,3);
+    o     = O{1}(:,t);
+    for j = 1:numel(o)
+        X(j,:) = spm_colour(o{j});
+    end
 
-        % time scaling for this level
-        %------------------------------------------------------------------
-        tn   = ceil(t*size(O{n},2)/T);
-        if n == 1
+    % predicted outcomes
+    %--------------------------------------------------------------
+    if nargin > 4
 
-            % observed outcomes
-            %--------------------------------------------------------------
-            X     = zeros(Nr*Nc,3);
-            o     = O{n}(:,tn);
-            for j = 1:numel(o)
-                X(j,:) = spm_colour(o{j});
-            end
-
-            % predicted outcomes
-            %--------------------------------------------------------------
-            if nargin > 4
-                P     = zeros(Nr*Nc,3);
-                o     = Y{n}(:,tn);
-                for j = 1:numel(o)
-                    P(j,:) = spm_colour(o{j});
-                end
-
-                % plot first level outcomes as a coloured image
-                %----------------------------------------------------------
-                subplot(2*Nn,2,1)
-                imagesc(reshape(X,Nr,Nc,3)), axis image, axis xy
-                title(sprintf('Outcomes at time %i',t),'FontSize',12)
-
-                % plot first level predictions as a coloured image
-                %----------------------------------------------------------
-                subplot(2*Nn,2,2)
-                imagesc(reshape(P,Nr,Nc,3)), axis image, axis xy
-                title(sprintf('Predictions at time %i',t),'FontSize',12)
-                
-            else
-
-                % plot first level outcomes as a coloured image
-                %----------------------------------------------------------
-                subplot(2*Nn,1,1)
-                imagesc(reshape(X,Nr,Nc,3)), axis image, axis xy
-                title(sprintf('Outcomes at time %i',t),'FontSize',12)
-            end
-
-        else
-
-            % higher level
-            %--------------------------------------------------------------
-            [nr,nc] = size(RG{n - 1});
-            X       = cell(nr,nc);
-            P       = cell(nr,nc);
-
-            o     = O{n}(:,tn);
-            m     = 1;
-            for j = 1:numel(o)
-                m = max(m,numel(o{j}));
-            end
-            m     = ceil(sqrt(m));
-
-            for j = 1:numel(X)
-                x    = zeros(m,m);
-                p    = zeros(m,m);
-                xo   = o{2*j - 1};
-                po   = o{2*j - 0};
-                x(1:numel(xo)) = xo;
-                p(1:numel(po)) = po;
-                X{j} = x;
-                P{j} = p;
-            end
-
-            % And subsequent levels as (grouped) images of posteriors
-            %--------------------------------------------------------------
-            subplot(2*Nn,2,n*2 - 1)
-            imagesc(1 - spm_cat(X)), axis image, axis xy
-            title(sprintf('Latent states at time %i',t),'FontSize',12)
-
-            subplot(2*Nn,2,n*2 - 0)
-            imagesc(1 - spm_cat(P)), axis image, axis xy
-            title(sprintf('Latent paths at time %i',t),'FontSize',12)
-
+        P     = zeros(Nr*Nc,3);
+        o     = Y{1}(:,t);
+        for j = 1:numel(o)
+            P(j,:) = spm_colour(o{j});
         end
+
+        % plot first level outcomes as a coloured image
+        %----------------------------------------------------------
+        subplot(Nn + 2,6,min(t,6))
+        imagesc(reshape(X,Nr,Nc,3)), axis image, axis xy
+        title(sprintf('Outcomes: t =  %i',t),'FontSize',12)
+
+        % plot first level predictions as a coloured image
+        %----------------------------------------------------------
+        subplot(Nn + 2,6,min(t,6) + 6)
+        imagesc(reshape(P,Nr,Nc,3)), axis image, axis xy
+        title(sprintf('Predictions: t = %i',t),'FontSize',12)
+        drawnow
+
+    else
+
+        % plot first level outcomes as a coloured image
+        %----------------------------------------------------------
+        subplot(Nn + 2,6,min(t,6))
+        imagesc(reshape(X,Nr,Nc,3)), axis image, axis xy
+        title(sprintf('Outcomes: t = %i',t),'FontSize',12)
+        drawnow
 
     end
 
-    % save movie
-    %----------------------------------------------------------------------
-    drawnow
-    I(t) = getframe(gcf);
-
 end
-
-% Place movie in graphic subject
-%--------------------------------------------------------------------------
-set(gcf,'Userdata',[])
-set(gcf,'Userdata',{I,8})
-set(gcf,'ButtonDownFcn','spm_DEM_ButtonDownFcn')
 
 return
 

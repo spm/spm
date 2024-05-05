@@ -28,7 +28,7 @@ function MDP = DEMO_MDP_maze_X
 
 % set up and preliminaries: first level
 %--------------------------------------------------------------------------
-rng('default')
+rng(1)
 
 % generative model at the sensory level (DEM): continuous states
 %==========================================================================
@@ -160,24 +160,10 @@ end
 spm_figure('GetWin','Figure 5'); clf
 spm_MDP_VB_LFP(MDP); subplot(3,2,5); delete(gca)
 
-%% evidence accumulation under task set: 
-% removing knowledge about safe locations
-%==========================================================================
-clear MDP
-mdp.a{1}   = ones(size(mdp.A{1}));
-mdp.a{2}   = mdp.A{2}*128;
-mdp.N      = 2;
-[MDP(1:5)] = deal(mdp);
-MDP = spm_MDP_VB_XXX(MDP);
-
-spm_figure('GetWin','Figure 6'); clf
-spm_maze_plot(MDP,END)
-
 
 %% pure exploration
 % removing preferences about proximity to target location (and shocks)
 %==========================================================================
-rng(1)
 clear MDP
 mdp.a{1}  = ones(size(mdp.A{1}));
 mdp.a{2}  = mdp.A{2}*512;
@@ -193,7 +179,7 @@ MDP       = spm_MDP_VB_XXX(mdp);
 
 % show results - behavioural
 %--------------------------------------------------------------------------
-spm_figure('GetWin','Figure 7'); clf
+spm_figure('GetWin','Figure 6'); clf
 spm_maze_plot(MDP)
 
 return

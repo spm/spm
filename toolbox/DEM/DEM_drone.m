@@ -343,15 +343,14 @@ fprintf('I am fairly confident I found at least %i\n',n)
 % blue and attracting outcome:
 %--------------------------------------------------------------------------
 c     = zeros(size(a,1),1);
-c(1)  = -32;
-c(7)  = 4;
+c(7)  = 2;
 for g = 1:Ng
     C{g} = spm_softmax(c);
 end
+mdp.T = Nx + 8;
 
 MDP   = mdp;
 MDP.C = C;
-MDP.T = Nx*Ny/2;
 MDP   = spm_MDP_VB_XXX(MDP);
 
 spm_figure('GetWin','Exemplar applications');
@@ -454,7 +453,7 @@ for f = 1:numel(DS)
 end
 
 MDP.s(1:Nu) = fix([Nx;Nx;Nr]/2);
-MDP.T       = 16;
+MDP.T       = 8;
 MDP         = spm_MDP_VB_XXX(MDP);
 
 spm_MDP_VB_trial(MDP);

@@ -1,4 +1,4 @@
-function MDP = DEM_compression
+function MDP = DEM_video_compression
 % Structure learning from pixels
 %__________________________________________________________________________
 %
@@ -42,7 +42,7 @@ rng(1)
 
 % Load a video clip
 %==========================================================================
-vid   = VideoReader('C:\Users\Karl\Dropbox\matlab\dove.mp4');
+vid   = VideoReader('C:\Users\Karl\Dropbox\matlab\robin.mp4');
 
 % Read into working memory and show the movie
 %==========================================================================
@@ -50,13 +50,11 @@ spm_figure('GetWin','video'); clf
 
 % Crop and resize to 128 x128 pixels
 %--------------------------------------------------------------------------
-i     = (1:256) - 128 + round(vid.Width/2);
-j     = (1:256) - 128 + round(vid.Height/2);
-k     = fix(linspace(1,vid.NumFrames,32));
-k     = [k k];
+k     = fix(linspace(1,vid.NumFrames/2,128));
+k     = [k k(1:32)];
 for t = 1:numel(k)
     temp       = read(vid,k(t));
-    I(:,:,:,t) = imresize(temp(j,i,:),[128,128]);
+    I(:,:,:,t) = imresize(temp(:,1:360,:),[128,128]);
 end
 
 subplot(2,2,1)
@@ -64,7 +62,12 @@ spm_imshow(I)
 
 % Map from image to discrete state space (c.f., Amortisation) 
 %--------------------------------------------------------------------------
-[O,L,RGB] = spm_rgb2O(I);
+RGB.nd    = 16;                    % Diameter of tiles in pixels
+RGB.nb    = 16;                    % Number of discrete singular variates 
+RGB.mm    = 32;                    % Maximum number of singular modes
+RGB.su    = 32;                    % Variance threshold
+RGB.R     = 2;                     % temporal resampling
+[O,L,RGB] = spm_rgb2O(I,RGB);
 
 % And show the images generated from a discrete representation
 %--------------------------------------------------------------------------
@@ -86,40 +89,6 @@ spm_figure('GetWin',sprintf('Paramters: level %i',Nm)); clf
 spm_MDP_params(MDP{Nm})
 
 
-% Generate movie by sampling from the resulting deep generative model
-%==========================================================================
-spm_figure('GetWin','Generative AI'); clf
-
-% sample outcomes
-%--------------------------------------------------------------------------
-pdp   = MDP{end};
-pdp.T = 64/(2^(Nm - 1));
-pdp.s = 1;
-pdp.u = 1;
-pdp   = spm_MDP_VB_XXX(pdp);
-Q     = cell(Nm,1);
-Q{Nm} = pdp.O;
-for n = Nm:-1:2
-
-    % set empirical priors over states and paths
-    %----------------------------------------------------------------------
-    for t = 1:size(Q{n},2)
-        pdp   = MDP{n - 1};
-        pdp.T = 2;
-        for g = 1:numel(pdp.id.D)
-            pdp.D{g} = Q{n}{pdp.id.D{g},t};
-            pdp.E{g} = Q{n}{pdp.id.E{g},t};
-        end
-        pdp      = spm_MDP_VB_XXX(pdp);
-        Q{n - 1} = [Q{n - 1} pdp.O];
-    end
-
-end
-
-% show generated image
-%--------------------------------------------------------------------------
-spm_show_outcomes(Q,RGB)
-
 % Generate play from recursive generative model
 %==========================================================================
 spm_figure('GetWin','Active Inference'); clf
@@ -129,14 +98,14 @@ spm_figure('GetWin','Active Inference'); clf
 RDP       = spm_mdp2rdp(MDP);
 [~,Ns,Nu] = spm_MDP_size(RDP);
 
-RDP.T     = 64/(2^(Nm - 1));
+RDP.T     = 128/(2^(Nm - 1));
 RDP.D{1}  = sparse(1,1,1,Ns(1),1);
 RDP.E{1}  = sparse(1,1,1,Nu(1),1);
 PDP       = spm_MDP_VB_XXX(RDP);
 
 % Illustrate the model in generative mode
 %--------------------------------------------------------------------------
-spm_show_RGB(PDP,RGB)
+spm_show_RGB(PDP,RGB,8,1)
 
 
 % Biomimetic characterisation in terms of evoked responses
@@ -148,18 +117,16 @@ spm_figure('GetWin','Evoked responses'); clf
 S     = O(:,1:end);
 for g = 1:size(S,1)
     for t = 1:size(S,2)
-        if ~ismember(g,MDP{1}.RG{3})
+        if ismember(t,[3 4 7])
             S{g,t} = spm_dir_norm(ones(size(O{g,t})));
         end
     end
 end
 
-%%% S     = [O(:,1:16) O(:,1:end)];
-
 % Invert deep (RG) model
 %--------------------------------------------------------------------------
 MDP{1}.S  = S;
-RDP       = spm_mdp2rdp(MDP,1/32);
+RDP       = spm_mdp2rdp(MDP,1/256);
 
 RDP.T     = fix(size(S,2)/(2^(Nm - 1)));
 RDP.D{1}  = ones(Ns(1),1);
@@ -168,7 +135,7 @@ PDP       = spm_MDP_VB_XXX(RDP);
 
 % Illustrate neuronal responses
 %--------------------------------------------------------------------------
-spm_show_RGB(PDP,RGB)
+spm_show_RGB(PDP,RGB,8,1)
 
 return
 

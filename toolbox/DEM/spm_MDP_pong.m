@@ -1,11 +1,20 @@
-function [MDP,hid,cid] = spm_MDP_pong(Nr,Nc)
+function [MDP,hid,cid,con,RGB] = spm_MDP_pong(Nr,Nc)
 % Creates an MDP structure for a simple game of Pong
-% FORMAT [MDP, hid] = spm_MDP_pong(Nr,Nc)
+% FORMAT [MDP,hid,cid,con,RGB] = spm_MDP_pong(Nr,Nc)
 %--------------------------------------------------------------------------
 % Nr    = 6;                             % number of rows
 % Nc    = 8;                             % number of columns
 %
 % hid   - Hidden states corresponding to hits
+% cid   - Hidden states corresponding to misses
+% con   - output modalities reporting control
+% RGB   - display structure
+%
+% outcomes(1) - ball
+% outcomes(2) - bat (right)
+% outcomes(3) - bat (centre)
+% outcomes(4) - bat (left)
+% outcomes(5) - background
 %__________________________________________________________________________
 
 % Karl Friston
@@ -17,7 +26,7 @@ Ng    = Nr*Nc;                           % number of locations
 Ns    = 4098;                            % maximum number of hidden states
 for g = 1:Ng                             % default likelihood mapping
     A{g}        = false(5,Ns,Nc);
-    A{g}(5,:,:) = true;
+    A{g}(5,:,:) = true;                  % background (5)
 end
 B{1}  = false(Ns,Ns);                    % transition matrices
 
@@ -54,8 +63,8 @@ for s = 1:Ns
     %----------------------------------------------------------------------
     n  = sub2ind([Nr,Nc],i,j);
 
-    A{n}(1,s,:)      = true;
-    A{n}(5,s,:)      = false;
+    A{n}(:,s,:)      = false;
+    A{n}(1,s,:)      = true;                    % Ball (1)
     B{1}(s + 1,s,1)  = true;
 
     % uncomment to show orbit
@@ -90,9 +99,34 @@ end
 % Add paddle to likelihood mapping (observations)
 %--------------------------------------------------------------------------
 for s = 1:Nc
+
+    % paddle right (2)
+    %----------------------------------------------------------------------
+    if s > 1
+        n = sub2ind([Nr,Nc],1,s - 1);
+        A{n}(:,:,s) = false;
+        A{n}(2,:,s) = true;
+    end
+
+    % paddle centre (3)
+    %----------------------------------------------------------------------
     n = sub2ind([Nr,Nc],1,s);
-    A{n}(:,:,s) = false;
-    A{n}(3,:,s) = true;
+    A{n}(:,:,s)     = false;
+    A{n}(3,:,s)     = true;
+
+    % paddle left (4)
+    %----------------------------------------------------------------------
+    if s < Nc
+        n = sub2ind([Nr,Nc],1,s + 1);
+        A{n}(:,:,s) = false;
+        A{n}(4,:,s) = true;
+    end
+end
+
+% control modalities (first row)
+%----------------------------------------------------------------------
+for s = 1:Nc
+    con(s) = sub2ind([Nr,Nc],1,s);
 end
 
 % Enumerate the states and paths of the ensuing generative model
@@ -131,7 +165,7 @@ cid    = [];
 for s1 = 1:Ns(1)
     for s2 = 1:Ns(2)
 
-        % Render misses ambiguous
+        %%%% Render misses ambiguous
         %------------------------------------------------------------------
         if S(s1,1) == 1 && s2 ~= S(s1,2)
             cid(:,end + 1) = [s1;s2];
@@ -166,4 +200,54 @@ MDP.E = E;                            % prior over initial paths
 MDP.N = 0;                            % planning depth (2)
 
 
+% RGB structure
+%==========================================================================
+% outcomes(1) - ball
+% outcomes(2) - bat (right)
+% outcomes(3) - bat (centre)
+% outcomes(4) - bat (left)
+% outcomes(5) - background
+
+
+n     = 32;
+RGB.N = [3 Nr*n Nc*n];                % image size
+
+ball  = imread('baseball.png');
+batt  = imread('bat.png');
+back  = zeros(size(ball));
+batl  = batt(1:n,1:n,:);
+batc  = batt(1:n,(1:2) + n,:);
+batr  = batt(1:n,(1:n) + n,:);
+
+img   = {ball,batl,batc,batr,back};
+for i = 1:numel(img)
+    img{i} = imresize(img{i},[n,n]);
+    V(:,i) = spm_vec(permute(img{i},[3,1,2]));
+end
+
+I      = cell(Nr,Nc);
+[I{:}] = deal(zeros([n n]));
+for i  = 1:Nr
+    for j = 1:Nc
+
+       % find indices of RGB image patches
+       %-------------------------------------------------------------------
+       k      = I;
+       k{i,j} = k{i,j} + 1;
+       k      = spm_cat(k);
+       k      = spm_cross(k,ones(1,3));
+       k      = permute(k,[3 1 2]);
+       k      = find(k(:));
+
+       RGB.G{i,j} = k(:);              % cell array of indices
+       RGB.V{i,j} = V;                 % basis functions
+       
+    end
+end
+
 return
+
+% check scheme
+%==========================================================================
+% imshow(spm_O2rgb(O,RGB))
+

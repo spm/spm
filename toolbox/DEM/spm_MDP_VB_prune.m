@@ -12,8 +12,6 @@ function [qA,pA] = spm_MDP_VB_prune(qA,pA,f,T,pC,OPT)
 % sA  - reduced posterior expectations
 % rA  - reduced prior expectations
 %
-% OPT - 'MI': mutual information
-%
 % This implementation compares models (i.e., prior concentration
 % parameters) that change in the direction of maximising expected free
 % energy; namely, maximising the mutual information entailed by a
@@ -48,7 +46,7 @@ nd  = size(qA);                           % size of tensor
 if nargin < 2, pA  = 0*qA + 1; end  % default priors
 if nargin < 3, f   = 0;        end  % no contraction
 if nargin < 4, T   = 0;        end  % Occam's threshold
-if nargin < 5, pC  = 1;        end  % no preferences
+if nargin < 5, pC  = [];       end  % no preferences
 if nargin < 6, OPT = 'MI';     end  % BMR type
 
 % assume uniform priors if pA is a scalar

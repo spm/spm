@@ -1,12 +1,20 @@
-function [MDP,hid,cid] = spm_MDP_breakout(Nr,Nc)
+function [MDP,hid,cid,con,RGB] = spm_MDP_breakout(Nr,Nc)
 % Creates an MDP structure for a simple game of Breakout
-% FORMAT [MDP,hid,cid] = spm_MDP_breakout(Nr,Nc)
+% FORMAT [MDP,hid,cid,con,RGB] = spm_MDP_breakout(Nr,Nc)
 %--------------------------------------------------------------------------
 % Nr                     % number of rows
 % Nc                     % number of columns
 %
 % hid   - Hidden states corresponding to hits
 % cid   - Hidden states corresponding to misses
+% con   - output modalities reporting control
+% RGB   - display structure
+%
+% outcomes(1) - paddle
+% outcomes(2) - ball
+% outcomes(3) - target centre
+% outcomes(4) - target periphery
+% outcomes(5) - background
 %__________________________________________________________________________
 
 % Karl Friston
@@ -39,26 +47,27 @@ WIDTH = 1;
 hid   = [];             % hits
 cid   = [];             % misses
 
-x0    = 4;              % initial location
-i0    = 4;              % initial location
+x0    = fix(Nc/2);      % initial location (paddle)
+i0    = fix(Nc/2);      % initial location (ball)
 j0    = 5;              % initial location
 p0    = 1;              % initial momentum
 q0    = 2;              % initial momentum
 h0    = 3;              % initial target
 u0    = 2;              % initial path
-for x = 1:Ns(1)
-    for i = 1:Ns(2)
-        for j = 1:Ns(3)
-            for p = 1:Ns(4)
-                for q = 1:Ns(5)
-                    for h = 1:Ns(6)
+for x = 1:Ns(1)         % location of paddle
+    for i = 1:Ns(2)         % location of ball horizontal
+        for j = 1:Ns(3)         % location of ball verical
+            for p = 1:Ns(4)         % momentum of ball
+                for q = 1:Ns(5)         % momentum of ball
+                    for h = 1:Ns(6)         % states of target
 
                         % current state
-                        %----------------------------------------------
+                        %--------------------------------------------------
                         s     = sub2ind(Ns,x,i,j,p,q,h);
 
                         % likelihoods
                         %==================================================
+
                         % for all pixels
                         %--------------------------------------------------
                         for g = 1:(Nr*Nc)
@@ -97,7 +106,7 @@ for x = 1:Ns(1)
 
                         end
 
-                        % transistion priors
+                        % transition priors
                         %==================================================
                         m     = [-1,1];
                         U     = [-1,0,1];
@@ -125,7 +134,7 @@ for x = 1:Ns(1)
                             %==============================================
                             if j == Nr
                                 if x ~= i
-                                    it = x;
+                                    it = x0;
                                     jt = j0;
                                     pt = p0;
                                     qt = q0;
@@ -145,15 +154,24 @@ for x = 1:Ns(1)
 
                             % reset game
                             %==============================================
-                            if j == 2 && q == 1
-                                if  abs(i - Nc/2) > WIDTH
-                                    it = x;
-                                    jt = j0;
-                                    pt = p0;
-                                    qt = q0;
-                                    ht = h0;
-                                end
-                            end           
+                            if j == 2 && q == 1 && abs(i - Nc/2) > WIDTH
+
+                                it = i0 - 2;
+                                jt = j0;
+                                pt = p0;
+                                qt = q0;
+                                ht = h0;
+
+                                % transitions
+                                %--------------------------------------
+                                st = sub2ind(Ns,xt,it,jt,pt,qt,ht);
+                                B{1}(st,s,u) = true;
+
+                                % alternative reset
+                                %--------------------------------------
+                                it = i0 + 2;
+
+                            end
                             
                             % transitions
                             %----------------------------------------------
@@ -161,14 +179,19 @@ for x = 1:Ns(1)
                             B{1}(st,s,u) = true;
 
                         end
-
-
                     end
                 end
             end
         end
     end
 end
+
+% control modalities (last row)
+%----------------------------------------------------------------------
+for s = 1:Nc
+    con(s) = sub2ind([Nr,Nc],Nr,s);
+end
+
 
 % ensure intened states are unqiue
 %==========================================================================
@@ -219,6 +242,50 @@ MDP.D = D;                            % prior over initial states
 MDP.H = H;                            % prior over final states
 MDP.E = E;                            % prior over initial paths
 MDP.N = 0;                            % planning depth (1)
+
+
+% RGB structure
+%==========================================================================
+% outcomes(1) - paddle
+% outcomes(2) - ball
+% outcomes(3) - target centre
+% outcomes(4) - target periphery
+% outcomes(5) - background
+
+n     = 32;
+RGB.N = [3 Nr*n Nc*n];                % image size
+
+ball  = imread('baseball.png');
+bat   = imread('paddle.png');
+ufo1  = imread('ufo.png');
+back  = zeros(size(ball));
+ufo2  = uint8(spm_cross(sum(ufo1,3),[1 1 1]/3));
+
+img   = {bat,ball,ufo1,ufo2,back};
+for i = 1:numel(img)
+    img{i} = imresize(img{i},[n,n]);
+    V(:,i) = spm_vec(permute(img{i},[3,1,2]));
+end
+
+I      = cell(Nr,Nc);
+[I{:}] = deal(zeros([n n]));
+for i  = 1:Nr
+    for j = 1:Nc
+
+       % find indices of RGB image patches
+       %-------------------------------------------------------------------
+       k      = I;
+       k{i,j} = k{i,j} + 1;
+       k      = spm_cat(k);
+       k      = spm_cross(k,ones(1,3));
+       k      = permute(k,[3 1 2]);
+       k      = find(k(:));
+
+       RGB.G{i,j} = k(:);              % cell array of indices
+       RGB.V{i,j} = V;                 % basis functions
+       
+    end
+end
 
 
 return

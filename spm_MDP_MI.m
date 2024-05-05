@@ -1,9 +1,10 @@
-function [E,dEda,dEdA] = spm_MDP_MI(a,c)
+function [E,dEda,dEdA] = spm_MDP_MI(a,c,h)
 % Expected information gain (i.e., mutual information)
-% FORMAT [E,dEda,dEdA] = spm_MDP_MI(a,c)
+% FORMAT [E,dEda,dEdA] = spm_MDP_MI(a,c,h)
 %
 % a    - Dirichlet parameters of a joint distribution
-% c    - prior preferences
+% c    - prior preferences (outcomes)
+% h    - prior preferences (states)
 %
 % E    - expected free energy (information gain minus cost)
 % dEda - derivative with respect to Dirichlet parameters (a)
@@ -22,7 +23,9 @@ function [E,dEda,dEdA] = spm_MDP_MI(a,c)
 if iscell(a)
     E     = 0;
     for g = 1:numel(a)
-        if nargin > 1
+        if nargin > 2
+            E = E + spm_MDP_MI(a{g},c{g},h);
+        elseif nargin > 1
             E = E + spm_MDP_MI(a{g},c{g});
         else
             E = E + spm_MDP_MI(a{g});
@@ -42,11 +45,29 @@ s     = sum(a,'all');
 A     = a/s;
 E     = spm_MI(A);
 
-% expected (negative) cost
+% expected (negative) cost : outcomes
 %--------------------------------------------------------------------------
 if nargin > 1
-    C = spm_log(c);
-    E = E + C'*sum(A,2);
+    if numel(c)
+        c = c(:)/sum(c,'all');
+        C = spm_log(c);
+        E = E + C'*sum(A,2);
+    else
+        C = 0;
+    end
+end
+
+% expected (negative) cost : latent states
+%--------------------------------------------------------------------------
+if nargin > 2
+    h = spm_cat(h(:));
+    if numel(h)
+        h = h(:)/sum(h,'all');
+        H = spm_log(h);
+        E = E + sum(A,1)*H;
+    else
+        H = 0;
+    end
 end
 
 if nargout < 2, return, end
@@ -58,8 +79,12 @@ dEdA   = spm_log(A./(sum(A,2)*sum(A,1))) - 1;
 % expected (negative) cost
 %--------------------------------------------------------------------------
 if nargin > 1
-    dEdA = plus(dEdA,C);
+    dEdA = plus(dEdA, C - C'*sum(A,2));
 end
+if nargin > 2
+    dEdA = plus(dEdA, H' - sum(A,1)*H);
+end
+
 
 % dEda = dEdA.*dAda, dAda = (1/s - a/(s^2))
 %--------------------------------------------------------------------------
@@ -77,3 +102,15 @@ I    =      A(:)'*spm_log(A(:)) - ...
         sum(A,2)'*spm_log(sum(A,2));
 
 return
+
+
+
+
+
+
+
+
+
+
+
+

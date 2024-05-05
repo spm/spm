@@ -43,7 +43,7 @@ function [MDP] = spm_MDP_VB_update(MDP,PDP,OPTIONS)
 
 % defaults
 %--------------------------------------------------------------------------
-try, OPTIONS.d;   catch, OPTIONS.d   = []; end
+try OPTIONS.d; catch, OPTIONS.d = []; end
 
 % deal with multiple agents
 %==========================================================================
@@ -67,10 +67,10 @@ if isfield(OPTIONS,'BMR')
     % BMR options
     %----------------------------------------------------------------------
     BMR = OPTIONS.BMR;
-    try, BMR.g; catch, BMR.g = 0;  end       % outcome modality
-    try, BMR.f; catch, BMR.f = 0;  end       % factors to contract over
-    try, BMR.o; catch, BMR.o = {}; end       % outcomes for empirical BMS
-    try, BMR.T; catch, BMR.T = 0;  end       % outcomes for empirical BMS
+    try BMR.g; catch, BMR.g = 0;  end       % outcome modality
+    try BMR.f; catch, BMR.f = 0;  end       % factors to contract over
+    try BMR.o; catch, BMR.o = {}; end       % outcomes for empirical BMS
+    try BMR.T; catch, BMR.T = 0;  end       % outcomes for empirical BMS
 
     % default: all modalities
     %----------------------------------------------------------------------
@@ -97,9 +97,9 @@ if isfield(OPTIONS,'BMR')
             % remove previous experience
             %--------------------------------------------------------------
             REM      = MDP;
-            try, REM = rmfield(REM,'s'); end
-            try, REM = rmfield(REM,'o'); end
-            try, REM = rmfield(REM,'u'); end
+            try REM = rmfield(REM,'s'); end
+            try REM = rmfield(REM,'o'); end
+            try REM = rmfield(REM,'u'); end
             
             % and install a generative process and reset priors
             %--------------------------------------------------------------
@@ -131,24 +131,22 @@ end
 % likelihood Dirichlet parameters
 %--------------------------------------------------------------------------
 if isfield(MDP,'a')
-    for g = 1:numel(MDP.a)
-        MDP.a{g} = PDP.a{g};
-    end
+    MDP.a  = PDP.a;
 end
 
 % check for remaining concentration parameters at this level
 %--------------------------------------------------------------------------
-try,  MDP.b = PDP.b; end
-try,  MDP.c = PDP.c; end
-try,  MDP.d = PDP.d; end
-try,  MDP.e = PDP.e; end
+try  MDP.b = PDP.b; end
+try  MDP.c = PDP.c; end
+try  MDP.d = PDP.d; end
+try  MDP.e = PDP.e; end
 
 % check for concentration parameters at nested levels
 %--------------------------------------------------------------------------
-try,  MDP.MDP(1).a = PDP.mdp(end).a; end
-try,  MDP.MDP(1).b = PDP.mdp(end).b; end
-try,  MDP.MDP(1).c = PDP.mdp(end).c; end
-try,  MDP.MDP(1).d = PDP.mdp(end).d; end
-try,  MDP.MDP(1).e = PDP.mdp(end).e; end
+try  MDP.MDP(1).a = PDP.mdp(end).a; end
+try  MDP.MDP(1).b = PDP.mdp(end).b; end
+try  MDP.MDP(1).c = PDP.mdp(end).c; end
+try  MDP.MDP(1).d = PDP.mdp(end).d; end
+try  MDP.MDP(1).e = PDP.mdp(end).e; end
 
 return
