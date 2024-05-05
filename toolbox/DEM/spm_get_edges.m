@@ -30,7 +30,7 @@ function [j,i] = spm_get_edges(id,g,Q)
 %--------------------------------------------------------------------------
 if isfield(id,'ff')
 
-    % Most likely states
+    % Most likely states (c.f., model selection)
     %----------------------------------------------------------------------
     if iscell(Q)
         Ns    = numel(id.ff);
@@ -46,7 +46,11 @@ if isfield(id,'ff')
     % MAP domain (parents)
     %----------------------------------------------------------------------
     if isfield(id,'fg')
-        j = id.fg{g}{s{:}};
+        if iscell(id.fg)
+            j = id.fg{g}{s{:}};
+        else
+            j = id.fg(g,[s{:}]);
+        end
     else
         j = id.A{g};
     end
@@ -54,7 +58,11 @@ if isfield(id,'ff')
     % MAP codomain (children)
     %----------------------------------------------------------------------
     if isfield(id,'gg')
-        i = id.gg{g}{s{:}};
+        if iscell(id.gg)
+            i = id.gg{g}{s{:}};
+        else
+            i = id.gg(g,[s{:}]);
+        end
     else
         i = g;
     end

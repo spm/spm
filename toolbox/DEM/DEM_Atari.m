@@ -2,12 +2,12 @@ function MDP = DEM_Atari
 % Structure learning from pixels
 %__________________________________________________________________________
 %
-% This routine is under construction. In brief, it addresses the problem of
-% learning a generative model from pixels, under the constraints supplied
-% by sparse rewards. The problem is solved in a fast and frugal way using a
-% structure learning approach based upon a generalised Markov decision
-% process (that treats states and their paths as pairs of random variables,
-% whose dynamics are encoded in transition tensors).
+% This routine addresses the problem of learning a generative model from
+% pixels, under the constraints supplied by sparse rewards. The problem is
+% solved in a fast and frugal way using a structure learning approach based
+% upon a generalised Markov decision process (that treats states and their
+% paths as pairs of random variables, whose dynamics are encoded in
+% transition tensors).
 % 
 % A key architectural aspect of these deep structures is an appeal to the
 % renormalisation group; in the sense that there is a recursive application
@@ -42,7 +42,6 @@ function MDP = DEM_Atari
 % inference; namely, selecting those actions that minimise free energy that
 % produce outcomes that match predicted outcomes. Here, the outcomes are
 % pixel-based outcomes.
-
 %__________________________________________________________________________
 % Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
@@ -55,24 +54,33 @@ rng(1)
 
 % Get game: i.e., generative process (as a partially observed MDP)
 %==========================================================================
-Nr = 12; Nc = 9; [GDP,hid,cid] = spm_MDP_breakout(Nr,Nc);
-Nr = 12; Nc = 9; [GDP,hid,cid] = spm_MDP_pong(Nr,Nc);
+Nr = 12;                               % number of rows
+Nc = 9;                                % number of columns
+
+G  = @(Nr,Nc) spm_MDP_breakout(Nr,Nc); % game
+NT = 50000;                            % exposures (training)
+q  = [0 0 1/64];                       % concentration parameter (learning)
+
+G  = @(Nr,Nc) spm_MDP_pong(Nr,Nc);     % game
+NT = 30000;                            % exposures (training)
+q  = 1/128;                            % concentration parameter (learning)
 
 
 %% Simulate learning and subsequent performance
 %--------------------------------------------------------------------------
+[GDP,hid,cid,con,RGB] = G(Nr,Nc); 
 
 % generate (probabilistic) outcomes under random actions
 %==========================================================================
-GDP.T = 32;
+spm_figure('GetWin','Gameplay'); clf
+
+GDP.T = (Nr + 2)*2;
 O     = {};
-for n = 1:1024
+for n = 1:fix(NT/GDP.T)
 
     % initialise this batch of training exemplars
     %----------------------------------------------------------------------
     PDP = spm_MDP_generate(GDP);
-
-    % spm_report(PDP.o,Nr,Nc)
 
     % smart data selection
     %----------------------------------------------------------------------
@@ -87,10 +95,12 @@ for n = 1:1024
         t  = t(1);
         if numel(O)
             O = [O PDP.O(:,1:t)];
-            o = PDP.o(:,1:t);
+            o = [o PDP.o(:,1:t)];
+            h(end + 1) = h(end) + t;
         else
             O = PDP.O(:,1:t);
             o = PDP.o(:,1:t);
+            h = t;
         end
 
         % start after we left off
@@ -98,33 +108,89 @@ for n = 1:1024
         GDP.s = PDP.s(:,t + 1);
         GDP.u = PDP.u(:,t + 1);
 
-        % illustrate action and action selection
+        % illustrate outcomes
         %------------------------------------------------------------------
-        if size(O,2) < 128
-            spm_figure('GetWin','Gameplay'); clf
-            spm_report(o,Nr,Nc), drawnow
+        if size(O,2) < 256
+            subplot(2,1,1)
+            for i = 1:t
+                imshow(spm_O2rgb(PDP.O(:,i),RGB)), drawnow
+            end
         end
+
     end
 
-    % break if a sufficient number of friends have been accumulated
+    % break if a sufficient number of episodes have been accumulated
     %----------------------------------------------------------------------
     clc; fprintf('Number of samples %i (%i)\n',size(O,2),(n*GDP.T))
-    if size(O,2) > 1024
+    if size(O,2) > 10000
         break
     end
 
 end
 
+% illustrate intial outcomes
+%--------------------------------------------------------------------------
+spm_figure('GetWin','Gameplay'); clf
+for t = 1:4
+    subplot(4,4,t)
+    imshow(spm_O2rgb(O(:,t),RGB)), drawnow
+end
+
+% illustrate orbits
+%--------------------------------------------------------------------------
+subplot(3,2,3)
+u     = spm_svd(spm_cat(O'));
+plot(u(:,1),u(:,2),'c'), hold on
+plot(u(:,1),u(:,2),'ob','MarkerSize',4)
+plot(u(h,1),u(h,2),'or','MarkerSize',8), hold off
+title('Orbits or paths'), xlabel('first'), ylabel('second'), axis square
+
+subplot(3,2,4)
+u     = spm_svd(spm_cat(O'));
+plot(u(:,2),u(:,3),'c'), hold on
+plot(u(:,2),u(:,3),'ob','MarkerSize',4)
+plot(u(h,2),u(h,3),'or','MarkerSize',8), hold off
+title('Orbits or paths'), xlabel('second'), ylabel('third'), axis square
+
+subplot(3,2,5)
+plot(u(:,1),u(:,2),'c'), hold on
+plot(u(:,1),u(:,2),'ob','MarkerSize',4)
+plot(u(h,1),u(h,2),'or','MarkerSize',8), hold off
+title('Orbits or paths'), xlabel('first'), ylabel('second'), axis square
+axis([-1 1 -1 1]/1e3)
+drawnow
+
+
 % RG structure learning
-%--------------------------------------------------------------------------
-tic, [MDP,RG] = spm_fast_structure_learning(O,[Nr,Nc]); toc
+%==========================================================================
+tic, MDP = spm_fast_structure_learning(O,[Nr,Nc]); toc
 
-
-% Illustrate depth (Nm) Learning
+% rewarded events
 %--------------------------------------------------------------------------
+[HID,~,HITS] = spm_get_rewards(hid,cid,GDP,MDP);
+
+% Illustrate episodic dynamics (at deepest level)
+%==========================================================================
 Nm    = numel(MDP);
 spm_figure('GetWin',sprintf('Paramters: level %i',Nm)); clf
 spm_MDP_params(MDP{Nm})
+
+% paths to hits
+%--------------------------------------------------------------------------
+subplot(2,2,3)
+B     = sum(MDP{Nm}.B{1},3) > 0;
+Ns    = size(B,1);
+h     = sparse(1,HID,1,1,Ns);
+for t = 1:8
+    I(t,:) = h;
+    h      = (h + h*B) > 0;
+end
+
+imagesc(I), hold on 
+plot(HID,0*HID + 1/2,'or'), hold off
+title('Paths to hits','FontSize',14)
+xlabel('latent states'), ylabel('time steps'), axis square
+
 
 % Generate play by sampling from the resulting deep generative model
 %==========================================================================
@@ -157,7 +223,7 @@ for n = Nm:-1:2
 
 end
 
-spm_show_outcomes(Q,RG,Nr,Nc)
+spm_show_outcomes(Q,Nr,Nc)
 
 % Generate play from recursive generative model
 %==========================================================================
@@ -172,14 +238,9 @@ RDP.D{1} = sparse(1,1,1,Ns(1),1);
 RDP.E{1} = sparse(1,1,1,Nu(1),1);
 PDP      = spm_MDP_VB_XXX(RDP);
 
-% recover outcomes
+% Illustrate recursive model
 %--------------------------------------------------------------------------
-Q        = spm_get_O(PDP);
-Y        = PDP.Q(1).Y;
-
-% Illustrate deep recursive model
-%--------------------------------------------------------------------------
-spm_show_outcomes(Q,RG,Nr,Nc,Y)
+spm_show_RGB(PDP,RGB)
 
 
 % Now repeat but engage action and active inference
@@ -191,10 +252,6 @@ spm_show_outcomes(Q,RG,Nr,Nc,Y)
 % outcomes (here, purely visual) at the lowest level.
 %--------------------------------------------------------------------------
 
-% Illustrate intentional planning as inference using rewarded states
-%==========================================================================
-[HID,~,HITS] = spm_get_rewards(hid,cid,GDP,MDP);
-
 % create hierarchical model with prior concentration parameters
 %--------------------------------------------------------------------------
 MDP{1}.GA  = GDP.A;
@@ -203,24 +260,42 @@ MDP{1}.GD  = GDP.D;
 MDP{1}.GE  = GDP.E;
 MDP{1}.GU  = GDP.U;
 
-RDP        = spm_mdp2rdp(MDP,1/64);
+MDP{1}.id.control = con;
+MDP{1}.chi = 1;                             % sticky action/shaky hand
+
+% train: with small concentration parameters (1/16)
+%--------------------------------------------------------------------------
+FIX.A      = 1;                             % fix likelihood
+FIX.B      = 0;                             % but not transitions
+RDP        = spm_mdp2rdp(MDP,0,q,2,FIX);
+
 RDP.U      = 1;
-RDP.T      = 256/(2^(Nm - 1));
+RDP.T      = 512/(2^(Nm - 1));
 RDP.id.hid = HID;
 
-PDP   = spm_MDP_VB_XXX(RDP);
-Q     = spm_get_O(PDP);
-Y     = PDP.Q(1).Y;
+PDP        = spm_MDP_VB_XXX(RDP);
 
+% Illustrate recursive model
+%--------------------------------------------------------------------------
 spm_figure('GetWin','Active inference'); clf
-spm_show_outcomes(Q,RG,Nr,Nc,Y)
+spm_show_RGB(PDP,RGB,4,true)
 
+% add ELBOs
+%--------------------------------------------------------------------------
+subplot(Nm + 2,2,2*Nm)
+T     = numel(PDP.Q.E{1});
+t     = linspace(1,T,RDP.T);
+plot(t,PDP.F), hold on
+for n = 1:numel(PDP.Q.E)
+    t = linspace(1,T,numel(PDP.Q.E{n}));
+    plot(t,PDP.Q.E{n})
+end
+
+% and add hits
+%--------------------------------------------------------------------------
 h     = find(ismember(PDP.Q.o{1}',HITS','rows'));
-subplot(2*Nm,1,Nm + 1), hold on
-plot(h,ones(size(h)),'.r','MarkerSize',32), hold off, drawnow
-
-spm_figure('GetWin','Inference'); clf
-spm_MDP_VB_trial(PDP);
+plot(h,ones(size(h)),'.r','MarkerSize',16)
+title('ELBO'), spm_axis tight
 
 return
 
@@ -228,55 +303,6 @@ return
 
 % subroutines
 %==========================================================================
-
-function Q = spm_get_O(RDP)
-% hierarchical outcomes from a recursive MDP
-% FORMAT Q = spm_get_O(RDP)
-%
-% Extracts hierarchal outcomes from a recursive MDP that have been
-% accumulated during recursive inversion
-%__________________________________________________________________________
-
-% recover outcomes
-%--------------------------------------------------------------------------
-Q          = RDP.Q.O;
-Q{end + 1} = RDP.O;
-
-return
-
-
-function spm_report(o,Nr,Nc)
-% Plots sequence of moves in a MDP
-% FORMAT spm_report(o,Nr,Nc)
-% Nr - Number of rows (x dimension)
-% Nc - Number of columns (x dimension)
-%--------------------------------------------------------------------------
-% If there are more than eight moves this subroutine will plot a movie
-
-%% show sequence of moves
-%==========================================================================
-Nt    = 4;
-T     = size(o,2);
-for t = 1:T
-
-    % movie
-    %----------------------------------------------------------------------
-    if T > Nt
-        subplot(4,3,2), cla
-    else
-        subplot(4,4,t), cla
-    end
-
-    % plot
-    %----------------------------------------------------------------------
-    imagesc(reshape(o(:,t),Nr,Nc)), axis image, axis xy
-    title(sprintf('Time %i',t),'FontSize',12)
-    drawnow, pause(1/16)
-
-end
-
-return
-
 
 function RGB = spm_colour(O)
 % subfunction: returns an RGB rendering of a multinomial distribution
@@ -294,11 +320,10 @@ RGB = MAP*O;
 
 return
 
-function spm_show_outcomes(O,RG,Nr,Nc,Y)
+function spm_show_outcomes(O,Nr,Nc,Y)
 % Plots the inferred sequence of moves
-% FORMAT spm_show_outcomes(O,RG,Nr,Nc,[Y])
+% FORMAT spm_show_outcomes(O,Nr,Nc,[Y])
 % O{n}   - Cell array of probabilistic, hierarchal outcomes
-% RG{n}  - Cell array of hierarchical outcome groups
 % Nr     - Number of rows (x dimension)
 % Nc     - Number of columns (x dimension)
 % Y{1}   - Predicted outcomes
@@ -322,7 +347,7 @@ Nn    = numel(O);
 % Show predictive posteriors over hierarchical outcomes
 %--------------------------------------------------------------------------
 for n = 1:Nn
-    subplot(2*Nn,1,n + Nn)
+    subplot(Nn + 2,1,2 + n)
     imagesc(1 - spm_cat(O{n})), axis xy
     title(sprintf('Predictive posteriors at level %i',n),'FontSize',12)
 end
@@ -331,105 +356,50 @@ end
 %--------------------------------------------------------------------------
 for t = 1:T
 
-    % Cycle over hierarchical levels (n)
-    %----------------------------------------------------------------------
-    for n = 1:Nn
+    % observed outcomes
+    %--------------------------------------------------------------
+    X     = zeros(Nr*Nc,3);
+    o     = O{1}(:,t);
+    for j = 1:numel(o)
+        X(j,:) = spm_colour(o{j});
+    end
 
-        % time scaling for this level
-        %------------------------------------------------------------------
-        tn   = ceil(t*size(O{n},2)/T);
-        if n == 1
+    % predicted outcomes
+    %--------------------------------------------------------------
+    if nargin > 4
 
-            % observed outcomes
-            %--------------------------------------------------------------
-            X     = zeros(Nr*Nc,3);
-            o     = O{n}(:,tn);
-            for j = 1:numel(o)
-                X(j,:) = spm_colour(o{j});
-            end
-
-            % predicted outcomes
-            %--------------------------------------------------------------
-            if nargin > 4
-                P     = zeros(Nr*Nc,3);
-                o     = Y{n}(:,tn);
-                for j = 1:numel(o)
-                    P(j,:) = spm_colour(o{j});
-                end
-
-                % plot first level outcomes as a coloured image
-                %----------------------------------------------------------
-                subplot(2*Nn,2,1)
-                imagesc(reshape(X,Nr,Nc,3)), axis image, axis xy
-                title(sprintf('Outcomes at time %i',t),'FontSize',12)
-
-                % plot first level predictions as a coloured image
-                %----------------------------------------------------------
-                subplot(2*Nn,2,2)
-                imagesc(reshape(P,Nr,Nc,3)), axis image, axis xy
-                title(sprintf('Predictions at time %i',t),'FontSize',12)
-                
-            else
-
-                % plot first level outcomes as a coloured image
-                %----------------------------------------------------------
-                subplot(2*Nn,1,1)
-                imagesc(reshape(X,Nr,Nc,3)), axis image, axis xy
-                title(sprintf('Outcomes at time %i',t),'FontSize',12)
-            end
-
-        else
-
-            % higher level
-            %--------------------------------------------------------------
-            [nr,nc] = size(RG{n - 1});
-            X       = cell(nr,nc);
-            P       = cell(nr,nc);
-
-            o     = O{n}(:,tn);
-            m     = 1;
-            for j = 1:numel(o)
-                m = max(m,numel(o{j}));
-            end
-            m     = ceil(sqrt(m));
-
-            for j = 1:numel(X)
-                x    = zeros(m,m);
-                p    = zeros(m,m);
-                xo   = o{2*j - 1};
-                po   = o{2*j - 0};
-                x(1:numel(xo)) = xo;
-                p(1:numel(po)) = po;
-                X{j} = x;
-                P{j} = p;
-            end
-
-            % And subsequent levels as (grouped) images of posteriors
-            %--------------------------------------------------------------
-            subplot(2*Nn,2,n*2 - 1)
-            imagesc(1 - spm_cat(X)), axis image, axis xy
-            title(sprintf('Latent states at time %i',t),'FontSize',12)
-
-            subplot(2*Nn,2,n*2 - 0)
-            imagesc(1 - spm_cat(P)), axis image, axis xy
-            title(sprintf('Latent paths at time %i',t),'FontSize',12)
-
+        P     = zeros(Nr*Nc,3);
+        o     = Y{1}(:,t);
+        for j = 1:numel(o)
+            P(j,:) = spm_colour(o{j});
         end
+
+        % plot first level outcomes as a coloured image
+        %----------------------------------------------------------
+        subplot(Nn + 2,6,min(t,6))
+        imagesc(reshape(X,Nr,Nc,3)), axis image, axis xy
+        title(sprintf('Outcomes: t =  %i',t),'FontSize',12)
+
+        % plot first level predictions as a coloured image
+        %----------------------------------------------------------
+        subplot(Nn + 2,6,min(t,6) + 6)
+        imagesc(reshape(P,Nr,Nc,3)), axis image, axis xy
+        title(sprintf('Predictions: t = %i',t),'FontSize',12)
+        drawnow
+
+    else
+
+        % plot first level outcomes as a coloured image
+        %----------------------------------------------------------
+        subplot(Nn + 2,6,min(t,6))
+        imagesc(reshape(X,Nr,Nc,3)), axis image, axis xy
+        title(sprintf('Outcomes: t = %i',t),'FontSize',12)
+        drawnow
 
     end
 
-    % save movie
-    %----------------------------------------------------------------------
-    drawnow
-    I(t) = getframe(gcf);
-
 end
 
-% Place movie in graphic subject
-%--------------------------------------------------------------------------
-set(gcf,'Userdata',[])
-set(gcf,'Userdata',{I,8})
-set(gcf,'ButtonDownFcn','spm_DEM_ButtonDownFcn')
 
 return
 
@@ -501,8 +471,7 @@ end
 return
 
 
-
-%% NOTES on alternative formulations
+%% NOTES on formulation with multiple MPDs
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % This code illustrates the composition of a meta-model of MDP structures

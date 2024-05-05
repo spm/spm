@@ -14,7 +14,7 @@ function [ind] = spm_index(siz,ndx)
 %--------------------------------------------------------------------------
 k    = cumprod(siz);
 if k == 1
-    ind = 1;
+    ind = siz;
     return
 end
 

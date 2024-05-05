@@ -142,19 +142,21 @@ for f  = 1:Np
     % policies
     %----------------------------------------------------------------------
     if isfield(MDP,'V')
-        subplot(3*Np,2,(Np + f - 1)*2 + 1)
-        imagesc(MDP.V(:,:,Nu(f))')
-        if f < 2
-            title(sprintf('Allowable policies - %s',MDP.label.factor{Nu(f)}));
-        else
-            title(MDP.label.factor{Nu(f)});
+        if size(MDP.V,3) ==  Nu(Np)
+            subplot(3*Np,2,(Np + f - 1)*2 + 1)
+            imagesc(MDP.V(:,:,Nu(f))')
+            if f < 2
+                title(sprintf('Allowable policies - %s',MDP.label.factor{Nu(f)}));
+            else
+                title(MDP.label.factor{Nu(f)});
+            end
+            if f < Np
+                set(gca,'XTickLabel',{});
+            end
+            set(gca,'XTick',1:size(X{1},2) - 1);
+            set(gca,'YTickLabel',{});
+            ylabel('policy')
         end
-        if f < Np
-            set(gca,'XTickLabel',{});
-        end
-        set(gca,'XTick',1:size(X{1},2) - 1);
-        set(gca,'YTickLabel',{});
-        ylabel('policy')
     end
     
 end

@@ -32,27 +32,39 @@ if isfield(id,'ff')
 
     % Most likely states
     %----------------------------------------------------------------------
-    q   = spm_cross(Q{id.ff});
-    Ns  = size(q);
-    q   = q(:);
-    iq  = find(q > max(q)/16);
+    Nff   = numel(id.ff);
+    for f = 1:Nff
+        ff    = id.ff(f);                      % domain factor
+        r{f}  = find(Q{ff} > max(Q{ff})/16);   % likely states
+        R{f}  = Q{ff}(r{f});                   % reduced states
+        Nr(f) = numel(r{f});                   % number of reduced states
+    end
+    q     = spm_cross(R);
+    q     = q(:);
+    q     = q/sum(q);
+    iq    = find(q > max(q)/16);
+    q     = q(iq);
 
     % posterior over domain states
     %----------------------------------------------------------------------
-    q   = q(iq);
-    q   = q/sum(q);
-
+    s     = cell(1,Nff);
     for k = 1:numel(q)
 
         % combination of domain states
         %------------------------------------------------------------------
-        s   = spm_index(Ns,iq(k));
-        s   = num2cell(s);
+        ind    = spm_index(Nr,iq(k));
+        for ff = 1:Nff
+            s{ff} = r{ff}(ind(ff));
+        end
 
         % MAP domain (parents)
         %------------------------------------------------------------------
         if isfield(id,'fg')
-            j{k} = id.fg{g}{s{:}};
+            if iscell(id.fg)
+                j{k} = id.fg{g}{s{:}};
+            else
+                j{k} = id.fg(g,[s{:}]);
+            end
         else
             j{k} = id.A{g};
         end
@@ -60,7 +72,11 @@ if isfield(id,'ff')
         % MAP codomain (children)
         %------------------------------------------------------------------
         if isfield(id,'gg')
-            i{k} = id.gg{g}{s{:}};
+            if iscell(id.gg)
+                i{k} = id.gg{g}{s{:}};
+            else
+                i{k} = id.gg(g,[s{:}]);
+            end
         else
             i{k} = g;
         end

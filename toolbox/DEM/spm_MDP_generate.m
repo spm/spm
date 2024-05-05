@@ -344,14 +344,14 @@ return
 %==========================================================================
 
 function i  = spm_sample(P)
-% log of numeric array plus a small constant
+% sample
 %--------------------------------------------------------------------------
 if islogical(P)
-    i = find(P,1);
+    i = find(P);
+    i = i(randperm(numel(i),1));
 else
     i = find(rand < cumsum(P),1);
 end
-
 
 function A  = spm_norm(A)
 % normalisation of a probability transition matrix (columns)

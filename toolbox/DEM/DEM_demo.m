@@ -22,7 +22,7 @@ function varargout = DEM_demo(varargin)
 
 % Edit the above text to modify the response to help DEM_demo
 
-% Last Modified by GUIDE v2.5 19-Feb-2024 15:52:23
+% Last Modified by GUIDE v2.5 26-Apr-2024 20:17:26
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -838,7 +838,7 @@ run_demo_Callback(hObject, handles, 'DEM_MNIST_conv')
 % --- Executes on button press in pushbutton286.
 function pushbutton286_Callback(hObject, eventdata, handles)
 handles.web = 'Active Inference A Process Theory';
-run_demo_Callback(hObject, handles, 'DEM_drone_vision')
+run_demo_Callback(hObject, handles, 'DEM_drone')
 
 % --- Executes on button press in pushbutton287.
 function pushbutton287_Callback(hObject, eventdata, handles)
@@ -850,8 +850,42 @@ function pushbutton288_Callback(hObject, eventdata, handles)
 handles.web = 'Active Inference A Process Theory';
 run_demo_Callback(hObject, handles, 'DEM_Atari')
 
-
 % --- Executes on button press in pushbutton289.
 function pushbutton289_Callback(hObject, eventdata, handles)
 handles.web = 'Active Inference A Process Theory';
 run_demo_Callback(hObject, handles, 'DEM_compression')
+
+% --- Executes on button press in pushbutton290.
+function pushbutton290_Callback(hObject, eventdata, handles)
+handles.web = 'Active Inference A Process Theory';
+run_demo_Callback(hObject, handles, 'DEM_sound_compression')
+
+% --- Executes on button press in pushbutton291.
+function pushbutton291_Callback(hObject, eventdata, handles)
+handles.web = 'Active Inference A Process Theory';
+run_demo_Callback(hObject, handles, 'DEM_image_compression')
+
+% --- Executes on button press in pushbutton292.
+function pushbutton292_Callback(hObject, eventdata, handles)
+handles.web = 'Active Inference A Process Theory';
+run_demo_Callback(hObject, handles, 'DEM_drone_vision')
+
+% --- Executes on button press in pushbutton293.
+function pushbutton293_Callback(hObject, eventdata, handles)
+handles.web = 'Active Inference A Process Theory';
+run_demo_Callback(hObject, handles, 'DEM_Tower')
+
+% --- Executes on button press in pushbutton294.
+function pushbutton294_Callback(hObject, eventdata, handles)
+handles.web = 'Active Inference A Process Theory';
+run_demo_Callback(hObject, handles, 'DEM_video_compression')
+
+% --- Executes on button press in pushbutton295.
+function pushbutton295_Callback(hObject, eventdata, handles)
+handles.web = 'Active Inference A Process Theory';
+run_demo_Callback(hObject, handles, 'DEM_MNIST_mixture')
+
+% --- Executes on button press in pushbutton296.
+function pushbutton296_Callback(hObject, eventdata, handles)
+handles.web = 'Active Inference A Process Theory';
+run_demo_Callback(hObject, handles, 'DEM_drone_telemetry')

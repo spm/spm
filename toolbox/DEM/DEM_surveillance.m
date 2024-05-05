@@ -485,7 +485,7 @@ U     = [ ...
 % MDP Structure, specifying 64 epochs (i.e., 16 seconds of active vision)
 %==========================================================================
 mdp.T = 64;                       % numer of moves
-mdp.U = U;                        % actions
+mdp.V = U;                        % actions
 mdp.A = A;                        % likelihood probabilities
 mdp.B = B;                        % transition probabilities
 mdp.C = C;                        % prior preferences
