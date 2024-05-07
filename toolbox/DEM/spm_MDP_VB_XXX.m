@@ -771,12 +771,12 @@ for t = 1:T
                 % predicted outcomes
                 %----------------------------------------------------------
                 qo    = cell(Ng(m),1);
-                for g = 1:Ng(m)
+                for g = ID{m}.control
 
                     % domain of A{g}
                     %------------------------------------------------------
-                    [j,i] = spm_get_edges(id{m},g,Q(m,:,t));
-                    qo{i} = spm_dot(A{m,g},Q(m,j,t));
+                    j     = spm_get_edges(id{m},g,Q(m,:,t));
+                    qo{g} = spm_dot(A{m,g},Q(m,j,t));
 
                 end
 
@@ -1622,6 +1622,7 @@ if t > T || numel(G) == 1, return, end
 % Constraints on next state (inductive inference)
 %==========================================================================
 [R,r] = spm_induction(A(m,:),B(m,:,:),C(m,:),H(m,:),P(m,:,t),(T - t),id{m});
+
 if isvector(R)
     R = R(:)';
 end
@@ -2175,7 +2176,7 @@ if isfield(id,'cid')
         end
         if q > (1 - 1/8)
             ind  = num2cell(cid(hif,i));
-            j    = sub2ind(Ns,ind{:});
+                j    = spm_sub2ind(Ns,ind{:});
             D(j) = false;
         end
     end

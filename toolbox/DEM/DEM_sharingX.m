@@ -182,7 +182,7 @@ for h = 1:Nu(f)
 end
 f     = 2;
 for h = 1:Nu(f)
-    B{f}(:,:,h) = full(spm_speye(Ns(f),Ns(f))) + 1/8;
+    B{f}(:,:,h) = full(spm_speye(Ns(f),Ns(f))) + 1/4;
 end
 f     = 3;
 for h = 1:Nu(f)
@@ -309,7 +309,7 @@ end
 %     'nothing'};
 %--------------------------------------------------------------------------
 for g = 1:Ng
-    C{g}  = ones(No(g),1);
+    C{g}  = spm_softmax(ones(No(g),1));
 end
 
 % This concludes the ABC of the model; namely, the likelihood mapping,
@@ -322,9 +322,9 @@ U(end) = 1;
 
 % Now specify which states are shared and which are agent-specific
 %--------------------------------------------------------------------------
-m       = [1,1,1,0];               % scene factors are shared
-n       = zeros(Ng,1);             % joint outcomes (Cg)
-n(Cg,:) = -1;                      % are shared (with n < 0)
+m       = [1,1,1,0];              % scene factors are shared
+n       = zeros(Ng,1);            % joint outcomes (Cg)
+n(Cg,:) = -1;                     % are shared (with n < 0)
 
 % MDP Structure, specifying 8 epochs (i.e., 4 seconds of active vision)
 %==========================================================================
@@ -636,7 +636,7 @@ if SIM == 1
         % initialise learnable (random) language mapping for all agents
         %------------------------------------------------------------------
         for g = Cg
-            MDP(m,1).a{g} = abs(randn(size(MDP(m).a{g}))) + 1;
+            MDP(m,1).a{g} = abs(randn(No(g),No(g))) + 1 + eye(No(g),No(g));
         end
 
         % plot likelihood tensor (target)
@@ -658,7 +658,7 @@ if SIM > 1
     Cg    = [1 2 3 4];                   % modalities to suppress
     k     = Cg(3);                       % modality to plot
     for g = Cg
-        MDP(end,1).a{g} = abs(randn(size(MDP(m).a{g}))) + 1;
+        MDP(end,1).a{g} = abs(randn(No(g),No(g))) + 1 + eye(No(g),No(g));
     end
 
     % remove language
