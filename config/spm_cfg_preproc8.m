@@ -224,12 +224,12 @@ ngaus.val    = {Inf};
 native         = cfg_menu;
 native.tag     = 'native';
 native.name    = 'Native Tissue';
-native.help    = {'The native space option allows you to produce a tissue class image (``c*.nii``) that is in alignment with the original. It can also be used for "importing" into a form that can be used with the Dartel toolbox (``rc*.nii``).'};
+native.help    = {'The native space option allows you to produce a tissue class image (``c*.nii``) that is in alignment with the original. It can also be used for "importing" into a form that can be used with the Shoot or Dartel toolboxes (``rc*.nii``).'};
 native.labels = {
     'None'
     'Native space'
-    'Dartel imported'
-    'Native + Dartel imported'
+    'Imported'
+    'Native + Imported'
     }';
 native.values = {
                  [0 0]
@@ -271,7 +271,7 @@ tissue         = cfg_branch;
 tissue.tag     = 'tissue';
 tissue.name    = 'Tissue';
 tissue.val     = {tpm ngaus native warped};
-tissue.help    = {'A number of options are available for each of the tissues.  You may wish to save images of some tissues, but not others. If planning to use Dartel, then make sure you generate "imported" tissue class images of grey and white matter (and possibly others).  Different numbers of Gaussians may be needed to model the intensity distributions of the various tissues.'};
+tissue.help    = {'A number of options are available for each of the tissues.  You may wish to save images of some tissues, but not others. If planning to use Shoot or Dartel, then make sure you generate "imported" tissue class images of grey and white matter (and possibly others).  Different numbers of Gaussians may be needed to model the intensity distributions of the various tissues.'};
 
 %--------------------------------------------------------------------------
 % tissues Tissues
