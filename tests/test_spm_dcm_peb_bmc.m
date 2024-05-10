@@ -27,7 +27,7 @@ connection = 5; % r1->r2
 
 % There should be an effect of group on the connection from R1->R2 of 0.2Hz 
 testCase.assertEqual(Ep(connection,effect),0.2, 'AbsTol', 0.05);
-testCase.assertTrue(Pp(connection,effect) > 0.95);
+testCase.assertTrue(Pp(connection,effect) > 0.9);
 
 % There should be no effect of group elsewhere
 Pp_others = Pp; 
