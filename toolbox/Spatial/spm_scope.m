@@ -141,7 +141,10 @@ f1_0  = single(Nii(1).dat(:,:,:,1,1));
 f2_0  = single(Nii(2).dat(:,:,:,1,1));
 %f2_0 = f2_0*(mean(f1_0(:))/mean(f2_0(:)));
 
-d   = size(Nii(1).dat);
+d   = size(f1_0);
+if length(d) ~= length(size(f2_0)) || ~all(size(f2_0) == d)
+    error('Incompatible image dimensions.')
+end
 u   = zeros(d,'single'); % Starting estimates of displacements
 
 % Set the windows figure
@@ -360,7 +363,6 @@ for it = 1:nit
     % H(i,i+2) & H(i,i-2) match the true Hessian
     % H(i,(i+3):end) &  H(i,1:(i-3)) match and are all zero
     H   = (At*At')/sig2;
-    h   = reshape(single(full(diag(H))),size(u));
     H   = H + L;          % A'*A + L
 
     do_display(wf1,wf2,u,Gu,g,FG,fwhm,it);
