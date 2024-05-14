@@ -48,7 +48,7 @@ vid   = VideoReader('C:\Users\Karl\Dropbox\matlab\robin.mp4');
 %==========================================================================
 spm_figure('GetWin','video'); clf
 
-% Crop and resize to 128 x128 pixels
+% Crop and resize to 128 x 128 pixels
 %--------------------------------------------------------------------------
 k     = fix(linspace(1,vid.NumFrames/2,128));
 k     = [k k(1:32)];

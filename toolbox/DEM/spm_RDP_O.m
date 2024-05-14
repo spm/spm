@@ -1,7 +1,7 @@
 function MDP = spm_RDP_O(MDP,O,L)
 % places outcomes in a recursive model
-% FORMAT RDP = spm_RDP_O(mdp,O,[L])
-% MDP - recursive MDP
+% FORMAT RDP = spm_RDP_O(RDP,O,[L])
+% RDP - recursive MDP
 % O   - outcomes
 % L   - level [default: 1]
 %__________________________________________________________________________
@@ -25,13 +25,18 @@ if numel(MDP) > 1
     return
 end
 
-
-% Assume time scaling with a scale doubling
+% put outcomes in level L
 %--------------------------------------------------------------------------
 str = 'MDP';
 for n = 1:16
-    if  eval([str '.L == L']) 
-        eval([str '.S = O;'])
+    if  eval([str '.L == L'])
+        if isempty(O)
+            try
+                eval([str ' = rmfield(' str ',''S'');'])
+            end
+        else
+            eval([str '.S = O;'])
+        end
         return
     else
         str = [str '.MDP'];

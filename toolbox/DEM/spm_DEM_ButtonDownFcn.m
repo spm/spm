@@ -33,15 +33,10 @@ if isstruct(S{1})
         [filename, pathname] = uiputfile('*.avi','movie file');
         if isequal(filename,0) || isequal(pathname,0), return; end
         fname = fullfile(pathname,filename);
-        if ~is_octave && spm_check_version('matlab','7.10') > 0
-            writerObj = VideoWriter(fname,'Uncompressed AVI');
-            writerObj.FrameRate = 15;
-            open(writerObj);
-            writeVideo(writerObj,S{1});
-            close(writerObj);
-        else
-            movie2avi(S{1},fname,'compression','none','fps',15); %#ok
-        end
+        OBJ   = VideoWriter(fname);
+        open(OBJ)
+        writeVideo(OBJ,S{1})
+        close(OBJ)
     end
     
 else

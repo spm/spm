@@ -17,10 +17,10 @@ if nargin < 3, BMR = []; end
 %--------------------------------------------------------------------------
 param = {'a','b','c','d','e','h'};
 
-% final level
+% top level
 %--------------------------------------------------------------------------
 for p = 1:numel(param)
-    if isfield(PDP.Q,param{p})
+    if isfield(PDP,param{p})
 
         % posteriors and priors
         %------------------------------------------------------------------
@@ -42,9 +42,9 @@ for p = 1:numel(param)
     end
 end
 
-% subordinate levels
+% and subordinate levels
 %--------------------------------------------------------------------------
-NL    = numel(PDP.Q.a);
+NL    = PDP.L - 1;
 for L = 1:NL
     str   = repmat('MDP.',1,L);
     for p = 1:numel(param)

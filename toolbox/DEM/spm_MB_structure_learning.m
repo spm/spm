@@ -3,8 +3,8 @@ function [MDP,RG,LG] = spm_MB_structure_learning(O,L,dt)
 % FORMAT [MDP,LG,RG] = spm_MB_structure_learning(O,L,dt)
 % O{N,T} - probabilitic exemplars of paths (cell aray)
 % L      - array of pixel locations
-% dt     - time dilation [1 for images]   
-% 
+% dt     - time dilation [1 for images]
+%
 % MDP{n} - cell aray of MDPs
 % RG{n}  - cell aray of group indices
 % LG{n}  - cell aray of locations
@@ -35,7 +35,7 @@ for n = 1:8
 
     % locations
     %----------------------------------------------------------------------
-    if true
+    if size(L,2) > 1
         hold on, plot(L(:,2),L(:,1),'.r','MarkerSize',2*n + 2), axis ij image
         hold on, plot(L(:,2),L(:,1),'ow','MarkerSize',2*n + 2), axis ij image
         title(sprintf('Locations at scale %i',n)), drawnow
@@ -89,7 +89,7 @@ for n = 1:8
             %--------------------------------------------------------------
             qs = pdp.X{g}(:,1);
             qu = pdp.P{g}(:,end);
-            ml = mean(MDP{n}.LG(G{g},:));     
+            ml = mean(MDP{n}.LG(G{g},:));
 
             % states (odd)
             %--------------------------------------------------------------
@@ -107,7 +107,7 @@ for n = 1:8
 
         end
     end
-    
+
     % Check whether there is only one group or (generalised) object
     %----------------------------------------------------------------------
     if numel(G) == 1
@@ -211,39 +211,74 @@ function G = spm_space(L)
 % then constitute the locations for the next scale. In this example, the
 % number of locations is reduced by a factor of two in both dimensions.
 %--------------------------------------------------------------------------
+if isvector(L)
 
-% locations
-%--------------------------------------------------------------------------
-Nl    = size(L,1);
-Ng    = size(unique(L,'rows'),1);
-Ng    = ceil(sqrt(Ng/4));
-if Ng == 1
-    G = {1:Nl};
-    return
+    % locations
+    %----------------------------------------------------------------------
+    L     = L(:);
+    Nl    = size(L,1);
+    Ng    = size(unique(L,'rows'),1);
+    Ng    = ceil(Ng/2);
+    if Ng == 1
+        G = {1:Nl};
+        return
+    end
+
+    % decimate locations
+    %----------------------------------------------------------------------
+    x     = linspace(min(L(:,1)),max(L(:,1)),Ng);
+
+    % nearest (reduced) location
+    %----------------------------------------------------------------------
+    for i = 1:Nl
+        [~,j] = min(minus(x,L(i)).^2);
+        g(i)  = j;
+    end
+
+    % grouping partition
+    %----------------------------------------------------------------------
+    u     = unique(g,'stable');
+    for i = 1:numel(u)
+        G{i}  = find(ismember(g,u(i)));
+    end
+
+else
+
+    % locations
+    %----------------------------------------------------------------------
+    Nl    = size(L,1);
+    Ng    = size(unique(L,'rows'),1);
+    Ng    = ceil(sqrt(Ng/4));
+    if Ng == 1
+        G = {1:Nl};
+        return
+    end
+
+    % decimate locations
+    %----------------------------------------------------------------------
+    x     = linspace(min(L(:,1)),max(L(:,1)),Ng);
+    y     = linspace(min(L(:,2)),max(L(:,2)),Ng);
+    for n = 1:prod([Ng,Ng])
+        i = spm_index([Ng,Ng],n);
+        R(n,:) = [x(i(1)),y(i(2))];
+    end
+
+    % nearest (reduced) location
+    %----------------------------------------------------------------------
+    for i = 1:Nl
+        [~,j] = min(sum(minus(R,L(i,:)).^2,2));
+        g(i)  = j;
+    end
+
+    % grouping partition
+    %----------------------------------------------------------------------
+    u     = unique(g,'stable');
+    for i = 1:numel(u)
+        G{i} = find(ismember(g,u(i)));
+    end
+
 end
 
-% decimate locations
-%--------------------------------------------------------------------------
-x     = linspace(min(L(:,1)),max(L(:,1)),Ng);
-y     = linspace(min(L(:,2)),max(L(:,2)),Ng);
-for n = 1:prod([Ng,Ng])
-    i = spm_index([Ng,Ng],n);
-    R(n,:) = [x(i(1)),y(i(2))];
-end
-
-% nearest (reduced) location
-%--------------------------------------------------------------------------
-for i = 1:Nl
-    [~,j] = min(sum(minus(R,L(i,:)).^2,2));
-    g(i)  = j;
-end
-
-% grouping partition
-%--------------------------------------------------------------------------
-u     = unique(g,'stable');
-for i = 1:numel(u)
-    G{i} = find(ismember(g,u(i)));
-end
 
 return
 
@@ -324,7 +359,7 @@ u     = real(u(:,i));
 
 % eigenspace
 %--------------------------------------------------------------------------
-subplot(2,2,2), bar(s(1:16)), 
+subplot(2,2,2), bar(s(1:16)),
 xlabel('eigenvectors'), ylabel('eigenvalues'), title('Eigenvalues')
 axis square
 
