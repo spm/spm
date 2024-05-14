@@ -1,5 +1,5 @@
 function vdm = spm_scope(data, acqorder, FWHM, reg, rinterp, jac, pref, outdir)
-% Susceptibility Correction using Opposite PE 
+% Susceptibility Correction using Opposite PE
 % FORMAT vdm = spm_scope(vol1, vol2, FWHM, reg, save)
 % data       - path to first image (s)(positive polarity(ies)) followed for the second image(s) (negative polarity (ies))
 % acqorder   - indicates in which order were acquired the images with
@@ -10,15 +10,15 @@ function vdm = spm_scope(data, acqorder, FWHM, reg, rinterp, jac, pref, outdir)
 % reg        - Regularisation settings (default: [0 10 100])
 %              See spm_field for details:
 %               - [1] Penalty on absolute values.
-%               - [2] Penalty on the `membrane energy' of the deformation. 
+%               - [2] Penalty on the `membrane energy' of the deformation.
 %                 This penalises the sum of squares of the gradients of the
 %                 values.
 %               - [3] Penalty on the `bending energy'. This penalises
 %                  the sum of squares of the 2nd derivatives of the parameters.
-% rinterp    - Order of B-spline by which the images are sampled. A higher 
+% rinterp    - Order of B-spline by which the images are sampled. A higher
 %              degree provides the better interpolation but it is slower.
-% jac        - Option to include jacobian scaling in the process to take 
-%              into account the changes of intensities due to stretching 
+% jac        - Option to include jacobian scaling in the process to take
+%              into account the changes of intensities due to stretching
 %              and compression.
 % pref       - string to be prepended to the vdm files.
 % outdir     - output directory.
@@ -64,7 +64,7 @@ end
 
 %-Check the amount of blip reversed pairs entered. If there is more
 % than one pair, the average image of every group of positive polarities or
-% negative polarities are computed with spm_realign.m.  SCOPE is executed 
+% negative polarities are computed with spm_realign.m.  SCOPE is executed
 % using the average of each goup of images.
 %--------------------------------------------------------------------------
 % Default parameters for spm_realign
@@ -87,44 +87,44 @@ vol1 = cell(size(data));
 vol2 = cell(size(data));
 
 for i = 1:numel(data)
-   vol1{i} = char(data(i).volbup{:});
-   vol2{i} = char(data(i).volbdown{:});
+    vol1{i} = char(data(i).volbup{:});
+    vol2{i} = char(data(i).volbdown{:});
 end
 dvol1 = size(vol1{1});
 dvol2 = size(vol2{1});
 
-% Check if the input volumes for each group of blip reversed data have the 
+% Check if the input volumes for each group of blip reversed data have the
 % same amount of elements. Send an error and stop the program if not. If yes,
 % check how many elements they have. If the amount of images per phase encoding
 % direction is > 1, realign the images and obtain a mean image per group
 % (positive polarities and negative polarities)
 
 if dvol1(1) == dvol2(1)
-   if dvol1 > 1     
-      if acqorder == 0
-         vol1 = cellstr(flipud((vol1{:})));
-      elseif acqorder == 1
-           vol2 = cellstr(flipud((vol2{:})));
-      end 
-      spm_realign(vol1,flags1);
-      spm_reslice(vol1,flags1)
-      spm_realign(vol2,flags2);
-      spm_reslice(vol2,flags2)
-      basename = spm_file(vol1{1}(1,:),'basename');
-      basename = spm_file(basename,'prefix',"mean",'ext','.nii');
-      vol1 = [spm_file(vol1{1}(1,:),'fpath') '/' basename];
-      basename = spm_file(vol2{1}(1,:),'basename');
-      basename = spm_file(basename,'prefix',"mean",'ext','.nii');
-      vol2 = [spm_file(vol2{1}(1,:),'fpath') '/' basename];
-   else
+    if dvol1 > 1
+        if acqorder == 0
+            vol1 = cellstr(flipud((vol1{:})));
+        elseif acqorder == 1
+            vol2 = cellstr(flipud((vol2{:})));
+        end
+        spm_realign(vol1,flags1);
+        spm_reslice(vol1,flags1)
+        spm_realign(vol2,flags2);
+        spm_reslice(vol2,flags2)
+        basename = spm_file(vol1{1}(1,:),'basename');
+        basename = spm_file(basename,'prefix',"mean",'ext','.nii');
+        vol1 = [spm_file(vol1{1}(1,:),'fpath') '/' basename];
+        basename = spm_file(vol2{1}(1,:),'basename');
+        basename = spm_file(basename,'prefix',"mean",'ext','.nii');
+        vol2 = [spm_file(vol2{1}(1,:),'fpath') '/' basename];
+    else
         vol1 = char(vol1);
         vol2 = char(vol2);
     end
- 
+
 else
-   error("Number of volumes with positive polarities is not consistent with " + ...
-       "number of volumes with negative polarities");
-end 
+    error("Number of volumes with positive polarities is not consistent with " + ...
+          "number of volumes with negative polarities");
+end
 
 %-Load images and estimate noise level
 %--------------------------------------------------------------------------
@@ -137,8 +137,8 @@ sig2 = sum(sd.^2);                        % Variance of difference is sum of var
 
 spm_field('bound',1);                     % Set boundary conditions for spm_field
 
-f1_0  = single(Nii(1).dat(:,:,:));
-f2_0  = single(Nii(2).dat(:,:,:));
+f1_0  = single(Nii(1).dat(:,:,:,1,1));
+f2_0  = single(Nii(2).dat(:,:,:,1,1));
 %f2_0 = f2_0*(mean(f1_0(:))/mean(f2_0(:)));
 
 d   = size(Nii(1).dat);
@@ -228,7 +228,7 @@ if nargin<5 || isempty(vx),   vx   = [1 1 1]; end
 
 d   = size(f1);
 id  = identity2(d);
-phi = id; 
+phi = id;
 
 n_acceptable = 0;
 E = 0;
@@ -361,7 +361,7 @@ for it = 1:nit
     % H(i,(i+3):end) &  H(i,1:(i-3)) match and are all zero
     H   = (At*At')/sig2;
     h   = reshape(single(full(diag(H))),size(u));
-    H   = H + L;          % A'*A + L 
+    H   = H + L;          % A'*A + L
 
     do_display(wf1,wf2,u,Gu,g,FG,fwhm,it);
 
