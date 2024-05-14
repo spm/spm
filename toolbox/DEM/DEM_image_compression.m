@@ -221,18 +221,13 @@ spm_figure('GetWin','Confusion'); clf
 test      = (1:T) + N;
 [C,F,PDP] = spm_MNIST_test(RDP,RGB,O(:,test),D(test));
 
-% reject unclassifiable test data
+% quantile analysis
 %--------------------------------------------------------------------------
-i      = F > -16;
-Fs     = F(i);
-Cs     = C(i);
-Nc     = fix(numel(Fs)/2);
-[~,i]  = sort(Fs);
-Cs     = Cs(i);
-
-fprintf('Accuracy (lower) %.2f \n',100*mean(Cs(1:Nc)));
-fprintf('Accuracy (upper) %.2f \n',100*mean(Cs((1:Nc) + Nc)));
-
+Fm     = median(F);
+i      = F > median(F);
+fprintf('Median F %.2f \n',Fm);
+fprintf('Accuracy (total) %.2f \n',100*mean(C));
+fprintf('Accuracy (upper median) %.2f \n',100*mean(C(i)));
 
 % graphics for the last classification
 %--------------------------------------------------------------------------
@@ -246,6 +241,7 @@ spm_figure('GetWin','Classification'); clf
 subplot(2,2,1)
 histogram(F(~~C),32), hold on
 histogram(F(~C),32)
+plot([Fm Fm],get(gca,'YLim'),'--k')
 xlabel('ELBO'), ylabel('frequency')
 title('Correct and incorrect classification'), axis square
 
@@ -254,7 +250,9 @@ for i = 1:numel(f)
     c(i) = mean(C(F > f(i)));
 end
 subplot(2,2,2)
-plot(f,c*100)
+plot(f,c*100), hold on
+plot([Fm Fm],get(gca,'YLim'),'--k')
+
 xlabel('ELBO threshold'), ylabel('classification accuracy')
 title('Classification and confidence'), axis square
 
@@ -284,13 +282,20 @@ return
 
 
 % subroutines
-%=========================================================================
+%=======================================================ddo===================
 
 function mdp = spm_MNIST_train(MDP,RGB,O,D)
 % FORMAT RDP = spm_MNIST_train(MDP,RGB,O,D)
 % MDP      - model struct (cell array): prior
 % RDP      - model struct (nested): posterior
 % O        - train data
+%
+% This subroutine demonstrates learning of a recursive generative model. In
+% the special case of static models, it is sufficient to place each
+% training exemplar in the lowest level of the model — in the field MDP.O —
+% and learn in the usual way by accumulating Dirichlet parameters (if the
+% expected free energy improves). For dynamic models, sequences of outcomes
+% or stimuli have to be specified — in the field MDP.S.
 %__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 

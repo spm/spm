@@ -17,30 +17,52 @@ function [G,M,H] = spm_tile(L,d)
 % independencies that inherit from local interactions; of the kind found in
 % metric spaces that preclude action at a distance.
 %--------------------------------------------------------------------------
+if isvector(L)
 
-% centroid locations
-%--------------------------------------------------------------------------
-Ni    = round((max(L(:,1)) - min(L(:,1)) + 1)/d);
-Nj    = round((max(L(:,2)) - min(L(:,2)) + 1)/d);
-x     = linspace(min(L(:,1)) + d/2 - 1,max(L(:,1)) - d/2,Ni);
-y     = linspace(min(L(:,2)) + d/2 - 1,max(L(:,2)) - d/2,Nj);
+    % centroid locations
+    %----------------------------------------------------------------------
+    L     = L(:);
+    Ni    = round((max(L(:,1)) - min(L(:,1)) + 1)/d);
+    x     = linspace(min(L(:,1)) + d/2 - 1,max(L(:,1)) - d/2,Ni);
 
-% groups of pixels within 2 x d of centroids
-%--------------------------------------------------------------------------
-h     = cell(Ni,Nj);
-g     = cell(Ni,Nj);
-for i = 1:Ni
-    for j = 1:Nj
-        D      = sum( minus(L,[x(i),y(j)]).^2,2 );
-        ij     = find(sqrt(D) < 2*d);
-        h{i,j} = exp(-D/(2*(d/2)^2));
-        g{i,j} = ij;
+    % groups of pixels within 2 x d of centroids
+    %----------------------------------------------------------------------
+    h     = cell(Ni,1);
+    g     = cell(Ni,1);
+    for i = 1:Ni
+        D    = minus(L,x(i)).^2;
+        ij   = find(sqrt(D) < 2*d);
+        h{i} = exp(-D/(2*(d/2)^2));
+        g{i} = ij;
     end
+
+else
+
+    % centroid locations
+    %----------------------------------------------------------------------
+    Ni    = round((max(L(:,1)) - min(L(:,1)) + 1)/d);
+    Nj    = round((max(L(:,2)) - min(L(:,2)) + 1)/d);
+    x     = linspace(min(L(:,1)) + d/2 - 1,max(L(:,1)) - d/2,Ni);
+    y     = linspace(min(L(:,2)) + d/2 - 1,max(L(:,2)) - d/2,Nj);
+
+    % groups of pixels within 2 x d of centroids
+    %----------------------------------------------------------------------
+    h     = cell(Ni,Nj);
+    g     = cell(Ni,Nj);
+    for i = 1:Ni
+        for j = 1:Nj
+            D      = sum( minus(L,[x(i),y(j)]).^2,2 );
+            ij     = find(sqrt(D) < 2*d);
+            h{i,j} = exp(-D/(2*(d/2)^2));
+            g{i,j} = ij;
+        end
+    end
+
 end
-G    = g(:);
 
 % weighting of groups (applying sum to one contraint)
 %--------------------------------------------------------------------------
+G     = g(:);
 Ng    = numel(G);
 h     = spm_cat(h(:)');
 h     = spm_dir_norm(h');

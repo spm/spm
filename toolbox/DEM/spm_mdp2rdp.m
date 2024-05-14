@@ -6,7 +6,7 @@ function RDP = spm_mdp2rdp(MDP,p,q,T,FIX)
 %  MDP{n}.id.E - cell array of parents of E in supraordinate outcomes
 %
 % p      - likelihood concentration; e.g., p = 1/32; [default: p = 0] 
-% q      - prior (transition) decay; e.g., q = 1/4;  [default: q = 0] 
+% q      - prior (transition) decay; e.g., q = 1/32;  [default: q = 0] 
 % T      - path lengths [default: T = 2]
 % 
 % FIX.A = 0 for learning likelihoods
@@ -33,7 +33,6 @@ function RDP = spm_mdp2rdp(MDP,p,q,T,FIX)
 if nargin < 2, p = 0; end
 if nargin < 3, q = 0; end
 if nargin < 4, T = 2; end
-
 if nargin < 5
     FIX.A = 1;
     FIX.B = 1;
@@ -42,6 +41,7 @@ end
 Nm    = numel(MDP);
 try p = p(1:Nm); catch, p = repmat(p(1),1,Nm); end
 try q = q(1:Nm); catch, q = repmat(q(1),1,Nm); end
+
 
 % Check for single level models
 %--------------------------------------------------------------------------
@@ -68,13 +68,6 @@ for n = 1:Nm
     for f = 1:numel(MDP{n}.B)
         b           = spm_dir_norm(MDP{n}.B{f});
         MDP{n}.B{f} = spm_dir_norm(b + q(n));
-%         B     = b;
-%         for t = 1:4
-%             for u = 1:size(B,3)
-%                 B(:,:,u) = B(:,:,u) + (q^t)*(b(:,:,u)^(t + 1));
-%             end
-%         end
-%         MDP{n}.B{f} = spm_dir_norm(B);
     end
 
 

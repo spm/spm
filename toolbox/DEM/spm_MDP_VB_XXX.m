@@ -1241,7 +1241,7 @@ for t = 1:T
 
         % mapping among hidden states: b
         %------------------------------------------------------------------
-        if isfield(MDP(m),'b') && any(U{m}) && t > 1
+        if isfield(MDP(m),'b') && t > 1  %%%% && any(U{m})
             for f = 1:Nf(m)
 
                 % domain of B{f}
