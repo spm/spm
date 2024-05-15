@@ -47,6 +47,7 @@ B{3} = [1 0 0;    % Stay in instruction phase if started there
         0 1 1];   % Stay in response phase if there already
 B{4} = eye(2);    % Instructions do not change throughout trial
 B{5} = eye(2);    % Response does not change throughout trial
+B{5}(:,:,2) = eye(2); % Cheat to get around issue in HMM code
 B{6} = eye(2);    % Correctness of response does not change
 
 % Likelihood (P(o{m} = i|s{n1} = j1, s{n2} = j2...) = A{m}(i,j1,j2,...)
@@ -244,7 +245,7 @@ for i = 1:numel(resp)
     H1(2,i) = strcmp(['"' stim.color{i} '"'],resp{i}); % Correct?
 end
 H1(3,:) = MDP_Stroop_RT(MDP1);                         % Reaction time
- 
+
 [stim, resp] = MDP_Stroop_SR(MDP2);
 H2 = zeros(3,numel(resp));
 for i = 1:numel(resp)
@@ -840,8 +841,8 @@ mdp(2)   = M.G(P);
 % Assign outcomes
 %--------------------------------------------------------------------------
 for i = 1:mdp(1).T                                                         
-    mdp(1).mdp(i).o = Y.o{i}(:,1:2);                                       
-    mdp(2).mdp(i).o = Y.o{i}(:,3:4);                                       
+    mdp(1).mdp(i).o = Y.o{i}(:,1:2);  
+    mdp(2).mdp(i).o = Y.o{i}(:,3:4);    
 end
 
 % Invert model (forcing it to take same actions)
@@ -889,6 +890,7 @@ e = exp(p.e)*0.85;
 c = exp(p.c);
 MDP.E    = spm_softmax([e;-e]);
 MDP.C{4} = [c;-c];
+
 
 function MDP_Stroop_effort(MDP)
 % Plot effort over time
