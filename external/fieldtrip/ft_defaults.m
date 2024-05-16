@@ -19,6 +19,7 @@ function ft_defaults
 %   ft_default.trackcallinfo     = string, can be 'yes' or 'no' (default = 'yes')
 %   ft_default.trackusage        = false, or string with salt for one-way encryption of identifying information (by default this is enabled and an automatic salt is created)
 %   ft_default.trackdatainfo     = string, can be 'yes' or 'no' (default = 'no')
+%   ft_default.keepprevious      = string, can be 'yes' or 'no' (default = 'yes')
 %   ft_default.outputfilepresent = string, can be 'keep', 'overwrite', 'error' (default = 'overwrite')
 %   ft_default.debug             = string, can be 'display', 'displayonerror', 'displayonsuccess', 'save', 'saveonerror', saveonsuccess' or 'no' (default = 'no')
 %   ft_default.toolbox.signal    = string, can be 'compat' or 'matlab' (default is automatic, see below)
@@ -100,6 +101,8 @@ if ~isfield(ft_default, 'checkpath'),         ft_default.checkpath      = 'pedan
 if ~isfield(ft_default, 'checksize'),         ft_default.checksize      = 1e5;        end % number in bytes, can be inf
 if ~isfield(ft_default, 'showlogo'),          ft_default.showlogo       = 'yes';      end % yes or no, this is relevant for SPM and EEGLAB
 if ~isfield(ft_default, 'showcallinfo'),      ft_default.showcallinfo   = 'yes';      end % yes or no, this is used in ft_pre/postamble_provenance
+if ~isfield(ft_default, 'keepprevious'),      ft_default.keepprevious   = 'yes';      end % yes, no, this is used in ft_postamble_previous
+if ~isfield(ft_default, 'keepcfg'),           ft_default.keepcfg        = 'yes';      end % yes, no, this is used in ft_postamble_history
 if ~isfield(ft_default, 'debug'),             ft_default.debug          = 'no';       end % no, save, saveonerror, display, displayonerror, this is used in ft_pre/postamble_debug
 if ~isfield(ft_default, 'outputfilepresent'), ft_default.outputfilepresent = 'overwrite'; end % can be keep, overwrite, error
 
