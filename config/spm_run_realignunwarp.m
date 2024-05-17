@@ -58,44 +58,12 @@ uwrflags.prefix    = job.uwroptions.prefix;
 P   = cell(size(job.data));
 sfP = cell(size(job.data));
 for i = 1:numel(job.data)
-    P{i} = char(job.data(i).scans{:}); % If data to unwarp and phase map file have the same polarity, continue normally
+    P{i} = char(job.data(i).scans{:});
     if ~isempty(job.data(i).pmscan)
-        if job.data(i).poldata == job.data(i).polvdm
-            sfP{i} = job.data(i).pmscan{1};
-        
-        else  % If data to unwarp and phase map file have the different polarity,
-            % then read the static field and negate it.
-            fprintf(['\n\n\n WARNING: Phase map/vdm5 file and data to unwarp ' ...
-                     'have different polarity\n The phase map/vdm5 file will ' ...
-                     'be negated to match the polarity of the data to unwarp.\n ' ...
-                     'A new voxel displacement map (vdm*) file will be generated '...
-                     'with the suffix "neg"\n\n\n']);
-            sfP_neg = replace(char(job.data(i).pmscan{1}),',1','');
-            Nii    = nifti(sfP_neg);
-            u      = single(Nii.dat(:,:,:));
-
-            if ~isempty(strfind(sfP_neg,'_pos_'))
-               pmscan_neg = strrep(sfP_neg,'_pos_','_neg_');
-            elseif ~isempty(strfind(sfP_neg,'_neg_'))
-                pmscan_neg = strrep(sfP_neg,'_neg_','_pos_');
-            else
-                 basename = spm_file(sfP_neg,'basename');
-                 basename = spm_file(basename,'suffix',"_neg",'ext','.nii');
-                 pmscan_neg = [spm_file(sfP_neg,'fpath') '/' basename];
-            end 
-            vi             = u*(-1);
-            Nio            = nifti;
-            Nio.dat        = file_array(pmscan_neg,size(vi),'float32');
-            Nio.mat        = Nii.mat;
-            create(Nio);
-            Nio.dat(:,:,:) = vi;
-
-            % Change the .pmscan path to the negated static field
-            sfP{i} = pmscan_neg;
-        end
+        sfP{i} = job.data(i).pmscan{1};
     else
         sfP{i} = [];
-        fprintf('\n\n\n WARNING: Voxel displacement map (vdm*) not detected\n\n\n');
+        %fprintf('\n\n\n WARNING: Voxel displacement map (vdm*) not detected\n\n\n');
     end
 end
 

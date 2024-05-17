@@ -19,8 +19,8 @@ scope.help = {[...
 'a re-implementation of FSL''s topup (J.L.R. Andersson, S. Skare, J. Ashburner, 2003. ',...
 'How to correct susceptibility distortions in spin-echo echo-planar ',...
 'images: application to diffusion tensor imaging). This implementation ',...
-'requires two EPI images acquired with opposed phase-encode blips in ',...
-'the y-direction (for the moment).']};
+'requires two EPI images acquired with opposite traversals along the phase-encode direction, ',...
+'which is assumed to be in the y-direction (in voxel-space).']};
 
 %==========================================================================
 function varargout = scope_cfg
@@ -30,54 +30,41 @@ if ~isempty(cfg), varargout = {cfg}; return; end
 
 %==========================================================================
 %--------------------------------------------------------------------------
-% Blip up volume(s)
+% Same blip direction volume(s)
 %--------------------------------------------------------------------------
-volbup         = cfg_files;
-volbup.tag     = 'volbup';
-volbup.name    = 'Blip reversed data with positive polarity (.nii)';
-volbup.filter  = 'image';
-volbup.ufilter = '.*';
-volbup.num     = [1 inf];
-volbup.help    = {'Select a blip reversed image with positive phase-encoding polarity.'};
-volbup.preview = @(f) spm_image('Display',char(f));
+vol_same         = cfg_files;
+vol_same.tag     = 'vol1';
+vol_same.name    = 'Same PE direction image(s)';
+vol_same.filter  = 'image';
+vol_same.ufilter = '.*';
+vol_same.num     = [1 inf];
+vol_same.help    = {...
+['Select an image, or set of images, where the acquisition traversed the phase-encode '...,
+ 'direction of K-space in the *same* way as the fMRI data to be corrected ',...
+ '(and could even be the same data as the fMRI to be corrected). ',...
+ 'Note that if multiple images are specified, then they will be motion corrected and ',...
+ 'their average used for registering the phase-encoding direction reversed images. ',...
+ 'If these images were acquired before the oposite PE images, then it is advised to select the ',...
+ 'final volume before the others, otherwise simply select them in the usual chronological order.']};
+vol_same.preview = @(f) spm_image('Display',char(f));
 
 %--------------------------------------------------------------------------
-% Blip down volume(s)
+% Opposite blip direction volume(s)
 %--------------------------------------------------------------------------
-volbdown         = cfg_files;
-volbdown.tag     = 'volbdown';
-volbdown.name    = 'Blip reversed data with negative polarity (.nii)';
-volbdown.filter  = 'image';
-volbdown.ufilter = '.*';
-volbdown.num     = [1 inf];
-volbdown.help    = {'Select an blip reversed image with negative phase-encoding polarity.'};
-volbdown.preview = @(f) spm_image('Display',char(f));
-
-%--------------------------------------------------------------------------
-% Data Volumes
-%--------------------------------------------------------------------------
-data         = cfg_branch;
-data.tag     = 'data';
-data.name    = 'Volumes';
-data.val     = {volbup volbdown};
-data.help    = {[....*
-'Selectthe images with opposite phase-encoding polarities. The first one(s) ',...
-'must have positive polarity and the second one(s) negative polarity.']};
-
-%--------------------------------------------------------------------------
-% Acquisition of images order
-%--------------------------------------------------------------------------
-acqorder         = cfg_menu;
-acqorder.tag     = 'acqorder';
-acqorder.name    = 'Acquisition order of images';
-acqorder.help    = {[
-'Order of acquisition of blip-reversed images ']};
-acqorder.labels = {
-                  'Positive polarity first'
-                  'Negative polarity first'
-}';
-acqorder.values = {0,1};
-acqorder.val    = {0};
+vol_oppo         = cfg_files;
+vol_oppo.tag     = 'vol2';
+vol_oppo.name    = 'Opposite PE direction image(s)';
+vol_oppo.filter  = 'image';
+vol_oppo.ufilter = '.*';
+vol_oppo.num     = [1 inf];
+vol_oppo.help    = {...
+['Select an image, or set of images, where the acquisition traversed the phase-encode ',...
+ 'direction of K-space in the *opposite* way to the fMRI data to be corrected. ',...
+ 'Note that if multiple images are specified, then they will be motion corrected and ',...
+ 'their average used for registering the phase-encoding direction reversed images .',...
+ 'If these images were acquired before the same PE images, then it is advised to select the ',...
+ 'final volume before the others, otherwise simply select them in the usual chronological order.']}; 
+vol_oppo.preview = @(f) spm_image('Display',char(f));
 
 %--------------------------------------------------------------------------
 % fwhm values
@@ -175,16 +162,15 @@ outdir.help    = {[...
 'in the specified directory. The voxel displacement map is saved to disk as ',...
 'a vdm file (``vdm5_*.nii``)']};
 
-[cfg,varargout{1}] = deal({data,acqorder,fwhm,reg,rinterp,jac,prefix,outdir});
-
+[cfg,varargout{1}] = deal({vol_same,vol_oppo,fwhm,reg,rinterp,jac,prefix,outdir});
 
 %==========================================================================
 function out = spm_run_scope(cmd, job)
 
 switch lower(cmd)
     case 'run'
-        vdm               = spm_scope(job.data,job.acqorder,job.fwhm,job.reg, ...
-                            job.rinterp,job.jac,job.prefix,job.outdir{1});
+        vdm               = spm_scope(job.vol1,job.vol2,job.fwhm,job.reg, ...
+                                      job.rinterp,job.jac,job.prefix,job.outdir{1});
         out.vdmfile       = {vdm.dat.fname};
 
     case 'vout'
@@ -192,7 +178,6 @@ switch lower(cmd)
         out(1).sname      = 'Voxel displacement map';
         out(1).src_output = substruct('.','vdmfile');
         out(1).tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});
-
 end
 
 

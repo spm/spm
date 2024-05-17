@@ -194,26 +194,6 @@ scans.num     = [1 Inf];
 scans.preview = @(f) spm_check_registration(char(f));
 
 %--------------------------------------------------------------------------
-%  Polarity of the data (for vdm5 from Blip Updown)
-%--------------------------------------------------------------------------
-poldata         = cfg_menu;                                                         
-poldata.tag     = 'poldata';                                     
-poldata.name    = 'Images polarity';                                
-poldata.help    = {...
-    ['Polarity of the data to be unwarped. This option enables to unwarp ' ...
-    'data acquired with different acquisition parameters in the phase ' ...
-    'encode direction (y axis in SPM). The options are:'] ...
-    '    * Blip reversed data acquired with **Positive polarity **'...
-    '    * Blip reversed data acquired with **Negative polarity **'...
-    }';
-poldata.labels  = {
-                    'Blip reversed data with positive polarity'
-                    'Blip reversed data with negative polarity'
-}';
-poldata.values  = {0 1};
-poldata.val     = {0};    % Default positve
-
-%--------------------------------------------------------------------------
 % pmscan Phase map (vdm* file)
 %--------------------------------------------------------------------------
 pmscan         = cfg_files;
@@ -222,9 +202,7 @@ pmscan.name    = 'Voxel displacement map (vdm*)';
 pmscan.help    = {
     ['Select pre-calculated voxel displacement map, or leave empty for no  ' ...
     'phase correction. The vdm* file is assumed to be already in alignment ' ...
-    'with the first scan of the first session. vdm5 files are expected to ' ...
-    'have a positive polarity.']
-    }';
+    'with the first scan of the first session.']}';
 pmscan.filter  = 'image';
 pmscan.ufilter = '^vdm5_.*';
 pmscan.num     = [0 1];
@@ -232,33 +210,12 @@ pmscan.val     = {''};
 pmscan.preview = @(f) spm_image('Display',char(f));
 
 %--------------------------------------------------------------------------
-%  Polarity of the Voxel displacement map (vdm*)
-%--------------------------------------------------------------------------
-polvdm         = cfg_menu;                                                         
-polvdm.tag     = 'polvdm';                                     
-polvdm.name    = 'Voxel displacement map (vdm*) polarity';  
-polvdm.help    = {...
-    ['Polarity of the voxel displacement map (vdm*) file to be used for the ' ...
-    'unwarping process. This option enables to unwarp data acquired with ' ...
-    'different acquisition parameters in the phase encode direction (y axis ' ...
-    'in SPM). The options are:' ...
-    '    * Voxel displacement map with positive polarity **'...
-    '    * Voxel displacement map with negative polarity **']
-    }';
-polvdm.labels  = {
-                    'vdm with positive polarity'
-                    'vdm with negative polarity'
-}';
-polvdm.values  = {0 1};
-polvdm.val     = {0};    % Default blip up
-
-%--------------------------------------------------------------------------
 % data Session
 %--------------------------------------------------------------------------
 data         = cfg_branch;
 data.tag     = 'data';
 data.name    = 'Session';
-data.val     = {scans poldata pmscan polvdm};
+data.val     = {scans pmscan};
 data.help    = {
     ['Only add similar session data to a realign+unwarp branch, i.e., choose ' ...
     'Data or Data+phase map for all sessions, but don''t use them interchangeably.']
@@ -269,10 +226,6 @@ data.help    = {
     'to the first image of the session. The parameter estimation is performed ' ...
     'this way because it is assumed (rightly or not) that there may be systematic ' ...
     'differences in the images between sessions.']
-    ''
-    ['To unwarp data acquired with different acquisition parameters in the ' ...
-    'phase encode direction  (e.g. when using Blip Updown for distortion correction), ' ...
-    'the polarity of both, the data to be unwarped and the vdm to be used must be specified.']
     }';
 
 %--------------------------------------------------------------------------

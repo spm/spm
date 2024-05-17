@@ -1,11 +1,8 @@
-function vdm = spm_scope(data, acqorder, FWHM, reg, rinterp, jac, pref, outdir)
+function vdm = spm_scope(vol1, vol2, FWHM, reg, rinterp, jac, pref, outdir)
 % Susceptibility Correction using Opposite PE
 % FORMAT vdm = spm_scope(vol1, vol2, FWHM, reg, save)
-% data       - path to first image (s)(positive polarity(ies)) followed for the second image(s) (negative polarity (ies))
-% acqorder   - indicates in which order were acquired the images with
-%              different polarities
-%               - 0 Positive polarity (ies)
-%               - 1 Negative polarity (ies)
+% vol1       - path to first image (s) (same phase-encode direction)
+% vol2       - path to second image(s) (opposite phase-encode direction)
 % fwhm       - Gaussian kernel spatial scales (default: [8 4 2 1 0])
 % reg        - Regularisation settings (default: [0 10 100])
 %              See spm_field for details:
@@ -40,9 +37,6 @@ function vdm = spm_scope(data, acqorder, FWHM, reg, rinterp, jac, pref, outdir)
 
 %-Optional input parameters
 %--------------------------------------------------------------------------
-if nargin < 2
-    acqorder = 0;         % Order of data acquisition
-end
 if nargin < 3
     FWHM = [8 4 2 1 0];   % Spatial scales
 end
@@ -62,86 +56,27 @@ if nargin < 8
     outdir = '';          % Output directory
 end
 
-%-Check the amount of blip reversed pairs entered. If there is more
-% than one pair, the average image of every group of positive polarities or
-% negative polarities are computed with spm_realign.m.  SCOPE is executed
-% using the average of each goup of images.
+vol1 = alignment_stuff(vol1);
+vol2 = alignment_stuff(vol2);
+
+%-Estimate noise level
 %--------------------------------------------------------------------------
-% Default parameters for spm_realign
-flags1.quality = 0.95;
-flags1.fwhm    = 2;
-flags1.sep     = 2;
-flags1.rtm     = 1;
-flags1.PW      = '';
-flags1.interp  = 2;
-flags1.wrap    = [0 0 0];
+sd   = spm_noise_estimate(strvcat(vol1, vol2)); % Rice mixture model to estimate image noise
+sig2 = sum(sd.^2);                              % Variance of difference is sum of variances
 
-% Default parameters for spm_reslice
-flags2.which   = [2 1];
-flags2.interp  = 4;
-flags2.wrap    = [0 0 0];
-flags2.mask    = 1;
-flags2.prefix  = 'r';
-
-vol1 = cell(size(data));
-vol2 = cell(size(data));
-
-for i = 1:numel(data)
-    vol1{i} = char(data(i).volbup{:});
-    vol2{i} = char(data(i).volbdown{:});
-end
-dvol1 = size(vol1{1});
-dvol2 = size(vol2{1});
-
-% Check if the input volumes for each group of blip reversed data have the
-% same amount of elements. Send an error and stop the program if not. If yes,
-% check how many elements they have. If the amount of images per phase encoding
-% direction is > 1, realign the images and obtain a mean image per group
-% (positive polarities and negative polarities)
-
-if dvol1(1) == dvol2(1)
-    if dvol1 > 1
-        if acqorder == 0
-            vol1 = cellstr(flipud((vol1{:})));
-        elseif acqorder == 1
-            vol2 = cellstr(flipud((vol2{:})));
-        end
-        spm_realign(vol1,flags1);
-        spm_reslice(vol1,flags1)
-        spm_realign(vol2,flags2);
-        spm_reslice(vol2,flags2)
-        basename = spm_file(vol1{1}(1,:),'basename');
-        basename = spm_file(basename,'prefix',"mean",'ext','.nii');
-        vol1 = [spm_file(vol1{1}(1,:),'fpath') '/' basename];
-        basename = spm_file(vol2{1}(1,:),'basename');
-        basename = spm_file(basename,'prefix',"mean",'ext','.nii');
-        vol2 = [spm_file(vol2{1}(1,:),'fpath') '/' basename];
-    else
-        vol1 = char(vol1);
-        vol2 = char(vol2);
-    end
-
-else
-    error("Number of volumes with positive polarities is not consistent with " + ...
-          "number of volumes with negative polarities");
-end
-
-%-Load images and estimate noise level
+%-Load volumes (mess about with extra stuff to deal with 4D files)
 %--------------------------------------------------------------------------
-ord  = [0 rinterp 0  0 0 0];
-P    = strvcat(fullfile(vol1), fullfile(vol2));
-Nii  = nifti(P);
+[nam1,ind1] = name_and_number(vol1);
+[nam2,ind2] = name_and_number(vol2);
+Nii  = nifti(strvcat(nam1,nam2));
+f1_0 = single(Nii(1).dat(ind1{:}));
+f2_0 = single(Nii(2).dat(ind2{:}));
 vx   = sqrt(sum(Nii(1).mat(1:3,1:3).^2)); % Voxel sizes
-sd   = spm_noise_estimate(P);             % Rice mixture model to estimate image noise
-sig2 = sum(sd.^2);                        % Variance of difference is sum of variances
 
+ord  = [0 rinterp 0  0 0 0];
 spm_field('bound',1);                     % Set boundary conditions for spm_field
 
-f1_0  = single(Nii(1).dat(:,:,:,1,1));
-f2_0  = single(Nii(2).dat(:,:,:,1,1));
-%f2_0 = f2_0*(mean(f1_0(:))/mean(f2_0(:)));
-
-d   = size(f1_0);
+d    = size(f1_0);
 if length(d) ~= length(size(f2_0)) || ~all(size(f2_0) == d)
     error('Incompatible image dimensions.')
 end
@@ -173,11 +108,10 @@ end
 %-Save distortion-corrected blip reversed images and vdm
 %==========================================================================
 
-% wf1 (positive polarity image, average if more than one was entered)
+% wf1 (same PE direction image, average if more than one was entered)
 %--------------------------------------------------------------------------
 basename = spm_file(vol1,'basename');
-pr       = strcat('w', pref);
-oname    = spm_file(basename,'prefix',pr,'ext','.nii');
+oname    = spm_file(basename,'prefix','scope_','ext','.nii');
 oname    = fullfile(outdir,oname);
 Nio      = nifti;
 Nio.dat  = file_array(oname,d,'float32');
@@ -186,11 +120,10 @@ Nio.mat0 = Nii(1).mat;
 create(Nio);
 Nio.dat(:,:,:) = wf1;
 
-% wf2 (negative polarity image, average if more than one was entered)
+% wf2 (opposite PE image, average if more than one was entered)
 %--------------------------------------------------------------------------
 basename = spm_file(vol2,'basename');
-pr       = strcat('w', pref);
-oname    = spm_file(basename,'prefix',pr,'ext','.nii');
+oname    = spm_file(basename,'prefix','scope_','ext','.nii');
 oname    = fullfile(outdir,oname);
 Nio      = nifti;
 Nio.dat  = file_array(oname,d,'float32');
@@ -202,8 +135,7 @@ Nio.dat(:,:,:) = wf2;
 % Write vdm file
 %--------------------------------------------------------------------------
 basename       = spm_file(vol1,'basename');
-pr             = strcat(pref,'_pos_');
-oname          = spm_file(basename,'prefix',pr,'ext','.nii');
+oname          = spm_file(basename,'prefix',pref,'ext','.nii');
 oname          = fullfile(outdir,oname);
 Nio            = nifti;
 Nio.dat        = file_array(oname,size(u),'float32');
@@ -213,6 +145,53 @@ Nio.dat(:,:,:) = u;
 
 vdm = Nio;
 
+end
+% ===========================================================================
+
+% ===========================================================================
+function vol = alignment_stuff(vol)
+%-Check the number of images entered. If there is more
+% than one pair, the average image of every group of positive polarities or
+% negative polarities are computed with spm_realign.m.  SCOPE is executed
+% using the average of each goup of images.
+%--------------------------------------------------------------------------
+vol = strvcat(vol);
+if size(vol,1) > 1
+    % Default parameters for spm_realign
+    flags_realign.quality = 0.95;
+    flags_realign.fwhm    = 2;
+    flags_realign.sep     = 2;
+    flags_realign.rtm     = 1;
+    flags_realign.PW      = '';
+    flags_realign.interp  = 2;
+    flags_realign.wrap    = [0 0 0];
+
+    % Default parameters for spm_reslice
+    flags_reslice.which   = [0 1];
+    flags_reslice.interp  = 4;
+    flags_reslice.wrap    = [0 0 0];
+    flags_reslice.mask    = 1;
+    flags_reslice.prefix  = 'r';
+
+    spm_realign(vol,flags_realign);
+    spm_reslice(vol,flags_reslice);
+    basename = spm_file(vol(1,:),'basename');
+    basename = spm_file(basename,'prefix',"mean",'ext','.nii');
+    vol      = fullfile(spm_file(vol(1,:),'fpath'),basename);
+end
+end
+% ===========================================================================
+
+% ===========================================================================
+function [name,number] = name_and_number(P)
+    [pth,nam,ext,num] = spm_fileparts(P);
+    name   = fullfile(pth,[nam,ext]);
+    if isempty(num)
+        number = {':',':',':',1,1,1,1};
+    else
+        c      = num2cell(str2num(num));
+        number = {':',':',':',c{:},1,1,1,1};
+    end
 end
 % ===========================================================================
 
