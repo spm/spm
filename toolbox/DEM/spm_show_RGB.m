@@ -1,10 +1,13 @@
-function spm_show_RGB(MDP,RGB,Nt,MOVIE)
+function [J,K] = spm_show_RGB(MDP,RGB,Nt,MOVIE)
 % Graphical illustration of active inference
-% FORMAT spm_show_MDP(MDP,RGB,[Nt],[FIG])
+% FORMAT  [J,K] = spm_show_RGB(MDP,RGB,Nt,MOVIE)
 % MDP   - Hierarchical (RG) generative model (inverted)
 % RGB   - Structure for mapping discrete outcomes to RGB pixels
-% Number of timesteps to show images
-% MOVIE - flag for figure [default: MOVIE = 1]
+% Nt    - Number of timesteps to show images
+% MOVIE - flag for movie [default: MOVIE = 1]
+%
+% [J,K] - predicted and observed RGB time-series
+%
 %--------------------------------------------------------------------------
 % This auxiliary routine plots the hierarchal outcomes from a deep
 % generative model. The separation of temporal scales is illustrated by
@@ -37,9 +40,39 @@ subplot(Nm + 3,2,1)
 image((1 - spm_cat(MDP.X))*64)
 title(sprintf('Posterior (states) level %i',Nm),'FontSize',12)
 
-subplot(Nm + 3,2,2)
-imagesc(1 - MDP.B{1}), axis square
-title('Transitions','FontSize',12)
+% transition probabilities
+%--------------------------------------------------------------------------
+try
+    B = spm_dir_norm(MDP.b{1});
+catch
+    B = MDP.B{1};
+end
+
+% image transition probabilities
+%--------------------------------------------------------------------------
+Nu    = size(B,3);
+if Nu < 4
+    for u = 1:Nu
+        subplot(Nm + 3,2*Nu,Nu + u)
+        if size(B,1) > 128
+            spm_spy(B(:,:,u) > 1/16,8);
+        else
+            imagesc(1 - B(:,:,u))
+        end
+        title(sprintf('Transitions (u = %i)',u),'FontSize',12)
+        axis square
+    end
+else
+    subplot(Nm + 3,2,2)
+    B = sum(B,3) > 1/16;
+    if size(B,1) > 128
+        spm_spy(B,8);
+    else
+        imagesc(1 - B)
+    end
+    title(sprintf('Discovered transitions (%i)',Nu),'FontSize',12)
+    axis square
+end
 
 
 % preditive posteriors over hidden states and paths: raster format
@@ -60,7 +93,10 @@ for n = 1:Nm
     % predicted states (and entropy)
     %----------------------------------------------------------------------
     subplot(Nm + 3,2,(n - 1)*2 + 3)
-    hold off, image((1 - spm_cat(Y{L}(iD,:)))*64)
+    Q = spm_cat(Y{L}(iD,:));
+    % i = any(abs(diff(Q,1,2)) > 1/1024,2);
+    % Q = Q(i,:);
+    hold off, image((1 - Q)*64)
     title(sprintf('Predictive posterior (states) level %i',L),'FontSize',12)
 
     % uncomment for [relative] entropies
@@ -75,7 +111,10 @@ for n = 1:Nm
     %----------------------------------------------------------------------
     if L > 1
         subplot(Nm + 3,2,(n - 1)*2 + 4)
-        hold off, image((1 - spm_cat(Y{L}(iE,:)))*64)
+        Q = spm_cat(Y{L}(iE,:));
+        % i = any(abs(diff(Q,1,2)) > 1/1024,2);
+        % Q = Q(i,:);
+        hold off, image((1 - Q)*64)
         title(sprintf('Predictive posterior (paths) level %i',L),'FontSize',12)
 
         % uncomment for [relative] entropies
@@ -97,6 +136,8 @@ end
 % At the lowest (pixel) level
 %--------------------------------------------------------------------------
 I     = struct([]);
+J     = uint8([]);
+K     = uint8([]);
 f     = 1;
 for t = 1:T
 
@@ -118,34 +159,40 @@ for t = 1:T
     %----------------------------------------------------------------------
     subplot(Nm + 3,Nt,Nt*(Nm + 1) + min(Nt,t))
     spm_imshow(P)
-    title(sprintf('Predictons: t = %i',t),'FontSize',10)
+    title(sprintf('Predicted: t = %i',t),'FontSize',10)
 
 
     % plot first level predictions as a coloured image
     %----------------------------------------------------------------------
+    subplot(Nm + 3,Nt,Nt*(Nm + 2) + min(Nt,t))
+    spm_imshow(X)
     if isfield(mdp,'S')
-        subplot(Nm + 3,Nt,Nt*(Nm + 2) + min(Nt,t))
-        spm_imshow(X)
-        title(sprintf('Stimulus: t = %i',t),'FontSize',10)
+        title('Stimulus','FontSize',10)
+    else
+        title('Observed','FontSize',10)
     end
 
     % save movie
     %----------------------------------------------------------------------
     drawnow
     for i = 1:size(P,4)
-        I(f).cdata = P(:,:,:,i);
-        I(f).colormap  = [];
+        I(f).cdata    = P(:,:,:,i);
+        I(f).colormap = [];
+        J(:,:,:,f)    = P(:,:,:,i);
+        K(:,:,:,f)    = X(:,:,:,i);
         f = f + 1;
     end
-
 end
 
 % Place movie in graphic subject
 %--------------------------------------------------------------------------
-h = get(gca,'Children');
-set(h(1),'Userdata',[])
-set(h(1),'Userdata',{I,8})
-set(h(1),'ButtonDownFcn','spm_DEM_ButtonDownFcn')
+try
+    subplot(Nm + 3,Nt,Nt*(Nm + 2))
+    h = get(gca,'Children');
+    set(h(1),'Userdata',[])
+    set(h(1),'Userdata',{I,8})
+    set(h(1),'ButtonDownFcn','spm_DEM_ButtonDownFcn')
+end
 
 return
 

@@ -52,24 +52,63 @@ try R  = WAV.R;  catch, R  = 512; end            % temporal resampling
 nb     = 2*fix(nb/2) + 1;
 WAV.nb = nb;
 
-% locations for spatial grouping (L)
+% permute for spatial grouping
 %--------------------------------------------------------------------------
-T     = R*fix(size(I,2)/R);                     % length of time parition
-I     = I(:,1:T);                               % truncate time series
-I     = permute(I,[2,1]);                       % reshape time
-N     = size(I,[1,2]);                          % size
-I     = reshape(I,R,[],N(2));                   % time 2nd dimension
-I     = permute(I,[2,1,3]);                     % time leading dimension
-N     = size(I,[2,3]);
-T     = size(I,1);
-for n = 1:prod(N)
-    ind    = spm_index(N,n);
-    L(n,1) = ind(2);
+T      = R*fix(size(I,2)/R);                     % length of time parition
+I      = I(:,1:T);                               % truncate time series
+I      = permute(I,[2,1]);                       % reshape time
+N      = size(I,[1,2]);                          % size
+I      = reshape(I,R,[],N(2));                   % time 2nd dimension
+I      = permute(I,[2,1,3]);                     % time leading dimension
+N      = size(I,[2,3]);                          % voxels
+T      = size(I,1);                              % time
+
+% if V is provided
+%--------------------------------------------------------------------------
+if isfield(WAV,'V')
+
+    % for each group
+    %----------------------------------------------------------------------
+    o     = 1;
+    L     = 1;
+    O     = {1,T};
+    for g = 1:numel(WAV.G)
+
+        % singular variates for this group
+        %------------------------------------------------------------------
+        Nm    = size(WAV.V{g},2);
+        if Nm
+            Y = times(double(I(:,WAV.G{g})),WAV.W{g});
+            u = Y*WAV.V{g};
+        end
+
+        % generate (probability over discrete) outcomes
+        %------------------------------------------------------------------
+        for m = 1:Nm
+
+            % dicretise singular variates
+            %--------------------------------------------------------------
+            for t = 1:T
+                [~,U]  = min(abs(u(t,m) - WAV.A{o}));
+                O{o,t} = sparse(U,1,1,WAV.nb,1);
+            end
+
+            % record locations and group for this outcome
+            %--------------------------------------------------------------
+            L(o,:)     = WAV.M(g,:);
+            o          = o + 1;
+        end
+    end
+
+    % discretization complete
+    %----------------------------------------------------------------------
+    return
 end
 
-% Grouping
+% Frequency Grouping
 %--------------------------------------------------------------------------
-[G,M,W] = spm_tile(L,nd);
+L       = spm_combinations(N);
+[G,M,W] = spm_tile(L(:,2),nd);
 WAV.M = M;
 WAV.N = N;
 WAV.G = G;
@@ -77,6 +116,7 @@ WAV.W = W;
 
 o     = 1;
 L     = 1;
+O     = {1,T};
 for g = 1:numel(G)
 
     % singular value decomposition for this group
@@ -85,7 +125,8 @@ for g = 1:numel(G)
     [u,s,v]  = spm_svd(Y,1/su);
     Nm       = min(length(s),mm);
     if Nm
-        WAV.V{g} = v(:,1:Nm)*s(1:Nm,1:Nm);
+        WAV.V{g} = v(:,1:Nm);
+        u        = u(:,1:Nm)*s(1:Nm,1:Nm);
     end
 
     % generate (probability over discrete) outcomes

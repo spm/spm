@@ -3,11 +3,11 @@ function [j,i] = spm_get_edges(id,g,Q)
 % FORMAT [j,i] = spm_get_edges(id,g,Q)
 % 
 % id - identifier or index structure
-%  id.A{g} State-independent domain
+%  id.A{g} List of parents  of A{g}
 %
 %  id.ff - List of domain factors
-%  id.fg - List of parents  for A{g} under each combination of domains 
-%  id.gg - List of children for A{g} under each combination of domains
+%  id.fg - List of parents  of A{g} under each combination of domains 
+%  id.gg - List of children of A{g} under each combination of domains
 % 
 % g  - index of likelihood mapping A{g}
 % Q  - posterior over domain factors (id.ff)

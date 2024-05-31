@@ -50,7 +50,7 @@ spm_wav2I = @(s,WAV)real(spm_wft(s,WAV.k,WAV.n));
 %--------------------------------------------------------------------------
 Nk     = 32;                                    % frequency bins
 WAV.Fs = Fs;                                    % sample rate
-WAV.n  = fix(Fs*8/1000);                        % window (32 ms)
+WAV.n  = fix(Fs*8/1000);                        % window (8 ms)
 WAV.k  = fix(linspace(1,4000,Nk)/(Fs/WAV.n));   % frequencies (Hz)
 
 % Map from CWT image to discrete state space (c.f., Amortisation) 
@@ -74,21 +74,13 @@ spm_wavshow(I,WAV);
 %--------------------------------------------------------------------------
 MDP = spm_MB_structure_learning(O,L);
 
-% Show model structure (at the deepest level)
-%--------------------------------------------------------------------------
-Nm    = numel(MDP);
-spm_figure('GetWin',sprintf('Paramters: level %i',Nm)); clf
-spm_MDP_params(MDP{Nm})
-
 % learn from subsequent episodes
 %==========================================================================
-p        = 0;                             % likelihood concentration
-q        = [0 0 1/256];                   % transition concentration
-FIX.A    = 1;                             % disable likelihood learning
-FIX.B    = 0;                             %  enable transition learning
 
 % active learning (with minimal forgetting)
 %--------------------------------------------------------------------------
+FIX.A = 1;                             % disable likelihood learning
+FIX.B = 0;                             %  enable transition learning
 for m = 1:numel(MDP)
     MDP{m}.beta = 4;
     MDP{m}.eta  = 512;
@@ -99,27 +91,33 @@ end
 S     = cell(1,2);
 seg   = No/4;
 for i = 1:numel(S)
-    t     = [((1:seg) + 3*seg) ((1:seg) + 2*(i - 1)*seg)];
-    S{i}  = O(:,t);
+    t    = [((1:seg) + 3*seg) ((1:seg) + 2*(i - 1)*seg)];
+    S{i} = O(:,t);
 end
 
-% learning: with small concentration parameters (1/256) in B{end}
+% active learning
 %--------------------------------------------------------------------------
-RDP   = spm_mdp2rdp(MDP,p,q,2,FIX);
+Nm    = numel(MDP);
+RDP   = spm_mdp2rdp(MDP,0,0,2,FIX);
 RDP.T = fix(size(S{1},2)/(2^(Nm - 1)));
 for i = 1:numel(S)
-    RDP   = spm_RDP_O(RDP,S{i});
-    PDP   = spm_MDP_VB_XXX(RDP);
-    RDP   = spm_RDP_update(RDP,PDP);
+    RDP  = spm_RDP_O(RDP,S{i});
+    PDP  = spm_MDP_VB_XXX(RDP);
+    RDP  = spm_RDP_update(RDP,PDP);
 end
+
+% simple selecton (BMR)
+%--------------------------------------------------------------------------
+PDP   = spm_MDP_VB_XXX(RDP);
+RDP   = spm_RDP_update(RDP,PDP,'SIMPLE');
 
 % Generate music from ensuing generative model
 %==========================================================================
 
 % remove stimulus
 %--------------------------------------------------------------------------
-T     = fix(2*size(O,2)/(2^(Nm - 1)));
-RDP.T = T;
+T     = fix(size(O,2)/(2^(Nm - 1)));
+RDP.T = 2*T;
 RDP   = spm_RDP_O(RDP,[]);
 PDP   = spm_MDP_VB_XXX(RDP);
 
@@ -128,8 +126,13 @@ PDP   = spm_MDP_VB_XXX(RDP);
 spm_figure('GetWin','Generative AI'); clf
 spm_show_WAV(PDP,WAV)
 
+
+% generate (i.e., predict) while listening to music
+%==========================================================================
+
 % provide orignal music
 %--------------------------------------------------------------------------
+RDP.T = T;
 RDP   = spm_RDP_O(RDP,O);
 PDP   = spm_MDP_VB_XXX(RDP);
 

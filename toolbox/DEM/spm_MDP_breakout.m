@@ -20,6 +20,8 @@ function [MDP,hid,cid,con,RGB] = spm_MDP_breakout(Nr,Nc)
 % Karl Friston
 % Copyright (C) 2022-2023 Wellcome Centre for Human Neuroimaging
 
+RAND  = 1;              % Randomness of resets
+
 % preliminaries
 %--------------------------------------------------------------------------
 Ns(1) = Nc;             % location of paddle
@@ -39,7 +41,7 @@ end
 
 % transition priors
 %--------------------------------------------------------------------------
-B{1} = false(NS,NS,3);
+B{1}  = false(NS,NS,3);
 
 % specify likelihood and transitions for every combination of states
 %--------------------------------------------------------------------------
@@ -79,7 +81,7 @@ for x = 1:Ns(1)         % location of paddle
                             % likelihoods for paddle
                             %----------------------------------------------
                             if ind(1) == Nr
-                                if abs(x - ind(2)) < 1
+                                if x == ind(2)
                                     A{g}(1,s) = true;
                                     A{g}(5,s) = false;
                                 end
@@ -115,7 +117,9 @@ for x = 1:Ns(1)         % location of paddle
 
                             % next state: paddle
                             %----------------------------------------------
-                            xt  = max(min(x + U(u),Nc),1);
+                            xt  = x + U(u);
+                            if xt > Nc, xt = 1;  end
+                            if xt < 1 , xt = Nc; end
 
                             % next state: ball
                             %----------------------------------------------
@@ -130,14 +134,30 @@ for x = 1:Ns(1)         % location of paddle
                             it   = i + m(pt);
                             jt   = j + m(qt);
 
-                            % hit or miss
+                            % miss
                             %==============================================
                             if j == Nr
                                 if x ~= i
-                                    it = x0;
+                                    
                                     jt = j0;
                                     pt = p0;
                                     qt = q0;
+
+                                    % transitions 
+                                    %--------------------------------------
+                                    for r = -RAND:RAND
+                                        it = i0 + r;
+                                        st = sub2ind(Ns,xt,it,jt,pt,qt,ht);
+                                        B{1}(st,s,u) = true;
+                                    end
+
+                                    % default reset of ball
+                                    %--------------------------------------
+                                    it = i0;
+
+                                    % default reset of paddle
+                                    %--------------------------------------
+                                    xt = x0;
 
                                     % miss
                                     %--------------------------------------
@@ -156,23 +176,29 @@ for x = 1:Ns(1)         % location of paddle
                             %==============================================
                             if j == 2 && q == 1 && abs(i - Nc/2) > WIDTH
 
-                                it = i0 - 2;
                                 jt = j0;
                                 pt = p0;
                                 qt = q0;
                                 ht = h0;
 
                                 % transitions
-                                %--------------------------------------
-                                st = sub2ind(Ns,xt,it,jt,pt,qt,ht);
-                                B{1}(st,s,u) = true;
+                                %------------------------------------------
+                                for r = -RAND:RAND
+                                    it = i0 + r;
+                                    st = sub2ind(Ns,xt,it,jt,pt,qt,ht);
+                                    B{1}(st,s,u) = true;
+                                end
 
-                                % alternative reset
-                                %--------------------------------------
-                                it = i0 + 2;
+                                % default reset of ball
+                                %------------------------------------------
+                                it = i0;
+
+                                % default reset of paddle
+                                %------------------------------------------
+                                xt = x0;
 
                             end
-                            
+
                             % transitions
                             %----------------------------------------------
                             st           = sub2ind(Ns,xt,it,jt,pt,qt,ht);

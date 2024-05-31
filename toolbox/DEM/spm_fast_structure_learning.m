@@ -131,14 +131,14 @@ end
 
 % fill in empty columns of transition tensor
 %--------------------------------------------------------------------------
-for u = 1:size(b,3)
-    for s = 1:Ns
-        if ~any(b(:,s,u))
-            i = find(any(squeeze(b(:,s,:)),2),1);
-            b(i,s,u) = 1;
-        end
-    end
-end
+% for u = 1:size(b,3)
+%     for s = 1:Ns
+%         if ~any(b(:,s,u))
+%             i = find(any(squeeze(b(:,s,:)),2),1);
+%             b(i,s,u) = 1;
+%         end
+%     end
+% end
 
 % Vectorise cell array of likelihood tensors and place in structure
 %--------------------------------------------------------------------------
@@ -213,7 +213,7 @@ end
 return
 
 function mdp = spm_structure(O)
-% structure learning (unused)
+% structure learning (UNUSED)
 % FORMAT mdp = spm_structure(O)
 % O   - Cell array of (cells of) a sequence of probabilistic outcomes
 % mdp - likelihood (a) and transition (b) tensors for this sequence

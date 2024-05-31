@@ -85,7 +85,6 @@ if nargin > 2
     dEdA = plus(dEdA, H' - sum(A,1)*H);
 end
 
-
 % dEda = dEdA.*dAda, dAda = (1/s - a/(s^2))
 %--------------------------------------------------------------------------
 dEda   = dEdA.*(1 - A)/s;
@@ -103,8 +102,9 @@ I    =      A(:)'*spm_log(A(:)) - ...
 
 return
 
-
-
+% B    = spm_dir_norm(A);
+% C    = sum(B.*spm_log(B))*sum(A,1)';
+% I    = C - sum(A,2)'*spm_log(sum(A,2));
 
 
 

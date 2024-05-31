@@ -60,7 +60,7 @@ for t = 1:numel(k)
 end
 
 subplot(2,2,1)
-spm_imshow(I)
+spm_imshow(I), axis on, title('Original image','FontSize',12)
 
 % Map from image to discrete state space (c.f., Amortisation) 
 %--------------------------------------------------------------------------
@@ -74,6 +74,7 @@ for t = 1:T
     I = spm_O2rgb(O(:,t),RGB);
     spm_imshow(I), drawnow
 end
+axis on, title('Discretised image','FontSize',12)
 
 % Use the ensuing sequence for (RG) structure learning
 %--------------------------------------------------------------------------
@@ -136,7 +137,7 @@ PDP       = spm_MDP_VB_XXX(RDP);
 
 % Illustrate the model in generative mode
 %--------------------------------------------------------------------------
-spm_show_RGB(PDP,RGB)
+spm_show_RGB(PDP,RGB);
 
 
 % Biomimetic characterisation in terms of evoked responses
@@ -168,7 +169,7 @@ PDP       = spm_MDP_VB_XXX(RDP);
 
 % Illustrate neuronal responses
 %--------------------------------------------------------------------------
-spm_show_RGB(PDP,RGB)
+spm_show_RGB(PDP,RGB);
 
 return
 

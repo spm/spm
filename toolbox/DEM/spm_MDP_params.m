@@ -27,13 +27,13 @@ for f = 1:Nf
         subplot(6,6,u + (f - 1)*6)
         if strcmp(OPT,'norm')
             if Ns(f) > 128
-                spm_spy(spm_dir_norm(MDP.b{f}(:,:,u)),4);
+                spm_spy(spm_dir_norm(MDP.b{f}(:,:,u)) > 1/16,4);
             else
                 imagesc(spm_dir_norm(MDP.b{f}(:,:,u)))
             end
         else
             if Ns(f) > 128
-                spm_spy(MDP.b{f}(:,:,u),4);
+                spm_spy(MDP.b{f}(:,:,u) > 1/16,4);
             else
                 imagesc(MDP.b{f}(:,:,u))
             end
@@ -67,9 +67,9 @@ end
 %--------------------------------------------------------------------------
 subplot(2,2,4)
 if Ns(f) > 128
-    spm_spy(sum(MDP.b{1},3) > 1/4,8);
+    spm_spy(sum(MDP.b{1},3) > 1/16,8);
 else
-    imagesc(sum(MDP.b{1},3) > 1/4),
+    imagesc(sum(MDP.b{1},3) > 1/16),
 end
 axis square
 title('Allowable transitions','FontSize',14), axis square
