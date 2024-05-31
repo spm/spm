@@ -72,16 +72,16 @@ I         = spm_wav2I(s,WAV);
 
 % And show the CWT images generated from a discrete representation
 %--------------------------------------------------------------------------
-I = spm_O2wav(O,WAV);
+I   = spm_O2wav(O,WAV);
 spm_wavshow(I,WAV);
 
 % Use the ensuing sequence for (RG) structure learning
 %--------------------------------------------------------------------------
-MDP   = spm_MB_structure_learning(O,L);
+MDP = spm_MB_structure_learning(O,L);
 
 % Show model structure (at the deepest level)
 %--------------------------------------------------------------------------
-Nm    = numel(MDP);
+Nm = numel(MDP);
 spm_figure('GetWin',sprintf('Paramters: level %i',Nm)); clf
 spm_MDP_params(MDP{Nm})
 
@@ -94,7 +94,7 @@ spm_figure('GetWin','Active Inference'); clf
 RDP       = spm_mdp2rdp(MDP);
 [~,Ns,Nu] = spm_MDP_size(RDP);
 
-RDP.T     = 16;
+RDP.T     = 32;
 RDP.D{1}  = sparse(1,1,1,Ns(1),1);
 RDP.E{1}  = sparse(1,1,1,Nu(1),1);
 PDP       = spm_MDP_VB_XXX(RDP);

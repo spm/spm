@@ -36,7 +36,7 @@ image((1 - spm_cat(MDP.X))*64)
 title(sprintf('Posterior (states) level %i',Nm),'FontSize',12)
 
 subplot(Nm + 3,2,2)
-imagesc(1 - MDP.B{1}), axis square
+imagesc(1 - sum(MDP.B{1},3)), axis square
 title('Transitions','FontSize',12)
 
 % preditive posteriors over hidden states and paths: raster format

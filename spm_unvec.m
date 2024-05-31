@@ -38,7 +38,7 @@ end
 % reshape numerical arrays
 %--------------------------------------------------------------------------
 if isnumeric(X) || islogical(X)
-    if ndims(X) > 2
+    if ~ismatrix(X)
         X(:)  = full(vX);
     elseif isa(vX,'sym')
         X     = reshape(vX,size(X));

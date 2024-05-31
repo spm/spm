@@ -29,9 +29,9 @@ function MDP = DEM_Atari
 % in which random play is sporadically rewarded. By selecting episodes of
 % play (i.e., exemplar training data) that end with a reward, one can
 % emulate reinforcement learning with active model selection. This can be
-% read as replacing a scheme in which “everything is presented but rewarded
-% sequences are learned” with the equivalent protocol in which “rewarded
-% sequences are presented and everything is learned”. The resulting
+% read as replacing a scheme in which 'everything is presented but rewarded
+% sequences are learned' with the equivalent protocol in which 'rewarded
+% sequences are presented and everything is learned'. The resulting
 % structure is then sufficient to reproduce expert play; because this is
 % the kind of play that the model knows.
 % 
@@ -56,14 +56,10 @@ rng(1)
 %==========================================================================
 Nr = 12;                               % number of rows
 Nc = 9;                                % number of columns
-
 G  = @(Nr,Nc) spm_MDP_breakout(Nr,Nc); % game
-NT = 50000;                            % exposures (training)
-q  = [0 0 1/64];                       % concentration parameter (learning)
-
+NT = 2048;                             % exposures (training)
 G  = @(Nr,Nc) spm_MDP_pong(Nr,Nc);     % game
-NT = 30000;                            % exposures (training)
-q  = 1/128;                            % concentration parameter (learning)
+NT = 1024;                             % exposures (training)
 
 
 %% Simulate learning and subsequent performance
@@ -74,9 +70,11 @@ q  = 1/128;                            % concentration parameter (learning)
 %==========================================================================
 spm_figure('GetWin','Gameplay'); clf
 
-GDP.T = (Nr + 2)*2;
+GDP.tau = 2;                          % smoothness of random paths
+GDP.T   = (Nr + 2)*4;                 % uppr bound on length of paths
+
 O     = {};
-for n = 1:fix(NT/GDP.T)
+for n = 1:(NT*32)
 
     % initialise this batch of training exemplars
     %----------------------------------------------------------------------
@@ -88,11 +86,14 @@ for n = 1:fix(NT/GDP.T)
     c   = find(ismember(PDP.s',cid','rows'),1,'first');
     c   = min([c; GDP.T]);
 
-    if numel(t) && t < GDP.T && c > t
+    % Maxwell's Daemon
+    %----------------------------------------------------------------------
+    ACCEPT = numel(t) && t < GDP.T && c > t;
+
+    if ACCEPT
 
         % accumulate (rewarded) sequences
         %------------------------------------------------------------------
-        t  = t(1);
         if numel(O)
             O = [O PDP.O(:,1:t)];
             o = [o PDP.o(:,1:t)];
@@ -122,7 +123,8 @@ for n = 1:fix(NT/GDP.T)
     % break if a sufficient number of episodes have been accumulated
     %----------------------------------------------------------------------
     clc; fprintf('Number of samples %i (%i)\n',size(O,2),(n*GDP.T))
-    if size(O,2) > 10000
+    if size(O,2) > NT
+        O = O(:,1:NT);
         break
     end
 
@@ -167,7 +169,7 @@ tic, MDP = spm_fast_structure_learning(O,[Nr,Nc]); toc
 
 % rewarded events
 %--------------------------------------------------------------------------
-[HID,~,HITS] = spm_get_rewards(hid,cid,GDP,MDP);
+[HID,CID,HITS] = spm_get_rewards(hid,cid,GDP,MDP);
 
 % Illustrate episodic dynamics (at deepest level)
 %==========================================================================
@@ -181,7 +183,7 @@ subplot(2,2,3)
 B     = sum(MDP{Nm}.B{1},3) > 0;
 Ns    = size(B,1);
 h     = sparse(1,HID,1,1,Ns);
-for t = 1:8
+for t = 1:16
     I(t,:) = h;
     h      = (h + h*B) > 0;
 end
@@ -194,7 +196,7 @@ xlabel('latent states'), ylabel('time steps'), axis square
 
 % Generate play by sampling from the resulting deep generative model
 %==========================================================================
-spm_figure('GetWin','Generative AI'); clf
+spm_figure('GetWin','Generative AI - I'); clf
 
 % sample outcomes
 %--------------------------------------------------------------------------
@@ -240,7 +242,8 @@ PDP      = spm_MDP_VB_XXX(RDP);
 
 % Illustrate recursive model
 %--------------------------------------------------------------------------
-spm_show_RGB(PDP,RGB)
+spm_figure('GetWin','Generative AI - II'); clf
+spm_show_RGB(PDP,RGB);
 
 
 % Now repeat but engage action and active inference
@@ -252,7 +255,7 @@ spm_show_RGB(PDP,RGB)
 % outcomes (here, purely visual) at the lowest level.
 %--------------------------------------------------------------------------
 
-% create hierarchical model with prior concentration parameters
+%% create hierarchical model with prior concentration parameters
 %--------------------------------------------------------------------------
 MDP{1}.GA  = GDP.A;
 MDP{1}.GB  = GDP.B;
@@ -260,29 +263,42 @@ MDP{1}.GD  = GDP.D;
 MDP{1}.GE  = GDP.E;
 MDP{1}.GU  = GDP.U;
 
-MDP{1}.id.control = con;
+for g = 1:numel(GDP.A)
+    MDP{1}.ID.A{g} = 1:(ndims(GDP.A{g}) - 1);
+end
+
+MDP{1}.ID.control = con;                    % controlled outcomes
 MDP{1}.chi = 1;                             % sticky action/shaky hand
 
-% train: with small concentration parameters (1/16)
+
+% enable active learning (with minimal forgetting)
 %--------------------------------------------------------------------------
-FIX.A      = 1;                             % fix likelihood
-FIX.B      = 0;                             % but not transitions
-RDP        = spm_mdp2rdp(MDP,0,q,2,FIX);
+for m = 1:numel(MDP)
+    MDP{m}.beta = 4;
+    MDP{m}.eta  = 512;
+end
+
+% train: with small concentration parameters
+%--------------------------------------------------------------------------
+FIX.A      = 0;                             % learn likelihood
+FIX.B      = 1;                             % but not transitions
+RDP        = spm_mdp2rdp(MDP,1/128,0,2,FIX);
 
 RDP.U      = 1;
-RDP.T      = 512/(2^(Nm - 1));
+RDP.T      = 128;
 RDP.id.hid = HID;
+RDP.id.cid = CID;
 
 PDP        = spm_MDP_VB_XXX(RDP);
 
 % Illustrate recursive model
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Active inference'); clf
-spm_show_RGB(PDP,RGB,4,true)
+spm_show_RGB(PDP,RGB,4,false);
 
 % add ELBOs
 %--------------------------------------------------------------------------
-subplot(Nm + 2,2,2*Nm)
+subplot(Nm + 3,2,2*(Nm + 1))
 T     = numel(PDP.Q.E{1});
 t     = linspace(1,T,RDP.T);
 plot(t,PDP.F), hold on
@@ -291,7 +307,7 @@ for n = 1:numel(PDP.Q.E)
     plot(t,PDP.Q.E{n})
 end
 
-% and add hits
+% and hits
 %--------------------------------------------------------------------------
 h     = find(ismember(PDP.Q.o{1}',HITS','rows'));
 plot(h,ones(size(h)),'.r','MarkerSize',16)

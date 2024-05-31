@@ -527,7 +527,7 @@ return
 
 function O = spm_local(s)
 % likelihood of proximity given some states (s)
-% FORMAT O = spm_depth(s)
+% FORMAT O = spm_local(s)
 % s  - class or state along ray
 %--------------------------------------------------------------------------
 O = zeros(2,1);

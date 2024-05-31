@@ -35,7 +35,12 @@ function [O,L,RGB] = spm_rgb2O(I,RGB)
 % Crucially, these spatial grouping operators can be generalised to
 % spatiotemporal grouping by specifying a temporal resampling rate. In
 % other words, one can discretise short image sequences.
+%
+% If the basis set has already been evaluated, this routine will return the
+% discretised space-time voxels of any image timeseries, based upon the
+% pre-evaluated spatial grouping and singular vectors.
 %__________________________________________________________________________
+
 
 % defaults
 %--------------------------------------------------------------------------
@@ -50,28 +55,69 @@ try R  = RGB.R;  catch, R  = 2;  end            % temporal resampling
 nb     = 2*fix(nb/2) + 1;
 RGB.nb = nb;
 
-% locations for spatial grouping (L)
+% Permute for grouping
 %--------------------------------------------------------------------------
-T     = R*fix(size(I,4)/R);                     % length of time parition
-I     = I(:,:,:,1:T);                           % truncate time series
-I     = permute(I,[3,4,1,2]);                   % reshape time
-N     = size(I,[1,2,3,4]);                      % size
-I     = reshape(I,3*R,[],N(3),N(4));            % time 2nd
-I     = permute(I,[2,1,3,4]);                   % time leading dimension
-N     = size(I,[2,3,4]);
-T     = size(I,1);
-for n = 1:prod(N)
-    ind    = spm_index(N,n);
-    L(n,:) = [ind(2),ind(3)];
+T      = R*fix(size(I,4)/R);                    % length of time parition
+I      = I(:,:,:,1:T);                          % truncate time series
+I      = permute(I,[3,4,1,2]);                  % reshape time
+N      = size(I,[1,2,3,4]);                     % size
+I      = reshape(I,3*R,[],N(3),N(4));           % time 2nd
+I      = permute(I,[2,1,3,4]);                  % time leading dimension
+N      = size(I,[2,3,4]);                       % truecolours
+T      = size(I,1);                             % time
+
+% if V is provided
+%--------------------------------------------------------------------------
+if isfield(RGB,'V')
+
+    % for each group
+    %----------------------------------------------------------------------
+    O     = {1,T};
+    L     = [1,1];
+    o     = 1;
+    for g = 1:numel(RGB.G)
+
+        % singular variates for this group
+        %------------------------------------------------------------------
+        Nm     = size(RGB.V{g},2);
+        if Nm
+            Y  = times(double(I(:,RGB.G{g})),RGB.W{g});
+            u  = Y*RGB.V{g};
+        end
+
+        % generate (probability over discrete) outcomes
+        %------------------------------------------------------------------
+        for m = 1:Nm
+
+            % dicretise singular variates
+            %--------------------------------------------------------------
+            for t = 1:T
+                [~,U]  = min(abs(u(t,m) - RGB.A{o}));
+                O{o,t} = sparse(U,1,1,RGB.nb,1);
+            end
+
+            % record locations and group for this outcome
+            %--------------------------------------------------------------
+            L(o,:)     = RGB.M(g,:);
+            o          = o + 1;
+        end
+    end
+
+    % discretization complete
+    %----------------------------------------------------------------------
+    return
 end
 
-% Grouping
+% Spatial grouping
 %--------------------------------------------------------------------------
-[G,M,W] = spm_tile(L,nd);
+L       = spm_combinations(N);
+[G,M,W] = spm_tile(L(:,[2 3]),nd);
+
 RGB.M = M;
 RGB.N = N;
 RGB.G = G;
 RGB.W = W;
+RGB.R = R;
 
 O     = {1,T};
 L     = [1,1];
@@ -84,7 +130,8 @@ for g = 1:numel(G)
     [u,s,v]  = spm_svd(Y,1/su);
     Nm       = min(length(s),mm);
     if Nm
-        RGB.V{g} = v(:,1:Nm)*s(1:Nm,1:Nm);
+        RGB.V{g} = v(:,1:Nm);
+        u        = u(:,1:Nm)*s(1:Nm,1:Nm);
     end
 
     % generate (probability over discrete) outcomes

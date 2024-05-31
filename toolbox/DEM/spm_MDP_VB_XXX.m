@@ -280,7 +280,7 @@ end
 %--------------------------------------------------------------------------
 try, alpha = MDP(1).alpha; catch, alpha = 512;  end % planning precision
 try, beta  = MDP(1).beta ; catch, beta  = 0;    end % learning precision
-try, chi   = MDP(1).alpha; catch, chi   = 512;  end % action precision
+try, chi   = MDP(1).chi;   catch, chi   = 512;  end % action precision
 try, eta   = MDP(1).eta;   catch, eta   = 512;  end % learnability
 try, N     = MDP(1).N;     catch, N     = 0;    end % depth of policy search
 
@@ -289,22 +289,22 @@ try, N     = MDP(1).N;     catch, N     = 0;    end % depth of policy search
 T     = MDP(1).T;                              % number of updates
 Nm    = numel(MDP);
 
-% Check for generative process
+% Check for generative process (invoking explicit action)
 %--------------------------------------------------------------------------
 process = zeros(Nm,1);
 for m = 1:Nm
-
-    % invoke explicit action (process specified)
-    %----------------------------------------------------------------------
-    if all(isfield(MDP(m),{'GA','GB','GU'}))
-        process(m) = 1;
-    end
+    process(m) = spm_is_process(MDP(m));
 end
 
+% Prelimninaries and checks
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% for each model
+%--------------------------------------------------------------------------
 for m = 1:Nm
 
     % Check for generative process
-    %======================================================================
+    %----------------------------------------------------------------------
     if ~process(m)
 
         % assume generative process is the model
@@ -370,7 +370,6 @@ for m = 1:Nm
 
         end
     end
-
 
     % parameters of generative model and policies
 %==========================================================================
@@ -525,7 +524,6 @@ for m = 1:Nm
 
         end
 
-
     % controllable factors
     %======================================================================
 
@@ -648,6 +646,11 @@ N       = min(N,T);                          % depth of policy search
 BP      = cell(Nm,Nf(m),Np(m));
 IP      = cell(Nm,Nf(m),Np(m));
 
+
+
+% Bayesian model inversion
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 % belief updating over successive time points
 %==========================================================================
 for t = 1:T
@@ -656,7 +659,7 @@ for t = 1:T
     %======================================================================
     for m = M(t,:)
 
-        % explicit action to realise initial state
+        % explicit action MDP(m).u to realise initial state MDP(m).s
         %==================================================================
         if process(m) && t == 1 && isfield(MDP(m),'s0')
 
@@ -711,7 +714,7 @@ for t = 1:T
 
         end
 
-        % initialise and propagate control state (path)
+        % initialise and propagate control state (path) MDP(m).u
         %==================================================================
         for f = 1:NF(m)
             if ~MDP(m).u(f,t)
@@ -910,15 +913,14 @@ for t = 1:T
 
                         % or sample from likelihood, given hidden state
                         %==================================================
-                        if process(m)
                             ind       = num2cell(MDP(m).s(j,t));
+                        if process(m)
                             if isa(MDP(m).GA{g},'function_handle')
                                 O{m,o,t} = MDP(m).GA{g}([ind{:}]);
                             else
                             O{m,o,t}  = MDP(m).GA{g}(:,ind{:});
                             end
                         else
-                    ind           = num2cell(MDP(m).s(j,t));
                         O{m,o,t}      = MDP(m).A{g}(:,ind{:});
                         end
 
@@ -935,9 +937,12 @@ for t = 1:T
                     end
 
                 end
-            end
-        end
-    end
+
+            end % end children of likelihood mapping
+
+        end % end generate outomes O{m,g,t} from states
+
+    end % end models
 
 
     % shared probabilistic outcomes O{m,g,t} and realizatons MDP(m).o(g,t)
@@ -971,29 +976,55 @@ for t = 1:T
                         mdp = MDP(m).MDP(1);
 
             % priors over states and paths of children
-            %--------------------------------------------------------------
-            for f = 1:numel(mdp.id.D)
+            %==============================================================
 
                 % empirical priors over initial states: 
-                % mdp.s(f,1) = MDP(m).o(g,t);
-                %----------------------------------------------------------
+            %--------------------------------------------------------------
+            for f = 1:numel(mdp.id.D)
                 g        = mdp.id.D{f};
                 j        = spm_get_edges(id{m},g,Q(m,:,t));
-                O{m,g,t} = spm_dot(A{m,g},Q(m,j,t));
-                mdp.D{f} = O{m,g,t};
-
+                mdp.D{f} = spm_dot(A{m,g},Q(m,j,t));
                     end
 
-            for f = 1:numel(mdp.id.E)
-
                 % empirical priors over paths: 
-                % mdp.u(f,1) = MDP(m).o(g,t);
-                %----------------------------------------------------------
+            %--------------------------------------------------------------
+            for f = 1:numel(mdp.id.E)
                 g        = mdp.id.E{f};
                 j        = spm_get_edges(id{m},g,Q(m,:,t));
-                O{m,g,t} = spm_dot(A{m,g},Q(m,j,t));
-                mdp.E{f} = O{m,g,t};
+                mdp.E{f} = spm_dot(A{m,g},Q(m,j,t));
+            end
 
+            % states and paths of generative process
+            %==============================================================
+            if ~spm_is_process(mdp)
+
+                % states of generative process
+                %----------------------------------------------------------
+                for f = 1:numel(mdp.id.D)
+                    g      = mdp.id.D{f};
+                    j      = spm_get_edges(id{m},g,MDP(m).s(:,t));
+                    ind    = num2cell(MDP(m).s(j,t));
+                    if isa(MDP(m).GA{g},'function_handle')
+                        po = MDP(m).GA{g}([ind{:}]);
+                    else
+                        po = MDP(m).GA{g}(:,ind{:});
+                    end
+                    mdp.s(f,1) = spm_sample(po);
+                end
+
+                % paths of generative process
+                %----------------------------------------------------------
+                for f = 1:numel(mdp.id.E)
+                    g      = mdp.id.E{f};
+                    j      = spm_get_edges(id{m},g,MDP(m).s(:,t));
+                    ind    = num2cell(MDP(m).s(j,t));
+                    if isa(MDP(m).GA{g},'function_handle')
+                        po = MDP(m).GA{g}([ind{:}]);
+                    else
+                        po = MDP(m).GA{g}(:,ind{:});
+                    end
+                    mdp.u(f,1) = spm_sample(po);
+                end
                 end
 
             % previous states and outcomes (s0,u0,& O) for this level
@@ -1013,15 +1044,15 @@ for t = 1:T
                 % time points for this iteration
                 %----------------------------------------------------------
                 if isfield(mdp,'Q')
-                    st    = (1:mdp.T) + size(mdp.Q.O{mdp.L},2);
+                    seg = (1:mdp.T) + size(mdp.Q.O{mdp.L},2);
                 else
-                    st    = (1:mdp.T);
+                    seg = (1:mdp.T);
                 end
 
                 % transcribe stimuli to outcomes if specified
                 %----------------------------------------------------------
                 try 
-                    mdp.O = mdp.S(:,st);
+                    mdp.O = mdp.S(:,seg);
                 end
             end
 
@@ -1037,6 +1068,7 @@ for t = 1:T
                 %----------------------------------------------------------
                 g        = mdp.id.D{f};
                 O{m,g,t} = mdp.X{f}(:,1);
+
             end
 
             for f = 1:numel(mdp.id.E)
@@ -1055,7 +1087,7 @@ for t = 1:T
             mdp.Q.s0{mdp.L} = mdp.s(:,end);
             mdp.Q.u0{mdp.L} = mdp.u(:,end);
 
-            % and outcomes (s,u,Y,O,o)
+            % and record outcomes (s,u,Y,O,o)
             %--------------------------------------------------------------
             try
                 mdp.Q.s{mdp.L} = [mdp.Q.s{mdp.L} mdp.s];
@@ -1076,13 +1108,12 @@ for t = 1:T
             end
             MDP(m).Q = mdp.Q;
 
-
         end % end of hierarchical mode
 
-    end % end loop over models or agents
+    end % end generating outcomes O for all models
 
 
-    % Bayesian belief updating hidden states (Q) and controls (P)
+    % Bayesian belief updating, given O: hidden states (Q) and paths (P)
     %======================================================================
     for m = M(t,:)
 
@@ -1293,17 +1324,19 @@ for t = 1:T
 end % end of loop over time
 
 
-% loop over models to accumulate Dirichlet parameters and prepare outputs
-%==========================================================================
-for m = 1:size(MDP,1)
+% accumulate Dirichlet parameters and prepare outputs
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+% loop over models
+%--------------------------------------------------------------------------
+for m = 1:size(MDP,1)
 
     % Smoothing or backwards pass: replay
     %======================================================================
     if OPTIONS.B
 
     % Smoothing of unchanging control states
-    %----------------------------------------------------------------------
+        %------------------------------------------------------------------
     for f = 1:Nf(m)
         if ~U{m}(f)
             for t = 1:T
@@ -1312,14 +1345,14 @@ for m = 1:size(MDP,1)
         end
     end
 
+        % update posteriors
+        %------------------------------------------------------------------
         [Q,P,qa,qb,F]  = spm_backwards(O,P,Q,D,E,pa,pb,U,m,id);
 
         % update free energy
         %------------------------------------------------------------------
         MDP(m).F = F;
-
     end
-
 
     % learning - accumulate concentration parameters
     %======================================================================
@@ -1452,7 +1485,7 @@ for m = 1:size(MDP,1)
     if OPTIONS.N
 
         % initialise simulated neuronal respsonses
-        %--------------------------------------------------------------------------
+        %------------------------------------------------------------------
         n     = 16;
         for f = 1:Nf(m)
             xn{m,f} = zeros(n,Ns(m,f),T,T);
@@ -2158,10 +2191,11 @@ if isfield(id,'cid')
 
     % size of contrained factors
         %------------------------------------------------------------------
+        Ns    = ones(1,numel(hif) + 1);
     for f = hif
         Ns(f) = size(B{f},1);
     end
-    Ns    = [Ns,1];
+
     
     % constraint tensor over hid factors
         %------------------------------------------------------------------
@@ -2335,6 +2369,11 @@ end
 %--------------------------------------------------------------------------
 g = g(:)';
 
+
+function i  = spm_is_process(MDP)
+% invoke explicit action (process specified)
+%----------------------------------------------------------------------
+i = all(isfield(MDP,{'GA','GB','GU'}));
 
 function i  = spm_sample(P)
 % log of numeric array plus a small constant
@@ -2533,14 +2572,16 @@ DEM_drone                   % State-dependent likehood domains
 DEM_drone_vision            % State-dependent likehood domains
 DEM_drone_telemetry         % functional forms for likehood and domains
 DEM_MNIST_conv              % Active sampling and state-dependent codomains
+
 DEM_Atari                   % Conditionally independent factors
 DEM_Atari_learning          % Conditionally independent factors
 DEM_compression             % RGM for movies (simple)
 DEM_video_compression       % RGM for movies (with learning)
 DEM_sound_compression       % RGM for WAV files
-
+DEM_music_compression       % RGM for WAV files
 DEM_image_compression       % RGM for MNIST
-DEM_MNIST_mixture           % RGM for mixture of MNIST experts (MDPs)
-DEM_MNIST                   % Active selection without dynamics
 
+
+DEM_MNIST                   % Active selection without dynamics
+DEM_MNIST_mixture           % RGM for mixture of MNIST experts (MDPs)
 

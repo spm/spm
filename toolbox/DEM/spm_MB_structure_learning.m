@@ -38,7 +38,7 @@ for n = 1:8
     if size(L,2) > 1
         hold on, plot(L(:,2),L(:,1),'.r','MarkerSize',2*n + 2), axis ij image
         hold on, plot(L(:,2),L(:,1),'ow','MarkerSize',2*n + 2), axis ij image
-        title(sprintf('Locations at scale %i',n)), drawnow
+        title(sprintf('Locations at scale 1 to %i',n)), drawnow
     end
 
     % Grouping into a partition of outcomes
@@ -172,17 +172,6 @@ for t = 1:(numel(j) - 1)
             b(j(t + 1),j(t),end + 1) = 1;
         else
             b(j(t + 1),j(t),u) = 1;
-        end
-    end
-end
-
-% fill in empty columns of transition tensor
-%--------------------------------------------------------------------------
-for u = 1:size(b,3)
-    for s = 1:Ns
-        if ~any(b(:,s,u))
-            i = find(any(squeeze(b(:,s,:)),2),1);
-            b(i,s,u) = 1;
         end
     end
 end
