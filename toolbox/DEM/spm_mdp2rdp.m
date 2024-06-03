@@ -59,27 +59,33 @@ for n = 1:Nm
     % normalised likelihoods
     %----------------------------------------------------------------------
     for g = 1:numel(MDP{n}.A)
-        a           = MDP{n}.A{g};
-        MDP{n}.a{g} = a + p(n);
+        try
+            MDP{n}.a{g} = spm_dir_norm(MDP{n}.A{g} + p(n));
+        catch
+            MDP{n}.a{g} = MDP{n}.a{g} + p(n);
+        end
     end
 
     % normalised transitions
     %----------------------------------------------------------------------
     for f = 1:numel(MDP{n}.B)
-        b           = MDP{n}.B{f};
-        MDP{n}.b{f} = b + q(n);
+        try
+            MDP{n}.b{f} = spm_dir_norm(MDP{n}.B{f} + q(n));
+        catch
+            MDP{n}.b{f} = MDP{n}.b{f} + q(n);
+        end
     end
 
     % remove fields
     %----------------------------------------------------------------------
     if FIX.A
-        MDP{n}.A = spm_dir_norm(MDP{n}.a);
+        MDP{n}.A = MDP{n}.a;
         MDP{n}   = rmfield(MDP{n},'a');
     else
         MDP{n}   = rmfield(MDP{n},'A');
     end
     if FIX.B
-        MDP{n}.B = spm_dir_norm(MDP{n}.b);
+        MDP{n}.B = MDP{n}.b;
         MDP{n}   = rmfield(MDP{n},'b');
     else
         MDP{n}   = rmfield(MDP{n},'B');

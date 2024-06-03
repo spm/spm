@@ -1,4 +1,4 @@
-function [RDP,RGB] = DEM_image_compression
+function [RDP,RGB] = DEM_MNIST_compression
 % Structure learning from pixels
 %__________________________________________________________________________
 %
