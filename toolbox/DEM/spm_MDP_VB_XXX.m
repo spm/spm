@@ -275,6 +275,9 @@ end
 
 % set up and preliminaries
 %==========================================================================
+spm_MI     = @spm_dir_MI;                           % active learning
+spm_MI     = @spm_MDP_MI;                           % active learning
+
 
 % defaults
 %--------------------------------------------------------------------------
@@ -1366,8 +1369,8 @@ for m = 1:size(MDP,1)
             % active learning (based on expected free energy)
             %--------------------------------------------------------------
             if beta
-                Fa(1,1) = spm_MDP_MI(pa{m,g},C{m,g},H(m,:));
-                Fa(2,1) = spm_MDP_MI(qa{m,g},C{m,g},H(m,:));
+                Fa(1,1) = spm_MI(pa{m,g},C{m,g},H(m,:));
+                Fa(2,1) = spm_MI(qa{m,g},C{m,g},H(m,:));
             Pa          = spm_softmax(beta*Fa);
             else
                 Pa      = [0,1];
@@ -1386,8 +1389,8 @@ for m = 1:size(MDP,1)
             % active learning (based on expected free energy)
             %--------------------------------------------------------------
             if beta
-                Fa(1,1) = spm_MDP_MI(pb{m,f},H{m,f});
-                Fa(2,1) = spm_MDP_MI(qb{m,f},H{m,f});
+                Fa(1,1) = spm_MI(pb{m,f},H{m,f});
+                Fa(2,1) = spm_MI(qb{m,f},H{m,f});
                 Pa          = spm_softmax(beta*Fa);
             else
                 Pa      = [0,1];
