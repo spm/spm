@@ -1,4 +1,4 @@
-function [C,F] = DEM_greedy_MNIST(OPTIONS)
+function [C,F,G] = DEM_greedy_MNIST(OPTIONS)
 % Structure learning from pixels
 %__________________________________________________________________________
 %
@@ -33,51 +33,57 @@ function [C,F] = DEM_greedy_MNIST(OPTIONS)
 %% Greedy search
 %==========================================================================
 OPTIONS.N  = 1000;   % Number of training data
-OPTIONS.T  = 200;    % Number of test data
-OPTIONS.q  = 64;     % concentration parameter  
+OPTIONS.T  = 500;    % Number of test data
+OPTIONS.q  = 16;     % concentration parameter  
 OPTIONS.s  = 2;      % smoothing in pixels  
 OPTIONS.S  = 24;     % histogram width
 
-OPTIONS.Ne = 8;      % exemplars per class
+OPTIONS.Ne = 9;      % exemplars per class
 
 OPTIONS.nd = 5;      % Diameter of tiles in pixels
-OPTIONS.nb = 9;      % Number of discrete singular variates 
-OPTIONS.mm = 16;     % Maximum number of singular modes
+OPTIONS.nb = 16;     % Number of discrete singular variates 
+OPTIONS.mm = 8;      % Maximum number of singular modes
 
 
 params = {'nb','q','Ne'};
-OPT    = OPTIONS;
-d      = 1;
+d      = [2,    4,  1];
+b      = [2,    4,  1];
 C      = [];
 F      = [];
 G      = [];
 for i  = 1:128
     for j = 1:numel(params)
-
+        OPT             = OPTIONS;
         OPT.(params{j}) = OPTIONS.(params{j}) + 0;
         [c,f,g]         = DEM_image_compression(OPT);
         C(1,end + 1)    = c;
         F(1,end + 1)    = f;
-        G(1,end + 1)    = mean(g((end - OPTIONS.T):end));
-        OPT.(params{j}) = OPTIONS.(params{j}) - d;
+        G(1,end + 1)    = mean(g);
+        OPT             = OPTIONS;
+        OPT.(params{j}) = OPTIONS.(params{j}) - d(j);
         [c,f,g]         = DEM_image_compression(OPT);
         C(2,end)        = c;
         F(2,end)        = f;
-        G(1,end)        = mean(g((end - OPTIONS.T):end));
-
-        OPT.(params{j}) = OPTIONS.(params{j}) + d;
+        G(2,end)        = mean(g);
+        OPT             = OPTIONS;
+        OPT.(params{j}) = OPTIONS.(params{j}) + d(j);
         [c,f,g]         = DEM_image_compression(OPT);
-        C(2,end)        = c;
-        F(2,end)        = f;
-        G(1,end)        = mean(g((end - OPTIONS.T):end));
+        C(3,end)        = c;
+        F(3,end)        = f;
+        G(3,end)        = mean(g);
 
         c = max(C(:,end)); disp(C)
         if C(2,end) == c
-            OPTIONS.(params{j}) = OPTIONS.(params{j}) - d;
+            OPTIONS.(params{j}) = OPTIONS.(params{j}) - d(j);
+            d(j) = max(b(j),d(j) - 1);
+        elseif C(3,end) == c
+            OPTIONS.(params{j}) = OPTIONS.(params{j}) + d(j);
+            d(j) = max(b(j),d(j) - 1);
         end
-        if C(3,end) == c
-            OPTIONS.(params{j}) = OPTIONS.(params{j}) + d;
-        end
+
+        disp(C)
+        disp(OPTIONS)
+        disp(d)
     end
 end
 
