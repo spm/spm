@@ -244,7 +244,7 @@ end
 % factor (Digit) class
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Train'); clf
-train = 1:N;
+train     = 1:N;
 [RDP,G]   = spm_MNIST_train(MDP,RGB,O(:,train),D(train),1/q);
 
 % Test: on unseen data
@@ -321,7 +321,6 @@ end
 %--------------------------------------------------------------------------
 C = mean(100*C);
 F = mean(F);
-
 
 return
 

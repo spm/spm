@@ -1,4 +1,4 @@
-function [RDP,RGB] = DEM_MNIST_compression
+function [RDP,RGB,F,C] = DEM_MNIST_compression
 % Structure learning from pixels
 %__________________________________________________________________________
 %
@@ -91,21 +91,34 @@ subplot(2,2,2)
 spm_imshow(spm_O2rgb(O(:,1),RGB))
 drawnow
 
+labels = training.labels;
+clear training test
+
+% get training images for stucture learning
+%--------------------------------------------------------------------------
+Ns    = 10;                                % Number of classes
+Ne    = 12;
+j     = [];
+for n = 1:10
+    i = find(ismember(labels(1:N),n - 1));
+    j = [j;i(1:Ne)];
+end
+
+
 % Use a small number (128) for (RG) structure learning
 %--------------------------------------------------------------------------
-MDP   = spm_MB_structure_learning(O(:,1:128),L,1);
+MDP   = spm_MB_structure_learning(O(:,j),L,1);
 
 % Add class contraints (i.e., number priors) as a final level
 %--------------------------------------------------------------------------
 No    = size(MDP{end}.B{1},1);             % Number of compressed images 
-Ns    = 10;                                % Number of classes
 A     = zeros(No,Ns);
 for n = 1:Ns
-    i        = ismember(training.labels(1:No),n - 1);
+    i        = ismember(labels(j),n - 1);
     A(i,n)   = 1;
 end
 
-mdp.A{1}     = A;                          % likelihood (state)
+mdp.A{1}     = spm_dir_norm(A);            % likelihood (state)
 mdp.A{2}     = ones(1 ,Ns);                % likelihood (paths)
 mdp.B{1}     = ones(Ns,Ns);
 mdp.id.A     = {1,1};
@@ -132,7 +145,7 @@ for m = 2:Nm
         i      = MDP{m}.RG{s};
         A{s,s} = spm_cat(MDP{m}.A(i));
     end
-    spy(spm_cat(A)'), axis square
+    spm_spy(spm_cat(A)',4), axis square
 end
 
 % Show the same images but above the lower level they constrain
@@ -145,7 +158,7 @@ for m = 1:Nm
         i      = MDP{m}.RG{s};
         A{s,s} = spm_cat(MDP{m}.A(i));
     end
-    spy(spm_cat(A)), axis square
+    spm_spy(spm_cat(A),4), axis square
     title(sprintf('Level %i',m))
 end
 
@@ -155,8 +168,7 @@ spm_figure('GetWin','Composition'); clf
 
 % Create recursive model
 %--------------------------------------------------------------------------
-NDP   = mdp2rdp(MDP);
-NDP   = spm_RDP_reduce(NDP,'SOFT','a');
+NDP   = spm_mdp2rdp(MDP);
 for m = 1:Nm
 
     % size at this level
@@ -209,8 +221,8 @@ end
 % factor (Digit) class
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Train'); clf
-train    = 1:N;
-RDP      = spm_MNIST_train(MDP,RGB,O(:,train),D(train));
+train = 1:N;
+RDP   = spm_MNIST_train(MDP,RGB,O(:,train),D(train));
 
 % Test: on unseen data
 %==========================================================================
@@ -221,23 +233,19 @@ spm_figure('GetWin','Confusion'); clf
 test      = (1:T) + N;
 [C,F,PDP] = spm_MNIST_test(RDP,RGB,O(:,test),D(test));
 
-% reject unclassifiable test data
+% quantile analysis
 %--------------------------------------------------------------------------
-i      = F > -16;
-Fs     = F(i);
-Cs     = C(i);
-Nc     = fix(numel(Fs)/2);
-[~,i]  = sort(Fs);
-Cs     = Cs(i);
-
-fprintf('Accuracy (lower) %.2f \n',100*mean(Cs(1:Nc)));
-fprintf('Accuracy (upper) %.2f \n',100*mean(Cs((1:Nc) + Nc)));
+Fm     = median(F);
+i      = F > median(F);
+fprintf('Median F %.2f \n',Fm);
+fprintf('Accuracy (total) %.2f \n',100*mean(C));
+fprintf('Accuracy (upper median) %.2f \n',100*mean(C(i)));
 
 
 % graphics for the last classification
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Test'); clf
-spm_show_RGB(PDP,RGB)
+spm_show_RGB(PDP,RGB,1,false);
 
 % Classification accuracy is a function of free energy
 %==========================================================================
@@ -246,6 +254,7 @@ spm_figure('GetWin','Classification'); clf
 subplot(2,2,1)
 histogram(F(~~C),32), hold on
 histogram(F(~C),32)
+plot([Fm Fm],get(gca,'YLim'),'--k')
 xlabel('ELBO'), ylabel('frequency')
 title('Correct and incorrect classification'), axis square
 
@@ -254,7 +263,9 @@ for i = 1:numel(f)
     c(i) = mean(C(F > f(i)));
 end
 subplot(2,2,2)
-plot(f,c*100)
+plot(f,c*100), hold on
+plot([Fm Fm],get(gca,'YLim'),'--k')
+
 xlabel('ELBO threshold'), ylabel('classification accuracy')
 title('Classification and confidence'), axis square
 
@@ -266,7 +277,6 @@ spm_figure('GetWin','Generation'); clf
 % Create deep recursive model
 %--------------------------------------------------------------------------
 NDP       = RDP;
-NDP       = spm_RDP_reduce(NDP,'SOFT','a');
 [~,Ns,Nu] = spm_MDP_size(NDP);
 
 % Illustrate trained model in generative mode
@@ -279,6 +289,16 @@ for i = 1:10
     PDP       = spm_MDP_VB_XXX(NDP);
     spm_imshow(spm_O2rgb(PDP.Q.O{1}(:,1),RGB));
 end
+
+fprintf('total samples %i\n',N)
+try
+    fprintf('effective samples %i\n',fix(sum(RDP.a{1},'all')))
+end
+
+% summary outputs
+%--------------------------------------------------------------------------
+C = mean(100*C);
+F = mean(F);
 
 return
 
@@ -310,12 +330,13 @@ FIX.B     = 1;                             % but not transitions
 U     = zeros(1,numel(MDP));
 for l = 1:numel(MDP)
     for g = 1:numel(MDP{l}.A)
-        U(l) = U(l) + log(size(MDP{l}.A{g},2))/2;
+        U(l) = U(l) + log(min(size(MDP{l}.A{g})));
     end
 end
 
 % enable active learning (with minimal forgetting)
 %--------------------------------------------------------------------------
+N     = size(O,2);
 for m = 1:numel(MDP)
     MDP{m}.beta = 512;
     MDP{m}.eta  = 512;
@@ -323,10 +344,11 @@ end
 
 % train: with small concentration parameters (1/16)
 %--------------------------------------------------------------------------
-MDP   = mdp2rdp(MDP,1/16,0,1,FIX);
-mdp   = MDP;
+mdp   = spm_mdp2rdp(MDP,1/16,0,1,FIX);
+% mdp.A = MDP{end}.A;
+% mdp   = rmfield(mdp,'a');
 mdp.T = 1;
-for j = 1:size(O,2)
+for j = 1:N
 
     % get training observation and place in MDP structure
     %----------------------------------------------------------------------
@@ -362,7 +384,11 @@ for j = 1:size(O,2)
     for l = 1:numel(pdp.Q.a)
         I(l,j) = spm_MDP_MI(pdp.Q.a{l});
     end
-    I(l + 1,j) = spm_MDP_MI(pdp.a);
+    try
+        I(l + 1,j) = spm_MDP_MI(pdp.a);
+    catch
+        I(l + 1,j) = spm_MDP_MI(pdp.A);
+    end
     F(j)       = pdp.Q.F + sum(pdp.F);
 
     subplot(3,2,2), hold off, plot(1:j,I), hold on
@@ -433,11 +459,11 @@ for j = 1:size(O,2)
         %------------------------------------------------------------------
         subplot(3,4,5)
         spm_imshow(spm_O2rgb(pdp.Q.O{1}(:,end),RGB))
-        title(sprintf('Content: %i',d - 1))
+        title(sprintf('Label: %i',d - 1),'FontSize',12)
 
         subplot(3,4,6)
         spm_imshow(spm_O2rgb(pdp.Q.Y{1}(:,end),RGB))
-        title(sprintf('Content: %i',p - 1))
+        title(sprintf('Class: %i',p - 1),'FontSize',12)
         drawnow
 
     end
