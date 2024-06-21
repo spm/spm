@@ -1,7 +1,7 @@
 function [Dnew,meshsourceind]=spm_eeg_simulate(D,prefix,patchmni,simsignal,ormni,woi,whitenoise,SNRdB,trialind,mnimesh,dipfwhm,nAmdipmom);
 % Simulate a number of MSP patches at specified locations on existing mesh
 % FORMAT [Dnew,meshsourceind]=spm_eeg_simulate(D,prefix,patchmni,simsignal,woi,whitenoise,SNRdB,trialind,mnimesh,dipfwhm);
-% D dataset
+% D dataset or dataset filename
 % prefix : prefix of new simulated dataset
 % patchmni : patch centres in mni space or patch indices
 % simsignal : Nsources x time series in nAm within woi
@@ -24,6 +24,10 @@ function [Dnew,meshsourceind]=spm_eeg_simulate(D,prefix,patchmni,simsignal,ormni
 % LOAD IN ORIGINAL DATA
 %==========================================================================
 useind=1; % D to use
+if ischar(D) || isstring(D)
+    data=spm_eeg_load(D);
+    D={data};
+end
 if nargin<2,
     prefix='';
 end;
