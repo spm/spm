@@ -106,10 +106,10 @@ end;
 
 
 [a1 b1 c1]=fileparts(D{useind}.fname);
-newfilename=[prefix b1];
+newfilename=[prefix b1 c1];
 
 %% forcing overwrite of an existing file
-Dnew=D{useind}.clone([prefix b1]);
+Dnew=D{useind}.clone(newfilename);
 
 
 if isempty(trialind)
