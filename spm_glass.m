@@ -10,13 +10,17 @@ function fig = spm_glass(X,pos,varargin)
 %   S.dark          - dark mode                    - Default: false
 %   S.detail        - glass brain detail level:
 %                     0=LOW, 1=NORMAL, 2=HIGH      - Default: 1
-%   S.grid          - overlay grid                 - Default false
+%   S.grid          - overlay grid                 - Default: false
+%   S.colourbar     - add colourbar                - Default: false
+%   S.invertcolour  - flip the colourmap           - Default: false
+%   S.dp            - decimal places for colourbar - Default: 1
+%   S.fontname      - font for colourbar           - Default: Helvetica
 % Output:
 %   fig             - Handle for generated figure
 %__________________________________________________________________________
 
 % George O'Neill & Guillaume Flandin
-% Copyright (C) 2020-2022 Wellcome Centre for Human Neuroimaging
+% Copyright (C) 2020-2024 Wellcome Centre for Human Neuroimaging
 
 
 % prep
@@ -39,6 +43,9 @@ if ~isfield(S, 'cmap'),         S.cmap = 'gray'; end
 if ~isfield(S, 'detail'),       S.detail = 1; end
 if ~isfield(S, 'grid'),         S.grid = false; end
 if ~isfield(S, 'colourbar'),    S.colourbar = false; end
+if ~isfield(S, 'invertcolour'), S.invertcolour = false; end
+if ~isfield(S, 'dp'),           S.dp = 1; end
+if ~isfield(S, 'fontname'),     S.fontname = 'Helvetica'; end
 
 M = [-2 0 0 92;0 2 0 -128;0 0 2 -74;0 0 0 1];
 dim = [91 109 91];
@@ -63,19 +70,19 @@ end
 p_sag = NaN(dim(2),dim(3));
 
 for ii = 1:length(id)
-    
+
     pnt = [pos(id(ii),2),pos(id(ii),3)];
     bnd = -S.brush:S.brush;
-    
+
     p1 = pnt(1)+bnd;
     bads = find(p1 < 1 | p1 > dim(2));
     p2 = pnt(2)+bnd;
     bads = [bads find(p2 < 1 | p2 > dim(3))];
     p1(bads) = [];
     p2(bads) = [];
-    
+
     p_sag(p1,p2) = bin(id(ii));
-    
+
 end
 
 % coronal plane
@@ -83,19 +90,19 @@ end
 p_cor = NaN(dim(1),dim(3));
 
 for ii = 1:length(id)
-    
+
     pnt = [pos(id(ii),1),pos(id(ii),3)];
     bnd = -S.brush:S.brush;
-    
+
     p1 = pnt(1)+bnd;
     bads = find(p1 < 1 | p1 > dim(1));
     p2 = pnt(2)+bnd;
     bads = [bads find(p2 < 1 | p2 > dim(3))];
     p1(bads) = [];
     p2(bads) = [];
-    
+
     p_cor(p1,p2) = bin(id(ii));
-    
+
 end
 
 
@@ -104,19 +111,19 @@ end
 p_axi = NaN(dim(2),dim(1));
 
 for ii = 1:length(id)
-    
+
     pnt = [pos(id(ii),2),pos(id(ii),1)];
     bnd = -S.brush:S.brush;
-    
+
     p1 = pnt(1)+bnd;
     bads = find(p1 < 1 | p1 > dim(2));
     p2 = pnt(2)+bnd;
     bads = [bads find(p2 < 1 | p2 > dim(1))];
     p1(bads) = [];
     p2(bads) = [];
-    
+
     p_axi(p1,p2) = bin(id(ii));
-    
+
 end
 
 % optional colorbar
@@ -144,19 +151,32 @@ imagesc(p_all)
 set(gca,'XTickLabel',{},'YTickLabel',{});
 axis image
 
-caxis([0 64])
+clim([0 64])
 overlay_glass_brain('side',S.dark,S.detail);
 overlay_glass_brain('back',S.dark,S.detail);
 overlay_glass_brain('top',S.dark,S.detail);
 
-c = feval(S.cmap,64);
+if ischar(S.cmap)
+    c = feval(S.cmap,64);
+else
+    c = S.cmap;
+end
+
 if S.dark
+    if S.invertcolour
+        c = flipud(c);
+    end
     c(1,:) = [0 0 0];
 else
-    c = flipud(c);
+    if ~S.invertcolour
+        c = flipud(c);
+    end
     c(1,:) = [1 1 1];
 end
+
+
 colormap(c);
+
 if S.dark
     set(gcf,'color','k');
 else
@@ -164,8 +184,10 @@ else
 end
 
 if S.colourbar
-    text(124,150,num2str(rmin),'color',~c(1,:),'fontsize',14,'horizontalalignment','center');
-    text(185,150,num2str(rmax),'color',~c(1,:),'fontsize',14,'horizontalalignment','center');
+    text(124,150,num2str(rmin,['%.' num2str(S.dp) 'f']),'color',~c(1,:),'fontsize',14,...
+        'horizontalalignment','center','fontname', S.fontname);
+    text(185,150,num2str(rmax,['%.' num2str(S.dp) 'f']),'color',~c(1,:),'fontsize',14,...
+        'horizontalalignment','center','fontname', S.fontname);
 end
 
 if S.grid
@@ -189,7 +211,7 @@ dat = glass.(orient);
 
 switch orient
     case 'top'
-        xform = [0 -1 0; 1 0 0; 0 0 1]*[0.185 0 0; 0 0.185 0; 10.5 173 1];
+        xform = [0 -1 0; 1 0 0; 0 0 1]*[0.185 0 0; 0 0.185 0; 10.5 174 1];
     case 'back'
         xform = [0.185 0 0; 0 -0.185 0; 120 89 1];
     case 'side'
@@ -207,7 +229,7 @@ for ii = 1:length(dat.paths)
         otherwise
             draw = 1;
     end
-    
+
     if draw
         for jj = 1:length(pth.items)
             pts = pth.items(jj).pts;
@@ -246,18 +268,18 @@ t = linspace(0, 1, nCurvePoints)';
 switch size(controlPts, 1)
     case 1
         error('Number of Control Points should be at least 2');
-        
+
     case 2
         % linear formula
         points = (1 - t) * controlPts(1, :) + ...
             t * controlPts(2, :);
-        
+
     case 3
         % quadratic formula
         points = ((1 - t) .^ 2) * controlPts(1, :) + ...
             (2 * (1 - t) .* t) * controlPts(2, :) + ...
             (t .^ 2) * controlPts(3, :);
-        
+
     case 4
         % cubic formula
         points =  ((1 - t) .^ 3) * controlPts(1, :) + ...
