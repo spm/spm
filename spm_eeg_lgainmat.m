@@ -109,18 +109,36 @@ catch
         else Ibar = [1:nvert]; end
 
         if ~isequal(ft_headmodeltype(vol), 'interpolate')
-            Gxyz = zeros(length(forward(ind).channels), 3*nvert);
-            for i = 1:nvert
-                if siunits
-                    Gxyz(:, (3*i - 2):(3*i))  = ft_compute_leadfield(vert(i, :), sens, vol,...
-                        'dipoleunit', 'nA*m', 'chanunit', units);
-                else
-                    Gxyz(:, (3*i - 2):(3*i))  = ft_compute_leadfield(vert(i, :), sens, vol);
-                end
+            if ~spm_get_defaults('use_parfor')
+                Gxyz = zeros(length(forward(ind).channels), 3*nvert);
+                for i = 1:nvert
+                    if siunits
+                        Gxyz(:, (3*i - 2):(3*i))  = ft_compute_leadfield(vert(i, :), sens, vol,...
+                            'dipoleunit', 'nA*m', 'chanunit', units);
+                    else
+                        Gxyz(:, (3*i - 2):(3*i))  = ft_compute_leadfield(vert(i, :), sens, vol);
+                    end
 
-                if any(Ibar == i)
-                    spm_progress_bar('Set', i);
+                    if any(Ibar == i)
+                        spm_progress_bar('Set', i);
+                    end
                 end
+            else
+                Gxyz = zeros(nvert, length(forward(ind).channels),3);
+                
+                parfor i = 1:nvert
+                    
+                    
+                    if siunits
+                        Gxyz(i,:,:)  = ft_compute_leadfield(vert(i, :), sens, vol,...
+                            'dipoleunit', 'nA*m', 'chanunit', units);
+                    else
+                        Gxyz(i,:,:)  = ft_compute_leadfield(vert(i, :), sens, vol);
+                    end
+                end
+                
+                Gxyz=shiftdim(Gxyz,1);
+                Gxyz=reshape(Gxyz,length(forward(ind).channels),3*nvert);
             end
         else
             if siunits
