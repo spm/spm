@@ -30,8 +30,20 @@ disp('PEB Ep:');
 disp(full(PEB(1).Ep));
 disp('BMA Ep:');
 disp(full(spm_unvec(BMA.Ep,PEB(1).Ep)));
+
+disp('PEB Vp:');
+Vp = diag(PEB(1).Cp);
+Vp = full(spm_unvec(Vp,PEB(1).Ep));
+disp(Vp);
+
+disp('BMA Vp:');
+Vp = diag(BMA.Cp);
+Vp = full(spm_unvec(Vp,PEB(1).Ep));
+disp(Vp);
+
 disp('BMA Pp:');
 disp(Pp);
+
 disp('Names:');
 disp(PEB(1).Pnames);
 
