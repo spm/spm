@@ -685,8 +685,13 @@ Nii.mat0_intent = 'Scanner';
 Nii.descrip     = descrip;
 create(Nii);
 
+warning('Writing a .mat file')
+[pth,nam,~] = fileparts(Nii.dat.fname);
+matname = fullfile(pth,[nam '_dicom.mat']);
+save(matname,'Headers');
+
 if meta
-    Nii = spm_dicom_metadata(Nii, Headers{1});
+    Nii = spm_dicom_metadata(Nii, Headers);
 end
 
 Nii.dat(:,:,:) = volume;

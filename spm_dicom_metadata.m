@@ -26,10 +26,25 @@ else
     metadata.history.output = struct('imtype','Unprocessed MR image', 'units','a.u.');
 end
 
-%-Acquisition parameters with complete DICOM header (hMRI toolbox)
-hdr = reformat_spm_dicom_header(hdr);
-hdr = anonymise_metadata(hdr); % default is basic anonymisation
-metadata.acqpar = hdr;
+if isa(hdr,'cell')
+    if false
+        for n=1:length(hdr)
+            hdr{n} = reformat_spm_dicom_header(hdr{n});
+            hdr{n} = anonymise_metadata(hdr{n});
+        end
+        h1 = hdr{1};
+    else
+        h1 = reformat_spm_dicom_header(hdr{1});
+        h1 = anonymise_metadata(h1);
+    end
+    metadata.acqpar = h1;
+    metadata.slices = unique_fields(hdr);
+else
+    %-Acquisition parameters with complete DICOM header (hMRI toolbox)
+    hdr = reformat_spm_dicom_header(hdr);
+    hdr = anonymise_metadata(hdr); % default is basic anonymisation
+    metadata.acqpar = hdr;
+end
 
 %-Save metadata as side-car JSON file
 spm_jsonwrite(spm_file(N.dat.fname,'ext','json'), metadata, struct('indent','\t'));
@@ -105,7 +120,7 @@ if ~strcmp(opts.anonym,'none')
         if isfield(hdrout{i},'Filename')
             hdrout{i} = rmfield(hdrout{i},'Filename');
         end
-        
+
         if strcmp(opts.anonym, 'full')
             try, hdrout{i} = rmfield(hdrout{i},'PatientID'); end
             try, hdrout{i} = rmfield(hdrout{i},'PatientSex'); end
@@ -236,7 +251,7 @@ ascout = [];
 clinenum = 1;
 
 while clinenum<length(asclines)
-    
+
     if ENABLE_DEBUG, fprintf('Line #%d - [%s]\n', clinenum, asclines{clinenum}); end
     if ~isempty(asclines{clinenum})
         try
@@ -267,3 +282,81 @@ while clinenum<length(asclines)
     end
     clinenum = clinenum+1;
 end
+
+%==========================================================================
+function hu = unique_fields(h)
+% Scan through the DICOM headers of each slice and identify any fields
+% that differ in value etc from those of the first slice. The values
+% returned for the first slice are those that differ from those in the
+% final slice.
+% It may have been better to first identify differing fields between any
+% slices and save the same set of fields for all subjects. Not sure this
+% would have been worth the effort though.
+hu = cell(size(h));
+for i=2:length(h)
+    [hu{i},hu{1}] = descend(h{1},h{i});
+end
+%==========================================================================
+function [un,u1] = descend(h1,hn)
+% A recursive satellite function for unique_fields
+un = [];
+u1 = [];
+if ~strcmp(class(h1),class(hn)) || ndims(h1) ~= ndims(hn) || ~all(size(h1)==size(hn))
+    % If totally different, then return everything
+    un = hn;
+    u1 = h1;
+else
+    switch class(hn)
+    case 'struct'
+        % Fields to ignore.  Some relate to anonymity, which are here
+        % just in case (even though they will slow down the processing),
+        % but these should not be fields that change during an acquisition.
+        % Filename is excluded in case the original directory reveals
+        % patient information. CSAImageHeaderInfo is excluded just to get
+        % a tidier output.
+        ignore = {'StartOfPixelData','Filename','CSAImageHeaderInfo',...
+                  'PatientName','PatientBirthDate',...
+                  'PatientID','PatientSex','PatientAge','PatientSize',...
+                  'PatientWeight','UsedPatientWeight'};
+        un  = struct;
+        u1  = struct;
+        fns = fieldnames(hn);
+        for j=1:length(fns) % Loop over fields
+            fn = fns{j};
+            if ~any(strcmp(fn,ignore)) % If field is not in the excluded list
+                if isfield(h1,fn)
+                    for i=1:length(h1) % Could be a structure array
+                        [ttn,tt1] = descend(h1(i).(fn),hn(i).(fn));
+                        if ~isempty(ttn)
+                            un(i).(fn) = ttn;
+                            u1(i).(fn) = tt1;
+                        end
+                    end
+                else
+                    un.(fn) = hn.(fn);
+                end
+            end
+        end
+        if isempty(fieldnames(un))
+            un = [];
+            u1 = [];
+        end
+    case 'cell'
+        % If dimensions are the same then look at each element
+        un = cell(size(hn));
+        u1 = cell(size(hn));
+        for i=1:length(un)
+            [un{i},u1{i}] = descend(h1{i},hn{i});
+        end
+        if all(cellfun('isempty',un(:)))
+            un = [];
+            u1 = [];
+        end
+    otherwise
+        if ~all(h1==hn)
+            un = hn;
+            u1 = h1;
+        end
+    end
+end
+
