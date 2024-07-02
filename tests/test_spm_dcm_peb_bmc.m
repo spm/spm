@@ -25,12 +25,19 @@ Pp = reshape(full(BMA.Pp),[n,m]);
 effect     = 2; % group difference
 connection = 5; % r1->r2
 
+% Diagnostic information
+disp('PEB Ep:');
+disp(full(PEB(1).Ep));
+disp('BMA Ep:');
+disp(full(spm_unvec(BMA.Ep,PEB(1).Ep)));
+disp('BMA Pp:');
+disp(Pp);
+disp('Names:');
+disp(PEB(1).Pnames);
+
 % There should be an effect of group on the connection from R1->R2 of 0.2Hz 
 testCase.assertEqual(Ep(connection,effect),0.2, 'AbsTol', 0.05);
 testCase.assertTrue(Pp(connection,effect) > 0.9);
-
-disp(Pp);
-disp(PEB(1).Pnames);
 
 % There should be no effect of group elsewhere
 Pp_others = Pp; 
