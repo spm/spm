@@ -29,6 +29,9 @@ connection = 5; % r1->r2
 testCase.assertEqual(Ep(connection,effect),0.2, 'AbsTol', 0.05);
 testCase.assertTrue(Pp(connection,effect) > 0.9);
 
+disp(Pp);
+disp(PEB(1).Pnames);
+
 % There should be no effect of group elsewhere
 Pp_others = Pp; 
 Pp_others(connection,:) = [];
