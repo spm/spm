@@ -25,28 +25,6 @@ Pp = reshape(full(BMA.Pp),[n,m]);
 effect     = 2; % group difference
 connection = 5; % r1->r2
 
-% Diagnostic information
-disp('PEB Ep:');
-disp(full(PEB(1).Ep));
-disp('BMA Ep:');
-disp(full(spm_unvec(BMA.Ep,PEB(1).Ep)));
-
-disp('PEB Vp:');
-Vp = diag(PEB(1).Cp);
-Vp = full(spm_unvec(Vp,PEB(1).Ep));
-disp(Vp);
-
-disp('BMA Vp:');
-Vp = diag(BMA.Cp);
-Vp = full(spm_unvec(Vp,PEB(1).Ep));
-disp(Vp);
-
-disp('BMA Pp:');
-disp(Pp);
-
-disp('Names:');
-disp(PEB(1).Pnames);
-
 % There should be an effect of group on the connection from R1->R2 of 0.2Hz 
 testCase.assertEqual(Ep(connection,effect),0.2, 'AbsTol', 0.05);
 testCase.assertTrue(Pp(connection,effect) > 0.9);
