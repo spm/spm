@@ -30,6 +30,25 @@ expected  = logical([0 0 0 0 1 0]);
 testCase.assertTrue(all(b_reduced(~expected) < 1e-4));
 testCase.assertTrue(all(b_reduced(expected) > 1e-4));
 
+% additional diagnostics to address mac issues
+% -------------------------------------------------------------------------
+Pp = full(spm_unvec(rPEB.Pp,PEB.Ep));
+disp('Pp: Running on B-parameters only:');
+disp(Pp);
+
+disp('Pp: Running on all parameters:');
+[rPEB,BMR,BMA] = spm_dcm_bmr_all(PEB);
+Pp = full(spm_unvec(rPEB.Pp,PEB.Ep));
+disp(Pp);
+
+disp('BMR.P: Model space:');
+disp(full(BMR.K));
+
+disp('BMR.K: Model probabilities:');
+disp(full(BMR.P));
+
+testCase.assertTrue(Pp(5,2) > 0.9);
+
 % -------------------------------------------------------------------------
 function data_path = get_data_path()
 
