@@ -23,19 +23,20 @@ GCM = GCM(1:15,:);
 % Run BMA
 BMA = spm_dcm_bma(GCM);
 
-% Check model probabilities
+% Check model probabilities: model 2 should win
 testCase.assertTrue(BMA.P(2) > 0.95);
 
-% Get posterior expected value and variance for modulatory connection
-ep_actual = BMA.Ep.B(2,1,2);
-vp_actual = BMA.Cp.B(2,1,2);
+% Indices in the DCM
+INPUT_MODULATOR = 2;
+R1 = 1; % Region 1
+R2 = 2; % Region 2
 
-disp('BMA posterior:');
-disp(ep_actual);
-disp(vp_actual);
+% Get posterior expected value and variance for modulatory connection
+ep_actual = BMA.Ep.B(R2,R1,INPUT_MODULATOR);
+vp_actual = BMA.Cp.B(R2,R1,INPUT_MODULATOR);
 
 % Get arithmetic mean of the modulatory parameter in model 2
-Ep = cellfun(@(x)x.Ep.B(2,1,2),GCM(:,2));
+Ep = cellfun(@(x)x.Ep.B(R2,R1,INPUT_MODULATOR),GCM(:,2));
 expected = mean(Ep);
 
 % Compute probability of difference from arithmetic mean
