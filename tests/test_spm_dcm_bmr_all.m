@@ -22,7 +22,7 @@ GCM = load(fullfile(data_path,'models','GCM_simulated.mat'));
 GCM = GCM.GCM;
 
 % Prune connections on the B-matrix only
-[rPEB,BMR,BMA] = spm_dcm_bmr_all(PEB,{'B'});
+[rPEB,BMR,BMA] = spm_dcm_bmr_all(PEB,{'B'},'BMA','debug');
 
 % Check the only surviving B-matrix (group difference) parameter is R1->R2
 b_reduced = BMA.Cp(:,2);
@@ -36,10 +36,10 @@ Pp = full(spm_unvec(rPEB.Pp,PEB.Ep));
 disp('Pp: Running on B-parameters only:');
 disp(Pp);
 
-disp('BMR.P: Model space:');
+disp('BMR.K: Model space:');
 disp(full(BMR.K));
 
-disp('BMR.K: Model probabilities:');
+disp('BMR.P: Model probabilities:');
 disp(full(BMR.P));
 
 disp('BMR.k: free parameters:');

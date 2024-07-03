@@ -1,4 +1,4 @@
-function [DCM,BMR,BMA] = spm_dcm_bmr_all(DCM,field,OPT)
+function [DCM,BMR,BMA] = spm_dcm_bmr_all(DCM,field,OPT,varargin)
 % Bayesian model reduction of all permutations of model parameters
 % FORMAT [DCM,BMR,BMA] = spm_dcm_bmr_all(DCM,field,OPT)
 %
@@ -300,14 +300,40 @@ end
 
 %-Inference over families (one family per coupling parameter)
 %==========================================================================
+% Includes temporary debug code to diagnose a mac problem
+
 for i = 1:length(k)
     Pk(1,i) = mean(p(~K(:,i)));
     Pk(2,i) = mean(p( K(:,i)));
 end
 Pk    = Pk(1,:)./sum(Pk);
 Pp    = C;
+
+if nargin > 3
+    disp('################ Mac test:');
+    disp('k:');
+    disp(k);
+    
+    disp('p:');
+    disp(p);    
+    
+    disp('K:');
+    disp(full(K));    
+    
+    disp('Pk:');
+    disp(Pk);    
+    
+    disp('C:');
+    disp(C);    
+end
+
 Pp(k) = Pk;
 
+if nargin > 3    
+    disp('Pp:');
+    disp(Pp);    
+    disp('################');
+end
 
 %-Bayesian model selection or average
 %==========================================================================
@@ -463,6 +489,12 @@ DCM.M.pC  = rC;        % reduced prior covariance
 DCM.Ep    = Ep;        % Bayesian model averages
 DCM.Cp    = Cp;        % Bayesian model variance
 DCM.Pp    = Pp;        % Model posterior over parameters (with and without)
+
+if nargin > 3  
+    disp('### end of debug:');
+    disp(Pp);
+    disp('###');
+end
 
 % Clear free energy if supplied (which is no longer meaningful)
 %--------------------------------------------------------------------------
