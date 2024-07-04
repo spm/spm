@@ -319,12 +319,6 @@ if nargin > 3
     disp('Pk:');
     disp(Pk);    
     
-    disp('Pk(1,:):');
-    disp(Pk(1,:));   
-    
-    disp('sum(Pk):');
-    disp(sum(Pk));  
-    
     disp('Pk(1,:)./sum(Pk)');
     disp(Pk(1,:)./sum(Pk));
     
@@ -351,9 +345,19 @@ if nargin > 3
     disp('Code following assignment of Pp:');
     
     disp('Pk:');
-    disp(Pp);    
+    disp(Pk);    
     
     disp('Pp:');
+    disp(Pp);    
+
+    disp('Class of Pk:');
+    disp(class(Pk));  
+    
+    disp('Class of Pp:');
+    disp(class(Pp));     
+    
+    disp('With vectorising:');
+    Pp(k(:)) = Pk(:);
     disp(Pp);    
     
     disp('With rounding:');
@@ -363,6 +367,10 @@ if nargin > 3
     disp('With casting to int32:');
     Pp(int32(k)) = Pk;
     disp(Pp);    
+    
+    disp('How about manually assigning:');
+    Pp([1 2 3 4 5 11]) = Pk;
+    disp(Pp);       
     
     disp('################');
 end
