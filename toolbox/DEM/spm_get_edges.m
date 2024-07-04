@@ -20,6 +20,23 @@ function [j,i] = spm_get_edges(id,g,Q)
 % If they are state-dependent, the maximum a posteriori [co] domain is
 % returned.
 %
+% domains (parents or 'cause') and co-domains (children or 'effect')
+%==========================================================================
+%            
+% id.A{g} - Indices of parents of A{g}
+% id.D{f} - Indices of parents of initial states of factor f
+% id.E{f} - Indices of parents of paths of factor f 
+%
+% id.ff   - List of domain factors
+% id.fg   - List of parents  of A{g} under each combination of domains 
+% id.gg   - List of children of A{g} under each combination of domains
+%
+% id.g{k} - Partition of selected (i.e., attended) children of A{g}
+% id.ge   - Indices of outcomes subtending expected free energy
+%
+% id.fu   - List of factors with contolled paths
+% id.fp   - List of factors with inferred  paths 
+%
 % see: spm_MDP_VB_XXX.m
 %__________________________________________________________________________
 

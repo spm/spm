@@ -66,10 +66,10 @@ end
 % And allowable state transitions
 %--------------------------------------------------------------------------
 subplot(2,2,4)
-if Ns(f) > 128
-    spm_spy(sum(MDP.b{1},3) > 1/16,8);
+if Ns(1) > 128
+    spm_spy(sum(MDP.b{1} > 1/16,3),8);
 else
-    imagesc(sum(MDP.b{1},3) > 1/16),
+    imagesc(sum(MDP.b{1} > 1/16,3)),
 end
 axis square
 title('Allowable transitions','FontSize',14), axis square

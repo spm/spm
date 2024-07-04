@@ -72,7 +72,7 @@ for g = 1:numel(MDP.A)
 
     % ensure probabilities are normalised  : A
     %----------------------------------------------------------------------
-    if ~islogical(MDP.A{g})
+    if isnumeric(MDP.A{g})
         MDP.A{g} = double(MDP.A{g});
         MDP.A{g} = full(spm_dir_norm(MDP.A{g}));
     end
@@ -84,7 +84,7 @@ for f = 1:numel(MDP.B)
 
     % ensure probabilities are normalised  : B
     %----------------------------------------------------------------------
-    if ~islogical(MDP.B{f})
+    if isnumeric(MDP.B{f})
         MDP.B{f} = double(MDP.B{f});
         MDP.B{f} = spm_dir_norm(MDP.B{f});
     end

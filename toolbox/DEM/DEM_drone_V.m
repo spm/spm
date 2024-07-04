@@ -1,4 +1,4 @@
-function MDP = DEM_drone_telemetry
+function MDP = DEM_drone_V
 % Demo of domain factors in the setting of active vision
 %__________________________________________________________________________
 %
@@ -50,64 +50,58 @@ function MDP = DEM_drone_telemetry
 %==========================================================================
 rng(1)
 
-global PG
-T   = 8;                                 % number of moves
+T   = 32;                                % number of moves
 N   = 0;                                 % depth of planning
 
 Nx  = 32;                                % size of environment
 Ny  = 32;                                % size of environment
-Nz  = 6;                                 % size of environment
-Nd  = 8;                                 % depth of rays (distal)
-Np  = 4;                                 % depth of rays (proximal)
-Nc  = 5;                                 % number of classes
-Nr  = 5;                                 % number of rays
-Na  = 6;                                 % number of drone angles
+Nz  = 8;                                 % size of environment
+Nd  = 16;                                % depth of rays
+Nc  = 8;                                 % number of classes
+Nr  = 6;                                 % number of rays
+Na  = 12;                                % number of drone angles
 
 % global parameters
 %--------------------------------------------------------------------------
+global PG %#ok<GVMIS> 
 PG.Nx  = Nx;
 PG.Ny  = Ny;
 PG.Nz  = Nz;
 PG.Na  = Na;
 PG.Nd  = Nd;
-PG.Np  = Np;
 PG.Nr  = Nr;
 PG.Nc  = Nc;
 
-PG.phi  = linspace(0,2*pi*(1 - 1/Na),Na); % drone angles
-PG.FOVp = linspace(-pi/6,pi/6,Nr);        % ray angles (90 degree FOV)
-PG.FOVf = linspace(-pi/6,pi/6,Nr);        % ray angles (60 degree FOV)
+PG.phi = linspace(0,2*pi*(1 - 1/Na),Na); % drone angles
+PG.FOV = linspace(-pi/6,pi/6,Nr);        % ray angles (60 degree FOV)
 
-% Create a random environment with several objects of different classes
+
+% Get environment
 %--------------------------------------------------------------------------
-W        = ones(Nx,Ny,Nz);                % empty space
-W(:,:,1) = 2;                             % green floor
+[D,W]  = spm_drone_unity(Nx,Ny,Nz,Nc);
+MAP    = D(:);
+D      = MAP;
 
-% place objects in scene
-%--------------------------------------------------------------------------
-for i = 2:Nc
-    for j = 1:(i + 1)
-        x = randperm(Nx,1);
-        y = randperm(Ny,1);
-        W(x,y,2:i) = i;
-    end
-end
-
-% Now specify the hidden states at each location (a MAP)
-%--------------------------------------------------------------------------
-for i = 1:Nx
-    for j = 1:Ny
-        for k = 1:Nz
-            D{i,j,k} = sparse(W(i,j,k),1,1,Nc,1);
-        end
-    end
-end
-MAP  = D(:);
-D    = MAP;
-
+% 2D view: true scene
+%==========================================================================
 spm_figure('GetWin','Active inference'); clf
 subplot(2,2,2), spm_show_x(MAP,Nx,Ny,Nz)
-title('True environment'), drawnow
+title('True environment'),  drawnow
+
+% 3D view: true scene
+%==========================================================================
+
+% location of hidden factors in rectangular coordinates
+%--------------------------------------------------------------------------
+XYZ   = spm_combinations([Nx,Ny,Nz]);
+subplot(4,2,6), hold off
+for s = 2:Nc
+    i = find(W(:) == s);
+    c = spm_colour(sparse(s,1,1,Nc,1));
+    plot3(XYZ(i,1),XYZ(i,2),XYZ(i,3),'.','MarkerSize',32,'Color',c)
+    hold on
+end
+axis image
 
 
 % Likelihood mapping: given states along the line of sight (i.e., rays)
@@ -122,21 +116,20 @@ title('True environment'), drawnow
 %--------------------------------------------------------------------------
 Ng    = Nr*Nr;
 for g = 1:Ng
-    GA{g}           = @spm_depth;          % 1st Ng modalities
-    GA{g + Ng}      = @spm_state;          % 2nd Ng modalities
-    GA{g + Ng + Ng} = @spm_local;          % 3rd Ng modalities
+    GA{g}       = @spm_depth;              % 1st Ng modalities
+    GA{g + Ng}  = @spm_state;              % 2nd Ng modalities
 end
 
 % add telemetry (controllable modalities)
 %--------------------------------------------------------------------------
-GA{Ng + Ng + Ng + 1} = eye(Nx,Nx);         % x - location (x)
-GA{Ng + Ng + Ng + 2} = eye(Ny,Ny);         % y - location (y)
-GA{Ng + Ng + Ng + 3} = eye(Nz,Nz);         % z - location (z)
-GA{Ng + Ng + Ng + 4} = eye(Na,Na);         % a - drone angles
+GA{Ng + Ng + 1} = eye(Nx,Nx);              % x - location (x)
+GA{Ng + Ng + 2} = eye(Ny,Ny);              % y - location (y)
+GA{Ng + Ng + 3} = eye(Nz,Nz);              % z - location (z)
+GA{Ng + Ng + 4} = eye(Na,Na);              % a - drone angles
 
 % controlled outcomes (telemetry)
 %--------------------------------------------------------------------------
-ID.control = (1:4) + Ng + Ng + Ng;
+ID.control = (1:4) + Ng + Ng;
 
 % for every combination of (Nu) domain factors (i.e., id.ff) specify
 % projective geometry
@@ -145,51 +138,61 @@ Nu    = 4;
 ID.ff = 1:Nu;
 ID.fg = @spm_fg;
 
-% repeat for 'model' with depth as a latent state
+% repeat for 'model'
 %==========================================================================
 
-% local depth (proximity) detectors
+
+% Likelihood mapping: given states along the line of sight (i.e., rays)
+%==========================================================================
+% Given the state of locations at various depths along a line of
+% sight, specifying the outcome in terms of depth and class; namely, the
+% state of the first non-empty location, where the first state corresponds
+% to empty space.
 %--------------------------------------------------------------------------
-Ns    = kron(ones(1,Np),Nc);               % number of states per ray
-local = zeros([2,Ns]);
-for s = 1:prod(Ns)
-    c   = spm_index(Ns,s);
-    ind = num2cell(c);                     % states at increasing depth
-    if any(c > 1)
-        local(1,ind{:}) = 1;               % somthing present
-    else
-        local(2,ind{:}) = 1;               % nothing present
-    end
-end
 
 % depth and vision modalities: model
 %--------------------------------------------------------------------------
+Ng    = Nr*Nr;
+A     = cell(Ng + Nu,1);
 for g = 1:Ng
-    A{g}           = eye(Nd + 1,Nd + 1);   % depth
-    A{g + Ng}      = eye(Nc,Nc);           % semantic class
-    A{g + Ng + Ng} = local;                % proximity
+    A{g}      = @A_depth;                 % 1st Ng modalities
+    A{g + Ng} = @A_state;                 % 2nd Ng modalities
 end
 
 % add telemetry
 %--------------------------------------------------------------------------
-A{Ng + Ng + Ng + 1} = eye(Nx,Nx);          % x - location (x)
-A{Ng + Ng + Ng + 2} = eye(Ny,Ny);          % y - location (y)
-A{Ng + Ng + Ng + 3} = eye(Nz,Nz);          % z - location (z)
-A{Ng + Ng + Ng + 4} = eye(Na,Na);          % a - drone angles
+A{Ng + Ng + 1} = eye(Nx,Nx);              % x - location (x)
+A{Ng + Ng + 2} = eye(Ny,Ny);              % y - location (y)
+A{Ng + Ng + 3} = eye(Nz,Nz);              % z - location (z)
+A{Ng + Ng + 4} = eye(Na,Na);              % a - drone angles
 
-% modalities for planning
+% central and peripheral (visual) modalities for planning
 %--------------------------------------------------------------------------
-id.ge = Ng + (1:(Ng));
+xyz  = spm_combinations([Nr,Nr]);
+d    = (Nr - 1).^2/2;
+cen  = find(sum(minus(xyz,[(Nr + 1)/2,(Nr + 1)/2]).^2,2) <  2);
+per  = find(sum(minus(xyz,[(Nr + 1)/2,(Nr + 1)/2]).^2,2) >= d);
 
+% uncomment to restrict modalities subtending EFE
+%--------------------------------------------------------------------------
+id.ge = unique([cen; (Ng + cen); per; (Ng + per)]');
+
+% uncomment to remove depth modality
+%--------------------------------------------------------------------------
+% id.g = {Ng:(Ng + Ng + 4)};
+
+% convert likelihood arrays to logical
+%--------------------------------------------------------------------------
 for g = 1:numel(GA)
     if isnumeric(GA{g})
         GA{g} = logical(GA{g});
     end
 end
 for g = 1:numel(A)
-    A{g} = logical(A{g});
+    if isnumeric(GA{g})
+        A{g} = logical(A{g});
+    end
 end
-
 
 % latent states:
 %==========================================================================
@@ -200,15 +203,10 @@ end
 % s - state at location 1
 % ...
 % s - state at location Nx*Ny*Nz = Nf
-%
-% d - depth at ray 1
-% ...
-% d - depth at ray Nr*Nr = Ng
 %--------------------------------------------------------------------------
 Nu    = 4;                                 % # controllable factors
-Nf    = Nx*Ny*Nz;                          % # latent place factors
-id.ff = [(1:Nu) ((1:Ng) + Nu + Nf)];       % domain factors (x,y,x,a,d,...)
-id.fg = @spm_parents;                      % parents of A{g}
+id.ff = 1:Nu;                              % domain factors (x,y,x,a)
+id.fg = @spm_fg;                           % parents of A{g}
 
 
 % Now specify transition priors (i.e., dynamics)
@@ -254,13 +252,13 @@ end
 % assume a stationary world, in terms of transitions and initial states
 %--------------------------------------------------------------------------
 GB    = {BX BY BZ BA};                           % controllable factors
-for f = 1:Nf                                     % latent place factors
+for f = 1:(Nx*Ny*Nz)                             % latent place factors
     GB{end + 1}  = logical(eye(Nc,Nc));
 end
 
 % add uncertainty about state transitions (noise)
 %--------------------------------------------------------------------------
-n     = [1/16, 1/16, 1/64, 0]/1024;              %%%% state noise
+n     = [1/16, 1/16, 1/64, 0]/128;               % state noise
 for f = 1:numel(n)
     b           = GB{f};
     c           = n(f);
@@ -272,23 +270,19 @@ end
 
 % add depth factors to model
 %==========================================================================
-B     = GB;                                      % state transitions
-for f = 1:Ng                                     % depth of ray factors
-    B{end + 1}  = spm_dir_norm(ones(Nd + 1,Nd + 1));
-end
-
 
 % priors over initial states
 %--------------------------------------------------------------------------
+B     = GB;                                      % state transitions
 for f = 1:numel(B)
     D{f} = ones(size(B{f},1),1);
 end
 
-v    = fix([Nx/2,Ny/2,Nz,1]);                    % initial telemetry
-D{1} = full(sparse(v(1),1,1,Nx,1));              % location (x)
-D{2} = full(sparse(v(2),1,1,Ny,1));              % location (y)
-D{3} = full(sparse(v(3),1,1,Nz,1));              % location (z)
-D{4} = full(sparse(v(4),1,1,Na,1));              % drone angles
+V    = fix([Nx/2,Ny/2,Nz,1]);                    % initial telemetry
+D{1} = full(sparse(V(1),1,1,Nx,1));              % location (x)
+D{2} = full(sparse(V(2),1,1,Ny,1));              % location (y)
+D{3} = full(sparse(V(3),1,1,Nz,1));              % location (z)
+D{4} = full(sparse(V(4),1,1,Na,1));              % drone angles
 
 
 %% priors: (cost) C
@@ -298,7 +292,6 @@ D{4} = full(sparse(v(4),1,1,Na,1));              % drone angles
 for g = 1:numel(A)
     C{g} = spm_dir_norm(ones(size(A{g},1),1));
 end
-
 
 % In addition, specify constraints in latent sub-space (cif)
 %--------------------------------------------------------------------------
@@ -314,9 +307,7 @@ U(u)  = 1;
 
 % true states
 %--------------------------------------------------------------------------
-s               = zeros(numel(GB),1);
-s(1:Nu)         = v(:);
-s((Nu + 1):end) = W(:);
+s     = [V(:); W(:)];
 
 % MDP Structure, specifying T epochs of active vision
 %==========================================================================
@@ -357,7 +348,7 @@ spm_MDP_VB_trial(MDP);
 % illustrate scene construction and exploration
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Active inference');
-spm_behaviour(MDP,Nx,Ny,Nz,Nr)
+spm_behaviour(MDP)
 
 return
 
@@ -394,7 +385,7 @@ MDP.T = 16;
 MDP   = spm_MDP_VB_XXX(MDP);
 
 spm_figure('GetWin','Search and rescue');
-spm_behaviour(MDP,Nx,Ny,Nz,Nr)
+spm_behaviour(MDP)
 
 %--------------------------------------------------------------------------
 fprintf('I''ve found a 3-thing\n\n')
@@ -437,7 +428,7 @@ MDP.id.hid = sT(:);                          % final  state
 MDP        = spm_MDP_VB_XXX(MDP);
 
 spm_figure('GetWin','Wayfinding'); clf
-spm_behaviour(MDP,Nx,Ny,Nz,Nr)
+spm_behaviour(MDP)
 subplot(2,2,1), hold on, plot(sT(1),sT(2),'ow','MarkerSize',48)
 
 %--------------------------------------------------------------------------
@@ -477,24 +468,6 @@ return
 
 % Subroutines
 %==========================================================================
-function PG = spm_PG % Not used
-% return the paamters of projective geometry
-% FORMAT PG = spm_PG
-%--------------------------------------------------------------------------
-PG.Nx   = 16;                                   % size of environment
-PG.Ny   = 16;                                   % size of environment
-PG.Nz   = 4;                                    % size of environment
-PG.Nd   = 5;                                    % depth of rays (distal)
-PG.Np   = 5;                                    % depth of rays (proximal)
-PG.Nc   = 4;                                    % number of classes
-PG.Nr   = 5;                                    % number of rays
-PG.Na   = 12;                                   % number of drone angles
-
-PG.phi  = linspace(0,2*pi*(1 - 1/PG.Na),PG.Na); % drone angles
-PG.FOVp = linspace(-pi/6,pi/6,PG.Nr);           % ray angles (90 degree FOV)
-PG.FOVf = linspace(-pi/6,pi/6,PG.Nr);           % ray angles (60 degree FOV)
-
-return
 
 % Likelihood mapping: given states along the line of sight (i.e., rays)
 %==========================================================================
@@ -537,26 +510,122 @@ d   = find(s > 1,1,'first');           % first nonempty class
 if numel(d)
     O(s(d)) = 1;                       % class of first occluder
 else
-    O(:)    = 1/PG.Nc;                 % nothing in range
+    O(1)    = 1;                       % nothing in range (null)
 end
 return
 
-function O = spm_local(s)
-% likelihood of proximity given some states (s)
-% FORMAT O = spm_local(s)
-% s  - class or state along ray
+
+function [O,r] = A_depth(P,f,Q)
+% likelihood of depth
+% FORMAT [O,r] = A_depth(P,f,Q)
+% P  - marginal over states along ray / outcomes
+% f  - indices of nonzero elements
+% Q  - marginal over states along ray
+%__________________________________________________________________________
+% This is a dual use function. If the first argument (P) is a cell, that
+% this function returns the posterior predictive densities over outcomes,
+% given that the posterior over states in P. Conversely, if P is a vector,
+% then the marginal likelihoods over states are returned, given the
+% outcomes in P. These marginals can be selected on the basis of posteriors
+% over states in Q. The indices of the reduced marginals are returned in r.
 %--------------------------------------------------------------------------
-O = zeros(2,1);
-if any(s > 1)
-    O(1) = 1;                          % depth of first occluder
+global PG
+
+% depth outcome
+%==========================================================================
+if iscell(P)
+
+    % outcome likelihood: O = spm_dot(A,P(n));
+    %----------------------------------------------------------------------
+    q = spm_cat(P);                        % marginals along ray
+    q = q(1,:);                            % P(empty)
+    p = 1 - q;                             % P(occupied)
+    O = abs(p.*cumprod([1 q(1:end - 1)])); % P(first occupied)
+    O = [O(:); 1 - sum(O)];                % P(outcome)
+
 else
-    O(2) = 1;                          % nothing in range
+
+    % un-normalised likelihood of states: P = spm_dot(A,O);
+    %======================================================================
+
+    % return marginal likelihoods as cells
+    %----------------------------------------------------------------------
+    d  = find(P,1,'first');                % depth on this ray
+    if d > PG.Nd
+        o = false(PG.Nc,PG.Nd);
+        o(1,:) = true;                     % all empty
+    else
+        o = false(PG.Nc,d);
+        o(1,1:end - 1) = true;             % all empty
+        o(2:end,end)   = true;             % until first occluder
+    end
+
+    % convert to cell array
+    %----------------------------------------------------------------------
+    d  = min(size(o,2),numel(f));
+    O  = cell(1,d);
+    for j = 1:d
+        O{j} = o(f{j},j);
+    end
+    r  = 1:d;
+
 end
+
 return
 
+function [O,r] = A_state(P,f,Q)
+% likelihood of states
+% FORMAT [O,r] = A_state(P,f,Q)
+% P  - marginal over states along ray / outcomes
+% f  - indices of nonzero elements
+% Q  - marginal over states along ray
+%--------------------------------------------------------------------------
+% This is a dual use function. If the first argument (P) is a cell, that
+% this function returns the posterior predictive densities over outcomes,
+% given that the posterior over states in P. Conversely, if P is a vector,
+% then the marginal likelihoods over states are returned, given the
+% outcomes in P. These marginals can be selected on the basis of posteriors
+% over states in Q. The indices of the reduced marginals are returned in r.
+% depth outcome
+%==========================================================================
+global PG
+
+if iscell(P)
+
+    % outcome likelihood requested: O = spm_dot(A,P(n));
+    %----------------------------------------------------------------------
+    d            = A_depth(P);            % depth of first occluder
+    q            = spm_cat(P);            % P(state)
+    q(1,:)       = 0;                     % P(state | occupied)
+    q(1,end + 1) = 1;                     % out of range
+
+    q = spm_dir_norm(q);                  % normalise
+    O = q*d;                              % P(outcome)
+
+else
+
+    % un-normalised likelihood of states: P = spm_dot(A,O);
+    %----------------------------------------------------------------------
+    % Only return a marginal likelihood for any state for which there is a
+    % precise posterior belief it is at an occluding location: i.e., the
+    % first occluder
+    %----------------------------------------------------------------------
+    O = {};
+    r = [];
+    d = A_depth(Q);                       % depth of first occluder
+    d = find(d > (1 - 1/32),1,'first');
+    if numel(d)
+        if d <= PG.Nd && d <= numel(f)
+            r = d;
+            O = {P(f{r})};
+        end
+    end
+
+end
+return
 
 function [D,hif] = spm_cid(Q)
-% contraint function
+% constraint function
 % FORMAT [D,hif] = spm_cid(Q)
 % D    - tensor of allowed latent states
 % hif  - in subspace of hif factors
@@ -571,7 +640,7 @@ Q   = spm_cat(Q((1:Nf) + Nu));
 
 % and preclude if not empty
 %--------------------------------------------------------------------------
-D   = Q(1,:) > 1 - 1/8;
+D   = Q(1,:) > (1 - 1/32);
 D   = reshape(full(D),PG.Nx,PG.Ny,PG.Nz);
 
 % (location) factors
@@ -589,7 +658,7 @@ function par = spm_fg(g,s)
 % s(3) - location (z)
 % s(4) - drone angles
 %
-% par - parents of g
+% par  - parents of g
 %--------------------------------------------------------------------------
 % Effectively, this is where one defines the projective geometry, in terms
 % of the mapping from a three space to an outcome modality (i.e., sensor).
@@ -606,70 +675,28 @@ function par = spm_fg(g,s)
 % for g = 1:Ng
 %     GA{g}           = depth;               % 1st Ng modalities
 %     GA{g + Ng}      = state;               % 2nd Ng modalities
-%     GA{g + Ng + Ng} = local;               % 3rd Ng modalities
 % end
 %
 % telemetry
 %--------------------------------------------------------------------------
-% GA{Ng + Ng + Ng + 1} = eye(Nx,Nx);         % x - location (x)
-% GA{Ng + Ng + Ng + 2} = eye(Ny,Ny);         % y - location (y)
-% GA{Ng + Ng + Ng + 3} = eye(Nz,Nz);         % z - location (z)
-% GA{Ng + Ng + Ng + 4} = eye(Na,Na);         % a - drone angles
+% GA{Ng + Ng + 1} = eye(Nx,Nx);              % x - location (x)
+% GA{Ng + Ng + 2} = eye(Ny,Ny);              % y - location (y)
+% GA{Ng + Ng + 3} = eye(Nz,Nz);              % z - location (z)
+% GA{Ng + Ng + 4} = eye(Na,Na);              % a - drone angles
 %--------------------------------------------------------------------------
 global PG
-Nx    = PG.Nx;                               % size (x)
-Ny    = PG.Ny;                               % size (y)
-Nz    = PG.Nz;                               % size (z)
-Nd    = PG.Nd;                               % depth of rays (distal)
-Np    = PG.Np;                               % depth of rays (proximal)
-Nr    = PG.Nr;                               % number of rays
+
 Nu    = 4;                                   % domain factors
-Ng    = Nr*Nr;                               % number of rays
+Ng    = PG.Nr*PG.Nr;                         % number of rays
 
 % check modality
 %--------------------------------------------------------------------------
-if g > (Ng + Ng + Ng)
+if g > (Ng + Ng)
 
     % telemetry
     %----------------------------------------------------------------------
-    par = g - (Ng + Ng + Ng);
+    par = g - (Ng + Ng);
     par = uint16(par);
-    return
-
-elseif g > (Ng + Ng)
-
-    % factors on proximity rays
-    %======================================================================
-    g      = g - (Ng + Ng);
-
-    % get centre and angles of drone
-    %----------------------------------------------------------------------
-    origin = [s(1:3)];
-    angle  = PG.phi(s(4));
-
-    % get sampled locations for this modality
-    %----------------------------------------------------------------------
-    theta = PG.FOVp;                         % ray angles (90 degree FOV)
-    d     = spm_index([Nr,Nr],g);            % ray (line of sight) angle
-    ph    = angle - theta(d(2));             % azimuthal angle
-    th    = theta(d(1)) - theta(1);          % polar angle
-
-    % for each depth along ray (i.e., line of sight)
-    %----------------------------------------------------------------------
-    par   = zeros(1,Np);
-    for d = 1:Np
-
-        % find nearest location in the latent state space
-        %------------------------------------------------------------------
-        xyz    = spm_spherical2rectang(origin,ph,th,d);
-        x      = uint8(max(min(xyz(1),Nx),1));
-        y      = uint8(max(min(xyz(2),Ny),1));
-        z      = uint8(max(min(xyz(3),Nz),1));
-        j      = spm_sub2ind([Nx,Ny,Nz],x,y,z);
-        par(d) = j + Nu;
-
-    end
-    par   = uint16(par);
     return
 
 elseif g > Ng
@@ -690,25 +717,34 @@ angle  = PG.phi(s(4));
 
 % get sampled locations for this modality
 %--------------------------------------------------------------------------
-theta = PG.FOVf;                           % ray angles (60 degree FOV)
-d     = spm_index([Nr,Nr],g);              % ray (line of sight) angle
-ph    = angle - theta(d(2));               % azimuthal angle
-th    = theta(d(1)) - theta(1);            % polar angle
+theta  = PG.FOV;                            % ray angles (60 degree FOV)
+d      = spm_index([PG.Nr,PG.Nr],g);              % ray (line of sight) angle
+ph     = angle - theta(d(2));               % azimuthal angle
+th     = theta(d(1)) - theta(1);            % polar angle
 
 % for each depth along ray (i.e., line of sight)
 %--------------------------------------------------------------------------
-par   = zeros(1,Nd);
-for d = 1:Nd
+for d = 1:PG.Nd
 
     % find nearest location in the latent state space
     %----------------------------------------------------------------------
-    xyz    = spm_spherical2rectang(origin,ph,th,d);
-    x      = uint16(max(min(xyz(1),Nx),1));
-    y      = uint16(max(min(xyz(2),Ny),1));
-    z      = uint16(max(min(xyz(3),Nz),1));
-    j      = spm_sub2ind([Nx,Ny,Nz],x,y,z);
-    par(d) = j + Nu;
+    %     xyz    = spm_spherical2rectang(origin,ph,th,d);
+    %     x      = uint8(max(min(xyz(1),Nx),1));
+    %     y      = uint8(max(min(xyz(2),Ny),1));
+    %     z      = uint8(max(min(xyz(3),Nz),1));
+    %     j      = spm_sub2ind([Nx,Ny,Nz],x,y,z);
+    %     par(d) = j + Nu;
 
+    xyz = spm_spherical2rectang(origin,ph,th,d);
+    x   = uint8(xyz(1));
+    y   = uint8(xyz(2));
+    z   = uint8(xyz(3));
+    if x > 0 && x <= PG.Nx && y > 0 && y <= PG.Ny && z > 0 && z <= PG.Nz
+        j      = spm_sub2ind([PG.Nx,PG.Ny,PG.Nz],x,y,z);
+        par(d) = j + Nu;
+    else
+        break
+    end
 end
 
 % save parents of A{g} - latent locations
@@ -716,136 +752,6 @@ end
 par   = uint16(par);
 
 return
-
-function par = spm_parents(g,s)
-% projective geometry for process
-% FORMAT par = spm_parents(g,s)
-% par - parents of g
-%--------------------------------------------------------------------------
-% Effectively, this is where one defines the projective geometry, in terms
-% of the mapping from a three space to an outcome modality (i.e., sensor).
-% In other words, here, we specify which hidden states are responsible for
-% generating the outcome in any given modality.
-%
-% In this example, we assume the field-of-view has the same azimuthal and
-% polar angle that spans the angular interval between each angular position
-% the drone can occupy. For example, if the drone can point in six
-% directions, the field of view subtends an angle of 60°. Furthermore, we
-% assume this field of view points downwards such that the drone can what
-% is in front of it.
-%--------------------------------------------------------------------------
-% for g = 1:Ng
-%     A{g}           = eye(Nd + 1,Nd + 1);  % depth
-%     A{g + Ng}      = eye(Nc,Nc);          % state
-%     A{g + Ng + Ng} = local;               % proximity
-% end
-% 
-% % add telemetry
-% %------------------------------------------------------------------------
-% A{Ng + Ng + Ng + 1} = eye(Nx,Nx);         % x - location (x)
-% A{Ng + Ng + Ng + 2} = eye(Ny,Ny);         % y - location (y)
-% A{Ng + Ng + Ng + 3} = eye(Nz,Nz);         % z - location (z)
-% A{Ng + Ng + Ng + 4} = eye(Na,Na);         % a - drone angles
-%--------------------------------------------------------------------------
-global PG
-
-Nx    = PG.Nx;                              % size (x)
-Ny    = PG.Ny;                              % size (y)
-Nz    = PG.Nz;                              % size (z)
-Np    = PG.Np;                              % depth of rays (proximal)
-Nr    = PG.Nr;                              % number of rays
-Nu    = 4;                                  % domain factors
-Ng    = Nr*Nr;                              % number of rays
-Nf    = Nx*Ny*Nz;                           % latent place factors
-
-% check modality
-%--------------------------------------------------------------------------
-if g > (Ng + Ng + Ng)
-
-    % telemetry
-    %----------------------------------------------------------------------
-    par = g - (Ng + Ng + Ng);
-    par = uint16(par);
-    return
-
-elseif g > (Ng + Ng)
-
-    % proximity
-    %======================================================================
-    g    = g - (Ng + Ng);
-
-    % get centre and angles of drone
-    %----------------------------------------------------------------------
-    origin = [s(1:3)];
-    angle  = PG.phi(s(4));
-
-    % get sampled locations for this modality
-    %----------------------------------------------------------------------
-    theta = PG.FOVp;                           % ray angles (90 degree FOV)
-    d     = spm_index([Nr,Nr],g);              % ray (line of sight) angle
-    ph    = angle - theta(d(2));               % azimuthal angle
-    th    = theta(d(1)) - theta(1);            % polar angle
-
-    % for each depth along ray (i.e., line of sight)
-    %----------------------------------------------------------------------
-    par   = zeros(1,Np);
-    for d = 1:Np
-
-        % find nearest location in the latent state space
-        %------------------------------------------------------------------
-        xyz    = spm_spherical2rectang(origin,ph,th,d);
-        x      = uint8(max(min(xyz(1),Nx),1));
-        y      = uint8(max(min(xyz(2),Ny),1));
-        z      = uint8(max(min(xyz(3),Nz),1));
-        j      = spm_sub2ind([Nx,Ny,Nz],x,y,z);
-        par(d) = j + Nu;
-
-    end
-    par   = uint16(par);
-    return
-
-elseif g > Ng
-
-    % class (state) of ray g
-    %----------------------------------------------------------------------
-    g     = g - Ng;
-
-    % factors on ray: depth and class
-    %======================================================================
-
-    % get centre and angles of drone
-    %----------------------------------------------------------------------
-    origin = [s(1:3)];
-    angle  = PG.phi(s(4));
-    depth  = s(Nu + g);
-
-    % get sampled locations for this modality
-    %----------------------------------------------------------------------
-    theta = PG.FOVf;                           % ray angles (60 degree FOV)
-    d     = spm_index([Nr,Nr],g);              % ray (line of sight) angle
-    ph    = angle - theta(d(2));               % azimuthal angle
-    th    = theta(d(1)) - theta(1);            % polar angle
-
-    % find nearest location in the latent state space
-    %----------------------------------------------------------------------
-    xyz = spm_spherical2rectang(origin,ph,th,depth);
-    x   = uint16(max(min(xyz(1),Nx),1));
-    y   = uint16(max(min(xyz(2),Ny),1));
-    z   = uint16(max(min(xyz(3),Nz),1));
-    j   = spm_sub2ind([Nx,Ny,Nz],x,y,z);
-    par = uint16(j + Nu);
-    return
-
-else
-
-    % depth of ray g
-    %----------------------------------------------------------------------
-    par = g + Nu + Nf;
-    par = uint16(par);
-    return
-
-end
-
 
 function xyz   = spm_spherical2rectang(origin,ph,th,d)
 % Returns the Cartesian coordinates from spherical coordinates (and origin)
@@ -866,14 +772,14 @@ function RGB = spm_colour(O)
 % subfunction: returns an RGB rendering of a multinomial distribution
 %--------------------------------------------------------------------------
 c   = 1/3;
-MAP = [0 0 0;
-    c 1 c;
-    1 c c;
-    c c 1;
-    1 c 1;
-    c 1 1;
-    1 1 c;
-    c c c];
+MAP = [0 0 0;                     % (1) black (void)
+    000 204 204;                  % (2) blue  (water)
+    000 153 000;                  % (3) green (grass)
+    051 102 000;                  % (4) green (foliage)
+    204 204 000;                  % (5) green (pillar)
+    255 229 204;                  % (6) pink  (person)
+    204 102 000;                  % (7) brick (brick)
+    255 000 000]/255;             % (8) red   (target)
 MAP = MAP(1:numel(O),:)';
 RGB = min(MAP*O,1);
 
@@ -931,7 +837,92 @@ end
 
 return
 
-function spm_behaviour(MDP,Nx,Ny,Nz,Nd)
+function [D,W] = spm_drone_unity(Nx,Ny,Nz,Nc)
+% creates an outdoor scene based on size of the environment
+
+% Create a random environment with several objects of different classes
+%--------------------------------------------------------------------------
+% (1) black (void)
+% (2) blue  (water)
+% (3) green (grass)
+% (4) green (foliage)
+% (5) brown (pillar)
+% (6) pink  (person)
+% (7) brick (brick)
+% (8) red   (target)
+
+xyz      = spm_combinations([Nx,Ny,Nz]);
+W        = ones(Nx,Ny,Nz);                % empty space
+W(:,:,1) = 2;                             % water base
+
+% place foliage in scene
+%--------------------------------------------------------------------------
+d    = sqrt(sum(minus(xyz(:,[1 2]),[Nx/2,Ny/3]).^2,2)) > Nx/4;
+d    = d & (xyz(:,3) < 3);
+W(d) = 3;                             % land (grass)
+
+% place foliage in scene
+%-------------------------------------------------------------------------- 
+c = find(W(:,:,2) == 3);
+c = c(randperm(numel(c),10));
+for i = 1:numel(c)
+    [ind] = spm_index([Nx,Ny],c(i));
+    d     = sum(minus(xyz,[ind(1),ind(2),4 + rand]).^2,2);
+    d     = sqrt(d) < Nx/(9 + rand);
+    d     = logical(d.*(rand(size(d)) > .6));
+    W(d)  = 4;
+end
+
+% place building in scene
+%-------------------------------------------------------------------------- 
+d    = 1 & (xyz(:,1) > 2) & (xyz(:,1) < 6);
+d    = d & (xyz(:,2) > (Ny - 10)) & (xyz(:,2) < (Ny - 2));
+d    = d & (xyz(:,3) < 6);
+W(d) = 7;
+
+% place pillars in scene
+%--------------------------------------------------------------------------
+c = find(W(:,:,2) == 3);
+c = c(randperm(numel(c),4));
+for i = 1:numel(c)
+    [ind] = spm_index([Nx,Ny],c(i));
+    d     = 1 & (xyz(:,1) == ind(1));
+    d     = d & (xyz(:,2) == ind(2));
+    d     = d & (xyz(:,3) < (Nz - rand));
+    W(d)  = 5;
+end
+
+% place people in scene
+%-------------------------------------------------------------------------- 
+d    = 1 & (xyz(:,1) > 5) & (xyz(:,1) < 8);
+d    = d & (xyz(:,2) > (Ny - 10)) & (xyz(:,2) < (Ny - 2));
+d    = logical(d.*(rand(size(d)) > .5));
+d    = d & (xyz(:,3) == 3);
+W(d) = 6;
+
+% place target in pond
+%--------------------------------------------------------------------------
+c     = find(W(:,:,1) == 2);
+c     = c(randperm(numel(c),1));
+[ind] = spm_index([Nx,Ny],c);
+d     = 1 & (xyz(:,1) == ind(1));
+d     = d & (xyz(:,2) == ind(2));
+d     = d & (xyz(:,3) == 2);
+W(d)  = 8;
+
+% Now specify the hidden states at each location (a MAP)
+%--------------------------------------------------------------------------
+for i = 1:Nx
+    for j = 1:Ny
+        for k = 1:Nz
+            D{i,j,k} = sparse(W(i,j,k),1,1,Nc,1);
+        end
+    end
+end
+
+return
+
+function spm_behaviour(MDP)
 % display posteriors
 % FORMAT spm_show_x(x,Nx,Ny)
 % a{g} - likelihood tensors
@@ -950,9 +941,8 @@ L     = (1:N) + Nu;                        % state indices
 
 % location of hidden factors in rectangular coordinates
 %--------------------------------------------------------------------------
-for s = 1:prod([Nx,Ny,Nz])
-    XYZ(s,:) = spm_index([PG.Nx,PG.Ny,PG.Nz],s);
-end
+XYZ   = spm_combinations([PG.Nx,PG.Ny,PG.Nz]);
+
 
 % illustrate behaviour
 %--------------------------------------------------------------------------
@@ -965,7 +955,7 @@ for t = 1:MDP.T
         Q{f,1} = sparse(MDP.s(f + Nu,t),1,1,PG.Nc,1);
     end
     subplot(2,2,2), hold off
-    spm_show_x(Q,Nx,Ny,Nz), hold on
+    spm_show_x(Q,PG.Nx,PG.Ny,PG.Nz), hold on
     title('True scene')
 
     % inferred scene
@@ -975,7 +965,7 @@ for t = 1:MDP.T
         Q{f} = Q{f}(:,t);
     end
     subplot(2,2,1), hold off
-    spm_show_x(Q',Nx,Ny,Nz), hold on
+    spm_show_x(Q',PG.Nx,PG.Ny,PG.Nz), hold on
     title(sprintf('Inferred scene (t = %i)',t))
 
     % where the drone thinks it is
@@ -989,6 +979,13 @@ for t = 1:MDP.T
     % true location and orientation of drone
     %----------------------------------------------------------------------
     plot(X(2,t),X(1,t),'*w','MarkerSize',32,'LineWidth',4)
+    
+    % Has the drone crashed
+    %----------------------------------------------------------------------
+    f  = find(ismember(XYZ,X(1:3,t)','rows'));
+    if MDP.s(f + Nu,t) > 1
+        plot(X(2,t),X(1,t),'*r','MarkerSize',64,'LineWidth',4)
+    end
 
     % where the drone has been
     %----------------------------------------------------------------------
@@ -997,7 +994,7 @@ for t = 1:MDP.T
     % where the drone looks
     %----------------------------------------------------------------------
     j     = MDP.j(:,t);
-    for i = (1:Nr) + Nr + Nr
+    for i = 1:Nr
         for k = 1:numel(j{i})
             x = spm_index([PG.Nx,PG.Ny,PG.Nx],j{i}(k) - Nu);
             plot(x(2),x(1),'ow','MarkerSize',x(3))
@@ -1047,7 +1044,7 @@ for t = 1:MDP.T
     %----------------------------------------------------------------------
     g     = 1:Nr;
     depth = MDP.o(g,t);
-    depth = reshape(depth,Nd,Nd);
+    depth = reshape(depth,PG.Nr,PG.Nr);
     subplot(4,3,10), hold off
     imagesc(1 - depth), axis image
     title('Depth')
@@ -1057,14 +1054,14 @@ for t = 1:MDP.T
     %----------------------------------------------------------------------
     g     = (1:Nr) + Nr;
     state = MDP.O(g,t);
-    state = reshape(state,Nd,Nd);
+    state = reshape(state,PG.Nr,PG.Nr);
 
     % find class
     %--------------------------------------------------------------
-    I     = zeros(Nd,Nd,3);
-    J     = zeros(Nd,Nd,3);
-    for i = 1:Nd
-        for j = 1:Nd
+    I     = zeros(PG.Nr,PG.Nr,3);
+    J     = zeros(PG.Nr,PG.Nr,3);
+    for i = 1:PG.Nr
+        for j = 1:PG.Nr
             I(i,j,:) = spm_colour(state{i,j});
             J(i,j,:) = I(i,j,:)/((depth(i,j) - dmin + 1));
         end
@@ -1086,7 +1083,7 @@ end
 
 % Place movie in graphic subject
 %--------------------------------------------------------------------------
-set(gcf,'Userdata',{MOV,8})
+set(gcf,'Userdata',{MOV,2})
 set(gcf,'ButtonDownFcn','spm_DEM_ButtonDownFcn')
 
 return

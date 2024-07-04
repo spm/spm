@@ -1,6 +1,6 @@
 function [j,i,q] = spm_edges(id,g,Q)
 % Returns parents and children of MDP likelihood mapping
-% FORMAT [j,i,q] = spm_get_edges(id,g,Q)
+% FORMAT [j,i,q] = spm_edges(id,g,Q)
 % 
 % id - identifier or index structure
 %  id.A{g} State-independent domain
