@@ -310,6 +310,9 @@ end
 if nargin > 3
     disp('################ Mac test:');
 
+    disp('Class of k:');
+    disp(class(k));
+    
     disp('k:');
     disp(k);  
     
@@ -344,8 +347,23 @@ Pp    = C;
 Pp(k) = Pk;
 
 if nargin > 3    
+    
+    disp('Code following assignment of Pp:');
+    
+    disp('Pk:');
+    disp(Pp);    
+    
     disp('Pp:');
     disp(Pp);    
+    
+    disp('With rounding:');
+    Pp(round(k)) = Pk;
+    disp(Pp);
+    
+    disp('With casting to int32:');
+    Pp(int32(k)) = Pk;
+    disp(Pp);    
+    
     disp('################');
 end
 
