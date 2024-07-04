@@ -97,7 +97,7 @@ clear training test
 % get training images for stucture learning
 %--------------------------------------------------------------------------
 Ns    = 10;                                % Number of classes
-Ne    = 12;
+Ne    = 13;
 j     = [];
 for n = 1:10
     i = find(ismember(labels(1:N),n - 1));

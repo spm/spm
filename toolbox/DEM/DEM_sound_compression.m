@@ -67,13 +67,25 @@ WAV.mm = 16;                % Maximum number of singular modes      [32]
 WAV.su = 16;                % Singular value (normalised) threshold [16]
 WAV.R  = R;                 % temporal resampling                   [128]
 
-I         = spm_wav2I(s,WAV);
-[O,L,WAV] = spm_wav2O(I,WAV);
+S         = spm_wav2I(s,WAV);
+[O,L,WAV] = spm_wav2O(S,WAV);
 
 % And show the CWT images generated from a discrete representation
 %--------------------------------------------------------------------------
 I   = spm_O2wav(O,WAV);
 spm_wavshow(I,WAV);
+subplot(4,1,2)
+title('Continuous Wavelet Transform (recontructed)','FontSize',12)
+
+subplot(4,1,3)
+imagesc(-spm_cat(O))
+xlabel('time (voxels)'), ylabel('latent states')
+title('Discrete (quanitzed) representation','FontSize',12)
+
+subplot(4,1,4)
+imagesc(log(abs(S) + exp(-8)))
+xlabel('time (bins)'), ylabel('frequency')
+title('Continuous Wavelet Transform (stimulus)','FontSize',12)
 
 % Use the ensuing sequence for (RG) structure learning
 %--------------------------------------------------------------------------

@@ -44,7 +44,7 @@ for n = 1:8
     % Grouping into a partition of outcomes
     %----------------------------------------------------------------------
     G     = spm_space(L);
-    T     = spm_time(size(O{n},2),dt);
+    
     for g = 1:numel(G)
 
         % structure_learning from unique exemplars
@@ -71,6 +71,7 @@ for n = 1:8
 
     % solve at next time scale
     %----------------------------------------------------------------------
+    T     = spm_time(size(O{n},2),dt);
     for t = 1:numel(T)
         pdp   = MDP{n};
         pdp.T = numel(T{t});

@@ -14,7 +14,7 @@ function [s] = spm_wavshow(I,WAV)
 
 % inverse wavelet transform
 %--------------------------------------------------------------------------
-s = tanh(spm_iwft(I,WAV.k,WAV.n));
+s = spm_iwft(I,WAV.k,WAV.n);
 
 
 if nargout, return, end

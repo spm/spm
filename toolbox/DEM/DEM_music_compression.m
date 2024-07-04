@@ -51,7 +51,7 @@ spm_wav2I = @(s,WAV)real(spm_wft(s,WAV.k,WAV.n));
 Nk     = 32;                                    % frequency bins
 WAV.Fs = Fs;                                    % sample rate
 WAV.n  = fix(Fs*8/1000);                        % window (8 ms)
-WAV.k  = fix(linspace(1,4000,Nk)/(Fs/WAV.n));   % frequencies (Hz)
+WAV.k  = fix(linspace(40,4000,Nk)/(Fs/WAV.n));   % frequencies (Hz)
 
 % Map from CWT image to discrete state space (c.f., Amortisation) 
 %--------------------------------------------------------------------------
