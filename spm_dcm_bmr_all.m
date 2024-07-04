@@ -303,19 +303,24 @@ end
 % Includes temporary debug code to diagnose a mac problem
 
 for i = 1:length(k)
-    Pk(1,i) = mean(p(~K(:,i)));
-    Pk(2,i) = mean(p( K(:,i)));
+    Pk(1,i) = mean(p(~K(:,i))); % mean prob. of models with parameter i on
+    Pk(2,i) = mean(p( K(:,i))); % mean prob. of models with parameter i off
 end
-Pk    = Pk(1,:)./sum(Pk);
-Pp    = C;
 
 if nargin > 3
     disp('################ Mac test:');
+    
+    disp('G:');
+    disp(G);
+    
     disp('k:');
     disp(k);
     
     disp('p:');
     disp(p);    
+    
+    disp('Nan check on p:');
+    disp(any(isnan(p(:))));
     
     disp('K:');
     disp(full(K));    
@@ -326,6 +331,9 @@ if nargin > 3
     disp('C:');
     disp(C);    
 end
+
+Pk    = Pk(1,:)./sum(Pk);
+Pp    = C;
 
 Pp(k) = Pk;
 

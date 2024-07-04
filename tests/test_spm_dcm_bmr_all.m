@@ -46,7 +46,7 @@ disp('BMR.k: free parameters:');
 disp(full(BMR.k));
 
 disp('BMR.F: free energy:');
-disp(full(BMR.F));
+disp(full(BMR.F(:)));
 
 testCase.assertTrue(Pp(5,2) > 0.9);
 
