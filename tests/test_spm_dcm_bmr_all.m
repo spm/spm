@@ -36,18 +36,6 @@ Pp = full(spm_unvec(rPEB.Pp,PEB.Ep));
 disp('Pp: Running on B-parameters only:');
 disp(Pp);
 
-disp('BMR.K: Model space:');
-disp(full(BMR.K));
-
-disp('BMR.P: Model probabilities:');
-disp(full(BMR.P));
-
-disp('BMR.k: free parameters:');
-disp(full(BMR.k));
-
-disp('BMR.F: free energy:');
-disp(full(BMR.F(:)));
-
 testCase.assertTrue(Pp(5,2) > 0.9);
 
 % -------------------------------------------------------------------------

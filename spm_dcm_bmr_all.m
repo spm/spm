@@ -309,27 +309,33 @@ end
 
 if nargin > 3
     disp('################ Mac test:');
-    
-    disp('G:');
-    disp(G);
-    
+
     disp('k:');
-    disp(k);
-    
-    disp('p:');
-    disp(p);    
-    
-    disp('Nan check on p:');
-    disp(any(isnan(p(:))));
-    
-    disp('K:');
-    disp(full(K));    
+    disp(k);  
     
     disp('Pk:');
     disp(Pk);    
     
-    disp('C:');
-    disp(C);    
+    disp('Pk(1,:):');
+    disp(Pk(1,:));   
+    
+    disp('sum(Pk):');
+    disp(sum(Pk));  
+    
+    disp('Pk(1,:)./sum(Pk)');
+    disp(Pk(1,:)./sum(Pk));
+    
+    disp('Class of Pk(1,:):');
+    disp(class(Pk(1,:)));
+    
+    disp('Class of Pk(1,:)./sum(Pk):');
+    disp(class(Pk(1,:)./sum(Pk))); 
+    
+    disp('C');
+    disp(C);
+    
+    disp('Class of C');
+    disp(class(C));    
 end
 
 Pk    = Pk(1,:)./sum(Pk);
