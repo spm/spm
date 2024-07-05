@@ -39,6 +39,17 @@ disp(Pp);
 testCase.assertTrue(Pp(5,2) > 0.9);
 
 % -------------------------------------------------------------------------
+function test_divide(testCase)
+
+Pk =  [0.0264    0.0312    0.0312    0.0243    0.0312    0.0312
+       0.0049    0.0000    0.0000    0.0069    0.0000    0.0001];
+   
+Pk = Pk(1,:)./sum(Pk);
+disp(Pk);
+
+assert(~all(abs(Pk) < 0.001));
+
+% -------------------------------------------------------------------------
 function data_path = get_data_path()
 
 data_path = fullfile( spm('Dir'), 'tests', ...
