@@ -105,7 +105,7 @@ for n=1:Nb
 
         % ---------------------------------------------------------------------
         % Write on disk
-        nativemeshnames{n,j}=[output_folder filesep 'Cerebros\' sprintf('smp_%d_%s%d.gii',n,namestr,randseed)];
+        nativemeshnames{n,j}=[output_folder filesep 'Cerebros\' sprintf('smp_%3d_%s%3d.gii',n,namestr,randseed)];
         save(randomcortex,nativemeshnames{n,j});
     end; % for j
 end; % for n

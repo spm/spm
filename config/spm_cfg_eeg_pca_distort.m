@@ -115,7 +115,7 @@ nativeMRIname=D.inv{1}.mesh.sMRI
 latentfilename=[a1 filesep 'PCA' filesep 'latent_code.mat'];
 if strcmp(job.TemplateRedo,'Yes'),
     if exist([a1 filesep 'PCA']),
-        fprintf('\nRemoving exiting PCA directory for fresh start\n')
+        fprintf('\nRemoving existing PCA directory for fresh start\n')
         rmdir([a1 filesep 'PCA'],'s');
     end;
 end;
