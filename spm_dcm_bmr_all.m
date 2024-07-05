@@ -309,71 +309,47 @@ end
 
 if nargin > 3
     disp('################ Mac test:');
-
-    disp('Class of k:');
-    disp(class(k));
-    
-    disp('k:');
-    disp(k);  
     
     disp('Pk:');
     disp(Pk);    
+    
+    disp('Class of Pk');
+    disp(class(Pk));     
+    
+    disp('Is Pk sparse?');
+    disp(issparse(Pk));     
+
+    disp('Pk(1,:)');
+    disp(Pk(1,:));
+
+    disp('sum(Pk)');
+    disp(sum(Pk));
     
     disp('Pk(1,:)./sum(Pk)');
     disp(Pk(1,:)./sum(Pk));
     
-    disp('Class of Pk(1,:):');
-    disp(class(Pk(1,:)));
-    
     disp('Class of Pk(1,:)./sum(Pk):');
     disp(class(Pk(1,:)./sum(Pk))); 
-    
-    disp('C');
-    disp(C);
-    
-    disp('Class of C');
-    disp(class(C));    
 end
 
 Pk    = Pk(1,:)./sum(Pk);
-Pp    = C;
 
-Pp(k) = Pk;
-
-if nargin > 3    
-    
-    disp('Code following assignment of Pp:');
+if nargin > 3
+    disp('################ Repeat the Mac test following assignment:');
     
     disp('Pk:');
     disp(Pk);    
     
-    disp('Pp:');
-    disp(Pp);    
-
-    disp('Class of Pk:');
-    disp(class(Pk));  
+    disp('Class of Pk');
+    disp(class(Pk));
     
-    disp('Class of Pp:');
-    disp(class(Pp));     
-    
-    disp('With vectorising:');
-    Pp(k(:)) = Pk(:);
-    disp(Pp);    
-    
-    disp('With rounding:');
-    Pp(round(k)) = Pk;
-    disp(Pp);
-    
-    disp('With casting to int32:');
-    Pp(int32(k)) = Pk;
-    disp(Pp);    
-    
-    disp('How about manually assigning:');
-    Pp([1 2 3 4 5 11]) = Pk;
-    disp(Pp);       
-    
-    disp('################');
+    disp('Sum and divide operators:');
+    which sum
+    which rdivide
 end
+
+Pp    = C;
+Pp(k) = Pk;
 
 %-Bayesian model selection or average
 %==========================================================================
