@@ -73,13 +73,14 @@ if nargin == 0
     datafeatures.help = {'Data features of interest'};
     datafeatures.val =datafeatures.values(end);
     
-    contrast = cfg_entry;
-    contrast.tag = 'contrast';
-    contrast.name = 'contrast';
-    contrast.strtype = 'i';
-    contrast.num = [1 Inf];
-    contrast.val = {1};
-    
+%     contrast = cfg_entry;
+%     contrast.tag = 'contrast';
+%     contrast.name = 'contrast';
+%     contrast.strtype = 'i';
+%     contrast.num = [Inf Inf];
+%     contrast.val = {[0.7 0;0 1]};
+%     contrast.help={'Typically specify an identity NxN where N is number of conditions to be compared'};
+%     
     result         = cfg_menu;
     result.tag     = 'result';
     result.name    = 'What to output';
@@ -112,7 +113,7 @@ if nargin == 0
     custom.tag = 'custom';
     custom.name = 'Custom';
     custom.help = {'Define custom settings for the inversion'};
-    custom.val  = {whatconditions, contrast, woi};
+    custom.val  = {whatconditions, woi};
     
     isdesign = cfg_choice;
     isdesign.tag = 'isdesign';
@@ -280,7 +281,7 @@ if isfield(S.isdesign,'custom'),
     %     end;
     
     allsamples=[D.indsample(Xstartlatencies); D.indsample(Xstartlatencies+ones(size(Xstartlatencies)).*duration)]';
-    contrast=S.isdesign.custom.contrast';
+    
     
     
     
@@ -294,7 +295,17 @@ else %%  conditions and contrast  specified in a file
     disp('loading design matrix');
     a=load(cell2mat(S.isdesign.design));
     X=a.design.X; %% design matrix
-    contrast=a.design.contrast;
+    
+    if isfield(a.design,'contrast'),
+        contrast=a.design.contrast;
+    else
+        contrast=[];
+    end;
+
+    if isempty(contrast),
+        fprintf('\n setting up identity contrast')
+        contrast=eye(size(X,2));
+    end;
     ntrials=size(X,1);
     if (size(a.design.Xstartlatencies,1)~=ntrials)||(size(a.design.Xtrials,1)~=ntrials)
         error('start latencies and Xtrials and X should have a value per row of the design');
@@ -305,6 +316,9 @@ else %%  conditions and contrast  specified in a file
         allsamples(j,1)=D.indsample(a.design.Xstartlatencies(j));
         allsamples(j,2)=D.indsample(a.design.Xstartlatencies(j)+a.design.Xwindowduration);
     end;
+    Xstartlatencies=a.design.Xstartlatencies;
+    col=size(X,2);
+    xlabel=num2str(1:col);
     
 end;
 
@@ -325,8 +339,8 @@ Fgraph  = spm_figure('GetWin','Graphics'); spm_figure('Clear',Fgraph);
 subplot(4,1,1);
 imagesc(X);
 title('X');
-set(gca,'Xtick',1:col);
-set(gca,'Xticklabel',xlabel);
+%set(gca,'Xtick',1:col);
+%set(gca,'Xticklabel',xlabel);
 subplot(4,1,2);
 
 imagesc(contrast);
@@ -439,18 +453,20 @@ for i = 1:nvert
         
         Yfull=Yfull-repmat(mean(Yfull),size(Yfull,1),1); %% remove dc level from each column/feature
         Yfull=Yfull./repmat(std(Yfull),size(Yfull,1),1); %% normalize features to have unit variance by default
-        [chival,BIC,cva] = output_image_mv_cva(X,Yfull,contrast); %% run the multivariate test
-        
+         
+      %  [chival,BIC,cva] = output_image_mv_cva(X,Yfull,contrast); %% run the multivariate test
+       
+        [CVA] = spm_cva(Yfull,X,[],contrast); %% this is the original code- removing dupilcate above
         
         switch S.result
             case 'chi square'
                 resultstr='chisq';
-                outval(i) = chival(1);
+                outval(i) = CVA.chi(1);
             case 'r square'
-                outval(i) = cva.ccorr.^2;
+                outval(i) = CVA.r(1)^2;
                 resultstr='rsq';
             case 'BIC'
-                outval(i)=BIC(1);
+                outval(i)=CVA.bic(1);
                 resultstr='BIC';
         end;
         
