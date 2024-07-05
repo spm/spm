@@ -332,7 +332,7 @@ if nargin > 3
     disp(class(Pk(1,:)./sum(Pk))); 
 end
 
-Pk    = Pk(1,:)./sum(Pk);
+Pk = Pk(1,:) ./ sum(Pk);
 
 if nargin > 3
     disp('################ Repeat the Mac test following assignment:');
