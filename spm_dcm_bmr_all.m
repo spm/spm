@@ -302,51 +302,21 @@ end
 %==========================================================================
 % Includes temporary debug code to diagnose a mac problem
 
+if nargin > 3
+    which Pk
+end
+
 Pk = zeros(2,length(k));
 for i = 1:length(k)
     Pk(1,i) = mean(p(~K(:,i))); % mean prob. of models with parameter i on
     Pk(2,i) = mean(p( K(:,i))); % mean prob. of models with parameter i off
 end
 
-if nargin > 3
-    disp('################ Mac test:');
-    
-    disp('Pk:');
-    disp(Pk);    
-    
-    disp('Class of Pk');
-    disp(class(Pk));     
-    
-    disp('Is Pk sparse?');
-    disp(issparse(Pk));     
-
-    disp('Pk(1,:)');
-    disp(Pk(1,:));
-
-    disp('sum(Pk)');
-    disp(sum(Pk));
-    
-    disp('Pk(1,:)./sum(Pk)');
-    disp(Pk(1,:)./sum(Pk));
-    
-    disp('Class of Pk(1,:)./sum(Pk):');
-    disp(class(Pk(1,:)./sum(Pk))); 
-end
-
 Pk = Pk(1,:) ./ sum(Pk);
 
 if nargin > 3
-    disp('################ Repeat the Mac test following assignment:');
-    
     disp('Pk:');
-    disp(Pk);    
-    
-    disp('Class of Pk');
-    disp(class(Pk));
-    
-    disp('Sum and divide operators:');
-    which sum
-    which rdivide
+    disp(Pk);
 end
 
 Pp    = C;
