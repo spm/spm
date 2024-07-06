@@ -302,6 +302,7 @@ end
 %==========================================================================
 % Includes temporary debug code to diagnose a mac problem
 
+Pk = zeros(2,length(k));
 for i = 1:length(k)
     Pk(1,i) = mean(p(~K(:,i))); % mean prob. of models with parameter i on
     Pk(2,i) = mean(p( K(:,i))); % mean prob. of models with parameter i off
