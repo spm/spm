@@ -7,6 +7,9 @@ function tests = test_checkcode
 
 tests = functiontests(localfunctions);
 
+function test_display_matlab_version(testCase)
+% Output MATLAB version for reporting to Mathworks if needed
+ver -support
 
 function test_checkcode_all(testCase)
 testCase.assumeTrue(strcmp(spm_check_version,'matlab'));
