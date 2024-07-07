@@ -1,4 +1,4 @@
-function [DCM,BMR,BMA] = spm_dcm_bmr_all(DCM,field,OPT,varargin)
+function [DCM,BMR,BMA] = spm_dcm_bmr_all(DCM,field,OPT)
 % Bayesian model reduction of all permutations of model parameters
 % FORMAT [DCM,BMR,BMA] = spm_dcm_bmr_all(DCM,field,OPT)
 %
@@ -300,25 +300,16 @@ end
 
 %-Inference over families (one family per coupling parameter)
 %==========================================================================
-% Includes temporary debug code to diagnose a mac problem
-
-if nargin > 3
-    which Pk
-end
-
 Pk = zeros(2,length(k));
 for i = 1:length(k)
     Pk(1,i) = mean(p(~K(:,i))); % mean prob. of models with parameter i on
     Pk(2,i) = mean(p( K(:,i))); % mean prob. of models with parameter i off
 end
 
+% Normalise probabilities
 Pk = Pk(1,:) ./ sum(Pk);
 
-if nargin > 3
-    disp('Pk:');
-    disp(Pk);
-end
-
+% Set within overall parameter vector
 Pp    = C;
 Pp(k) = Pk;
 
@@ -476,12 +467,6 @@ DCM.M.pC  = rC;        % reduced prior covariance
 DCM.Ep    = Ep;        % Bayesian model averages
 DCM.Cp    = Cp;        % Bayesian model variance
 DCM.Pp    = Pp;        % Model posterior over parameters (with and without)
-
-if nargin > 3  
-    disp('### end of debug:');
-    disp(Pp);
-    disp('###');
-end
 
 % Clear free energy if supplied (which is no longer meaningful)
 %--------------------------------------------------------------------------
