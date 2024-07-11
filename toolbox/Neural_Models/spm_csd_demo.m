@@ -70,8 +70,8 @@ C     = speye(n,n);                        % sources receiving innovations
 % get priors
 %--------------------------------------------------------------------------
 [pE,pC] = spm_lfp_priors(A,B,C);           % neuronal priors
-[pE,pC] = spm_ssr_priors(pE,pC);           % spectral priors
 [pE,pC] = spm_L_priors(n,pE,pC);           % spatial  priors
+[pE,pC] = spm_ssr_priors(pE,pC);           % spectral priors
 
 % Suppress channel noise
 %--------------------------------------------------------------------------
