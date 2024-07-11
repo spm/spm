@@ -35,7 +35,7 @@ function [pE,pC] = spm_ssr_priors(pE,pC)
 
 % catch
 %--------------------------------------------------------------------------
-try, pE.L; catch, pE.L = 1; end
+try, pE.L; catch, pE.L = 1; pC.L = 1; end
  
 % number of LFP channels and sources (endogenous inputs)
 %--------------------------------------------------------------------------
