@@ -74,6 +74,6 @@ used = setdiff(MEGind,badchannels(muD));
 pl =muD(used,:,:)';
 
 delete(muD);
-peakValInRange = max(abs(pl(:))) < 154.3785 &  max(abs(pl(:))) > 154.0701;
+peakValInRange = max(abs(pl(:))) < 154.6222 &  max(abs(pl(:))) > 154.3132;
 
 testCase.verifyTrue(peakValInRange);

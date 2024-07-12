@@ -168,15 +168,16 @@ mfD.save();
 %-canonical correlations
 %--------------------------------------------------------------------------
 if(S.skip>0)
-  chunks = S.skip*mfD.fsample:S.window*mfD.fsample:size(mfD,2);
-  
+  chunks = S.skip*mfD.fsample:S.window*mfD.fsample:size(mfD,2); 
 else
-chunks = 1:S.window*mfD.fsample:size(mfD,2);
+  chunks = 1:S.window*mfD.fsample:size(mfD,2);
 end
 
-if chunks(end)>size(mfD,2)
-    chunks(end)=size(mfD,2);
+if chunks(end)<size(mfD,2)
+    chunks(end+1)=size(mfD,2);
 end
+
+
 
 for i = 1:(length(chunks)-1)
     inds = chunks(i):(chunks(i+1)-1);
