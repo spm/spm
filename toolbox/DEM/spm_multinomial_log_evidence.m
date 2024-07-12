@@ -20,7 +20,7 @@ function [F,sA] = spm_multinomial_log_evidence(qA,pA,rA)
 
 % reduced posteriors
 %--------------------------------------------------------------------------
-sA = spm_softmax(qA + rA - pA);
+sA = spm_softmax(log(qA) + log(rA) - log(pA));
 
 % change in free energy or log model evidence
 %--------------------------------------------------------------------------
