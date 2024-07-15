@@ -179,6 +179,7 @@ set(gca,'Fontsize',18)
 
 
 %figure;
+fprintf('\n Loading %s\n',D.inv{1}.mesh.tess_ctx);
 Mnative=gifti(D.inv{1}.mesh.tess_ctx);
 vnative			= Mnative.vertices; %% native vertices
 %meshplot4spm(Mnative)

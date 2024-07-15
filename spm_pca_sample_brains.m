@@ -30,7 +30,7 @@ if isempty(randseed),
 end;
 
 if isempty(template_meshfiles),
-    template_meshfiles{1}=[output_folder 'mesh_cortex_template.gii'];
+    template_meshfiles{1}=[output_folder filesep 'mesh_cortex_template.gii'];
 end;
 
 if ~isvector(PC),
@@ -105,7 +105,7 @@ for n=1:Nb
 
         % ---------------------------------------------------------------------
         % Write on disk
-        nativemeshnames{n,j}=[output_folder filesep 'Cerebros\' sprintf('smp_%03d_%s%03d.gii',n,namestr,randseed)];
+        nativemeshnames{n,j}=[output_folder filesep 'Cerebros' filesep sprintf('smp_%03d_%s%03d.gii',n,namestr,randseed)];
         save(randomcortex,nativemeshnames{n,j});
     end; % for j
 end; % for n

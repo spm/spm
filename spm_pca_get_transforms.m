@@ -24,12 +24,13 @@ templates_folder=[templates_folder filesep];
 tpl		= [templates_folder 'Template_4.nii'];				% Template brain
 
 mkdir(output_folder);
-orig_folder		= [output_folder 'original\'];
+orig_folder		= [output_folder 'original'];
+fprintf('\n Making copy of original MRI in directory %s\n',orig_folder)
 mkdir(orig_folder);
 
 
-TPM_folder		= fullfile(spm('Dir'),'tpm\');
-CAN_folder=fullfile(spm('Dir'),'canonical\');
+TPM_folder		= fullfile(spm('Dir'),['tpm' filesep]);
+CAN_folder=fullfile(spm('Dir'),['canonical' filesep]);
 
 
 %% take native MRIand make a copy
@@ -176,8 +177,8 @@ nii_v_t2dr.dat(:,:,:,:,:) = iv;
 
 %% Affine maps
 % 
- mri		= [output_folder subj_file];				% MRI
- mri0	= [orig_folder subj_file];					% MRI0 (before alignement to MNI)
+ mri		= [output_folder filesep subj_file];				% MRI
+ mri0	= [orig_folder filesep subj_file];					% MRI0 (before alignement to MNI)
  
 % crtx_nat = [output_folder 'mesh_cortex_native.gii'];
 % crtx_tpl = [output_folder 'mesh_cortex_template.gii'];

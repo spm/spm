@@ -99,9 +99,9 @@ fprintf('\n Plus using original surface %s \n',Dc.inv{1}.mesh.tess_ctx);
 %-Meshes
 %----------------------------------------------------------------------
 headmodel=job.LFheadmodel;
+uheadmodel = regexprep(headmodel,' ', '_'); %% remove spaces for dir name
 
-
-headmodeldir=[outdir filesep headmodel];
+headmodeldir=[outdir filesep uheadmodel];
 mkdir(headmodeldir); %% make a directory to contain headmodels and then surface leadfields
 Dc.inv{val}.forward(1).voltype=headmodel;
 Dc=spm_eeg_inv_forward(Dc);
