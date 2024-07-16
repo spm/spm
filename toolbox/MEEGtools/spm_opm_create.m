@@ -334,7 +334,7 @@ if positions
         
         [sel1, sel2] = spm_match_str(lower(D.chanlabels), lower(lay.label));
         D = coor2D(D, sel1, num2cell(pos2d(:, sel2)));
-        
+        D.lay = lay;
         D.save;
     else
         % 2D view based on mean orientation of sensors

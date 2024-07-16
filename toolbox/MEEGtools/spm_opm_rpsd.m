@@ -20,13 +20,14 @@ function [shield,f] = spm_opm_rpsd(S)
 
 %-ArgCheck
 %--------------------------------------------------------------------------
-if ~isfield(S, 'triallength'),   S.triallength = 1000; end
-if ~isfield(S, 'bc'),            S.bc = 0; end
-if ~isfield(S, 'channels'),      S.channels = 'ALL'; end
-if ~isfield(S, 'plot'),          S.plot = 0; end
-if ~isfield(S, 'dB'),            S.dB = 1; end
-if ~isfield(S, 'D1'),            error('D1 is required'); end
-if ~isfield(S, 'D2'),            error('D2 is required'); end
+if ~isfield(S, 'triallength'),   S.triallength = 1000;                  end
+if ~isfield(S, 'bc'),            S.bc = 0;                              end
+if ~isfield(S, 'channels'),      S.channels = 'ALL';                    end
+if ~isfield(S, 'plot'),          S.plot = 0;                            end
+if ~isfield(S, 'dB'),            S.dB = 1;                              end
+if ~isfield(S, 'D1'),            error('D1 is required');               end
+if ~isfield(S, 'D2'),            error('D2 is required');               end
+if ~isfield(S, 'interact'),      S.interact = 1;                        end
 
 %- Checks
 %--------------------------------------------------------------------------
@@ -68,43 +69,52 @@ end
 %- Plot
 %--------------------------------------------------------------------------
 if(S.plot)
+    % get labels (in case S.channels = 'ALL')
+    cid = S.D1.selectchannels(S.channels);
+    labs = S.D1.chanlabels(cid);
+    figure()
+    hold on
+    for i = 1:size(shield,2)
+        tag = [labs{i}, ', Index: ' num2str(cid(i))];
+        plot(f,shield(:,i)','LineWidth',2,'tag',tag);
+    end
+    % plot(f,shield,'LineWidth',2);
+    xp2 =0:round(f(end));
+    yp2=ones(1,round(f(end))+1)*0;
+    p2 =plot(xp2,yp2,'--k');
+    p2.LineWidth=2;
     if(S.dB)
-        figure()
-        plot(f,shield,'LineWidth',2);
-        hold on
-        xp2 =0:round(f(end));
-        yp2=ones(1,round(f(end))+1)*0;
-        p2 =plot(xp2,yp2,'--k');
-        p2.LineWidth=2;
         xlabel('Frequency (Hz)')
         labY = ['Shielding Factor (dB)'];
         ylabel(labY)
-        grid on
-        ax = gca; % current axes
-        ax.FontSize = 13;
-        ax.TickLength = [0.02 0.02];
-        fig= gcf;
-        fig.Color=[1,1,1];
-       % legend(chan1{boolean(keep)});
+        % legend(chan1{boolean(keep)});
     else
-        figure()
-        plot(f,shield,'LineWidth',2);
-        hold on
-        xp2 =0:round(f(end));
-        yp2=ones(1,round(f(end))+1)*0;
-        p2 =plot(xp2,yp2,'--k');
-        p2.LineWidth=2;
         xlabel('Frequency (Hz)')
         labY = ['$$PSD (fT' ' \sqrt[-1]{Hz}$$)'];
         ylabel(labY,'interpreter','latex')
-        grid on
-        ax = gca; % current axes
-        ax.FontSize = 13;
-        ax.TickLength = [0.02 0.02];
-        fig= gcf;
-        fig.Color=[1,1,1];
         %legend(chan1{boolean(keep)});
     end
+    grid on
+    ax = gca; % current axes
+    ax.FontSize = 13;
+    ax.TickLength = [0.02 0.02];
+    fig= gcf;
+    fig.Color=[1,1,1];
+
+    if(S.interact)
+        datacursormode on
+        dcm = datacursormode(gcf);
+        set(dcm,'UpdateFcn',@getLabel)
+    end
+
 end
 
+end
+
+function txt = getLabel(trash,event)
+pos = get(event,'Position');
+dts = get(event.Target,'Tag');
+txt = {dts,...
+    ['Frequency: ',num2str(pos(1))],...
+    ['RMS: ',num2str(pos(2))]};
 end
