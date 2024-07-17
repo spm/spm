@@ -725,7 +725,7 @@ function Snew = read_neuro1_data(Sold)
             position_channels{chan} = position.name{chan}(1:hyphens{chan}(1)-1);
             position_axes{chan} = position.name{chan}(hyphens{chan}(2)+1:end);
         end
-        if ~any(contains(channels, '_'))
+        if ~any(contains(channels(meg_chans), '_'))
             position_data_names = strcat(position_axes, position_channels);
         else
             position_data_names = strcat(position_channels, '_', position_axes);
