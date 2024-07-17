@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        version: ["R2020a", "R2020b", "R2021a", "R2021b", "R2022a", "R2022b", "R2023a", "R2023b"]
+        version: ["R2020a", "R2020b", "R2021a", "R2021b", "R2022a", "R2022b", "R2023a", "R2023b", "R2024a"]
         os: ["ubuntu-latest", "macos-13", "windows-latest"]
         exclude:
           - os: windows-latest
@@ -26,8 +26,14 @@ jobs:
             version: "R2021b" # Compiler not available
     runs-on: ${{matrix.os}}
     steps:
+      - name: Set up MATLAB (legacy)
+        if: ${{matrix.version == 'R2020a' || matrix.version == 'R2020b'}}
+        uses: matlab-actions/setup-matlab@v1        
+        with:
+          release: ${{matrix.version}}
       - name: Set up MATLAB
-        uses: matlab-actions/setup-matlab@v1
+        if: ${{matrix.version != 'R2020a' && matrix.version != 'R2020b'}}
+        uses: matlab-actions/setup-matlab@v2
         with:
           release: ${{matrix.version}}
       - name: Check out repository
