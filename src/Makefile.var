@@ -22,6 +22,7 @@ MEXOPTS      = -O -largeArrayDims
 MEXEND       =
 MOSUF        = o # mex output object suffix
 UNAME        = uname
+GET_ARCH     = uname -m
 AR           = ar rcs
 COPY         = cp -f
 DEL          = rm -f
@@ -37,6 +38,11 @@ SONAME       = soname
 
 ifndef PLATFORM
   PLATFORM   = $(shell $(UNAME))
+  ifeq (Darwin,$(PLATFORM))
+    ifeq (arm64,$(shell $(GET_ARCH))) # Check for Apple Silicon
+      PLATFORM = arm64
+    endif
+  endif
 endif
 
 ##### Linux #####
