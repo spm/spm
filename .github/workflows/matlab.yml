@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        version: ["R2020a", "R2020b", "R2021a", "R2021b", "R2022a", "R2022b", "R2023a", "R2023b"]
+        version: ["R2020a", "R2020b", "R2021a", "R2021b", "R2022a", "R2022b", "R2023a", "R2023b", "R2024a"]
         os: ["ubuntu-latest", "macos-13", "windows-latest"]
         exclude:
           - os: windows-latest
@@ -26,21 +26,27 @@ jobs:
             version: "R2021b" # Compiler not available
     runs-on: ${{matrix.os}}
     steps:
+      - name: Set up MATLAB (legacy)
+        if: ${{matrix.version == 'R2020a' || matrix.version == 'R2020b' || matrix.version == 'R2022a' || matrix.version == 'R2022b'}}
+        uses: matlab-actions/setup-matlab@v1        
+        with:
+          release: ${{matrix.version}}
       - name: Set up MATLAB
-        uses: matlab-actions/setup-matlab@v1
+        if: ${{matrix.version != 'R2020a' && matrix.version != 'R2020b' && matrix.version != 'R2022a' && matrix.version != 'R2022b'}}
+        uses: matlab-actions/setup-matlab@v2
         with:
           release: ${{matrix.version}}
       - name: Check out repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Setup cached test data folder
         id: cache-data-tests
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: tests/data
           key: tests-data
           enableCrossOsArchive: true
       - name: Check out test data to latest 
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with: 
           repository: spm/spm-tests-data
           token: ${{ secrets.TESTS_DATA_REPO_TOKEN }}
@@ -48,7 +54,7 @@ jobs:
           lfs: true
       - name: Run regression tests with existing MEX files
         if: github.event.schedule == '40 16 * * 3'
-        uses: matlab-actions/run-command@v1
+        uses: matlab-actions/run-command@v1 # R2020b fails with run-command@v2
         with:
           command: addpath(pwd); results = spm_tests('class','regression','display',true); assert(all(~[results.Failed]));
       - name: Run unit tests with existing MEX files
@@ -71,7 +77,7 @@ jobs:
         if: runner.os == 'Windows'
         run: echo "MEXEXT=$(mexext.bat)" >> $env:GITHUB_ENV
       - name: Upload Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: spm-${{env.MEXEXT}}-${{runner.os}}-${{matrix.version}}
           path: ./**/*.${{env.MEXEXT}}
