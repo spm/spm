@@ -242,7 +242,7 @@ hC(i,i) = exp(-16);
  
 % complete model specification
 %--------------------------------------------------------------------------
-M.f  = 'spm_fx_fmri_v2';                     % equations of motion
+M.f  = 'spm_fx_fmri';                     % equations of motion
 M.g  = 'spm_gx_fmri';                     % observation equation
 M.x  = x;                                 % initial condition (states)
 M.pE = pE;                                % prior expectation (parameters)

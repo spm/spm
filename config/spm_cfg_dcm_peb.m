@@ -726,10 +726,11 @@ function out = spm_run_bmr_all(job)
 GCM = load_dcm(job);
 nm  = size(GCM,2);
 
-if nm > 1
+if nm ~= 1
     disp('Running search on the full DCM only.');        
-    GCM = GCM(:,1);
 end
+
+GCM = GCM(:,1);
 
 out = run_peb_bmc_internal(job,GCM);
 
@@ -804,10 +805,6 @@ if iscell(job.model_space_mat) && ischar(job.model_space_mat{1}) ...
     % An array of DCM filenames was provided (via the dependency system)    
     GCM     = job.model_space_mat;    
     dir_out = fileparts(GCM{1});
-elseif isempty(job.model_space_mat)
-    GCM = {};
-    dir_out = pwd;
-    return
 else
     % The filename of a single GCM mat file was provided
     gcm_file = char(job.model_space_mat);
