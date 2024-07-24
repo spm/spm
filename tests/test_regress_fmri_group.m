@@ -3,8 +3,17 @@ function tests = test_regress_fmri_group
 
 % Manual specification of tests to run
 % (Excluding Bayesian tests for now due to verbose output)
-tests = functiontests({@test_onesample_ttest_classical;
+tests = functiontests({@setup;
+                       @test_onesample_ttest_classical;
                        @test_twosample_ttest_classical});
+
+% -------------------------------------------------------------------------
+function setup(testCase) 
+
+% Start SPM
+spm('defaults','fmri');
+spm_jobman('initcfg');
+spm_get_defaults('cmdline',true);
 
 % -------------------------------------------------------------------------
 function test_onesample_ttest_classical(testCase)
