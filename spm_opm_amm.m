@@ -72,12 +72,13 @@ if (ind~=2)
 error('Y is not longest axis.... fix please')
 end
 
+inside = (v(:,1)-o(1)).^2/r(1)^2+(v(:,2)-o(2)).^2/r(2)^2+(v(:,3)-o(3)).^2/r(3)^2;
 
-inside = v(:,1).^2/r(1)^2+v(:,2).^2/r(2)^2+v(:,3).^2/r(3)^2;
 c = sum(inside<1);
 while c>0
   rt = r-1;
-  inside = v(:,1).^2/rt(1)^2+v(:,2).^2/rt(2)^2+v(:,3).^2/rt(3)^2;
+  inside = (v(:,1)-o(1)).^2/r(1)^2+(v(:,2)-o(2)).^2/r(2)^2+(v(:,3)-o(3)).^2/r(3)^2;
+
   cc = sum(inside<1);
   if(cc<=c)
     r = r-1;  
