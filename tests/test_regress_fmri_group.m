@@ -3,10 +3,10 @@ function tests = test_regress_fmri_group
 
 % Manual specification of tests to run
 tests = functiontests({@setup;
-                       @test_onesample_ttest_classical;
-                       @test_twosample_ttest_classical;
-                       @test_flex_factorial_classical;
-                       @test_flex_factorial_bayesian});
+                       @test_regress_onesample_ttest_classical;
+                       @test_regress_twosample_ttest_classical;
+                       @test_regress_flex_factorial_classical;
+                       @test_regress_flex_factorial_bayesian});
 
 % -------------------------------------------------------------------------
 function setup(testCase) 
@@ -17,7 +17,7 @@ spm_jobman('initcfg');
 spm_get_defaults('cmdline',true);
 
 % -------------------------------------------------------------------------
-function test_onesample_ttest_classical(testCase)
+function test_regress_onesample_ttest_classical(testCase)
 
 xyz_mm = run_onesample_ttest(false);
 
@@ -26,7 +26,7 @@ tol = [3 3 3]';
 testCase.assertEqual(xyz_mm,[42 -82 -6]','AbsTol', tol);
 
 % -------------------------------------------------------------------------
-function test_twosample_ttest_classical(testCase)
+function test_regress_twosample_ttest_classical(testCase)
 
 xyz_mm = run_twosample_ttest(false);
 
@@ -35,7 +35,7 @@ tol = [3 3 3]';
 testCase.assertEqual(xyz_mm,[40 -22 52]','AbsTol', tol);
 
 % -------------------------------------------------------------------------
-function test_flex_factorial_classical(testCase)
+function test_regress_flex_factorial_classical(testCase)
 
 xyz_mm = run_flex_factorial(false);
 
@@ -44,7 +44,7 @@ tol = [3 3 3]';
 testCase.assertEqual(xyz_mm,[40 -22 52]','AbsTol', tol);
 
 % -------------------------------------------------------------------------
-function test_flex_factorial_bayesian(testCase)
+function test_regress_flex_factorial_bayesian(testCase)
 
 xyz_mm = run_flex_factorial(true);
 

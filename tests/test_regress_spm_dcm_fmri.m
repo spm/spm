@@ -12,7 +12,7 @@ function tests = test_regress_spm_dcm_fmri
 tests = functiontests(localfunctions);
 
 
-function test_attention_dcm(testCase)
+function test_regress_attention_dcm(testCase)
 
 data_path = fullfile(spm('Dir'),'tests','data','attention');
 
