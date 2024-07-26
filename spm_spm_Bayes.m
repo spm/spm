@@ -217,8 +217,11 @@ for z = 1:zdim
     % Loop over blocks (bunches of lines / planks)
     if use_parfor
         parfor bch = 1:nbch
+            % Get response variable
+            Y = spm_get_data(VY,xyz{bch});
+            
             % Invert
-            [beta,Hp] = invert_glm(VY,xyz{bch},sP);
+            [beta,Hp] = invert_glm(Y,sP);
             
             % Store
             beta_blocks{bch} = beta;
@@ -226,8 +229,11 @@ for z = 1:zdim
         end
     else
         for bch = 1:nbch
+            % Get response variable
+            Y = spm_get_data(VY,xyz{bch});
+            
             % Invert
-            [beta,Hp] = invert_glm(VY,xyz{bch},sP);
+            [beta,Hp] = invert_glm(Y,sP);
             
             % Store
             beta_blocks{bch} = beta;
@@ -337,19 +343,20 @@ spm('FigName','Stats: done',Finter); spm('Pointer','Arrow')
 fprintf('%-40s: %30s\n','Completed',spm('time'))
 
 % -------------------------------------------------------------------------
-function [beta,Hp] = invert_glm(VY,xyz,sP)
+function [beta,Hp] = invert_glm(Y,sP)
+% Invert GLM(s) for one or more voxels
+%
+% Y  - voxel-wise data [nVol x nVox]
+% sP - model spec structure for spm_peb.m
+%
+% beta - estimated regression parameters [nBeta x nVox]
+% Hp   - estimated hyperparameters [nHp x nVox]
 
-% Get response variable
-Y = spm_get_data(VY,xyz);
-
-% Number of hyperparameters / separable partitions
-nHp = length(sP);
-
-% Number of parameters
-nBeta = size(sP.P{1}.X,2);
+nBeta = size(sP.P{1}.X,2); % Number of parameters
+nVox  = size(Y,2);         % Number of voxels
+nHp   = length(sP);        % Number of hyperparameters/separable partitions
 
 % Conditional estimates (per partition, per voxel)
-nVox  = size(xyz,2);
 beta  = zeros(nBeta,nVox);
 Hp    = zeros(nHp,  nVox);
 for j = 1:nHp
