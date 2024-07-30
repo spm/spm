@@ -1,0 +1,88 @@
+name: Compile MEX
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '**/*.c'
+      - '**/*.h'
+      - '**/*.cpp'
+      - '**/*.hpp'
+
+jobs:
+  compile_mex:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-13, macos-latest, windows-latest] # macos-latest throws errors when compiling mex
+        include:
+          - os: ubuntu-latest
+            mex_ext: mexa64
+          - os: macos-13
+            mex_ext: mexmaci64
+          - os: macos-latest
+            mex_ext: mexmaca64
+          - os: windows-latest
+            mex_ext: mexw64
+
+    steps:
+      - name: Set up MATLAB
+        uses: matlab-actions/setup-matlab@v2
+      - name: Checkout SPM
+        uses: actions/checkout@v4
+        with:
+          repository: korbinian90/spm
+          ref: build_test
+
+      - name: Delete old MEX files on Ubuntu and Mac
+        if: matrix.os != 'windows-latest'
+        run: find . -type f -name "*.mex*" -delete
+
+      - name: Delete old MEX files on Windows
+        if: matrix.os == 'windows-latest'
+        run: Get-ChildItem -Path .\ -Recurse -Include *.mex* | Remove-Item -Force
+
+      - name: Compile MEX files
+        run: |
+          make -C src distclean
+          make -C src
+          make -C src install
+          # make -C src external-distclean # on windows there is an issue with fieldtrip
+          # make -C src external
+          # make -C src external-install
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: spm-mex-${{ matrix.os }}
+          path: ./**/*.${{ matrix.mex_ext }}
+          retention-days: 1
+
+  collect_mex_files:
+    runs-on: ubuntu-latest
+    needs: compile_mex
+    steps:
+      - name: Download Linux Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: spm-mex-ubuntu-latest
+
+      - name: Download macOS (Intel) Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: spm-mex-macos-13
+
+      - name: Download macOS (Apple Silicon) Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: spm-mex-macos-latest
+
+      - name: Download Windows Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: spm-mex-windows-latest
+
+      - name: Upload all mex files as Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: spm-mex-all
+          path: .
