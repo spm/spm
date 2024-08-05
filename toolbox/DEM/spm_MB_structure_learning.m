@@ -78,34 +78,25 @@ for n = 1:8
         for j = 1:pdp.T
             pdp.O(:,j) = O{n}(:,T{t}(j));
         end
-        pdp   = spm_MDP_VB_XXX(pdp);
+        pdp   = spm_VB_XXX(pdp);
 
         % initial states and paths
         %------------------------------------------------------------------
-        ig    = 1;
-        L     = zeros(1,size(L,2));
         for g = 1:numel(G)
+            MDP{n}.id.D{g} = uint16(2*g - 1);    % parents of state
+            MDP{n}.id.E{g} = uint16(2*g - 0);    % parents of paths
 
-            % states, paths and average location for this goup
-            %--------------------------------------------------------------
-            qs = pdp.X{g}(:,1);
-            qu = pdp.P{g}(:,end);
-            ml = mean(MDP{n}.LG(G{g},:));
+            O{n + 1}{MDP{n}.id.D{g},t} = pdp.X{g}(:,1);
+            O{n + 1}{MDP{n}.id.E{g},t} = pdp.P{g}(:,1);
+        end
 
-            % states (odd)
-            %--------------------------------------------------------------
-            MDP{n}.id.D{g} = ig;
-            O{n + 1}{ig,t} = qs;
-            L(ig,:)        = ml;
-            ig = ig + 1;
-
-            % paths (even)
-            %--------------------------------------------------------------
-            MDP{n}.id.E{g} = ig;
-            O{n + 1}{ig,t} = qu;
-            L(ig,:)        = ml;
-            ig = ig + 1;
-
+        % mean locations
+        %------------------------------------------------------------------
+        L     = zeros(numel(G)*2,size(L,2));
+        for g = 1:numel(G)
+            m = mean(MDP{n}.LG(G{g},:));
+            L(MDP{n}.id.D{g},:) = m;
+            L(MDP{n}.id.E{g},:) = m;
         end
     end
 
@@ -118,6 +109,7 @@ for n = 1:8
 end
 
 return
+
 
 function mdp = spm_structure_fast(O,dt)
 % A fast form of structure learning
@@ -269,7 +261,6 @@ else
 
 end
 
-
 return
 
 
@@ -312,7 +303,7 @@ o       = spm_cat(a)';
 
 return
 
-% information geometry – divergence : likelihood mapping
+%% information geometry – divergence : likelihood mapping
 %--------------------------------------------------------------------------
 C     = 0;
 for g = 1:size(a,1)

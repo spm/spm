@@ -1,6 +1,6 @@
-function [j,i] = spm_get_edges(id,g,Q)
+function [j,i] = spm_parents(id,g,Q)
 % Returns parents and children of MDP likelihood mapping
-% FORMAT [j,i] = spm_get_edges(id,g,Q)
+% FORMAT [j,i] = spm_parents(id,g,Q)
 % 
 % id - identifier or index structure
 %  id.A{g} List of parents  of A{g}
@@ -10,7 +10,7 @@ function [j,i] = spm_get_edges(id,g,Q)
 %  id.gg - List of children of A{g} under each combination of domains
 % 
 % g  - index of likelihood mapping A{g}
-% Q  - posterior over domain factors (id.ff)
+% Q  - posterior over domain factors (id.ff) (or states)
 %
 % j  -   domain of A{g}: hidden factors     (i.e., parents)
 % i  - codomain of A{g}: outcome modalities (i.e., children)
@@ -24,8 +24,8 @@ function [j,i] = spm_get_edges(id,g,Q)
 %==========================================================================
 %            
 % id.A{g} - Indices of parents of A{g}
-% id.D{f} - Indices of parents of initial states of factor f
-% id.E{f} - Indices of parents of paths of factor f 
+% id.D{f} - Indices of parents of initial states of factor B{f}
+% id.E{f} - Indices of parents of paths of factor B{f} 
 %
 % id.ff   - List of domain factors
 % id.fg   - List of parents  of A{g} under each combination of domains 

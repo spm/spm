@@ -254,13 +254,17 @@ for t = 1:T
 
             % domain and codomain of A{g}
             %--------------------------------------------------------------
-            [j,i] = spm_get_edges(id{m},g,MDP(m).s(:,t));
+            [j,i] = spm_parents(id{m},g,MDP(m).s(:,t));
             for o = i
 
                 % sample from likelihood, given hidden state
                 %==========================================================
                 ind           = num2cell(MDP(m).s(j,t));
-                O{m,o,t}      = MDP(m).A{g}(:,ind{:});
+                if isa(MDP(m).A{g},'function_handle')
+                    O{m,o,t}  = MDP(m).A{g}([ind{:}]);
+                else
+                    O{m,o,t}  = MDP(m).A{g}(:,ind{:});
+                end
                 MDP(m).o(o,t) = spm_sample(O{m,o,t});
 
             end

@@ -1,4 +1,4 @@
-function MDP = DEM_sharingX
+function MDP = DEM_federation
 % Demo of active (visual) scene-construction
 %__________________________________________________________________________
 %

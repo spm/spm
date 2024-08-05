@@ -410,7 +410,8 @@ title('With priors')
 % that the agent can update its beliefs about locations in the absence of
 % direct observation.
 %--------------------------------------------------------------------------
-MDP         = mdp;
+MDP   = mdp;
+MDP.T = 64;
 for f = (Nu + 1):Nf
      MDP.B{f}(:,:,2) = full(spm_speye(Nd,Nd,-1,1));
      MDP.E{f}        = spm_softmax(32*randn(2,1));
@@ -512,7 +513,7 @@ for t = 1:MDP.T
     for q = 1:numel(Q)
         Q{q} = Q{q}(:,t);
     end
-    cla, spm_show_x(Q(L)',Nx,Ny), hold on
+    cla, spm_show_x(Q(L),Nx,Ny), hold on
 
     % Location and orientation of drone
     %----------------------------------------------------------------------

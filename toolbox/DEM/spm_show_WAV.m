@@ -41,7 +41,7 @@ title('Transitions','FontSize',12)
 
 % preditive posteriors over hidden states and paths: raster format
 %--------------------------------------------------------------------------
-mdp = MDP;
+mdp   = MDP;
 for n = 1:Nm
 
     % hierarchical level and parents

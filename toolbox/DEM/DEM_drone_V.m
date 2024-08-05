@@ -2,40 +2,36 @@ function MDP = DEM_drone_V
 % Demo of domain factors in the setting of active vision
 %__________________________________________________________________________
 %
-% This routine illustrates a kind of SLAM (simultaneous localistion and
-% mapping) powered by active inference. The generative model is lightweight
-% in terms of memory; thereby eluding the von Neumann bottleneck. It
-% introduces a number of innovations. First, large tensors are replaced by
-% function handles that return requisite indices and probability
-% distributions on the fly (as a function of domain factors and states,
-% respectively). This precludes sum-product operators in the generative
-% process and takes the pressure off precomputed indices conditioned upon
-% domain factors. Note that outcomes are specified probabilistically;
-% enabling suitable uncertainty about sensor inputs (e.g., semantic
-% classification of locations that are out of range).
+% This demonstration routine builds upon DEM_drone_telemetry.m to
+% illustrate the role of domain factors in selecting the parents of
+% likelihood mappings. In particular, it leverages the specification of
+% parents (and children) using functional forms as opposed to tensors of
+% precomputed cell arrays of parents (i.e., id.fg). This takes the pressure
+% off memory when dealing with large cell tensors. The demonstration in
+% this routine is limited to (initial) exploration to build posterior
+% beliefs about a static environment.
 %
-% Second, action is now handled more realistically by selecting the action
-% that maximises the accuracy under posterior predictions. In other
-% words, action is explicitly determined based on the consequences in a
-% subspace of (telemetry) outcomes.
-% 
-% Third, this necessitates the provision of telemetry in terms of position,
-% pose and (lidar) depth along rays. Finally, the depth of each ray (i.e.,
-% line of sight) is treated as a latent state that is directly informed by
-% (lidar) measurements — and used as a domain factor to select the
-% appropriate likelihood mapping. This means that, in the generative model,
-% there is no need to model occlusion; this modelling is offloaded to the
-% generative process using the functional form of the requisite likelihood
-% mapping.
-% 
-% The above scheme allows for more rays of greater depth than previously
-% afforded by tensor parameterisation. However, the price paid is compute
-% time, which scales with the number of rays. Biomimetically, this can be
-% regarded as an exhaustive saccadic search over all rays. This follows
-% because the belief updating accumulates evidence from the likelihood of
-% each ray sequentially. For simplicity, the likelihood mappings are
-% assumed to be very precise; given the course graining afforded by
-% discrete state space models.
+% In addition to showcasing the finessing of memory load incurred by using
+% precomputed cell tensors, it also replaces likelihood tensors with
+% function handles. This means that the likelihood mapping can be specified
+% in a functional form. These functions are multipurpose functions that
+% replace the sum product operators involving the likelihood tensors. These
+% operators include computing the log likelihood by taking the dot product
+% between some outcomes to generate a joint likelihood over latent states.
+% Conversely, they involve taking the dot product given some latent states
+% to generate outcomes in each modality. The functions are written such
+% that the requisite output arguments depend upon whether they are called
+% with a numeric array (i.e., distribution over outcomes) or a series of
+% cell arrays (i.e., marginal distributions over the latent states).
+%
+% This demonstration uses a more realistic environment and dispenses with
+% proximity modalities to provide a more efficient scanning of the
+% environment. This efficiency inherits from the specification of log
+% likelihoods as marginals, as opposed to joint distributions over latent
+% states, when updating posteriors (see spm_VBX). In special cases, the
+% joint distribution can be marginalised; for example, by considering a
+% single output at, and only at, the depth of the first occluder.
+%
 %__________________________________________________________________________
 % Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
 
@@ -50,15 +46,15 @@ function MDP = DEM_drone_V
 %==========================================================================
 rng(1)
 
-T   = 32;                                % number of moves
+T   = 8;                                 % number of moves
 N   = 0;                                 % depth of planning
 
 Nx  = 32;                                % size of environment
 Ny  = 32;                                % size of environment
 Nz  = 8;                                 % size of environment
-Nd  = 16;                                % depth of rays
+Nd  = 32;                                % depth of rays
 Nc  = 8;                                 % number of classes
-Nr  = 6;                                 % number of rays
+Nr  = 16;                                % number of rays
 Na  = 12;                                % number of drone angles
 
 % global parameters
@@ -74,7 +70,6 @@ PG.Nc  = Nc;
 
 PG.phi = linspace(0,2*pi*(1 - 1/Na),Na); % drone angles
 PG.FOV = linspace(-pi/6,pi/6,Nr);        % ray angles (60 degree FOV)
-
 
 % Get environment
 %--------------------------------------------------------------------------
@@ -103,13 +98,13 @@ for s = 2:Nc
 end
 axis image
 
-
 % Likelihood mapping: given states along the line of sight (i.e., rays)
 %==========================================================================
 % Given the state of locations at various depths along a line of
 % sight, specify the outcome in terms of depth and class; namely, the
 % state of the first non-empty location, where the first state corresponds
-% to empty space.
+% to empty space. Here, replace the requisite likelihood tensors with
+% function handles (see subroutines)
 %--------------------------------------------------------------------------
 
 % lines of sight: the same for every modality or ray: process
@@ -140,15 +135,6 @@ ID.fg = @spm_fg;
 
 % repeat for 'model'
 %==========================================================================
-
-
-% Likelihood mapping: given states along the line of sight (i.e., rays)
-%==========================================================================
-% Given the state of locations at various depths along a line of
-% sight, specifying the outcome in terms of depth and class; namely, the
-% state of the first non-empty location, where the first state corresponds
-% to empty space.
-%--------------------------------------------------------------------------
 
 % depth and vision modalities: model
 %--------------------------------------------------------------------------
@@ -181,7 +167,7 @@ id.ge = unique([cen; (Ng + cen); per; (Ng + per)]');
 %--------------------------------------------------------------------------
 % id.g = {Ng:(Ng + Ng + 4)};
 
-% convert likelihood arrays to logical
+% convert likelihood arrays to logical arrays where possible
 %--------------------------------------------------------------------------
 for g = 1:numel(GA)
     if isnumeric(GA{g})
@@ -208,22 +194,19 @@ Nu    = 4;                                 % # controllable factors
 id.ff = 1:Nu;                              % domain factors (x,y,x,a)
 id.fg = @spm_fg;                           % parents of A{g}
 
-
 % Now specify transition priors (i.e., dynamics)
 %--------------------------------------------------------------------------
 d     = 4;
 u     = [-1,0,1];
 for i = 1:numel(u)
 
-    % perimeter contraints on x
+   % perimeter contraints on x
     %----------------------------------------------------------------------
     BX(:,:,i) = full(spm_speye(Nx,Nx,u(i),1));
     for j = 1:Nx
         if j < d
             BX(:,j,i) = full(sparse(d,1,1,Nx,1));
         end
-    end
-    for j = 1:Nx
         if j > (Nx - d + 1)
             BX(:,j,i) = full(sparse((Nx - d + 1),1,1,Nx,1));
         end
@@ -236,17 +219,24 @@ for i = 1:numel(u)
         if j < d
             BY(:,j,i) = full(sparse(d,1,1,Ny,1));
         end
-    end
-    for j = 1:Ny
         if j > (Ny - d + 1)
             BY(:,j,i) = full(sparse((Ny - d + 1),1,1,Ny,1));
         end
     end
 
-    % vertical and rotational moves
+    % floor contraints on z
     %----------------------------------------------------------------------
     BZ(:,:,i) = full(spm_speye(Nz,Nz,u(i),2));
+    for j = 1:Nz
+        if j < 3
+            BZ(:,j,i) = full(sparse(3,1,1,Nz,1));
+        end
+    end
+
+    % rotational moves
+    %----------------------------------------------------------------------
     BA(:,:,i) = full(spm_speye(Na,Na,u(i),1));
+
 end
 
 % assume a stationary world, in terms of transitions and initial states
@@ -268,11 +258,8 @@ for f = 1:numel(n)
     GB{f}        = spm_dir_norm(GB{f});
 end
 
-% add depth factors to model
-%==========================================================================
-
 % priors over initial states
-%--------------------------------------------------------------------------
+%==========================================================================
 B     = GB;                                      % state transitions
 for f = 1:numel(B)
     D{f} = ones(size(B{f},1),1);
@@ -285,8 +272,9 @@ D{3} = full(sparse(V(3),1,1,Nz,1));              % location (z)
 D{4} = full(sparse(V(4),1,1,Na,1));              % drone angles
 
 
-%% priors: (cost) C
+% priors: (cost) C
 %==========================================================================
+
 % no modality contraints at this stage
 %--------------------------------------------------------------------------
 for g = 1:numel(A)
@@ -330,8 +318,7 @@ mdp.s  = s;                       % inital states
 % Solve - an example of surveillance
 %==========================================================================
 % In the first task, the drone has to explore its environs and form beliefs
-% about the scene at hand. These beliefs can then be queried; for example,
-% counting sheep (green locations).
+% about the scene at hand.
 %--------------------------------------------------------------------------
 tic;
 MDP = spm_MDP_VB_XXX(mdp);
@@ -350,47 +337,25 @@ spm_MDP_VB_trial(MDP);
 spm_figure('GetWin','Active inference');
 spm_behaviour(MDP)
 
-return
-
-
-%--------------------------------------------------------------------------
-fprintf('How many 3-things did you find?\n\n')
-%--------------------------------------------------------------------------
-s     = 3;
-n     = 0;
-for f = (Nu + 1):Nf
-    if MDP.X{f}(s,end) > .95
-        n = n + 1;
-    end
-end
-%--------------------------------------------------------------------------
-fprintf('I am fairly confident I found at least %i\n\n',n)
-%--------------------------------------------------------------------------
-
 
 % Solve - an example of search and rescue
 %==========================================================================
-% In the second task, the agent has to find something (i.e., class 3) and
+% In the second task, the drone has to find a red (class 8) object and
 % maintain surveillance over it. To simulate this, we specify a preference
-% class 3 in the class or attribute modalities
+% for class 8 in the class or attribute modalities
 %--------------------------------------------------------------------------
-c     = spm_softmax(sparse(3,1,4,Nc,1));
+c     = spm_softmax(sparse(8,1,8,Nc,1));
 for g = (1:Ng) + Ng
     C{g} = c;
 end
 
-MDP   = mdp;
-MDP.C = C;
-MDP.T = 16;
-MDP   = spm_MDP_VB_XXX(MDP);
+MDP       = mdp;
+MDP.id.ge = [cen; (Ng + cen)]';   % (central) modalities subtending EFE
+MDP.C     = C;                    % (conts)  preferences subtending EFE
+MDP       = spm_MDP_VB_XXX(MDP);
 
 spm_figure('GetWin','Search and rescue');
 spm_behaviour(MDP)
-
-%--------------------------------------------------------------------------
-fprintf('I''ve found a 3-thing\n\n')
-%--------------------------------------------------------------------------
-
 
 % Solve - an example of wayfinding with priors
 %==========================================================================
@@ -401,24 +366,17 @@ fprintf('I''ve found a 3-thing\n\n')
 % Equip agents with precise posterior beliefs about initial (unchanging)
 % latent states (e.g., providing it with a map)
 %--------------------------------------------------------------------------
+Nf    = prod([Nx,Ny,Nz]);
 MDP   = mdp;
-MDP.T = Nx;
+MDP.T = 32;
 MDP.D((1:Nf) + Nu) = MAP;
 
 % Specify intial (home) and final hidden (goal) states (hid)
 %--------------------------------------------------------------------------
+s0         = [8, 20, 3];                     % inital state
+sT         = [28,12, 3];                     % final  state
 
-% find empty intial (s0) and final (sT) states
-%--------------------------------------------------------------------------
-for s = 1:prod([Nx,Ny,Nz])
-    XYZ(s,:) = spm_index([Nx,Ny,Nz],s);
-end
-s          = XYZ(W == 1,:);
-[~,d]      = min(sum(abs(minus(s,[Nx - 4,Ny - 4,1])),2)); sT = s(d,:);
-[~,d]      = min(sum(abs(minus(s,[4,4,1])),2));           s0 = s(d,:);
-
-
-MDP.s(1:4) = [s0, 1];
+MDP.s(1:4) = [s0(:); 1];
 MDP.D{1}   = full(sparse(s0(1),1,1,Nx,1));   % inital state
 MDP.D{2}   = full(sparse(s0(2),1,1,Ny,1));   % inital state
 MDP.D{3}   = full(sparse(s0(3),1,1,Nz,1));   % inital state
@@ -429,41 +387,9 @@ MDP        = spm_MDP_VB_XXX(MDP);
 
 spm_figure('GetWin','Wayfinding'); clf
 spm_behaviour(MDP)
-subplot(2,2,1), hold on, plot(sT(1),sT(2),'ow','MarkerSize',48)
-
-%--------------------------------------------------------------------------
-fprintf('Drop-off completed\n\n')
-%--------------------------------------------------------------------------
-
-% Solve - an example of self orientation
-%==========================================================================
-% In this example we switch precise priors over initial location of the
-% drone for precise priors about the environment to simulate self-location
-% in a GPS denied setting.
-%--------------------------------------------------------------------------
-spm_figure('GetWin','Orientation');
-
-% imprecise priors over location and orientation
-%--------------------------------------------------------------------------
-MDP   = mdp;
-for f = 1:Nu
-    MDP.D{f} = ones(size(D{f}));
-end
-
-% supply precise priors over latent states
-%--------------------------------------------------------------------------
-MDP.D((1:Nf) + Nu) = MAP;
-
-% active inference
-%--------------------------------------------------------------------------
-MDP.T = 8;
-MDP   = spm_MDP_VB_XXX(MDP);
-
-spm_figure('GetWin','Orientation');
-spm_MDP_VB_trial(MDP);
+subplot(2,2,1), hold on, plot(sT(2),sT(1),'ow','MarkerSize',48)
 
 return
-
 
 
 % Subroutines
@@ -622,6 +548,7 @@ else
     end
 
 end
+
 return
 
 function [D,hif] = spm_cid(Q)
@@ -724,17 +651,11 @@ th     = theta(d(1)) - theta(1);            % polar angle
 
 % for each depth along ray (i.e., line of sight)
 %--------------------------------------------------------------------------
+par   = zeros(1,0);
 for d = 1:PG.Nd
 
     % find nearest location in the latent state space
     %----------------------------------------------------------------------
-    %     xyz    = spm_spherical2rectang(origin,ph,th,d);
-    %     x      = uint8(max(min(xyz(1),Nx),1));
-    %     y      = uint8(max(min(xyz(2),Ny),1));
-    %     z      = uint8(max(min(xyz(3),Nz),1));
-    %     j      = spm_sub2ind([Nx,Ny,Nz],x,y,z);
-    %     par(d) = j + Nu;
-
     xyz = spm_spherical2rectang(origin,ph,th,d);
     x   = uint8(xyz(1));
     y   = uint8(xyz(2));
@@ -965,7 +886,7 @@ for t = 1:MDP.T
         Q{f} = Q{f}(:,t);
     end
     subplot(2,2,1), hold off
-    spm_show_x(Q',PG.Nx,PG.Ny,PG.Nz), hold on
+    spm_show_x(Q,PG.Nx,PG.Ny,PG.Nz), hold on
     title(sprintf('Inferred scene (t = %i)',t))
 
     % where the drone thinks it is
@@ -994,7 +915,8 @@ for t = 1:MDP.T
     % where the drone looks
     %----------------------------------------------------------------------
     j     = MDP.j(:,t);
-    for i = 1:Nr
+    g     = MDP.id.ge;
+    for i = g(g <= Nr)
         for k = 1:numel(j{i})
             x = spm_index([PG.Nx,PG.Ny,PG.Nx],j{i}(k) - Nu);
             plot(x(2),x(1),'ow','MarkerSize',x(3))

@@ -793,7 +793,7 @@ run_demo_Callback(hObject, handles, 'FEP_information_length')
 % --- Executes on button press in pushbutton265.
 function pushbutton265_Callback(hObject, eventdata, handles)
 handles.web = 'Active Inference A Process Theory';
-run_demo_Callback(hObject, handles, 'DEM_sharing')
+run_demo_Callback(hObject, handles, 'DEM_federation')
 
 % --- Executes on button press in pushbutton266.
 function pushbutton266_Callback(hObject, eventdata, handles)

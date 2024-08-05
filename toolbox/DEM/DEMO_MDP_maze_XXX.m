@@ -147,28 +147,20 @@ spm_maze_plot(PDP)
 
 % Paths of least action
 %==========================================================================
-% illustrate shortest path to target with suitable policy depth, Under
-% greater and lesser precision over (path independent) constraints C. With
-% imprecise constraints, the agent still likes to explore a bit
+% illustrate shortest path to target with suitable policy depth
 %--------------------------------------------------------------------------
 MDP.h = H;
 MDP.s = START;
 MDP.T = 32;
-for i = [1,8]
 
-    % increase precision of constraints
-    %----------------------------------------------------------------------
-    MDP.C{1} = spm_softmax([1;0]*i);
-    PDP      = spm_MDP_VB_XXX(MDP);
-    
-    % show results - behavioural
-    %----------------------------------------------------------------------
-    str = sprintf('Figure %i',i);
-    spm_figure('GetWin',str); clf
-    spm_maze_plot(PDP,END)
-    subplot(2,2,1), title(sprintf('Path: C = %i',i))
-    
-end
+% increase precision of constraints
+%----------------------------------------------------------------------
+PDP      = spm_MDP_VB_XXX(MDP);
+
+% show results - behavioural
+%----------------------------------------------------------------------
+spm_figure('GetWin','With goal'); clf
+spm_maze_plot(PDP,END)
 
 
 return

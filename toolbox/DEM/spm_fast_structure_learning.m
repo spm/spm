@@ -1,8 +1,11 @@
-function [MDP,RG,S] = spm_fast_structure_learning(O,S)
+function [MDP,RG,S] = spm_fast_structure_learning(O,S,dx,dt)
 % RG structure learning of a hierarchical POMDP
 % FORMAT [MDP,RG,S] = spm_fast_structure_learning(O,S)
 % O{N,T} - probabilitic exemplars of paths (cell aray)
-% S      - size of pixel array (2-vector)
+% S      - size of pixel array (2 or 3-vector)
+%
+% dx     - space scaling [default: 2 or 3]
+% dt     - time  scaling [default: 2]
 %
 % This routine returns a hierarchy of generative models (MDP{n}), given a
 % sequence of outcomes using RG (renormalization group) operators.
@@ -15,26 +18,36 @@ function [MDP,RG,S] = spm_fast_structure_learning(O,S)
 % Karl Friston
 % $Id: spm_MDP_structure_learning.m 8454 2023-11-04 17:09:11Z karl $
 %__________________________________________________________________________
+OPTIONS.B = 0;
+OPTIONS.N = 0;
+OPTIONS.O = 0;
+OPTIONS.Y = 0;
 
 % options for model inversion (and evaluation)
 %==========================================================================
-dt    = 2;                              % time scaling
-S     = {S};                            % size of image
-O     = {O};                            % outcomes
+S         = {S};                               % size of image
+O         = {O};                               % outcomes
+
+% scaling (RG flow)
+%--------------------------------------------------------------------------
+if nargin < 3,    dx = 2; end
+if nargin < 4,    dt = 2; end
+if numel(dx) < 2, dx = repmat(dx,1,16); end
+if numel(dt) < 2, dt = repmat(dt,1,16); end
 
 % learn the dynamics in the form of a hierarchical MDP
 %==========================================================================
 MDP   = {};
 for n = 1:8
 
-    % Outcomes per tile or group
+    % Outcomes per tile or group (e.g., TrueColor or eigenmodes)
     %----------------------------------------------------------------------
     m     = numel(O{n}(:,1))/prod(S{n});
 
     % Grouping into a partition of outcomes
     %----------------------------------------------------------------------
-    G     = spm_tile(S{n}(1),S{n}(2),m);
-    T     = spm_time(size(O{n},2),dt);
+    G     = spm_tile(S{n},m,dx(n));
+    T     = spm_time(size(O{n},2),dt(n));
     for g = 1:numel(G)
 
         % structure_learning from unique exemplars
@@ -46,7 +59,7 @@ for n = 1:8
         MDP{n}.A(G{g},1) = mdp.a;
         MDP{n}.B(g,1)    = mdp.b;
         for j = 1:numel(G{g})
-            MDP{n}.id.A{G{g}(j)} = uint16(g);
+            MDP{n}.id.A{G{g}(j)} = uint16(g);   % state of children
         end
     end
 
@@ -58,16 +71,16 @@ for n = 1:8
         for j = 1:pdp.T
             pdp.O(:,j) = O{n}(:,T{t}(j));
         end
-        pdp   = spm_MDP_VB_XXX(pdp);
+        pdp   = spm_VB_XXX(pdp);
 
         % initial states and paths
         %------------------------------------------------------------------
         for g = 1:numel(G)
-            MDP{n}.id.D{g} = 2*g - 1;
-            MDP{n}.id.E{g} = 2*g - 0;
+            MDP{n}.id.D{g} = uint16(2*g - 1);    % parents of state
+            MDP{n}.id.E{g} = uint16(2*g - 0);    % parents of paths
 
             O{n + 1}{MDP{n}.id.D{g},t} = pdp.X{g}(:,1);
-            O{n + 1}{MDP{n}.id.E{g},t} = pdp.P{g}(:,end);
+            O{n + 1}{MDP{n}.id.E{g},t} = pdp.P{g}(:,1);
         end
     end
     S{n + 1}    = size(G);
@@ -75,13 +88,14 @@ for n = 1:8
 
     % Check whether there is only one group or (generalised) object
     %----------------------------------------------------------------------
-    if numel(G) == 1
+    if (numel(G) == 1) || (numel(T) == 1)
         break
     end
 
 end
 
 return
+
 
 function mdp = spm_structure_fast(O)
 % A fast form of structure learning
@@ -100,7 +114,7 @@ function mdp = spm_structure_fast(O)
 % Unique outputs
 %--------------------------------------------------------------------------
 o       = spm_cat(O)';
-o       = fix(o*128);
+o       = fix(o*4);
 [~,i,j] = unique(o,'rows','stable');
 
 % Likelihood tensors
@@ -142,17 +156,16 @@ end
 
 % Vectorise cell array of likelihood tensors and place in structure
 %--------------------------------------------------------------------------
-mdp.a    = a;
-mdp.b{1} = b;
+mdp.a    = spm_dir_norm(a);
+mdp.b{1} = spm_dir_norm(b);
 
 return
 
-function g = spm_tile(Nr,Nc,m, d)
+function g = spm_tile(N,m, d)
 % Grouping into a partition of non-overlapping outcome tiles
-% FORMAT g = spm_tile(Nr,Nc,m,[d])
+% FORMAT g = spm_tile(N,m,[d])
 %--------------------------------------------------------------------------
-% Nr - Number of outcome rows (e.g., pixels)
-% Nc - Number of outcome columns
+% N  - size of space
 % m  - Number of modalities per outcome (e.g., pixel) [default: 1]
 % d  - Number of rows per tile [default: 2 or 3] 
 %
@@ -165,32 +178,49 @@ function g = spm_tile(Nr,Nc,m, d)
 
 % defaults
 %--------------------------------------------------------------------------
-if nargin < 3, m = 1; end
-if nargin < 4
+N(end + 1)       = 1;
+if nargin < 2, m = 1; end
+if nargin < 3
 
     % use 3 x 3 tiles (or smaller)
     %----------------------------------------------------------------------
-    if ~rem(Nr,3), dr = 3; else, dr = 2; end
-    if ~rem(Nc,3), dc = 3; else, dc = 2; end
+    if ~rem(N(1),3), d(1) = 3; else, d(1) = 2; end
+    if ~rem(N(2),3), d(2) = 3; else, d(2) = 2; end
+    if ~rem(N(3),3), d(3) = 3; else, d(3) = 2; end
 
-else
-    dr = d;
-    dc = d;
+elseif numel(d) == 1
+    d  = [d,d,d];
 end
 
 % deal with single row (or column) cases
 %--------------------------------------------------------------------------
-dr    = min(dr,Nr);
-dc    = min(dc,Nc);
+r     = cell(1,3);
+s     = ones(1,3);
+L     = ones(1,3);
+for i = 1:3
+    d(i)    = min(d(i),N(i));                 % block size
+    r{i}    = 0:d(i):(N(i) - 1);              % block start
+    s(i)    = numel(r{i});                    % length
+
+end
+for i = 1:3
+    L(i)    = r{i}(end) + d(i);               % dim
+end
 
 % Decimate rows and columns
 %--------------------------------------------------------------------------
-r     = 0:dr:(Nr - dr);
-c     = 0:dc:(Nc - dc);
-for i = 1:numel(r)
-    for j = 1:numel(c)
-        n = sparse((1:dr*m) + r(i)*m,1,1,Nr*m,1)*sparse((1:dc) + c(j),1,1,Nc,1)';
-        g{i,j} = find(n(:));
+g     = cell(s);
+for i = 1:s(1)
+    for j = 1:s(2)
+        for k = 1:s(3)
+            n{1}     = sparse((1:d(1)*m) + r{1}(i)*m,1,1,L(1)*m,1);
+            n{2}     = sparse((1:d(2)  ) + r{2}(j)  ,1,1,L(2)  ,1);
+            n{3}     = sparse((1:d(3)  ) + r{3}(k)  ,1,1,L(3)  ,1);
+
+            v        = spm_cross(n{1},n{2},n{3});
+            v        = v(1:N(1)*m,1:N(2),1:N(3));
+            g{i,j,k} = find(v(:));
+        end
     end
 end
 
@@ -201,11 +231,12 @@ function t = spm_time(T,d)
 % Grouping into a partition of non-overlapping sequences
 % FORMAT t = spm_time(T,d)
 % T  - total number of the timesteps
-% d  - number timesteps per partition
+% d  - number timesteps per partition [default: 2]
 %--------------------------------------------------------------------------
 % Effectively, this enables a representation of generalised motion; that
 % can also be read in terms of paths or trajectories
 %--------------------------------------------------------------------------
+if nargin < 2, d = 2; end
 for i = 1:floor(T/d)
     t{i} = (1:d) + (i - 1)*d;
 end

@@ -624,7 +624,7 @@ for t = 1:MDP.T
         Q{f} = Q{f}(:,t);
     end
     subplot(2,2,1), hold off
-    spm_show_x(Q(L)',Nx,Ny,Nz), hold on
+    spm_show_x(Q(L),Nx,Ny,Nz), hold on
     title(sprintf('Inferred scene (t = %i)',t))
 
     % where the drone thinks it is
