@@ -19,9 +19,25 @@ function [j,i,q] = spm_edges(id,g,Q)
 % Returns the domain [codomains] of factors [modalities] for this
 % likelihood mapping. These [co] domains may or may not be state-dependent.
 % If they are state-dependent, the posteriors are returned.
-%
-% see: spm_MDP_VB_XXX.m; spm_get_edges
 %__________________________________________________________________________
+%           
+% id.A{g} - Indices of parents of A{g}
+% id.D{f} - Indices of parents of initial states of factor B{f}
+% id.E{f} - Indices of parents of paths of factor B{f} 
+%
+% id.ff   - List of domain factors
+% id.fg   - List of parents  of A{g} under each combination of domains 
+% id.gg   - List of children of A{g} under each combination of domains
+%
+% id.g{k} - Partition of selected (i.e., attended) children of A{g}
+% id.ge   - Indices of outcomes subtending expected free energy
+%
+% id.fu   - List of factors with contolled paths
+% id.fp   - List of factors with inferred  paths 
+%
+% see: spm_parents.m
+%__________________________________________________________________________
+
 
 % Karl Friston
 % Copyright (C) 2015-2022 Wellcome Centre for Human Neuroimaging

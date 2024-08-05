@@ -1,4 +1,4 @@
-function [C,F,G,RDP,RGB] = DEM_image_compression(OPTIONS)
+function [RDP,RGB] = DEM_MNIST_RGM
 % Structure learning from pixels
 %__________________________________________________________________________
 %
@@ -36,22 +36,6 @@ function [C,F,G,RDP,RGB] = DEM_image_compression(OPTIONS)
 %--------------------------------------------------------------------------
 rng(1)
 
-try N = OPTIONS.N; catch, N = 10000; end          % Number of training data
-try T = OPTIONS.T; catch, T = 1000;  end          % Number of test data
-try q = OPTIONS.q; catch, q = 16;    end          % concentration parameter  
-try s = OPTIONS.s; catch, s = 2;     end          % smoothing in pixels  
-try S = OPTIONS.S; catch, S = 24;    end          % histogram width
-
-try Ne = OPTIONS.Ne; catch, Ne = 13; end          % exemplars per class
-try Ns = OPTIONS.Ns; catch, Ns = 10; end          % Number of classes
-
-try RGB.nd = OPTIONS.nd; catch, RGB.nd  = 4;  end % Diameter of tiles in pixels
-try RGB.nb = OPTIONS.nb; catch, RGB.nb  = 7;  end % Number of singular variates 
-try RGB.mm = OPTIONS.mm; catch, RGB.mm  = 16; end % Maximum number
-
-RGB.su  = 8;                                      % Variance threshold
-RGB.R   = 1;                                      % temporal resampling
-
 % Load MNIST
 %==========================================================================
 cd 'C:\Users\karl\Dropbox\matlab'
@@ -63,29 +47,12 @@ spm_figure('GetWin','Images'); clf
 
 % Load images into RGB format suitable for videos
 %--------------------------------------------------------------------------
+N     = 10000;                                    % Number of training data
+T     = 1000;                                     % Number of test data 
+s     = 2;                                        % smoothing in pixels  
+S     = 24;                                       % histogram width
 for t = 1:(N + T)
-    if t > N
-
-        % test images
-        %------------------------------------------------------------------
-        j    = t - N;
-        temp = imresize(test.images(:,:,j),[32,32]);
-
-        % true class
-        %------------------------------------------------------------------
-        D{t} = full(sparse(test.labels(j) + 1,1,1,10,1));
-
-    else
-
-        % training images
-        %------------------------------------------------------------------
-        temp = imresize(training.images(:,:,t),[32,32]);
-
-        % true class
-        %------------------------------------------------------------------
-        D{t} = full(sparse(training.labels(t) + 1,1,1,10,1));
-    end
-
+    temp    = imresize(training.images(:,:,t),[32,32]);
     temp    = spm_conv(temp,s,s);                 % convolve
     [~,i]   = sort(temp(:));                      % histogram equalisation
     n       = numel(i);                           % number of pixels
@@ -98,41 +65,48 @@ for t = 1:(N + T)
     I(:,:,2,t) = temp;
     I(:,:,3,t) = temp;
     
+    % true class
+    %----------------------------------------------------------------------
+    D{t}    = full(sparse(training.labels(t) + 1,1,1,10,1));
 end
-
 labels = training.labels;
 clear training test
 
-% marginal likelihood
-%----------------------------------------------------------------------
-j     = [];
-for n = 1:Ns
-    i = find(ismember(labels(1:N),n - 1));
-    k = randperm(numel(i),Ne);
-    j = [j;i(k)];
-end
 
 % And show an illustrative image
 %--------------------------------------------------------------------------
 subplot(2,2,1)
-for i = 1:numel(j)
-    spm_imshow(I(:,:,:,j(i)))
-    axis on, title('MNIST image'), drawnow
-end
+spm_imshow(I(:,:,:,1))
+title('MNIST image')
 
 % Map from image to discrete state space (c.f., Amortisation) 
 %==========================================================================
+RGB.nd  = 4;                     % Diameter of tiles in pixels
+RGB.nb  = 7;                     % Number of discrete singular variates 
+RGB.mm  = 16;                    % Maximum number of singular modes
+RGB.su  = 8;                     % Variance threshold
+RGB.R   = 1;                     % temporal resampling
 [O,L,RGB] = spm_rgb2O(I,RGB);
+
+% marginal likelihood
+%--------------------------------------------------------------------------
+Ne    = 13;
+Ns    = 10;
+j     = [];
+for n = 1:Ns
+    i = find(ismember(labels(1:N),n - 1));
+    j = [j;i(1:Ne)];
+end
 
 % And show the images generated from a discrete representation
 %--------------------------------------------------------------------------
 subplot(2,2,2)
 spm_imshow(spm_O2rgb(O(:,1),RGB))
-axis on, title('Quantised image')
+drawnow
 
-% exemplar images for (RG) structure learning
+% Use a small number (Ne x Ns) for (RG) structure learning
 %--------------------------------------------------------------------------
-MDP    = spm_MB_structure_learning(O(:,j),L,1);
+MDP   = spm_MB_structure_learning(O(:,j),L,1);
 
 % Add class contraints (i.e., number priors) as a final level
 %--------------------------------------------------------------------------
@@ -235,7 +209,9 @@ for m = 1:Nm
     % Move one level down
     %----------------------------------------------------------------------
     try NDP = NDP.MDP; end
+
 end
+
 
 % Train: Parametric learning based upon a training dataset
 %==========================================================================
@@ -244,8 +220,8 @@ end
 % factor (Digit) class
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Train'); clf
-train     = 1:N;
-[RDP,G]   = spm_MNIST_train(MDP,RGB,O(:,train),D(train),1/q);
+train    = 1:N;
+RDP      = spm_MNIST_train(MDP,RGB,O(:,train),D(train));
 
 % Test: on unseen data
 %==========================================================================
@@ -267,7 +243,7 @@ fprintf('Accuracy (upper median) %.2f \n',100*mean(C(i)));
 % graphics for the last classification
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Test'); clf
-spm_show_RGB(PDP,RGB,1,false);
+spm_show_RGB(PDP,RGB);
 
 % Classification accuracy is a function of free energy
 %==========================================================================
@@ -312,33 +288,17 @@ for i = 1:10
     spm_imshow(spm_O2rgb(PDP.Q.O{1}(:,1),RGB));
 end
 
-fprintf('total samples %i\n',N)
-try
-    fprintf('effective samples %i\n',fix(sum(RDP.a{1},'all')))
-end
-
-% summary outputs
-%--------------------------------------------------------------------------
-C = mean(100*C);
-F = mean(F);
-
 return
 
 
 % subroutines
 %==========================================================================
 
-function [RDP,F] = spm_MNIST_train(MDP,RGB,O,D,q)
-% FORMAT [RDP,F] = spm_MNIST_train(MDP,RGB,O,D,q)
+function RDP = spm_MNIST_train(MDP,RGB,O,D)
+% FORMAT RDP = spm_MNIST_train(MDP,RGB,O,D)
 % MDP      - model struct (cell array): prior
-% RGB      - image structure
-% O        - train data
-% D        - labels
-% q        - concentration parameter
-%
-% RGB      - image structure
 % RDP      - model struct (nested): posterior
-% F        - ELBO
+% O        - train data
 %
 % This subroutine demonstrates learning of a recursive generative model. In
 % the special case of static models, it is sufficient to place each
@@ -357,28 +317,33 @@ OPTIONS.N = 0;                             % suppress neuronal responses
 OPTIONS.G = 1;                             % graphics
 OPTIONS.P = 4;                             % graphics
 
-if nargin < 5, q = 1/16; end               % concentration parameter
+FIX.A     = 0;                             % enable likelihood learning
+FIX.B     = 1;                             % but not transitions
 
-FIX.A  = 0;                                % enable likelihood learning
-FIX.B  = 1;                                % but not transitions
+% upper bound on mutual information (for plotting)
+%--------------------------------------------------------------------------
+Nm    = numel(MDP);
+U     = zeros(1,Nm);
+for l = 1:Nm
+    for g = 1:numel(MDP{l}.A)
+        U(l) = U(l) + log(size(MDP{l}.A{g},2))/2;
+    end
+end
 
 % enable active learning (with minimal forgetting)
 %--------------------------------------------------------------------------
-N     = size(O,2);
-Nm    = numel(MDP);
 for m = 1:Nm
     MDP{m}.beta = 512;
     MDP{m}.eta  = 512;
+    q(m)        = 1/16;
 end
 
 % train: with small concentration parameters (1/16)
 %--------------------------------------------------------------------------
-RDP      = spm_mdp2rdp(MDP,q,0,1,FIX);
-% RDP.A    = MDP{end}.A;
-% RDP      = rmfield(RDP,'a');
-
+q(Nm) = 1/128;
+RDP   = spm_mdp2rdp(MDP,q,0,1,FIX);
 RDP.T = 1;
-for j = 1:N
+for j = 1:size(O,2)
 
     % get training observation and place in MDP structure
     %----------------------------------------------------------------------
@@ -414,17 +379,21 @@ for j = 1:N
     for l = 1:numel(PDP.Q.a)
         I(l,j) = spm_MDP_MI(PDP.Q.a{l});
     end
+    I(l + 1,j) = spm_MDP_MI(PDP.a);
     F(j)       = PDP.Q.F + sum(PDP.F);
 
-    subplot(3,2,2), hold off, plot(1:j,I(1:(end - 1),:))
+    subplot(3,2,2), hold off, plot(1:j,I), hold on
+    plot(1:j,U(1)*ones(1,j),'--')
     xlabel('number of exemplars'), ylabel('nats')
-    title('Mutual information: first level[s]'), axis square
-    subplot(3,2,4), hold off, plot(1:j,I(end,:))
+    title('Mutual information: first level'), axis square
+    subplot(3,2,4), hold off, plot(1:j,I(end,:)), hold on
+    plot(1:j,U(end)*ones(1,j),'--')
     xlabel('number of exemplars'), ylabel('nats')
     title('Mutual information: final level'), axis square
     subplot(3,2,6), plot(1:j,F)
     xlabel('number of exemplars'), ylabel('nats')
     title('ELBO'), axis square
+
     try
         subplot(3,2,5), imagesc(RDP.a{1})
     catch
@@ -432,6 +401,7 @@ for j = 1:N
     end
     title('Class likelihood'), axis square
     drawnow
+    
 
     % disable graphics after first training iteration
     %----------------------------------------------------------------------
@@ -439,13 +409,13 @@ for j = 1:N
         OPTIONS.G = 0;
         OPTIONS.P = 0;
     end
-    
+    clc, disp(j), disp(I(:,j))
 end
 
 
 return
 
-function [C,F,PDP] = spm_MNIST_test(RDP,RGB,O,D)
+function [C,G,PDP] = spm_MNIST_test(RDP,RGB,O,D)
 % FORMAT [C,F,PDP] = spm_MNIST_test(RDP,RGB,O,D)
 % RDP   - model struct
 % O     - test data
@@ -457,16 +427,9 @@ function [C,F,PDP] = spm_MNIST_test(RDP,RGB,O,D)
 %__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
-% uniform priors
-%--------------------------------------------------------------------------
-Ns       = size(RDP.B{1},1);
-RDP.D{1} = ones(Ns,1);
-
 % test
 %--------------------------------------------------------------------------
-N     = size(O,2);
-RDP.T = 1;
-for j = 1:N
+for j = 1:size(O,2)
 
     % get training observation and place in MDP structure
     %----------------------------------------------------------------------
@@ -484,13 +447,10 @@ for j = 1:N
     % classification accuracy (and ELBO)
     %----------------------------------------------------------------------
     C(j)  = d == p;
-    F(j)  = PDP.Q.F + sum(PDP.F);
+    G(j)  = PDP.Q.F + sum(PDP.F);
+    clc, disp(100*mean(C)), disp(j)
 
-    if N > 32
-        % clc, disp(100*mean(C)), disp(j)
-    end
-
-    if ~C(j)
+     if ~C(j)
 
         spm_MDP_VB_trial(PDP)
 
@@ -510,3 +470,5 @@ for j = 1:N
 end
 
 return
+
+

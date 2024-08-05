@@ -60,6 +60,8 @@ G  = @(Nr,Nc) spm_MDP_breakout(Nr,Nc); % game
 NT = 2048;                             % exposures (training)
 G  = @(Nr,Nc) spm_MDP_pong(Nr,Nc);     % game
 NT = 1024;                             % exposures (training)
+%NT = 128;                             % exposures (training)
+
 
 
 %% Simulate learning and subsequent performance
@@ -165,7 +167,7 @@ drawnow
 
 % RG structure learning
 %==========================================================================
-tic, MDP = spm_fast_structure_learning(O,[Nr,Nc]); toc
+tic, MDP = spm_fast_structure_learning(O,[Nr,Nc],4); toc
 
 % rewarded events
 %--------------------------------------------------------------------------
@@ -285,7 +287,7 @@ FIX.B      = 1;                             % but not transitions
 RDP        = spm_mdp2rdp(MDP,1/128,0,2,FIX);
 
 RDP.U      = 1;
-RDP.T      = 128;
+RDP.T      = 256;
 RDP.id.hid = HID;
 RDP.id.cid = CID;
 

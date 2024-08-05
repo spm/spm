@@ -67,9 +67,9 @@ end
 %--------------------------------------------------------------------------
 subplot(2,2,4)
 if Ns(1) > 128
-    spm_spy(sum(MDP.b{1} > 1/16,3),8);
+    spm_spy(logical(sum(MDP.b{1} > 1/16,3)),8);
 else
-    imagesc(sum(MDP.b{1} > 1/16,3)),
+    imagesc(logical(sum(MDP.b{1} > 1/16,3))),
 end
 axis square
 title('Allowable transitions','FontSize',14), axis square

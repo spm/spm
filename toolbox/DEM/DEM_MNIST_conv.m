@@ -64,7 +64,7 @@ for i = 0:d:(28 - d)
         id.g{end + 1} = find(n(:));
     end
 end
-id.ig = 8;                                 % Initial selection
+id.i  = 8;                                 % Initial selection
 
 % State dependent mapping from modalities to outcomes
 %==========================================================================

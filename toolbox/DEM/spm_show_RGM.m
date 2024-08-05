@@ -1,12 +1,9 @@
-function [J,K] = spm_show_RGB(MDP,RGB,Nt,MOVIE)
+function spm_show_RGM(MDP)
 % Graphical illustration of active inference
-% FORMAT  [J,K] = spm_show_RGB(MDP,RGB,Nt,MOVIE)
+% FORMAT spm_show_RGB(MDP,RGB,Nt,MOVIE)
 % MDP   - Hierarchical (RG) generative model (inverted)
-% RGB   - Structure for mapping discrete outcomes to RGB pixels
 % Nt    - Number of timesteps to show images
 % MOVIE - flag for movie [default: MOVIE = 1]
-%
-% [J,K] - predicted and observed RGB time-series
 %
 %--------------------------------------------------------------------------
 % This auxiliary routine plots the hierarchal outcomes from a deep
@@ -28,8 +25,8 @@ Y{end + 1} = MDP.Y;                          % predictions
 
 % Number of timesteps and levels
 %==========================================================================
-if nargin < 3, Nt    = 4; end                % Number of frames to show
-if nargin < 4, MOVIE = 1; end
+if nargin < 2, Nt    = 4; end                % Number of frames to show
+if nargin < 3, MOVIE = 1; end
 
 T     = size(O{1},2);
 Nm    = numel(O);
@@ -37,7 +34,11 @@ Nm    = numel(O);
 % highest states and transitions
 %--------------------------------------------------------------------------
 subplot(Nm + 3,2,1)
-image((1 - spm_cat(MDP.X))*64)
+if size(MDP.X,1) == 1
+    image((1 - spm_cat(MDP.X(:)))*64)
+else
+    image((1 - spm_cat(MDP.X))*64)
+end
 title(sprintf('Posterior (states) level %i',Nm),'FontSize',12)
 
 % transition probabilities
@@ -137,64 +138,31 @@ for n = 1:Nm
     end
 end
 
-% At the lowest (pixel) level
+% At the lowest level
+%==========================================================================
+
+% observed outcomes
 %--------------------------------------------------------------------------
-I     = struct([]);
-J     = uint8([]);
-K     = uint8([]);
-f     = 1;
-for t = 1:T
+X  = (1 - spm_cat(O{1}));
 
-    % return if figure is requested
-    %----------------------------------------------------------------------
-    if ~MOVIE && t > Nt
-        return
-    end
-
-    % observed outcomes
-    %----------------------------------------------------------------------
-    X  = spm_O2rgb(O{1}(:,t),RGB);
-
-    % predicted outcomes
-    %----------------------------------------------------------------------
-    P  = spm_O2rgb(Y{1}(:,t),RGB);
-
-    % plot first level outcomes as a coloured image
-    %----------------------------------------------------------------------
-    subplot(Nm + 3,Nt,Nt*(Nm + 1) + min(Nt,t))
-    spm_imshow(P)
-    title(sprintf('Predicted: t = %i',t),'FontSize',10)
-
-    % plot first level predictions as a coloured image
-    %----------------------------------------------------------------------
-    subplot(Nm + 3,Nt,Nt*(Nm + 2) + min(Nt,t))
-    spm_imshow(X)
-    if isfield(mdp,'S')
-        title('Stimulus','FontSize',10)
-    else
-        title('Generated','FontSize',10)
-    end
-
-    % save movie
-    %----------------------------------------------------------------------
-    drawnow
-    for i = 1:size(P,4)
-        I(f).cdata    = P(:,:,:,i);
-        I(f).colormap = [];
-        J(:,:,:,f)    = P(:,:,:,i);
-        K(:,:,:,f)    = X(:,:,:,i);
-        f = f + 1;
-    end
-end
-
-% Place movie in graphic subject
+% predicted outcomes
 %--------------------------------------------------------------------------
-try
-    subplot(Nm + 3,Nt,Nt*(Nm + 1) + min(Nt,t))
-    h = get(gca,'Children');
-    set(h(1),'Userdata',[])
-    set(h(1),'Userdata',{I,8})
-    set(h(1),'ButtonDownFcn','spm_DEM_ButtonDownFcn')
+P  = (1 - spm_cat(Y{1}));
+
+% first level outcomes
+%--------------------------------------------------------------------------
+subplot(Nm + 3,1,Nm + 2)
+imagesc(P)
+title('Predicted','FontSize',10)
+
+% first level predictions
+%-------------------------------------------------------------------------
+subplot(Nm + 3,1,Nm + 3)
+imagesc(X)
+if isfield(mdp,'S')
+    title('Stimulus','FontSize',10)
+else
+    title('Observed','FontSize',10)
 end
 
 return

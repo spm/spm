@@ -2,6 +2,7 @@ function RDP = spm_mdp2rdp(MDP,p,q,T,FIX)
 % Converts a cell array of MDPs into a recursive MDP
 % FORMAT RDP = spm_mdp2rdp(MDP,p,q,T,FIX)
 % MDP{n} - Cell array of MDPs
+%  MDP{n}.id.A - cell array of parents of A factors at the same level
 %  MDP{n}.id.D - cell array of parents of D in supraordinate outcomes
 %  MDP{n}.id.E - cell array of parents of E in supraordinate outcomes
 %
@@ -23,6 +24,11 @@ function RDP = spm_mdp2rdp(MDP,p,q,T,FIX)
 % one level are the parents of the initial states and paths of the lower
 % level (encoded probabilistically in the vectors D and E of the lower
 % level).
+%
+% In addition, this routine will remove redundant likelihood mappings, with
+% only one output. Factors with only one state are consolidated into a
+% single factor, which plays the role of a constant term; i.e., a unitary
+% state that always generates the same outcome.
 %__________________________________________________________________________
 
 % Karl Friston
@@ -38,6 +44,8 @@ if nargin < 5
     FIX.B = 1;
 end
 
+% Check for concentration parameters
+%--------------------------------------------------------------------------
 Nm    = numel(MDP);
 try p = p(1:Nm); catch, p = repmat(p(1),1,Nm); end
 try q = q(1:Nm); catch, q = repmat(q(1),1,Nm); end
@@ -52,6 +60,68 @@ if numel(MDP) < 2
     return
 end
 
+% remove unitary mappings
+%==========================================================================
+for n = Nm:-1:2
+
+    % find unitary likelihood mappings
+    %======================================================================
+    d     = true(1,numel(MDP{n}.A));
+    for g = 1:numel(MDP{n}.A)
+        if (size(MDP{n}.A{g},1) < 2) && ~isa(MDP{n}.A{g},'function_handle')
+            d(g) = false;
+        end
+    end
+    i = find(d);
+
+    % remove unitary likelihood mappings
+    %----------------------------------------------------------------------
+    MDP{n}.A    = MDP{n}.A(d);
+    MDP{n}.id.A = MDP{n}.id.A(d);
+
+    % and update parents of subordinate factors
+    %----------------------------------------------------------------------
+    for j = 1:numel(MDP{n - 1}.id.D)
+        MDP{n - 1}.id.D{j} = find(ismember(i,MDP{n - 1}.id.D{j}));
+    end
+    for j = 1:numel(MDP{n - 1}.id.E)
+        MDP{n - 1}.id.E{j} = find(ismember(i,MDP{n - 1}.id.E{j}));
+    end
+
+    % merge unitary transitions
+    %======================================================================
+    d     = true(1,numel(MDP{n}.B));
+    for f = 1:numel(MDP{n}.B)
+        if isscalar(MDP{n}.B{f}) && ~isa(MDP{n}.B{f},'function_handle')
+            d(f) = false;
+        end
+    end
+
+    % leading constant factor
+    %----------------------------------------------------------------------
+    c    = find(~d,1,'first');
+    d(c) = true;
+    i    = find( d);
+    k    = find(~d);
+
+    % remove redundant factors
+    %----------------------------------------------------------------------
+    MDP{n}.B    = MDP{n}.B(d);
+    MDP{n}.id.D = MDP{n}.id.D(d);
+    MDP{n}.id.E = MDP{n}.id.E(d);
+
+    % and update parents of likelihoods
+    %----------------------------------------------------------------------
+    for j = 1:numel(MDP{n}.id.A)
+        if ismember(MDP{n}.id.A{j},k)
+            MDP{n}.id.A{j} = c;
+        else
+            MDP{n}.id.A{j} = find(ismember(i,MDP{n}.id.A{j}));
+        end
+    end
+
+end
+
 % prior concentration parameters
 %--------------------------------------------------------------------------
 for n = 1:Nm
@@ -60,7 +130,11 @@ for n = 1:Nm
     %----------------------------------------------------------------------
     for g = 1:numel(MDP{n}.A)
         try
-            MDP{n}.a{g} = spm_dir_norm(MDP{n}.A{g} + p(n));
+            if isa(MDP{n}.A{g},'function_handle')
+                MDP{n}.a{g} = MDP{n}.A{g};
+            else
+                MDP{n}.a{g} = spm_dir_norm(MDP{n}.A{g} + p(n));
+            end
         catch
             MDP{n}.a{g} = MDP{n}.a{g} + p(n);
         end
@@ -70,7 +144,11 @@ for n = 1:Nm
     %----------------------------------------------------------------------
     for f = 1:numel(MDP{n}.B)
         try
-            MDP{n}.b{f} = spm_dir_norm(MDP{n}.B{f} + q(n));
+            if isa(MDP{n}.B{f},'function_handle')
+                MDP{n}.b{f} = MDP{n}.B{f};
+            else
+                MDP{n}.b{f} = spm_dir_norm(MDP{n}.B{f} + q(n));
+            end
         catch
             MDP{n}.b{f} = MDP{n}.b{f} + q(n);
         end
@@ -93,10 +171,18 @@ for n = 1:Nm
 
 end
 
-% Recursively place MDP in MDP.MDP and specify path lengths
+
+% remove parents of last level (i.e., MDP{end}.D and E)
+%--------------------------------------------------------------------------
+MDP{end}.id = rmfield(MDP{end}.id,'D');
+MDP{end}.id = rmfield(MDP{end}.id,'E');
+
+% Recursively place MDP in MDP.MDP, and specify path lengths (T)
 %--------------------------------------------------------------------------
 SDP   = MDP{1};
-SDP.T = T;
+if ~isfield(SDP,'T')
+    SDP.T = T;
+end
 SDP.L = 1;
 for n = 2:Nm
     RDP     = MDP{n};

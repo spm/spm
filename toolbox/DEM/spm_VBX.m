@@ -20,8 +20,6 @@ function [P,F] = spm_VBX(O,P,A,id)
 % Propagation:  a non-iterative heuristic but numerically accurate scheme
 % that replaces the variational density over hidden factors with the
 % marginal over the exact posterior
-%
-% see: spm_MDP_VB_XXX.m (NOTES)
 %__________________________________________________________________________
 
 % Karl Friston
@@ -30,17 +28,17 @@ function [P,F] = spm_VBX(O,P,A,id)
 
 % preliminaries
 %--------------------------------------------------------------------------
-if isfield(id,'ig')                   % use a subset of outcomes
-    i  = id.ig(end);
-    ig = id.g(i);
+if isfield(id,'i')                    % use a subset of outcomes
+    ig = id.g(id.i);
 else
     ig = id.g;                        % use complete partition
 end
 Nf  = numel(P);                       % number of factors
-F   = 0;                              % ELBO                      
+F   = 0;                              % ELBO
+
 
 % belief propagation with marginals of exact posterior
-%xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Intial update of domain factors Q{ff} with children
 %==========================================================================
@@ -50,7 +48,7 @@ if isfield(id,'ff')
 
             % Get parents and children of this modality
             %--------------------------------------------------------------
-            [j,i] = spm_get_edges(id,g,P);
+            [j,i] = spm_parents(id,g,P);
 
             % update parents iff (sic) they are domain factors
             %--------------------------------------------------------------
@@ -157,8 +155,8 @@ for p = 1:numel(ig)
         for q = 1:Nq
             i      = iq{q};
             j      = jq{q};
-            [P,Fq] = spm_VBX_update(P,A{g},O,i,j);
-            S(q,j) = P(j);
+            [Q,Fq] = spm_VBX_update(S(q,:),A{g},O,i,j);
+            S(q,j) = Q(j);
             F(q)   = F(q) + Fq;
         end
 
@@ -191,8 +189,8 @@ function [P,F] = spm_VBX_update(P,A,O,i,j)
 % P  - marginal probabilities
 % A  - likelihood tensors or function handles
 % O  - outcome probabilities
-% I  - children of likelihood mapping (modalities)
-% J  - parents  of likelihood mapping (factors)
+% i  - children of likelihood mapping (modalities)
+% j  - parents  of likelihood mapping (factors)
 %
 % This subroutine performs exact Bayesian inference or belief updating,
 % given current priors and outcomes. It uses sparse tensor operations by
@@ -335,7 +333,7 @@ function  L = spm_VBX_update_L(A,O,P,R,s,g,ff,id)
 % states), were each cell contains the indices of the parents associated
 % with the domain state. Alternatively, the domain states can be returned
 % by a function of the modality (G) and the indices of the domain states
-% (ind). See spm_get_edges.m
+% (ind). See spm_parents.m
 %__________________________________________________________________________
 
 % size of domain states

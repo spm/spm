@@ -51,7 +51,7 @@ function MDP = DEM_drone_telemetry
 rng(1)
 
 global PG
-T   = 8;                                 % number of moves
+T   = 32;                                % number of moves
 N   = 0;                                 % depth of planning
 
 Nx  = 32;                                % size of environment
@@ -358,118 +358,6 @@ spm_MDP_VB_trial(MDP);
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Active inference');
 spm_behaviour(MDP,Nx,Ny,Nz,Nr)
-
-return
-
-
-%--------------------------------------------------------------------------
-fprintf('How many 3-things did you find?\n\n')
-%--------------------------------------------------------------------------
-s     = 3;
-n     = 0;
-for f = (Nu + 1):Nf
-    if MDP.X{f}(s,end) > .95
-        n = n + 1;
-    end
-end
-%--------------------------------------------------------------------------
-fprintf('I am fairly confident I found at least %i\n\n',n)
-%--------------------------------------------------------------------------
-
-
-% Solve - an example of search and rescue
-%==========================================================================
-% In the second task, the agent has to find something (i.e., class 3) and
-% maintain surveillance over it. To simulate this, we specify a preference
-% class 3 in the class or attribute modalities
-%--------------------------------------------------------------------------
-c     = spm_softmax(sparse(3,1,4,Nc,1));
-for g = (1:Ng) + Ng
-    C{g} = c;
-end
-
-MDP   = mdp;
-MDP.C = C;
-MDP.T = 16;
-MDP   = spm_MDP_VB_XXX(MDP);
-
-spm_figure('GetWin','Search and rescue');
-spm_behaviour(MDP,Nx,Ny,Nz,Nr)
-
-%--------------------------------------------------------------------------
-fprintf('I''ve found a 3-thing\n\n')
-%--------------------------------------------------------------------------
-
-
-% Solve - an example of wayfinding with priors
-%==========================================================================
-% In this example, we Illustrate pathfinding using inductive inference
-% under precise prior beliefs about latent states (i.e., cognitve map).
-%--------------------------------------------------------------------------
-
-% Equip agents with precise posterior beliefs about initial (unchanging)
-% latent states (e.g., providing it with a map)
-%--------------------------------------------------------------------------
-MDP   = mdp;
-MDP.T = Nx;
-MDP.D((1:Nf) + Nu) = MAP;
-
-% Specify intial (home) and final hidden (goal) states (hid)
-%--------------------------------------------------------------------------
-
-% find empty intial (s0) and final (sT) states
-%--------------------------------------------------------------------------
-for s = 1:prod([Nx,Ny,Nz])
-    XYZ(s,:) = spm_index([Nx,Ny,Nz],s);
-end
-s          = XYZ(W == 1,:);
-[~,d]      = min(sum(abs(minus(s,[Nx - 4,Ny - 4,1])),2)); sT = s(d,:);
-[~,d]      = min(sum(abs(minus(s,[4,4,1])),2));           s0 = s(d,:);
-
-
-MDP.s(1:4) = [s0, 1];
-MDP.D{1}   = full(sparse(s0(1),1,1,Nx,1));   % inital state
-MDP.D{2}   = full(sparse(s0(2),1,1,Ny,1));   % inital state
-MDP.D{3}   = full(sparse(s0(3),1,1,Nz,1));   % inital state
-MDP.D{4}   = full(sparse(    1,1,1,Na,1));   % inital state
-
-MDP.id.hid = sT(:);                          % final  state
-MDP        = spm_MDP_VB_XXX(MDP);
-
-spm_figure('GetWin','Wayfinding'); clf
-spm_behaviour(MDP,Nx,Ny,Nz,Nr)
-subplot(2,2,1), hold on, plot(sT(1),sT(2),'ow','MarkerSize',48)
-
-%--------------------------------------------------------------------------
-fprintf('Drop-off completed\n\n')
-%--------------------------------------------------------------------------
-
-% Solve - an example of self orientation
-%==========================================================================
-% In this example we switch precise priors over initial location of the
-% drone for precise priors about the environment to simulate self-location
-% in a GPS denied setting.
-%--------------------------------------------------------------------------
-spm_figure('GetWin','Orientation');
-
-% imprecise priors over location and orientation
-%--------------------------------------------------------------------------
-MDP   = mdp;
-for f = 1:Nu
-    MDP.D{f} = ones(size(D{f}));
-end
-
-% supply precise priors over latent states
-%--------------------------------------------------------------------------
-MDP.D((1:Nf) + Nu) = MAP;
-
-% active inference
-%--------------------------------------------------------------------------
-MDP.T = 8;
-MDP   = spm_MDP_VB_XXX(MDP);
-
-spm_figure('GetWin','Orientation');
-spm_MDP_VB_trial(MDP);
 
 return
 
@@ -975,7 +863,7 @@ for t = 1:MDP.T
         Q{f} = Q{f}(:,t);
     end
     subplot(2,2,1), hold off
-    spm_show_x(Q',Nx,Ny,Nz), hold on
+    spm_show_x(Q,Nx,Ny,Nz), hold on
     title(sprintf('Inferred scene (t = %i)',t))
 
     % where the drone thinks it is

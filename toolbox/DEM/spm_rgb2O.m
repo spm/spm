@@ -89,7 +89,7 @@ if isfield(RGB,'V')
         %------------------------------------------------------------------
         for m = 1:Nm
 
-            % dicretise singular variates
+            % discretise singular variates
             %--------------------------------------------------------------
             for t = 1:T
                 [~,U]  = min(abs(u(t,m) - RGB.A{o}));
