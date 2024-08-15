@@ -1,4 +1,4 @@
-function H = spm_logdet(C)
+function H = spm_logdet(C,symmetric)
 % Compute the log of the determinant of positive (semi-)definite matrix C
 % FORMAT H = spm_logdet(C)
 % H = log(det(C))
@@ -14,6 +14,7 @@ function H = spm_logdet(C)
 % Note that whether sparse or full, rank deficient cases are handled in the
 % same way as in spm_logdet revision 4068, using svd on a full version of C
 
+try sym = symmetric; catch, sym = 0; end
 
 % remove null variances
 %--------------------------------------------------------------------------
@@ -25,12 +26,13 @@ if any(isnan(s)), H = nan; return; end
 % TOL = max(size(C)) * eps(max(s)); % as in MATLAB's rank function
 %--------------------------------------------------------------------------
 TOL   = 1e-16;
+% TOL = max(size(C), [], 'all') * eps(max(s, [], 'all'));
 
 if any(i ~= j)
     
     % asymmetric matrix
     %------------------------------------------------------------------
-    if norm(spm_vec(C - C'),inf) > TOL
+    if ~sym && norm(spm_vec(C - C'),inf) > TOL 
         
         s = svd(full(C));
         
