@@ -34,6 +34,7 @@ if isstruct(S{1})
         if isequal(filename,0) || isequal(pathname,0), return; end
         fname = fullfile(pathname,filename);
         OBJ   = VideoWriter(fname);
+        set(OBJ,'FrameRate',S{2})
         open(OBJ)
         writeVideo(OBJ,S{1})
         close(OBJ)

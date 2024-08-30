@@ -397,7 +397,7 @@ title('True scene')
 % RG structure learning
 %==========================================================================
 tic,
-MDP = spm_fast_structure_learning(Q,[Nx,Ny,Nz],[1 8 8 8]);
+MDP = spm_faster_structure_learning(Q,[Nx,Ny,Nz],[1 8 8 8]);
 t   = toc;
 
 spm_figure('GetWin',sprintf('Paramters: level %i',numel(MDP))); clf
@@ -444,7 +444,7 @@ RDP   = spm_mdp2rdp(RDP);
 % orbit (e.g., someone entering the scene and disappearing in the water, to
 % re-emerge the top of the scene).
 %--------------------------------------------------------------------------
-RDP.T    = 6;
+RDP.T    = 16;
 tic; RDP = spm_MDP_VB_XXX(RDP); t = toc;
 
 % Illustrate recursive model

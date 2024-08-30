@@ -14,7 +14,9 @@ function A = spm_dir_norm(A)
 %--------------------------------------------------------------------------
 if iscell(A)
     for g = 1:numel(A)
-        A{g} = spm_dir_norm(A{g});
+        if ~ isa(A{g},'function_handle')
+            A{g} = spm_dir_norm(A{g});
+        end
     end
     return
 end

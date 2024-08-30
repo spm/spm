@@ -2,12 +2,15 @@ function RDP = spm_mdp2rdp(MDP,p,q,T,FIX)
 % Converts a cell array of MDPs into a recursive MDP
 % FORMAT RDP = spm_mdp2rdp(MDP,p,q,T,FIX)
 % MDP{n} - Cell array of MDPs
+% 
+%  MDP{n}.A    - likelihood tensors 
+%  MDP{n}.B    - transition tensors (logical)
 %  MDP{n}.id.A - cell array of parents of A factors at the same level
 %  MDP{n}.id.D - cell array of parents of D in supraordinate outcomes
 %  MDP{n}.id.E - cell array of parents of E in supraordinate outcomes
 %
 % p      - likelihood concentration; e.g., p = 1/32; [default: p = 0] 
-% q      - prior (transition) decay; e.g., q = 1/32;  [default: q = 0] 
+% q      - prior (transition) decay; e.g., q = 1/32; [default: q = 0] 
 % T      - path lengths [default: T = 2]
 % 
 % FIX.A = 0 for learning likelihoods
@@ -122,8 +125,30 @@ for n = Nm:-1:2
 
 end
 
+% fill in empty columns of transition tensors (for highest level)
+%==========================================================================
+for n = Nm:Nm
+    for f = 1:numel(MDP{n}.B)
+        b  = MDP{n}.B{f};
+        Ns = size(b,2);
+        Nu = size(b,3);
+        if Nu > 1 && Ns > 1 && ~isa(b,'function_handle')
+            for u = 1:Nu
+                for s = 1:Ns
+                    if ~any(b(:,s,u))
+                        i = find(any(squeeze(b(:,s,:)),2),1);
+                        b(i,s,u) = true;
+                    end
+                end
+            end
+        end
+        MDP{n}.B{f} = b;
+    end
+end
+
+
 % prior concentration parameters
-%--------------------------------------------------------------------------
+%==========================================================================
 for n = 1:Nm
 
     % normalised likelihoods
@@ -133,7 +158,7 @@ for n = 1:Nm
             if isa(MDP{n}.A{g},'function_handle')
                 MDP{n}.a{g} = MDP{n}.A{g};
             else
-                MDP{n}.a{g} = spm_dir_norm(MDP{n}.A{g} + p(n));
+                MDP{n}.a{g} = MDP{n}.A{g} + p(n);
             end
         catch
             MDP{n}.a{g} = MDP{n}.a{g} + p(n);
@@ -147,7 +172,7 @@ for n = 1:Nm
             if isa(MDP{n}.B{f},'function_handle')
                 MDP{n}.b{f} = MDP{n}.B{f};
             else
-                MDP{n}.b{f} = spm_dir_norm(MDP{n}.B{f} + q(n));
+                MDP{n}.b{f} = MDP{n}.B{f} + q(n);
             end
         catch
             MDP{n}.b{f} = MDP{n}.b{f} + q(n);
@@ -157,13 +182,13 @@ for n = 1:Nm
     % remove fields
     %----------------------------------------------------------------------
     if FIX.A
-        MDP{n}.A = MDP{n}.a;
+        MDP{n}.A = spm_dir_norm(MDP{n}.a);
         MDP{n}   = rmfield(MDP{n},'a');
     else
         MDP{n}   = rmfield(MDP{n},'A');
     end
     if FIX.B
-        MDP{n}.B = MDP{n}.b;
+        MDP{n}.B = spm_dir_norm(MDP{n}.b);
         MDP{n}   = rmfield(MDP{n},'b');
     else
         MDP{n}   = rmfield(MDP{n},'B');
