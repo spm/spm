@@ -1,4 +1,4 @@
-function [C,F,G,RDP,RGB] = DEM_image_compression(OPTIONS)
+function [C,F,G,E,RDP,RGB] = DEM_image_compression(OPTIONS)
 % Structure learning from pixels
 %__________________________________________________________________________
 %
@@ -36,20 +36,24 @@ function [C,F,G,RDP,RGB] = DEM_image_compression(OPTIONS)
 %--------------------------------------------------------------------------
 rng(1)
 
-try N = OPTIONS.N; catch, N = 10000; end          % Number of training data
-try T = OPTIONS.T; catch, T = 1000;  end          % Number of test data
-try q = OPTIONS.q; catch, q = 16;    end          % concentration parameter  
-try s = OPTIONS.s; catch, s = 2;     end          % smoothing in pixels  
-try S = OPTIONS.S; catch, S = 24;    end          % histogram width
+try N = OPTIONS.N; catch, N = 4000; end           % Number of training data
+try T = OPTIONS.T; catch, T = 1000; end           % Number of test data
+try q = OPTIONS.q; catch, q = 64;   end           % concentration parameter  
+try s = OPTIONS.s; catch, s = 2;    end           % smoothing in pixels  
+try S = OPTIONS.S; catch, S = 24;   end           % histogram width
 
-try Ne = OPTIONS.Ne; catch, Ne = 13; end          % exemplars per class
-try Ns = OPTIONS.Ns; catch, Ns = 10; end          % Number of classes
+try eta  = OPTIONS.eta; catch, eta  = 512;    end % histogram width
+try beta = OPTIONS.eta; catch, beta = 512;    end % histogram width
+
+
+try Ne = OPTIONS.Ne; catch, Ne = 13;  end         % exemplars per class
+try Ns = OPTIONS.Ns; catch, Ns = 10;  end         % Number of classes
 
 try RGB.nd = OPTIONS.nd; catch, RGB.nd  = 4;  end % Diameter of tiles in pixels
-try RGB.nb = OPTIONS.nb; catch, RGB.nb  = 7;  end % Number of singular variates 
-try RGB.mm = OPTIONS.mm; catch, RGB.mm  = 16; end % Maximum number
+try RGB.nb = OPTIONS.nb; catch, RGB.nb  = 16; end % Number of discrete singular variates 
+try RGB.mm = OPTIONS.mm; catch, RGB.mm  = 8;  end % Maximum number of singular modes
 
-RGB.su  = 8;                                      % Variance threshold
+RGB.su  = 16;                                     % Variance threshold
 RGB.R   = 1;                                      % temporal resampling
 
 % Load MNIST
@@ -103,49 +107,86 @@ end
 labels = training.labels;
 clear training test
 
-% marginal likelihood
-%----------------------------------------------------------------------
-j     = [];
-for n = 1:Ns
-    i = find(ismember(labels(1:N),n - 1));
-    k = randperm(numel(i),Ne);
-    j = [j;i(k)];
-end
-
 % And show an illustrative image
 %--------------------------------------------------------------------------
 subplot(2,2,1)
-for i = 1:numel(j)
-    spm_imshow(I(:,:,:,j(i)))
-    axis on, title('MNIST image'), drawnow
-end
+spm_imshow(I(:,:,:,1))
+title('MNIST image')
 
 % Map from image to discrete state space (c.f., Amortisation) 
 %==========================================================================
 [O,L,RGB] = spm_rgb2O(I,RGB);
 
+% marginal likelihood
+%--------------------------------------------------------------------------
+Nk    = fix(N/Ns/Ne);            % number for averaging
+A     = {};
+lab   = [];
+for n = 1:Ns
+
+    % get images for this class
+    %----------------------------------------------------------------------
+    i  = find(ismember(labels(1:N),n - 1));
+    In = I(:,:,:,i);
+    In = permute(In,[4,1,2,3]);
+    In = spm_en(In(:,:)');
+
+    % average similar images (in discrete space)
+    %----------------------------------------------------------------------
+    while size(In,2) >= Nk
+
+        % similarity based on principal singular variate
+        %------------------------------------------------------------------
+        [~,~,v] = spm_svd(In);
+        [~,k]   = sort(abs(v(:,1)),'descend');
+        k       = k(1:Nk);
+
+        % average
+        %------------------------------------------------------------------
+        o     = 0;
+        for j = 1:Nk
+            o = spm_vec(O(:,i(k(j)))) + o/Nk;
+        end
+        o     = spm_unvec(o,O(:,1));
+
+        % save as for structure learning and show
+        %------------------------------------------------------------------
+        spm_imshow(spm_O2rgb(o,RGB));
+        In(:,k) = [];                       % remove from SVD
+        A(:,end + 1) = o;                   % learning average
+        lab(end + 1) = n - 1;               % class label
+
+    end
+end
+
+% ensure learning data are unique
+%--------------------------------------------------------------------------
+[~,i] = unique(fix(2*spm_cat(A)'),'rows','stable');
+A     = A(:,i);
+lab   = lab(i);
+
 % And show the images generated from a discrete representation
 %--------------------------------------------------------------------------
 subplot(2,2,2)
 spm_imshow(spm_O2rgb(O(:,1),RGB))
-axis on, title('Quantised image')
+drawnow
 
-% exemplar images for (RG) structure learning
+% Use a small number (Ne x Ns) for (RG) structure learning
 %--------------------------------------------------------------------------
-MDP    = spm_MB_structure_learning(O(:,j),L,1);
+MDP   = spm_MB_structure_learning(A,L,1);
 
 % Add class contraints (i.e., number priors) as a final level
 %--------------------------------------------------------------------------
 No    = size(MDP{end}.B{1},1);             % Number of compressed images 
 A     = zeros(No,Ns);
 for n = 1:Ns
-    i        = ismember(labels(j),n - 1);
+    i        = ismember(lab,n - 1);
     A(i,n)   = 1;
 end
 
 mdp.A{1}     = A;                          % likelihood (state)
-mdp.A{2}     = ones(1 ,Ns);                % likelihood (paths)
-mdp.B{1}     = ones(Ns,Ns);
+mdp.A{2}     = ones(1,Ns);                 % likelihood (paths)
+mdp.B{1}     = eye(Ns,Ns);
 mdp.id.A     = {1,1};
 mdp.id.D     = {1};
 mdp.id.E     = {2};
@@ -153,7 +194,6 @@ mdp.RG{1}    = 1;
 mdp.LG       = mean(MDP{end}.LG);
 mdp.L        = numel(MDP) + 1;
 MDP{end + 1} = mdp;
-
 
 % Show deep model structure in terms of (concatenated) likelihoods
 %==========================================================================
@@ -187,55 +227,6 @@ for m = 1:Nm
     title(sprintf('Level %i',m))
 end
 
-% Illustrate compositionality in terms of changes in outputs with states
-%==========================================================================
-spm_figure('GetWin','Composition'); clf
-
-% Create recursive model
-%--------------------------------------------------------------------------
-NDP   = spm_mdp2rdp(MDP);
-for m = 1:Nm
-
-    % size at this level
-    %----------------------------------------------------------------------
-    [Nf,Ns,Nu] = spm_MDP_size(NDP);
-    NDP.T      = 1;
-
-    % Get the generated image (O) under the first states at this level
-    %----------------------------------------------------------------------
-    for f = 1:Nf
-        NDP.D{f} = sparse(1,1,1,Ns(f),1);
-        NDP.E{f} = sparse(1,1,1,Nu(f),1);
-    end
-    PDP   = spm_MDP_VB_XXX(NDP);
-    if m < Nm
-        I = double(spm_O2rgb(PDP.Q.O{1}(:,1),RGB));
-    else
-        I = double(spm_O2rgb(PDP.O(:,1),RGB));
-    end
-
-    % Evaluate the change in the output for subsequent states
-    %----------------------------------------------------------------------
-    for s = 1:min(8,Ns(1))
-        subplot(2*Nm,8,s + (m - 1)*8)
-        NDP.D{1} = sparse(s,1,1,Ns(1),1);
-        PDP      = spm_MDP_VB_XXX(NDP);
-        if m == 1
-            d = double(spm_O2rgb(PDP.Q.O{1}(:,1),RGB));
-        elseif m < Nm
-            d = double(spm_O2rgb(PDP.Q.O{1}(:,1),RGB)) - I;
-        else
-            d = double(spm_O2rgb(PDP.O(:,1),RGB)) - I;
-        end
-        imagesc(d(:,:,1)); axis image
-        if s == 1, title(sprintf('Scale %i',m)), end
-        drawnow
-    end
-
-    % Move one level down
-    %----------------------------------------------------------------------
-    try NDP = NDP.MDP; end
-end
 
 % Train: Parametric learning based upon a training dataset
 %==========================================================================
@@ -245,7 +236,7 @@ end
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Train'); clf
 train     = 1:N;
-[RDP,G]   = spm_MNIST_train(MDP,RGB,O(:,train),D(train),1/q);
+[RDP,G,E] = spm_MNIST_train(MDP,RGB,O(:,train),D(train),1/q,eta,beta);
 
 % Test: on unseen data
 %==========================================================================
@@ -328,8 +319,8 @@ return
 % subroutines
 %==========================================================================
 
-function [RDP,F] = spm_MNIST_train(MDP,RGB,O,D,q)
-% FORMAT [RDP,F] = spm_MNIST_train(MDP,RGB,O,D,q)
+function [RDP,F,E] = spm_MNIST_train(MDP,RGB,O,D,q,eta,beta)
+% FORMAT [RDP,F,E] = spm_MNIST_train(MDP,RGB,O,D,q)
 % MDP      - model struct (cell array): prior
 % RGB      - image structure
 % O        - train data
@@ -367,16 +358,13 @@ FIX.B  = 1;                                % but not transitions
 N     = size(O,2);
 Nm    = numel(MDP);
 for m = 1:Nm
-    MDP{m}.beta = 512;
-    MDP{m}.eta  = 512;
+    MDP{m}.beta = beta;
+    MDP{m}.eta  = eta;
 end
 
 % train: with small concentration parameters (1/16)
 %--------------------------------------------------------------------------
-RDP      = spm_mdp2rdp(MDP,q,0,1,FIX);
-% RDP.A    = MDP{end}.A;
-% RDP      = rmfield(RDP,'a');
-
+RDP   = spm_mdp2rdp(MDP,q,0,1,FIX);
 RDP.T = 1;
 for j = 1:N
 
@@ -414,7 +402,9 @@ for j = 1:N
     for l = 1:numel(PDP.Q.a)
         I(l,j) = spm_MDP_MI(PDP.Q.a{l});
     end
+    I(l + 1,j) = spm_MDP_MI(PDP.a);
     F(j)       = PDP.Q.F + sum(PDP.F);
+    E(j)       = sum(I(:,j));
 
     subplot(3,2,2), hold off, plot(1:j,I(1:(end - 1),:))
     xlabel('number of exemplars'), ylabel('nats')
@@ -470,7 +460,7 @@ for j = 1:N
 
     % get training observation and place in MDP structure
     %----------------------------------------------------------------------
-    PDP   = spm_RDP_O(RDP,O(:,[j j]),1);
+    PDP   = spm_RDP_O(RDP,O(:,j),1);
 
     % active inference and learning
     %----------------------------------------------------------------------
@@ -486,9 +476,7 @@ for j = 1:N
     C(j)  = d == p;
     F(j)  = PDP.Q.F + sum(PDP.F);
 
-    if N > 32
-        % clc, disp(100*mean(C)), disp(j)
-    end
+    % clc, disp(100*mean(C)), disp(j)
 
     if ~C(j)
 
@@ -506,7 +494,6 @@ for j = 1:N
         drawnow
 
     end
-
 end
 
 return
