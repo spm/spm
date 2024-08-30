@@ -10,5 +10,6 @@ function spm_clear
 close all
 clc
 clear all
+clearvars
 
 
