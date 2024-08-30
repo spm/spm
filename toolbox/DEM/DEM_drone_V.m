@@ -46,9 +46,6 @@ function MDP = DEM_drone_V
 %==========================================================================
 rng(1)
 
-T   = 8;                                 % number of moves
-N   = 0;                                 % depth of planning
-
 Nx  = 32;                                % size of environment
 Ny  = 32;                                % size of environment
 Nz  = 8;                                 % size of environment
@@ -299,12 +296,12 @@ s     = [V(:); W(:)];
 
 % MDP Structure, specifying T epochs of active vision
 %==========================================================================
-mdp.T  = T;                       % numer of moves
+mdp.T  = 128;                     % numer of moves
 mdp.A  = A;                       % likelihood probabilities
 mdp.B  = B;                       % transition probabilities
 mdp.C  = C;                       % prior constraints
 mdp.D  = D;                       % initial priors
-mdp.N  = N;                       % policy depth
+mdp.N  = 0;                       % policy depth
 mdp.U  = U;                       % controllable actions
 
 mdp.GA = GA;                      % likelihood probabilities
@@ -344,12 +341,13 @@ spm_behaviour(MDP)
 % maintain surveillance over it. To simulate this, we specify a preference
 % for class 8 in the class or attribute modalities
 %--------------------------------------------------------------------------
-c     = spm_softmax(sparse(8,1,8,Nc,1));
+c     = spm_softmax(sparse(8,1,32,Nc,1));
 for g = (1:Ng) + Ng
     C{g} = c;
 end
 
 MDP       = mdp;
+MDP.T     = 16;
 MDP.id.ge = [cen; (Ng + cen)]';   % (central) modalities subtending EFE
 MDP.C     = C;                    % (conts)  preferences subtending EFE
 MDP       = spm_MDP_VB_XXX(MDP);

@@ -1,6 +1,6 @@
-function spm_dir_disentangle(a,n)
+function [e,v,c] = spm_dir_disentangle(a,n)
 % information geometry of a likelihood mapping
-% FORMAT spm_dir_disentangle(a,n)
+% FORMAT [e,v,c] = spm_dir_disentangle(a,n)
 % a{g}    - Dirichlet tensor for modality g
 % n       - nummber of (first) latent states to plot
 %
@@ -19,21 +19,15 @@ function spm_dir_disentangle(a,n)
 % preliminaries
 %--------------------------------------------------------------------------
 if nargin < 2
-    n = 16; % number of classification states to plot
+    n = size(a{1}(:,:),2);  % number of states to plot
 end
-
-% KL divergence squared
-%--------------------------------------------------------------------------
-spm_KL = @(q,p) (q'*(spm_log(q) - spm_log(p))).^2;
-
 
 % reduce tensor if necessary
 %--------------------------------------------------------------------------
-a     = spm_dir_norm(a);
 Ns    = size(a{1}(:,:,:),2:3);
 for g = 1:numel(a)
     for i = 1:Ns(2)
-        A{g}(:,:,i) = a{g}(:,1:n,i);
+        A{g}(:,:,i) = spm_dir_norm(a{g}(:,1:n,i));
     end
 end
 a     = A;
@@ -41,44 +35,60 @@ Ns    = size(a{g}(:,:,:),2:3);
 N     = prod(Ns);
 
 % information geometry – divergence : likelihood mapping
+%==========================================================================
+
+% KL divergence squared
 %--------------------------------------------------------------------------
+% spm_KL = @(q,p) (q'*(spm_log(q) - spm_log(p))).^2;
+
+c     = zeros(N,N);
 C     = zeros(N,N);
 for g = 1:numel(a)
+    q = a{g};
     for i = 1:N
-        for j = i:N
-            C(i,j) = C(i,j) + spm_KL(a{g}(:,i),a{g}(:,j));
-            C(i,j) = C(i,j) + spm_KL(a{g}(:,j),a{g}(:,i));
-            C(j,i) = C(i,j);
-        end
+        p = a{g}(:,i);
+        c(:,i) = sum(q.*minus(spm_log(q),spm_log(p))).^2;
     end
+    C  = c + c';
+end
+
+% similarity matrix (assuming normalised vectors on a hypersphere)
+%==========================================================================
+C     = real(C);
+rho   = C/max(C,[],'all');                       % normalise distance
+rho   = 1 - 2*rho;                               % correlation matrix
+
+if Ns(2) > 1
+    X = kron(eye(Ns(2),Ns(2)),ones(Ns(1),1));   % classification
+    R = eye(N,N) - X*pinv(X);                   % residual projector
+    c = rho - R*rho*R;                          % classification ssq.
+else
+    c = rho;
+end
+
+[e,v] = svd(spm_cov2corr(c));                   % eigenvectors
+v     = diag(real(v));
+[v,i] = sort(v,'descend');
+e     = real(e(:,i));
+
+% return unless called for plotting
+%--------------------------------------------------------------------------
+if Ns(2) == 1 || nargout
+    return
 end
 
 % Display [eigen] space
 %==========================================================================
 spm_figure('GetWin','Information geometry'); clf;
 
-% similarity matrix (assuming normalised vectors on a hypersphere)
-%--------------------------------------------------------------------------
-C     = real(C);
-c     = C/max(C,[],'all');                      % normalise distance
-c     = 1 - 2*c;                                % correlation matrix
-
-X     = kron(eye(Ns(2),Ns(2)),ones(Ns(1),1));   % classification
-R     = eye(N,N) - X*pinv(X);                   % residual projector
-cs    = c - R*c*R;                              % classification ssq.
-
-[e,v] = svd(cs);                                % eigenvectors
-v     = diag(real(v));
-[v,i] = sort(v,'descend');
-e     = real(e(:,i));
 
 % eigenspace
 %--------------------------------------------------------------------------
-subplot(2,2,2), bar(v(1:16)), 
+subplot(2,2,2), bar(v(1:min(numel(v),16))), 
 xlabel('eigenvectors'), ylabel('eigenvalues'), title('Eigenvalues')
 axis square
 
-subplot(2,2,1), imagesc(c);
+subplot(2,2,1), imagesc(rho);
 xlabel('latent states'), ylabel('latent states')
 title('Correlation matrix'), axis image
 

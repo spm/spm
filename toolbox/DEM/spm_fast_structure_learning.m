@@ -18,10 +18,6 @@ function [MDP,RG,S] = spm_fast_structure_learning(O,S,dx,dt)
 % Karl Friston
 % $Id: spm_MDP_structure_learning.m 8454 2023-11-04 17:09:11Z karl $
 %__________________________________________________________________________
-OPTIONS.B = 0;
-OPTIONS.N = 0;
-OPTIONS.O = 0;
-OPTIONS.Y = 0;
 
 % options for model inversion (and evaluation)
 %==========================================================================
@@ -143,16 +139,6 @@ for t = 1:(numel(j) - 1)
     end
 end
 
-% fill in empty columns of transition tensor
-%--------------------------------------------------------------------------
-% for u = 1:size(b,3)
-%     for s = 1:Ns
-%         if ~any(b(:,s,u))
-%             i = find(any(squeeze(b(:,s,:)),2),1);
-%             b(i,s,u) = 1;
-%         end
-%     end
-% end
 
 % Vectorise cell array of likelihood tensors and place in structure
 %--------------------------------------------------------------------------
@@ -201,7 +187,6 @@ for i = 1:3
     d(i)    = min(d(i),N(i));                 % block size
     r{i}    = 0:d(i):(N(i) - 1);              % block start
     s(i)    = numel(r{i});                    % length
-
 end
 for i = 1:3
     L(i)    = r{i}(end) + d(i);               % dim

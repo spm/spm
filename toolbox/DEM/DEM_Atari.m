@@ -60,7 +60,8 @@ G  = @(Nr,Nc) spm_MDP_breakout(Nr,Nc); % game
 NT = 2048;                             % exposures (training)
 G  = @(Nr,Nc) spm_MDP_pong(Nr,Nc);     % game
 NT = 1024;                             % exposures (training)
-%NT = 128;                             % exposures (training)
+
+NT = 256;                             % exposures (training)
 
 
 
@@ -167,11 +168,24 @@ drawnow
 
 % RG structure learning
 %==========================================================================
-tic, MDP = spm_fast_structure_learning(O,[Nr,Nc],4); toc
+tic, MDP = spm_faster_structure_learning(O,[Nr,Nc],2); toc
 
 % rewarded events
 %--------------------------------------------------------------------------
 [HID,CID,HITS] = spm_get_rewards(hid,cid,GDP,MDP);
+
+% Illustrate orbits
+%==========================================================================
+spm_figure('GetWin','Orbits'); clf
+
+subplot(2,2,1)
+spm_dir_orbits(MDP{end}.B{1},HID);
+title('Orbits and goals')
+
+% priors
+%--------------------------------------------------------------------------
+spm_figure('GetWin','Priors'); clf
+spm_RDP_params(MDP)
 
 % Illustrate episodic dynamics (at deepest level)
 %==========================================================================
@@ -237,7 +251,7 @@ spm_show_outcomes(Q,Nr,Nc)
 RDP       = spm_mdp2rdp(MDP);
 [~,Ns,Nu] = spm_MDP_size(RDP);
 
-RDP.T    = 32;
+RDP.T    = 8;
 RDP.D{1} = sparse(1,1,1,Ns(1),1);
 RDP.E{1} = sparse(1,1,1,Nu(1),1);
 PDP      = spm_MDP_VB_XXX(RDP);
@@ -287,7 +301,7 @@ FIX.B      = 1;                             % but not transitions
 RDP        = spm_mdp2rdp(MDP,1/128,0,2,FIX);
 
 RDP.U      = 1;
-RDP.T      = 256;
+RDP.T      = 128;
 RDP.id.hid = HID;
 RDP.id.cid = CID;
 
@@ -314,6 +328,33 @@ end
 h     = find(ismember(PDP.Q.o{1}',HITS','rows'));
 plot(h,ones(size(h)),'.r','MarkerSize',16)
 title('ELBO'), spm_axis tight
+
+
+% Illustrate in latent state space 
+%-=========================================================================
+spm_figure('GetWin','Orbits');
+
+subplot(2,2,2)
+u = spm_dir_orbits(PDP.B{1},HID);
+a = axis; title('Orbits')
+
+X = PDP.X{1};
+clear M
+[Ns,Nt] = size(X);
+for t = 1:Nt
+    cla
+    for s = 1:Ns
+       plot(u(s,1),u(s,2),'.','MarkerSize',32,'Color',[(1 - X(s,t)),1,(1 - X(s,t))])
+       hold on
+    end
+    axis(a);     drawnow;
+    M(t) = getframe(gca);
+end
+title('Orbits')
+h = gca;
+set(h(1),'Userdata',[])
+set(h(1),'Userdata',{M,8})
+set(h(1),'ButtonDownFcn','spm_DEM_ButtonDownFcn')
 
 return
 
