@@ -23,6 +23,7 @@ function [images, outroot] = spm_eeg_convert2images(S)
 %   timewin    - time window to retain (in PST ms)
 %   freqwin    - frequency window to retain (for TF datasets)
 %   channels   - cell array of channel labels, modality or 'all'.
+%   optimise   - scale and centre channel locations to use more image space
 %
 %   prefix     - prefix for the folder containing the images (default: none)
 %
@@ -233,7 +234,7 @@ if ~sts,     error(msg); end
 outroot     = fullfile(D.path, outroot);
 
 if isscalp
-    [Cel, x, y] = spm_eeg_locate_channels(D, n, chanind);
+    [Cel, x, y] = spm_eeg_locate_channels(D, n, chanind, S.optimise);
 end
 
 images = {};

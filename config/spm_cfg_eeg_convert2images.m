@@ -52,6 +52,19 @@ mode.values = mode.labels;
 mode.help = {'Select the mode for conversion to images.'};
 
 %--------------------------------------------------------------------------
+% optimise
+%--------------------------------------------------------------------------
+
+optimise = cfg_menu;
+optimise.tag = 'optimise';
+optimise.name = 'Optimise 2D locations';
+optimise.labels = {'Yes', 'No'};
+optimise.val = {1};
+optimise.values = {1,0};
+optimise.help = {['Scale and centre channel locations to use more image space.' ...
+    'Turn off e.g. to look at channel subsets.']};
+
+%--------------------------------------------------------------------------
 % timewin
 %--------------------------------------------------------------------------
 timewin         = cfg_entry;
@@ -101,7 +114,7 @@ prefix.strtype = 's';
 prefix.num     = [0 Inf];
 prefix.val     = {''};
 
-[cfg,varargout{1}] = deal({D, mode, conditions, spm_cfg_eeg_channel_selector, timewin, freqwin, prefix});
+[cfg,varargout{1}] = deal({D, mode, conditions, spm_cfg_eeg_channel_selector, optimise, timewin, freqwin, prefix});
 
 
 %==========================================================================
