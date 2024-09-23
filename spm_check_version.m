@@ -20,6 +20,9 @@ function varargout = spm_check_version(tbx,chk)
 %              Think of it this way, the sign of status is determined by
 %              MATLAB_TOOLBOX_VERSION - USER_VERSION (i.e., THE VERSION YOU
 %              INPUT).
+%
+% FORMAT status = spm_check_version('matlab','online')
+% status - 1 if running in MATLAB Online (checks for '/MATLAB Drive' drive)
 %__________________________________________________________________________
 %
 % This function checks if a user supplied version number is less than,
@@ -138,6 +141,16 @@ if strcmpi(tbx,'spm')
         varargout = {status};
         return;
     end
+end
+
+% Check if running MATLAB Online
+%--------------------------------------------------------------------------
+if strcmpi(chk, 'online') 
+    % No builtin MATLAB function to check this. 
+    % Check for 'MATLAB Drive' drive. 
+    status = logical(exist(fullfile(filesep, 'MATLAB Drive'), 'dir')); 
+    varargout = {status};
+    return;
 end
 
 % If a number is supplied then convert to text

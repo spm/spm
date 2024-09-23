@@ -658,6 +658,10 @@ elseif Win(1)=='0'
     else
         Rect = get(0, 'MonitorPositions');
     end
+    %-Half-size for Matlab online 
+    if spm_check_version('matlab', 'online')
+        Rect(:,[3 4]) = Rect(:,[3 4]) .*0.5; 
+    end
     if all(ismember(Rect(:),[0 1]))
         sw = warning('off','backtrace');
         warning('SPM:noDisplay','Cannot open display.');
