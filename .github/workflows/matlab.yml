@@ -70,7 +70,7 @@ jobs:
           path: tests/data
           lfs: true
       - name: Save new cache
-        if: ${ steps.cache-restore.cache-hit != 'true' }}
+        if: ${{ steps.cache-restore.cache-hit != 'true' }}
         uses: actions/cache/save@v4
         with:
           path: tests/data
