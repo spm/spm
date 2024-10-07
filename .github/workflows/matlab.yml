@@ -57,7 +57,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: tests/data
-          key: ${{ env.cache-key }}-${{ steps.checkout-tests-data.outputs.sha }}
+          key: ${{ env.cache-key }}-${{ steps.checkout-tests-data.outputs.commit }}
           restore-keys: ${{ env.cache-key }}
           enableCrossOsArchive: true
       - name: Fetch tests data # get lfs data
@@ -74,7 +74,7 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: tests/data
-          key: ${{ env.cache-key }}-${{ steps.checkout-tests-data.outputs.sha }}
+          key: ${{ env.cache-key }}-${{ steps.checkout-tests-data.outputs.commit }}
 
       - name: Set up MATLAB (legacy)
         if: ${{matrix.version == 'R2020a' || matrix.version == 'R2020b' || matrix.version == 'R2022a' || matrix.version == 'R2022b'}}
