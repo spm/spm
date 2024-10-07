@@ -57,15 +57,14 @@ jobs:
         uses: actions/checkout@v4
       
       - name: Setup cached test data folder
-        id: cache-data-tests
+        id: cache-restore
         uses: actions/cache/restore@v4
         with:
           path: tests/data
           key: ${{ env.cache-key }}
           enableCrossOsArchive: true
       - name: On cache hit, look for new commits
-        id: tests-data-revlist
-        if: steps.cache-restore.outputs.cache-hit == 'true'
+        if: ${{ steps.cache-restore.outputs.cache-hit == 'true' }} 
         run: | 
           git -C tests/data fetch 
           n_revs="$(git -C tests/data rev-list HEAD..origin/main --count)"
@@ -78,7 +77,7 @@ jobs:
             echo "Done!"
           fi
       - name: Get LFS data if new commits
-        if: ${{ steps.cache-restore.outputs.cache-hit!= 'true' }}
+        if: ${{ steps.cache-restore.outputs.cache-hit != 'true' }}
         uses: actions/checkout@v4
         with:
           repository: spm/spm-tests-data
