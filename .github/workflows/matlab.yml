@@ -41,7 +41,6 @@ jobs:
     runs-on: ${{matrix.os}}
     env:
       cache-key: tests-data
-      n_tests_revs: '0'
     steps:
       - name: Set up MATLAB (legacy)
         if: ${{matrix.version == 'R2020a' || matrix.version == 'R2020b' || matrix.version == 'R2022a' || matrix.version == 'R2022b'}}
@@ -65,14 +64,16 @@ jobs:
           key: ${{ env.cache-key }}
           enableCrossOsArchive: true
       - name: On cache hit, look for new commits
-        if: ${{ steps.cache-restore.outputs.cache-hit }}
+        id: tests-data-revlist
+        if: steps.cache-restore.outputs.cache-hit == 'true'
         run: | 
           git -C tests/data fetch 
-          n_tests_revs="$(git -C tests/data rev-list HEAD..origin/main --count)"
-          echo "Found ${n_tests_revs} revisions in tests data"
+          n_revs="$(git -C tests/data rev-list HEAD..origin/main --count)"
+          echo "n_revs=${n_revs}" >> "$GITHUB_OUTPUT"
+          echo "Found ${n_revs} revisions in tests data"
           git -C tests/data pull
       - name: Get LFS data if new commits
-        if: ${{ env.n_tests_revs != '0' }}
+        if: ${{ tests-data-revlist.outputs.n_revs != '0' ||  steps.cache-restore.outputs.cache-hit!= 'true' }}
         uses: actions/checkout@v4
         with:
           repository: spm/spm-tests-data
@@ -80,7 +81,7 @@ jobs:
           path: tests/data
           lfs: true
       - name: Remove existing cache
-        if: ${{ env.n_tests_revs != '0' }}
+        if: ${{ tests-data-revlist.outputs.n_revs != '0' && steps.cache-restore.outputs.cache-hit == 'true' }}
         continue-on-error: true
         run: |
           gh extension install actions/gh-actions-cache
@@ -89,7 +90,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Save new cache
         uses: actions/cache/save@v4
-        if: ${{ env.n_tests_revs != '0' }}
+        if: ${{  tests-data-revlist.outputs.n_revs != '0'  ||  steps.cache-restore.outputs.cache-hit != 'true'}}
         with:
           path: tests/data
           key: ${{ env.cache-key }}
