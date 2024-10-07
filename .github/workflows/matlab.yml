@@ -61,42 +61,21 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: tests/data
-          key: ${{ env.cache-key }}
+          restore-key: ${{ env.cache-key }}
           enableCrossOsArchive: true
-      - name: On cache hit, look for new commits
-        if: ${{ steps.cache-restore.outputs.cache-hit == 'true' }} 
-        run: | 
-          git -C tests/data fetch 
-          n_revs="$(git -C tests/data rev-list HEAD..origin/main --count)"
-          echo "Found $n_revs revisions in tests data"
-          git -C tests/data pull
-          if [ $n_revs -gt 0 ]; then
-            # Download latest revisions 
-            echo "Fetching data from $n_revs revisions."
-            git lfs fetch 	
-            echo "Done!"
-          fi
-      - name: Get LFS data if new commits
-        if: ${{ steps.cache-restore.outputs.cache-hit != 'true' }}
-        uses: actions/checkout@v4
+      - name: Fetch tests data
+        id: checkout-tests-data
+        uses: actions/checkout@v4.2.0 # 4.2.0 introduces checkout output
         with:
           repository: spm/spm-tests-data
           token: ${{ secrets.TESTS_DATA_REPO_TOKEN }}
           path: tests/data
-          lfs: true
-      - name: Remove existing cache
-        if: ${{ steps.cache-restore.outputs.cache-hit == 'true' }}
-        continue-on-error: true
-        run: |
-          gh extension install actions/gh-actions-cache
-          gh actions-cache delete "${{ env.cache-key }}" --confirm
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # lfs: true
       - name: Save new cache
         uses: actions/cache/save@v4
         with:
           path: tests/data
-          key: ${{ env.cache-key }}
+          key: ${{ env.cache-key }}-${{ steps.checkout-tests-data.outputs.sha }}
        
       - name: Run regression tests with existing MEX files (legacy)
         if: ${{github.event.schedule == '40 16 * * 3' && (matrix.version == 'R2020a' || matrix.version == 'R2020b' || matrix.version == 'R2022a' || matrix.version == 'R2022b')}}
