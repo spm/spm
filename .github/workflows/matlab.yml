@@ -45,22 +45,32 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
       
-      - name: Setup cached test data folder
-        id: cache-restore
-        uses: actions/cache/restore@v4
-        with:
-          path: tests/data
-          restore-keys: ${{ env.cache-key }}
-          enableCrossOsArchive: true
-      - name: Fetch tests data
+      - name: Fetch tests data # shallow fetch to get revision
         id: checkout-tests-data
         uses: actions/checkout@v4.2.0 # 4.2.0 introduces checkout output
         with:
           repository: spm/spm-tests-data
           token: ${{ secrets.TESTS_DATA_REPO_TOKEN }}
           path: tests/data
-          # lfs: true
+      - name: Setup cached test data folder
+        id: cache-restore
+        uses: actions/cache/restore@v4
+        with:
+          path: tests/data
+          key: ${{ env.cache-key }}-${{ steps.checkout-tests-data.outputs.sha }}
+          restore-keys: ${{ env.cache-key }}
+          enableCrossOsArchive: true
+      - name: Fetch tests data # get lfs data
+        id: checkout-tests-data-lfs
+        if: ${ steps.cache-restore.cache-hit != 'true' }}
+        uses: actions/checkout@v4.2.0
+        with:
+          repository: spm/spm-tests-data
+          token: ${{ secrets.TESTS_DATA_REPO_TOKEN }}
+          path: tests/data
+          lfs: true
       - name: Save new cache
+        if: ${ steps.cache-restore.cache-hit != 'true' }}
         uses: actions/cache/save@v4
         with:
           path: tests/data
