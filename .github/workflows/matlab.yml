@@ -69,11 +69,16 @@ jobs:
         run: | 
           git -C tests/data fetch 
           n_revs="$(git -C tests/data rev-list HEAD..origin/main --count)"
-          echo "n_revs=${n_revs}" >> "$GITHUB_OUTPUT"
-          echo "Found ${n_revs} revisions in tests data"
+          echo "Found $n_revs revisions in tests data"
           git -C tests/data pull
+          if [ $n_revs -gt 0 ]; then
+            # Download latest revisions 
+            echo "Fetching data from $n_revs revisions."
+            git lfs fetch 	
+            echo "Done!"
+          fi
       - name: Get LFS data if new commits
-        if: ${{ tests-data-revlist.outputs.n_revs != '0' ||  steps.cache-restore.outputs.cache-hit!= 'true' }}
+        if: ${{ steps.cache-restore.outputs.cache-hit!= 'true' }}
         uses: actions/checkout@v4
         with:
           repository: spm/spm-tests-data
@@ -81,7 +86,7 @@ jobs:
           path: tests/data
           lfs: true
       - name: Remove existing cache
-        if: ${{ tests-data-revlist.outputs.n_revs != '0' && steps.cache-restore.outputs.cache-hit == 'true' }}
+        if: ${{ steps.cache-restore.outputs.cache-hit == 'true' }}
         continue-on-error: true
         run: |
           gh extension install actions/gh-actions-cache
