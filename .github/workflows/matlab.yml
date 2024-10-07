@@ -45,31 +45,31 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
       
-      - name: Fetch tests data # shallow fetch to get revision
+      - name: Get latest commit for tests data  # shallow fetch to get revision
         id: checkout-tests-data
         uses: actions/checkout@v4.2.0 # 4.2.0 introduces checkout output
         with:
           repository: spm/spm-tests-data
           token: ${{ secrets.TESTS_DATA_REPO_TOKEN }}
           path: tests/data
-      - name: Setup cached test data folder
+      - name: Try to retrieve commit from cache 
         id: cache-restore
         uses: actions/cache/restore@v4
         with:
           path: tests/data
           key: ${{ env.cache-key }}-${{ steps.checkout-tests-data.outputs.commit }}
-          restore-keys: ${{ env.cache-key }}-
+          restore-keys: ${{ env.cache-key }}
           enableCrossOsArchive: true
-      - name: Fetch tests data 
+      - name: If cache missed, pull latest commit...
         id: checkout-tests-data-lfs
         if: ${{ steps.cache-restore.outputs.cache-hit != 'true' }}
-        uses: actions/checkout@v4.2.0
+        uses: actions/checkout@v4
         with:
           repository: spm/spm-tests-data
           token: ${{ secrets.TESTS_DATA_REPO_TOKEN }}
           path: tests/data
           lfs: true
-      - name: Save new cache
+      - name: ... and cache latest commit 
         if: ${{ steps.cache-restore.outputs.cache-hit != 'true' }}
         uses: actions/cache/save@v4
         with:
