@@ -39,6 +39,9 @@ jobs:
           - os: macos-latest
             version: "R2023a" # Apple Silicon version not available
     runs-on: ${{matrix.os}}
+    env:
+      cache-key: tests-data
+      n_tests_revs: '0'
     steps:
       - name: Set up MATLAB (legacy)
         if: ${{matrix.version == 'R2020a' || matrix.version == 'R2020b' || matrix.version == 'R2022a' || matrix.version == 'R2022b'}}
@@ -53,21 +56,44 @@ jobs:
 
       - name: Check out repository
         uses: actions/checkout@v4
+      
       - name: Setup cached test data folder
         id: cache-data-tests
-        uses: actions/cache@v4
+        uses: actions/cache/restore@v4
         with:
           path: tests/data
-          key: tests-data
+          key: ${{ env.cache-key }}
           enableCrossOsArchive: true
-      - name: Check out test data to latest
+      - name: On cache hit, look for new commits
+        if: ${{ steps.cache-restore.outputs.cache-hit }}
+        run: | 
+          git -C tests/data fetch 
+          n_tests_revs="$(git -C tests/data rev-list HEAD..origin/main --count)"
+          echo "Found ${n_tests_revs} revisions in tests data"
+          git -C tests/data pull
+      - name: Get LFS data if new commits
+        if: ${{ env.n_tests_revs != '0' }}
         uses: actions/checkout@v4
         with:
           repository: spm/spm-tests-data
           token: ${{ secrets.TESTS_DATA_REPO_TOKEN }}
           path: tests/data
           lfs: true
-
+      - name: Remove existing cache
+        if: ${{ env.n_tests_revs != '0' }}
+        continue-on-error: true
+        run: |
+          gh extension install actions/gh-actions-cache
+          gh actions-cache delete "${{ env.cache-key }}" --confirm
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Save new cache
+        uses: actions/cache/save@v4
+        if: ${{ env.n_tests_revs != '0' }}
+        with:
+          path: tests/data
+          key: ${{ env.cache-key }}
+       
       - name: Run regression tests with existing MEX files (legacy)
         if: ${{github.event.schedule == '40 16 * * 3' && (matrix.version == 'R2020a' || matrix.version == 'R2020b' || matrix.version == 'R2022a' || matrix.version == 'R2022b')}}
         uses: matlab-actions/run-command@v1
