@@ -62,7 +62,7 @@ jobs:
           enableCrossOsArchive: true
       - name: Fetch tests data 
         id: checkout-tests-data-lfs
-        if: ${{ steps.cache-restore.cache-hit != 'true' }}
+        if: ${{ steps.cache-restore.outputs.cache-hit != 'true' }}
         uses: actions/checkout@v4.2.0
         with:
           repository: spm/spm-tests-data
@@ -70,7 +70,7 @@ jobs:
           path: tests/data
           lfs: true
       - name: Save new cache
-        if: ${{ steps.cache-restore.cache-hit != 'true' }}
+        if: ${{ steps.cache-restore.outputs.cache-hit != 'true' }}
         uses: actions/cache/save@v4
         with:
           path: tests/data
