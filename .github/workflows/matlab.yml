@@ -62,7 +62,7 @@ jobs:
           enableCrossOsArchive: true
       - name: Fetch tests data # get lfs data
         id: checkout-tests-data-lfs
-        if: ${ steps.cache-restore.cache-hit != 'true' }}
+        if: ${{ steps.cache-restore.cache-hit != 'true' }}
         uses: actions/checkout@v4.2.0
         with:
           repository: spm/spm-tests-data
