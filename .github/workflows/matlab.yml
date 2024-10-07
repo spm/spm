@@ -95,7 +95,6 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Save new cache
         uses: actions/cache/save@v4
-        if: ${{  tests-data-revlist.outputs.n_revs != '0'  ||  steps.cache-restore.outputs.cache-hit != 'true'}}
         with:
           path: tests/data
           key: ${{ env.cache-key }}
