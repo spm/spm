@@ -39,7 +39,43 @@ jobs:
           - os: macos-latest
             version: "R2023a" # Apple Silicon version not available
     runs-on: ${{matrix.os}}
+    env:
+      cache-key: tests-data
     steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      
+      - name: Get latest commit for tests data  # shallow fetch to get revision
+        id: checkout-tests-data
+        uses: actions/checkout@v4.2.0 # 4.2.0 introduces checkout output
+        with:
+          repository: spm/spm-tests-data
+          token: ${{ secrets.TESTS_DATA_REPO_TOKEN }}
+          path: tests/data
+      - name: Try to retrieve commit from cache 
+        id: cache-restore
+        uses: actions/cache/restore@v4
+        with:
+          path: tests/data
+          key: ${{ env.cache-key }}-${{ steps.checkout-tests-data.outputs.commit }}
+          restore-keys: ${{ env.cache-key }}
+          enableCrossOsArchive: true
+      - name: If cache missed, pull latest commit...
+        id: checkout-tests-data-lfs
+        if: ${{ steps.cache-restore.outputs.cache-hit != 'true' }}
+        uses: actions/checkout@v4
+        with:
+          repository: spm/spm-tests-data
+          token: ${{ secrets.TESTS_DATA_REPO_TOKEN }}
+          path: tests/data
+          lfs: true
+      - name: ... and cache latest commit 
+        if: ${{ steps.cache-restore.outputs.cache-hit != 'true' }}
+        uses: actions/cache/save@v4
+        with:
+          path: tests/data
+          key: ${{ env.cache-key }}-${{ steps.checkout-tests-data.outputs.commit }}
+
       - name: Set up MATLAB (legacy)
         if: ${{matrix.version == 'R2020a' || matrix.version == 'R2020b' || matrix.version == 'R2022a' || matrix.version == 'R2022b'}}
         uses: matlab-actions/setup-matlab@v1
@@ -50,24 +86,7 @@ jobs:
         uses: matlab-actions/setup-matlab@v2
         with:
           release: ${{matrix.version}}
-
-      - name: Check out repository
-        uses: actions/checkout@v4
-      - name: Setup cached test data folder
-        id: cache-data-tests
-        uses: actions/cache@v4
-        with:
-          path: tests/data
-          key: tests-data
-          enableCrossOsArchive: true
-      - name: Check out test data to latest
-        uses: actions/checkout@v4
-        with:
-          repository: spm/spm-tests-data
-          token: ${{ secrets.TESTS_DATA_REPO_TOKEN }}
-          path: tests/data
-          lfs: true
-
+       
       - name: Run regression tests with existing MEX files (legacy)
         if: ${{github.event.schedule == '40 16 * * 3' && (matrix.version == 'R2020a' || matrix.version == 'R2020b' || matrix.version == 'R2022a' || matrix.version == 'R2022b')}}
         uses: matlab-actions/run-command@v1
