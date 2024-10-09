@@ -1,23 +1,27 @@
-function f = spm_pac_transform_mesh(f, varargin)
-% FORMAT wf = transform_mesh(f, iy, [M])
-%   f    - Input mesh (gifti object)
-%   iy   - Transformation [Mx My Mz 3]
-%   M    - Voxel-to-world matrix of the transformation {default: eye(4)}
-%   wf   - Warped mesh (gifti object)
+function f = spm_shp_transform_mesh(f, varargin)
+% Apply a transformation field to a mesh
 %
-% FORMAT wf = transform_mesh(f, T, [iy], [M])
-%   T    - World-to-world transformation to apply to the mesh first.
+% FORMAT wf = spm_shp_transform_mesh(f, iy, [M])
 %
-% . The transformation (iy) should be expressed in millimetres, that is,
+% f  - (gifti)            - Input mesh
+% iy - (Nx x Ny x Nz x 3) - Transformation 
+% M  - (4 x 4)            - Voxel-to-world matrix of the transformation
+% wf - (gifti)            - Warped mesh (gifti object)
+%
+% FORMAT wf = spm_shp_transform_mesh(f, T, [iy], [M])
+%
+% T  - (4 x 4) Affine transformation to apply to the mesh beforehand.
+%
+% * The transformation (iy) should be expressed in millimetres, that is,
 %   each voxel contains a millimetric coordinate in world space.
-% . The voxel-to-world matrix (M) should map voxels to mm.
-% . The affine transformation matrix (T) should map mm to mm.
+% * The voxel-to-world matrix (M) should map voxels to mm.
+% * The affine transformation matrix (T) should map mm to mm.
+%__________________________________________________________________________
 
-%% Yael Balbastre 2024
+% Yael Balbastre 2024
+% Copyright (C) 2024 Wellcome Centre for Human Neuroimaging
 
-if nargin < 2
-    error('At least two arguments required.');
-end
+if nargin < 2, error('At least two arguments required.'); end
 
 % -------------------------------------------------------------------------
 % Read arguments and select mode
@@ -47,7 +51,7 @@ end
 
 
 % -------------------------------------------------------------------------
-% Apply first affine (worl to world) matrix
+% Apply first affine (world to world) matrix
 if ~isempty(T)
     f = spm_mesh_transform(f, T);
 end

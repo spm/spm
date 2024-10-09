@@ -1,17 +1,27 @@
-function z = spm_pac_project_velocity(v, fmodel, fsubspace)
-% FORMAT z = project_velocity(v, [fmodel], [fsubspace])
-%   v           - [Nx Ny Nz 3] Initial velocity
-%   fmodel    - Path to the model parameters {'model/model_variables.mat'}
-%   fsubspace - Path to the scaled subspace {'model/subspace_scaled.nii'}
-%   z         - [M 1] Latent code
-%% Yael Balabastre 2024
+function z = spm_shp_project_velocity(v, fmodel, fsubspace)
+% Project a velocity (= a 4D volume) onto a subspace (= a 5D volume) to
+% compute its latent code (a 1D vector).
+%
+% FORMAT z = spm_shp_project_velocity(v, [fmodel], [fsubspace])
+%
+% v         - (Nx x Ny x Nz x 3) Initial velocity
+% fmodel    - Path to the model parameters
+%             [spm('Dir')/tpl/shp/model_variables.mat]
+% fsubspace - Path to the scaled subspace 
+%             [spm('Dir')/tpl/shp/subspace_scaled.nii]
+% z         - (M x 1) Latent code
+%__________________________________________________________________________
+
+% Yael Balbastre
+% Copyright (C) 2024 Wellcome Centre for Human Neuroimaging
+
 % -------------------------------------------------------------------------
 % Path to model file
 if nargin < 2 || isempty(fmodel)
-    fmodel = 'Templates/model_variables.mat';
+    fmodel = spm_shp_get_model('model_variables');
 end
 if nargin < 3 || isempty(fsubspace)
-    fsubspace = 'Templates/subspace_scaled.nii';
+    fsubspace = spm_shp_get_model('subspace_scaled');
 end
 
 % -------------------------------------------------------------------------
@@ -33,6 +43,9 @@ catch
     prm = dft.rparam;
 end
 load(fmodel, 'A', 'Az', 'lam')
+% A   = prior precision matrix over latent codes
+% Az  = posterior precision matrix over latent codes
+% lam = residual precision
 sd = sqrt(1./diag(A));
 
 % -------------------------------------------------------------------------
