@@ -9,7 +9,7 @@ function [z,z0,outmesh] = spm_shp_sample_brains(varargin)
 % Keywords
 % --------
 % pc     - Vector of indices principal components to use [default: all]
-% span   - Latent bound(s) [default: 3]
+% span   - Latent bound(s) [default: [0 ,3] ]
 % fout   - Folder where to write generated gifti files [default: '.']
 % fshp   - Folder where the shape model is stored.
 % suffix - Output file suffix [default: 0]
@@ -26,8 +26,8 @@ function [z,z0,outmesh] = spm_shp_sample_brains(varargin)
 % z0      - (M x 1) Subject's latent code
 % outmesh - (K x N) Deformed mesh(es) (gifti or paths)
 %
-% Some PC indices can be negative meaning their pca components (2) will be 
-% linearly shifted in opposite direction, i.e. [1 2] and [1 -2] are two 
+% Some PC indices can be negative meaning their pca components (2) will be
+% linearly shifted in opposite direction, i.e. [1 2] and [1 -2] are two
 % different trajectories where 2nd component moves in opposite direction.
 %______________________________  ____________________________________________
 
@@ -40,7 +40,7 @@ p = inputParser;
 p.addRequired('mesh');
 p.addOptional('K',       1);
 p.addParameter('pc',     [],   @isvector);
-p.addParameter('span',   3,    @isscalar);
+p.addParameter('span',   [0 3],    @isvector);
 p.addParameter('fout',   [],   @ischar);
 p.addParameter('fshp',   [],   @ischar);
 p.addParameter('suffix', '0',  @ischar);
@@ -71,7 +71,7 @@ can     = p.Results.can;
 mesh0 = mesh;
 if ~strcmpi(class(mesh), 'gifti')
     if ~iscell(mesh)
-        mesh  = cellstr(mesh); 
+        mesh  = cellstr(mesh);
         mesh0 = mesh;
     end
     mesh = cellfun(@gifti, mesh, 'UniformOutput', false);
@@ -88,7 +88,7 @@ M         = subspace.dat.dim(6);
 if ~isempty(v0)
     % Memory map file
     if ischar(v0)
-        v0 = nifti(v0); 
+        v0 = nifti(v0);
     end
     % Load velocity
     if isa(v0, 'nifti')
@@ -160,20 +160,37 @@ mkdir(fsamp);
 pc    = pc(:);      % ensure column vector
 absPC = abs(pc);    % some components have negative values indicated we want to shift in opposite direction
 sgnPC = sign(pc);   % + or -1 depending on how to shift
-z     = linspace(-span,span,K);
+z     = linspace(span(1),span(2),K);
 if numel(pc) == 1
     warning('Moving one component systematically\n')
 else
     fprintf('Linear spacing of lots of components...\n')
     z = sgnPC .* z;  % P x K
-end
-z1       = z;
-z        = zeros(M,K);
-z(absPC,:) = z1;
-if ~can && ~isempty(z0)
-    z = z + z0; 
+
 end
 
+z1       = z;
+if ~can,
+    z        = repmat(z0,1,K); %% make z the same as original brain by default
+else
+    z=zeros(M,K);
+end;
+z(absPC,:) = z1; %% now manipulate certain components
+flip=0;
+if ~can && ~isempty(z0)
+    Zthresh=4;
+    for j=1:length(absPC),
+        for k=1:K,
+
+            if (abs(z(absPC(j),k)+z0(absPC(j)))>Zthresh),
+                z(absPC(j),k)=-z(absPC(j),k);
+                flip=flip+1;
+            end; % if
+            z(absPC(j),k)=z(absPC(j),k)+z0(absPC(j));
+        end; % for k
+    end; % for j
+end
+fprintf('\n Flipped %3.2f percent of components to keep within abs(z)<%3.2f \n',100*flip/(K*length(absPC)),Zthresh);
 % -------------------------------------------------------------------------
 % Loop about samples
 fprintf('Sample brain ');
@@ -187,8 +204,9 @@ for k=1:K
     % ---------------------------------------------------------------------
     % Sample transformation [template -> random]
 
-    % Shoot along principal component
-    z1 = z(:,k);
+    % Shoot along principal component 
+    z1 = z(:,k);   % 1.7042   -1.2923   -0.5316    2.4824    2.9157
+
 
     % Build transformation field
     iy = spm_shp_sample_deformation(z1, subspace, v0, z0); % vox-to-vox
@@ -206,7 +224,7 @@ for k=1:K
         % Write to disk
         if ischar(mesh0{n})
             basename_mesh = spm_file(mesh0{n}, 'basename');
-            name_mesh_nat = sprintf('smp_%03d_%s%s.gii',k,basename_mesh,suffix);
+            name_mesh_nat = sprintf('smp_shp_%03d_%s%s.gii',k,basename_mesh,suffix);
             path_mesh_nat = fullfile(fsamp, name_mesh_nat);
             outmesh{k,n}  = path_mesh_nat;
             save(randomcortex, outmesh{k,n});

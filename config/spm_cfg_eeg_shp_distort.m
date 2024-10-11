@@ -64,8 +64,8 @@ DistortIndices.num      = [1 2];
 DistortIndices.val      = {[8 100]};
 DistortIndices.help     = {'The range (from, to) of PCA indices to distort'};
 
-Zcenter                 = cfg_entry;
-Zcenter.tag             = 'Zcenter';
+Zcenter                 = cfg_menu;
+Zcenter.tag             = 'Zcentre';
 Zcenter.name            = 'Sample surfaces centered about the subject or about the population mean?';
 Zcenter.val             = {'sub'};
 Zcenter.help            = {
@@ -80,8 +80,8 @@ Zrange.tag              = 'Zrange';
 Zrange.name             = 'Range of Z';
 Zrange.strtype          = 'r';
 Zrange.num              = [1 2];
-Zrange.val              = {[-3 3]};
-Zrange.help             = {'The normal range (in Z) over which distortion happens (eg [-3,+3])'};
+Zrange.val              = {[0 3]};
+Zrange.help             = {'The normal range (in Z) over which to perterb true brain (eg [0,+3])'};
 
 Npoints                 = cfg_entry;
 Npoints.tag             = 'Npoints';
@@ -100,7 +100,7 @@ RandSeed.val            = {1};
 RandSeed.help           = {'The random seed that defines trajectory'};
 
 
-[cfg,varargout{1}] = deal({D, val, PCAtemplate,TemplateRedo, DistortIndices, Npoints,Zrange,RandSeed});
+[cfg,varargout{1}] = deal({D, val, PCAtemplate,TemplateRedo, DistortIndices, Npoints,Zrange,Zcenter,RandSeed});
 
 
 %==========================================================================
@@ -162,23 +162,20 @@ idxPC = job.DistortIndices(1):job.DistortIndices(2);  % Components that will be 
 rng(job.RandSeed, 'twister');                         % Same random deviations for everyone
 sgnPC = sign(randn(1,length(idxPC)));                 % This sets distortion trajectory
 
-if sum(job.Zrange) ~= 0
-    error('not set up for off-centre Z ranges at the moment');
-    % maybe in future.
-end
+
 
 % -------------------------------------------------------------------------
 % Generate distorted brains
-span = abs(job.Zrange(1));
+span = job.Zrange;
 PC   = idxPC .* sgnPC;
 fprintf(...
-    '\nCreating a trajectory of %d brains from z=-%3.2f to %3.2f with seed %d\n', ...
-    K, span, span, job.RandSeed ...
+    '\nCreating a trajectory of %d brains from z=%3.2f to %3.2f (random signs) with seed %d\n', ...
+    K, span(1), span(2), job.RandSeed ...
 )
-[z,~,archivos] = spm_shp_sample_brains(         ...
+[z,z0,archivos] = spm_shp_sample_brains(         ...
     path_mesh,                                  ... Path to cortical mesh
     K,                                          ... Number of deformed surfaces 
-    'can',    strcmpi(job.Zcenter, 'can'),      ... Deform about true brain
+    'can',    strcmpi(job.Zcentre, 'can'),      ... Deform about true brain
     'pc',     PC,                               ... Components to deform
     'span',   span,                             ... Deformation span
     'fout',   folder_shp_out,                   ... Output folder
@@ -190,101 +187,14 @@ fprintf(...
     'r2n',    path_latent                       ... Subject's import-to-native transform
 );
 
-% -------------------------------------------------------------------------
-% Plot latent codes
-figure;
-zvals = linspace(-span,span,K);
-fullz = zeros(max(idxPC),K);
-fullz(idxPC,:) = z(idxPC,:);
-imagesc(sort(z(1,:)),1:max(idxPC),fullz);
-
-ylabel('Component');
-xlabel('Trajectory');
-dum = colorbar;
-ylabel(dum,'z','FontSize',18,'Rotation',0)
-set(gca,'Fontsize',18)
-
-title('original')
-
-
-% -------------------------------------------------------------------------
-% Plot histogram of distortions
-
-%figure;
-fprintf('\n Loading %s\n',path_mesh);
-Mnative = gifti(path_mesh);
-vnative	= Mnative.vertices;
-%meshplot4spm(Mnative)
-
-figure;
-for k = 1:K
-    g_smp	= gifti(archivos{k});
-    v3		= g_smp.vertices;
-
-    d1 = sqrt(dot((v3-vnative)',(v3-vnative)'));
-
-    [dvals,dind] = sort(d1);
-
-
-    h = trisurf(g_smp.faces,v3(:,1),v3(:,2),v3(:,3),d1);
-
-
-    set(gca,'visible','off')
-
-    dum=colorbar;
-    ylabel(dum,'mm','FontSize',18,'Rotation',90);
-
-    title(sprintf('z=%3.1f',zvals(k)));
-    set(gca,'Fontsize',18);
-
-    v3 = double(v3);
-
-    % Error vs non-distorted native space mesh (100 PCs)
-    err_dist_native2brian(k) = sqrt(3)*mean(rms(vnative-v3,2));
-
-    [n1,x1] = hist(d1,50);
-    alld1(k,:) = d1;
-end % for k
-
-% -------------------------------------------------------------------------
-% Plot histogram of distortions
-figure;
-
-x1 = 0:0.5:max(alld1(:));
-n1 = hist(alld1(1,:),x1);
-n3 = hist(alld1(round(K/4),:),x1);
-n4 = hist(alld1(round(K/2),:),x1);
-m1 = mean(alld1(1,:)); 
-m3 = mean(alld1(round(K/4),:));
-m4 = mean(alld1(round(K/2),:));
-x1ind = min(find(x1>m1)); 
-x3ind = min(find(x1>m3)); 
-x4ind = min(find(x1>m4));
-
-h = plot(x1,n1,x1,n3,x1,n4);
-set(h,'Linewidth',4);
-set(gca,'Fontsize',18);
-hold on;
-
-legend1 = sprintf('|z|=%3.1f, mean=%3.1f mm',abs(zvals(1)),m1);
-legend3 = sprintf('|z|=%3.1f, mean=%3.1f mm',abs(zvals(round(K/4))),m3);
-legend4 = sprintf('|z|=%3.1f, mean=%3.1f mm',zvals(round(K/2)),m4);
-legend(strvcat(legend1,legend3,legend4))
-xlabel('Deviation (mm)')
-ylabel('Number vertices')
-
-figure;
-h3 = plot(zvals,err_dist_native2brian,'x',0,0,'ko');
-set(h3,'Linewidth',4);
-xlabel('Trajectory')
-ylabel('Mean deviation (mm)');
-set(gca,'Fontsize',18);
 
 
 % -------------------------------------------------------------------------
 % Save and return
 save(D);
 out.D{1}   = fullfile(D.path, D.fname);
+out.newz=z; %% new z scores of distortions (changed from PC to keep within z thresh)
+out.z0=z0; %% latent code for original/ true brain.
 out.brain  = D.inv{1}.mesh.tess_ctx;
 out.brians = archivos;
 
