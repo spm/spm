@@ -49,6 +49,7 @@ p.addParameter('r2n',    []);
 p.addParameter('v0',     []);
 p.addParameter('y0',     []);
 p.addParameter('z0',     []);
+p.addParameter('zlimit',[]);
 p.parse(varargin{:});
 
 mesh    = p.Results.mesh;
@@ -63,7 +64,7 @@ y0      = p.Results.y0;
 z0      = p.Results.z0;
 r2n     = p.Results.r2n;
 can     = p.Results.can;
-
+zlimit  = p.Results.zlimit;
 % -------------------------------------------------------------------------
 % Prepare inputs
 
@@ -160,37 +161,34 @@ mkdir(fsamp);
 pc    = pc(:);      % ensure column vector
 absPC = abs(pc);    % some components have negative values indicated we want to shift in opposite direction
 sgnPC = sign(pc);   % + or -1 depending on how to shift
-z     = linspace(span(1),span(2),K);
-if numel(pc) == 1
-    warning('Moving one component systematically\n')
-else
-    fprintf('Linear spacing of lots of components...\n')
-    z = sgnPC .* z;  % P x K
+dz     = linspace(span(1),span(2),K);
 
-end
+dz = sgnPC .* dz;  % P x K
 
-z1       = z;
+
+
+
 if ~can,
     z        = repmat(z0,1,K); %% make z the same as original brain by default
 else
-    z=zeros(M,K);
+    z=zeros(M,K); %% poplation brain by default
 end;
-z(absPC,:) = z1; %% now manipulate certain components
-flip=0;
-if ~can && ~isempty(z0)
-    Zthresh=4;
-    for j=1:length(absPC),
-        for k=1:K,
 
-            if (abs(z(absPC(j),k)+z0(absPC(j)))>Zthresh),
-                z(absPC(j),k)=-z(absPC(j),k);
-                flip=flip+1;
-            end; % if
-            z(absPC(j),k)=z(absPC(j),k)+z0(absPC(j));
-        end; % for k
-    end; % for j
-end
-fprintf('\n Flipped %3.2f percent of components to keep within abs(z)<%3.2f \n',100*flip/(K*length(absPC)),Zthresh);
+flip=0;
+
+
+
+for j=1:length(absPC),
+    for k=1:K,
+
+        if (abs(z(absPC(j),k)+dz(j,k))>abs(zlimit)),
+            dz(j,k)=-dz(j,k); 
+            flip=flip+1;
+        end; % if
+        z(absPC(j),k)=z(absPC(j),k)+dz(j,k);
+    end; % for k
+end; % for j
+fprintf('\n Flipped %3.2f percent of components to keep within abs(z)<%3.2f \n',100*flip/(K*length(absPC)),abs(zlimit));
 % -------------------------------------------------------------------------
 % Loop about samples
 fprintf('Sample brain ');
@@ -204,8 +202,8 @@ for k=1:K
     % ---------------------------------------------------------------------
     % Sample transformation [template -> random]
 
-    % Shoot along principal component 
-    z1 = z(:,k);   % 1.7042   -1.2923   -0.5316    2.4824    2.9157
+    % Shoot along principal component
+    z1 = z(:,k);
 
 
     % Build transformation field

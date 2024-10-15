@@ -46,7 +46,7 @@ PCAtemplate.filter      = '.*';
 PCAtemplate.val         = {{fullfile(spm('Dir'),'tpm','shp','Template_0.nii')}};
 % PCAtemplate.dir         = {fullfile(spm('Dir'),'tpm','shp')};
 PCAtemplate.num         = [1 1];
-PCAtemplate.help        = {'Select the generic PCA template file (Template_0.nii)'};
+PCAtemplate.help        = {'Select the generic PCA template file (Template_0.nii). Will download this automatically first time used'};
 
 TemplateRedo            = cfg_menu;
 TemplateRedo.tag        = 'TemplateRedo';
@@ -64,16 +64,16 @@ DistortIndices.num      = [1 2];
 DistortIndices.val      = {[8 100]};
 DistortIndices.help     = {'The range (from, to) of PCA indices to distort'};
 
-Zcenter                 = cfg_menu;
-Zcenter.tag             = 'Zcentre';
-Zcenter.name            = 'Sample surfaces centered about the subject or about the population mean?';
-Zcenter.val             = {'sub'};
-Zcenter.help            = {
+Zcentre                 = cfg_menu;
+Zcentre.tag             = 'Zcentre';
+Zcentre.name            = 'Sample surfaces centered about the subject or about the population mean?';
+Zcentre.val             = {'sub'};
+Zcentre.help            = {
     'If sub(ject), the generated surfaces will have a latent code in Z[subject] +/- Zrange\n'
     'If can(onical), the generated surfaces will have a latent code in 0 +/- Zrange'
     }';
-Zcenter.labels          = {'sub', 'can'}';
-Zcenter.values          = {'sub', 'can'}';
+Zcentre.labels          = {'sub', 'can'}';
+Zcentre.values          = {'sub', 'can'}';
 
 Zrange                  = cfg_entry;
 Zrange.tag              = 'Zrange';
@@ -82,6 +82,15 @@ Zrange.strtype          = 'r';
 Zrange.num              = [1 2];
 Zrange.val              = {[0 3]};
 Zrange.help             = {'The normal range (in Z) over which to perterb true brain (eg [0,+3])'};
+
+Zlimit                 = cfg_entry;
+Zlimit.tag             = 'Zlimit';
+Zlimit.name            = 'Z max';
+Zlimit.strtype         = 'r';
+Zlimit.num             = [1 1];
+Zlimit.val             = {3.5};
+Zlimit.help            = {'The max absolute Z value permitted (will flip displacement sign otherwise)'};
+
 
 Npoints                 = cfg_entry;
 Npoints.tag             = 'Npoints';
@@ -100,7 +109,7 @@ RandSeed.val            = {1};
 RandSeed.help           = {'The random seed that defines trajectory'};
 
 
-[cfg,varargout{1}] = deal({D, val, PCAtemplate,TemplateRedo, DistortIndices, Npoints,Zrange,Zcenter,RandSeed});
+[cfg,varargout{1}] = deal({D, val, PCAtemplate,TemplateRedo, DistortIndices, Npoints,Zrange,Zlimit,Zcentre,RandSeed});
 
 
 %==========================================================================
@@ -177,7 +186,8 @@ fprintf(...
     K,                                          ... Number of deformed surfaces 
     'can',    strcmpi(job.Zcentre, 'can'),      ... Deform about true brain
     'pc',     PC,                               ... Components to deform
-    'span',   span,                             ... Deformation span
+    'span',   span,                             ... Deformation span (z scores)
+    'zlimit', job.Zlimit,                           ... Max value of z allowed     
     'fout',   folder_shp_out,                   ... Output folder
     'fshp',   folder_shp,                       ... Model folder
     'suffix', sprintf('%03d', job.RandSeed),    ... Suffix (random seed)
