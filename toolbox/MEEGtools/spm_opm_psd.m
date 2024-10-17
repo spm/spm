@@ -1,6 +1,6 @@
-function [po,freq] = spm_opm_psd(S)
-% Compute PSD for OPM data(for checking noise floor)
-% FORMAT D = spm_opm_psd(S)
+function [po,freq,sel] = spm_opm_psd(S)
+% Compute PSD for OPM data (for checking noise floor)
+% FORMAT [po,freq,sel] = spm_opm_psd(S)
 %   S               - input structure
 %  fields of S:
 %   S.D             - SPM MEEG object                       - Default: no Default
@@ -12,11 +12,17 @@ function [po,freq] = spm_opm_psd(S)
 %   S.constant      - constant line to draw as reference    - Default: 15
 %   S.wind          - function handle for window            - Default: @hanning
 %   S.plotbad       - place asterisk over unusual channels  - Default: 0
+%	S.interact		- allow inspection of channels			- Default: 0
+%	S.select		- enable selection of channels			- Default: 0
 
 %
 % Output:
 %   psd             - power spectral density
 %   f               - frequencies psd is sampled at
+%	sel				- selected channel index (see S.interactive)
+%						To get labels use:
+%							plotted_lab = chanlabels(S.D,S.channels);
+%							sel_lab = plotted_lab(sel);
 %__________________________________________________________________________
 
 % Tim Tierney
@@ -37,7 +43,13 @@ if ~isfield(S, 'trials'),        S.trials=0; end
 if ~isfield(S, 'wind'),          S.wind=@hanning; end
 if ~isfield(S, 'interact'),      S.interact =1; end
 if ~isfield(S, 'plotbad'),       S.plotbad = 0; end
-
+if ~isfield(S, 'select')		
+	S.select = 0; 
+	sel = [];
+else
+	S.plot = 1;
+	S.interact = 0;
+end
 
 %-channel Selection
 %--------------------------------------------------------------------------
@@ -139,11 +151,19 @@ bin = Z>abs(spm_invNcdf(.025/(size(po,2)*100),0,1));
 
 if(S.plot)
     f= figure();
-    hold on
-    for i = 1:size(po,2)
-        tag = [labs{i}, ', Index: ' num2str(indchannel(S.D,labs{i}))];
-        plot(freq,po(:,i)','LineWidth',2,'tag',tag);
-    end
+	if S.select
+		h = plot(freq,po,'LineWidth',2);
+		hold on
+		for i = 1:numel(h)
+			set(h(i), 'UserData', false);
+		end
+	else
+		hold on
+		for i = 1:size(po,2)
+			tag = [labs{i}, ', Index: ' num2str(indchannel(S.D,labs{i}))];
+			plot(freq,po(:,i)','LineWidth',2,'tag',tag);
+		end
+	end
     set(gca,'yscale','log')
     
     xp2 =0:round(freq(end));
@@ -171,11 +191,57 @@ if(S.plot)
     end
     
     
-    if(S.interact)
-        datacursormode on
-        dcm = datacursormode(gcf);
-        set(dcm,'UpdateFcn',@getLabel)
-    end
+	if(S.interact)
+		datacursormode on
+		dcm = datacursormode(gcf);
+		set(dcm,'UpdateFcn',@getLabel)
+	end
+	if(S.select)
+		sel = false(1,length(labs));
+		numChannels = size(po, 2);
+		
+		% Set up selection mechanism
+		set(fig, 'WindowButtonDownFcn', @startSelection);
+		
+		% Wait for user to interact and close the figure
+		waitfor(fig);
+	end
+end
+
+function startSelection(~, ~)
+% Draw selection box
+point1 = get(ax, 'CurrentPoint');
+rbbox; 
+point2 = get(ax, 'CurrentPoint');
+
+% Get the x and y limits of the selection box
+xLimits = [min(point1(1,1), point2(1,1)), max(point1(1,1), point2(1,1))];
+yLimits = [min(point1(1,2), point2(1,2)), max(point1(1,2), point2(1,2))];
+
+% Check which lines are inside the box
+for chanIdx = 1:numChannels
+	xData = get(h(chanIdx), 'XData');
+	yData = get(h(chanIdx), 'YData');
+	
+	% Find any points within the x and y limits of the selection box
+	inX = (xData >= xLimits(1)) & (xData <= xLimits(2));
+	inY = (yData >= yLimits(1)) & (yData <= yLimits(2));
+
+	% If any point of the line is within the selection box, toggle selection
+	if any(inX & inY)
+		if get(h(chanIdx), 'UserData') == false
+			set(h(chanIdx), 'UserData', true); 
+			set(h(chanIdx), 'Color', [h(chanIdx).Color(1:3), 0]);
+			sel(chanIdx) = true;
+			disp(['Selected ',labs{chanIdx}])
+		end
+	end
+end
+% Exclude selected channels from the mean calculation
+set(p3, 'YData', median(po(:, ~sel), 2));
+maxSelPo = max(max(po(:,~sel)));
+minSelPo = min(min(po(:,~sel)));
+set(gca,'YLim',[minSelPo,maxSelPo])
 end
 
 end
