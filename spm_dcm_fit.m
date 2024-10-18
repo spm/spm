@@ -21,7 +21,7 @@ function [P]   = spm_dcm_fit(P,use_parfor)
 % Copyright (C) 2015-2022 Wellcome Centre for Human Neuroimaging
 
 
-if nargin < 2, use_parfor = false; end
+if nargin < 2, use_parfor = spm_get_defaults('use_parfor'); end
 
 % get filenames and set up
 %--------------------------------------------------------------------------
