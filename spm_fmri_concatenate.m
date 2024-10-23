@@ -1,6 +1,6 @@
 function SPM = spm_fmri_concatenate(P, scans)
 % Adjust an SPM.mat which has concatenated sessions
-% FORMAT spm_post_concatenate(P, scans)
+% FORMAT spm_fmri_concatenate(P, scans)
 % Session regressors are added and the high-pass filter and non-sphericity
 % estimates adjusted as if sessions are separate.
 %
