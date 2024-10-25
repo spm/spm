@@ -1,7 +1,7 @@
 function MDP = spm_merge_structure_learning(O,MDP)
 % RG structure learning of a hierarchical POMDP
 % FORMAT MDP = spm_merge_structure_learning(O,MDP)
-% O{N,T} - probabilitic exemplars of paths (cell aray)
+% O{N,T} - cell array of (probabilisitc) outcomes
 % MDP    - cell array of (renormalising) models
 %
 % This routine uses fast structure learning to append or merge new
@@ -20,9 +20,9 @@ function MDP = spm_merge_structure_learning(O,MDP)
 %__________________________________________________________________________
 
 
-% options for model inversion (and evaluation)
+% outcomes
 %==========================================================================
-O         = {O};                               % outcomes
+O         = {O};
 
 % learn the dynamics in the form of a hierarchical MDP
 %==========================================================================

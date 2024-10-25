@@ -113,21 +113,20 @@ for n = 1:Nm
     end
 
 
-    % predicted states (and entropy)
+    % predicted states
     %----------------------------------------------------------------------
     subplot(Nm + 3,2,(n - 1)*2 + 3)
     Q = spm_cat(Y{L}(iD,:));
     hold off, image((1 - Q)*64)
     title(sprintf('Predictive posterior (states) level %i',L),'FontSize',12)
 
-    % predicted paths (and entropy)
+    % predicted paths
     %----------------------------------------------------------------------
     if L > 1
         subplot(Nm + 3,2,(n - 1)*2 + 4)
         Q = spm_cat(Y{L}(iE,:));
         hold off, image((1 - Q)*64)
         title(sprintf('Predictive posterior (paths) level %i',L),'FontSize',12)
-
     end
 
     % next level
@@ -137,8 +136,21 @@ for n = 1:Nm
     end
 end
 
+
+% add ELBOs
+%==========================================================================
+subplot(Nm + 3,2,2*(Nm + 1))
+T     = numel(MDP.Q.E{1});
+t     = linspace(1,T,MDP.T);
+plot(t,MDP.F), hold on
+for n = 1:numel(MDP.Q.E)
+    t = linspace(1,T,numel(MDP.Q.E{n}));
+    plot(t,MDP.Q.E{n})
+end
+title('ELBO'), spm_axis tight
+
 % At the lowest (pixel) level
-%--------------------------------------------------------------------------
+%==========================================================================
 I     = struct([]);
 J     = uint8([]);
 K     = uint8([]);

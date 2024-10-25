@@ -280,6 +280,8 @@ end
 spm_MI     = @spm_dir_MI;                           % active learning
 spm_MI     = @spm_MDP_MI;                           % active learning
 
+global WAIT
+if isempty(WAIT), WAIT = false; end
 
 % defaults
 %--------------------------------------------------------------------------
@@ -1002,17 +1004,38 @@ for t = 1:T
 
             end
 
+
+            % invoke WAIT if the ELBO at this level is very low
+            %--------------------------------------------------------------
+            if isfield(MDP(m),'wait') && isfield(MDP(m),'F')
+                nF = numel(MDP(m).F);
+                nE    = 2^(MDP.L - 1);
+                if nF > 1
+                    if MDP(m).F(end) < -MDP(m).wait
+                        WAIT = true;
+                    else
+                        WAIT = false;
+                    end
+                end
+            end
+
             % states and paths of generative process
             %==============================================================
             if spm_is_process(mdp)
                 
                 if isfield(mdp,'GV')
 
+                    if WAIT
+                        GT = 1;
+                    else
+                        GT = MDP.T;
+                    end
+
                     % explicit action: sample action from predictions (D)
                     %------------------------------------------------------
-                    mdp   = spm_action(mdp,mdp.A,mdp.D,mdp.T);
-                    mdp.u = mdp.u(:,end);
-                    mdp.s = mdp.s(:,end);
+                    mdp   = spm_action(mdp,mdp.A,mdp.D,GT);
+                    mdp.u = mdp.u(:,GT);
+                    mdp.s = mdp.s(:,GT);
                     for f = 1:numel(mdp.u)
 
                         % update prior over control paths
@@ -1028,7 +1051,12 @@ for t = 1:T
                         mdp.s(f)  = spm_sample(mdp.GD{f});
 
                     end
+
                 end
+
+                % suspend waiting
+                %----------------------------------------------------------
+                WAIT = false;
 
                     else
 
@@ -2573,7 +2601,7 @@ function MDP = spm_action(MDP,A,Q,t)
 % returns (explicit or overt) action based upon generative process
 % MDP - structure 
 % A   - likelihood mapping
-% Q   - posterior over latent states
+% Q   - predictive posterior over latent states
 % t   - time step
 %
 % This routine evaluates the next control states that realise posterior
@@ -2764,12 +2792,14 @@ DEM_drone_VI                % RGM with control at first level
 DEM_MNIST_conv              % Active sampling and state-dependent codomains
 
 DEM_Atari                   % RGM with control at final level
+DEM_AtariII                 % RGM with structure merging
 DEM_compression             % RGM for movies (simple) (dove)
 DEM_video_compression       % RGM for movies (with learning) (Robin)
 DEM_sound_compression       % RGM for WAV files (Birdsong)
 DEM_music_compression       % RGM for WAV files (Jazz)
-DEM_image_compression       % RGM for MNIST (Digits)
+DEM_chaos_compression       % RGM for movies (Lorenz)
 
+DEM_image_compression       % RGM for MNIST (Digits)
 DEM_MNIST_RGM               % RGM for MNIST (Digits)
 DEM_MNIST                   % Active selection without dynamics
 DEM_MNIST_mixture           % RGM for mixture of MNIST experts (MDPs)
