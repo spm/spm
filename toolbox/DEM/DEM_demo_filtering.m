@@ -18,11 +18,9 @@ M(1).E.linear = 3;
  
 % model specification - 1st level
 %--------------------------------------------------------------------------
-f       = 'exp(v) - P*x';
-g       = '(x.^2)/5';
 M(1).x  = 1;
-M(1).f  = inline(f,'x','v','P');
-M(1).g  = inline(g,'x','v','P');
+M(1).f  = @(x,v,P) exp(v) - P*x;
+M(1).g  = @(x,v,P) (x.^2)/5;
 M(1).pE = log(2);
 M(1).V  = exp(4);
  
@@ -63,7 +61,7 @@ spm_DEM_qU(DEM.qU,DEM.pU)
 spm_figure('GetWin','Figure 1');
 
 subplot(2,1,1)
-plot((1:T),t_x,'r-',(1:T),d_x,'k-',[1:T],p_x,'k-.',(1:T),e_x,'k:')
+plot((1:T),t_x,'r-',(1:T),d_x,'k-',(1:T),p_x,'k-.',(1:T),e_x,'k:')
 legend({'true','DEM','PF','EKF'})
 axis square
 xlabel('time')
