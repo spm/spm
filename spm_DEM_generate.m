@@ -4,6 +4,8 @@ function [DEM] = spm_DEM_generate(M,U,P,h,g)
 % FORMAT [DEM] = spm_DEM_generate(M,U,P,h,g): size(U,2) samples using U
 %
 % M(i)     - HDM
+% M(i).x   - initial states
+% M(i).v   - initial causes
 % U(n x N} - causes or N number of causes
 % P{i}     - model-parameters for level i (defaults to M.pE)
 % h{i}     - log-precisions   for level i (defaults to 32 - no noise)

@@ -68,17 +68,18 @@ for i = 1:g
         box off
         set(gca,'XLim',[0 np + 1])
 
+        % prior or true means
+        %------------------------------------------------------------------
+        try
+            hold on, bar(1:length(qi),pi,1/4), hold off
+        end
+
         % conditional variances
         %------------------------------------------------------------------
         for k = 1:np
             line([k k], [-1 1]*c(k) + qi(k),'LineWidth',4,'Color',col);
         end
 
-        % prior or true means
-        %------------------------------------------------------------------
-        try
-            hold on, bar(1:length(qi),pi,1/3), hold off
-        end
 
         % labels
         %------------------------------------------------------------------
@@ -92,7 +93,7 @@ end
 % conditional (or prior) covariance 
 %--------------------------------------------------------------------------
 try
-    if length(qP.C) == 1;
+    if length(qP.C) == 1
         return
     else
         i  = find(diag(qP.C));
@@ -110,7 +111,7 @@ else
     title({'conditional covariances','among parameters'},'FontSize',16)
 end
 if ~isempty(Label)
-    set(gca,'YTickLabel',Label,'YTick',[1:length(Label)])
+    set(gca,'YTickLabel',Label,'YTick',1:length(Label))
 end
 axis square
 
