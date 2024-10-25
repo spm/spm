@@ -889,3 +889,9 @@ run_demo_Callback(hObject, handles, 'DEM_MNIST_mixture')
 function pushbutton296_Callback(hObject, eventdata, handles)
 handles.web = 'Active Inference A Process Theory';
 run_demo_Callback(hObject, handles, 'DEM_drone_telemetry')
+
+% --- Executes on button press in pushbutton297.
+function pushbutton297_Callback(hObject, eventdata, handles)
+handles.web = 'Active Inference A Process Theory';
+run_demo_Callback(hObject, handles, 'ADEM_physics')
+
