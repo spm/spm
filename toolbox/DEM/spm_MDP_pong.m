@@ -153,7 +153,7 @@ end
 % initial states (D) and paths through those states (E)
 %--------------------------------------------------------------------------
 for f = 1:Nf
-    D{f} = sparse(1,1,1,Ns(f),1);     % First state
+    D{f} = ones(Ns(f),1)/Ns(f);       % First state
     E{f} = sparse(1,1,1,Nu(f),1);     % First path
     H{f} = [];                        % No intentions at this stage
 end

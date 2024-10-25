@@ -4,7 +4,7 @@ function [u] = spm_dir_orbits(b,hid,P,Nx)
 % b      - transition tensor
 % hid    - states to highlight
 % P      - (Ns x Nt) sequence of (probabilistic) states
-% Nx     - rotate to show first Np (generlised) states
+% Nx     - rotate to show first Nx (generalised) states
 %
 % This routine plots latent states in the first two principle eigenvectors
 % of (roughly) the graph Laplacian of transitions among states. The
@@ -34,22 +34,19 @@ B     = b > 1/16;
 if nargin < 4, Nx = Ns; end
 O       = false(Ns,1);
 O(1:Nx) = true;
-R       = diag(O);
+R       = diag(O + 1/2);
 
 % state space (defined by graph Laplacian)
 %--------------------------------------------------------------------------
 b     = spm_detrend(b);
 b     = b + b' + eye(size(b));
-% u   = spm_svd(b);
+u     = spm_svd(R*b*R);
+
 % G   = b + b';
 % G   = G - diag(diag(G));
 % G   = G - diag(sum(G));
 % G   = expm(G);
 % u   = spm_svd(G);
-
-u     = spm_svd(R*b*R);
-U     = spm_svd(b);
-%u     = U*U'*u(:,1:2);
 
 % Plot latent states
 %--------------------------------------------------------------------------
