@@ -1,5 +1,5 @@
 % Statistical Parametric Mapping
-% Version dev (SPM12) 01-Mar-2024
+% Version 00.00 (SPM24) <date>
 %__________________________________________________________________________
 %  ___  ____  __  __
 % / __)(  _ \(  \/  )  
@@ -38,6 +38,9 @@
 % This <Contents.m> is the contents file for SPM, used by spm('Ver') and
 % MATLAB's ver to recover version information.
 %   Line1: Toolbox Description
-%   Line2: Version xxxx (SPMx) dd-mmm-yyyy
-% where SPMx indicates the SPM version and xxxx is the revision number.
+%   Line2: Version YY.0M[.MICRO] (SPMYY) dd-mmm-yyyy
+% where SPMYY indicates the SPM version and YY.0M[.MICRO] is the revision:
+% (https://www.fil.ion.ucl.ac.uk/spm/docs/development/versioning/)
+% The github release action will automatically replace 00.00 and <date>
+% with the release tag and date of the release.
 %==========================================================================

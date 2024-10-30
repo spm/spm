@@ -1,0 +1,166 @@
+name: Release SPM (code and MATLAB Standalone)
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "[0-9][0-9].[0-9][0-9]*"
+
+env:
+  MLM_LICENSE_TOKEN: ${{ secrets.MATLAB_BATCH_TOKEN }}
+  PRERELEASE: true
+
+jobs:
+  build_matlab_standalone:
+    name: Build and Release MATLAB Standalone
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        # This actions compiles by default with the newest available matlab version
+        version: ["latest"] # ["R2021a", "R2021b", "R2022a", "R2022b", "R2023a", "R2023b", "R2024a", "R2024b"]
+        os: ["ubuntu-latest", "macos-13", "macos-latest", "windows-latest"] # macos-13 has Intel architecture, macos-latest has Apple Silicon
+        include: # These includes are just giving the OSs additional names
+          - os: ubuntu-latest
+            os_name: Linux
+          - os: macos-13
+            os_name: macOS_Intel
+          - os: macos-latest
+            os_name: macOS_Apple_Silicon
+          - os: windows-latest
+            os_name: Windows
+        exclude: # To exclude not working versions in case all Matlab targets are compiled
+          - os: windows-latest
+            version: "R2021a" # Compiler not available
+          - os: windows-latest
+            version: "R2021b" # Compiler not available
+          - os: macos-latest
+            version: "R2021a" # Apple Silicon version not available
+          - os: macos-latest
+            version: "R2021b" # Apple Silicon version not available
+          - os: macos-latest
+            version: "R2022a" # Apple Silicon version not available
+          - os: macos-latest
+            version: "R2022b" # Apple Silicon version not available
+          - os: macos-latest
+            version: "R2023a" # Apple Silicon version not available
+
+    steps:
+      - name: Set up MATLAB
+        id: setup_matlab
+        uses: matlab-actions/setup-matlab@v2
+        with:
+          release: ${{matrix.version}}
+          products: MATLAB_Compiler
+
+      - name: Extract MATLAB version to file
+        uses: matlab-actions/run-command@v2
+        with:
+          command: |
+            fileID = fopen('matlab_release.txt', 'w')
+            fprintf(fileID, matlabRelease.Release)
+            fclose(fileID)
+      - name: Set environment variable with MATLAB version
+        shell: bash # Works on Windows as well because of shell: bash
+        run: |
+          matlab_release=$(cat matlab_release.txt)
+          echo "MATLAB_VERSION=$matlab_release" >> $GITHUB_ENV
+
+      - name: Checkout SPM
+        uses: actions/checkout@v4
+
+      - name: Delete hidden files and folders
+        shell: bash
+        run: rm -rf .[^.]*
+
+      - name: Set the SPM version
+        uses: richardrigutins/replace-in-files@v2
+        with:
+          files: "Contents.m"
+          search-text: " 00.00 "
+          replacement-text: " ${{ github.ref_name }} "
+
+      - name: Get the date
+        shell: bash
+        run: echo "date=$(date '+%d-%b-%Y')" >> $GITHUB_ENV
+
+      - name: Set the date of compilation
+        uses: richardrigutins/replace-in-files@v2
+        with:
+          files: "Contents.m"
+          search-text: <date>
+          replacement-text: ${{ env.date }}
+
+      # 1) Add SPM with subfolders to the path 2) Run spm_make_standalone in matlab 3) Create runtime_installer
+      - name: Build MATLAB standalone
+        uses: matlab-actions/run-command@v2
+        with:
+          command: |
+            addpath(genpath('.'));
+            savepath;
+            spm_make_standalone
+            mkdir('runtime_installer');
+            if ~isMATLABReleaseOlderThan("R2024b")
+              compiler.runtime.customInstaller('Runtime_${{ env.MATLAB_VERSION }}_for_spm_standalone_${{ github.ref_name }}', '../standalone/requiredMCRProducts.txt', OutputDir='../runtime_installer');
+            end
+
+      - name: Install zip on Windows
+        if: runner.os == 'Windows'
+        run: choco install zip -y
+        shell: bash
+
+      - name: Compress to ZIP (latest)
+        if: matrix.version == 'latest'
+        run: |
+          cd ..
+          mv standalone spm_standalone
+          zip -r spm_standalone_${{ github.ref_name }}_${{ matrix.os_name }}.zip spm_standalone runtime_installer
+      - name: Compress to ZIP (specific MCR version)
+        if: matrix.version != 'latest'
+        run: |
+          cd ..
+          mv standalone spm_standalone
+          zip -r spm_standalone_${{ github.ref_name }}_${{ matrix.os_name }}_${{ env.MATLAB_VERSION }}.zip spm_standalone runtime_installer
+
+      - name: Release standalone
+        uses: softprops/action-gh-release@v2
+        with:
+          prerelease: ${{ env.PRERELEASE }}
+          files: ../spm_standalone*.zip
+
+      # The next steps are only performed once for OS=Linux and MATLAB version=latest
+      # Release SPM (not standalone)
+      - name: Create SPM ZIP for regular release (not standalone)
+        if: runner.os == 'Linux' && matrix.version == 'latest'
+        run: |
+          cd ..
+          zip -r spm_${{ github.ref_name }}.zip spm
+
+      - name: Release SPM
+        if: runner.os == 'Linux' && matrix.version == 'latest'
+        uses: softprops/action-gh-release@v2
+        with:
+          prerelease: ${{ env.PRERELEASE }}
+          files: ../spm*.zip
+
+      # Trigger Container Build in spm-docker 
+      - name: Parse tag into SPM_RELEASE and SPM_REVISION
+        if: runner.os == 'Linux' && matrix.version == 'latest'
+        run: |
+          tag="${{ github.ref_name }}"
+          echo "SPM_RELEASE=${tag:0:5}" >> $GITHUB_ENV
+          echo "SPM_REVISION=${tag:6}" >> $GITHUB_ENV
+
+      - name: Trigger workflow in spm-docker
+        if: runner.os == 'Linux' && matrix.version == 'latest'
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.PAT_TOKEN_SPM_DOCKER }}
+          repository: spm/spm-docker
+          event-type: trigger-container-build
+          client-payload: |-
+            {
+              "matlab_version": "${{ env.MATLAB_VERSION }}",
+              "agree_to_matlab_runtime_license": "yes",
+              "spm_release": "${{ env.SPM_RELEASE }}",
+              "spm_revision": "${{ env.SPM_REVISION }}"
+            }
