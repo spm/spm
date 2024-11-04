@@ -23,8 +23,7 @@ function varargout = spm_update(update)
 % Copyright (C) 2010-2022 Wellcome Centre for Human Neuroimaging
 
 
-vspm = spm('Ver');
-url  = ['http://www.fil.ion.ucl.ac.uk/spm/download/' lower(vspm) '_updates/'];
+[spm_version, spm_revision]  = spm('Ver');
 
 if ~nargin
     update = false;
@@ -34,56 +33,45 @@ end
 
 %-Get list of updates from SPM server
 %--------------------------------------------------------------------------
-[s,status] = urlread(url);
-if ~status
+try
+    response = webread('https://api.github.com/repos/spm/spm/releases');
+catch
     sts = NaN;
     msg = 'Cannot access SPM server.';
     if ~nargout, error(msg); else varargout = {sts, msg}; end
     return
 end
 
-%-Get revision number of latest update
+%-Get latest version
 %--------------------------------------------------------------------------
-n = regexp(s,[lower(vspm) '_updates_r(\d.*?)\.zip'],'tokens','once');
-if isempty(n)
+valid_version_pattern = '^\d{2}\.\d{2}(\.\d+)?$';
+tagged_versions = string({response.tag_name});
+valid_versions = ~cellfun('isempty', regexp(tagged_versions, valid_version_pattern));
+sorted_versions = sort(tagged_versions(valid_versions), 'descend');
+
+if numel(sorted_versions) == 0
     sts = Inf;
     msg = 'There are no updates available yet.';
     if ~nargout, fprintf([blanks(9) msg '\n']);
     else varargout = {sts, msg}; end
     return
 end
-n = str2double(n{1});
 
-%-Get revision number of SPM installation
-%--------------------------------------------------------------------------
-try
-    [v,r] = spm('Ver','',1); r = str2double(r);
-catch
-    error('SPM cannot be found in MATLAB path.');
-end
-if ~strcmp(v,vspm), error('Your SPM version is %s and not %s',v,vspm); end
-rs = [6225 6470 6685 6906 7219 7487 7771];
-if isnan(r), r = rs(1); end 
-if floor(r) == str2double(vspm(4:end))
-    try
-        r = rs(round((r-floor(r))*10)+1);
-    catch
-        r = rs(end);
-    end
-end
+latest_version = sorted_versions{1};
+url = sprintf('https://github.com/spm/spm/releases/download/%s/spm_%s.zip', latest_version, latest_version);
 
 %-Compare versions
 %--------------------------------------------------------------------------
-if n > r
-    sts = n;
-    msg = sprintf('         A new version of %s is available on:\n',vspm);
+if string(latest_version) > string(spm_revision)
+    sts = spm_revision;
+    msg = sprintf('         A new version of SPM is available on:\n');
     msg = [msg sprintf('   %s\n',url)];
-    msg = [msg sprintf('        (Your version: %d - New version: %d)\n',r,n)];
+    msg = [msg sprintf('        (Your version: %s - New version: %s)\n',spm_revision,latest_version)];
     if ~nargout, fprintf(msg); else varargout = {sts, msg}; end
 else
     sts = 0;
-    msg1 = sprintf('Your version of %s is up to date.',vspm);
-    msg2 = sprintf('(Your version: %d - Online version: %d)',r,n);
+    msg1 = sprintf('Your version of %s is up to date.',spm_version);
+    msg2 = sprintf('(Your version: %s - Online version: %s)',spm_revision,latest_version);
     if ~nargout, fprintf([blanks(9) msg1 '\n' blanks(5) msg2 '\n']);
     else varargout = {sts, sprintf('%s\n%s',msg1,msg2)}; end
     return
@@ -98,7 +86,10 @@ if update
         lastwarn('');
         m = '          Download and install in progress...\n';
         if ~nargout, fprintf(m); else varargout = {sts, [msg m]}; end
-        s = unzip([url sprintf('%s_updates_r%d.zip',lower(vspm),n)], d);
+        s = unzip(url, [d '/spm_update_tmp']);
+        update_folder = [d '/spm_update_tmp/spm'];
+        movefile(fullfile(update_folder, '*'), d);
+        rmdir(update_folder, 's');
         m = sprintf('         Success: %d files have been updated.\n',numel(s));
         if ~nargout, fprintf(m); else varargout = {sts, [msg m]}; end
     catch
