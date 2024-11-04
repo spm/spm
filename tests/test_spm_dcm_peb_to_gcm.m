@@ -132,4 +132,4 @@ function p = one_sample_tt(data,mu)
 
 if nargin < 2, mu = 0; end
 t = (mean(data)-mu) / (std(data) / sqrt(length(data)));
-p = (1-spm_Tcdf(t,length(data)-1)) * 2;
+p = spm_Tcdf(-t,length(data)-1) * 2;

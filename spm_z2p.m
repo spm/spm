@@ -24,7 +24,7 @@ if nargin < 2, STAT = 'Z'; end
 if      STAT == 'Z'
     P = (1 - spm_Ncdf(Z)).^n;
 elseif  STAT == 'T'
-    P = (1 - spm_Tcdf(Z,df(2))).^n;
+    P = (spm_Tcdf(-Z,df(2))).^n;
 elseif  STAT == 'X'
     P = (1 - spm_Xcdf(Z,df(2))).^n;
 elseif  STAT == 'F'

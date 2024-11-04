@@ -32,7 +32,7 @@ M.X = X;
 
 % Test that classical p-value is significant
 [T,df] = spm_ancova(M.X(:,1:2),[],qE(:),[0;1]);
-p = 1 - spm_Tcdf(T,df(2));
+p = spm_Tcdf(-T,df(2));
 testCase.assertTrue(p < 0.05);
 
 % -------------------------------------------------------------------------
@@ -60,7 +60,7 @@ M.X = X;
 
 % Test that classical p-value is significant
 [T,df] = spm_ancova(M.X(:,1:2),[],qE(:),[0;1]);
-p = 1 - spm_Tcdf(T,df(2));
+p = spm_Tcdf(-T,df(2));
 testCase.assertTrue(p > 0.05);
 
 % -------------------------------------------------------------------------
@@ -91,7 +91,7 @@ M.X = X;
 
 % Test that classical p-value is significant
 [T,df] = spm_ancova(M.X(:,1:2),[],qE(:),[0;1]);
-p = 1 - spm_Tcdf(T,df(2));
+p = spm_Tcdf(-T,df(2));
 testCase.assertTrue(p >= 0.05);
 
 % -------------------------------------------------------------------------

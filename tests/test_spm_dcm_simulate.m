@@ -179,7 +179,7 @@ end
 function p = one_sample_tt(data,mu)
 % One sample t-test
 t = (mean(data)-mu) / (std(data) / sqrt(length(data)));
-p = (1-spm_Tcdf(t,length(data)-1)) * 2;
+p = spm_Tcdf(-t,length(data)-1) * 2;
 
 % -------------------------------------------------------------------------
 function data_path = get_data_path()

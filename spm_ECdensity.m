@@ -34,7 +34,7 @@ elseif  STAT == 'T'
     b       = exp(gammaln((v+1)/2) - gammaln(v/2));
     c       = (1+t.^2/v).^((1-v)/2);
 
-    EC(1,:) = 1 - spm_Tcdf(t,v);
+    EC(1,:) = spm_Tcdf(-t,v);
     EC(2,:) = a^(1/2)/(2*pi)*c;
     EC(3,:) = a/((2*pi)^(3/2))*c.*t/((v/2)^(1/2))*b;
     EC(4,:) = a^(3/2)/((2*pi)^2)*c.*((v-1)*(t.^2)/v - 1);

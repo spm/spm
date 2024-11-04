@@ -124,7 +124,7 @@ hold off
 % Note: 1-p is equal to Bayesian RFX if T=0
 %--------------------------------------------------------------------------
 t  = (sqrt(num_models)*c)/sqrt(v);
-p  = 1 - spm_Tcdf(t,num_models - 1);
+p  = spm_Tcdf(-t,num_models - 1);
 disp(sprintf('Classical Random Effects p-value = %1.4f', p));
 disp('Note: 1-p is equal to Bayesian RFX if threshold is zero');
 spm_input('Thank you',1,'d');

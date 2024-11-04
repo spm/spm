@@ -105,7 +105,7 @@ r      = full(r(1,2));
 if isnan(T)
     p = NaN;
 else
-    p = 1 - spm_Tcdf(T,df(2));
+    p = spm_Tcdf(-T,df(2));
 end
 
 % correlation (c.f., out-of-sample variance explained)
