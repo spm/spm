@@ -239,7 +239,6 @@ realtime = any(strcmp(headerformat, {'fcdc_buffer', 'ctf_shm', 'fcdc_mysql'}));
 
 if realtime
   % skip the rest of the initial checks to increase the speed for realtime operation
-
   checkUniqueLabels = false;
   % the cache and fallback option should always be false for realtime processing
   cache    = false;
@@ -250,7 +249,7 @@ else
   if  ~exist(filename, 'file')
     ft_error('file or directory ''%s'' does not exist', filename);
   end
-
+  % checking labels can be slow, especially if there are many of them (as for fMRI data)
   checkUniqueLabels = true;
   % get the rest of the options, this is skipped for realtime operation
   cache          = ft_getopt(varargin, 'cache');
@@ -259,6 +258,8 @@ else
 
   if isempty(cache)
     if any(strcmp(headerformat, {'bci2000_dat', 'eyelink_asc', 'gtec_mat', 'gtec_hdf5', 'mega_neurone', 'nihonkohden_m00', 'smi_txt', 'biosig'}))
+      % for these files the data and event information will be cached in hdr.orig
+      % so that subsequent reading of data and events is fast
       cache = true;
     else
       cache = false;
@@ -622,8 +623,9 @@ switch headerformat
     hdr.nTrials     = orig.nTrials;
     hdr.orig        = orig;
     % assign the channel type and units for the known channels
-    hdr.chantype = repmat({'eeg'}, size(hdr.label));
-    hdr.chanunit = repmat({'uV'},  size(hdr.label));
+    hdr.chanunit = orig.unit;
+    hdr.chantype = repmat({'unknown'}, size(hdr.label));
+    hdr.chantype(strcmp(hdr.chanunit, 'uV')) = {'eeg'}; % assume these to be EEG
 
   case 'bucn_nirs'
     orig = read_bucn_nirshdr(filename);
@@ -638,7 +640,7 @@ switch headerformat
     orig = orig.header;
     % In Spike2, channels can have different sampling rates, units, length
     % etc. etc. Here, channels need to have to same properties.
-    if length(unique([orig.samplerate]))>1,
+    if length(unique([orig.samplerate]))>1
       ft_error('channels with different sampling rates are not supported');
     else
       hdr.Fs   = orig(1).samplerate;
@@ -648,7 +650,7 @@ switch headerformat
     hdr.nSamples    = min([orig.nsamples]);
     hdr.nSamplesPre = 0;
     % only continuous data supported
-    if sum(strcmpi({orig.mode},'continuous')) < hdr.nChans,
+    if sum(strcmpi({orig.mode},'continuous')) < hdr.nChans
       ft_error('not all channels contain continuous data');
     else
       hdr.nTrials = 1;
@@ -1497,7 +1499,7 @@ switch headerformat
     hdr.nSamplesPre = 0;
     hdr.nTrials     = 1; % assume continuous data, not epoched
     assert(orig.RawData.AcquisitionTaskDescription.NumberOfAcquiredChannels==hdr.nChans, 'inconsistent number of channels');
-    % remember the complete data upon request
+    % store the data and event information when requested (default)
     if cache
       hdr.orig = orig;
     end

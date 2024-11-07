@@ -195,7 +195,7 @@ function [realign, snap] = ft_volumerealign(cfg, mri, target)
 % specified, weights are put on points with z-coordinate<0 (assuming those to be eye
 % rims and nose ridges, i.e. important points.
 
-% Copyright (C) 2006-2023, Robert Oostenveld, Jan-Mathijs Schoffelen
+% Copyright (C) 2006-2024, Robert Oostenveld, Jan-Mathijs Schoffelen
 %
 % This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
@@ -1966,7 +1966,7 @@ for i=1:length(opt.fidlabel)
   lab = opt.fidlabel{i};
   vox = opt.fiducial.(lab);
   if all(isfinite(vox))
-    ind = sub2ind(mri.dim(1:3), round(vox(1)), round(vox(2)), round(vox(3)));
+    ind = sub2ind(opt.mri.dim(1:3), round(vox(1)), round(vox(2)), round(vox(3)));
   else
     ind = nan; % functional behavior of sub2ind has changed, giving an error with nan-input
   end
