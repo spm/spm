@@ -4,3 +4,4 @@
 src/*.mex*
 tests/data
 toolbox/mb/data
+canonical/single_subj_T1_EEG_BEM.mat
