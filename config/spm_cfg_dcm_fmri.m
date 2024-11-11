@@ -337,13 +337,13 @@ for s = 1:ns
         copyfile(templates{m}, new_dcm);
         GCM{s,m} = new_dcm;
         
+        % Update timeseries
+        spm_dcm_voi(new_dcm,subject_vois);
+        
         % Update regions
         if ~isempty(inputs)
             spm_dcm_U(new_dcm,subject_spm,sess,inputs);
         end
-        
-        % Update timeseries
-        spm_dcm_voi(new_dcm,subject_vois);
     end    
     
 end
