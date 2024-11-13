@@ -1,9 +1,12 @@
 function [MDP] = spm_faster_structure_learning(O,S,dx,dt)
 % RG structure learning of a hierarchical POMDP
-% FORMAT [MDP] = spm_faster_structure_learning(O,S)
+% FORMAT [MDP] = spm_faster_structure_learning(O,S,dx,dt)
 % O{N,T} - probabilitic exemplars of paths (cell aray)
-% S      - size of pixel array (2 or 3-vector)
-%
+% S      - array size of streams (number of streams x 4)
+%    S(:,1) - size of group (x)
+%    S(:,2) - size of group (y)
+%    S(:,3) - size of group (z)
+%    S(:,4) - number of outcomes per group
 % dx     - space scaling [default: 2 or 3]
 % dt     - time  scaling [default: 2]
 %
@@ -20,10 +23,20 @@ function [MDP] = spm_faster_structure_learning(O,S,dx,dt)
 %__________________________________________________________________________
 
 
+% check for stream specification
+%--------------------------------------------------------------------------
+if size(S,2) < 4
+    S(:,end + 1:4) = 1;
+end
+
+% Outcomes per group (e.g., TrueColor, eigenmodes or generalised states)
+%--------------------------------------------------------------------------
+if size(S,1) == 1
+    S(4)  = size(O,1)/prod(S(1:3));
+end
+
 % options for model inversion (and evaluation)
 %==========================================================================
-S         = {S};                               % size of image
-O         = {O};                               % outcomes
 
 % scaling (RG flow)
 %--------------------------------------------------------------------------
@@ -37,61 +50,94 @@ if numel(dt) < 2, dt = repmat(dt,1,16); end
 MDP   = {};
 for n = 1:8
 
-    % Outcomes per tile or group (e.g., TrueColor or eigenmodes)
+    % for each sector or segregated stream
     %----------------------------------------------------------------------
-    m        = size(O{n},1)/prod(S{n});
+    N     = {};                          % outcomes for next level
+    D     = [];                          % parents of intial states
+    E     = [];                          % parents of intial paths
+    Ng    = [];                          % number of groups
+    Ns    = 0;                           % number of groups (cummulative)
+    No    = 0;                           % number of outcomes (cummulative)
+    for s = 1:size(S,1)
 
-    % Grouping into a partition of outcomes
-    %----------------------------------------------------------------------
-    G        = spm_group(S{n},m,dx(n));
-    S{n + 1} = size(G);
-    MDP{n}.T = dt(n);
-    MDP{n}.G = G;
-
-
-    % likelihood and transitions for each group
-    %======================================================================
-    Ng    = numel(G);
-    Nt    = size(O{n},2);
-    X     = cell(Ng,Nt - 1);
-    P     = cell(Ng,Nt - 1);  
-    for g = 1:Ng
-
-        % structure_learning from unique exemplars
+        % Grouping into a partition of outcomes
         %------------------------------------------------------------------
-        mdp  = spm_structure_fast(O{n}(G{g},:));
+        G           = spm_group(S(s,:),dx(n));
+        MDP{n}.T    = dt(n);
+        MDP{n}.G{s} = G;
 
-        % likelihoods and priors for this group
-        %------------------------------------------------------------------
-        MDP{n}.A(G{g},1) = mdp.a;
-        MDP{n}.B(g,1)    = mdp.b;
+        % likelihood and transitions for each group
+        %==================================================================
+        Ng(s) = numel(G);
+        Nt    = size(O,2);
+        X     = cell(Ng(s),Nt - 1);
+        P     = cell(Ng(s),Nt - 1);
+        for g = 1:Ng(s)
 
-        % intial states and paths
-        %------------------------------------------------------------------
-        X(g,:)  = mdp.X;
-        P(g,:)  = mdp.P;
+            % structure_learning from unique exemplars
+            %--------------------------------------------------------------
+            gg  = No + G{g};
+            fg  = Ns + g;
+            mdp = spm_structure_fast(O(gg,:));
 
-        % parents of outcomes
-        %------------------------------------------------------------------
-        for j = 1:numel(G{g})
-            MDP{n}.id.A{G{g}(j)} = uint16(g);
+            % likelihoods and priors for this group
+            %--------------------------------------------------------------
+            MDP{n}.A(gg,1) = mdp.a;
+            MDP{n}.B(fg,1) = mdp.b;
+
+            % intial states and paths
+            %--------------------------------------------------------------
+            X(g,:) = mdp.X;
+            P(g,:) = mdp.P;
+
+            % parents of outcomes
+            %--------------------------------------------------------------
+            for j = 1:numel(gg)
+                MDP{n}.id.A{gg(j)} = uint16(fg);
+            end
+
         end
-        
+
+        % outcomes at next time scale
+        %------------------------------------------------------------------
+        t  = 1:dt(n):(Nt - 1);
+        N  = [N; [X(:,t); P(:,t)]];
+
+        % parents of states and paths
+        %------------------------------------------------------------------
+        iD = 2*Ns + (1:Ng(s));
+        iE = 2*Ns + (1:Ng(s)) + Ng(s);
+        D  = [D, iD];
+        E  = [E, iE];
+
+        % streams at next level
+        %------------------------------------------------------------------
+        S(s,:) = [size(G,[1,2,3]),2];
+        Ns     = Ns + Ng(s);
+        No     = No + G{end}(end);
+
     end
 
-    % outcomes at next time scale
+    % parents
     %----------------------------------------------------------------------
-    t        = 1:dt(n):(Nt - 1);
-    O{n + 1} = [X(:,t); P(:,t)];
+    MDP{n}.id.D = num2cell(D);                % parents of state
+    MDP{n}.id.E = num2cell(E);                % parents of paths
 
-    % parents of states and paths
+    % Combine streams if all comprise one group
     %----------------------------------------------------------------------
-    MDP{n}.id.D = num2cell(     (1:Ng));       % parents of state
-    MDP{n}.id.E = num2cell(Ng + (1:Ng));       % parents of paths
+    if max(Ng) == 1
+        S = [1 1 1 2*sum(Ng)];
+    end
 
     % Check whether there is only one group or (generalised) object
     %----------------------------------------------------------------------
-    if (Ng == 1) || (Nt == 1), break, end
+    if (numel(Ng) == 1) || (Nt == 1) 
+        break
+    end
+
+    % outcomes at next level
+    %----------------------------------------------------------------------
+    O  = N;
 
 end
 
@@ -112,23 +158,37 @@ function mdp = spm_structure_fast(O)
 % transitions among latent states.
 %__________________________________________________________________________
 
-% Unique outputs
+
+% distance matrix (i.e., normalised vectors on a hypersphere)
 %--------------------------------------------------------------------------
-o       = spm_cat(O)';
-o       = fix(o*2);
-[~,i,j] = unique(o,'rows','stable');
+D       = spm_information_distance(O);
+
+% discretise and return indices of unique outcomes
+%--------------------------------------------------------------------------
+[~,i,j] = unique(D < 1,'rows','stable');
+
 
 % Likelihood tensors
 %--------------------------------------------------------------------------
-Ng    = size(O,1);
+Ns    = numel(i);                           % number of latent causes
+Ng    = size(O,1);                          % number in group
 a     = cell(Ng,1);
 for g = 1:Ng
+
+    % use first mapping
+    %--------------------------------------------------------------------------
     a{g} = full(spm_cat(O(g,i)));
+
+%     % or average
+%     %--------------------------------------------------------------------------
+%     for s = 1:Ns
+%         a{g}(:,s) = full(mean(spm_cat(O(g,ismember(j,s))),2));
+%     end
+
 end
 
 % Transition tensors
 %--------------------------------------------------------------------------
-Ns    = numel(i);
 Nt    = numel(j) - 1;
 b     = false(Ns,Ns);
 for t = 1:Nt
@@ -178,11 +238,11 @@ mdp.X = mdp.X(1:Nt);
 
 return
 
-function g = spm_group(N,m, d)
+function g = spm_group(N,d)
 % Grouping into a partition of non-overlapping outcome tiles
-% FORMAT g = spm_group(N,m,[d])
+% FORMAT g = spm_group(N,d)
 %--------------------------------------------------------------------------
-% N  - size of space
+% N  - size of space (Nx,Ny,Nz,m)
 % m  - Number of modalities per outcome (e.g., pixel) [default: 1]
 % d  - Number of rows per tile [default: 2 or 3] 
 %
@@ -195,9 +255,8 @@ function g = spm_group(N,m, d)
 
 % defaults
 %--------------------------------------------------------------------------
-N(end + 1)       = 1;
-if nargin < 2, m = 1; end
-if nargin < 3
+N((end + 1):4) = 1;
+if nargin < 2
 
     % use 3 x 3 tiles (or smaller)
     %----------------------------------------------------------------------
@@ -230,12 +289,12 @@ g     = cell(s);
 for i = 1:s(1)
     for j = 1:s(2)
         for k = 1:s(3)
-            n{1}     = sparse((1:d(1)*m) + r{1}(i)*m,1,1,L(1)*m,1);
-            n{2}     = sparse((1:d(2)  ) + r{2}(j)  ,1,1,L(2)  ,1);
-            n{3}     = sparse((1:d(3)  ) + r{3}(k)  ,1,1,L(3)  ,1);
+            n{1}     = sparse((1:d(1)*N(4)) + r{1}(i)*N(4),1,1,L(1)*N(4),1);
+            n{2}     = sparse((1:d(2)  )    + r{2}(j)     ,1,1,L(2)     ,1);
+            n{3}     = sparse((1:d(3)  )    + r{3}(k)     ,1,1,L(3)     ,1);
 
             v        = spm_cross(n{1},n{2},n{3});
-            v        = v(1:N(1)*m,1:N(2),1:N(3));
+            v        = v(1:N(1)*N(4),1:N(2),1:N(3));
             g{i,j,k} = find(v(:));
         end
     end

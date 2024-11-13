@@ -154,28 +154,20 @@ for n = 1:Nm
     % normalised likelihoods
     %----------------------------------------------------------------------
     for g = 1:numel(MDP{n}.A)
-        try
-            if isa(MDP{n}.A{g},'function_handle')
-                MDP{n}.a{g} = MDP{n}.A{g};
-            else
-                MDP{n}.a{g} = MDP{n}.A{g} + p(n);
-            end
-        catch
-            MDP{n}.a{g} = MDP{n}.a{g} + p(n);
+        if isa(MDP{n}.A{g},'function_handle')
+            MDP{n}.a{g} = MDP{n}.A{g};
+        else
+            MDP{n}.a{g} = MDP{n}.A{g} + p(n);
         end
     end
 
     % normalised transitions
     %----------------------------------------------------------------------
     for f = 1:numel(MDP{n}.B)
-        try
-            if isa(MDP{n}.B{f},'function_handle')
-                MDP{n}.b{f} = MDP{n}.B{f};
-            else
-                MDP{n}.b{f} = MDP{n}.B{f} + q(n);
-            end
-        catch
-            MDP{n}.b{f} = MDP{n}.b{f} + q(n);
+        if isa(MDP{n}.B{f},'function_handle')
+            MDP{n}.b{f} = MDP{n}.B{f};
+        else
+            MDP{n}.b{f} = MDP{n}.B{f} + q(n);
         end
     end
 

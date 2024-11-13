@@ -528,13 +528,13 @@ for iE = 1:nE
         end
         
         
-        % Accumulate; dF/dP = <dL/dp>, dF/dpp = ...
+        % Accumulate gradients dF/dP = <dL/dp>, dF/dpp = <dL/dpp>
         %------------------------------------------------------------------
         dFdp  = dFdp  - dWdp/2  - real(dE.dP'*iS*E);
         dFdpp = dFdpp - dWdpp/2 - real(dE.dP'*iS*dE.dP);
         qp.ic = qp.ic           + real(dE.dP'*iS*dE.dP);
         
-        % and quantities for M-Step
+        % and suficient statistics for M-Step
         %------------------------------------------------------------------
         EE    = real(E*E') + EE;
         ECE   = ECE + ECEu + ECEp;
@@ -678,7 +678,7 @@ for iE = 1:nE
         v     = spm_unvec(qU(t).v{1},v);
         x     = spm_unvec(qU(t).x{1},x);
         z     = spm_unvec(qE{t}(1:(ny + nv)),{M.v});
-        w     = spm_unvec(qE{t}([1:nx] + (ny + nv)*n),{M.x});
+        w     = spm_unvec(qE{t}((1:nx) + (ny + nv)*n),{M.x});
         for i = 1:(nl - 1)
             if M(i).m, QU.v{i + 1}(:,t) = spm_vec(v{i}); end
             if M(i).n, QU.x{i}(:,t)     = spm_vec(x{i}); end

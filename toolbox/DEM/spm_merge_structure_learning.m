@@ -20,51 +20,63 @@ function MDP = spm_merge_structure_learning(O,MDP)
 %__________________________________________________________________________
 
 
-% outcomes
-%==========================================================================
-O         = {O};
-
 % learn the dynamics in the form of a hierarchical MDP
 %==========================================================================
 for n = 1:numel(MDP)
 
-
-    % Grouping into a partition of outcomes
+    % for each sector or segregated stream
     %----------------------------------------------------------------------
-    G     = MDP{n}.G;
+    N     = {};                             % outcomes for next level
+    Ns    = 0;                              % number of groups
+    No    = 0;                              % number of outcomes
+    for s = 1:numel(MDP{n}.G)
 
-    % likelihood and transitions for each group
-    %======================================================================
-    Ng    = numel(G);
-    Nt    = size(O{n},2);
-    X     = cell(Ng,Nt - 1);
-    P     = cell(Ng,Nt - 1);  
-    for g = 1:Ng
+        % Grouping into a partition of outcomes
+        %----------------------------------------------------------------------
+        G     = MDP{n}.G{s};
 
-        % structure_learning from unique exemplars
+        % likelihood and transitions for each group
+        %======================================================================
+        Ng    = numel(G);
+        Nt    = size(O,2);
+        X     = cell(Ng,Nt - 1);
+        P     = cell(Ng,Nt - 1);
+        for g = 1:Ng
+
+            % structure_learning from unique exemplars
+            %------------------------------------------------------------------
+            gg   = No + G{g};
+            fg   = Ns + g;
+            mdp  = spm_merge_fast(O(gg,:),MDP{n}.A(gg),MDP{n}.B(fg));
+
+            % likelihoods and priors for this group
+            %------------------------------------------------------------------
+            MDP{n}.A(gg) = mdp.a;
+            MDP{n}.B(fg) = mdp.b;
+
+            % intial states and paths
+            %------------------------------------------------------------------
+            X(g,:)  = mdp.X;
+            P(g,:)  = mdp.P;
+
+        end
+
+        % outcomes at next time scale
         %------------------------------------------------------------------
-        mdp  = spm_merge_fast(O{n}(G{g},:),MDP{n}.A(G{g}),MDP{n}.B(g));
+        t  = 1:MDP{n}.T:(Nt - 1);
+        N  = [N; [X(:,t); P(:,t)]];
+        Ns     = Ns + Ng;
+        No     = No + G{end}(end);
 
-        % likelihoods and priors for this group
-        %------------------------------------------------------------------
-        MDP{n}.A(G{g}) = mdp.a;
-        MDP{n}.B(g)    = mdp.b;
-
-        % intial states and paths
-        %------------------------------------------------------------------
-        X(g,:)  = mdp.X;
-        P(g,:)  = mdp.P;
-        
     end
-
-    % outcomes at next time scale
-    %----------------------------------------------------------------------
-    t        = 1:MDP{n}.T:(Nt - 1);
-    O{n + 1} = [X(:,t); P(:,t)];
 
     % break if no new (generalised) states
     %----------------------------------------------------------------------
-    if size(O{n + 1},2) < 1, break, end
+    if size(N,2) < 1, break, end
+
+    % outcomes at next level
+    %----------------------------------------------------------------------
+    O  = N;
 
 end
 
@@ -86,19 +98,22 @@ function mdp = spm_merge_fast(O,A,B)
 %__________________________________________________________________________
 
 
-% Sizes
+% sizes
 %--------------------------------------------------------------------------
 B     = logical(B{1});             % old transitions
 Ng    = size(A,1);                 % number of modalities
 Ns    = size(B,1);                 % number of old states
 Nu    = size(B,3);                 % number of old paths
+
+% append new states to A
+%--------------------------------------------------------------------------
 for g = 1:Ng
     Na     = size(A{g,1},1);
     No     = size(O{g,1},1);
     if isnumeric(O{g,1})
-        a      = zeros(No,Ns);
+        a  = zeros(No,Ns);
     else
-        a      = false(No,Ns);
+        a  = false(No,Ns);
     end
     i      = 1:Na;
     a(i,:) = A{g,1};
@@ -106,25 +121,43 @@ for g = 1:Ng
 end
 
 % Unique outputs
+%==========================================================================
+
+% distance matrix (i.e., normalised vectors on a hypersphere)
 %--------------------------------------------------------------------------
-o       = spm_cat([A O])';
-o       = fix(o*4);
-[~,i,j] = unique(o,'rows','stable');
+[D,C]   = spm_information_distance([A O]);
+
+% discretise and return indices of unique outcomes
+%--------------------------------------------------------------------------
+[~,i,j] = unique(D < 1,'rows','stable');
 
 k     = 1:Ns;                      % old states
 n     = i(~ismember(i,k));         % new states
-j(k)  = [];                        % and sequence
+k     = j;                         % old sequence
+j     = j((Ns + 1):end);           % new sequence
 
-% Likelihood tensors
+
+% accumulate likelihood tensors
 %--------------------------------------------------------------------------
 a     = cell(Ng,1);
 for g = 1:Ng
-    a{g} = full(spm_cat([A{g} O(g,n - Ns)]));
-end
 
+    % use first mapping
+    %----------------------------------------------------------------------
+    a{g} = full(spm_cat({A{g} O(g,n - Ns)}));
+
+%     % or average
+%     %----------------------------------------------------------------------
+%     a{g}  = full(A{g});
+%     for s = 1:numel(n)
+%         a{g}(:,Ns + s) = mean(spm_cat(O(g,ismember(j,k(n(s))))),2);
+%     end
+
+end
 
 % Transition tensors
 %--------------------------------------------------------------------------
+k     = 1:Ns;                      % old states
 Nn    = size(a{1},2);              % number of new states
 b     = false(Nn,Nn,Nu); b(k,k,:) = B;
 Nt    = numel(j) - 1;

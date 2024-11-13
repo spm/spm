@@ -169,7 +169,7 @@ Nx  = size(MDP{end}.B{1},1);
 
 % rewarded events
 %--------------------------------------------------------------------------
-[HID,CID,HITS,MISS] = spm_get_episodes( hid,cid,GDP,MDP);
+[HID,CID,HITS,MISS] = spm_get_episodes(hid,cid,GDP,MDP);
 S                   = spm_get_sequences(MDP);
 
 % Illustrate orbits
@@ -359,10 +359,6 @@ for f = 1:numel(str)
   plot(F(f,:)), axis square
   title(str{f},'FontSize',14), xlabel('games')
 end
-
-% Illustrate in latent state space 
-%-=========================================================================
-spm_figure('GetWin','Orbits');
 
 % priors
 %--------------------------------------------------------------------------
