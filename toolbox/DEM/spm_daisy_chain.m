@@ -29,7 +29,7 @@ function MDP = spm_daisy_chain(R,S,MDP,MISS)
 %==========================================================================
 if nargin < 4, MISS = []; end
 
-% start of attracting paths
+% initial conditions of attracting paths
 %--------------------------------------------------------------------------
 dcat  = @(O) fix(spm_cat([O(:,1:end - 1); O(:,2:end)])*4)';
 U     = [];
@@ -63,11 +63,21 @@ for m = find(ismember(U,V,'rows')')
             end
         end
 
+        % does path include a miss?
+        %------------------------------------------------------------------
+        miss = any(ismember(o',MISS','rows'));
+
+        % is this a new path?
+        %------------------------------------------------------------------
+        % old  = any(ismember(U,V(j(1),:),'rows'));
+
         % and append
         %------------------------------------------------------------------
-        if ~any(ismember(o',MISS','rows'))
+        if ~miss
             MDP = spm_merge_structure_learning([N,S{m}],MDP);
         end
+
+
     end
 end
 

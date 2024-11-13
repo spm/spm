@@ -1,9 +1,10 @@
-function [MDP,hid,cid,con,RGB] = spm_MDP_pong(Nr,Nc)
+function [MDP,hid,cid,con,RGB] = spm_MDP_pong(Nr,Nc,Na)
 % Creates an MDP structure for a simple game of Pong
-% FORMAT [MDP,hid,cid,con,RGB] = spm_MDP_pong(Nr,Nc)
+% FORMAT [MDP,hid,cid,con,RGB] = spm_MDP_pong(Nr,Nc,Na)
 %--------------------------------------------------------------------------
-% Nr    = 6;                             % number of rows
-% Nc    = 8;                             % number of columns
+% Nr    - number of rows
+% Nc    - number of columns
+% Na    - number of control outputs [default: 0]
 %
 % hid   - Hidden states corresponding to hits
 % cid   - Hidden states corresponding to misses
@@ -19,6 +20,10 @@ function [MDP,hid,cid,con,RGB] = spm_MDP_pong(Nr,Nc)
 
 % Karl Friston
 % Copyright (C) 2022-2023 Wellcome Centre for Human Neuroimaging
+
+% defaults
+%--------------------------------------------------------------------------
+if nargin < 3, Na = 0; end
 
 % hid   - Hidden states corresponding to hits
 %--------------------------------------------------------------------------
@@ -141,19 +146,21 @@ for g = 1:Ng
     No(g) = size(A{g},1);
 end
 
-
-% priors: (cost) C: mild preference for not being stimulated
+% priors: (cost) C
 %--------------------------------------------------------------------------
 for g = 1:Ng
-    C{g} = spm_softmax([0; 1]);
+    C{g} = spm_softmax(ones(No(g),1));
 end
 
 % This concludes the ABC of the model; namely, the likelihood mapping,
 % prior transitions and preferences. Now, specify prior beliefs about
 % initial states (D) and paths through those states (E)
 %--------------------------------------------------------------------------
+d     = 1; %%%
 for f = 1:Nf
     D{f} = ones(Ns(f),1)/Ns(f);       % First state
+    D{f} = sparse(1:d,1,1,Ns(f),1)/d; % First path %%%%%%
+
     E{f} = sparse(1,1,1,Nu(f),1);     % First path
     H{f} = [];                        % No intentions at this stage
 end
@@ -165,13 +172,10 @@ cid    = [];
 for s1 = 1:Ns(1)
     for s2 = 1:Ns(2)
 
-        %%%% Render misses ambiguous
+        % misses
         %------------------------------------------------------------------
         if S(s1,1) == 1 && s2 ~= S(s1,2)
             cid(:,end + 1) = [s1;s2];
-            for g = 1:Ng
-                %%%% A{g}(:,s1,s2) = [1; 0];
-            end
         end
 
         % And record latent states corresponding to hits

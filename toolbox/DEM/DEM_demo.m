@@ -22,7 +22,7 @@ function varargout = DEM_demo(varargin)
 
 % Edit the above text to modify the response to help DEM_demo
 
-% Last Modified by GUIDE v2.5 26-Apr-2024 20:17:26
+% Last Modified by GUIDE v2.5 03-Nov-2024 16:26:16
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -843,7 +843,7 @@ run_demo_Callback(hObject, handles, 'DEM_drone')
 % --- Executes on button press in pushbutton287.
 function pushbutton287_Callback(hObject, eventdata, handles)
 handles.web = 'Active Inference A Process Theory';
-run_demo_Callback(hObject, handles, 'DEM_Atari_learning')
+run_demo_Callback(hObject, handles, 'DEM_AtariII')
 
 % --- Executes on button press in pushbutton288.
 function pushbutton288_Callback(hObject, eventdata, handles)
@@ -895,3 +895,7 @@ function pushbutton297_Callback(hObject, eventdata, handles)
 handles.web = 'Active Inference A Process Theory';
 run_demo_Callback(hObject, handles, 'ADEM_physics')
 
+% --- Executes on button press in pushbutton298.
+function pushbutton298_Callback(hObject, eventdata, handles)
+handles.web = 'Active Inference A Process Theory';
+run_demo_Callback(hObject, handles, 'DEM_music_compression')
