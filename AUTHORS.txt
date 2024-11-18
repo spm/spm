@@ -10,6 +10,7 @@
 % Korbinian Eckstein
 % Guillaume Flandin
 % Karl Friston
+% Olivia Kowalczyk
 % Vladimir Litvak
 % Johan Medrano
 % Stephanie Mellor
