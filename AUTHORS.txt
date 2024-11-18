@@ -2,6 +2,7 @@
 % This file contains the list of people involved in the development of SPM
 % along its history.
 %
+% Nicholas Alexander
 % John Ashburner
 % Nicole Labra Avila
 % Yaël Balbastre
@@ -18,7 +19,6 @@
 % Ryan Timms
 % Peter Zeidman
 % 
-% Nicholas Alexander
 % Jesper Andersson
 % Dominik R Bach
 % Evelyne Balteau 
