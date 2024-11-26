@@ -1,4 +1,4 @@
-function MDP = DEM_AtariII
+function MDP = DEM_AtariI
 % Structure learning from pixels
 %__________________________________________________________________________
 %
@@ -33,39 +33,30 @@ rng(1)
 %==========================================================================
 Nr = 12;                               % number of rows
 Nc = 9;                                % number of columns
-Sc = 3;                                % Spatial scaling
+S  = [Nr,Nc,1];                        % size of sector
+Sc = 4;                                % Spatial scaling
 
 G  = @(Nr,Nc) spm_MDP_breakout(Nr,Nc); % game
-NT = 2048;                             % exposures (training)
+NT = 512;                              % exposures (training)
 
 G  = @(Nr,Nc) spm_MDP_pong(Nr,Nc,4);   % game
-NT = 256;                              % exposures (training)
+NT = 128;                              % exposures (training)
 
 
 
 %% Simulate learning and subsequent performance
 %--------------------------------------------------------------------------
 [GDP,hid,cid,con,RGB] = G(Nr,Nc);
-GDP.tau = 2;                          % smoothness of random paths
+GDP.tau = 8;                          % smoothness of random paths
 GDP.T   = (Nr + 2)*4;                 % upper bound on length of paths
 
-% Determine length of episodes Ne
-%--------------------------------------------------------------------------
-PDP   = spm_MDP_generate(GDP);
-O     = PDP.O;
-MDP   = spm_faster_structure_learning(O,[Nr,Nc],Sc);
-Nm    = numel(MDP);
-Ne    = 2^(Nm - 1);
 
 % generate (probabilistic) outcomes under random actions
 %==========================================================================
 spm_figure('GetWin','Gameplay'); clf
 
-dcat  = @(O) spm_cat([O(:,1:end - 1); O(:,2:end)]);
-
+No    = size(GDP.A{1},1);
 O     = {};
-R     = {};
-s     = {};
 for n = 1:(NT*32)
 
     % initialise this batch of training exemplars
@@ -87,9 +78,12 @@ for n = 1:(NT*32)
         % accumulate (rewarded) sequences
         %------------------------------------------------------------------
         if numel(O)
-            O = [O PDP.O(:,1:t)];
+            O = [O spm_i2p(PDP.o(:,1:t),No)]; 
         else
-            O = PDP.O(:,1:t);
+
+            O = spm_i2p(PDP.o(:,1:t),No);
+                 
+
         end
 
         % start after we left off
@@ -106,13 +100,6 @@ for n = 1:(NT*32)
             end
         end
 
-    else
-
-        % unused (random) paths
-        %------------------------------------------------------------------
-        R{end + 1} = PDP.O;
-        s{end + 1} = PDP.s;
-
     end
 
     % report
@@ -127,74 +114,37 @@ for n = 1:(NT*32)
         break
     end
 
-    % break if recurrence
-    %----------------------------------------------------------------------
-    if Nt > Ne
-        V       = dcat(O(:,(Nt - Ne + 1):Nt));
-        U       = dcat(O(:,1:(Nt - Ne)));
-        e       = find(ismember(V',U','rows'));
-        if numel(e)
-            i     = find(ismember(U',V(:,e)','rows'),1,'first');
-            inset = 1:(i - 1);
-            orbit = i:(Nt - Ne + (e - 1));
-
-            % loop training data
-            %--------------------------------------------------------------
-            i     = inset;
-            for e = 1:log2(Ne)
-                i = [i,orbit];
-            end
-            O = O(:,i);
-            break
-        end
-    end
-
 end
 
 % RG structure learning
 %==========================================================================
-MDP = spm_faster_structure_learning(O,[Nr,Nc],Sc);
-Nx  = size(MDP{end}.B{1},1);
+MDP = spm_faster_structure_learning(O,S,Sc);
 
 % more structure learning
 %==========================================================================
+Nx    = size(MDP{end}.B{1},1);
+Nm    = numel(MDP);
+Ne    = 2^(Nm - 1);
 for t = 2:Ne
     MDP = spm_merge_structure_learning(O(:,t:end),MDP);
 end
 
+
+% Create deep recursive model
+%--------------------------------------------------------------------------
+RDP   = spm_mdp2rdp(MDP);
+RDP.T = 32;
+PDP   = spm_MDP_VB_XXX(RDP);
+
+% Illustrate recursive model
+%--------------------------------------------------------------------------
+spm_figure('GetWin','Generative AI - II'); clf
+spm_show_RGB(PDP,RGB);
+
+
 % rewarded events
 %--------------------------------------------------------------------------
-[HID,CID,HITS,MISS] = spm_get_episodes(hid,cid,GDP,MDP);
-S                   = spm_get_sequences(MDP);
-
-% Illustrate orbits
-%==========================================================================
-spm_figure('GetWin','Flows'); clf
-
-subplot(2,2,1)
-spm_dir_orbits(MDP{end}.B{1},HID,[],Nx);
-title('Flows: orbit')
-
-for q = 1:2
-
-    % for each realization selectively augment MDP
-    %----------------------------------------------------------------------
-    for n = 1:numel(R)
-       MDP = spm_daisy_chain(R{n},S,MDP,MISS);
-    end
-
-    % new attracting paths
-    %----------------------------------------------------------------------
-    S  = spm_get_sequences(MDP);
-
-    % Illustrate orbits
-    %----------------------------------------------------------------------
-    subplot(2,2,q + 1)
-    spm_dir_orbits(MDP{end}.B{1},HID,[],Nx);
-    title(sprintf('Flows: %i-order',q + 1))
-    drawnow
-
-end
+[HID,CID,HITS,MISS] = spm_get_episodes( hid,cid,GDP,MDP);
 
 % Illustrate orbits
 %==========================================================================
@@ -220,31 +170,6 @@ plot(HID,0*HID + 1/2,'.r','MarkerSize',16), hold off
 title('Paths to hits','FontSize',14)
 xlabel('latent states'), ylabel('time steps'), axis square
 
-% priors
-%--------------------------------------------------------------------------
-spm_figure('GetWin','Priors'); clf
-spm_RDP_params(MDP)
-
-
-% Generate play from recursive generative model
-%==========================================================================
-
-% Create deep recursive model
-%--------------------------------------------------------------------------
-RDP       = spm_mdp2rdp(MDP);
-[~,Ns,Nu] = spm_MDP_size(RDP);
-
-RDP.T    = 8;
-RDP.D{1} = sparse(1,1,1,Ns(1),1);
-RDP.E{1} = sparse(1,1,1,Nu(1),1);
-PDP      = spm_MDP_VB_XXX(RDP);
-
-% Illustrate recursive model
-%--------------------------------------------------------------------------
-spm_figure('GetWin','Generative AI'); clf
-spm_show_RGB(PDP,RGB);
-
-
 % Active inference
 %==========================================================================
 % In what follows, we engage inductive planning as inference, with explicit
@@ -264,7 +189,7 @@ for g = 1:numel(GDP.A)
 end
 
 MDP{1}.ID.control = con;                    % controlled outcomes
-MDP{1}.chi = 1;                             %%%% sticky action/shaky hand
+MDP{1}.chi = 1/8;                           %%%% sticky action/shaky hand
 
 
 % enable active learning (with minimal forgetting)
@@ -278,7 +203,7 @@ end
 %--------------------------------------------------------------------------
 FIX.A = 1;                                 % learn likelihood
 FIX.B = 1;                                 % but not transitions
-NR    = 8;                                 % number of replications
+NR    = 32;                                % number of replications
 F     = NaN(6,NR);
 for i = 1:NR
 
@@ -288,7 +213,7 @@ for i = 1:NR
 
     % assemble RGM
     %----------------------------------------------------------------------
-    RDP        = spm_mdp2rdp(MDP,0,[0,0,1/512],2,FIX);    %%%%%%
+    RDP        = spm_mdp2rdp(MDP,0,1/512,2,FIX);
     RDP.U      = 1;
     RDP.T      = 64;
     RDP.id.hid = HID;
@@ -297,35 +222,33 @@ for i = 1:NR
     % play
     %----------------------------------------------------------------------
     PDP = spm_MDP_VB_XXX(RDP);
-
-    % Illustrate recursive model
-    %----------------------------------------------------------------------
-    spm_figure('GetWin','Active inference'); clf
-    spm_show_RGB(PDP,RGB,8,false);
-
-    % and hits
-    %----------------------------------------------------------------------
-    subplot(Nm + 3,2,2*(Nm + 1))
     h   = find(ismember(PDP.Q.o{1}',HITS','rows'));
-    plot(h,zeros(size(h)),'.r','MarkerSize',16)
-    drawnow
+
+%     % Illustrate recursive model
+%     %--------------------------------------------------------------------
+%     spm_figure('GetWin','Active inference'); clf
+%     spm_show_RGB(PDP,RGB,8,false);
+% 
+%     % and hits
+%     %--------------------------------------------------------------------
+%     subplot(Nm + 3,2,2*(Nm + 1))
+%     plot(h,zeros(size(h)),'.r','MarkerSize',16)
+%     drawnow
 
     % record behaviour
     %----------------------------------------------------------------------
-    F(1,i) = sum(PDP.F);             % ELBO (last level - states)
-    F(2,i) = sum(PDP.Z);             % ELBO (last level - paths)
+    F(1,i) = mean(PDP.F);            % ELBO (last level - states)
+    F(2,i) = mean(PDP.Z);            % ELBO (last level - paths)
 
     F(3,i) = PDP.Q.F;                % ELBO (lower levels)
     F(4,i) = size(PDP.B{1},2);       % number of (last level) states
     F(5,i) = size(PDP.B{1},3);       % number of (last level) paths
     F(6,i) = numel(h);               % number of hits
-
-    disp(F)
     
     % learn from mistakes
     %======================================================================
     R     = PDP.Q.O{1}(:,(Ne*Ne):end);
-    for q = 1:2
+    for q = 1:1
 
         % new attracting paths
         %------------------------------------------------------------------
@@ -336,27 +259,40 @@ for i = 1:NR
         MDP = spm_daisy_chain(R,S,MDP,MISS);
 
     end
-    
+
+    % results
+    %----------------------------------------------------------------------
+    spm_figure('GetWin','Structure learning');
+    str = {'ELBO - states',...
+        'ELBO - paths',...
+        'ELBO - both',...
+        'Latent states',...
+        'Latent paths',...
+        'Reward count'};
+    for f = 1:numel(str)
+        subplot(4,2,f)
+        plot(F(f,:)), axis square
+        title(str{f},'FontSize',14), xlabel('games')
+    end
+
 end
 
-% results
-%--------------------------------------------------------------------------
-spm_figure('GetWin','Learning');
-str = {'ELBO - states',...
-    'ELBO - paths',...
-    'ELBO - both',...
-    'Latent states',...
-    'Latent paths',...
-    'Reward count'};
-for f = 1:numel(str)
-  subplot(4,2,f)
-  plot(F(f,:)), axis square
-  title(str{f},'FontSize',14), xlabel('games')
-end
+
+% Illustrate in latent state space 
+%-=========================================================================
+spm_figure('GetWin','Active inference'); clf
+spm_show_RGB(PDP,RGB,8,false);
+
+% and hits
+%----------------------------------------------------------------------
+subplot(Nm + 3,2,2*(Nm + 1))
+h   = find(ismember(PDP.Q.o{1}',HITS','rows'));
+plot(h,zeros(size(h)),'.r','MarkerSize',16)
+drawnow
 
 % priors
 %--------------------------------------------------------------------------
-spm_figure('GetWin','Priors');
+spm_figure('GetWin','Priors'); clf
 spm_RDP_params(MDP)
 
 subplot(Nm,1,1), hold on

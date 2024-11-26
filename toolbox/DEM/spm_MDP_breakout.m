@@ -1,10 +1,10 @@
-function [MDP,hid,cid,con,RGB] = spm_MDP_breakout(Nr,Nc)
+function [MDP,hid,cid,con,RGB] = spm_MDP_breakout(Nr,Nc,Nd)
 % Creates an MDP structure for a simple game of Breakout
-% FORMAT [MDP,hid,cid,con,RGB] = spm_MDP_breakout(Nr,Nc)
+% FORMAT [MDP,hid,cid,con,RGB] = spm_MDP_breakout(Nr,Nc,Nd)
 %--------------------------------------------------------------------------
 % Nr                     % number of rows
 % Nc                     % number of columns
-%
+% Nd                     % randomness of resets
 % hid   - Hidden states corresponding to hits
 % cid   - Hidden states corresponding to misses
 % con   - output modalities reporting control
@@ -20,7 +20,9 @@ function [MDP,hid,cid,con,RGB] = spm_MDP_breakout(Nr,Nc)
 % Karl Friston
 % Copyright (C) 2022-2023 Wellcome Centre for Human Neuroimaging
 
-RAND  = 1;              % Randomness of resets
+if nargin < 3
+    Nd  = 1;            % randomness of resets
+end
 
 % preliminaries
 %--------------------------------------------------------------------------
@@ -145,7 +147,7 @@ for x = 1:Ns(1)         % location of paddle
 
                                     % transitions 
                                     %--------------------------------------
-                                    for r = -RAND:RAND
+                                    for r = -Nd:Nd
                                         it = i0 + r;
                                         st = sub2ind(Ns,xt,it,jt,pt,qt,ht);
                                         B{1}(st,s,u) = true;
@@ -183,7 +185,7 @@ for x = 1:Ns(1)         % location of paddle
 
                                 % transitions
                                 %------------------------------------------
-                                for r = -RAND:RAND
+                                for r = -Nd:Nd
                                     it = i0 + r;
                                     st = sub2ind(Ns,xt,it,jt,pt,qt,ht);
                                     B{1}(st,s,u) = true;
