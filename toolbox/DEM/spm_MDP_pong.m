@@ -1,10 +1,10 @@
-function [MDP,hid,cid,con,RGB] = spm_MDP_pong(Nr,Nc,Na)
+function [MDP,hid,cid,con,RGB] = spm_MDP_pong(Nr,Nc,Nd)
 % Creates an MDP structure for a simple game of Pong
-% FORMAT [MDP,hid,cid,con,RGB] = spm_MDP_pong(Nr,Nc,Na)
+% FORMAT [MDP,hid,cid,con,RGB] = spm_MDP_pong(Nr,Nc,Nd)
 %--------------------------------------------------------------------------
 % Nr    - number of rows
 % Nc    - number of columns
-% Na    - number of control outputs [default: 0]
+% Nd    - number of initial states [default: 1]
 %
 % hid   - Hidden states corresponding to hits
 % cid   - Hidden states corresponding to misses
@@ -23,7 +23,7 @@ function [MDP,hid,cid,con,RGB] = spm_MDP_pong(Nr,Nc,Na)
 
 % defaults
 %--------------------------------------------------------------------------
-if nargin < 3, Na = 0; end
+if nargin < 3, Nd = 1; end
 
 % hid   - Hidden states corresponding to hits
 %--------------------------------------------------------------------------
@@ -136,8 +136,8 @@ end
 
 % Enumerate the states and paths of the ensuing generative model
 %--------------------------------------------------------------------------
-Nf    = numel(B);                    % number of hidden factors
-Ng    = numel(A);                    % number of outcome modalities
+Nf    = numel(B);                         % number of hidden factors
+Ng    = numel(A);                         % number of outcome modalities
 for f = 1:Nf
     Ns(f) = size(B{f},1);
     Nu(f) = size(B{f},3);
@@ -156,13 +156,12 @@ end
 % prior transitions and preferences. Now, specify prior beliefs about
 % initial states (D) and paths through those states (E)
 %--------------------------------------------------------------------------
-d     = 1; %%%
 for f = 1:Nf
-    D{f} = ones(Ns(f),1)/Ns(f);       % First state
-    D{f} = sparse(1:d,1,1,Ns(f),1)/d; % First path %%%%%%
+    D{f} = ones(Ns(f),1)/Ns(f);           % First state
+    D{f} = sparse(1:Nd,1,1,Ns(f),1)/Nd;   % First path
 
-    E{f} = sparse(1,1,1,Nu(f),1);     % First path
-    H{f} = [];                        % No intentions at this stage
+    E{f} = sparse(1,1,1,Nu(f),1);         % First path
+    H{f} = [];                            % No intentions at this stage
 end
 
 % Ambiguity and latent states corresponding to hits

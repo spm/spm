@@ -52,6 +52,7 @@ for n = 1:8
 
     % for each sector or segregated stream
     %----------------------------------------------------------------------
+    sg    = {};                          % squences
     N     = {};                          % outcomes for next level
     D     = [];                          % parents of intial states
     E     = [];                          % parents of intial paths
@@ -76,14 +77,18 @@ for n = 1:8
 
             % structure_learning from unique exemplars
             %--------------------------------------------------------------
-            gg  = No + G{g};
-            fg  = Ns + g;
-            mdp = spm_structure_fast(O(gg,:));
+            gg         = No + G{g};
+            fg         = Ns + g;
+            [mdp,j]    = spm_structure_fast(O(gg,:));
+            sg{s}(g,:) = j;
 
             % likelihoods and priors for this group
             %--------------------------------------------------------------
             MDP{n}.A(gg,1) = mdp.a;
             MDP{n}.B(fg,1) = mdp.b;
+
+            MDP{n}.sA(gg)  = s;
+            MDP{n}.sB(fg)  = s;
 
             % intial states and paths
             %--------------------------------------------------------------
@@ -120,19 +125,113 @@ for n = 1:8
 
     % parents
     %----------------------------------------------------------------------
-    MDP{n}.id.D = num2cell(D);                % parents of state
-    MDP{n}.id.E = num2cell(E);                % parents of paths
+    MDP{n}.id.D = num2cell(D);                      % parents of state
+    MDP{n}.id.E = num2cell(E);                      % parents of paths
 
     % Combine streams if all comprise one group
     %----------------------------------------------------------------------
-    if max(Ng) == 1
-        S = [1 1 1 2*sum(Ng)];
+    if n > 1
+        si = 1;                                     % source stream
+        for sj = 2:numel(Ng)                        % target stream
+
+            % size of likelihood mappings
+            %--------------------------------------------------------------
+            fi = find(ismember(MDP{n}.sB,si));      % source factors
+            fj = find(ismember(MDP{n - 1}.sB,sj));  % target factors
+            t  = numel(sg{1}(1,:));                 % number of outcomes
+
+            for i = 1:numel(fi)
+                for j = 1:numel(fj)
+
+                    % sizes
+                    %------------------------------------------------------
+                    Ni = size(MDP{n}.B{fi(i)},    1);
+                    Nj = size(MDP{n - 1}.B{fj(j)},2);
+                    Nu = size(MDP{n - 1}.B{fj(j)},3);
+
+                    % prediction of inital states (D)
+                    %------------------------------------------------------
+                    A  = zeros(Nj,Ni);
+                    for f = 1:t
+                        g = MDP{n - 1}.id.D{fj(j)}(1);
+                        a = MDP{n}.A{g}(:,sg{sj}(j,f));
+                        A(:,sg{si}(i,f)) = A(:,sg{si}(i,f)) + a;
+                    end
+
+                    % append mappings and iD
+                    %------------------------------------------------------
+                    MDP{n}.A{end + 1} = spm_dir_norm(A);
+                    MDP{n}.id.A{end + 1} = fi(i);
+                    MDP{n - 1}.id.D{fj(j)}(end + 1) = numel(MDP{n}.A);
+
+                    % prediction of initial paths (E)
+                    %------------------------------------------------------
+                    A  = zeros(Nu,Ni);
+                    for f = 1:t
+                        g = MDP{n - 1}.id.E{fj(j)}(1);
+                        a = MDP{n}.A{g}(:,sg{sj}(j,f));
+                        A(:,sg{si}(i,f)) = A(:,sg{si}(i,f)) + a;
+                    end
+
+                    % append mappings and iD
+                    %------------------------------------------------------
+                    MDP{n}.A{end + 1} = spm_dir_norm(A);
+                    MDP{n}.id.A{end + 1} = fi(i);
+                    MDP{n - 1}.id.E{fj(j)}(end + 1) = numel(MDP{n}.A);
+
+                end
+            end
+        end
     end
 
-    % Check whether there is only one group or (generalised) object
-    %----------------------------------------------------------------------
-    if (numel(Ng) == 1) || (Nt == 1) 
-        break
+    % if all streams comprise one group
+    %======================================================================
+    if true
+
+        % remove trailing streams
+        %------------------------------------------------------------------
+        if max(Ng) == 1
+
+            % remove trailing factors
+            %--------------------------------------------------------------
+            MDP{n}.B = MDP{n}.B(1);
+            Na    = numel(MDP{n}.A);
+            d     = false(1,Na);
+            for g = 1:Na
+                d(g) = ~any(MDP{n}.id.A{g} > 1);
+            end
+            i = find(d);
+
+            % remove their children
+            %--------------------------------------------------------------
+            MDP{n}.A    = MDP{n}.A(d);
+            MDP{n}.id.A = MDP{n}.id.A(d);
+
+            % and update parents of subordinate factors
+            %--------------------------------------------------------------
+            for j = 1:numel(MDP{n - 1}.id.D)
+                MDP{n - 1}.id.D{j} = find(ismember(i,MDP{n - 1}.id.D{j}));
+            end
+            for j = 1:numel(MDP{n - 1}.id.E)
+                MDP{n - 1}.id.E{j} = find(ismember(i,MDP{n - 1}.id.E{j}));
+            end
+
+            break
+        end
+
+    else
+
+        % Combine streams in a final level
+        %------------------------------------------------------------------
+        if max(Ng) == 1
+            S = [1 1 1 2*sum(Ng)];
+
+            % Check whether there is only one group
+            %--------------------------------------------------------------
+            if (numel(Ng) == 1) || (Nt == 1)
+                break
+            end
+        end
     end
 
     % outcomes at next level
@@ -144,11 +243,13 @@ end
 return
 
 
-function mdp = spm_structure_fast(O)
+function [mdp,j] = spm_structure_fast(O)
 % A fast form of structure learning
-% FORMAT mdp = spm_structure(O)
+% FORMAT [mdp,j] = spm_structure_fast(O)
 % O   - Cell array of (cells of) a sequence of probabilistic outcomes
+%
 % mdp - likelihood (a) and transition (b) tensors for this sequence
+% j   - sequence of unique identifiers
 %
 % This routine emulates structure learning from deterministic sequences of
 % observations or outcomes. Effectively, it identifies all unique
