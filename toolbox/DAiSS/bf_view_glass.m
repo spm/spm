@@ -15,7 +15,7 @@ if nargin == 0
         'set to false if you want to try a new experimental version...']};
     classic.labels  = {'yes','no'};
     classic.values     = {true, false};
-    classic.val        = {true};
+    classic.val        = {false};
     
     ndips           = cfg_entry;
     ndips.tag       = 'ndips';
