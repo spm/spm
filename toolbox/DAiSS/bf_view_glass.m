@@ -88,7 +88,7 @@ if ~isfield(BF.sources, 'pos')
 end
 
 % cbar option may have been unspecified
-if ~isfield(S,'thresohld')
+if ~isfield(S,'threshold')
     S.threshsold = 0;
 end
 
