@@ -20,8 +20,10 @@ function D = spm_eeg_inv_mesh_ui(varargin)
 
 %-Startup
 %--------------------------------------------------------------------------
-spm('FnBanner', mfilename);
-spm('FigName','Define head model');
+if ~spm('CmdLine')
+    spm('FnBanner', mfilename);
+    spm('FigName','Define head model');
+end
 
 %-Initialisation
 %--------------------------------------------------------------------------

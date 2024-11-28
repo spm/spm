@@ -19,7 +19,7 @@ function [D] = spm_eeg_invert_classic(D,val)
 %                      'LOR' LORETA-like model
 %                      'IID' minimum norm
 %                       'EBB' for empirical bayes beamformer
-%     inverse.woi    - time window of interest ([start stop] in ms)
+%     inverse.woi    - time window(s) of interest ([start stop] in ms)
 %     inverse.lpf    - band-pass filter - low frequency cut-off (Hz)
 %     inverse.hpf    - band-pass filter - high frequency cut-off (Hz)
 %     inverse.Han    - switch for Hanning window
@@ -225,14 +225,29 @@ switch smoothtype
     case 'mm_smooth'
         
          kernelname=spm_eeg_smoothmesh_mm(D.inv{val}.mesh.tess_ctx,s);
-         asmth=load(kernelname,'QG','M');
-         if max(int32(asmth.M.faces)-int32(face))~=0
+         asmth=load(kernelname,'QG','M','faces');
+         % Check if asmth contains 'M' or 'faces'
+         if isfield(asmth, 'M')
+             % If M is a gifti object, extract the faces from M
+             if isa(asmth.M, 'gifti')
+                 meshFaces = double(asmth.M.faces);
+             else
+                 error('M is not a recognized format.');
+             end
+         elseif isfield(asmth, 'faces')
+             % Directly use the faces matrix
+             meshFaces = double(asmth.faces);
+         else
+             error('No valid mesh face data found in the smoothing kernel file.');
+         end
+         if max(int32(meshFaces)-int32(face))~=0
              error('Smoothing kernel used different mesh');
          end
          QG=asmth.QG;
-         if D.inv{val}.forward.loc
-            QG=repmat(QG,2,2);
-         end
+         % What was this for? 'loc' does not exist in Dinv{val}.forward when I run
+         %if D.inv{val}.forward.loc
+         %   QG=repmat(QG,2,2);
+         %end
          clear asmth;
           
 end
@@ -301,515 +316,525 @@ Is    = 1:Nd;               % Accepted dipoles
 Ns    = length(Is);         % Ns = Nd in this case
 
 
-%==========================================================================
-% Temporal projector
-%==========================================================================
-AY    = {};                                      % pooled response for MVB
-AYYA  = 0;                                       % pooled response for ReML
-
-% Time-window of interest
-%----------------------------------------------------------------------
+F=zeros(1,size(woi,1));
 
 if isempty(woi)
-    w      = 1000*[min(D.time) max(D.time)];
-else
-    w=woi; %% in milliseconds
-end;
-
-It     = (w/1000 - D.timeonset)*D.fsample + 1;
-It     = max(1,It(1)):min(It(end), length(D.time));
-It     = fix(It);
-disp(sprintf('Number of samples %d',length(It)));
-
-    
-
-% Peristimulus time
-%----------------------------------------------------------------------
-pst    = 1000*D.time;                   % peristimulus time (ms)
-pst    = pst(It);                       % windowed time (ms)
-dur    = (pst(end) - pst(1))/1000;      % duration (s)
-dct    = (It - It(1))/2/dur;            % DCT frequencies (Hz)
-Nb     = length(It);                    % number of time bins
-
-% Serial correlations
-%----------------------------------------------------------------------
-K      = exp(-(pst - pst(1)).^2/(2*sdv^2)); %% sdv set to 4 by default
-K      = toeplitz(K);
-qV     = sparse(K*K'); %% Samples* samples covariance matrix- assumes smooth iid
-
-% Confounds and temporal subspace
-%----------------------------------------------------------------------
-
-T      = spm_dctmtx(Nb,Nb);         % use plot(T) here!
-
-j      = find( (dct >= lpf) & (dct <= hpf) ); %% THis is the wrong way round but leave for nowfor compatibility with spm_eeg_invert
-T      = T(:,j);                    % Apply the filter to discrete cosines
-dct    = dct(j);                    % Frequencies accepted
-
-%% Hanning window
-%----------------------------------------------------------------------
-
-if Han
-    W  = sparse(1:Nb,1:Nb,spm_hanning(Nb)); %% use hanning unless specified
-else
-    W=1;
+    woi = 1000*[min(D.time) max(D.time)];
 end
+R2=zeros(1,size(woi,1));
+VE=zeros(1,size(woi,1));
 
+for w_idx=1:size(woi,1)
+    w=woi(w_idx,:);
 
+    if ~isempty(Ip)
+        Np   = length(Ip);              % Number of priors/3 for GS, ARD, MSP
+    else
+        Ip=ceil([1:Np]*Nd/Np);
+    end;
 
-% get trials or conditions
-%----------------------------------------------------------------------
-try
-    trial = D.inv{D.val}.inverse.trials;
-catch
-    trial = D.condlist;
-end
-Ntrialtypes=length(trial);
-% get temporal covariance (Y'*Y) to find temporal modes
-%======================================================================
+    %==========================================================================
+    % Temporal projector
+    %==========================================================================
+    AY    = {};                                      % pooled response for MVB
+    AYYA  = 0;                                       % pooled response for ReML
 
-YY    = 0;
+    % Time-window of interest
+    %----------------------------------------------------------------------
 
-N=0;
+    It     = (w/1000 - D.timeonset)*D.fsample + 1;
+    It     = max(1,It(1)):min(It(end), length(D.time));
+    It     = fix(It);
+    disp(sprintf('Number of samples %d',length(It)));
 
-badtrialind=D.badtrials;
-Ik=[]; %% keep a record of trials used
-for j = 1:Ntrialtypes                          % pool over conditions
-    c     = D.indtrial(trial{j});     % and trials
-    [c1,ib]=intersect(c,badtrialind); %% remove bad trials ib if there are any
-    c=c(setxor(1:length(c),ib));
-    Ik=[Ik c];
-    Nk    = length(c);
-    for k = 1:Nk
-        Y     = A*D(Ic,It,c(k));
-        
-        YY    = YY + Y'*Y;
-        N     = N + 1;
+    % Peristimulus time
+    %----------------------------------------------------------------------
+    pst    = 1000*D.time;                   % peristimulus time (ms)
+    pst    = pst(It);                       % windowed time (ms)
+    dur    = (pst(end) - pst(1))/1000;      % duration (s)
+    dct    = (It - It(1))/2/dur;            % DCT frequencies (Hz)
+    Nb     = length(It);                    % number of time bins
+
+    % Serial correlations
+    %----------------------------------------------------------------------
+    K      = exp(-(pst - pst(1)).^2/(2*sdv^2)); %% sdv set to 4 by default
+    K      = toeplitz(K);
+    qV     = sparse(K*K'); %% Samples* samples covariance matrix- assumes smooth iid
+
+    % Confounds and temporal subspace
+    %----------------------------------------------------------------------
+
+    T      = spm_dctmtx(Nb,Nb);         % use plot(T) here!
+
+    j      = find( (dct >= lpf) & (dct <= hpf) ); %% THis is the wrong way round but leave for nowfor compatibility with spm_eeg_invert
+    T      = T(:,j);                    % Apply the filter to discrete cosines
+    dct    = dct(j);                    % Frequencies accepted
+
+    %% Hanning window
+    %----------------------------------------------------------------------
+
+    if Han
+        W  = sparse(1:Nb,1:Nb,spm_hanning(Nb)); %% use hanning unless specified
+    else
+        W=1;
     end
-end
-YY=YY./N;
 
 
-% Apply any Hanning and filtering
-%------------------------------------------------------------------
-YY         = W'*YY*W;     % Hanning
-YTY         = T'*YY*T;     % Filter
 
-
-%======================================================================
-
-if isempty(Nt) %% automatically assign appropriate number of temporal modes    
-    [U, E]  = spm_svd(YTY,exp(-8));          % get temporal modes
-    if isempty(U) %% fallback
-        warning('nothing found using spm svd, using svd');
-        [U E]  = svd(YTY);          % get temporal modes
+    % get trials or conditions
+    %----------------------------------------------------------------------
+    try
+        trial = D.inv{D.val}.inverse.trials;
+    catch
+        trial = D.condlist;
     end
-    E      = diag(E)/trace(YTY);            % normalise variance
-    Nr     = min(length(E),Nmax);           % number of temporal modes
-    Nr=max(Nr,1); %% use at least one mode
-else %% use predefined number of modes
-    [U, E]  = svd(YTY);          % get temporal modes
-    E      = diag(E)/trace(YTY);            % normalise variance
-    disp('Fixed number of temporal modes');
-    Nr=Nt;
-end
+    Ntrialtypes=length(trial);
+    % get temporal covariance (Y'*Y) to find temporal modes
+    %======================================================================
 
-V      = U(:,1:Nr);                     % temporal modes
-VE     = sum(E(1:Nr));                  % variance explained
+    YY    = 0;
 
-fprintf('Using %i temporal modes, ',Nr)
-fprintf('accounting for %0.2f percent average variance\n',full(100*VE))
+    N=0;
 
-% projection and whitening
-%----------------------------------------------------------------------
-S      = T*V;                           % temporal projector
-Vq     = S*pinv(S'*qV*S)*S';            % temporal precision
+    badtrialind=D.badtrials;
+    Ik=[]; %% keep a record of trials used
+    for j = 1:Ntrialtypes                          % pool over conditions
+        c     = D.indtrial(trial{j});     % and trials
+        [c1,ib]=intersect(c,badtrialind); %% remove bad trials ib if there are any
+        c=c(setxor(1:length(c),ib));
+        Ik=[Ik c];
+        Nk    = length(c);
+        for k = 1:Nk
+            Y     = A*D(Ic,It,c(k));
 
-
-% get spatial covariance (Y*Y') for Gaussian process model
-%======================================================================
-% loop over Ntrialtypes trial types 
-%----------------------------------------------------------------------
-UYYU = 0;
-AYYA=0;
-Nn    =0;                             % number of samples
-AY={};
-Ntrials=0;
-
-for j = 1:Ntrialtypes,
-    
-    UY{j} = sparse(0);
-    c       = D.indtrial(trial{j});
-    [c1,ib]=intersect(c,badtrialind); %% remove bad trials ib if there are any
-    c=c(setxor(1:length(c),ib));
-    Nk    = length(c);
-       
-    % loop over epochs
-    %------------------------------------------------------------------
-    for k = 1:Nk
-        
-        % stack (scaled aligned data) over modalities
-        %--------------------------------------------------------------
-        
-        Y       = D(Ic,It,c(k))*S; %% in temporal subspace
-        Y=A*Y; %%  in spatial subspace
-  
-        
-        % accumulate first & second-order responses
-        %--------------------------------------------------------------
-        Nn       = Nn + Nr;         % number of samples
-        
-        YY          = Y*Y';                  % and covariance
-        Ntrials=Ntrials+1;
-        
-        % accumulate statistics (subject-specific)
-        %--------------------------------------------------------------
-        UY{j}     = UY{j} + Y;           % condition-specific ERP
-        UYYU     = UYYU + YY;          % subject-specific covariance
-        
-        % and pool for optimisation of spatial priors over subjects
-        %--------------------------------------------------------------
-        AY{end + 1} = Y;                     % pooled response for MVB
-        AYYA        = AYYA    + YY;          % pooled response for ReML
-        
-    end
-end
-
-AY=spm_cat(AY); %% goes to MVB/GS algorithm
-
-ID    = spm_data_id(AY); %% get a unique ID for these filtered data
-
-% assuming equal noise over subjects (Qe) and modalities AQ
-%--------------------------------------------------------------------------
-AQeA   = A*QE*A';           % Note that here it is A*A'
-Qe{1}  = AQeA/(trace(AQeA)); % it means IID noise in virtual sensor space
-
-%Q0          = Qe0*trace(AYYA)*Qe{1}*Nr; %% fixed (min) level of sensor space variance- this is divided by Nr later in spm_reml_sc
-Q0          = Qe0*trace(AYYA)*Qe{1}./sum(Nn); %% fixed (min) level of sensor space variance
-
-
-%==========================================================================
-% Step 1: Optimise spatial priors over subjects
-%==========================================================================
-
-% create source components (Qp)
-%==========================================================================
-allind=[];
-switch(type)
-    
-    case {'MSP','GS','ARD'}
-        % create MSP spatial basis set in source space
-        %------------------------------------------------------------------
-        Qp    = {};
-        LQpL  = {};
-        %Ip    = ceil((1:Np)*Ns/Np);        % "random" selection of patches
-        for i = 1:Np
-            % Patch locations determined by Ip
-            %--------------------------------------------------------------
-            q               = QG(:,Ip(i));
-            Qp{end + 1}.q   = q;
-            LQpL{end + 1}.q = UL*q;     
+            YY    = YY + Y'*Y;
+            N     = N + 1;
         end
-        
-%     case {'EBB'}
-%         % create beamforming prior. See:
-%         % Source reconstruction accuracy of MEG and EEG Bayesian inversion approaches.
-%         %Belardinelli P, Ortiz E, Barnes G, Noppeney U, Preissl H. PLoS One. 2012;7(12):e51985.
-%         %------------------------------------------------------------------
-%         InvCov = spm_inv(YY);
-%         allsource = zeros(Ns,1);
-%         Sourcepower = zeros(Ns,1);
-%         for bk = 1:Ns
-%             normpower = 1/(UL(:,bk)'*UL(:,bk));
-%             Sourcepower(bk) = 1/(UL(:,bk)'*InvCov*UL(:,bk));
-%             allsource(bk) = Sourcepower(bk)./normpower;
-%         end
-%         allsource = allsource/max(allsource);   % Normalise
-%         
-%         Qp{1} = diag(allsource);
-%         LQpL{1} = UL*diag(allsource)*UL';
-   case {'EBB'}
-        % create SMOOTH beamforming prior. 
-        disp('NB smooth EBB algorithm !');
+    end
+    YY=YY./N;
+
+
+    % Apply any Hanning and filtering
+    %------------------------------------------------------------------
+    YY         = W'*YY*W;     % Hanning
+    YTY         = T'*YY*T;     % Filter
+
+
+    %======================================================================
+
+    if isempty(Nt) %% automatically assign appropriate number of temporal modes
+        [U, E]  = spm_svd(YTY,exp(-8));          % get temporal modes
+        if isempty(U) %% fallback
+            warning('nothing found using spm svd, using svd');
+            [U E]  = svd(YTY);          % get temporal modes
+        end
+        E      = diag(E)/trace(YTY);            % normalise variance
+        Nr     = min(length(E),Nmax);           % number of temporal modes
+        Nr=max(Nr,1); %% use at least one mode
+    else %% use predefined number of modes
+        [U, E]  = svd(YTY);          % get temporal modes
+        E      = diag(E)/trace(YTY);            % normalise variance
+        disp('Fixed number of temporal modes');
+        Nr=Nt;
+    end
+
+    V      = U(:,1:Nr);                     % temporal modes
+    VE(w_idx)     = sum(E(1:Nr));                  % variance explained
+
+    fprintf('Using %i temporal modes, ',Nr)
+    fprintf('accounting for %0.2f percent average variance\n',full(100*VE(w_idx)))
+
+    % projection and whitening
+    %----------------------------------------------------------------------
+    S      = T*V;                           % temporal projector
+    Vq     = S*pinv(S'*qV*S)*S';            % temporal precision
+
+
+    % get spatial covariance (Y*Y') for Gaussian process model
+    %======================================================================
+    % loop over Ntrialtypes trial types
+    %----------------------------------------------------------------------
+    UYYU = 0;
+    AYYA=0;
+    Nn    =0;                             % number of samples
+    AY={};
+    Ntrials=0;
+
+    for j = 1:Ntrialtypes,
+
+        UY{j} = sparse(0);
+        c       = D.indtrial(trial{j});
+        [c1,ib]=intersect(c,badtrialind); %% remove bad trials ib if there are any
+        c=c(setxor(1:length(c),ib));
+        Nk    = length(c);
+
+        % loop over epochs
         %------------------------------------------------------------------
-        InvCov = spm_inv(AYYA);
-        allsource = sparse(Ns,1);
-        Sourcepower = sparse(Ns,1);
-        for bk = 1:Ns
-            q               = QG(:,bk);
-            
-            smthlead = UL*q;     %% THIS IS WHERE THE SMOOTHNESS GETS ADDED
-            if ~all(smthlead==0)
+        for k = 1:Nk
+
+            % stack (scaled aligned data) over modalities
+            %--------------------------------------------------------------
+
+            Y       = D(Ic,It,c(k))*S; %% in temporal subspace
+            Y=A*Y; %%  in spatial subspace
+
+
+            % accumulate first & second-order responses
+            %--------------------------------------------------------------
+            Nn       = Nn + Nr;         % number of samples
+
+            YY          = Y*Y';                  % and covariance
+            Ntrials=Ntrials+1;
+
+            % accumulate statistics (subject-specific)
+            %--------------------------------------------------------------
+            UY{j}     = UY{j} + Y;           % condition-specific ERP
+            UYYU     = UYYU + YY;          % subject-specific covariance
+
+            % and pool for optimisation of spatial priors over subjects
+            %--------------------------------------------------------------
+            AY{end + 1} = Y;                     % pooled response for MVB
+            AYYA        = AYYA    + YY;          % pooled response for ReML
+
+        end
+    end
+
+    AY=spm_cat(AY); %% goes to MVB/GS algorithm
+
+    ID    = spm_data_id(AY); %% get a unique ID for these filtered data
+
+    % assuming equal noise over subjects (Qe) and modalities AQ
+    %--------------------------------------------------------------------------
+    AQeA   = A*QE*A';           % Note that here it is A*A'
+    Qe{1}  = AQeA/(trace(AQeA)); % it means IID noise in virtual sensor space
+
+    %Q0          = Qe0*trace(AYYA)*Qe{1}*Nr; %% fixed (min) level of sensor space variance- this is divided by Nr later in spm_reml_sc
+    Q0          = Qe0*trace(AYYA)*Qe{1}./sum(Nn); %% fixed (min) level of sensor space variance
+
+
+    %==========================================================================
+    % Step 1: Optimise spatial priors over subjects
+    %==========================================================================
+
+    % create source components (Qp)
+    %==========================================================================
+    allind=[];
+    switch(type)
+
+        case {'MSP','GS','ARD'}
+            % create MSP spatial basis set in source space
+            %------------------------------------------------------------------
+            Qp    = {};
+            LQpL  = {};
+            %Ip    = ceil((1:Np)*Ns/Np);        % "random" selection of patches
+            for i = 1:Np
+                % Patch locations determined by Ip
+                %--------------------------------------------------------------
+                q               = QG(:,Ip(i));
+                Qp{end + 1}.q   = q;
+                LQpL{end + 1}.q = UL*q;
+            end
+
+    %     case {'EBB'}
+    %         % create beamforming prior. See:
+    %         % Source reconstruction accuracy of MEG and EEG Bayesian inversion approaches.
+    %         %Belardinelli P, Ortiz E, Barnes G, Noppeney U, Preissl H. PLoS One. 2012;7(12):e51985.
+    %         %------------------------------------------------------------------
+    %         InvCov = spm_inv(YY);
+    %         allsource = zeros(Ns,1);
+    %         Sourcepower = zeros(Ns,1);
+    %         for bk = 1:Ns
+    %             normpower = 1/(UL(:,bk)'*UL(:,bk));
+    %             Sourcepower(bk) = 1/(UL(:,bk)'*InvCov*UL(:,bk));
+    %             allsource(bk) = Sourcepower(bk)./normpower;
+    %         end
+    %         allsource = allsource/max(allsource);   % Normalise
+    %
+    %         Qp{1} = diag(allsource);
+    %         LQpL{1} = UL*diag(allsource)*UL';
+       case {'EBB'}
+            % create SMOOTH beamforming prior.
+            disp('NB smooth EBB algorithm !');
+            %------------------------------------------------------------------
+            InvCov = spm_inv(AYYA);
+            allsource = sparse(Ns,1);
+            Sourcepower = sparse(Ns,1);
+            for bk = 1:Ns
+                q               = QG(:,bk);
+
+                smthlead = UL*q;     %% THIS IS WHERE THE SMOOTHNESS GETS ADDED
+                if ~all(smthlead==0)
+                    normpower = 1/(smthlead'*smthlead);
+                    Sourcepower(bk) = 1/(smthlead'*InvCov*smthlead);
+                    allsource(bk) = Sourcepower(bk)./normpower;
+                end
+            end
+            allsource = allsource/max(allsource);   % Normalise
+
+            Qp{1} = diag(allsource);
+            LQpL{1} = UL*diag(allsource)*UL';
+
+    case {'EBBcorr'}
+
+            disp('NB smooth correlated source EBB algorithm !');
+            %------------------------------------------------------------------
+            InvCov = spm_inv(AYYA);
+            halfNs=ceil(Ns/2); %% include a set of lead fields which are symmetrical
+            allsource = sparse(Ns,1);
+            Sourcepower = sparse(Ns,1);
+            DualSourcepower=sparse(halfNs,1);
+            alldualsource=sparse(Ns,1);
+            for bk = 1:Ns
+                q               = QG(:,bk);
+
+                smthlead = UL*q;     %% THIS IS WHERE THE SMOOTHNESS GETS ADDED
                 normpower = 1/(smthlead'*smthlead);
                 Sourcepower(bk) = 1/(smthlead'*InvCov*smthlead);
                 allsource(bk) = Sourcepower(bk)./normpower;
+            end;
+            leftbrainind=find(vert(:,1)<0);
+
+            for bk=1:length(vert), %% inefficient to run this over whole brain but otherwise have some unused pairs
+                vertind=bk;
+
+                reflectpos=[-vert(vertind,1) vert(vertind,2) vert(vertind,3)];
+                d1=vert- repmat(reflectpos,length(vert),1);
+                dist1=dot(d1',d1');
+                [d1,reflectind]=min(dist1);
+                q               = QG(:,vertind)+QG(:,reflectind);
+                smthlead = UL*q;     %% THIS IS WHERE THE SMOOTHNESS GETS ADDED
+                normpower = 1/(smthlead'*smthlead);
+                DualSourcepower(vertind) = 1/(smthlead'*InvCov*smthlead);
+                alldualsource(vertind) = alldualsource(vertind)+DualSourcepower(vertind)./(normpower*4); %% divide by 2 as will pass this vertex twice, divide by two again to split power estimate between 2 points
+                alldualsource(reflectind)=alldualsource(reflectind)+DualSourcepower(vertind)./(normpower*4); %% reflect to other vertex
+                %newUL(bk,:)=UL(vertind,:)+UL(reflectind,:);
+                %vert(reflectind,:)
+                %plot3(vert(vertind,1),vert(vertind,2),vert(vertind,3),'b.',vert(reflectind,1),vert(reflectind,2),vert(reflectind,3),'ro');
+                %pause(0.1); hold on;
+            end;
+
+            allsource=allsource+alldualsource;
+            allsource = allsource/max(allsource);   % Normalise
+
+            Qp{1} = diag(allsource);
+            LQpL{1} = UL*diag(allsource)*UL';
+
+
+
+        case {'EBBgs'}  % NEW BEAMFORMER PRIOR!!
+            % create beamforming prior- Juan David- Martinez Vargas
+            %------------------------------------------------------------------
+            allsource = zeros(Ntrials,Ns);
+            for ii = 1:Ntrials
+                InvCov = spm_inv(YYep{ii});
+                Sourcepower = zeros(Ns,1);
+                for bk = 1:Ns
+                    normpower = 1/(UL(:,bk)'*UL(:,bk));
+                    Sourcepower(bk) = 1/(UL(:,bk)'*InvCov*UL(:,bk));
+                    allsource(ii,bk) = Sourcepower(bk)./normpower;
+                end
+
+                Qp{ii}.q = allsource(ii,:);
             end
-        end
-        allsource = allsource/max(allsource);   % Normalise
-        
-        Qp{1} = diag(allsource);
-        LQpL{1} = UL*diag(allsource)*UL';
 
-case {'EBBcorr'}
-        
-        disp('NB smooth correlated source EBB algorithm !');
-        %------------------------------------------------------------------
-        InvCov = spm_inv(AYYA);
-        halfNs=ceil(Ns/2); %% include a set of lead fields which are symmetrical
-        allsource = sparse(Ns,1);
-        Sourcepower = sparse(Ns,1);
-        DualSourcepower=sparse(halfNs,1);
-        alldualsource=sparse(Ns,1);
-        for bk = 1:Ns
-            q               = QG(:,bk);
-            
-            smthlead = UL*q;     %% THIS IS WHERE THE SMOOTHNESS GETS ADDED
-            normpower = 1/(smthlead'*smthlead);
-            Sourcepower(bk) = 1/(smthlead'*InvCov*smthlead);
-            allsource(bk) = Sourcepower(bk)./normpower;
-        end;
-        leftbrainind=find(vert(:,1)<0);
-        
-        for bk=1:length(vert), %% inefficient to run this over whole brain but otherwise have some unused pairs
-            vertind=bk;
-            
-            reflectpos=[-vert(vertind,1) vert(vertind,2) vert(vertind,3)];
-            d1=vert- repmat(reflectpos,length(vert),1);
-            dist1=dot(d1',d1');
-            [d1,reflectind]=min(dist1);
-            q               = QG(:,vertind)+QG(:,reflectind);
-            smthlead = UL*q;     %% THIS IS WHERE THE SMOOTHNESS GETS ADDED
-            normpower = 1/(smthlead'*smthlead);
-            DualSourcepower(vertind) = 1/(smthlead'*InvCov*smthlead);
-            alldualsource(vertind) = alldualsource(vertind)+DualSourcepower(vertind)./(normpower*4); %% divide by 2 as will pass this vertex twice, divide by two again to split power estimate between 2 points
-            alldualsource(reflectind)=alldualsource(reflectind)+DualSourcepower(vertind)./(normpower*4); %% reflect to other vertex
-            %newUL(bk,:)=UL(vertind,:)+UL(reflectind,:);
-            %vert(reflectind,:)
-            %plot3(vert(vertind,1),vert(vertind,2),vert(vertind,3),'b.',vert(reflectind,1),vert(reflectind,2),vert(reflectind,3),'ro');
-            %pause(0.1); hold on;
-        end;
-           
-        allsource=allsource+alldualsource;
-        allsource = allsource/max(allsource);   % Normalise
-        
-        Qp{1} = diag(allsource);
-        LQpL{1} = UL*diag(allsource)*UL';
-    
+        case {'LOR','COH'}
+            % create minimum norm prior
+            %------------------------------------------------------------------
+            Qp{1}   = speye(Ns,Ns);
+            LQpL{1} = UL*UL';
 
-        
-    case {'EBBgs'}  % NEW BEAMFORMER PRIOR!!
-        % create beamforming prior- Juan David- Martinez Vargas
-        %------------------------------------------------------------------
-        allsource = zeros(Ntrials,Ns);
-        for ii = 1:Ntrials
-            InvCov = spm_inv(YYep{ii});
-            Sourcepower = zeros(Ns,1);
-            for bk = 1:Ns
-                normpower = 1/(UL(:,bk)'*UL(:,bk));
-                Sourcepower(bk) = 1/(UL(:,bk)'*InvCov*UL(:,bk));
-                allsource(ii,bk) = Sourcepower(bk)./normpower;
+            % add smoothness component in source space
+            %------------------------------------------------------------------
+            Qp{2}   = QG;
+            LQpL{2} = UL*Qp{2}*UL';
+
+        case {'IID','MMN'}
+            % create minimum norm prior
+            %------------------------------------------------------------------
+            Qp{1}   = speye(Ns,Ns);
+            LQpL{1} = UL*UL';
+    end
+
+    fprintf('Using %d spatial source priors provided\n',length(Qp));
+
+
+
+
+    % Inverse solution
+    %==========================================================================
+    QP     = {};
+    LQP    = {};
+    LQPL   = {};
+
+    % Get source-level priors (using all subjects)
+    %--------------------------------------------------------------------------
+    switch(type)
+
+        case {'MSP','GS','EBBgs'}
+            % Greedy search over MSPs
+            %------------------------------------------------------------------
+            Np    = length(Qp);
+            Q     = zeros(Ns,Np); %% NB SETTING UP A NEW Q HERE
+            for i = 1:Np
+                Q(:,i) = Qp{i}.q;
             end
-            
-            Qp{ii}.q = allsource(ii,:);
-        end
-             
-    case {'LOR','COH'}
-        % create minimum norm prior
-        %------------------------------------------------------------------
-        Qp{1}   = speye(Ns,Ns);
-        LQpL{1} = UL*UL';
-        
-        % add smoothness component in source space
-        %------------------------------------------------------------------
-        Qp{2}   = QG;
-        LQpL{2} = UL*Qp{2}*UL';
-        
-    case {'IID','MMN'}
-        % create minimum norm prior
-        %------------------------------------------------------------------
-        Qp{1}   = speye(Ns,Ns);
-        LQpL{1} = UL*UL';
-end
+            Q = sparse(Q);
 
-fprintf('Using %d spatial source priors provided\n',length(Qp));
+            % Multivariate Bayes (Here is performed the inversion)
+            %------------------------------------------------------------------
 
+            MVB   = spm_mvb(AY,UL,[],Q,Qe,16); %% Qe is identity with unit trace
 
+            % Accumulate empirical priors (New set of patches for the second inversion)
+            %------------------------------------------------------------------
+            % MVB.cp provides the final weights of the hyperparameters
+            Qcp           = Q*MVB.cp;
+            QP{end + 1}   = sum(Qcp.*Q,2);
+            LQP{end + 1}  = (UL*Qcp)*Q';
+            LQPL{end + 1} = LQP{end}*UL';
+
+    end
+
+    switch(type)
+
+        case {'MSP','ARD'}
+
+            % ReML / ARD   inversion
+            %------------------------------------------------------------------
 
 
-% Inverse solution
-%==========================================================================
-QP     = {};
-LQP    = {};
-LQPL   = {};
+            %[Cy,h,Ph,F] = spm_sp_reml(AYYA,[],[Qe LQpL],1);
+            [Cy,h,Ph,F(w_idx)] = spm_sp_reml(AYYA,[],[Qe LQpL],Nn);
 
-% Get source-level priors (using all subjects)
-%--------------------------------------------------------------------------
-switch(type)
-    
-    case {'MSP','GS','EBBgs'}
-        % Greedy search over MSPs
-        %------------------------------------------------------------------
-        Np    = length(Qp);
-        Q     = zeros(Ns,Np); %% NB SETTING UP A NEW Q HERE
-        for i = 1:Np
-            Q(:,i) = Qp{i}.q;
-        end
-        Q = sparse(Q);
-        
-        % Multivariate Bayes (Here is performed the inversion)
-        %------------------------------------------------------------------
-        
-        MVB   = spm_mvb(AY,UL,[],Q,Qe,16); %% Qe is identity with unit trace 
-        
-        % Accumulate empirical priors (New set of patches for the second inversion)
-        %------------------------------------------------------------------
-        % MVB.cp provides the final weights of the hyperparameters
-        Qcp           = Q*MVB.cp;
-        QP{end + 1}   = sum(Qcp.*Q,2);
-        LQP{end + 1}  = (UL*Qcp)*Q';
-        LQPL{end + 1} = LQP{end}*UL';
-       
-end
 
-switch(type)
-    
-    case {'MSP','ARD'}
-        
-        % ReML / ARD   inversion
-        %------------------------------------------------------------------
-        
-        
-        %[Cy,h,Ph,F] = spm_sp_reml(AYYA,[],[Qe LQpL],1);
-        [Cy,h,Ph,F] = spm_sp_reml(AYYA,[],[Qe LQpL],Nn);
-        
-        
-        % Spatial priors (QP)
-        %------------------------------------------------------------------
-        % h provides the final weights of the hyperparameters
-        Ne    = length(Qe);
-        Np    = length(Qp);
-        
-        hp    = h(Ne + (1:Np));
-        
-        qp    = sparse(0);
-        for i = 1:Np
-            if hp(i) > max(hp)/128;
-                qp  = qp + hp(i)*Qp{i}.q*Qp{i}.q';
+            % Spatial priors (QP)
+            %------------------------------------------------------------------
+            % h provides the final weights of the hyperparameters
+            Ne    = length(Qe);
+            Np    = length(Qp);
+
+            hp    = h(Ne + (1:Np));
+
+            qp    = sparse(0);
+            for i = 1:Np
+                if hp(i) > max(hp)/128;
+                    qp  = qp + hp(i)*Qp{i}.q*Qp{i}.q';
+                end
             end
-        end
-        
-        % Accumulate empirical priors (New set of patches for the second inversion)
+
+            % Accumulate empirical priors (New set of patches for the second inversion)
+            %------------------------------------------------------------------
+            QP{end + 1}   = diag(qp);
+            LQP{end + 1}  = UL*qp;
+            LQPL{end + 1} = LQP{end}*UL';
+    end
+
+    switch(type)
+
+        case {'IID','MMN','LOR','COH','EBB','EBBcorr'}
+
+            % or ReML - ARD (Here is performed the inversion)
+            %------------------------------------------------------------------
+
+
+
+            [Cy,h,Ph,F(w_idx)] = spm_reml_sc(AYYA,[],[Qe LQpL],Nn,-4,16,Q0);
+
+            % Spatial priors (QP)
+            %------------------------------------------------------------------
+            % h provides the final weights of the hyperparameters
+            Ne    = length(Qe);
+            Np    = length(Qp);
+
+            hp    = h(Ne + (1:Np));
+            qp    = sparse(0);
+            for i = 1:Np
+                qp = qp + hp(i)*Qp{i};
+            end
+
+            % Accumulate empirical priors (New set of patches for the second inversion)
+            %------------------------------------------------------------------
+            QP{end + 1}   = diag(qp);
+            LQP{end + 1}  = UL*qp;
+            LQPL{end + 1} = LQP{end}*UL';
+    end
+
+
+    %==========================================================================
+    % Step 2: Re-estimate for each subject separately (fusing all modalities)
+    %==========================================================================
+
+    fprintf('Inverting subject 1\n')
+
+
+
+    % re-do ReML (with informative hyperpriors)
+    %----------------------------------------------------------------------
+    Np    = length(LQPL);       % Final number of priors
+    Ne    = length(Qe);         % Sensor noise prior
+
+
+    Q     = [{Q0} LQPL]; %% sensor corvariance prior:  Qe is identity with unit trace, LQPL is in the units of data
+
+    if rank(AYYA)~=size(A,1),
+        rank(AYYA)
+        size(AYYA,1)
+        warning('AYYA IS RANK DEFICIENT');
+    end;
+
+
+    [Cy,h,Ph,F(w_idx)]= spm_reml_sc(AYYA,[],Q,Nn,-4,16,Q0);
+
+
+
+    %% recalculate F here
+
+    Cp    = sparse(0);
+    LCp   = sparse(0);
+    hp    = h(Ne + (1:Np));
+    for j = 1:Np
+        Cp  =  Cp + hp(j)*QP{j};
+        LCp = LCp + hp(j)*LQP{j};
+    end
+
+    % MAP estimates of instantaneous sources
+    %======================================================================
+    % This is equivalent to M = Cp*UL'*inv(Qe + UL*Cp*UL'))
+    % with Cp the posterior source covariance (with optimal h values)
+    M     = LCp'/Cy;
+
+    % conditional variance (leading diagonal)
+    % Cq    = Cp - Cp*L'*iC*L*Cp;
+    %----------------------------------------------------------------------
+    Cq    = Cp - sum(LCp.*M')';
+
+    % evaluate conditional expectation
+    %----------------------------------------------------------------------
+    % evaluate conditional expectation (of the sum over trials)
+    %----------------------------------------------------------------------
+    SSR   = 0;
+    SST   = 0;
+    J     = {};
+
+    for j = 1:Ntrialtypes
+
+        % trial-type specific source reconstruction
         %------------------------------------------------------------------
-        QP{end + 1}   = diag(qp);
-        LQP{end + 1}  = UL*qp;
-        LQPL{end + 1} = LQP{end}*UL';
-end
+        J{j} = M*UY{j};
 
-switch(type)
-    
-    case {'IID','MMN','LOR','COH','EBB','EBBcorr'}
-        
-        % or ReML - ARD (Here is performed the inversion)
+        % sum of squares
         %------------------------------------------------------------------
-        
-        
-        
-        [Cy,h,Ph,F] = spm_reml_sc(AYYA,[],[Qe LQpL],Nn,-4,16,Q0);
-        
-        % Spatial priors (QP)
-        %------------------------------------------------------------------
-        % h provides the final weights of the hyperparameters
-        Ne    = length(Qe);
-        Np    = length(Qp);
-        
-        hp    = h(Ne + (1:Np));
-        qp    = sparse(0);
-        for i = 1:Np
-            qp = qp + hp(i)*Qp{i};
-        end
-        
-        % Accumulate empirical priors (New set of patches for the second inversion)
-        %------------------------------------------------------------------
-        QP{end + 1}   = diag(qp);
-        LQP{end + 1}  = UL*qp;
-        LQPL{end + 1} = LQP{end}*UL';
+        SSR  = SSR + sum(var((UY{j} - UL*J{j}))); %% changed variance calculation
+        SST  = SST + sum(var( UY{j}));
+
+    end
+
+
+    % accuracy; signal to noise (over sources)
+    %======================================================================
+    R2(w_idx)   = 100*(SST - SSR)/SST;
+    fprintf('Percent variance explained %.2f (%.2f)\n',full(R2(w_idx)),full(R2(w_idx)*VE(w_idx)));
 end
-
-
-%==========================================================================
-% Step 2: Re-estimate for each subject separately (fusing all modalities)
-%==========================================================================
-
-fprintf('Inverting subject 1\n')
-
-
-
-% re-do ReML (with informative hyperpriors)
-%----------------------------------------------------------------------
-Np    = length(LQPL);       % Final number of priors
-Ne    = length(Qe);         % Sensor noise prior
-
-
-Q     = [{Q0} LQPL]; %% sensor corvariance prior:  Qe is identity with unit trace, LQPL is in the units of data
-
-if rank(AYYA)~=size(A,1),
-    rank(AYYA)
-    size(AYYA,1)
-    warning('AYYA IS RANK DEFICIENT');
-end;
-
-
-[Cy,h,Ph,F]= spm_reml_sc(AYYA,[],Q,Nn,-4,16,Q0);
-
-
-
-%% recalculate F here
-
-Cp    = sparse(0);
-LCp   = sparse(0);
-hp    = h(Ne + (1:Np));
-for j = 1:Np
-    Cp  =  Cp + hp(j)*QP{j};
-    LCp = LCp + hp(j)*LQP{j};
-end
-
-% MAP estimates of instantaneous sources
-%======================================================================
-% This is equivalent to M = Cp*UL'*inv(Qe + UL*Cp*UL'))
-% with Cp the posterior source covariance (with optimal h values)
-M     = LCp'/Cy;
-
-% conditional variance (leading diagonal)
-% Cq    = Cp - Cp*L'*iC*L*Cp;
-%----------------------------------------------------------------------
-Cq    = Cp - sum(LCp.*M')';
-
-% evaluate conditional expectation
-%----------------------------------------------------------------------
-% evaluate conditional expectation (of the sum over trials)
-%----------------------------------------------------------------------
-SSR   = 0;
-SST   = 0;
-J     = {};
-
-for j = 1:Ntrialtypes
-    
-    % trial-type specific source reconstruction
-    %------------------------------------------------------------------
-    J{j} = M*UY{j};
-    
-    % sum of squares
-    %------------------------------------------------------------------
-    SSR  = SSR + sum(var((UY{j} - UL*J{j}))); %% changed variance calculation
-    SST  = SST + sum(var( UY{j}));
-    
-end
-
-
-% accuracy; signal to noise (over sources)
-%======================================================================
-R2   = 100*(SST - SSR)/SST;
-fprintf('Percent variance explained %.2f (%.2f)\n',full(R2),full(R2*VE));
 
 % Save results
 % DEMO: WARNING! These results are not coincident in format with
@@ -841,8 +866,8 @@ inverse.dct    = dct;                  % frequency range
 inverse.F      = F;                    % log-evidence
 inverse.ID     = ID;                   % data ID
 inverse.R2     = R2;                   % variance explained (reduced)
-inverse.VE     = R2*VE;                % variance explained
-inverse.woi    = w;                    % time-window inverted
+inverse.VE     = R2.*VE;                % variance explained
+inverse.woi    = woi;                    % time-window inverted
 inverse.Ip=Ip;                          %% patch locations
 
 inverse.modality = modalities;         % modalities inverted
@@ -855,5 +880,7 @@ D.inv{val}.method  = 'Imaging';
 
 % display
 %======================================================================
-spm_eeg_invert_display(D);
-drawnow
+if ~spm('CmdLine')
+    spm_eeg_invert_display(D);
+    drawnow
+end
