@@ -463,7 +463,7 @@ function plot_erps(pst, x, yrange, g)
             hold on; 
         end
         plot([0 0] + 64/dt/1e6 + (i-1)*ns*dt, ...
-            [yrange(1) yrange(1) + 0.1], '-k', LineWidth=1)
+            [yrange(1) yrange(1) + 0.1], '-k', 'LineWidth', 1)
         
         % Plot ERP
         %------------------------------------------------------------------
