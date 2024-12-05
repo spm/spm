@@ -496,7 +496,7 @@ end
 %--------------------------------------------------------------------------
 [a,b] =  ind2sub(size(B{1}),find(B{1})); 
 for i = 1:numel(Bproj)
-    plot(t, Bproj{i}, 'Color', color(i, :), LineWidth=2)
+    plot(t, Bproj{i}, 'Color', color(i, :), 'LineWidth', 2)
     legendsitems{i+numel(Bproj)} = sprintf('%s to %s', Sname{b(i)}, Sname{a(i)}); 
 end
 

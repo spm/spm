@@ -369,8 +369,8 @@ fill([t; flip(t)],[low; flipud(high)], ...
 
 % Plot recovered and original TVEC (self-inhibition)
 %--------------------------------------------------------------------------
-plot(t, Bproj{1}, 'Color', color(1, :), LineWidth=2)
-plot(t, Uii , '--', 'Color',  html2rgb('9947b4'), LineWidth=2) 
+plot(t, Bproj{1}, 'Color', color(1, :), 'LineWidth', 2)
+plot(t, Uii , '--', 'Color',  html2rgb('9947b4'), 'LineWidth', 2) 
 
 % Configure plot
 %--------------------------------------------------------------------------
@@ -404,8 +404,8 @@ fill([t; flip(t)], [low; flipud(high)], color(2, :), ...
 
 % Plot recovered and original TVEC (forward connection)
 %--------------------------------------------------------------------------
-plot(t, Bproj{2}, 'Color', color(2, :), LineWidth=2)
-plot(t, Uij , '--', 'Color',html2rgb('3fbdc6'), LineWidth=2) 
+plot(t, Bproj{2}, 'Color', color(2, :), 'LineWidth', 2)
+plot(t, Uij , '--', 'Color',html2rgb('3fbdc6'), 'LineWidth', 2) 
 
 % Configure plot
 %--------------------------------------------------------------------------
