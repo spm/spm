@@ -1,41 +1,63 @@
 ---
-title: 'Gala: A Python package for galactic dynamics'
+title: 'SPM 25.01: analysis software for neuroimaging data'
 tags:
-  - Python
-  - astronomy
-  - dynamics
-  - galactic dynamics
-  - milky way
+  - neuroimaging
+  - neuroscience
+  - SPM
+  - MRI
+  - MEG
+  - EEG
+  - PET
 authors:
-  - name: Adrian M. Price-Whelan
-    orcid: 0000-0000-0000-0000
-    equal-contrib: true
-    affiliation: "1, 2" # (Multiple affiliations must be quoted)
-  - name: Author Without ORCID
-    equal-contrib: true # (This is how you can denote equal contributions between multiple authors)
-    affiliation: 2
-  - name: Author with no affiliation
-    corresponding: true # (This is how to denote the corresponding author)
-    affiliation: 3
-  - given-names: Ludwig
-    dropping-particle: van
-    surname: Beethoven
-    affiliation: 3
+  - name: John Ashburner
+    affiliation: 1	
+  - name: Nicholas Alexander
+    affiliation: 1	
+  - name: Nicole Labra Avila
+    affiliation: 1	
+  - name: Yaël Balbastre
+    affiliation: 1	
+  - name: Gareth Barnes
+    affiliation: 1	
+  - name: Yulia Bezsudnova
+    affiliation: 1	
+  - name: Mikael Brudfors
+    affiliation: 1	
+  - name: Korbinian Eckstein
+    affiliation: 2	
+  - name: Guillaume Flandin
+    affiliation: 1	
+  - name: Karl Friston
+    affiliation: 1	
+  - name: Vladimir Litvak
+    affiliation: 1	
+  - name: Johan Medrano
+    affiliation: 1	
+  - name: Stephanie Mellor
+    affiliation: 1	
+  - name: George O'Neill
+    affiliation: 1	
+  - name: Thomas Parr
+    affiliation: 1	
+  - name: Adeel Razi
+    affiliation: 1	
+  - name: Tim Tierney
+    affiliation: 1	
+  - name: Ryan Timms
+    affiliation: 1	
+  - name: Peter Zeidman
+    orcid: 0000-0003-3610-6619
+    corresponding: true
+    affiliation: 1
 affiliations:
- - name: Lyman Spitzer, Jr. Fellow, Princeton University, United States
+ - name: University College London, UK
    index: 1
-   ror: 00hx57361
- - name: Institution Name, Country
+   ror: 02jx3x895
+ - name: Independent Researcher, Germany
    index: 2
- - name: Independent Researcher, Country
-   index: 3
-date: 13 August 2017
+date: 18 December 2024
 bibliography: paper.bib
 
-# Optional fields if submitting to a AAS journal too, see this blog post:
-# https://blog.joss.theoj.org/2018/12/a-new-collaboration-with-aas-publishing
-aas-doi: 10.3847/xxxxx <- update this with the DOI from AAS once you know it.
-aas-journal: Astrophysical Journal <- The name of the AAS journal.
 ---
 
 # Summary
