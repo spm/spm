@@ -27,6 +27,7 @@
 #include <array>
 #include <algorithm>
 #include <unordered_map>
+#include <cstdint> /* JA */
 #include <cmath>
 #include <limits>
 
