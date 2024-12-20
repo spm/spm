@@ -30,6 +30,7 @@
 #include <cstdint> /* JA */
 #include <cmath>
 #include <limits>
+using std::uint64_t; /* JA */
 
 namespace tmd
 {
