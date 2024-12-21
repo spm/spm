@@ -14,6 +14,11 @@ function [D,C] = spm_information_distance(a)
 % Karl Friston
 % Copyright (C) 2012-2022 Wellcome Centre for Human Neuroimaging
 
+
+% normalise dirichlet counts
+% -------------------------------------------------------------------------
+a   = spm_dir_norm(a);
+
 % correlation distance : likelihood mapping
 % -------------------------------------------------------------------------
 Ng  = size(a,1);

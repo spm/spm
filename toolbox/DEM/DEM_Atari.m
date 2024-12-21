@@ -175,7 +175,7 @@ tic, MDP = spm_faster_structure_learning(O,[Nr,Nc],3); toc
 spm_figure('GetWin','Orbits'); clf
 
 subplot(2,2,1)
-spm_dir_orbits(MDP{end}.B{1},HID,[],24);
+spm_dir_orbits(MDP{end}.b{1},HID,[],24);
 title('Orbits and goals')
 
 % priors
@@ -192,7 +192,7 @@ spm_MDP_params(MDP{Nm})
 % paths to hits
 %--------------------------------------------------------------------------
 subplot(2,2,3)
-B     = sum(MDP{Nm}.B{1},3) > 0;
+B     = sum(MDP{Nm}.b{1},3) > 0;
 Ns    = size(B,1);
 h     = sparse(1,HID,1,1,Ns);
 for t = 1:16
@@ -290,17 +290,18 @@ for m = 1:numel(MDP)
     MDP{m}.eta  = 512;
 end
 
+% enable inductive inference at final level
+%--------------------------------------------------------------------------
+MDP{Nm}.U      = 1;
+MDP{Nm}.id.hid = HID;
+MDP{Nm}.id.cid = CID;
+
 % train: with small concentration parameters
 %--------------------------------------------------------------------------
 FIX.A      = 0;                             % learn likelihood
 FIX.B      = 0;                             % but not transitions
 RDP        = spm_mdp2rdp(MDP,1/128,1/512,2,FIX);
-
-RDP.U      = 1;
 RDP.T      = 128;
-RDP.id.hid = HID;
-RDP.id.cid = CID;
-
 PDP        = spm_MDP_VB_XXX(RDP);
 
 % Illustrate recursive model
@@ -308,22 +309,11 @@ PDP        = spm_MDP_VB_XXX(RDP);
 spm_figure('GetWin','Active inference'); clf
 spm_show_RGB(PDP,RGB,4,false);
 
-% add ELBOs
-%--------------------------------------------------------------------------
-subplot(Nm + 3,2,2*(Nm + 1))
-T     = numel(PDP.Q.E{1});
-t     = linspace(1,T,RDP.T);
-plot(t,PDP.F), hold on
-for n = 1:numel(PDP.Q.E)
-    t = linspace(1,T,numel(PDP.Q.E{n}));
-    plot(t,PDP.Q.E{n})
-end
-
 % and hits
 %--------------------------------------------------------------------------
+subplot(Nm + 3,2,2*(Nm + 1))
 h     = find(ismember(PDP.Q.o{1}',HITS','rows'));
-plot(h,ones(size(h)),'.r','MarkerSize',16)
-title('ELBO'), spm_axis tight
+plot(h,zeros(size(h)),'.r','MarkerSize',16)
 
 
 % Illustrate in latent state space 

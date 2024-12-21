@@ -6,7 +6,7 @@ function [u] = spm_dir_orbits(b,hid,P,Nx)
 % P      - (Ns x Nt) sequence of (probabilistic) states
 % Nx     - rotate to show first Nx (generalised) states
 %
-% This routine plots latent states in the first two principle eigenvectors
+% This routine plots latent states in the first two principal eigenvectors
 % of (roughly) the graph Laplacian of transitions among states. The
 % transitions among states are supplied in terms of a transition tensor
 % (that is summed over the third dimension or perhaps). The states are then

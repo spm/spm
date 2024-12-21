@@ -3,18 +3,27 @@ function [MDP] = spm_faster_structure_learning(O,S,dx,dt)
 % FORMAT [MDP] = spm_faster_structure_learning(O,S,dx,dt)
 % O{N,T} - probabilitic exemplars of paths (cell aray)
 % S      - array size of streams (number of streams x 4)
-%    S(:,1) - size of group (x)
-%    S(:,2) - size of group (y)
-%    S(:,3) - size of group (z)
-%    S(:,4) - number of outcomes per group
+%    S(:,1) - size (x) of group in each stream  
+%    S(:,2) - size (y) of group in each stream 
+%    S(:,3) - size (z) of group in each stream 
+%    S(:,4) - number of outcomes per group in each stream 
 % dx     - space scaling [default: 2 or 3]
 % dt     - time  scaling [default: 2]
 %
 % This routine returns a hierarchy of generative models (MDP{n}), given a
-% sequence of outcomes using RG (renormalization group) operators.
+% sequence of outcomes using RG (renormalization group) operators. Output
+% modalities are segregated into distinct streams (as specified by the size
+% of groups:  S). The likelihood mappings within each stream maximise
+% mutual information between successive levels by retaining unique
+% combinations of outcomes over groups within each stream. These unique
+% combinations are identified using the information distance between
+% outcomes at each level. Between stream likelihoods map from the first or
+% principal stream to subsequent or trailing streams, which will usually be
+% the consequences of generalised states generated in the principal stream.
 %
-% See: spm_MDP_structure_learning.m
-%      spm_MDP_structure_teaching.m
+% See also: spm_MDP_structure_learning.m
+%           spm_MDP_structure_teaching.m
+%           spm_merge_structure_learning
 %__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
@@ -84,11 +93,12 @@ for n = 1:8
 
             % likelihoods and priors for this group
             %--------------------------------------------------------------
-            MDP{n}.A(gg,1) = mdp.a;
-            MDP{n}.B(fg,1) = mdp.b;
+            MDP{n}.a(gg,1) = mdp.a;
+            MDP{n}.b(fg,1) = mdp.b;
 
-            MDP{n}.sA(gg)  = s;
-            MDP{n}.sB(fg)  = s;
+            MDP{n}.sA(gg)  = s;                     % parent stream
+            MDP{n}.sB(fg)  = s;                     % parent stream
+            MDP{n}.sC(gg)  = s;                     % child  stream
 
             % intial states and paths
             %--------------------------------------------------------------
@@ -128,9 +138,9 @@ for n = 1:8
     MDP{n}.id.D = num2cell(D);                      % parents of state
     MDP{n}.id.E = num2cell(E);                      % parents of paths
 
-    % Combine streams if all comprise one group
+    % Link streams
     %----------------------------------------------------------------------
-    if n > 1
+    if n > 1 && true
         si = 1;                                     % source stream
         for sj = 2:numel(Ng)                        % target stream
 
@@ -145,77 +155,60 @@ for n = 1:8
 
                     % sizes
                     %------------------------------------------------------
-                    Ni = size(MDP{n}.B{fi(i)},    1);
-                    Nj = size(MDP{n - 1}.B{fj(j)},2);
-                    Nu = size(MDP{n - 1}.B{fj(j)},3);
+                    Ni = size(MDP{n}.b{fi(i)},    1);
+                    Nj = size(MDP{n - 1}.b{fj(j)},2);
+                    Nu = size(MDP{n - 1}.b{fj(j)},3);
 
                     % prediction of inital states (D)
                     %------------------------------------------------------
-                    A  = zeros(Nj,Ni);
+                    g  = MDP{n - 1}.id.D{fj(j)}(1);
+                    A  = spm_dir_norm(MDP{n}.a{g});
+                    a  = zeros(Nj,Ni);
                     for f = 1:t
-                        g = MDP{n - 1}.id.D{fj(j)}(1);
-                        a = MDP{n}.A{g}(:,sg{sj}(j,f));
-                        A(:,sg{si}(i,f)) = A(:,sg{si}(i,f)) + a;
+                        ii = sg{si}(i,f);
+                        ij = sg{sj}(j,f);
+                        a(:,ii) = a(:,ii) + A(:,ij);
                     end
 
                     % append mappings and iD
                     %------------------------------------------------------
-                    MDP{n}.A{end + 1} = spm_dir_norm(A);
+                    MDP{n}.a{end + 1}    = a;
                     MDP{n}.id.A{end + 1} = fi(i);
-                    MDP{n - 1}.id.D{fj(j)}(end + 1) = numel(MDP{n}.A);
+                    MDP{n - 1}.id.D{fj(j)}(end + 1) = numel(MDP{n}.a);
+                    MDP{n}.sA(end + 1)   = si;
+                    MDP{n}.sC(end + 1)   = sj;
 
                     % prediction of initial paths (E)
                     %------------------------------------------------------
-                    A  = zeros(Nu,Ni);
+                    g  = MDP{n - 1}.id.E{fj(j)}(1);
+                    A  = spm_dir_norm(MDP{n}.a{g});
+                    a  = zeros(Nu,Ni);
                     for f = 1:t
-                        g = MDP{n - 1}.id.E{fj(j)}(1);
-                        a = MDP{n}.A{g}(:,sg{sj}(j,f));
-                        A(:,sg{si}(i,f)) = A(:,sg{si}(i,f)) + a;
+                        ii = sg{si}(i,f);
+                        ij = sg{sj}(j,f);
+                        a(:,ii) = a(:,ii) + A(:,ij);
                     end
 
                     % append mappings and iD
                     %------------------------------------------------------
-                    MDP{n}.A{end + 1} = spm_dir_norm(A);
+                    MDP{n}.a{end + 1}    = a;
                     MDP{n}.id.A{end + 1} = fi(i);
-                    MDP{n - 1}.id.E{fj(j)}(end + 1) = numel(MDP{n}.A);
+                    MDP{n - 1}.id.E{fj(j)}(end + 1) = numel(MDP{n}.a);
+                    MDP{n}.sA(end + 1)   = si;
+                    MDP{n}.sC(end + 1)   = sj;
 
                 end
             end
         end
     end
 
-    % if all streams comprise one group
+    % Termination criteria
     %======================================================================
     if true
 
-        % remove trailing streams
+        % if all streams comprise one group
         %------------------------------------------------------------------
         if max(Ng) == 1
-
-            % remove trailing factors
-            %--------------------------------------------------------------
-            MDP{n}.B = MDP{n}.B(1);
-            Na    = numel(MDP{n}.A);
-            d     = false(1,Na);
-            for g = 1:Na
-                d(g) = ~any(MDP{n}.id.A{g} > 1);
-            end
-            i = find(d);
-
-            % remove their children
-            %--------------------------------------------------------------
-            MDP{n}.A    = MDP{n}.A(d);
-            MDP{n}.id.A = MDP{n}.id.A(d);
-
-            % and update parents of subordinate factors
-            %--------------------------------------------------------------
-            for j = 1:numel(MDP{n - 1}.id.D)
-                MDP{n - 1}.id.D{j} = find(ismember(i,MDP{n - 1}.id.D{j}));
-            end
-            for j = 1:numel(MDP{n - 1}.id.E)
-                MDP{n - 1}.id.E{j} = find(ismember(i,MDP{n - 1}.id.E{j}));
-            end
-
             break
         end
 
@@ -226,7 +219,7 @@ for n = 1:8
         if max(Ng) == 1
             S = [1 1 1 2*sum(Ng)];
 
-            % Check whether there is only one group
+            % Check there is only one group
             %--------------------------------------------------------------
             if (numel(Ng) == 1) || (Nt == 1)
                 break
@@ -266,7 +259,7 @@ D       = spm_information_distance(O);
 
 % discretise and return indices of unique outcomes
 %--------------------------------------------------------------------------
-[~,i,j] = unique(D < 1,'rows','stable');
+[~,i,j] = unique(D < sqrt(2),'rows','stable');
 
 
 % Likelihood tensors
@@ -276,32 +269,46 @@ Ng    = size(O,1);                          % number in group
 a     = cell(Ng,1);
 for g = 1:Ng
 
-    % use first mapping
-    %--------------------------------------------------------------------------
-    a{g} = full(spm_cat(O(g,i)));
-
-%     % or average
-%     %--------------------------------------------------------------------------
-%     for s = 1:Ns
-%         a{g}(:,s) = full(mean(spm_cat(O(g,ismember(j,s))),2));
-%     end
+    % record unique outcomes
+    %----------------------------------------------------------------------
+    a{g}  = zeros(numel(O{g}),Ns);
+    for t = 1:numel(j)
+        a{g}(:,j(t)) = a{g}(:,j(t)) + O{g,t};
+    end
 
 end
 
 % Transition tensors
 %--------------------------------------------------------------------------
 Nt    = numel(j) - 1;
-b     = false(Ns,Ns);
+b     = zeros(Ns,Ns);
 for t = 1:Nt
 
-    % find paths
+    % Is this an existing transition?
     %----------------------------------------------------------------------
-    if ~ any(b(j(t + 1),j(t),:),'all')
+    u  = find(b(j(t + 1),j(t),:),1,'first');
+    if numel(u)
+
+        % accumulate Drichlet counts for this transition
+        %------------------------------------------------------------------
+        b(j(t + 1),j(t),u) = b(j(t + 1),j(t),u) + 1;
+
+    else
+
+        % find the first path that does not have a successor of j(t)
+        %------------------------------------------------------------------
         u  = find(~any(b(:,j(t),:),1),1,'first');
-        if isempty(u)
-            b(j(t + 1),j(t),end + 1) = true;
+        if numel(u)
+
+            % equip this path with a successor
+            %--------------------------------------------------------------
+            b(j(t + 1),j(t),u) = 1;
+
         else
-            b(j(t + 1),j(t),u) = true;
+
+            % otherwise create a new path
+            %--------------------------------------------------------------
+            b(j(t + 1),j(t),end + 1) = 1;
         end
     end
 end
@@ -330,7 +337,7 @@ end
 %--------------------------------------------------------------------------
 for t = 1:Nt
     if Nu > 1
-        mdp.P{t} = squeeze(b(j(t + 1),j(t),:));
+        mdp.P{t} = logical(squeeze(b(j(t + 1),j(t),:)));
     else
         mdp.P{t} = true;
     end
