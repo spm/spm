@@ -1,10 +1,10 @@
-function RDP = spm_mdp2rdp(MDP,p,q,T,FIX)
-% Converts a cell array of MDPs into a recursive MDP
-% FORMAT RDP = spm_mdp2rdp(MDP,p,q,T,FIX)
+function RDP = spm_mdp2rdp_a(MDP,p,q,T,FIX)
+% Converts a cell array of MDPs into a recursive MDP (Dirichlet version)
+% FORMAT RDP = spm_mdp2rdp_a(MDP,p,q,T,FIX)
 % MDP{n} - Cell array of MDPs
 % 
-%  MDP{n}.A    - likelihood tensors 
-%  MDP{n}.B    - transition tensors (logical)
+%  MDP{n}.a    - likelihood tensors (Dirichlet)
+%  MDP{n}.b    - transition tensors (Dirichlet)
 %  MDP{n}.id.A - cell array of parents of A factors at the same level
 %  MDP{n}.id.D - cell array of parents of D in supraordinate outcomes
 %  MDP{n}.id.E - cell array of parents of E in supraordinate outcomes
@@ -37,8 +37,6 @@ function RDP = spm_mdp2rdp(MDP,p,q,T,FIX)
 % Karl Friston
 % Copyright (C) 2022-2023 Wellcome Centre for Human Neuroimaging
 
-
-
 % Assume time scaling with a scale doubling
 %--------------------------------------------------------------------------
 if nargin < 2, p = 0; end
@@ -49,20 +47,12 @@ if nargin < 5
     FIX.B = 1;
 end
 
-% is this RGM specified with Dirichlet counts?
-%==========================================================================
-if isfield(MDP{1},'a')
-    RDP = spm_mdp2rdp_a(MDP,p,q,T,FIX);
-    return
-end
-
-
-% Check for concentration parameters
+% Check for concentration parameters for streams
 %--------------------------------------------------------------------------
 Nm    = numel(MDP);
-try p = p(1:Nm); catch, p = repmat(p(1),1,Nm); end
-try q = q(1:Nm); catch, q = repmat(q(1),1,Nm); end
-
+Ns    = max(MDP{1}.sB);
+try p = p(1:Ns); catch, p = repmat(p(1),1,Ns); end
+try q = q(1:Ns); catch, q = repmat(q(1),1,Ns); end
 
 % Check for single level models
 %--------------------------------------------------------------------------
@@ -76,14 +66,18 @@ end
 % if all streams comprise one group
 %======================================================================
 n = Nm;
-if numel(MDP{n}.B) > 1
+if numel(MDP{n}.b) > 1
 
     % remove trailing factors
     %--------------------------------------------------------------
-    MDP{n}.B = MDP{n}.B(1);
+    MDP{n}.b = MDP{n}.b(1);
     MDP{n}.G = MDP{n}.G(1);
 
-    Na    = numel(MDP{n}.A);
+    if isfield(MDP{n},'sB')
+        MDP{n}.sB = MDP{n}.sB(1);
+    end
+
+    Na    = numel(MDP{n}.a);
     d     = false(1,Na);
     for g = 1:Na
         d(g) = ~any(MDP{n}.id.A{g} > 1);
@@ -92,7 +86,7 @@ if numel(MDP{n}.B) > 1
 
     % remove their children
     %--------------------------------------------------------------
-    MDP{n}.A     = MDP{n}.A(d);
+    MDP{n}.a     = MDP{n}.a(d);
     MDP{n}.id.A  = MDP{n}.id.A(d);
 
     if isfield(MDP{n},'C')
@@ -116,9 +110,9 @@ for n = Nm:-1:2
 
     % find unitary likelihood mappings
     %======================================================================
-    d     = true(1,numel(MDP{n}.A));
-    for g = 1:numel(MDP{n}.A)
-        if (size(MDP{n}.A{g},1) < 2) && ~isa(MDP{n}.A{g},'function_handle')
+    d     = true(1,numel(MDP{n}.a));
+    for g = 1:numel(MDP{n}.a)
+        if (size(MDP{n}.a{g},1) < 2) && ~isa(MDP{n}.a{g},'function_handle')
             d(g) = false;
         end
     end
@@ -126,13 +120,17 @@ for n = Nm:-1:2
 
     % remove unitary likelihood mappings
     %----------------------------------------------------------------------
-    MDP{n}.A    = MDP{n}.A(d);
+    MDP{n}.a    = MDP{n}.a(d);
     MDP{n}.id.A = MDP{n}.id.A(d);
 
     if isfield(MDP{n},'C')
         MDP{n}.C = MDP{n}.C(d);
     end
 
+    if isfield(MDP{n},'sA')
+        MDP{n}.sA = MDP{n}.sA(d);
+        MDP{n}.sC = MDP{n}.sC(d);
+    end
 
     % and update parents of subordinate factors
     %----------------------------------------------------------------------
@@ -145,9 +143,9 @@ for n = Nm:-1:2
 
     % merge unitary transitions
     %======================================================================
-    d     = true(1,numel(MDP{n}.B));
-    for f = 1:numel(MDP{n}.B)
-        if isscalar(MDP{n}.B{f}) && ~isa(MDP{n}.B{f},'function_handle')
+    d     = true(1,numel(MDP{n}.b));
+    for f = 1:numel(MDP{n}.b)
+        if isscalar(MDP{n}.b{f}) && ~isa(MDP{n}.b{f},'function_handle')
             d(f) = false;
         end
     end
@@ -161,12 +159,15 @@ for n = Nm:-1:2
 
     % remove redundant factors
     %----------------------------------------------------------------------
-    MDP{n}.B    = MDP{n}.B(d);
+    MDP{n}.b    = MDP{n}.b(d);
     MDP{n}.id.D = MDP{n}.id.D(d);
     MDP{n}.id.E = MDP{n}.id.E(d);
-    
+
     if isfield(MDP{n},'U')
         MDP{n}.U = MDP{n}.U(d);
+    end
+    if isfield(MDP{n},'sB')
+        MDP{n}.sB = MDP{n}.sB(d);
     end
 
     % and update parents of likelihoods
@@ -185,7 +186,7 @@ end
 %-------------------------------------------------------------------------
 for n = 1:Nm
     if ~isfield(MDP{n},'U')
-        Nf   = numel(MDP{n}.B);
+        Nf   = numel(MDP{n}.b);
         MDP{n}.U = false(1,Nf);
     end
 end
@@ -193,13 +194,13 @@ end
 % fill in empty columns of transition tensors (for controlled factors)
 %==========================================================================
 for n = 1:Nm
-    for f = 1:numel(MDP{n}.B)
+    for f = 1:numel(MDP{n}.b)
 
         % if this path is selectable (controllable)
         %------------------------------------------------------------------
         if MDP{n}.U(f)
             
-            b  = MDP{n}.B{f};
+            b  = MDP{n}.b{f};
             Ns = size(b,2);
             Nu = size(b,3);
 
@@ -209,13 +210,13 @@ for n = 1:Nm
                 for u = 1:Nu
                     for s = 1:Ns
                         if ~any(b(:,s,u))
-                            i = find(any(squeeze(b(:,s,:)),2),1);
-                            b(i,s,u) = true;
+                            [j,i]    = max(max(squeeze(b(:,s,:)),[],2));
+                            b(i,s,u) = j;
                         end
                     end
                 end
             end
-            MDP{n}.B{f} = b;
+            MDP{n}.b{f} = b;
 
         end
     end
@@ -228,41 +229,41 @@ for n = 1:Nm
 
     % normalised likelihoods
     %----------------------------------------------------------------------
-    for g = 1:numel(MDP{n}.A)
-        if isa(MDP{n}.A{g},'function_handle')
-            MDP{n}.a{g} = MDP{n}.A{g};
-        else
-            MDP{n}.a{g} = MDP{n}.A{g} + p(n);
+    for g = 1:numel(MDP{n}.a)
+        if ~isa(MDP{n}.a{g},'function_handle')
+            s           = MDP{n}.sC(MDP{n}.id.A{g});
+            MDP{n}.a{g} = MDP{n}.a{g} + p(s);
         end
     end
 
     % normalised transitions
     %----------------------------------------------------------------------
-    for f = 1:numel(MDP{n}.B)
-        if isa(MDP{n}.B{f},'function_handle')
-            MDP{n}.b{f} = MDP{n}.B{f};
-        else
-            MDP{n}.b{f} = MDP{n}.B{f} + q(n);
+    for f = 1:numel(MDP{n}.b)
+        if ~isa(MDP{n}.b{f},'function_handle')
+            s           = MDP{n}.sC(MDP{n}.id.A{g});
+            MDP{n}.b{f} = MDP{n}.b{f} + q(s);
         end
     end
 
-    % remove fields
+    % remove Dirichlet counts if requested
     %----------------------------------------------------------------------
     if FIX.A
-        MDP{n}.A = spm_dir_norm(MDP{n}.a);
-        MDP{n}   = rmfield(MDP{n},'a');
-    else
-        MDP{n}   = rmfield(MDP{n},'A');
+        for g = 1:numel(MDP{n}.a)
+            if ~isa(MDP{n}.a{g},'function_handle')
+                MDP{n}.A{g} = spm_dir_norm(MDP{n}.a{g});
+            end
+        end
+        MDP{n} = rmfield(MDP{n},'a');
     end
     if FIX.B
-        MDP{n}.B = spm_dir_norm(MDP{n}.b);
-        MDP{n}   = rmfield(MDP{n},'b');
-    else
-        MDP{n}   = rmfield(MDP{n},'B');
+        for f = 1:numel(MDP{n}.b)
+            if ~isa(MDP{n}.b{f},'function_handle')
+                MDP{n}.B{f} = spm_dir_norm(MDP{n}.b{f});
+            end
+        end
+        MDP{n} = rmfield(MDP{n},'b');
     end
-
 end
-
 
 % remove parents of last level (i.e., MDP{end}.D and E)
 %--------------------------------------------------------------------------

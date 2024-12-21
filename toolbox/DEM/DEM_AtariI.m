@@ -43,12 +43,11 @@ G  = @(Nr,Nc) spm_MDP_pong(Nr,Nc,4);   % game
 NT = 128;                              % exposures (training)
 
 
-
 %% Simulate learning and subsequent performance
 %--------------------------------------------------------------------------
 [GDP,hid,cid,con,RGB] = G(Nr,Nc);
-GDP.tau = 8;                          % smoothness of random paths
-GDP.T   = (Nr + 2)*4;                 % upper bound on length of paths
+GDP.tau = 8;                           % smoothness of random paths
+GDP.T   = (Nr + 2)*4;                  % upper bound on length of paths
 
 
 % generate (probabilistic) outcomes under random actions
@@ -122,7 +121,7 @@ MDP = spm_faster_structure_learning(O,S,Sc);
 
 % more structure learning
 %==========================================================================
-Nx    = size(MDP{end}.B{1},1);
+Nx    = size(MDP{end}.b{1},1);
 Nm    = numel(MDP);
 Ne    = 2^(Nm - 1);
 for t = 2:Ne
@@ -132,6 +131,7 @@ end
 
 % Create deep recursive model
 %--------------------------------------------------------------------------
+MDP{end}.U = 1;
 RDP   = spm_mdp2rdp(MDP);
 RDP.T = 32;
 PDP   = spm_MDP_VB_XXX(RDP);
@@ -144,20 +144,20 @@ spm_show_RGB(PDP,RGB);
 
 % rewarded events
 %--------------------------------------------------------------------------
-[HID,CID,HITS,MISS] = spm_get_episodes( hid,cid,GDP,MDP);
+[HID,~,HITS,~] = spm_get_episodes( hid,cid,GDP,MDP);
 
 % Illustrate orbits
 %==========================================================================
 spm_figure('GetWin','Orbits'); clf
 
 subplot(2,2,1)
-spm_dir_orbits(MDP{end}.B{1},HID,[],Nx);
+spm_dir_orbits(MDP{end}.b{1},HID,[],Nx);
 title('Orbits & goals')
 
 % paths to hits
 %--------------------------------------------------------------------------
 subplot(2,1,2)
-B     = sum(MDP{Nm}.B{1},3) > 0;
+B     = sum(MDP{Nm}.b{1},3) > 0;
 Ns    = size(B,1);
 h     = sparse(1,HID,1,1,Ns);
 I     = [];
@@ -189,7 +189,7 @@ for g = 1:numel(GDP.A)
 end
 
 MDP{1}.ID.control = con;                    % controlled outcomes
-MDP{1}.chi = 1/8;                           %%%% sticky action/shaky hand
+MDP{1}.chi = 1/8;                           % sticky action/shaky hand
 
 
 % enable active learning (with minimal forgetting)
@@ -224,17 +224,6 @@ for i = 1:NR
     PDP = spm_MDP_VB_XXX(RDP);
     h   = find(ismember(PDP.Q.o{1}',HITS','rows'));
 
-%     % Illustrate recursive model
-%     %--------------------------------------------------------------------
-%     spm_figure('GetWin','Active inference'); clf
-%     spm_show_RGB(PDP,RGB,8,false);
-% 
-%     % and hits
-%     %--------------------------------------------------------------------
-%     subplot(Nm + 3,2,2*(Nm + 1))
-%     plot(h,zeros(size(h)),'.r','MarkerSize',16)
-%     drawnow
-
     % record behaviour
     %----------------------------------------------------------------------
     F(1,i) = mean(PDP.F);            % ELBO (last level - states)
@@ -248,7 +237,7 @@ for i = 1:NR
     % learn from mistakes
     %======================================================================
     R     = PDP.Q.O{1}(:,(Ne*Ne):end);
-    for q = 1:1
+    for q = 1:2
 
         % new attracting paths
         %------------------------------------------------------------------
@@ -256,7 +245,7 @@ for i = 1:NR
 
         % augment MDP
         %------------------------------------------------------------------
-        MDP = spm_daisy_chain(R,S,MDP,MISS);
+        MDP = spm_daisy_chain(R,S,MDP);
 
     end
 
@@ -284,7 +273,7 @@ spm_figure('GetWin','Active inference'); clf
 spm_show_RGB(PDP,RGB,8,false);
 
 % and hits
-%----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 subplot(Nm + 3,2,2*(Nm + 1))
 h   = find(ismember(PDP.Q.o{1}',HITS','rows'));
 plot(h,zeros(size(h)),'.r','MarkerSize',16)
@@ -310,7 +299,7 @@ spm_dir_orbits(PDP.B{1},HID,PDP.X{1},Nx);
 % paths to hits
 %--------------------------------------------------------------------------
 subplot(2,1,2)
-B     = sum(MDP{Nm}.B{1},3) > 0;
+B     = sum(MDP{Nm}.b{1},3) > 0;
 Ns    = size(B,1);
 h     = sparse(1,HID,1,1,Ns);
 I     = [];

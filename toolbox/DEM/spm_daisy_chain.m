@@ -1,10 +1,9 @@
-function MDP = spm_daisy_chain(R,S,MDP,MISS)
+function MDP = spm_daisy_chain(R,S,MDP,GDP)
 % Selctive structure learning of a hierarchical POMDP
-% FORMAT MDP = spm_daisy_chain(R,S,MDP,MISS)
+% FORMAT MDP = spm_daisy_chain(R,S,MDP,GDP)
 % R    - cell array of outcomes
 % S    - cell array (attracting set) of output sequences
 % MDP  - cell array of (renormalising) models
-% MISS - list of constrained (i.e. restricted) outcomes at lowest level
 %
 % MDP  - new MDP
 % O    - cell array of new paths in MDP
@@ -27,7 +26,7 @@ function MDP = spm_daisy_chain(R,S,MDP,MISS)
 
 % options for model inversion (and evaluation)
 %==========================================================================
-if nargin < 4, MISS = []; end
+spm_get_cost = @(o,GDP) any(o(GDP.id.contraint,:) > 1);
 
 % initial conditions of attracting paths
 %--------------------------------------------------------------------------
@@ -37,7 +36,6 @@ for m = 1:numel(S)
     U(m,:) = dcat(S{m}(:,1:2));
 end
 V     = dcat(R);
-
 
 % for each path in attracting set
 %--------------------------------------------------------------------------
@@ -62,22 +60,33 @@ for m = find(ismember(U,V,'rows')')
                 o(g,t) = k;
             end
         end
-
+     
         % does path include a miss?
         %------------------------------------------------------------------
-        miss = any(ismember(o',MISS','rows'));
+        if nargin > 3
+            miss = spm_get_cost(o,GDP);
+        else
+            miss = false;
+        end
 
-        % is this a new path?
-        %------------------------------------------------------------------
-        % old  = any(ismember(U,V(j(1),:),'rows'));
-
-        % and append
+        % and append new path ([N,S{m}])
         %------------------------------------------------------------------
         if ~miss
             MDP = spm_merge_structure_learning([N,S{m}],MDP);
         end
 
+    end
+end
 
+% remove C (and U) because the sizes of states have changed
+%==========================================================================
+Nm    = numel(MDP);
+for n = 1:Nm
+    if isfield(MDP{n},'U')
+        MDP{n} = rmfield(MDP{n},'U');
+    end
+    if isfield(MDP{n},'C')
+        MDP{n} = rmfield(MDP{n},'C');
     end
 end
 

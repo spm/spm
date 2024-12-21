@@ -405,7 +405,9 @@ spm_MDP_params(MDP{end}), drawnow
 
 fprintf('Structure learning time: %i secs.\n',round(t))
 
-
+% normalise Dirichlet coutns and remove a and b fields
+%--------------------------------------------------------------------------
+MDP = spm_mdp_a2A(MDP);
 
 % replace first level likelihood mapping (and augment with telemetry)
 %--------------------------------------------------------------------------

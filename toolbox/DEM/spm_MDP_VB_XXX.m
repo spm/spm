@@ -744,15 +744,6 @@ for t = 1:T
                     %------------------------------------------------------
                     MDP(m).u(f,t) = MDP(m).u(f,t - 1);
 
-                    % implicit control (sample from previous output)
-                    %------------------------------------------------------
-                    if isfield(id{m},'u')
-                        g = id{m}.u{f};
-                        if numel(g)
-                            MDP(m).u(f,t) = MDP(m).o(g,t - 1);
-                        end
-                    end
-
                     else
 
                     % otherwise sample a path
@@ -801,13 +792,9 @@ for t = 1:T
             %--------------------------------------------------------------
             if process(m)
 
-                if ~isfield(ID{m},'u')
-
                     % explicit action (that maximises accuracy)
                     %------------------------------------------------------
                     MDP(m) = spm_action(MDP(m),A(m,:),Q(m,:,t),t - 1);
-
-                end
 
             else
 
@@ -816,7 +803,6 @@ for t = 1:T
                 for f = id{m}.fu
                     MDP(m).u(f,t - 1) = spm_sample(P{m,f,t - 1});
                 end
-
                 end
 
         end % generating control paths
@@ -963,20 +949,6 @@ for t = 1:T
         end
     end
 
-    % write (expose) prior density over states to outputs
-    %======================================================================
-    if isfield(id{m},'u')
-        for f = 1:numel(id{m}.u)
-            g = id{m}.u{f};
-            if numel(g)
-                po            = A{m,g}*Q{m,f,t};
-                po            = spm_softmax(spm_log(po),chi);
-                MDP(m).o(g,t) = spm_sample(po);
-                O{m,o,t}      = spm_one_hot(MDP(m).o(g,t),No(m,g));
-            end
-        end
-    end
-
     % or generate outcomes O{m,g,t} from a subordinate MDP
     %======================================================================
     for m = M(t,:)
@@ -1039,8 +1011,6 @@ for t = 1:T
                     end
                 end
 
-
-
                 % add (update) empirical priors over paths:
                 %----------------------------------------------------------
                 for g  = mdp.id.E{f}
@@ -1068,24 +1038,9 @@ for t = 1:T
                 %----------------------------------------------------------
                 if isfield(mdp,'GV')
 
-                    if isfield(mdp.ID,'u')
-
-                        % implicit action (sample from outputs)
-                        %--------------------------------------------------
-                        for f = 1:numel(mdp.ID.u)
-                            g = mdp.ID.u{f};
-                            if numel(g)
-                                mdp.u(f,mdp.T) = mdp.o(g,mdp.T);
-                            end
-                    end
-
-                    else
-
                         % explicit action (that maximises accuracy under D)
                         %--------------------------------------------------
                         mdp = spm_action(mdp,mdp.A,mdp.D,mdp.T);
-
-                    end
 
                     mdp.u = mdp.u(:,mdp.T);           % next initial path
                     mdp.s = mdp.s(:,mdp.T);           % next initial state
@@ -1108,60 +1063,14 @@ for t = 1:T
 
                     else
 
-                % paths of generative process
+                % paths of generative process: sample from empirical prior
                 %----------------------------------------------------------
                 mdp.u = ones(nf,1);              % next initial path
-                for f = 1:nf
-
-                    % sample from prior
-                    %------------------------------------------------------
-                    pu    = mdp.E{f};
-                    for g = mdp.id.E{f}
-                        j   = spm_parents(id{m},g,MDP(m).s(:,t));
-                        s = num2cell(MDP(m).s(j,t));
-                        if isa(MDP(m).A{g},'function_handle')
-                            po = MDP(m).A{g}([s{:}]);
-                    else
-                            po = MDP(m).A{g}(:,s{:});
-                        end
-                        pu   = spm_multiply(pu,po);
-                    end
-                    mdp.u(f) = spm_sample(pu);
-
-                end
-
-                % implicit action (sample from outputs)
-                %----------------------------------------------------------
-                if isfield(mdp.id,'u') && isfield(mdp,'o')
-                    for f = 1:numel(mdp.id.u)
-                        g = mdp.id.u{f};
-                        if numel(g)
-                            mdp.u(f) = mdp.o(g,mdp.T);
-                    end
-                end
-                end
-
-                % states of generative process
-                %----------------------------------------------------------
                 mdp.s = ones(nf,1);              % next initial state
                 for f = 1:nf
-
-                    % sample from prior
-                    %------------------------------------------------------
-                    ps    = mdp.D{f};
-                    for g = mdp.id.D{f}
-                        j   = spm_parents(id{m},g,MDP(m).s(:,t));
-                        s = num2cell(MDP(m).s(j,t));
-                        if isa(MDP(m).A{g},'function_handle')
-                            po = MDP(m).A{g}([s{:}]);
-                        else
-                            po = MDP(m).A{g}(:,s{:});
+                    mdp.u(f) = spm_sample(mdp.E{f});
+                    mdp.s(f) = spm_sample(mdp.D{f});
                         end
-                        ps   = spm_multiply(ps,po);
-                    end
-                    mdp.s(f) = spm_sample(ps);
-                end
-
 
             end
 
@@ -1169,6 +1078,15 @@ for t = 1:T
             %==============================================================
             if isfield(MDP(m),'Q')
                 mdp.Q  = MDP(m).Q;
+            end
+
+            % ensure new outcomes are generated
+            %--------------------------------------------------------------
+            if isfield(mdp,'O')
+                mdp = rmfield(mdp,'O');
+            end
+            if isfield(mdp,'o')
+                mdp = rmfield(mdp,'o');
             end
 
             % if outcomes (stimuli) are supplied
@@ -1193,15 +1111,6 @@ for t = 1:T
             % infer hidden states at lower level (outcomes at this level)
             %==============================================================
             
-            % ensure new outcomes are generated
-            %--------------------------------------------------------------
-            if isfield(mdp,'O')
-                mdp = rmfield(mdp,'O');
-            end
-            if isfield(mdp,'o')
-                mdp = rmfield(mdp,'o');
-            end
-
             % update
             %--------------------------------------------------------------
             mdp   = spm_MDP_VB_XXX(mdp);
@@ -1225,12 +1134,8 @@ for t = 1:T
             % Mutual information
             %--------------------------------------------------------------
             if isfield(mdp,'a')
-                try
-                    mdp.Q.a{mdp.L} = [mdp.Q.a{mdp.L} mdp.a];
-                catch
                     mdp.Q.a{mdp.L} = mdp.a;
                 end
-            end
 
             % and record outcomes (s,u,X,Y,O,o,j)
             %--------------------------------------------------------------
@@ -2404,8 +2309,16 @@ if isfield(id,'cid')
         %------------------------------------------------------------------
         [D,hif] = id.cid(Q);
 
+    elseif isempty(id.cid)
+
+         % no contraints
+         %------------------------------------------------------------------
+         D = true;
+
     else
 
+        % assume cid is consistent with hid
+        %------------------------------------------------------------------
     cid   = id.cid;                           % contrained factors
     nid   = cid;                              % conditioning factors
     hif   = find(all(cid,2))';                % in hif factors
@@ -2445,7 +2358,6 @@ end
 %--------------------------------------------------------------------------
 if isempty(hif), R = [];   return, end
 if isempty(hid), R = 32*D;  return, end
-
 
 % check for RGM
 %--------------------------------------------------------------------------
@@ -2621,11 +2533,17 @@ end
 function A  = spm_wnorm(A)
 % expected information gain (parameters)
 %--------------------------------------------------------------------------
-A   = full(max(A,1/32));
+A       = full(A);
 if min(max(A),[],'all') < 256
+
 A0  = sum(A);
 A   = minus(log(A0),log(A)) + minus(1./A,1./A0) + minus(psi(A),psi(A0));
 A   = max(A,0);
+
+    % deal with sparse entries
+    %----------------------------------------------------------------------
+    A(isnan(A)) = 0;
+
 else
     A   = [];
 end
@@ -2841,7 +2759,8 @@ DEM_drone_VI                % RGM with control at first level
 DEM_MNIST_conv              % Active sampling and state-dependent codomains
 
 DEM_Atari                   % RGM with control at final level
-DEM_AtariII                 % RGM with structure merging
+DEM_AtariI                  % RGM with structure merging
+DEM_AtariII                 % RGM with streams
 DEM_compression             % RGM for movies (simple) (dove)
 DEM_video_compression       % RGM for movies (with learning) (Robin)
 DEM_sound_compression       % RGM for WAV files (Birdsong)

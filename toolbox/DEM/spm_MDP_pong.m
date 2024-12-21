@@ -1,10 +1,11 @@
-function [MDP,hid,cid,con,RGB] = spm_MDP_pong(Nr,Nc,Nd)
+function [MDP,hid,cid,con,RGB] = spm_MDP_pong(Nr,Nc,Nd,Na)
 % Creates an MDP structure for a simple game of Pong
-% FORMAT [MDP,hid,cid,con,RGB] = spm_MDP_pong(Nr,Nc,Nd)
+% FORMAT [MDP,hid,cid,con,RGB] = spm_MDP_pong(Nr,Nc,Nd,Na)
 %--------------------------------------------------------------------------
 % Nr    - number of rows
 % Nc    - number of columns
 % Nd    - number of initial states [default: 1]
+% Na    - returns rewards, costs and action
 %
 % hid   - Hidden states corresponding to hits
 % cid   - Hidden states corresponding to misses
@@ -24,6 +25,7 @@ function [MDP,hid,cid,con,RGB] = spm_MDP_pong(Nr,Nc,Nd)
 % defaults
 %--------------------------------------------------------------------------
 if nargin < 3, Nd = 1; end
+if nargin < 4, Na = 0; end
 
 % hid   - Hidden states corresponding to hits
 %--------------------------------------------------------------------------
@@ -129,10 +131,73 @@ for s = 1:Nc
 end
 
 % control modalities (first row)
-%----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 for s = 1:Nc
     con(s) = sub2ind([Nr,Nc],1,s);
 end
+
+% latent states corresponding to hits and misses
+%--------------------------------------------------------------------------
+hid    = [];
+cid    = [];
+for s1 = 1:size(B{1},1)
+    for s2 = 1:size(B{2},1)
+
+        % misses
+        %------------------------------------------------------------------
+        if S(s1,1) == 1 && s2 ~= S(s1,2)
+            cid(:,end + 1) = [s1;s2];
+        end
+
+        % And record latent states corresponding to hits
+        %------------------------------------------------------------------
+        if S(s1,1) == 1 && s2 == S(s1,2)
+            hid(:,end + 1) = [s1;s2];
+        end
+
+    end
+end
+
+
+% expose rewards, cost and action to outcomes
+%==========================================================================
+for g = 1:numel(A)
+    id.A{g} = [1,2];                       % states of ball and bat
+end
+if Na
+    
+    % hits
+    %----------------------------------------------------------------------
+    a        = false(2,size(B{1},1),size(B{2},1));
+    a(1,:,:) = true;
+    for s = 1:size(hid,2)
+        a(1,hid(1,s),hid(2,s)) = false;
+        a(2,hid(1,s),hid(2,s)) = true;
+    end
+    A{end + 1}    = a;
+    id.A{end + 1} = [1,2];
+    id.reward     = numel(A);
+
+    % and misses
+    %----------------------------------------------------------------------
+    a        = false(2,size(B{1},1),size(B{2},1));
+    a(1,:,:) = true;
+    for s = 1:size(cid,2)
+        a(1,cid(1,s),cid(2,s)) = false;
+        a(2,cid(1,s),cid(2,s)) = true;
+    end
+    A{end + 1}    = a;
+    id.A{end + 1} = [1,2];
+    id.contraint  = numel(A);
+
+    % and proprioception
+    %----------------------------------------------------------------------
+    A{end + 1}    = eye(Nc,Nc);
+    id.A{end + 1} = 2;
+    id.control    = numel(A);
+
+end
+
 
 % Enumerate the states and paths of the ensuing generative model
 %--------------------------------------------------------------------------
@@ -164,27 +229,7 @@ for f = 1:Nf
     H{f} = [];                            % No intentions at this stage
 end
 
-% Ambiguity and latent states corresponding to hits
-%--------------------------------------------------------------------------
-hid    = [];
-cid    = [];
-for s1 = 1:Ns(1)
-    for s2 = 1:Ns(2)
 
-        % misses
-        %------------------------------------------------------------------
-        if S(s1,1) == 1 && s2 ~= S(s1,2)
-            cid(:,end + 1) = [s1;s2];
-        end
-
-        % And record latent states corresponding to hits
-        %------------------------------------------------------------------
-        if S(s1,1) == 1 && s2 == S(s1,2)
-            hid(:,end + 1) = [s1;s2];
-        end
-
-    end
-end
 
 % specify controllable factors; here, the second factor
 %--------------------------------------------------------------------------
@@ -202,6 +247,7 @@ MDP.H = H;                            % prior over final states
 MDP.E = E;                            % prior over initial paths
 MDP.N = 0;                            % planning depth (2)
 
+MDP.id = id;                          % planning depth (2)
 
 % RGB structure
 %==========================================================================
@@ -211,16 +257,16 @@ MDP.N = 0;                            % planning depth (2)
 % outcomes(4) - bat (left)
 % outcomes(5) - background
 
-
-n     = 32;
+%--------------------------------------------------------------------------
+n     = 8;
 RGB.N = [3 Nr*n Nc*n];                % image size
 
 ball  = imread('baseball.png');
 batt  = imread('bat.png');
 back  = zeros(size(ball));
-batl  = batt(1:n,1:n,:);
-batc  = batt(1:n,(1:2) + n,:);
-batr  = batt(1:n,(1:n) + n,:);
+batl  = batt(1:32,1:32,:);
+batc  = batt(1:32,(1:2) + 32,:);
+batr  = batt(1:32,(1:32) + 32,:);
 
 img   = {ball,batl,batc,batr,back};
 for i = 1:numel(img)
