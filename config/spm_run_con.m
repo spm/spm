@@ -173,7 +173,6 @@ for i = 1:length(job.consess)
     %-F-contrast
     %----------------------------------------------------------------------
     else
-        name = job.consess{i}.fcon.name;
         if bayes_con
             STAT = 'P';
             SPM.PPM.xCon(end+1).PSTAT = 'F';
@@ -181,8 +180,27 @@ for i = 1:length(job.consess)
         else
             STAT = 'F';
         end
-        con = job.consess{i}.fcon.weights;
-        sessrep = job.consess{i}.fcon.sessrep;
+
+        if isfield(job.consess{i}, 'fcol')
+            name    = job.consess{i}.fcol.name;
+
+            if job.consess{i}.fcol.specmode %include
+                iX0 = setdiff(1:size(SPM.xX.X, 2), job.consess{i}.fcol.columns);
+            else %exclude
+                iX0 = job.consess{i}.fcol.columns;
+            end
+
+            DxCon = spm_FcUtil('Set','','F','iX0',iX0,SPM.xX.xKXs);
+
+            con = DxCon.c'; % Does it make sense to transpose here?
+
+            sessrep = job.consess{i}.fcol.sessrep;
+        else
+            name = job.consess{i}.fcon.name;
+
+            con = job.consess{i}.fcon.weights;
+            sessrep = job.consess{i}.fcon.sessrep;
+        end
     end
 
     %-Replicate contrast over sessions
