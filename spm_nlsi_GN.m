@@ -218,7 +218,9 @@ end
 %--------------------------------------------------------------------------
 try
     spm_vec(M.P) - spm_vec(M.pE);
-    fprintf('\nParameter initialisation successful\n')
+    if ~M.noprint
+        fprintf('\nParameter initialisation successful\n')
+    end
 catch
     M.P = M.pE;
 end
@@ -241,7 +243,6 @@ catch
 end
 nh    = length(Q);                  % number of precision components
 nq    = ny/length(Q{1});            % for compact Kronecker form of M-step
-
 
 % prior moments (assume uninformative priors if not specified)
 %--------------------------------------------------------------------------
@@ -342,8 +343,11 @@ for k = 1:M.Nmax
         %------------------------------------------------------------------
         normdfdp = norm(dfdp,'inf');
         revert   = isnan(normdfdp) || normdfdp > 1e32;
-        
-    catch
+            
+    catch E
+        disp(E.message)
+        disp(E.stack(1).file)
+        disp(E.stack(1).line)
         revert   = true;
     end
     
@@ -401,6 +405,7 @@ for k = 1:M.Nmax
         % precision and conditional covariance
         %------------------------------------------------------------------
         iS    = sparse(0);
+
         for i = 1:nh
             iS = iS + Q{i}*(exp(-32) + exp(h(i)));
         end
@@ -490,7 +495,7 @@ for k = 1:M.Nmax
     
     % objective function: F(p) = log evidence - divergence
     %----------------------------------------------------------------------
-    L(1) = spm_logdet(iS)*nq/2  - real(e'*iS*e)/2 - ny*log(8*atan(1))/2;
+    L(1) = spm_logdet(iS, true)*nq/2  - real(e'*iS*e)/2 - ny*log(8*atan(1))/2;
     L(2) = spm_logdet(ipC*Cp)/2 - p'*ipC*p/2;
     L(3) = spm_logdet(ihC*Ch)/2 - d'*ihC*d/2;
     F    = sum(L);

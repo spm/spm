@@ -179,7 +179,7 @@ for m = 1:numel(modalities)
             hold on
             
             try
-                ft_plot_sens(sens, 'style', '*b', 'coil',  ft_senstype(sens, 'eeg'));
+                ft_plot_sens(sens, 'style', '*b', 'elecsize', 20, 'coil',  ft_senstype(sens, 'eeg'));
             catch
                 ft_plot_sens(sens, 'style', '*b', 'coilshape', 'point', 'coil', ft_senstype(sens, 'eeg'));
             end

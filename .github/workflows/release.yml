@@ -7,7 +7,6 @@ on:
 
 env:
   MLM_LICENSE_TOKEN: ${{ secrets.MATLAB_BATCH_TOKEN }}
-  PRERELEASE: true
 
 jobs:
   build_matlab_standalone:
@@ -45,6 +44,19 @@ jobs:
             version: "R2023a" # Apple Silicon version not available
 
     steps:
+      # A pre-release does not trigger the container build and it publishes the release with the pre-release flag
+      # If the release has the pattern YY.MM.X, where X starts with a letter, then we assume it is a pre-release
+      # E.g. 25.01.rc1 is a pre-release, 25.01 and 25.01.1 are not
+      - name: Detect Pre-release
+        shell: bash
+        run: |
+          if echo "${{ github.ref_name }}" | grep -q '^[0-9][0-9]\.[0-9][0-9]\.[A-Za-z]'; then
+            echo "PRERELEASE=true" >> $GITHUB_ENV
+          else
+            echo "PRERELEASE=false" >> $GITHUB_ENV
+          fi
+          echo PRERELEASE=${{ env.PRERELEASE }}
+
       - name: Set up MATLAB
         id: setup_matlab
         uses: matlab-actions/setup-matlab@v2
@@ -59,6 +71,10 @@ jobs:
             fileID = fopen('matlab_release.txt', 'w')
             fprintf(fileID, matlabRelease.Release)
             fclose(fileID)
+        # sometimes this step hangs when closing matlab, automatically terminating after 2 minutes solves the issue
+        timeout-minutes: 2
+        continue-on-error: true
+
       - name: Set environment variable with MATLAB version
         shell: bash # Works on Windows as well because of shell: bash
         run: |
@@ -72,23 +88,16 @@ jobs:
         shell: bash
         run: rm -rf .[^.]*
 
-      - name: Set the SPM version
-        uses: richardrigutins/replace-in-files@v2
-        with:
-          files: "Contents.m"
-          search-text: " 00.00 "
-          replacement-text: " ${{ github.ref_name }} "
-
-      - name: Get the date
+      - name: Set Version and date in Contents.m
         shell: bash
-        run: echo "date=$(date '+%d-%b-%Y')" >> $GITHUB_ENV
-
-      - name: Set the date of compilation
-        uses: richardrigutins/replace-in-files@v2
-        with:
-          files: "Contents.m"
-          search-text: <date>
-          replacement-text: ${{ env.date }}
+        # Replace the second line of Contents.m with the version line
+        run: |
+          tag="${{ github.ref_name }}"
+          SPM_RELEASE=${tag:0:2}
+          date=$(date +'%d-%b-%Y')
+          version_line="% Version $tag (SPM${SPM_RELEASE}) $date"
+          echo "version_line=$version_line"
+          sed "2s/.*/$version_line/" Contents.m > tmp && mv tmp Contents.m
 
       # 1) Add SPM with subfolders to the path 2) Run spm_make_standalone in matlab 3) Create runtime_installer
       - name: Build MATLAB standalone
@@ -151,7 +160,7 @@ jobs:
           echo "SPM_REVISION=${tag:6}" >> $GITHUB_ENV
 
       - name: Trigger workflow in spm-docker
-        if: runner.os == 'Linux' && matrix.version == 'latest'
+        if: env.PRERELEASE == 'false' && runner.os == 'Linux' && matrix.version == 'latest'
         uses: peter-evans/repository-dispatch@v3
         with:
           token: ${{ secrets.PAT_TOKEN_SPM_DOCKER }}

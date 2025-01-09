@@ -1,11 +1,11 @@
-function [matlabbatch, headmodel] = bf_wizard_headmodel(S)
+function [D, matlabbatch, headmodel] = bf_wizard_headmodel(S)
 % A handy command-line based batch filler with some defaults for SPM
 % head model specification for MEEG data. Will generate the job which
 % performs coregistration between the data and the MRI
 %__________________________________________________________________________
 
 % George O'Neill
-% Copyright (C) 2022-2023 Wellcome Centre for Human Neuroimaging
+% Copyright (C) 2022-2024 Wellcome Centre for Human Neuroimaging
 
 
 if ~isfield(S,'batch'), matlabbatch = []; else; matlabbatch = S.batch;  end
@@ -25,6 +25,7 @@ if ~isfield(S,'useheadshape'),  S.useheadshape = false;                 end
 if ~isfield(S,'forward'),       S.forward = struct;                     end
 if ~isfield(S.forward,'eeg'),   S.forward.eeg = 'EEG BEM';              end
 if ~isfield(S.forward,'meg'),   S.forward.meg = 'Single Shell';         end
+if ~isfield(S,'run'),           S.run = 1;                              end
 
 headmodel = struct();
 switch class(S.D)
@@ -106,6 +107,14 @@ headmodel.forward = S.forward;
 jobID = numel(matlabbatch) + 1;
 % generate matlabbatch
 matlabbatch{jobID}.spm.meeg.source.headmodel = headmodel;
+
+% Execute the job (if required)
+if S.run
+    out = spm_jobman('run',matlabbatch);
+    D = out{1}.D{:};
+else
+    D = [];
+end
 end
 
 function g_fixed = fix_fs_offset(g,mri)
@@ -124,5 +133,4 @@ g_new.vertices = g_new.vertices + cras;
 
 g_fixed = spm_file(g,'suffix','_fsfix');
 save(g_new,g_fixed);
-
 end

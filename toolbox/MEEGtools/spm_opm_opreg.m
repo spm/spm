@@ -3,11 +3,18 @@ function [D] = spm_opm_opreg(S)
 % FORMAT D = spm_opm_create(S)
 %   S               - input structure
 % Optional fields of S:
-%   S.headfile     - path to headshape file      - Default:required
-%   S.helmetref      - 3 x 3 matrix of fiducials  - Default:required
-%   S.headhelmetref  - 3 x 3 matrix of fiducials  - Default:required
-%   S.headfid        - 3 x 3 matrix of fiducials  - Default:required
-%   S.headhelmetfid  - 3 x 3 matrix of fiducials  - Default:required
+%   S.headfile       - path to headshape file      - Default:required
+%   S.helmetref1      - 3 x 3 matrix of 1st set ref points  - Default:required
+%   S.headhelmetref1  - 3 x 3 matrix of 1st set ref points  - Default:required
+%   S.headref2        - 3 x 3 matrix of 2st set ref points  - Default:required
+%   S.headhelmetref2  - 3 x 3 matrix of 2st set ref points  - Default:required
+%   S.fiducials       - 3 x 3 matrix of fiducials  - Default:required
+%
+% 1st set of ref points connects a helmet scan to the scan of participant with
+% a helmet 
+% 2st set of ref points connects the scan of participant with helmet to the scan
+% of participant without a helmet 
+%
 % Output:
 %  tHelm       - transformed helmet object
 %__________________________________________________________________________
@@ -29,7 +36,7 @@ end
 
 %%-  helmet --> head with helmet
 %--------------------------------------------------------------------------
-helm2headhelm = spm_eeg_inv_rigidreg(S.headhelmetref',S.helmetref');
+helm2headhelm = spm_eeg_inv_rigidreg(S.headhelmetref1',S.helmetref1');
 
 % helm_in_headhelm = spm_mesh_transform(helmet,helm2headhelm);
 % mesh_plot(helm_in_headhelm,headhelmet);
@@ -38,7 +45,7 @@ helm2headhelm = spm_eeg_inv_rigidreg(S.headhelmetref',S.helmetref');
 %-  head with helmet  --> head
 %--------------------------------------------------------------------------
 
-headhelm2head = spm_eeg_inv_rigidreg(S.headfid',S.headhelmetfid');
+headhelm2head = spm_eeg_inv_rigidreg(S.headref2',S.headhelmetref2');
 % headhelm_in_head = spm_mesh_transform(headhelmet,headhelm2head);
 % mesh_plot(headhelm_in_head,Native);
 
@@ -59,7 +66,7 @@ else
   fid_template = S.templatefid;
 end
 
-head2templatescalp = spm_eeg_inv_rigidreg(fid_template,S.headfid');
+head2templatescalp = spm_eeg_inv_rigidreg(fid_template,S.fiducials');
 scalpTemplate6 = spm_mesh_transform(Native,head2templatescalp);
 %mesh_plot(scalpTemplate6,scalp);
 

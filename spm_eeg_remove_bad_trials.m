@@ -31,8 +31,7 @@ D = spm_eeg_load(S.D);
 %-Check that there is any good data available
 %--------------------------------------------------------------------------
 if ntrials(D)==0 || isempty(indtrial(D, D.condlist, 'GOOD'))
-    warning('No good trials were found. Nothing to do.');
-    return;
+    error('No good trials were found.');
 end
 
 cl   = D.condlist;
