@@ -9,7 +9,8 @@ function [O,p] = spm_get_sequences(MDP,Nm)
 %
 %--------------------------------------------------------------------------
 % This auxiliary routine identifies the episodes (i.e., paths) encoded by
-% states at the deepest or highest level of a hierarchical MDP.
+% states at the deepest or highest level of a hierarchical MDP. If some
+% output modalities are not generated, they are returned as empty
 %__________________________________________________________________________
 
 % if nargin < 2, n = numel(MDP); end
@@ -34,22 +35,20 @@ for i = 1:Ni
             Ng    = numel(MDP{n}.id.A);
             o     = zeros(Ng,1);
             for g = 1:Ng
-                
+                j    = MDP{n}.id.A{g};
                 if n == Nm
 
                     % generate from first stream
                     %------------------------------------------------------
-                    j    = MDP{n}.id.A{g};
                     if j == 1
-                        [~,j]  = max(MDP{n}.a{g}(:,s{n}(j,t)));
-                        o(g) = j;
+                        [~,j] = max(MDP{n}.a{g}(:,s{n}(j,t)));
+                        o(g)  = j;
                     end
-
+                    
                 else
 
                     % within stream generation
                     %------------------------------------------------------
-                    j     = MDP{n}.id.A{g};
                     [~,j] = max(MDP{n}.a{g}(:,s{n}(j,t)));
                     o(g)  = j;
 
@@ -61,33 +60,31 @@ for i = 1:Ni
             Ns    = numel(MDP{n - 1}.id.D);
             x     = zeros(Ns,MDP{n}.T);
             for f = 1:Ns
-                if n == Nm
 
-                    % generate from first stream
-                    %------------------------------------------------------
-                    gx = MDP{n - 1}.id.D{f}(end);
-                    gu = MDP{n - 1}.id.E{f}(end);
-
-                else
-
-                    % within stream generation
-                    %------------------------------------------------------
-                    gx = MDP{n - 1}.id.D{f}(1);
-                    gu = MDP{n - 1}.id.E{f}(1);
-
-                end
-
-                % generalised states
+                % parents
                 %----------------------------------------------------------
-                if numel(gx)
-                    x(f,1) = o(gx);
+                iD  = MDP{n - 1}.id.D{f};
+                iE  = MDP{n - 1}.id.E{f};
+
+                % generate from first stream at highest level
+                %----------------------------------------------------------
+                if numel(iD)
+                    if n == Nm
+                        x(f,1) = o(iD(end));
+                        u      = o(iE(end));
+                    else
+                        x(f,1) = o(iD(1));
+                        u      = o(iE(1));
+                    end
                 else
-                    x(f,1) = 1;
-                end
-                if numel(gu)
-                    u = o(gu);
-                else
-                    u = 1;
+
+                    % no parents: most likely initial state and path
+                    %------------------------------------------------------
+                    [~,j]   = max(MDP{n - 1}.b{f},[],'all');
+                    [~,j,k] = ind2sub(size(MDP{n - 1}.b{f},[1,2,3]),j);
+                    x(f,1)  = j;
+                    u       = k;
+
                 end
 
                 % iterate over time under generated path
@@ -98,6 +95,7 @@ for i = 1:Ni
                 end
 
             end
+
             s{n - 1} = [s{n - 1} x];
         end
     end
@@ -107,12 +105,18 @@ for i = 1:Ni
     for t = 1:size(s{1},2)
         Ng    = numel(MDP{1}.id.A);
         for g = 1:Ng
+
+            % outcome
+            %--------------------------------------------------------------
             j     = MDP{1}.id.A{g};
             po    = MDP{1}.a{g}(:,s{1}(j,t));
             [~,j] = max(po);
 
+            % save
+            %--------------------------------------------------------------
             p{i}(g,t) = j;
             O{i}{g,t} = spm_dir_norm(po);
+
         end
     end
 

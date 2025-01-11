@@ -1,6 +1,8 @@
-function [MDP] = spm_RDP_MI(MDP)
+function [MDP] = spm_RDP_MI(MDP,o)
 % BMR of superordinate states based upon predicted outcomes
-% FORMAT [MDP] = spm_RDP_MI(MDP)
+% FORMAT [MDP] = spm_RDP_MI(MDP,o)
+% MDP   - cell array of MDP structures
+% o     - order of future predictions [default: 2]
 %
 % This routine implements a Bayesian model reduction in which the latent
 % (generalised) states that the highest level of the model are merged in a
@@ -17,6 +19,10 @@ function [MDP] = spm_RDP_MI(MDP)
 % $Id: spm_MDP_structure_learning.m 8454 2023-11-04 17:09:11Z karl $
 %__________________________________________________________________________
 
+
+% defaults
+%--------------------------------------------------------------------------
+if nargin < 2, o = 2; end
 
 % get predictive mapping from states to outcomes in trailing streams
 %==========================================================================
@@ -58,7 +64,7 @@ for s = 2:max(MDP{1}.sB)
 
     % outcomes predicted by first stream
     %----------------------------------------------------------------------
-    ps = find(ismember([MDP{n}.id.A{:}],find(MDP{n}.sB == 1)));
+    ps = find(ismember([MDP{n}.id.A{:}], find(MDP{n}.sB == 1)));
 
     % initial states of stream S predicted by first stream
     %----------------------------------------------------------------------
@@ -67,40 +73,36 @@ for s = 2:max(MDP{1}.sB)
 
     % map to current and subsequent (generalized) outcomes
     %----------------------------------------------------------------------
-    for p = 0:1
-        for u = 1:Nu
-            C{end + 1,1} = A{pD}*(B(:,:,u)^p);
-            C{end + 1,1} = A{pE}*(B(:,:,u)^p);
+    if numel(pD)
+        for p = 0:o
+            for u = 1:Nu
+                C{end + 1,1} = A{pD}*(B(:,:,u)^p);
+                C{end + 1,1} = A{pE}*(B(:,:,u)^p);
+            end
         end
     end
 end
 
-
-% distance matrix (i.e., normalised vectors on a hypersphere)
+% reduction operator and reduction of likelihood
 %--------------------------------------------------------------------------
-D       = spm_information_distance(C);
+R  = spm_dir_reduce(C);
 
-% discretise and return indices of unique outcomes
+% and reduction of likelihood of children of the leading factor
 %--------------------------------------------------------------------------
-[~,i,j] = unique(D < sqrt(2),'rows','stable');
-
-% restriction matrix and reduction of likelihood
-%--------------------------------------------------------------------------
-Ns    = numel(i);
-R     = sparse(1:numel(j),j,1,numel(j),Ns);
+Ns    = size(R,2);
 for g = 1:numel(A)
     if MDP{n}.id.A{g} == 1
         try
             MDP{n}.a{g} = MDP{n}.a{g}*R;
         catch
-            MDP{n}.A{g} = logical(MDP{n}.A{g}*R);
+            MDP{n}.A{g} = spm_dir_norm(MDP{n}.A{g}*R);
         end
     end
 end
 
-% transitition priors
+% transition priors
 %--------------------------------------------------------------------------
-B     = zeros(Ns,Ns,Nu);
+B  = zeros(Ns,Ns,Nu);
 try
     for u = 1:Nu
         B(:,:,u) = R'*MDP{n}.b{1}(:,:,u)*R;
@@ -108,7 +110,7 @@ try
     MDP{n}.b{1}  = B;
 catch
     for u = 1:Nu
-        B(:,:,u) = logical(R'*MDP{n}.B{1}(:,:,u)*R);
+        B(:,:,u) = spm_dir_norm(R'*MDP{n}.B{1}(:,:,u)*R);
     end
     MDP{n}.B{1}  = B;
 end

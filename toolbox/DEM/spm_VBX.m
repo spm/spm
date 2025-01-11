@@ -308,8 +308,10 @@ else
             P{j(f)}(s{f}) = Q{f};
         end
 
-    else
+    elseif numel(L)        
         F = L;
+    else
+        F = -32;
     end
 
 end

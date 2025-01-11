@@ -43,12 +43,12 @@ pe = MDP{m - 1}.id.E{MDP{m - 1}.sB == S};
 
 % inital states predicted by first stream
 %--------------------------------------------------------------------------
-ps = find(ismember([MDP{m}.id.A{:}],find(MDP{m}.sB == 1)));
+ps = find(ismember([MDP{m}.id.A{:}], find(MDP{m}.sB == 1)));
 
 % initial states of stream S predicted by first stream
 %--------------------------------------------------------------------------
-pd    = intersect(ps,pd);
-pe    = intersect(ps,pe);
+pd = intersect(ps,pd);
+pe = intersect(ps,pe);
 
 % for each state at this level
 %--------------------------------------------------------------------------
@@ -57,8 +57,13 @@ for si = 1:size(MDP{m}.b{1},1)
 
     % generate level m outcomes under this state
     %----------------------------------------------------------------------
-    [~,x] = max(MDP{m}.a{pd}(:,si));
-    [~,u] = max(MDP{m}.a{pe}(:,si));
+    if numel(pd)
+        [~,x] = max(MDP{m}.a{pd}(:,si));
+        [~,u] = max(MDP{m}.a{pe}(:,si));
+    else
+        x = 1;
+        u = 1;
+    end
 
     % iterate over time under generated path
     %----------------------------------------------------------------------

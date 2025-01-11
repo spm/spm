@@ -1,11 +1,12 @@
-function [MDP,hid,cid,con,RGB] = spm_MDP_pong(Nr,Nc,Nd,Na)
+function [MDP,hid,cid,con,RGB,nP] = spm_MDP_pong(Nr,Nc,Nd,Na,Np)
 % Creates an MDP structure for a simple game of Pong
-% FORMAT [MDP,hid,cid,con,RGB] = spm_MDP_pong(Nr,Nc,Nd,Na)
+% FORMAT [MDP,hid,cid,con,RGB,nP] = spm_MDP_pong(Nr,Nc,Nd,Na,Np)
 %--------------------------------------------------------------------------
 % Nr    - number of rows
 % Nc    - number of columns
 % Nd    - number of initial states [default: 1]
 % Na    - returns rewards, costs and action
+% Np    - number of distractor pixels
 %
 % hid   - Hidden states corresponding to hits
 % cid   - Hidden states corresponding to misses
@@ -26,6 +27,7 @@ function [MDP,hid,cid,con,RGB] = spm_MDP_pong(Nr,Nc,Nd,Na)
 %--------------------------------------------------------------------------
 if nargin < 3, Nd = 1; end
 if nargin < 4, Na = 0; end
+if nargin < 5, Np = 0; end
 
 % hid   - Hidden states corresponding to hits
 %--------------------------------------------------------------------------
@@ -198,6 +200,20 @@ if Na
 
 end
 
+% Add random pixels
+%--------------------------------------------------------------------------
+for i = 1:Np
+    j     = ceil(rand*(Nc*Nr));
+    while ismember(j,con)
+        j = ceil(rand*(Nc*Nr));
+    end
+    A{j}       = logical(full(spm_speye(5,3)));
+    B{end + 1} = full(spm_speye(3,3,-1,1) + 1);
+    id.A{j}    = numel(B);
+    nP(i)      = j;
+end
+B     = spm_dir_norm(B);
+
 
 % Enumerate the states and paths of the ensuing generative model
 %--------------------------------------------------------------------------
@@ -222,10 +238,9 @@ end
 % initial states (D) and paths through those states (E)
 %--------------------------------------------------------------------------
 for f = 1:Nf
-    D{f} = ones(Ns(f),1)/Ns(f);           % First state
-    D{f} = sparse(1:Nd,1,1,Ns(f),1)/Nd;   % First path
-
-    E{f} = sparse(1,1,1,Nu(f),1);         % First path
+    d    = min(Ns(f),Nd);
+    D{f} = sparse(1:d,1,1,Ns(f),1)/d;     % Initial states
+    E{f} = sparse(1,  1,1,Nu(f),1);       % First path
     H{f} = [];                            % No intentions at this stage
 end
 
@@ -233,7 +248,8 @@ end
 
 % specify controllable factors; here, the second factor
 %--------------------------------------------------------------------------
-U     = [0,1];                        % controllable factors
+U     = zeros(1,numel(B));
+U(2)  = true;
 
 % Assemble MDP structure, with generative process
 %==========================================================================

@@ -172,7 +172,7 @@ for i = 1:NR
     PDP   = spm_MDP_VB_XXX(RDP);
     h     = spm_get_hits(PDP.Q.o{1},GDP.id);
 
-    if false
+    if true
 
         % Illustrate recursive model
         %------------------------------------------------------------------

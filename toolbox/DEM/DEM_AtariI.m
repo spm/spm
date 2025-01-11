@@ -151,7 +151,7 @@ spm_show_RGB(PDP,RGB);
 spm_figure('GetWin','Orbits'); clf
 
 subplot(2,2,1)
-spm_dir_orbits(MDP{end}.b{1},HID,[],Nx);
+spm_dir_orbits(MDP{end}.b{1},HID,Nx);
 title('Orbits & goals')
 
 % paths to hits
@@ -294,7 +294,7 @@ plot(h,ones(size(h)),'.r','MarkerSize',16)
 spm_figure('GetWin','Orbits');
 
 subplot(2,2,2)
-spm_dir_orbits(PDP.B{1},HID,PDP.X{1},Nx);
+spm_dir_orbits(PDP.B{1},HID,Nx);
 
 % paths to hits
 %--------------------------------------------------------------------------

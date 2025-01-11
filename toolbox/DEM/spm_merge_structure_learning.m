@@ -26,28 +26,24 @@ for n = 1:numel(MDP)
 
     % for each sector or segregated stream
     %----------------------------------------------------------------------
-    sg    = {};                             % squences
-    N     = {};                             % outcomes for next level
-    Ns    = 0;                              % number of groups
-    No    = 0;                              % number of outcomes
+    sg    = {};                                     % squences
+    N     = {};                                     % next level outcomes
     for s = 1:numel(MDP{n}.G)
 
-        % Group into a partition of outcomes
+        % temporal down-sampling
         %------------------------------------------------------------------
-        G     = MDP{n}.G{s};
+        t     = 1:MDP{n}.T:(size(O,2) - 1);
 
         % likelihood and transitions for each group
         %==================================================================
-        Ng    = numel(G);
-        Nt    = size(O,2);
-        X     = cell(Ng,Nt - 1);
-        P     = cell(Ng,Nt - 1);
-        for g = 1:Ng
+        G     = MDP{n}.G{s};                        % groups in stream
+        Ng(s) = numel(G); 
+        for g = 1:Ng(s)
 
             % structure_learning from unique exemplars
             %--------------------------------------------------------------
-            gg         = No + G{g};
-            fg         = Ns + g;
+            gg         = G{g};
+            fg         = MDP{n}.id.A{min(gg)};
             [mdp,j]    = spm_merge_fast(O(gg,:),MDP{n}.a(gg),MDP{n}.b(fg));
             sg{s}(g,:) = j;
 
@@ -56,52 +52,51 @@ for n = 1:numel(MDP)
             MDP{n}.a(gg,1) = mdp.a;
             MDP{n}.b(fg,1) = mdp.b;
 
-            % intial states and paths
+            % initial states and paths : outcomes at next time scale
             %--------------------------------------------------------------
-            X(g,:)  = mdp.X;
-            P(g,:)  = mdp.P;
-
+            iD = min(MDP{n}.id.D{fg});                % parents of state
+            iE = min(MDP{n}.id.E{fg});                % parents of paths
+            if numel(iD)
+                N(iD,:) = mdp.X(:,t);
+                N(iE,:) = mdp.P(:,t);
+            end
+            
         end
-
-        % outcomes at next time scale
-        %------------------------------------------------------------------
-        t  = 1:MDP{n}.T:(Nt - 1);
-        N  = [N; [X(:,t); P(:,t)]];
-        Ns = Ns + Ng;
-        No = No + G{end}(end);
-
     end
 
     % Link principal (leading) stream to trading streamss
     %======================================================================
     if n > 1
-        gi = sum(MDP{n}.sA == MDP{n}.sC) + 1;
-        si = 1;                                     % source stream
-        for sj = 2:numel(MDP{n}.G)                  % target stream
+        si = 1;                                      % source stream
+        st = find(Ng);                               % target stream
+        for sj = st(2:end)
 
             % size of likelihood mappings
             %--------------------------------------------------------------
-            fi = find(ismember(MDP{n}.sB,si));      % source factors
-            fj = find(ismember(MDP{n - 1}.sB,sj));  % target factors
-            t  = numel(sg{1}(1,:));                 % number of outcomes
+            fsi = find(ismember(MDP{n}.sB,si));      % source factors
+            fsj = find(ismember(MDP{n - 1}.sB,sj));  % target factors
+            t   = numel(sg{1}(1,:));                 % number of outcomes
 
-            for i = 1:numel(fi)
-                for j = 1:numel(fj)
+            for i = 1:numel(fsi)
+                for j = 1:numel(fsj)
 
                     % sizes
                     %------------------------------------------------------
-                    Ni = size(MDP{n}.b{fi(i)},    1);
-                    Nj = size(MDP{n - 1}.b{fj(j)},2);
-                    Nu = size(MDP{n - 1}.b{fj(j)},3);
+                    fi = fsi(i);
+                    fj = fsj(j);
+                    Ni = size(MDP{n}.b{fi},    1);
+                    Nj = size(MDP{n - 1}.b{fj},2);
+                    Nu = size(MDP{n - 1}.b{fj},3);
 
                     % prediction of initial states (D)
                     %------------------------------------------------------
-                    g  = MDP{n - 1}.id.D{fj(j)}(1);
-                    A  = spm_dir_norm(MDP{n}.a{g});
-                    a  = zeros(Nj,Ni);
+                    gi = MDP{n - 1}.ss.D{si,sj}(fi,fj);
+                    gj = MDP{n - 1}.ss.D{sj,sj}(fj,fj);
 
                     % augment likelihood mappings
-                    %------------------------------------------------------
+                    %--------------------------------------------------
+                    A  = spm_dir_norm(MDP{n}.a{gj});
+                    a  = zeros(Nj,Ni);
                     [x,y] = size(MDP{n}.a{gi});
                     a(1:x,1:y) = MDP{n}.a{gi};
                     for f = 1:t
@@ -110,17 +105,17 @@ for n = 1:numel(MDP)
                         a(:,ii) = a(:,ii) + A(:,ij);
                     end
                     MDP{n}.a{gi} = a;
-                    gi = gi + 1;
 
 
                     % prediction of initial paths (E)
                     %------------------------------------------------------
-                    g  = MDP{n - 1}.id.E{fj(j)}(1);
-                    A  = spm_dir_norm(MDP{n}.a{g});
-                    a  = zeros(Nu,Ni);
+                    gi = MDP{n - 1}.ss.E{si,sj}(fi,fj);
+                    gj = MDP{n - 1}.ss.E{sj,sj}(fj,fj);
 
                     % augment likelihood mappings
-                    %------------------------------------------------------
+                    %--------------------------------------------------
+                    A  = spm_dir_norm(MDP{n}.a{gj});
+                    a  = zeros(Nu,Ni);
                     [x,y] = size(MDP{n}.a{gi});
                     a(1:x,1:y) = MDP{n}.a{gi};
                     for f = 1:t
@@ -129,9 +124,25 @@ for n = 1:numel(MDP)
                         a(:,ii) = a(:,ii) + A(:,ij);
                     end
                     MDP{n}.a{gi} = a;
-                    gi = gi + 1;
-
+                    
                 end
+            end
+        end
+    end
+
+    % compress tensors with no parents
+    %----------------------------------------------------------------------
+    for f = 1:numel(MDP{n}.b)
+        if isempty(MDP{n}.id.D{f})
+
+            % compress prior transitions
+            %--------------------------------------------------------------
+            MDP{n}.b{f} = sum(MDP{n}.b{f},'all');
+
+            % and children
+            %--------------------------------------------------------------
+            for g = find(ismember([MDP{n}.id.A{:}],f))
+                MDP{n}.a{g} = sum(MDP{n}.a{g},2);
             end
         end
     end

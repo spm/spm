@@ -1,10 +1,10 @@
-function [u] = spm_dir_orbits(b,hid,P,Nx)
+function [u] = spm_dir_orbits(b,hid,N)
 % information geometry of a likelihood mapping
-% FORMAT [u] = spm_dir_orbits(b,hid,P,Nx)
+% FORMAT [u] = spm_dir_orbits(b,hid,N)
 % b      - transition tensor
 % hid    - states to highlight
 % P      - (Ns x Nt) sequence of (probabilistic) states
-% Nx     - rotate to show first Nx (generalised) states
+% N      - rotate to show first N (generalised) states
 %
 % This routine plots latent states in the first two principal eigenvectors
 % of (roughly) the graph Laplacian of transitions among states. The
@@ -24,85 +24,50 @@ function [u] = spm_dir_orbits(b,hid,P,Nx)
 %==========================================================================
 Ns    = size(b,1);
 b     = spm_dir_norm(sum(b,3));
+if nargin < 4, N = Ns; end
 
 % Plausible transitions
 %--------------------------------------------------------------------------
 B     = b > 1/16;
 
-% first orbit
+% numerical approximation to NESS
 %--------------------------------------------------------------------------
-if nargin < 4, Nx = Ns; end
-O       = false(Ns,1);
-O(1:Nx) = true;
-R       = diag(O + 1/2);
+e     = mean(B^128,2);
+p     = spm_dir_norm(e.^2);
+[~,j] = sort(p,'descend');
+j     = j(1:min(end,N));
+B     = B(j,j);
 
 % state space (defined by graph Laplacian)
 %--------------------------------------------------------------------------
-b     = spm_detrend(b);
+b     = spm_detrend(B);
 b     = b + b' + eye(size(b));
-u     = spm_svd(R*b*R);
-
-% G   = b + b';
-% G   = G - diag(diag(G));
-% G   = G - diag(sum(G));
-% G   = expm(G);
-% u   = spm_svd(G);
+u     = spm_svd(b);
 
 % Plot latent states
 %--------------------------------------------------------------------------
-plot(u(:,1),u(:,2),'o')
+plot3(u(:,1),u(:,2),u(:,3),'.r','MarkerSize',32), hold on
 
 % And flow based upon transition probabilities (B)
 %--------------------------------------------------------------------------
-Xlim  = get(gca,'XLim');
-Ylim  = get(gca,'YLim');
-Pos   = get(gca,'Position');
-for s = 1:Ns
-    r = find(B(1:Nx,s));
+for s = 1:N
+    r = find(B(:,s));
     for i = 1:numel(r)
-
-        P1   = [u(s,1), u(s,2)];
-        P2   = [u(r(i),1), u(r(i),2)];
-
-        X(1) = Pos(1)+(Pos(3))/(Xlim(2)-Xlim(1))*(P1(1)-Xlim(1));
-        X(2) = Pos(1)+(Pos(3))/(Xlim(2)-Xlim(1))*(P2(1)-Xlim(1));
-        Y(1) = Pos(2)+(Pos(4))/(Ylim(2)-Ylim(1))*(P1(2)-Ylim(1));
-        Y(2) = Pos(2)+(Pos(4))/(Ylim(2)-Ylim(1))*(P2(2)-Ylim(1));
-
-        annotation('arrow', X, Y)
+        X   = [u(s,1), u(r(i),1)];
+        Y   = [u(s,2), u(r(i),2)];
+        Z   = [u(s,3), u(r(i),3)];
+        line(X,Y,Z,'linewidth',4,'color','k')
     end
 end
-title('Orbits')
+title('Orbits'), xlabel('1st dimension'), ylabel('2nd dimension'), axis square
 
 % Highlight states if necessary
 %==========================================================================
 if nargin > 1
     hold on
-    plot(u(hid,1),u(hid,2),'.r','MarkerSize',32)
+    plot3(u(hid,1),u(hid,2),u(hid,3),'or','MarkerSize',16)
     hold off
 end
 
-% Add dynamics if specified
-%==========================================================================
-if nargin < 3, P = []; end
-if numel(P)
-    a     = axis;
-    for t = 1:size(P,2)
-        [~,s] = max(P(:,t));
-        color = min(max([(1 - P(s,t)),1,(1 - P(s,t))],0),1);
-        hold off, plot(u(hid,1),u(hid,2),'.r','MarkerSize',32), hold on
-        plot(u(s,1),u(s,2),'.','MarkerSize',48,'Color',color)
-        axis(a)
-        M(t)  = getframe(gca);
-    end
-
-    % svae frames
-    %----------------------------------------------------------------------
-    h = gca;
-    set(h(1),'Userdata',[])
-    set(h(1),'Userdata',{M,8})
-    set(h(1),'ButtonDownFcn','spm_DEM_ButtonDownFcn')
-
-end
 
 return

@@ -32,6 +32,8 @@ function [MDP] = spm_faster_structure_learning(O,S,dx,dt)
 %__________________________________________________________________________
 
 
+SPINBLOCK = false;
+
 % check for stream specification
 %--------------------------------------------------------------------------
 if size(S,2) < 4
@@ -51,8 +53,8 @@ end
 %--------------------------------------------------------------------------
 if nargin < 3,    dx = 2; end
 if nargin < 4,    dt = 2; end
-if numel(dx) < 2, dx = repmat(dx,1,16); end
-if numel(dt) < 2, dt = repmat(dt,1,16); end
+dx = [dx repmat(dx(end),1,16)];
+dt = [dt repmat(dt(end),1,16)];
 
 % learn the dynamics in the form of a hierarchical MDP
 %==========================================================================
@@ -61,108 +63,122 @@ for n = 1:8
 
     % for each sector or segregated stream
     %----------------------------------------------------------------------
-    sg    = {};                          % squences
-    N     = {};                          % outcomes for next level
-    D     = [];                          % parents of intial states
-    E     = [];                          % parents of intial paths
-    Ng    = [];                          % number of groups
-    Ns    = 0;                           % number of groups (cummulative)
-    No    = 0;                           % number of outcomes (cummulative)
+    sg    = {};                           % squences
+    N     = {};                           % outcomes for next level
+    Ng    = [];                           % number of groups
+
+    MDP{n}.a    = {};                     % likelihoods
+    MDP{n}.b    = {};                     % transition priors
+    MDP{n}.id.A = {};                     % parents of outcomes
+    MDP{n}.id.D = {};                     % parents of intial states
+    MDP{n}.id.E = {};                     % parents of intial paths
+
+    % coupling among streams
+    %----------------------------------------------------------------------
+    MDP{n}.ss.D  = cell(size(S,1),size(S,1));
+    MDP{n}.ss.E  = cell(size(S,1),size(S,1));
+    MDP{n}.ss.ID = cell(size(S,1),size(S,1));
+    MDP{n}.ss.IE = cell(size(S,1),size(S,1));
+
+    
     for s = 1:size(S,1)
+
+        % sizes
+        %------------------------------------------------------------------
+        No    = numel(MDP{n}.a);          % number of groups  (cummulative)
+        Ns    = numel(MDP{n}.b);          % number of factors (cummulative)
+        Nt    = size(O,2);                % number of time points
+        t     = 1:dt(n):(Nt - 1);         % decimated time points
 
         % Grouping into a partition of outcomes
         %------------------------------------------------------------------
-        G           = spm_group(S(s,:),dx(n));
+        if SPINBLOCK
+
+            % blocking based on location
+            %--------------------------------------------------------------
+            G = spm_group(S(s,:),dx(n));
+            
+        else
+
+            % partition based on mutual information
+            %--------------------------------------------------------------
+            o = [0; prod(S,2)];
+            o = o(s) + (1:prod(S(s,:)));
+            d = dx(n)^2;
+            m = S(s,4);
+            G = spm_rgm_group(O(o,:),d,m);
+
+        end
+
         MDP{n}.T    = dt(n);
-        MDP{n}.G{s} = G;
+        MDP{n}.G{s} = spm_unvec(spm_vec(G) + No,G);
 
         % likelihood and transitions for each group
         %==================================================================
-        Ng(s) = numel(G);
-        Nt    = size(O,2);
-        X     = cell(Ng(s),Nt - 1);
-        P     = cell(Ng(s),Nt - 1);
+        Ng(s) = numel(G);                             % groups in stream
         for g = 1:Ng(s)
 
             % structure_learning from unique exemplars
             %--------------------------------------------------------------
-            gg         = No + G{g};
             fg         = Ns + g;
+            gg         = MDP{n}.G{s}{g};
             [mdp,j]    = spm_structure_fast(O(gg,:));
             sg{s}(g,:) = j;
 
             % likelihoods and priors for this group
             %--------------------------------------------------------------
-            MDP{n}.a(gg,1) = mdp.a;
-            MDP{n}.b(fg,1) = mdp.b;
+            MDP{n}.a(gg,1)  = mdp.a;
+            MDP{n}.b(fg,1)  = mdp.b;
 
-            MDP{n}.sA(gg)  = s;                     % parent stream
-            MDP{n}.sB(fg)  = s;                     % parent stream
-            MDP{n}.sC(gg)  = s;                     % child  stream
-
-            % intial states and paths
+            % parents
             %--------------------------------------------------------------
-            X(g,:) = mdp.X;
-            P(g,:) = mdp.P;
+            iD      = 2*Ns + 2*g - 1;
+            iE      = 2*Ns + 2*g - 0;
+            MDP{n}.id.A(gg) = {fg};                  % parents of outcomes                  
+            MDP{n}.id.D(fg) = {iD};                  % parents of state
+            MDP{n}.id.E(fg) = {iE};                  % parents of paths  
 
-            % parents of outcomes
+            MDP{n}.sA(gg)   = s;                     % parent stream
+            MDP{n}.sB(fg)   = s;                     % parent stream
+            MDP{n}.sC(gg)   = s;                     % child  stream
+
+            % initial states and paths : outcomes at next time scale
             %--------------------------------------------------------------
-            for j = 1:numel(gg)
-                MDP{n}.id.A{gg(j)} = uint16(fg);
-            end
+            N(iD,:) = mdp.X(:,t);
+            N(iE,:) = mdp.P(:,t);
 
         end
-
-        % outcomes at next time scale
-        %------------------------------------------------------------------
-        t  = 1:dt(n):(Nt - 1);
-        N  = [N; [X(:,t); P(:,t)]];
-
-        % parents of states and paths
-        %------------------------------------------------------------------
-        iD = 2*Ns + (1:Ng(s));
-        iE = 2*Ns + (1:Ng(s)) + Ng(s);
-        D  = [D, iD];
-        E  = [E, iE];
-
-        % streams at next level
-        %------------------------------------------------------------------
-        S(s,:) = [size(G,[1,2,3]),2];
-        Ns     = Ns + Ng(s);
-        No     = No + G{end}(end);
-
     end
 
-    % parents
-    %----------------------------------------------------------------------
-    MDP{n}.id.D = num2cell(D);                      % parents of state
-    MDP{n}.id.E = num2cell(E);                      % parents of paths
-
     % Link streams
-    %----------------------------------------------------------------------
-    if n > 1 && true
-        si = 1;                                     % source stream
-        for sj = 2:numel(Ng)                        % target stream
+    %======================================================================
+    if n > 1
+        si = 1;                                      % source stream
+        st = find(Ng);                               % target stream
+        for sj = st(2:end)
 
             % size of likelihood mappings
             %--------------------------------------------------------------
-            fi = find(ismember(MDP{n}.sB,si));      % source factors
-            fj = find(ismember(MDP{n - 1}.sB,sj));  % target factors
-            t  = numel(sg{1}(1,:));                 % number of outcomes
+            fsi = find(ismember(MDP{n}.sB,si));      % source factors
+            fsj = find(ismember(MDP{n - 1}.sB,sj));  % target factors
+            t   = numel(sg{1}(1,:));                 % number of outcomes
 
-            for i = 1:numel(fi)
-                for j = 1:numel(fj)
+            for i = 1:numel(fsi)
+                for j = 1:numel(fsj)
 
                     % sizes
                     %------------------------------------------------------
-                    Ni = size(MDP{n}.b{fi(i)},    1);
-                    Nj = size(MDP{n - 1}.b{fj(j)},2);
-                    Nu = size(MDP{n - 1}.b{fj(j)},3);
+                    fi = fsi(i);
+                    fj = fsj(j);
+                    Ni = size(MDP{n}.b{fi},    1);
+                    Nj = size(MDP{n - 1}.b{fj},2);
+                    Nu = size(MDP{n - 1}.b{fj},3);
 
                     % prediction of inital states (D)
                     %------------------------------------------------------
-                    g  = MDP{n - 1}.id.D{fj(j)}(1);
-                    A  = spm_dir_norm(MDP{n}.a{g});
+                    gi = numel(MDP{n}.a) + 1;
+                    gj = MDP{n - 1}.id.D{fj}(1);
+                    A  = spm_dir_norm(MDP{n}.a{gj});
                     a  = zeros(Nj,Ni);
                     for f = 1:t
                         ii = sg{si}(i,f);
@@ -170,18 +186,22 @@ for n = 1:8
                         a(:,ii) = a(:,ii) + A(:,ij);
                     end
 
-                    % append mappings and iD
+                    % append mappings and id
                     %------------------------------------------------------
-                    MDP{n}.a{end + 1}    = a;
-                    MDP{n}.id.A{end + 1} = fi(i);
-                    MDP{n - 1}.id.D{fj(j)}(end + 1) = numel(MDP{n}.a);
-                    MDP{n}.sA(end + 1)   = si;
-                    MDP{n}.sC(end + 1)   = sj;
+                    MDP{n}.a{gi}       = a;
+                    MDP{n}.id.A{gi}    = fi;
+                    MDP{n}.sA(end + 1) = si;
+                    MDP{n}.sC(end + 1) = sj;
+                    MDP{n - 1}.id.D{fj}(end + 1)  = gi;
+                    MDP{n - 1}.ss.D{sj,sj}(fj,fj)  = gj;
+                    MDP{n - 1}.ss.D{si,sj}(fi,fj)  = gi;
+                    MDP{n - 1}.ss.ID{si,sj}(fi,fj) = spm_dir_MI(a);
 
                     % prediction of initial paths (E)
                     %------------------------------------------------------
-                    g  = MDP{n - 1}.id.E{fj(j)}(1);
-                    A  = spm_dir_norm(MDP{n}.a{g});
+                    gi = numel(MDP{n}.a) + 1;
+                    gj = MDP{n - 1}.id.E{fj}(1);
+                    A  = spm_dir_norm(MDP{n}.a{gj});
                     a  = zeros(Nu,Ni);
                     for f = 1:t
                         ii = sg{si}(i,f);
@@ -191,11 +211,15 @@ for n = 1:8
 
                     % append mappings and iD
                     %------------------------------------------------------
-                    MDP{n}.a{end + 1}    = a;
-                    MDP{n}.id.A{end + 1} = fi(i);
-                    MDP{n - 1}.id.E{fj(j)}(end + 1) = numel(MDP{n}.a);
-                    MDP{n}.sA(end + 1)   = si;
-                    MDP{n}.sC(end + 1)   = sj;
+                    MDP{n}.a{gi}       = a;
+                    MDP{n}.id.A{gi}    = fi;
+                    MDP{n}.sA(end + 1) = si;
+                    MDP{n}.sC(end + 1) = sj;
+                    MDP{n - 1}.id.E{fj}(end + 1)   = gi;
+                    MDP{n - 1}.ss.E{sj,sj}(fj,fj)  = gj;
+                    MDP{n - 1}.ss.E{si,sj}(fi,fj)  = gi;
+                    MDP{n - 1}.ss.IE{si,sj}(fi,fj) = spm_dir_MI(a);
+
 
                 end
             end
@@ -208,7 +232,7 @@ for n = 1:8
 
         % if all streams comprise one group
         %------------------------------------------------------------------
-        if max(Ng) == 1
+        if max(Ng) < 2
             break
         end
 
@@ -227,10 +251,95 @@ for n = 1:8
         end
     end
 
-    % outcomes at next level
-    %----------------------------------------------------------------------
-    O  = N;
+    % remove unitary transitions
+    %======================================================================
+    if ~SPINBLOCK
 
+        % find unitary likelihood mappings at next level
+        %------------------------------------------------------------------
+        Ns    = numel(MDP{n}.b);          % number of factors
+        d     = true(1,Ns);
+
+        % upper bound the number of generalised states
+        %------------------------------------------------------------------
+        for f = 1:Ns
+
+            % for factors in leading stream
+            %--------------------------------------------------------------
+            if ismember(MDP{n}.sB(f),1)
+                b    = sum(MDP{n}.b{f},3);
+
+                % remove parents of non-recurring states
+                %----------------------------------------------------------
+                if max(sum(b,2)) < 8 && n < 2
+                    d(f) = false;
+                end
+
+                % remove parents of itinerant states
+                %----------------------------------------------------------
+                if min(sum(b > 0,1)/size(b,1)) > 1/2
+                    d(f) = false;
+                end
+
+                % remove parents of singletons
+                %----------------------------------------------------------
+                if isscalar(MDP{n}.b{f})
+                    d(f) = false;
+                end
+
+            end
+        end
+
+        % compress tensors with no parents
+        %------------------------------------------------------------------
+        for f = find(ismember(d,false))
+
+            % compress prior transitions
+            %--------------------------------------------------------------
+            MDP{n}.b{f} = sum(MDP{n}.b{f},'all');
+
+            % and children
+            %--------------------------------------------------------------
+            for g = find(ismember([MDP{n}.id.A{:}],f))
+                MDP{n}.a{g} = sum(MDP{n}.a{g},2);
+            end
+        end
+
+        % streams at next level
+        %------------------------------------------------------------------
+        sB    = MDP{n}.sB(d);
+        for s = 1:size(S,1)
+            S(s,:) = [sum(ismember(sB,s)),1,1,2];
+        end
+
+        % and update parents of subordinate factors
+        %------------------------------------------------------------------
+        d = kron(d,true(1,2));
+        i = find(d);
+        for j = 1:numel(MDP{n}.id.D)
+            MDP{n}.id.D{j} = find(ismember(i,MDP{n}.id.D{j}));
+        end
+        for j = 1:numel(MDP{n}.id.E)
+            MDP{n}.id.E{j} = find(ismember(i,MDP{n}.id.E{j}));
+        end
+
+        % outcomes at next level
+        %------------------------------------------------------------------
+        O  = N(i,:);
+
+    else
+
+        % streams at next level
+        %------------------------------------------------------------------
+        for s = 1:size(S,1)
+            S(s,:) = [size(MDP{n}.G{s},[1,2,3]),2];
+        end
+
+        % outcomes at next level
+        %------------------------------------------------------------------
+        O  = N;
+    end
+    
 end
 
 return
@@ -289,7 +398,7 @@ for t = 1:Nt
     u  = find(b(j(t + 1),j(t),:),1,'first');
     if numel(u)
 
-        % accumulate Drichlet counts for this transition
+        % accumulate Dirichlet counts for this transition
         %------------------------------------------------------------------
         b(j(t + 1),j(t),u) = b(j(t + 1),j(t),u) + 1;
 

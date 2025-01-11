@@ -31,13 +31,16 @@ Y{end + 1} = MDP.Y;                          % predictions
 if nargin < 3, Nt    = 4; end                % Number of frames to show
 if nargin < 4, MOVIE = 1; end
 
-T     = size(O{1},2);
-Nm    = numel(O);
-
 % highest states and transitions
 %--------------------------------------------------------------------------
+Nm   = numel(O);
+B    = spm_cat(MDP.X);
 subplot(Nm + 3,2,1)
-image((1 - spm_cat(MDP.X))*64)
+if size(B,1) > 128
+    spm_spy(B,8);
+else
+    imagesc(1 - B)
+end
 title(sprintf('Posterior (states) level %i',Nm),'FontSize',12)
 
 % transition probabilities
