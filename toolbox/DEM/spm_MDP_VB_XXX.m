@@ -452,15 +452,22 @@ for m = 1:Nm
             end
         end
 
+        % for children of control factors
+        %--------------------------------------------------------------
+        f = MDP(m).id.A{g};
+        if any(MDP(m).U(:,f))
+
         % novelty (W) for computation of expected free energy: G
-        %------------------------------------------------------------------
+            %--------------------------------------------------------------
         if isfield(MDP(m),'a')
             W{m,g} = spm_wnorm(qa{m,g});
         end
 
         % and ambiguity (K) for computation of expected free energy: G
-        %------------------------------------------------------------------
+            %--------------------------------------------------------------
         K{m,g} = spm_hnorm(A{m,g});
+
+        end
 
         % prior preferences over outcomes (constraints) : C
         %------------------------------------------------------------------
@@ -508,15 +515,17 @@ for m = 1:Nm
             end
         end
 
-        % novelty (I)
+        % novelty (I) for expected free energy
         %------------------------------------------------------------------
-        if isfield(MDP,'b')
+        if isfield(MDP(m),'b')
+            if any(MDP(m).U(:,f))
             I{m,f} = spm_wnorm(qb{m,f});
+        end
         end
 
         % priors over initial hidden states: concentration parameters
         %------------------------------------------------------------------
-        if isfield(MDP,'d')
+        if isfield(MDP(m),'d')
             qd{m,f} = MDP(m).d{f};
         elseif isfield(MDP,'D')
             qd{m,f} = MDP(m).D{f}*512;
@@ -552,7 +561,7 @@ for m = 1:Nm
 
         % priors over final hidden states: concentration parameters
         %------------------------------------------------------------------
-        if isfield(MDP,'h')
+        if isfield(MDP(m),'h')
             qh{m,f} = MDP(m).h{f};
         elseif isfield(MDP,'H')
             qh{m,f} = MDP(m).H{f}*512;
@@ -687,7 +696,7 @@ for m = 1:Nm
         for t = 1:T
             try
                 % Probabilistic outcomes
-                    %-------------------------------------------------------
+                    %------------------------------------------------------
                 O{m,g,t}      = MDP(m).O{g,t};
 
                 % Overwrite deterministic outcomes
@@ -793,13 +802,13 @@ for t = 1:T
             if process(m)
 
                     % explicit action (that maximises accuracy)
-                    %------------------------------------------------------
+                %----------------------------------------------------------
                     MDP(m) = spm_action(MDP(m),A(m,:),Q(m,:,t),t - 1);
 
             else
 
                 % implicit action (sample control from prior)
-                %------------------------------------------------------
+                %----------------------------------------------------------
                 for f = id{m}.fu
                     MDP(m).u(f,t - 1) = spm_sample(P{m,f,t - 1});
                 end
@@ -1794,7 +1803,7 @@ for k = 1:Nk
         end
 
         % expected information gain (transition novelty) (B)
-        %------------------------------------------------------------------
+    %----------------------------------------------------------------------
     for f = id{m}.iI
         G(k,:) = G(k,:) + P{m,f,t}'*I{m,f,k}*Q{f};
     end
@@ -2434,7 +2443,7 @@ end
 end
 
 % graphics for visualisation
-%----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if false
     spm_figure('GetWin','Inductive inference');
     for i = 1:min(size(hid,2),8)
@@ -2510,7 +2519,8 @@ if islogical(P)
     i = find(P);
     i = i(randperm(numel(i),1));
 else
-    i = find(rand < cumsum(P),1);
+    P = cumsum(P);
+    i = find(rand*P(end) < P,1);
 end
 
 function A  = spm_log(A)

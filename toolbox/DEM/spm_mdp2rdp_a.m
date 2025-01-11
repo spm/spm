@@ -64,12 +64,12 @@ if numel(MDP) < 2
 end
 
 % if all streams comprise one group
-%======================================================================
+%==========================================================================
 n = Nm;
 if numel(MDP{n}.b) > 1
 
     % remove trailing factors
-    %--------------------------------------------------------------
+    %----------------------------------------------------------------------
     MDP{n}.b = MDP{n}.b(1);
     MDP{n}.G = MDP{n}.G(1);
 
@@ -85,7 +85,7 @@ if numel(MDP{n}.b) > 1
     i = find(d);
 
     % remove their children
-    %--------------------------------------------------------------
+    %----------------------------------------------------------------------
     MDP{n}.a     = MDP{n}.a(d);
     MDP{n}.id.A  = MDP{n}.id.A(d);
 
@@ -94,7 +94,7 @@ if numel(MDP{n}.b) > 1
     end
 
     % and update parents of subordinate factors
-    %--------------------------------------------------------------
+    %----------------------------------------------------------------------
     for j = 1:numel(MDP{n - 1}.id.D)
         MDP{n - 1}.id.D{j} = find(ismember(i,MDP{n - 1}.id.D{j}));
     end
@@ -141,7 +141,7 @@ for n = Nm:-1:2
         MDP{n - 1}.id.E{j} = find(ismember(i,MDP{n - 1}.id.E{j}));
     end
 
-    % merge unitary transitions
+    % remove unitary transitions
     %======================================================================
     d     = true(1,numel(MDP{n}.b));
     for f = 1:numel(MDP{n}.b)
@@ -157,7 +157,7 @@ for n = Nm:-1:2
     i    = find( d);
     k    = find(~d);
 
-    % remove redundant factors
+    % merge redundant factors (i.e., background states)
     %----------------------------------------------------------------------
     MDP{n}.b    = MDP{n}.b(d);
     MDP{n}.id.D = MDP{n}.id.D(d);
@@ -231,7 +231,7 @@ for n = 1:Nm
     %----------------------------------------------------------------------
     for g = 1:numel(MDP{n}.a)
         if ~isa(MDP{n}.a{g},'function_handle')
-            s           = MDP{n}.sC(MDP{n}.id.A{g});
+            s           = MDP{n}.sC(g);
             MDP{n}.a{g} = MDP{n}.a{g} + p(s);
         end
     end
@@ -240,7 +240,7 @@ for n = 1:Nm
     %----------------------------------------------------------------------
     for f = 1:numel(MDP{n}.b)
         if ~isa(MDP{n}.b{f},'function_handle')
-            s           = MDP{n}.sC(MDP{n}.id.A{g});
+            s           = MDP{n}.sB(f);
             MDP{n}.b{f} = MDP{n}.b{f} + q(s);
         end
     end

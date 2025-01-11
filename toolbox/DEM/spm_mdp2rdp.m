@@ -52,7 +52,7 @@ end
 % is this RGM specified with Dirichlet counts?
 %==========================================================================
 if isfield(MDP{1},'a')
-    RDP = spm_mdp2rdp_a(MDP,p,q,T,FIX);
+    RDP   = spm_mdp2rdp_a(MDP,p,q,T,FIX);
     return
 end
 
@@ -74,12 +74,12 @@ if numel(MDP) < 2
 end
 
 % if all streams comprise one group
-%======================================================================
+%==========================================================================
 n = Nm;
 if numel(MDP{n}.B) > 1
 
     % remove trailing factors
-    %--------------------------------------------------------------
+    %----------------------------------------------------------------------
     MDP{n}.B = MDP{n}.B(1);
     MDP{n}.G = MDP{n}.G(1);
 
@@ -91,7 +91,7 @@ if numel(MDP{n}.B) > 1
     i = find(d);
 
     % remove their children
-    %--------------------------------------------------------------
+    %----------------------------------------------------------------------
     MDP{n}.A     = MDP{n}.A(d);
     MDP{n}.id.A  = MDP{n}.id.A(d);
 
@@ -100,7 +100,7 @@ if numel(MDP{n}.B) > 1
     end
 
     % and update parents of subordinate factors
-    %--------------------------------------------------------------
+    %----------------------------------------------------------------------
     for j = 1:numel(MDP{n - 1}.id.D)
         MDP{n - 1}.id.D{j} = find(ismember(i,MDP{n - 1}.id.D{j}));
     end

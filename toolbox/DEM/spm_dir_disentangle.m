@@ -11,6 +11,7 @@ function [e,v,c] = spm_dir_disentangle(a,n)
 % distributions). It then plots a certain number of latent states in the
 % ensuing eigenspace; along with the eiegnspectrum.
 %
+% seee also spm_information_distance.m
 %__________________________________________________________________________
 
 % Karl Friston

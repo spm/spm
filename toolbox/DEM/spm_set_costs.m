@@ -21,6 +21,7 @@ function MDP = spm_set_costs(MDP,S,chi)
 %__________________________________________________________________________
 
 
+
 % if multiple streams replace C (and U)
 %==========================================================================
 Nm    = numel(MDP);
@@ -86,8 +87,8 @@ for m = 1:(Nm - 1)
         % final outcomes
         %------------------------------------------------------------------
         o     = [];
+        sg    = MDP{1}.sA == S;
         for t = 1:size(s{1},2)
-            sg    = MDP{1}.sA == S;
             [~,j] = max(MDP{1}.a{sg}(:,s{1}(1,t)));
             o(t)  = j;
         end
@@ -107,7 +108,7 @@ end
 
 % Place contraints in predictions (i.e., outcomes) of initial states
 %==========================================================================
-for n = 2:Nm
+for n = 1:Nm
 
     % control factors and contraints
     %----------------------------------------------------------------------
@@ -122,6 +123,9 @@ for n = 2:Nm
             MDP{n}.C{g,1} = spm_dir_norm(ones(size(MDP{n}.a{g},1),1));
         end
     end
+end
+
+for n = 2:Nm
 
     % parents of stream S intial states
     %----------------------------------------------------------------------
@@ -133,14 +137,21 @@ for n = 2:Nm
 
     % initial states of stream S predicted by first stream
     %----------------------------------------------------------------------
-    pg = intersect(ps,pf);
+    pg    = intersect(ps,pf);
+    u     = 1;
     for g = pg
        
        % enable this factor
        %-------------------------------------------------------------------
-       if spm_MDP_MI(MDP{n}.a{g}) > 1/512
+       if spm_MDP_MI(MDP{n}.a{g}) > 1/32
            f = MDP{n}.id.A{g};
-           MDP{n}.U(f) = true;
+
+           % limit numer of policy combinations
+           %---------------------------------------------------------------
+           if prod(u) < 32
+               MDP{n}.U(f) = true;
+               u(end + 1)  = size(MDP{n}.b{f},3);
+           end
        end
 
        % and implement contraints on its predictions

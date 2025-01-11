@@ -2,7 +2,7 @@ function [MDP,B] = spm_RDP_sort(MDP,N)
 % BMR using eigen-decomposition of allowable transitions 
 % FORMAT [MDP,B] = spm_RDP_sort(MDP,N)
 % MDP - hierarchal RDP
-% N   - maximum number of states (at highest level)
+% N   - upper bound on number of states [default: Inf]
 % B   - reduced transition priors (at highest level)
 %
 % This routine uses the eigen-decomposition of allowable transitions (i.e.,
@@ -23,7 +23,7 @@ function [MDP,B] = spm_RDP_sort(MDP,N)
 
 % get predictive mapping from states to outcomes in trailing streams
 %==========================================================================
-if nargin < 2, N = size(MDP{end}.b{1},1); end
+if nargin < 2, N = Inf; end
 
 % flows at highest level
 %--------------------------------------------------------------------------
@@ -35,13 +35,17 @@ B     = spm_dir_norm(sum(MDP{n}.b{1},3));
 % [e,v] = eig(B,'nobalance');
 % v     = diag(v);
 % [~,j] = sort(real(v),'descend');
-% e     = e(:,j);
-% [~,j] = sort(abs(e(:,1)),'descend');
+% p     = e(:,j).^2;
+% [~,j] = sort(abs(p(:,1)),'descend');
 % j     = j(1:min(end,N));
+
+
 
 % numerical approximation to NESS
 %--------------------------------------------------------------------------
-[~,j] = sort(mean(B^128,2),'descend');
+e     = mean(B^128,2);
+p     = spm_dir_norm(e.^2);
+[~,j] = sort(p,'descend');
 j     = j(1:min(end,N));
 
 % re-order likelihood mappings from first stream

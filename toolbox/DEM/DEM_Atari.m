@@ -175,7 +175,7 @@ tic, MDP = spm_faster_structure_learning(O,[Nr,Nc],3); toc
 spm_figure('GetWin','Orbits'); clf
 
 subplot(2,2,1)
-spm_dir_orbits(MDP{end}.b{1},HID,[],24);
+spm_dir_orbits(MDP{end}.b{1},HID,24);
 title('Orbits and goals')
 
 % priors
@@ -228,8 +228,13 @@ for n = Nm:-1:2
         pdp   = MDP{n - 1};
         pdp.T = 2;
         for g = 1:numel(pdp.id.D)
-            pdp.D{g} = Q{n}{pdp.id.D{g},t};
-            pdp.E{g} = Q{n}{pdp.id.E{g},t};
+            try
+                pdp.D{g} = Q{n}{pdp.id.D{g},t};
+                pdp.E{g} = Q{n}{pdp.id.E{g},t};
+            catch
+                pdp.D{g} = ones(size(pdp.b{g},2),1);
+                pdp.E{g} = ones(size(pdp.b{g},3),1);
+            end
         end
         pdp      = spm_MDP_VB_XXX(pdp);
         Q{n - 1} = [Q{n - 1} pdp.O];
@@ -321,7 +326,7 @@ plot(h,zeros(size(h)),'.r','MarkerSize',16)
 spm_figure('GetWin','Orbits');
 
 subplot(2,2,2)
-spm_dir_orbits(PDP.B{1},HID,PDP.X{1},24);
+spm_dir_orbits(PDP.B{1},HID,24);
 
 return
 
