@@ -50,13 +50,10 @@ function varargout = FieldMap(varargin)
 % .bmask
 %
 % IP.mflags         : Struct containing parameters for brain maskin
-% .template         : Name of template for segmentation.
 % .fwhm             : fwhm of smoothing kernel for generating mask.
 % .nerode           : number of erosions
 % .ndilate          : number of dilations
 % .thresh           : threshold for smoothed mask.
-% .reg              : bias field regularisation
-% .graphics         : display or not
 %
 % IP.fm             : Struct containing field map information
 % IP.fm.upm         : Phase-unwrapped field map (Hz).
@@ -1378,7 +1375,7 @@ switch lower(Action)
       IP.vdmP = []; %% Check that this should be there %%
       IP.maskbrain = [];
       IP.uflags = struct('iformat','','method','','fwhm',[],'bmask',[],'pad',[],'etd',[],'ws',[]);
-      IP.mflags = struct('template',[],'fwhm',[],'nerode',[],'ndilate',[],'thresh',[],'reg',[],'graphics',0);
+      IP.mflags = struct('fwhm',[],'nerode',[],'ndilate',[],'thresh',[]);
 
       % Initially set brain mask to be empty
       IP.uflags.bmask = [];
@@ -1419,13 +1416,10 @@ switch lower(Action)
       IP.uflags.etd = pm_def.LONG_ECHO_TIME - pm_def.SHORT_ECHO_TIME;
 
       % Set parameters for brain masking
-      IP.mflags.template = pm_def.MFLAGS.TEMPLATE;
       IP.mflags.fwhm = pm_def.MFLAGS.FWHM;
       IP.mflags.nerode = pm_def.MFLAGS.NERODE;
       IP.mflags.ndilate = pm_def.MFLAGS.NDILATE;
       IP.mflags.thresh = pm_def.MFLAGS.THRESH;
-      IP.mflags.reg = pm_def.MFLAGS.REG;
-      IP.mflags.graphics = pm_def.MFLAGS.GRAPHICS;
 
       % Set parameters for unwarping
       IP.ajm = pm_def.DO_JACOBIAN_MODULATION;

@@ -61,19 +61,15 @@ end
 
 % Set parameters for brain extraction
 if ~isfield(pm_defs,'mflags')
-    IP.mflags.template=pm_defs.MFLAGS.TEMPLATE;
     IP.mflags.fwhm=pm_defs.MFLAGS.FWHM;
     IP.mflags.nerode=pm_defs.MFLAGS.NERODE;
     IP.mflags.ndilate=pm_defs.MFLAGS.NDILATE;
     IP.mflags.thresh=pm_defs.MFLAGS.THRESH;
-    IP.mflags.reg=pm_defs.MFLAGS.REG;
 else
-    IP.mflags.template=pm_defs.mflags.template;
     IP.mflags.fwhm=pm_defs.mflags.fwhm;
     IP.mflags.nerode=pm_defs.mflags.nerode;
     IP.mflags.ndilate=pm_defs.mflags.ndilate;
     IP.mflags.thresh=pm_defs.mflags.thresh;
-    IP.mflags.reg=pm_defs.mflags.reg;
 end
 
 % Get FieldMap parameters
