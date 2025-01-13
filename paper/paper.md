@@ -80,9 +80,7 @@ Statistical Parametric Mapping (SPM) is an integrated set of methods for testing
 - Dynamic Causal Modelling (DCM) for state-space modelling using variational Bayesian methods [@friston2003dynamic].
 - Source localisation for M/EEG data using variational Bayesian methods [@phillips2005empirical].
 
-These methods share the key principles of employing generative models, parametric statistics and open science practices.
-
-This major new release of `SPM` addresses a series of needs in the neuroimaging community, set out below.
+These methods share certain key principles: the use of generative models, the application of well-motivated parametric statistics and a commitment to open science practices. They are included in a major new release of `SPM`, which addresses a series of needs in the neuroimaging community, set out below.
 
 ## Open development
 
