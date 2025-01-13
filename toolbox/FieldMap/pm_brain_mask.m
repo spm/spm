@@ -40,12 +40,6 @@ if nargin < 2 || isempty(flags)
 end
 
 disp('Segmenting and extracting brain...');
-%seg_flags.estimate.reg=flags.reg;
-%seg_flags.graphics = flags.graphics;
-
-% Updated to use renamed version of spm_segment
-%VO    = pm_segment(P.fname,flags.template,seg_flags);
-%bmask = double(VO(1).dat)+double(VO(2).dat)+double(VO(3).dat)>0;
 bmask = get_bmask(P.fname);
 bmask = open_it(bmask,flags.nerode,flags.ndilate); % Do opening to get rid of scalp
 
