@@ -107,7 +107,6 @@ IP.pP = [];
 IP.epiP = [];
 IP.uepiP = [];
 IP.vdmP = [];
-ID = cell(4,1);
 
 %--------------------------------------------------------------------------
 % Load measured field map data - phase and magnitude or real and imaginary
@@ -198,7 +197,7 @@ elseif nsessions==1
     % Outputs -> uNAME-OF-EPI.img
     %----------------------------------------------------------------------
     unwarp_info=sprintf('Unwarped EPI:echo time difference=%2.2fms, EPI readout time=%2.2fms, Jacobian=%d',IP.uflags.etd, IP.tert,IP.ajm);
-    IP.uepiP = FieldMap('Write',IP.epiP,IP.uepiP.dat,'u',IP.epiP.dt(1),unwarp_info);
+    IP.uepiP = FieldMap('Write',IP.epiP,IP.uepiP.dat,'u',IP.epiP.dt(1),unwarp_info, IP.uepiP.pinfo);
     VDM{1}=IP.vdmP;
     IPcell{1}=IP;
 else
@@ -221,8 +220,7 @@ else
         if numel(IP.epiP) > 1, IP.epiP = IP.epiP(1); end  % 4D
         if isfield(pm_defs, 'match_vdm')
             if pm_defs.match_vdm
-                msg=sprintf('\nMatching session %d...\n',sessnum);
-                disp(msg);
+                fprintf('\nMatching session %d...\n',sessnum);
                 IP.vdmP = FieldMap('MatchVDM',IP);
             end
             % Now copy this file to a session specific file
