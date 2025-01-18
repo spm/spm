@@ -84,11 +84,11 @@ Statistical Parametric Mapping (SPM) is an integrated set of methods for testing
 
 # Statement of need
 
-`SPM` introduced many of the statistical methods that underpin cognitive and clinical neuroimaging research today, including:
+`SPM` introduced many of the statistical foundations that underpin cognitive and clinical neuroimaging research today, including:
 
 - The voxel-wise application of General Linear Models (GLMs) to neuroimaging data [@friston1994statistical].
 - Convolution modelling of functional MRI (fMRI) signals using haemodynamic response functions [@friston1994analysis].
-- Correction for multiple comparisons using topological methods (Random Field Theory, RFT) [@worsley1996unified].
+- Correction for multiple comparisons using topological inference (Random Field Theory, RFT) [@worsley1996unified].
 - Event-related fMRI [@josephs1997event].
 - Voxel-Based morphometry (VBM) for detecting changes in anatomy [@ashburner2000voxel].
 - Dynamic Causal Modelling (DCM) for state-space modelling using variational Bayesian methods [@friston2003dynamic].
@@ -98,7 +98,7 @@ These methods share certain key principles: the use of generative models, the ap
 
 ## Open development
 
-`SPM` was previously developed and tested using a private Subversion server within University College London. To enable community engagement in the future development of `SPM` and to increase transparency, development has recently moved to a public [Github repository](https://github.com/spm/spm). `SPM 25.01` is the first release of the software following the move to Github. The key advantages of using Github thus far have been:
+`SPM` was previously developed and tested using a private Subversion server within University College London. To enable community engagement in the future development of `SPM` and to increase transparency, development has recently moved to a public [GitHub repository](https://github.com/spm/spm). `SPM 25.01` is the first release of the software following the move to GitHub. The key advantages of using GitHub thus far have been:
 
 - Introducing automated unit and regression tests across platforms.
 - Automating the build process to conveniently generate and release source code and compiled versions.
@@ -106,7 +106,7 @@ These methods share certain key principles: the use of generative models, the ap
 
 ## Documentation and training
 
-The documentation for `SPM` was previously spread across multiple locations, most of which could not be edited by the community. `SPM 25.01` is accompanied by a new [documentation website](https://www.fil.ion.ucl.ac.uk/spm/docs/), the source code for which is hosted in a public [Github repository](https://github.com/spm/spm-docs). The new website has step-by-step tutorials on all of SPM's main features, as well as freely available video recordings of lectures from previous SPM courses covering the mathematical theory.
+The documentation for `SPM` was previously spread across multiple locations, most of which could not be edited by the community. `SPM 25.01` is accompanied by a new [documentation website](https://www.fil.ion.ucl.ac.uk/spm/docs/), the source code for which is hosted in a public [GitHub repository](https://github.com/spm/spm-docs). The new website has step-by-step tutorials on all of SPM's main features, as well as freely available video recordings of lectures from previous SPM courses covering the mathematical theory.
 
 ## Major new features 
 
@@ -159,9 +159,9 @@ Our strategy is as follows:
 
 - `SPM 25` will be the first version of SPM to be fully accessible from the Python programming language, without requiring MATLAB, using a new Python wrapper called [spm-python](https://github.com/spm/spm-python). This is in the final stages of development and will be released in the first quarter of 2025.
 
-- [SPM Standalone](https://www.fil.ion.ucl.ac.uk/spm/docs/installation/standalone/) is the compiled version of `SPM` that can be run from the command line without a MATLAB license. This enables people to run neuroimaging analyses from command line scripts written in any language, or using the GUI. It is now generated automatically with each new release, as part of the Github-based build process. 
+- [SPM Standalone](https://www.fil.ion.ucl.ac.uk/spm/docs/installation/standalone/) is the compiled version of `SPM` that can be run from the command line without a MATLAB license. This enables people to run neuroimaging analyses from command line scripts written in any language, or using the GUI. It is now generated automatically with each new release, as part of the GitHub-based build process. 
 
-- [Docker and Singularity containers](https://www.fil.ion.ucl.ac.uk/spm/docs/installation/containers/) are additionally provided and are now generated automatically as part of SPM's Github build process.
+- [Docker and Singularity containers](https://www.fil.ion.ucl.ac.uk/spm/docs/installation/containers/) are additionally provided and are now generated automatically as part of SPM's GitHub build process.
 
 # Software versions
 
@@ -169,6 +169,6 @@ Our strategy is as follows:
 
 # Acknowledgements
 
-Yael Balbastre is funded by a Royal Society Newton International Fellowship (NIF\R1\232460). Olivia S. Kowalczyk is supported by the King’s Prize Fellowship. Johan Medrano was supported by the Discovery Research Platform for Naturalistic Neuroimaging funded by Wellcome [226793/Z/22/Z]. Stephanie Mellor was funded by an Engineering and Physical Sciences Research Council (EPSRC) Healthcare Impact Partnership Grant (EP/V047264/1). Tim M. Tierney is funded by an Epilepsy Research UK fellowship (FY2101). Thomas Parr is supported by NIHR Academic Clinical Fellowship (ref: ACF-2023-13-013). Peter Zeidman is funded by an MRC Career Development Award [MR/X020274/1]. A full list of authors of `SPM 25.01` can be found in the file `AUTHORS.txt` supplied with the software.
+Yael Balbastre is funded by a Royal Society Newton International Fellowship (NIF\\R1\\232460). Olivia S. Kowalczyk is supported by the King’s Prize Fellowship. Johan Medrano was supported by the Discovery Research Platform for Naturalistic Neuroimaging funded by Wellcome [226793/Z/22/Z]. Stephanie Mellor was funded by an Engineering and Physical Sciences Research Council (EPSRC) Healthcare Impact Partnership Grant (EP/V047264/1). Tim M. Tierney is funded by an Epilepsy Research UK fellowship (FY2101). Thomas Parr is supported by NIHR Academic Clinical Fellowship (ref: ACF-2023-13-013). Peter Zeidman is funded by an MRC Career Development Award [MR/X020274/1]. A full list of authors of `SPM 25.01` can be found in the file `AUTHORS.txt` supplied with the software.
 
 # References
