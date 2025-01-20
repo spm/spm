@@ -11,7 +11,7 @@ tags:
 authors:
   - name: Tim M. Tierney
     affiliation: 1	
-  - name: Nicholas Alexander
+  - name: Nicholas A. Alexander
     affiliation: 1	
   - name: John Ashburner
     affiliation: 1	
@@ -116,7 +116,7 @@ The documentation for `SPM` was previously spread across multiple locations, mos
 
 - Multi-Brain Toolbox [@brudfors2020flexible]. Generates population average-shaped brains, enabling more precise spatial normalisation with the option to automatically label brain structures [@yan2022factorisation].
 
-- SCOPE Toolbox. Generates MRI fieldmaps using phase-encode-reversed pairs of MRI images (blip-up and blip-down images), similar to the Topup tool in FSL.
+- SCOPE Toolbox. Generates voxel displacement maps (VDMs) using phase-encode-reversed pairs of MRI images (blip-up and blip-down images) to correct geometrical distortion in MRI. This is similar to the Topup toolbox in FSL [@andersson2003correct].
 
 ### M/EEG
 
@@ -125,6 +125,8 @@ The documentation for `SPM` was previously spread across multiple locations, mos
 - Support for fusion of different MEG sensor types and EEG sensors in beamforming with pre-whitening [@westner2022unified].
 
 - Support for MEG BIDS for specification of events, channels and fiducials [@westner2022unified].
+
+- Proof-of-concept routines for fusing M/EEG and fMRI data under a unified physiological model, to investigate neurovascular coupling [@friston2019dynamic; @jafarian2019neurovascular].
 
 ### OPMs
 
@@ -169,6 +171,8 @@ Our strategy is as follows:
 
 # Acknowledgements
 
-Yael Balbastre is funded by a Royal Society Newton International Fellowship (NIF\\R1\\232460). Olivia S. Kowalczyk is supported by the King’s Prize Fellowship. Johan Medrano was supported by the Discovery Research Platform for Naturalistic Neuroimaging funded by Wellcome [226793/Z/22/Z]. Stephanie Mellor was funded by an Engineering and Physical Sciences Research Council (EPSRC) Healthcare Impact Partnership Grant (EP/V047264/1). Tim M. Tierney is funded by an Epilepsy Research UK fellowship (FY2101). Thomas Parr is supported by NIHR Academic Clinical Fellowship (ref: ACF-2023-13-013). Peter Zeidman is funded by an MRC Career Development Award [MR/X020274/1]. A full list of authors of `SPM 25.01` can be found in the file `AUTHORS.txt` supplied with the software.
+A full list of authors of `SPM` can be found in the file `AUTHORS.txt` supplied with the software. We are very grateful to the IT Team at the UCL Department of Imaging Neuroscience for their ongoing support.
+
+Yael Balbastre is funded by a Royal Society Newton International Fellowship (NIF\\R1\\232460). Olivia S. Kowalczyk is supported by the King’s Prize Fellowship. Nicholas A Alexander and Johan Medrano are supported by the Discovery Research Platform for Naturalistic Neuroimaging funded by Wellcome [226793/Z/22/Z]. Stephanie Mellor was funded by an Engineering and Physical Sciences Research Council (EPSRC) Healthcare Impact Partnership Grant (EP/V047264/1). Tim M. Tierney is funded by an Epilepsy Research UK fellowship (FY2101). Thomas Parr is supported by NIHR Academic Clinical Fellowship (ref: ACF-2023-13-013). Peter Zeidman is funded by an MRC Career Development Award [MR/X020274/1]. 
 
 # References
