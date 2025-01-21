@@ -116,7 +116,7 @@ The documentation for `SPM` was previously spread across multiple locations, mos
 
 - Multi-Brain Toolbox [@brudfors2020flexible]. Generates population average-shaped brains, enabling more precise spatial normalisation with the option to automatically label brain structures [@yan2022factorisation].
 
-- SCOPE Toolbox. Generates voxel displacement maps (VDMs) using phase-encode-reversed pairs of MRI images (blip-up and blip-down images) to correct geometrical distortion in MRI. This is similar to the Topup toolbox in FSL [@andersson2003correct].
+- SCOPE Toolbox. Generates voxel displacement maps (VDMs) using phase-encode-reversed pairs of MRI images (blip-up and blip-down images) to correct geometrical distortion in MRI [@andersson2003correct]. This is similar to the Topup toolbox in FSL.
 
 ### M/EEG
 
@@ -171,7 +171,7 @@ Our strategy is as follows:
 
 # Acknowledgements
 
-A full list of authors of `SPM` can be found in the file `AUTHORS.txt` supplied with the software. We are very grateful to the IT Team at the UCL Department of Imaging Neuroscience for their ongoing support.
+A full list of authors of `SPM` can be found in the file `AUTHORS.txt` supplied with the software. We are also grateful to the IT Team at the UCL Department of Imaging Neuroscience for their ongoing support.
 
 Yael Balbastre is funded by a Royal Society Newton International Fellowship (NIF\\R1\\232460). Olivia S. Kowalczyk is supported by the King’s Prize Fellowship. Nicholas A Alexander and Johan Medrano are supported by the Discovery Research Platform for Naturalistic Neuroimaging funded by Wellcome [226793/Z/22/Z]. Stephanie Mellor was funded by an Engineering and Physical Sciences Research Council (EPSRC) Healthcare Impact Partnership Grant (EP/V047264/1). Tim M. Tierney is funded by an Epilepsy Research UK fellowship (FY2101). Thomas Parr is supported by NIHR Academic Clinical Fellowship (ref: ACF-2023-13-013). Peter Zeidman is funded by an MRC Career Development Award [MR/X020274/1]. 
 
