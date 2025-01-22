@@ -60,7 +60,7 @@ affiliations:
  - name: School of Psychological Sciences and Turner Institute for Brain and Mental Health, Monash University, Clayton 3180, Australia
    index: 2
    ror: 02bfwt286
- - name: Nuffield Department of Clinical Neurosciences, University of Oxford.
+ - name: Nuffield Department of Clinical Neurosciences, University of Oxford
    index: 3
    ror: 052gg0110
  - name: Department of Neuroimaging, Institute of Psychiatry, Psychology & Neuroscience, King’s College London
