@@ -972,8 +972,10 @@ set(h,'Visible','on');
 
 a = axes('Parent',h, 'Units','pixels', 'Position',[50 201 200 200],...
     'Visible','off');
-IMG = imread(fullfile(spm('Dir'),'help','images','spm12.png'));
-image(IMG,'Parent',a); set(a,'Visible','off');
+
+% Commented out until a new logo is created (740x740px)
+%IMG = imread(fullfile(spm('Dir'),'help','images','spm12.png'));
+%image(IMG,'Parent',a); set(a,'Visible','off');
 
 a = axes('Parent',h,'Units','pixels','Position',[0 0 300 400],...
     'Visible','off','Tag','textcont');
