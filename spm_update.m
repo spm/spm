@@ -45,7 +45,13 @@ end
 %-Get latest version
 %--------------------------------------------------------------------------
 valid_version_pattern = '^\d{2}\.\d{2}(\.\d+)?$';
-tagged_versions = string({response.tag_name});
+
+if iscell(response)
+    tagged_versions = string(cellfun(@(r) r.tag_name, response, 'uni', 0));
+else 
+    tagged_versions = string({response.tag_name});
+end
+
 valid_versions = ~cellfun('isempty', regexp(tagged_versions, valid_version_pattern));
 sorted_versions = sort(tagged_versions(valid_versions), 'descend');
 
