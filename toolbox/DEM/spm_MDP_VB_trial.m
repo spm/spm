@@ -1,7 +1,6 @@
 function spm_MDP_VB_trial(MDP,gf,gg)
 % auxiliary plotting routine for spm_MDP_VB - single trial
 % FORMAT spm_MDP_VB_trial(MDP,f,g)
-
 %
 % MDP.P(M,T)      - probability of emitting action 1,...,M at time 1,...,T
 % MDP.X           - conditional expectations over hidden states
@@ -25,11 +24,6 @@ function spm_MDP_VB_trial(MDP,gf,gg)
 % Karl Friston
 % Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
-% graphics
-%==========================================================================
-clf; MDP = spm_MDP_check_labels(MDP);
-
-
 % numbers of transitions, policies and states
 %--------------------------------------------------------------------------
 if iscell(MDP.X)
@@ -50,11 +44,17 @@ end
 
 % factors and outcomes to plot
 %--------------------------------------------------------------------------
-maxg  = 4;
+maxg  = 6;
 if nargin < 2, gf = 1:min(Nf,maxg); end
 if nargin < 3, gg = 1:min(Ng,maxg); end
 nf    = numel(gf);
 ng    = numel(gg);
+
+
+% graphics
+%==========================================================================
+clf; MDP = spm_MDP_check_labels(MDP,nf,ng);
+
 
 % posterior beliefs about hidden states
 %--------------------------------------------------------------------------
@@ -177,6 +177,10 @@ for g  = 1:ng
     
     subplot(3*ng,2,(2*ng + g - 1)*2 + 1), hold off
     c     = C{gg(g)};
+
+    if isempty(c)
+       c  = ones(size(MDP.A{gg(g)},1),1);
+    end
     if size(c,2) < size(MDP.o,2)
         c = repmat(c(:,1),1,size(MDP.o,2));
     end

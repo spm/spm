@@ -2,12 +2,13 @@ function RDP = spm_mdp2rdp(MDP,p,q,T,FIX)
 % Converts a cell array of MDPs into a recursive MDP
 % FORMAT RDP = spm_mdp2rdp(MDP,p,q,T,FIX)
 % MDP{n} - Cell array of MDPs
-% 
 %  MDP{n}.A    - likelihood tensors 
 %  MDP{n}.B    - transition tensors (logical)
 %  MDP{n}.id.A - cell array of parents of A factors at the same level
-%  MDP{n}.id.D - cell array of parents of D in supraordinate outcomes
-%  MDP{n}.id.E - cell array of parents of E in supraordinate outcomes
+%  MDP{n}.id.B - cell array of parents of B factors at the same level
+%  MDP{n}.id.C - cell array of parents of C priors  at the same level
+%  MDP{n}.id.D - cell array of parents of initial state at next level
+%  MDP{n}.id.E - cell array of parents of initial paths at next level
 %
 % p      - likelihood concentration; e.g., p = 1/32; [default: p = 0] 
 % q      - prior (transition) decay; e.g., q = 1/32; [default: q = 0] 
@@ -16,7 +17,7 @@ function RDP = spm_mdp2rdp(MDP,p,q,T,FIX)
 % FIX.A = 0 for learning likelihoods
 % FIX.B = 0 for learning transitions
 %
-% RDP    - likelihood and transition tensors for generating this sequence
+% RDP    - Deep (recursive) MDP (i.e., RDP.MDP.MDP...)  
 %  RDP.L - level or depth
 %  RDP.T - time steps
 %

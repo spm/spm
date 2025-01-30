@@ -1,9 +1,19 @@
 function MDP = spm_rdp2mdp(RDP)
 % Converts a recursive MDP into a cell array of MDPs 
 % FORMAT MDP = spm_rdp2mdp(RDP)
+%
+% RDP    - Deep (recursive) MDP (i.e., RDP.MDP.MDP...)  
+%  RDP.L - level or depth
+%  RDP.T - time steps
+%
 % MDP{n} - Cell array of MDPs
-%  MDP{n}.id.D - cell array of parents of D in supraordinate outcomes
-%  MDP{n}.id.E - cell array of parents of E in supraordinate outcomes
+%  MDP{n}.A    - likelihood tensors 
+%  MDP{n}.B    - transition tensors (logical)
+%  MDP{n}.id.A - cell array of parents of A factors at the same level
+%  MDP{n}.id.B - cell array of parents of B factors at the same level
+%  MDP{n}.id.C - cell array of parents of C priors  at the same level
+%  MDP{n}.id.D - cell array of parents of initial state at next level
+%  MDP{n}.id.E - cell array of parents of initial paths at next level
 %
 % FIX.A = 0 for learning likelihoods
 % FIX.B = 0 for learning transitions
@@ -21,7 +31,7 @@ function MDP = spm_rdp2mdp(RDP)
 % Karl Friston
 % Copyright (C) 2022-2023 Wellcome Centre for Human Neuroimaging
 
-% Anumber of levels
+% number of levels
 %--------------------------------------------------------------------------
 Nm = RDP.L;
 
