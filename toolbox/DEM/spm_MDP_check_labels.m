@@ -1,6 +1,6 @@
-function [MDP] = spm_MDP_check_labels(MDP)
+function [MDP] = spm_MDP_check_labels(MDP,nf,ng)
 % label checking for MDP routines
-% FORMAT [MDP] = spm_MDP_check_labels(MDP)
+% FORMAT [MDP] = spm_MDP_check_labels(MDP,nf,ng)
 %
 % MDP.U(1,F)            - indices of controllable paths
 % MDP.T                 - number of outcomes
@@ -12,7 +12,7 @@ function [MDP] = spm_MDP_check_labels(MDP)
 % MDP.E{f}(Nu(f),1)      - prior probabilities over initial paths
 % MDP.H{f}(Ns(f),1)      - prior probabilities over final sates
 % 
-% MDP.labels
+% MDP.labels             - maximum of nf and ng states and outcomes [4]
 %__________________________________________________________________________
 
 % Karl Friston
@@ -21,13 +21,16 @@ function [MDP] = spm_MDP_check_labels(MDP)
 
 % deal with a sequence of trials
 %==========================================================================
+if nargin < 2, nf = 4; end
+if nargin < 3, ng = 4; end
+
 
 % if there are multiple structures check each separately
 %--------------------------------------------------------------------------
 if numel(MDP) > 1
     for m = 1:size(MDP,1)                      % number of trials
         for i = 1:size(MDP,2)                  % number of agents
-            mdp(m,i) = spm_MDP_check_labels(MDP(m,i));
+            mdp(m,i) = spm_MDP_check_labels(MDP(m,i),nf,ng);
         end
     end
     MDP   = mdp;
@@ -39,7 +42,7 @@ end
 %==========================================================================
 [Nf,Ns,Nu,Ng,No] = spm_MDP_size(MDP);
 
-for i = 1:min(Nf,4)
+for i = 1:min(Nf,nf)
     
     % name of factors
     %----------------------------------------------------------------------
@@ -72,7 +75,7 @@ end
 
 % name of outcomes under each modality
 %--------------------------------------------------------------------------
-for i = 1:min(Ng,4)
+for i = 1:min(Ng,ng)
     try
         MDP.label.modality(i);
     catch

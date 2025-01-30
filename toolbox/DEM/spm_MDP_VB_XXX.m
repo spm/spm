@@ -476,7 +476,7 @@ for m = 1:Nm
         elseif isfield(MDP,'C')
             qc{m,g} = MDP(m).C{g}*512;
         else
-            qc{m,g} = ones(No(m,g),1);
+            qc{m,g} = [];
         end
 
         % Dirichlet prior
@@ -1007,7 +1007,7 @@ for t = 1:T
                         ps = mdp.X{f}(:,mdp.T);
                     pu = mdp.E{f};
                     if numel(pu) > 1
-                        mdp.D{f} = spm_dot(mdp.B{f},pu)*ps;
+                            mdp.D{f} = spm_dot(mdp.B{f},{pu})*ps;
                     else
                         mdp.D{f} = mdp.B{f}*ps;
                     end
@@ -1842,9 +1842,25 @@ for k = 1:Nk
                 %----------------------------------------------------------
                 No(i) = No(i) + spm_log(numel(qo));
 
-        % G(k): risk over outomes
+                % G(k): risk over outcomes (entropy - expected cost)
                 %----------------------------------------------------------
-                G(k,i) = G(k,i) - qo'*(spm_log(qo) - spm_log(C{m,g}));
+                G(k,i) = G(k,i) - qo'*spm_log(qo);
+
+                % expected cost
+                %----------------------------------------------------------
+                if numel(C{m,g})
+                    
+                    % state-dependent contraint
+                    %------------------------------------------------------
+                    if numel(id{m}.C{g})
+                        f  = id{m}.C{g};
+                        U  = spm_dot(spm_log(C{m,g}),Q(f));
+                    else
+                        U = spm_log(C{m,g});
+                    end
+                    G(k,i) = G(k,i) + qo'*U;
+
+                end
 
         % G(k): ambiguity
                 %----------------------------------------------------------
@@ -2392,8 +2408,9 @@ end
 %--------------------------------------------------------------------------
 Bf    = 1;
 Qf    = 1;
+Ns    = [];
 for f = hif
-    Ns(f) = size(B{f},1);                % number of states for hif
+    Ns(end + 1) = size(B{f},1);          % number of states for hif
     Bf = spm_kron(b{f},Bf);           % unconstrained transitions
     Qf = spm_kron(Q{f},Qf);           % posterior over states
 end
@@ -2406,13 +2423,11 @@ Bf        = and(Bf,D(:));                % constrained transitions
 % hid are indices (of multiple endpoints)
 %--------------------------------------------------------------------------
 for i = 1:size(hid,2)
-    for f = hif
-        h{f}    = false(Ns(f),1);
-        h{f}(hid(f,i)) = true;
-    end
         I     = true;
-    for f = hif
-            I = spm_kron(h{f},I);
+    for f = 1:numel(hif)
+        h           = false(Ns(f),1);
+        h(hid(f,i)) = true;
+        I           = spm_kron(h,I);
         end
         Pf(:,i) = logical(I);
 end

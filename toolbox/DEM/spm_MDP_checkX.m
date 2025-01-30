@@ -116,7 +116,7 @@ if ~isfield(MDP,'C')
     end
 end
 for g = 1:Ng
-    MDP.C{g} = spm_dir_norm(MDP.C{g}(:));
+    MDP.C{g} = spm_dir_norm(MDP.C{g});
 end
 
 % check initial states

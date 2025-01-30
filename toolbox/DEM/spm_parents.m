@@ -1,5 +1,5 @@
 function [j,i] = spm_parents(id,g,Q)
-% Returns parents and children of MDP likelihood mapping
+% Returns parents and children of MDP likelihood mappings
 % FORMAT [j,i] = spm_parents(id,g,Q)
 % 
 % id - identifier or index structure
@@ -22,10 +22,11 @@ function [j,i] = spm_parents(id,g,Q)
 %
 % domains (parents or 'cause') and co-domains (children or 'effect')
 %==========================================================================
-%            
-% id.A{g} - Indices of parents of A{g}
-% id.D{f} - Indices of parents of initial states of factor B{f}
-% id.E{f} - Indices of parents of paths of factor B{f} 
+% id.A - cell array of parents of A factors at the same level
+% id.B - cell array of parents of B factors at the same level
+% id.C - cell array of parents of C priors  at the same level
+% id.D - cell array of parents of initial state at next level
+% id.E - cell array of parents of initial paths at next level
 %
 % id.ff   - List of domain factors
 % id.fg   - List of parents  of A{g} under each combination of domains 
