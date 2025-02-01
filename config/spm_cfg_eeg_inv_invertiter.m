@@ -40,7 +40,8 @@ outinv = cfg_entry;
 outinv.tag = 'outinv';
 outinv.name = 'Output prefix to save a copy of inv structure';
 outinv.strtype = 's';
-outinv.help = {'If this is supplied the original dataset will still be updated but new inverse structure with this name created'};utinv.val = {''};
+outinv.help = {'If this is supplied the original dataset will still be updated but new inverse structure with this name created'};
+outinv.val = {''};
 
 
 
@@ -94,11 +95,11 @@ invtype.val = {'GS'};
 
 woi = cfg_entry;
 woi.tag = 'woi';
-woi.name = 'Time window of interest';
+woi.name = 'Time window(s) of interest';
 woi.strtype = 'r';
-woi.num = [1 2];
+woi.num = [Inf 2];
 woi.val = {[-Inf Inf]};
-woi.help = {'Time window to include in the inversion (ms)'};
+woi.help = {'Time window(s) to include in the inversion (ms)'};
 
 
 foi = cfg_entry;
@@ -334,7 +335,11 @@ savecopyinv=0; %% by default update dataset
 if isfield(job.isstandard, 'custom')
     funccall=job.isstandard.custom.invfunc;
     inverse.type = job.isstandard.custom.invtype;
-    inverse.woi  = fix([max(min(job.isstandard.custom.woi), 1000*D.time(1)) min(max(job.isstandard.custom.woi), 1000*D.time(end))]);
+    Nwoi = size(job.isstandard.custom.woi,1);
+    inverse.woi  = [];
+    for w = 1:Nwoi
+        inverse.woi(w,:) = fix([max(min(job.isstandard.custom.woi(w,:)), 1000*D.time(1)) min(max(job.isstandard.custom.woi(w,:)), 1000*D.time(end))]);
+    end
     inverse.Han  = job.isstandard.custom.hanning;
     inverse.lpf  =  fix(min(job.isstandard.custom.foi)); %% hpf and lpf are the wrong way round at the moment but leave for now
     inverse.hpf  =  fix(max(job.isstandard.custom.foi));
@@ -482,7 +487,7 @@ for i = 1:numel(job.D)
     val=D{i}.val;
     D{i}.inv{val}.inverse = inverse;
     
-    D{i}.inv{val}.inverse.allF=zeros(1,Npatchiter);
+    D{i}.inv{val}.inverse.allF=zeros(Nwoi,Npatchiter);
     
     
     %% commented out section will add an inversion at new indices
@@ -557,7 +562,7 @@ Nchans=D{1}.nchannels;
 crosserr=zeros(Nblocks,Ntestchans);
 allrms=zeros(Nblocks,Ntestchans);
 allfract=zeros(Nblocks,Ntestchans);
-crossF=zeros(Nblocks,1);
+crossF=zeros(Nblocks,Nwoi);
 xvalchans=testchans.*0;
 for b=1:Nblocks,
     
@@ -590,7 +595,7 @@ for b=1:Nblocks,
     M=inverse.M; %% MAP operator
     
     
-    crossF(b)=inverse.F; %% ok now trained for this model
+    crossF(b,:)=inverse.F; %% ok now trained for this model
     
     %% use hanning window if used in inversion
     if inverse.Han,
