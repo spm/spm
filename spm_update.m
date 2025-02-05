@@ -94,7 +94,7 @@ if update
         if ~nargout, fprintf(m); else varargout = {sts, [msg m]}; end
         s = unzip(url, [d '/spm_update_tmp']);
         update_folder = [d '/spm_update_tmp/spm'];
-        movefile(fullfile(update_folder, '*'), d);
+        movefile(fullfile(update_folder, '*'), d, 'f');
         rmdir(update_folder, 's');
         m = sprintf('         Success: %d files have been updated.\n',numel(s));
         if ~nargout, fprintf(m); else varargout = {sts, [msg m]}; end
