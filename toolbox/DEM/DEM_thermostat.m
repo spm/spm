@@ -46,10 +46,10 @@ rng('default')
 
 %--------------------------------------------------------------------------
 % First, we will specify the POMDP in terms of factors and dependencies.
-% This involves specifying the notes of a factor graph that comprise the
+% This involves specifying the nodes of a factor graph that comprise the
 % likelihood and transition priors at the first and second levels,
 % respectively. The specification rests upon specifying the requisite (ABC)
-% tensors and the edges specifying dependencies (iA,iB,iC,iD,iE): see
+% tensors and the edges specifying dependencies (iA,iC,iD,iE): see
 % spm_parents.
 %--------------------------------------------------------------------------
   
@@ -59,7 +59,7 @@ n = 8;                                % number of temperature levels
 m = 5;                                % number of HVAC levels
 N = 1;                                % depth of planning
 D = 7;                                % number of days
-U = [0,0];                            % enable charge and HVAC
+U = [1,1];                            % enable charge and HVAC
 
 
 % ToU Rate
