@@ -408,8 +408,8 @@ Nf    = numel(P);
 R     = cell(1,Nf);
 s     = cell(1,Nf);
 for f = 1:Nf
-    s{f}  = P{f} > exp(-8);           % reduced states
-    R{f}  = P{f}(s{f});               % reduced prior
+    s{f}  = P{f} > exp(-16);           % reduced states
+    R{f}  = P{f}(s{f});                % reduced prior
 end
 
 return

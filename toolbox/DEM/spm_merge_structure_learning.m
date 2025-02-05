@@ -201,14 +201,9 @@ end
 % Unique outputs
 %==========================================================================
 
-% distance matrix (i.e., normalised vectors on a hypersphere)
-%--------------------------------------------------------------------------
-D       = spm_information_distance([A O]);
-
 % discretise and return indices of unique outcomes
 %--------------------------------------------------------------------------
-[~,i,j] = unique(D < sqrt(2),'rows','stable');
-
+[i,j] = spm_unique([A,O]);
 
 % accumulate likelihood tensors
 %--------------------------------------------------------------------------

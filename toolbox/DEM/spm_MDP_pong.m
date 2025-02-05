@@ -194,9 +194,50 @@ if Na
 
     % and proprioception
     %----------------------------------------------------------------------
-    A{end + 1}    = eye(Nc,Nc);
-    id.A{end + 1} = 2;
-    id.control    = numel(A);
+    if true
+
+        A{end + 1}    = eye(Nc,Nc);
+        id.A{end + 1} = 2;
+        id.control    = numel(A);
+
+    else
+
+        % and proprioception with action (velocity)
+        %------------------------------------------------------------------
+        b = zeros(Nu,Nu,Nu);
+        for u = 1:Nu
+            b(u,:,u)  = 1;
+            Bu(:,:,u) = kron(B{2}(:,:,u),b(:,:,u));
+        end
+        B{2} = Bu;
+
+        % augment likelihoods
+        %------------------------------------------------------------------
+        for g = 1:numel(A)
+            d = size(A{g},[1 2 3]);
+            a = false(d(1),d(2),d(3)*Nu);
+            for d = 1:d(2)
+                a(:,d,:) = kron(squeeze(A{g}(:,d,:)),ones(1,Nu));
+            end
+            A{g} = logical(a);
+        end
+
+        % just velocity
+        %--------------------------------------------------------------
+        a = kron(ones(1,Nc),eye(Nu,Nu));
+
+        % position and velocity
+        %--------------------------------------------------------------
+        % a = eye(Nc*Nu,Nc*Nu);
+
+        % position
+        %--------------------------------------------------------------
+        % a = kron(eye(Nc,Nc),ones(1,Nu));
+
+        A{end + 1}    = logical(a);
+        id.A{end + 1} = 2;
+        id.control    = numel(A);
+    end
 
 end
 

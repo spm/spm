@@ -1,29 +1,27 @@
-function [MDP,B] = spm_RDP_sort(MDP,N)
+function [MDP,B] = spm_RDP_sort(MDP)
 % BMR using eigen-decomposition of allowable transitions 
-% FORMAT [MDP,B] = spm_RDP_sort(MDP,N)
+% FORMAT [MDP,B] = spm_RDP_sort(MDP)
 % MDP - hierarchal RDP
-% N   - upper bound on number of states [default: Inf]
 % B   - reduced transition priors (at highest level)
 %
 % This routine uses the eigen-decomposition of allowable transitions (i.e.,
 % flow among states) to identify steady-state distributions (i.e., the
 % principal eigenvector with a real eigenvalue of unity). These
-% steady-state distributions correspond to the attracting set.
+% nonequilibrium steady-state (NESS) distributions correspond to the
+% attracting set; i.e., a pullback attractor.
 %
-% If called without an upper bound on the number of latent states, this
-% routine will simply reorder high-level states to foreground successive
-% states that are most frequently visited at steady state.
+%  Generalised states that are not within the pullback attractor are
+%  eliminated and the remaining states sorted according to the
+%  nonequilibrium steady-state probability, which corresponds to the
+%  probability current through these (generalised) states – because a path
+%  can never  follow itself (and therefore each generalised state will be
+%  vacated with probability one at each time step).
 %__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
 % $Id: spm_MDP_structure_learning.m 8454 2023-11-04 17:09:11Z karl $
 %__________________________________________________________________________
-
-
-% get predictive mapping from states to outcomes in trailing streams
-%==========================================================================
-if nargin < 2, N = Inf; end
 
 % flows at highest level
 %--------------------------------------------------------------------------
@@ -32,40 +30,51 @@ B     = spm_dir_norm(sum(MDP{n}.b{1},3));
 
 % eigenvalue decomposition of flows
 %--------------------------------------------------------------------------
-% [e,v] = eig(B,'nobalance');
-% v     = diag(v);
-% [~,j] = sort(real(v),'descend');
-% p     = e(:,j).^2;
-% [~,j] = sort(abs(p(:,1)),'descend');
-% j     = j(1:min(end,N));
+[e,v] = eig(B,'nobalance');
+v     = diag(v);
 
-
-
-% numerical approximation to NESS
+% Nonequilibrium steady-state  probabilities
 %--------------------------------------------------------------------------
-e     = mean(B^128,2);
-p     = spm_dir_norm(e.^2);
-[~,j] = sort(p,'descend');
-j     = j(1:min(end,N));
+p     = [];
+for i = find(real(v)' > (1 - exp(-16)))
+    p(end + 1,:) = spm_dir_norm(abs(e(:,i)));
+end
 
-% re-order likelihood mappings from first stream
+% Assign each state to one or more (n) attracting sets
 %--------------------------------------------------------------------------
-Ns    = numel(j);
-for g = 1:numel(MDP{n}.a)
-    if MDP{n}.id.A{g} == 1
-        MDP{n}.a{g} = MDP{n}.a{g}(:,j);
+jp    = find(any(p > exp(-16),1));
+[~,m] = max(p(:,jp),[],1);
+jj    = [];
+for n = 1:size(p,1)
+
+    % Sort on NESS probability
+    %----------------------------------------------------------------------
+    jn    = jp(m == n);
+    [~,k] = sort(p(n,jn),'descend');
+    jn    = jn(k);
+    pn    = p;
+    for i = 1:numel(jn)
+
+        % remove state if there is a reduced NESS solution
+        %------------------------------------------------------------------
+        [~,k] = min(pn(n,jn));
+        j     = jn;
+        j(k)  = [];
+        if all(any(B(j,j),1))
+            jn = j;
+        else
+            pn(n,jn(k)) = 1;
+        end
     end
+    jj    = [jj jn];
 end
 
-% and transitition priors
+% restriction matrix (R) and reduction of MDP
 %--------------------------------------------------------------------------
-Nu    = size(MDP{n}.b{1},3);
-B     = zeros(Ns,Ns,Nu);
-for u = 1:Nu
-    B(:,:,u) = MDP{n}.b{1}(j,j,u);
-end
-MDP{n}.b{1} = B;
+Ns  = size(B,1);
+R   = speye(Ns,Ns);
+R   = R(:,jj);
+MDP = spm_RDP_compress(MDP,R);
 
 return
-
 

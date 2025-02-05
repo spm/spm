@@ -29,7 +29,7 @@ D       = spm_information_distance(a);
 %--------------------------------------------------------------------------
 [~,i,j] = unique(D < sqrt(2),'rows','stable');
 
-% restriction matrix and reduction of likelihood
+% restriction matrix for reduction of likelihood
 %--------------------------------------------------------------------------
 Ns  = numel(i);
 R   = sparse(1:numel(j),j,1,numel(j),Ns);

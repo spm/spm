@@ -55,7 +55,7 @@ end
 A     = spm_dir_norm(A);
 B     = spm_dir_norm(B);
 C     = {};
-for s = 2:max(MDP{1}.sB)
+for s = max(MDP{1}.sB)
 
     % parents of factor of stream S
     %----------------------------------------------------------------------
@@ -83,38 +83,12 @@ for s = 2:max(MDP{1}.sB)
     end
 end
 
-% reduction operator and reduction of likelihood
+% reduction operator and compression
 %--------------------------------------------------------------------------
-R  = spm_dir_reduce(C);
-
-% and reduction of likelihood of children of the leading factor
-%--------------------------------------------------------------------------
-Ns    = size(R,2);
-for g = 1:numel(A)
-    if MDP{n}.id.A{g} == 1
-        try
-            MDP{n}.a{g} = MDP{n}.a{g}*R;
-        catch
-            MDP{n}.A{g} = spm_dir_norm(MDP{n}.A{g}*R);
-        end
-    end
-end
-
-% transition priors
-%--------------------------------------------------------------------------
-B  = zeros(Ns,Ns,Nu);
-try
-    for u = 1:Nu
-        B(:,:,u) = R'*MDP{n}.b{1}(:,:,u)*R;
-    end
-    MDP{n}.b{1}  = B;
-catch
-    for u = 1:Nu
-        B(:,:,u) = spm_dir_norm(R'*MDP{n}.B{1}(:,:,u)*R);
-    end
-    MDP{n}.B{1}  = B;
-end
+R   = spm_dir_reduce(C);
+MDP = spm_RDP_compress(MDP,R);
 
 return
+
 
 
