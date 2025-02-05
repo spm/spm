@@ -9,17 +9,17 @@ function spm_spy(X,Markersize,m)
 % Karl Friston
 % Copyright (C) 1994-2022 Wellcome Centre for Human Neuroimaging
 
-
 % defaults
 %--------------------------------------------------------------------------
 if nargin < 1, X = defaultspy;  end
 if nargin < 2, Markersize = 16; end
 if nargin < 3, m = max(max(X)); end
 
-hold off
-for p = flip(1:4)
+cla, hold off
+G     = 8;
+for p = flip(1:G)
     [i,j] = find(X > m/p);
-    plot(j,i,'.','Markersize',Markersize,'Color',[1,1,1]*(p - 1)/4)
+    plot(j,i,'.','Markersize',Markersize,'Color',[1,1,1]*(p - 1)/G)
     hold on
 end
 hold off

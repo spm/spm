@@ -53,7 +53,8 @@ pe = intersect(ps,pe);
 % for each state at this level
 %--------------------------------------------------------------------------
 s      = {};                          % sequences of states
-for si = 1:size(MDP{m}.b{1},1)
+Ns     = size(MDP{m}.b{1},1);
+for si = 1:Ns
 
     % generate level m outcomes under this state
     %----------------------------------------------------------------------
@@ -76,7 +77,7 @@ for si = 1:size(MDP{m}.b{1},1)
 
     % propagate predictions under this state down hierarchy
     %----------------------------------------------------------------------
-    for n = (m - 1):-1:2
+    for n = flip(2:(m - 1))
 
         % accumate subordinate states of S
         %------------------------------------------------------------------
@@ -123,5 +124,14 @@ for si = 1:size(MDP{m}.b{1},1)
     end
 
 end
+
+% specify H
+%--------------------------------------------------------------------------
+hid = MDP{m}.id.hid;
+if chi > 0 && numel(hid)
+    h     = sparse(hid,1,chi,Ns,1);
+    MDP{m}.H{1} = spm_softmax(h);
+end
+
 
 return

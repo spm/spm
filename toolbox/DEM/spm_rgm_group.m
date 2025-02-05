@@ -82,8 +82,10 @@ end
 
 % parition into groups using principal eigenvector (Perron–Frobenius)
 %--------------------------------------------------------------------------
-i = 1:No;
-G = {};
+i  = 1:No;
+G  = {};
+dx = fix(dx);
+U  = exp(-16);
 while numel(i)
 
     % principal eigenvector and implement bound (dx)
@@ -96,9 +98,9 @@ while numel(i)
 
     % eliminate outcomes outwith this cluster
     %----------------------------------------------------------------------
-    j(e(l) < 1/512) = [];
-    G{end + 1}      = i(j);
-    i(j)            = [];
+    j(e(l) < U) = [];
+    G{end + 1}  = i(j);
+    i(j)        = [];
 
 end
 

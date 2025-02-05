@@ -24,7 +24,7 @@ function [u] = spm_dir_orbits(b,hid,N)
 %==========================================================================
 Ns    = size(b,1);
 b     = spm_dir_norm(sum(b,3));
-if nargin < 4, N = Ns; end
+if nargin < 3, N = Ns; end
 
 % Plausible transitions
 %--------------------------------------------------------------------------
@@ -32,16 +32,36 @@ B     = b > 1/16;
 
 % numerical approximation to NESS
 %--------------------------------------------------------------------------
-e     = mean(B^128,2);
-p     = spm_dir_norm(e.^2);
+e     = mean(b^128,2);
+p     = spm_dir_norm(e);
+
+% eigenvalue decomposition of flows
+%--------------------------------------------------------------------------
+% [e,v] = eig(b,'nobalance');
+% v     = diag(v);
+
+% Nonequilibrium steady-state  probabilities
+%--------------------------------------------------------------------------
+% i = find(real(v)' > (1 - exp(-16)),1);
+% p = spm_dir_norm(abs(e(:,i)));
+
 [~,j] = sort(p,'descend');
-j     = j(1:min(end,N));
-B     = B(j,j);
+j     = j(1:min(end - 2,N));
+N     = numel(j);
+B     = spm_dir_norm(B(j,j));
+
+% remove hid states if necessary
+%==========================================================================
+if nargin > 1
+    h      = false(1,Ns);
+    h(hid) = true;
+    h      = h(j);
+    hid    = find(h);
+end
 
 % state space (defined by graph Laplacian)
 %--------------------------------------------------------------------------
-b     = spm_detrend(B);
-b     = b + b' + eye(size(b));
+b     = B + B' + eye(size(B));
 u     = spm_svd(b);
 
 % Plot latent states
@@ -50,13 +70,13 @@ plot3(u(:,1),u(:,2),u(:,3),'.r','MarkerSize',32), hold on
 
 % And flow based upon transition probabilities (B)
 %--------------------------------------------------------------------------
-for s = 1:N
-    r = find(B(:,s));
+for j = 1:N
+    r = find(B(:,j));
     for i = 1:numel(r)
-        X   = [u(s,1), u(r(i),1)];
-        Y   = [u(s,2), u(r(i),2)];
-        Z   = [u(s,3), u(r(i),3)];
-        line(X,Y,Z,'linewidth',4,'color','k')
+        X   = [u(j,1), u(r(i),1)];
+        Y   = [u(j,2), u(r(i),2)];
+        Z   = [u(j,3), u(r(i),3)];
+        line(X,Y,Z,'color','k')
     end
 end
 title('Orbits'), xlabel('1st dimension'), ylabel('2nd dimension'), axis square
@@ -68,6 +88,5 @@ if nargin > 1
     plot3(u(hid,1),u(hid,2),u(hid,3),'or','MarkerSize',16)
     hold off
 end
-
 
 return

@@ -144,13 +144,14 @@ for n = 2:Nm
        % enable this factor
        %-------------------------------------------------------------------
        if spm_MDP_MI(MDP{n}.a{g}) > 1/32
-           f = MDP{n}.id.A{g};
-
+           
            % limit numer of policy combinations
            %---------------------------------------------------------------
-           if prod(u) < 32
+           f  = MDP{n}.id.A{g};
+           nu = size(MDP{n}.b{f},3);
+           if prod(u)*nu < 8
                MDP{n}.U(f) = true;
-               u(end + 1)  = size(MDP{n}.b{f},3);
+               u(end + 1)  = nu;
            end
        end
 

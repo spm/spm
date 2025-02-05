@@ -227,41 +227,58 @@ end
 %==========================================================================
 for n = 1:Nm
 
-    % normalised likelihoods
-    %----------------------------------------------------------------------
-    for g = 1:numel(MDP{n}.a)
-        if ~isa(MDP{n}.a{g},'function_handle')
-            s           = MDP{n}.sC(g);
-            MDP{n}.a{g} = MDP{n}.a{g} + p(s);
-        end
-    end
-
-    % normalised transitions
-    %----------------------------------------------------------------------
-    for f = 1:numel(MDP{n}.b)
-        if ~isa(MDP{n}.b{f},'function_handle')
-            s           = MDP{n}.sB(f);
-            MDP{n}.b{f} = MDP{n}.b{f} + q(s);
-        end
-    end
-
-    % remove Dirichlet counts if requested
+    % likelihoods
     %----------------------------------------------------------------------
     if FIX.A
+
+        % normalise
+        %------------------------------------------------------------------
         for g = 1:numel(MDP{n}.a)
             if ~isa(MDP{n}.a{g},'function_handle')
                 MDP{n}.A{g} = spm_dir_norm(MDP{n}.a{g});
             end
         end
         MDP{n} = rmfield(MDP{n},'a');
+
+    else
+
+        % add concentration paramter
+        %------------------------------------------------------------------
+        for g = 1:numel(MDP{n}.a)
+            if ~isa(MDP{n}.a{g},'function_handle')
+                s           = MDP{n}.sC(g);
+                MDP{n}.a{g} = MDP{n}.a{g} + p(s);
+            end
+        end
+
     end
+
+    % priors
+    %----------------------------------------------------------------------
     if FIX.B
+
+        % normalise
+        %------------------------------------------------------------------
         for f = 1:numel(MDP{n}.b)
             if ~isa(MDP{n}.b{f},'function_handle')
-                MDP{n}.B{f} = spm_dir_norm(MDP{n}.b{f});
+                s     = MDP{n}.sB(f);
+                b     = spm_dir_norm(plus(MDP{n}.b{f},q(s)));
+
+                MDP{n}.B{f} = b;
             end
         end
         MDP{n} = rmfield(MDP{n},'b');
+
+    else
+
+        % add concentration paramter
+        %------------------------------------------------------------------
+        for f = 1:numel(MDP{n}.b)
+            if ~isa(MDP{n}.b{f},'function_handle')
+                s           = MDP{n}.sB(f);
+                MDP{n}.b{f} = MDP{n}.b{f} + q(s);
+            end
+        end
     end
 end
 
