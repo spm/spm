@@ -81,7 +81,7 @@ spm_get_miss = @(o,id) find(o(id.contraint,:) > 1);
 %==========================================================================
 spm_figure('GetWin','Gameplay'); clf
 
-GDP.tau = 2;                                 % smoothness of random paths
+GDP.tau = 1;                                 % smoothness of random paths
 GDP.T   = 10000;                             % training length
 PDP     = spm_MDP_generate(GDP);             % generate play
 
@@ -141,6 +141,8 @@ NT = 100;                                    % number of outcomes
 NS = [];                                     % number of states  
 NU = [];                                     % number of paths 
 NA = [];                                     % number of absorbing states
+NO = [];                                     % number of orphan states
+
 for i = 1:256
 
     % Accumulate these states under random play
@@ -151,17 +153,19 @@ for i = 1:256
         MDP = spm_merge_structure_learning(PDP.O(:,t + s),MDP);
     end
 
-    % test for NESS
+    % Retain states in basin of attraction to goal states
     %----------------------------------------------------------------------
-    [MDP,d] = spm_RDP_basin(MDP,[2,3],[C,-C]);
+    [MDP,d,c]   = spm_RDP_basin(MDP,[2,3],[C,-C]);
 
     NS(end + 1) = size(MDP{Nm}.b{1},2);    
     NU(end + 1) = size(MDP{Nm}.b{1},3);
     NA(end + 1) = sum(~d);
+    NO(end + 1) = sum(~c);
 
-    subplot(2,3,1), plot(NS), title('Deep states'),      axis square
-    subplot(2,3,2), plot(NU), title('Deep paths'),       axis square
-    subplot(2,3,3), plot(NA), title('Absorbing states'), axis square
+    subplot(4,2,1), plot(NS), title('Deep states'),      axis square
+    subplot(4,2,2), plot(NU), title('Deep paths'),       axis square
+    subplot(4,2,3), plot(NA), title('Absorbing states'), axis square
+    subplot(4,2,4), plot(NO), title('Orphan states'),    axis square
     drawnow
 
     % break if all (deep) states are transient (i.e., no absorbing states)
@@ -172,7 +176,7 @@ end
 
 % Retain (and sort) states with a high NESS probability
 %--------------------------------------------------------------------------
-for q = 1:4
+for q = 1:2
     MDP = spm_RDP_sort(MDP);
 end
 

@@ -157,8 +157,10 @@ end
 %==========================================================================
 % id.g      -  Indices of selected outcome modalities              
 % id.A{g}   -  Indices of parents of outcomes
-% id.D{f}   -  Indices of parents of initial states
-% id.E{f}   -  Indices of parents of paths
+% id.B{f}   -  Indices of parents of states
+% id.C{g}   -  Indices of parents of contraints
+% id.D{f}   -  Indices of parents of initial states (next level)
+% id.E{f}   -  Indices of parents of paths (next level)
 
 % Check indices of domains and co-domains
 %--------------------------------------------------------------------------
@@ -166,6 +168,15 @@ if ~isfield(MDP,'id')
     MDP.id.g  = {1:Ng};                         % Default (all modalities)
     for g = 1:Ng
         MDP.id.A{g} = 1:(ndims(MDP.A{g}) - 1);  % Default (leading factors)
+        MDP.id.C{g} = [];                       % Conditional constraints
+    end
+end
+
+% Check conditional constraints
+%--------------------------------------------------------------------------
+if ~isfield(MDP.id,'C')
+    for g = 1:Ng
+        MDP.id.C{g} = [];                       % Conditional constraints
     end
 end
 
