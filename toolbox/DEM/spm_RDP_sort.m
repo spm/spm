@@ -26,10 +26,34 @@ function [MDP,B] = spm_RDP_sort(MDP)
 % flows at highest level
 %--------------------------------------------------------------------------
 n     = numel(MDP);
-B     = spm_dir_norm(sum(MDP{n}.b{1},3));
+Ns    = size(MDP{n}.b{1},1);
+
+
+% ensure there are no childless states
+%==========================================================================
+for i = 1:0
+
+    % find states with children
+    %----------------------------------------------------------------------
+    B    = sum(MDP{n}.b{1},3);
+    j    = any(B,1);
+
+    % break if all states have children (i.e., NESS)
+    %----------------------------------------------------------------------
+    if sum(j) == Ns, break, end
+
+    % restriction matrix (R) and reduction of MDP
+    %----------------------------------------------------------------------
+    Ns  = size(B,1);
+    R   = speye(Ns,Ns);
+    R   = R(:,j);
+    MDP = spm_RDP_compress(MDP,R);
+
+end
 
 % eigenvalue decomposition of flows
 %--------------------------------------------------------------------------
+B     = spm_dir_norm(sum(MDP{n}.b{1},3));
 [e,v] = eig(B,'nobalance');
 v     = diag(v);
 

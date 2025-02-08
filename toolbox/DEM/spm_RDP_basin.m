@@ -1,4 +1,4 @@
-function [MDP,d,c] = spm_RDP_basin(MDP,S,chi)
+function [MDP,d,o,h,c] = spm_RDP_basin(MDP,S,chi)
 % BMR of superordinate states based upon predicted outcomes
 % FORMAT MDP = spm_RDP_basin(MDP,S,chi)
 % MDP  - cell array of MDP structures
@@ -7,7 +7,9 @@ function [MDP,d,c] = spm_RDP_basin(MDP,S,chi)
 %
 % MDP  - reduced MDP
 % d    - vector indicating whether deep states are transient states  [true]
-% c    - vector indicating whether deep states are not orphan states [true]
+% o    - vector indicating whether deep states are not orphan states [true]
+% h    - list of goal states
+% c    - list of cost states
 %
 % This routine implements a Bayesian model reduction in which the latent
 % (generalised) states at the highest level of the model are retained only
@@ -65,6 +67,7 @@ MDP = spm_RDP_compress(MDP,R);
 %--------------------------------------------------------------------------
 MDP = spm_set_goals(MDP,S,chi);
 d   = any(sum(MDP{end}.b{1},3),1);
-c   = any(sum(MDP{end}.b{1},3),2);
-
+o   = any(sum(MDP{end}.b{1},3),2);
+h   = MDP{end}.id.hid;
+c   = MDP{end}.id.cid;
 return

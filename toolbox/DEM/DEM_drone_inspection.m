@@ -1,36 +1,34 @@
-function MDP = DEM_drone_V
+function MDP = DEM_drone_inspection
 % Demo of domain factors in the setting of active vision
 %__________________________________________________________________________
 %
-% This demonstration routine builds upon DEM_drone_telemetry.m to
-% illustrate the role of domain factors in selecting the parents of
-% likelihood mappings. In particular, it leverages the specification of
-% parents (and children) using functional forms as opposed to tensors of
-% precomputed cell arrays of parents (i.e., id.fg). This takes the pressure
-% off memory when dealing with large cell tensors. The demonstration in
-% this routine is limited to (initial) exploration to build posterior
-% beliefs about a static environment.
+% This demonstration routine illustrates active inference in the service of
+% inspecting objects in the scene; specifically, furniture or plant in a
+% room. The routine demonstrates three aspects of the ensuing behaviour.
+% First, the agent (e.g., cleaning robot) explores the room to form a
+% cognitive map of where things are. Objects (e.g., tables) that are
+% cleanable are recognised in terms of belonging to a cleanable class that
+% may be clean (dark green) or unclean (light green). Having established
+% precise posterior beliefs about the scene, the agent is equipped with
+% prior beliefs that each cleanable location (i.e., surface) can either be
+% clean or unclean and is given prior preferences for seeing (and
+% implicitly cleaning or spraying) unclean surfaces. The agent then
+% resolves uncertainty about whether surfaces are clean or unclean and
+% observes them to be clean when and only when, they have been observed
+% (and implicitly cleaned). This is because the state of the world (i.e.,
+% generative process) is always clean; however, the agent is not convinced
+% about this until it has seen clean surfaces for itself. Finally, the
+% agent goes home after completing its cleaning task using inductive
+% inference to specify its sleeping place (avoiding obstacles in the usual
+% way).
 %
-% In addition to showcasing the finessing of memory load incurred by using
-% precomputed cell tensors, it also replaces likelihood tensors with
-% function handles. This means that the likelihood mapping can be specified
-% in a functional form. These functions are multipurpose functions that
-% replace the sum product operators involving the likelihood tensors. These
-% operators include computing the log likelihood by taking the dot product
-% between some outcomes to generate a joint likelihood over latent states.
-% Conversely, they involve taking the dot product given some latent states
-% to generate outcomes in each modality. The functions are written such
-% that the requisite output arguments depend upon whether they are called
-% with a numeric array (i.e., distribution over outcomes) or a series of
-% cell arrays (i.e., marginal distributions over the latent states).
-%
-% This demonstration uses a more realistic environment and dispenses with
-% proximity modalities to provide a more efficient scanning of the
-% environment. This efficiency inherits from the specification of log
-% likelihoods as marginals, as opposed to joint distributions over latent
-% states, when updating posteriors (see spm_VBX). In special cases, the
-% joint distribution can be marginalised; for example, by considering a
-% single output at, and only at, the depth of the first occluder.
+% This example assumes local telemetry is available; in other words, the
+% position relative to some arbitrary (allocentric) frame of reference is
+% known — and the agent is equipped with both depth and RGB sensors, where
+% the RGB data are (semantically) segmented into eight classes using some
+% amortisation (computer vision) scheme. The agent has four degrees of
+% freedom. It can move on the floor in two dimensions. It%s sensors are
+% mounted on a vertical pole and can be moved up and down and rotated.
 %
 %__________________________________________________________________________
 % Copyright (C) 2019 Wellcome Trust Centre for Neuroimaging
@@ -41,18 +39,18 @@ function MDP = DEM_drone_V
 
 %% set up and preliminaries
 %==========================================================================
-% First, specifying the size of the environment, the number and deployment
-% of lines of sight and the number of directions the drone can turn among.
+% First, specify the size of the environment, the number and deployment of
+% lines of sight and the number of directions sensors can point.
 %==========================================================================
 rng(1)
 
 Nx  = 32;                                % size of environment
-Ny  = 32;                                % size of environment
+Ny  = 28;                                % size of environment
 Nz  = 8;                                 % size of environment
-Nd  = 32;                                % depth of rays
+Nd  = 16;                                % depth of rays
 Nc  = 8;                                 % number of classes
 Nr  = 16;                                % number of rays
-Na  = 12;                                % number of drone angles
+Na  = 12;                                % number of camera angles
 
 % global parameters
 %--------------------------------------------------------------------------
@@ -60,12 +58,12 @@ global PG %#ok<GVMIS>
 PG.Nx  = Nx;
 PG.Ny  = Ny;
 PG.Nz  = Nz;
-PG.Na  = Na;
 PG.Nd  = Nd;
 PG.Nr  = Nr;
 PG.Nc  = Nc;
+PG.Na  = Na;
 
-PG.phi = linspace(0,2*pi*(1 - 1/Na),Na); % drone angles
+PG.phi = linspace(0,2*pi*(1 - 1/Na),Na); % camera angles
 PG.FOV = linspace(-pi/6,pi/6,Nr);        % ray angles (60 degree FOV)
 
 % Get environment
@@ -78,7 +76,7 @@ D      = MAP;
 %==========================================================================
 spm_figure('GetWin','Active inference'); clf
 subplot(2,2,2), spm_show_x(MAP,Nx,Ny,Nz)
-title('True environment'),  drawnow
+title('True environment')
 
 % 3D view: true scene
 %==========================================================================
@@ -94,14 +92,15 @@ for s = 2:Nc
     hold on
 end
 axis image
+drawnow
 
 % Likelihood mapping: given states along the line of sight (i.e., rays)
 %==========================================================================
-% Given the state of locations at various depths along a line of
-% sight, specify the outcome in terms of depth and class; namely, the
-% state of the first non-empty location, where the first state corresponds
-% to empty space. Here, replace the requisite likelihood tensors with
-% function handles (see subroutines)
+% Given the state of locations at various depths along a line of sight,
+% specify the outcome in terms of depth and class; namely, the state of the
+% first non-empty location, where the first state corresponds to empty
+% space. The requisite likelihood tensors are specified with function
+% handles (see subroutines)
 %--------------------------------------------------------------------------
 
 % lines of sight: the same for every modality or ray: process
@@ -117,7 +116,7 @@ end
 GA{Ng + Ng + 1} = eye(Nx,Nx);              % x - location (x)
 GA{Ng + Ng + 2} = eye(Ny,Ny);              % y - location (y)
 GA{Ng + Ng + 3} = eye(Nz,Nz);              % z - location (z)
-GA{Ng + Ng + 4} = eye(Na,Na);              % a - drone angles
+GA{Ng + Ng + 4} = eye(Na,Na);              % a - camera angles
 
 % controlled outcomes (telemetry)
 %--------------------------------------------------------------------------
@@ -130,7 +129,7 @@ Nu    = 4;
 ID.ff = 1:Nu;
 ID.fg = @spm_fg;
 
-% repeat for 'model'
+% repeat for generative model
 %==========================================================================
 
 % depth and vision modalities: model
@@ -147,18 +146,16 @@ end
 A{Ng + Ng + 1} = eye(Nx,Nx);              % x - location (x)
 A{Ng + Ng + 2} = eye(Ny,Ny);              % y - location (y)
 A{Ng + Ng + 3} = eye(Nz,Nz);              % z - location (z)
-A{Ng + Ng + 4} = eye(Na,Na);              % a - drone angles
+A{Ng + Ng + 4} = eye(Na,Na);              % a - camera angles
 
-% central and peripheral (visual) modalities for planning
+% indices of central and peripheral (visual) modalities for planning
 %--------------------------------------------------------------------------
-xyz  = spm_combinations([Nr,Nr]);
-d    = (Nr - 1).^2/2;
-cen  = find(sum(minus(xyz,[(Nr + 1)/2,(Nr + 1)/2]).^2,2) <  2);
-per  = find(sum(minus(xyz,[(Nr + 1)/2,(Nr + 1)/2]).^2,2) >= d);
+xy    = spm_combinations([Nr,Nr]);
+ge    = find(sum(minus(xy(:,2),Nr/2).^2,2) < 1);
 
-% uncomment to restrict modalities subtending EFE
+% modalities subtending EFE
 %--------------------------------------------------------------------------
-id.ge = unique([cen; (Ng + cen); per; (Ng + per)]');
+id.ge = unique([ge; (Ng + ge)]');
 
 % uncomment to remove depth modality
 %--------------------------------------------------------------------------
@@ -182,7 +179,7 @@ end
 % x - location (x)
 % y - location (y)
 % z - location (z)
-% a - drone angle
+% a - camera angle
 % s - state at location 1
 % ...
 % s - state at location Nx*Ny*Nz = Nf
@@ -191,7 +188,7 @@ Nu    = 4;                                 % # controllable factors
 id.ff = 1:Nu;                              % domain factors (x,y,x,a)
 id.fg = @spm_fg;                           % parents of A{g}
 
-% Now specify transition priors (i.e., dynamics)
+% Specify transition priors (i.e., dynamics)
 %--------------------------------------------------------------------------
 d     = 4;
 u     = [-1,0,1];
@@ -221,12 +218,15 @@ for i = 1:numel(u)
         end
     end
 
-    % floor contraints on z
+    % height contraints on z
     %----------------------------------------------------------------------
     BZ(:,:,i) = full(spm_speye(Nz,Nz,u(i),2));
     for j = 1:Nz
         if j < 3
             BZ(:,j,i) = full(sparse(3,1,1,Nz,1));
+        end
+        if j > (Nz - 1)
+            BZ(:,j,i) = full(sparse((Nz - 1),1,1,Nz,1));
         end
     end
 
@@ -245,10 +245,10 @@ end
 
 % add uncertainty about state transitions (noise)
 %--------------------------------------------------------------------------
-n     = [1/16, 1/16, 1/64, 0]/128;               % state noise
+n     = [1/16, 1/16, 1/64, 0]*exp(-16);          % state noise
 for f = 1:numel(n)
-    b           = GB{f};
-    c           = n(f);
+    b = GB{f};
+    c = n(f);
     GB{f}(:,:,1) = b(:,:,1) + c*b(:,:,2) + c*b(:,:,1)^2;
     GB{f}(:,:,2) = b(:,:,2) + c*b(:,:,1) + c*b(:,:,3);
     GB{f}(:,:,3) = b(:,:,3) + c*b(:,:,2) + c*b(:,:,3)^2;
@@ -262,11 +262,11 @@ for f = 1:numel(B)
     D{f} = ones(size(B{f},1),1);
 end
 
-V    = fix([Nx/2,Ny/2,Nz,1]);                    % initial telemetry
+V    = fix([Nx - 4,Ny - 4,Nz - 2,Na/2]);         % initial location
 D{1} = full(sparse(V(1),1,1,Nx,1));              % location (x)
 D{2} = full(sparse(V(2),1,1,Ny,1));              % location (y)
 D{3} = full(sparse(V(3),1,1,Nz,1));              % location (z)
-D{4} = full(sparse(V(4),1,1,Na,1));              % drone angles
+D{4} = full(sparse(V(4),1,1,Na,1));              % camera angles
 
 
 % priors: (cost) C
@@ -278,7 +278,7 @@ for g = 1:numel(A)
     C{g} = [];
 end
 
-% In addition, specify constraints in latent sub-space (cif)
+% In addition, specify constraints in latent state-space (cif)
 %--------------------------------------------------------------------------
 id.cid = @spm_cid;
 
@@ -296,7 +296,7 @@ s     = [V(:); W(:)];
 
 % MDP Structure, specifying T epochs of active vision
 %==========================================================================
-mdp.T  = 128;                     % numer of moves
+mdp.T  = 128;                     % number of moves
 mdp.A  = A;                       % likelihood probabilities
 mdp.B  = B;                       % transition probabilities
 mdp.C  = C;                       % prior constraints
@@ -314,7 +314,7 @@ mdp.s  = s;                       % inital states
 
 % Solve - an example of surveillance
 %==========================================================================
-% In the first task, the drone has to explore its environs and form beliefs
+% In the first task, the agent has to explore its environs and form beliefs
 % about the scene at hand.
 %--------------------------------------------------------------------------
 tic;
@@ -335,24 +335,49 @@ spm_figure('GetWin','Active inference');
 spm_behaviour(MDP)
 
 
-% Solve - an example of search and rescue
+% Solve - an example of inspection
 %==========================================================================
-% In the second task, the drone has to find a red (class 8) object and
-% maintain surveillance over it. To simulate this, we specify a preference
-% for class 8 in the class or attribute modalities
+% In the second task, the agent has to search for unclean (class 3)
+% services — and confirm that they are clean (class 4). To do
+% this, we equip the agent with prior beliefs that cleanable locations
+% could be clean or unclean and that it prefers to see unclean locations in
+% its central field of view.
 %--------------------------------------------------------------------------
-c     = spm_softmax(sparse(8,1,32,Nc,1));
+c     = spm_softmax(sparse([3,4],1,[32,2],Nc,1));
 for g = (1:Ng) + Ng
     C{g} = c;
 end
 
-MDP       = mdp;
-MDP.T     = 16;
-MDP.id.ge = [cen; (Ng + cen)]';   % (central) modalities subtending EFE
-MDP.C     = C;                    % (conts)  preferences subtending EFE
-MDP       = spm_MDP_VB_XXX(MDP);
+% uninspected priors (UMAP)
+%--------------------------------------------------------------------------
+% (1) black (void)
+% (2) blue  (floor)
+% (3) green (unseen/unclean)
+% (4) green (seen/clean)
+% (5) brown (uncleanable)
+% (6) pink  (wall)
+% (7) brick (pillar)
+% (8) red   (target)
+%--------------------------------------------------------------------------
+Nf    = prod([Nx,Ny,Nz]);
+D     = MAP;
+for f = 1:Nf
+    if MAP{f}(4)
+        D{f}(3) = 1;
+        D{f}    = spm_dir_norm(D{f});
+    end
+end
 
-spm_figure('GetWin','Search and rescue');
+% Equip agents with precise posterior beliefs about initial states
+%--------------------------------------------------------------------------
+f        = (1:Nf) + Nu;
+MDP      = mdp;
+MDP.T    = 32;
+MDP.D(f) = D;
+MDP.C    = C;
+MDP      = spm_MDP_VB_XXX(MDP);
+
+spm_figure('GetWin','Inspection');
 spm_behaviour(MDP)
 
 % Solve - an example of wayfinding with priors
@@ -361,18 +386,16 @@ spm_behaviour(MDP)
 % under precise prior beliefs about latent states (i.e., cognitve map).
 %--------------------------------------------------------------------------
 
-% Equip agents with precise posterior beliefs about initial (unchanging)
-% latent states (e.g., providing it with a map)
+% Equip agents with precise posterior beliefs about initial states
 %--------------------------------------------------------------------------
-Nf    = prod([Nx,Ny,Nz]);
-MDP   = mdp;
-MDP.T = 32;
-MDP.D((1:Nf) + Nu) = MAP;
+MDP      = mdp;
+MDP.T    = 32;
+MDP.D(f) = MAP;
 
 % Specify intial (home) and final hidden (goal) states (hid)
 %--------------------------------------------------------------------------
-s0         = [8, 20, 3];                     % inital state
-sT         = [28,12, 3];                     % final  state
+s0         = [16, 5, 4];                     % inital state
+sT         = V;                              % final  state
 
 MDP.s(1:4) = [s0(:); 1];
 MDP.D{1}   = full(sparse(s0(1),1,1,Nx,1));   % inital state
@@ -383,7 +406,7 @@ MDP.D{4}   = full(sparse(    1,1,1,Na,1));   % inital state
 MDP.id.hid = sT(:);                          % final  state
 MDP        = spm_MDP_VB_XXX(MDP);
 
-spm_figure('GetWin','Wayfinding'); clf
+spm_figure('GetWin','Go Home'); clf
 spm_behaviour(MDP)
 subplot(2,2,1), hold on, plot(sT(2),sT(1),'ow','MarkerSize',48)
 
@@ -563,10 +586,11 @@ Nu  = 4;
 Nf  = PG.Nx*PG.Ny*PG.Nz;
 Q   = spm_cat(Q((1:Nf) + Nu));
 
-% and preclude if not empty
+% allow if empty
 %--------------------------------------------------------------------------
 D   = Q(1,:) > (1 - 1/32);
 D   = reshape(full(D),PG.Nx,PG.Ny,PG.Nz);
+D   = spm_cross(all(D(:,:,(2:PG.Nz - 2)),3),ones(1,PG.Nz));
 
 % (location) factors
 %--------------------------------------------------------------------------
@@ -581,7 +605,7 @@ function par = spm_fg(g,s)
 % s(1) - location (x)
 % s(2) - location (y)
 % s(3) - location (z)
-% s(4) - drone angles
+% s(4) - camera angles
 %
 % par  - parents of g
 %--------------------------------------------------------------------------
@@ -592,9 +616,9 @@ function par = spm_fg(g,s)
 %
 % In this example, we assume the field-of-view has the same azimuthal and
 % polar angle that spans the angular interval between each angular position
-% the drone can occupy. For example, if the drone can point in six
+% the camera can occupy. For example, if the camera can point in six
 % directions, the field of view subtends an angle of 60°. Furthermore, we
-% assume this field of view points downwards such that the drone can what
+% assume this field of view points downwards such that the agent can what
 % is in front of it.
 %--------------------------------------------------------------------------
 % for g = 1:Ng
@@ -607,7 +631,7 @@ function par = spm_fg(g,s)
 % GA{Ng + Ng + 1} = eye(Nx,Nx);              % x - location (x)
 % GA{Ng + Ng + 2} = eye(Ny,Ny);              % y - location (y)
 % GA{Ng + Ng + 3} = eye(Nz,Nz);              % z - location (z)
-% GA{Ng + Ng + 4} = eye(Na,Na);              % a - drone angles
+% GA{Ng + Ng + 4} = eye(Na,Na);              % a - sensor angles
 %--------------------------------------------------------------------------
 global PG
 
@@ -635,7 +659,7 @@ end
 % factors on ray g: depth and class
 %==========================================================================
 
-% get centre and angles of drone
+% get centre and angles of sensor
 %--------------------------------------------------------------------------
 origin = [s(1:3)];
 angle  = PG.phi(s(4));
@@ -643,7 +667,7 @@ angle  = PG.phi(s(4));
 % get sampled locations for this modality
 %--------------------------------------------------------------------------
 theta  = PG.FOV;                            % ray angles (60 degree FOV)
-d      = spm_index([PG.Nr,PG.Nr],g);              % ray (line of sight) angle
+d      = spm_index([PG.Nr,PG.Nr],g);        % ray (line of sight) angle
 ph     = angle - theta(d(2));               % azimuthal angle
 th     = theta(d(1)) - theta(1);            % polar angle
 
@@ -691,14 +715,14 @@ function RGB = spm_colour(O)
 % subfunction: returns an RGB rendering of a multinomial distribution
 %--------------------------------------------------------------------------
 c   = 1/3;
-MAP = [0 0 0;                     % (1) black (void)
-    000 204 204;                  % (2) blue  (water)
-    000 153 000;                  % (3) green (grass)
-    051 102 000;                  % (4) green (foliage)
-    204 204 000;                  % (5) green (pillar)
-    255 229 204;                  % (6) pink  (person)
-    204 102 000;                  % (7) brick (brick)
-    255 000 000]/255;             % (8) red   (target)
+MAP = [0 0 0;                     % (1) black
+    169 196 219;                  % (2) blue
+    027 101 073;                  % (3) green
+    090 205 098;                  % (4) green
+    204 204 000;                  % (5) brown
+    255 229 204;                  % (6) pink
+    204 102 000;                  % (7) brick
+    255 000 000]/255;             % (8) red
 MAP = MAP(1:numel(O),:)';
 RGB = min(MAP*O,1);
 
@@ -713,7 +737,7 @@ function spm_show_x(x,Nx,Ny,Nz)
 
 % illustrate images
 %--------------------------------------------------------------------------
-u     = 1 - 1/16;
+u     = 2/numel(x{1});
 for t = 1:size(x,2)
     D     = reshape(x(:,t),Nx,Ny,Nz);
     for i = 1:Nx
@@ -734,7 +758,7 @@ for t = 1:size(x,2)
 
     % create coloured image
     %----------------------------------------------------------------------
-    I     = zeros(Nx,Ny,3);
+    I     = ones(Nx,Ny,3)/2;
     for i = 1:Nx
         for j = 1:Ny
 
@@ -757,77 +781,63 @@ end
 return
 
 function [D,W] = spm_drone_unity(Nx,Ny,Nz,Nc)
-% creates an outdoor scene based on size of the environment
+% creates an indoor scene based on size of the environment
+%==========================================================================
 
 % Create a random environment with several objects of different classes
 %--------------------------------------------------------------------------
 % (1) black (void)
-% (2) blue  (water)
-% (3) green (grass)
-% (4) green (foliage)
-% (5) brown (pillar)
-% (6) pink  (person)
-% (7) brick (brick)
+% (2) blue  (floor)
+% (3) green (unseen/unclean)
+% (4) green (seen/clean)
+% (5) brown (uncleanable)
+% (6) pink  (wall)
+% (7) brick (pillar)
 % (8) red   (target)
 
 xyz      = spm_combinations([Nx,Ny,Nz]);
 W        = ones(Nx,Ny,Nz);                % empty space
-W(:,:,1) = 2;                             % water base
+W(:,:,1) = 2;                             % floor / carpet
 
-% place foliage in scene
+% place cleanable object in scene
 %--------------------------------------------------------------------------
-d    = sqrt(sum(minus(xyz(:,[1 2]),[Nx/2,Ny/3]).^2,2)) > Nx/4;
-d    = d & (xyz(:,3) < 3);
-W(d) = 3;                             % land (grass)
+d    = 1 & (xyz(:,1) > 12) & (xyz(:,1) < (Nx - 4));
+d    = d & (xyz(:,2) > 12) & (xyz(:,2) < (12 + 6));
+d    = d & (xyz(:,3) > 4)  & (xyz(:,3) < 6);
+W(d) = 4;
 
-% place foliage in scene
-%-------------------------------------------------------------------------- 
-c = find(W(:,:,2) == 3);
-c = c(randperm(numel(c),10));
-for i = 1:numel(c)
-    [ind] = spm_index([Nx,Ny],c(i));
-    d     = sum(minus(xyz,[ind(1),ind(2),4 + rand]).^2,2);
-    d     = sqrt(d) < Nx/(9 + rand);
-    d     = logical(d.*(rand(size(d)) > .6));
-    W(d)  = 4;
-end
+% place cleanable object in scene
+%--------------------------------------------------------------------------
+d    = 1 & (xyz(:,1) > 12) & (xyz(:,1) < (Nx - 4));
+d    = d & (xyz(:,2) > 13) & (xyz(:,2) < (13 + 2));
+d    = d & (xyz(:,3) > 0)  & (xyz(:,3) < 6);
+W(d) = 4;
 
-% place building in scene
+% place uncleanable object in scene
 %-------------------------------------------------------------------------- 
-d    = 1 & (xyz(:,1) > 2) & (xyz(:,1) < 6);
+d    = 1 & (xyz(:,1) > 2) & (xyz(:,1) < 8);
 d    = d & (xyz(:,2) > (Ny - 10)) & (xyz(:,2) < (Ny - 2));
 d    = d & (xyz(:,3) < 6);
 W(d) = 7;
 
-% place pillars in scene
+% place walls in scene
+%-------------------------------------------------------------------------- 
+W(1, :,:) = 6;                             % wall
+W(Nx,:,:) = 6;                             % wall
+W(:,1 ,:) = 6;                             % wall
+W(:,Ny,:) = 6;                             % wall
+
+% place supports in scene
 %--------------------------------------------------------------------------
-c = find(W(:,:,2) == 3);
+c = find(W(:,:,1) ~= 6);
 c = c(randperm(numel(c),4));
 for i = 1:numel(c)
     [ind] = spm_index([Nx,Ny],c(i));
     d     = 1 & (xyz(:,1) == ind(1));
     d     = d & (xyz(:,2) == ind(2));
-    d     = d & (xyz(:,3) < (Nz - rand));
-    W(d)  = 5;
+    d     = d & (xyz(:,3) < Nz);
+    W(d)  = 6;
 end
-
-% place people in scene
-%-------------------------------------------------------------------------- 
-d    = 1 & (xyz(:,1) > 5) & (xyz(:,1) < 8);
-d    = d & (xyz(:,2) > (Ny - 10)) & (xyz(:,2) < (Ny - 2));
-d    = logical(d.*(rand(size(d)) > .5));
-d    = d & (xyz(:,3) == 3);
-W(d) = 6;
-
-% place target in pond
-%--------------------------------------------------------------------------
-c     = find(W(:,:,1) == 2);
-c     = c(randperm(numel(c),1));
-[ind] = spm_index([Nx,Ny],c);
-d     = 1 & (xyz(:,1) == ind(1));
-d     = d & (xyz(:,2) == ind(2));
-d     = d & (xyz(:,3) == 2);
-W(d)  = 8;
 
 % Now specify the hidden states at each location (a MAP)
 %--------------------------------------------------------------------------
@@ -848,7 +858,7 @@ function spm_behaviour(MDP)
 %__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
-% drone's location and observations
+% sensor's location and observations
 %--------------------------------------------------------------------------
 global PG
 
@@ -887,30 +897,30 @@ for t = 1:MDP.T
     spm_show_x(Q,PG.Nx,PG.Ny,PG.Nz), hold on
     title(sprintf('Inferred scene (t = %i)',t))
 
-    % where the drone thinks it is
+    % where the agent thinks it is
     %----------------------------------------------------------------------
     for f = 1:Nu
         [~,j] = max(MDP.X{f}(:,t));
-        Xt(f) = j;
+        Y(f)  = j;
     end
-    plot(Xt(2), Xt(1), '*y','MarkerSize',32,'LineWidth',4)
+    plot(Y(2),Y(1),    '*y','MarkerSize',32,'LineWidth',4)
 
-    % true location and orientation of drone
+    % true location and orientation of agent
     %----------------------------------------------------------------------
     plot(X(2,t),X(1,t),'*w','MarkerSize',32,'LineWidth',4)
     
-    % Has the drone crashed
+    % Has the agent crashed
     %----------------------------------------------------------------------
     f  = find(ismember(XYZ,X(1:3,t)','rows'));
     if MDP.s(f + Nu,t) > 1
         plot(X(2,t),X(1,t),'*r','MarkerSize',64,'LineWidth',4)
     end
 
-    % where the drone has been
+    % where the agent has been
     %----------------------------------------------------------------------
     plot(X(2,1:t),X(1,1:t),'.w','MarkerSize',16)
 
-    % where the drone looks
+    % where the agent looks
     %----------------------------------------------------------------------
     j     = MDP.j(:,t);
     g     = MDP.id.ge;
@@ -931,16 +941,18 @@ for t = 1:MDP.T
         hold on
     end
     
-    % drone location
+    % agent location
     %----------------------------------------------------------------------
     plot3(X(1,t),X(2,t),X(3,t),'*w','MarkerSize',16,'LineWidth',2), hold on
+    plot3(X(1,t),X(2,t),2     ,'.w','MarkerSize',48,'LineWidth',2), hold on
+    plot3([1,1]*X(1,t),[1,1]*X(2,t),[2 PG.Nz],':w', 'LineWidth',2), hold on
     axis image, a  = axis;
 
     % 3D view :inferred
     %======================================================================
     for f = 1:N
         [m,i] = max(Q{f});
-        if m > 1 - 1/16
+        if m > 2/PG.Nc
             q(f) = i;
         else
             q(f) = 1;
@@ -954,13 +966,15 @@ for t = 1:MDP.T
         hold on
     end
     
-    % drone location
+    % agent location
     %----------------------------------------------------------------------
-    plot3(X(1,t),X(2,t),X(3,t),'*k','MarkerSize',16,'LineWidth',2), hold on
+    plot3(X(1,t),X(2,t),X(3,t),'*w','MarkerSize',16,'LineWidth',2), hold on
+    plot3(X(1,t),X(2,t),2     ,'.w','MarkerSize',48,'LineWidth',2), hold on
+    plot3([1,1]*X(1,t),[1,1]*X(2,t),[2 PG.Nz],':w', 'LineWidth',2), hold on
     axis image, axis(a)
 
 
-    % what the drone sees (depth)
+    % what the agent sees (depth)
     %----------------------------------------------------------------------
     g     = 1:Nr;
     depth = MDP.o(g,t);
@@ -970,7 +984,7 @@ for t = 1:MDP.T
     title('Depth')
     dmin  = min(depth(:));
 
-    % what the drone sees (state or semantic class)
+    % what the agent sees (state or semantic class)
     %----------------------------------------------------------------------
     g     = (1:Nr) + Nr;
     state = MDP.O(g,t);
