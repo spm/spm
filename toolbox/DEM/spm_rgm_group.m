@@ -92,7 +92,7 @@ while numel(i)
     %----------------------------------------------------------------------
     [e,v] = eig(MI(i,i),'nobalance');
     [~,j] = max(diag(v),[],1);
-    [e,j] = sort(e(:,j).^2,'descend');
+    [e,j] = sort(abs(e(:,j)),'descend');
     l     = 1:min(numel(j),dx);
     j     = j(l);
 

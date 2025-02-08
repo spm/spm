@@ -1858,9 +1858,10 @@ for k = 1:Nk
                     else
                         U = spm_log(C{m,g});
                     end
-                    G(k,i) = G(k,i) + qo'*U;
 
+                    G(k,i) = G(k,i) + qo'*U;
                 end
+
 
         % G(k): ambiguity
                 %----------------------------------------------------------
