@@ -14,7 +14,10 @@ function test_version_check(testCase)
 attempts = 3;
 failed = false(attempts,1);
 for i = 1:attempts
-    sts = spm_update();
+    [sts, msg] = spm_update();
+    disp(sts);
+    disp(msg);
+    
     failed(i) = all(isnan(sts)) | all(isinf(sts)) | isempty(sts);
     
     if failed(i)
