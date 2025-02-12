@@ -79,11 +79,8 @@ U     = Dnew.inv{val}.inverse.U;
 %Is   = Dnew.inv{val}.inverse.Is;
 Ic    = Dnew.inv{val}.inverse.Ic;
 It    = Dnew.inv{val}.inverse.It;
-try
-    [L,Dnew] = parfor_spm_eeg_lgainmat(Dnew);  % Gain matrix- from file rather than from inversion itself
-catch
-    [L,Dnew] = spm_eeg_lgainmat(Dnew);         % Gain matrix- from file rather than from inversion itself
-end
+
+[L,Dnew] = spm_eeg_lgainmat(Dnew);         % Gain matrix- from file rather than from inversion itself
         
 Lnew  = U*L;
 if max(max(Lnew-Lorig))>0
