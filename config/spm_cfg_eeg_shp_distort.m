@@ -1,4 +1,4 @@
-function eeg_pca_distort = spm_cfg_eeg_shp_distort
+function eeg_shp_distort = spm_cfg_eeg_shp_distort
 % Configuration file for creating distorted versions of subject anatomy
 % Based on original antomical and predetermined 100 eigen component template space.
 %__________________________________________________________________________
@@ -7,14 +7,14 @@ function eeg_pca_distort = spm_cfg_eeg_shp_distort
 % Copyright (C) 2024 Imaging Neuroscience
 
 
-eeg_pca_distort          = cfg_exbranch;
-eeg_pca_distort.tag      = 'eeg_pca_distort';
-eeg_pca_distort.name     = 'Distortion Trajectory';
-eeg_pca_distort.val      = @eeg_shp_distort_cfg;
-eeg_pca_distort.help     = {'To distort surface information in an M/EEG dataset based on typical normal variation'};
-eeg_pca_distort.prog     = @specify_eeg_shp_distort;
-eeg_pca_distort.vout     = @vout_specify_eeg_shp_distort;
-eeg_pca_distort.modality = {'MEG'};
+eeg_shp_distort          = cfg_exbranch;
+eeg_shp_distort.tag      = 'eeg_shp_distort';
+eeg_shp_distort.name     = 'Distortion Trajectory';
+eeg_shp_distort.val      = @eeg_shp_distort_cfg;
+eeg_shp_distort.help     = {'To distort surface information in an M/EEG dataset based on typical normal variation'};
+eeg_shp_distort.prog     = @specify_eeg_shp_distort;
+eeg_shp_distort.vout     = @vout_specify_eeg_shp_distort;
+eeg_shp_distort.modality = {'MEG'};
 
 
 %==========================================================================
@@ -80,15 +80,15 @@ Zrange.tag              = 'Zrange';
 Zrange.name             = 'Range of Z';
 Zrange.strtype          = 'r';
 Zrange.num              = [1 2];
-Zrange.val              = {[0 3]};
-Zrange.help             = {'The normal range (in Z) over which to perterb true brain (eg [0,+3])'};
+Zrange.val              = {[-3 3]};
+Zrange.help             = {'The normal range (in Z) over which to perterb true brain (eg [-3,+3])'};
 
 Zlimit                 = cfg_entry;
 Zlimit.tag             = 'Zlimit';
 Zlimit.name            = 'Z max';
 Zlimit.strtype         = 'r';
 Zlimit.num             = [1 1];
-Zlimit.val             = {3.5};
+Zlimit.val             = {6.5};
 Zlimit.help            = {'The max absolute Z value permitted (will flip displacement sign otherwise)'};
 
 
@@ -194,7 +194,8 @@ fprintf(...
     'z0',     path_latent,                      ... Subject's latent code
     'v0',     path_velocity,                    ... Subject's initial velocity
     'y0',     path_forward,                     ... Subject's forward transform
-    'r2n',    path_latent                       ... Subject's import-to-native transform
+    'r2n',    path_latent,                       ... Subject's import-to-native transform
+    'RandSeed',job.RandSeed                     ... Random seed used to create this subject
 );
 
 
