@@ -19,7 +19,7 @@ function [z,z0,outmesh] = spm_shp_sample_brains(varargin)
 % r2n    - Subject's import to native transform [default: identity]
 % can    - If true:  center samples about canonical brain (z=0)
 %          If false: center samples about subject's brain (z=z0)
-%
+% RandSeed - the random seed used to make this brain (used only to neaten directory structure)    
 % Returns
 % -------
 % z       - (M x K) Sampled latent codes
@@ -50,6 +50,7 @@ p.addParameter('v0',     []);
 p.addParameter('y0',     []);
 p.addParameter('z0',     []);
 p.addParameter('zlimit',[]);
+p.addParameter('RandSeed',[])
 p.parse(varargin{:});
 
 mesh    = p.Results.mesh;
@@ -65,6 +66,7 @@ z0      = p.Results.z0;
 r2n     = p.Results.r2n;
 can     = p.Results.can;
 zlimit  = p.Results.zlimit;
+RandSeed=p.Results.RandSeed;
 % -------------------------------------------------------------------------
 % Prepare inputs
 
@@ -151,7 +153,11 @@ if ischar(z0), load(z0, 'z'); z0 = z; end
 
 % Create output directory
 fsamp = fullfile(fout, 'Cerebros');
-mkdir(fsamp);
+
+if ~isempty(RandSeed)
+    fsamp=[fsamp filesep sprintf('seed%03d',RandSeed)];
+end;
+mkdir(fsamp);    
 
 % -------------------------------------------------------------------------
 % Define sample space
