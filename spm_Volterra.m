@@ -66,31 +66,60 @@ if V == 1, return, end
 
 %-2nd order terms
 %==========================================================================
+
+% List all permutations of conditions and basis functions
+K = [];
 for i = 1:numel(U)
-    for j = i:numel(U)
-        ind   = [];
-        ip    = [];
-        for p = 1:size(bf,2)
-            for q = 1:size(bf,2)
-                x = U(i).u(:,1);
-                y = U(j).u(:,1);
-                x = conv(full(x),bf(:,p));
-                y = conv(full(y),bf(:,q));
-                x = x(d);
-                y = y(d);
-                X = [X x.*y];
-                
-                %-Indices and regressor names
-                %----------------------------------------------------------
-                Xname{end + 1} = sprintf('%s*bf(%i)x%s*bf(%i)',...
-                    U(i).name{1}, p,...
-                    U(j).name{1}, q);
-                ind(end + 1)   = size(X,2);
-                ip(end + 1)    = 1;
-            end
+    for p = 1:size(bf,2)
+       K(end+1,:) = [i, p]; % condition, bf
+    end
+end
+
+% Initialize array to store indices of design matrix columns involved in 
+% each 2-way interaction
+Xcond = cell(numel(U),numel(U));
+
+% Compute all 2-way interactions
+for i = 1:size(K,1)
+    for j = i:size(K,1)        
+        % Condition indices
+        condx = K(i,1);
+        condy = K(j,1);
+        
+        % Basis function indices
+        bfx = K(i,2);
+        bfy = K(j,2);
+        
+        % Convolve HRF then compute interaction
+        x = U(condx).u(:,1);
+        y = U(condy).u(:,1);
+        x = conv(full(x),bf(:,bfx));
+        y = conv(full(y),bf(:,bfy));
+        x = x(d);
+        y = y(d);
+        X = [X x.*y];
+        
+        % Regressor names
+        Xname{end + 1} = sprintf('%s*bf(%i)x%s*bf(%i)',...
+            U(condx).name{1}, bfx,...
+            U(condy).name{1}, bfy);
+        
+        % Design matrix columns per [condition x condition] permutation
+        if isempty(Xcond{condx,condy})
+            Xcond{condx,condy} = size(X,2);
+        else
+            Xcond{condx,condy}(end+1) = size(X,2);
         end
-        Fc(end + 1).i = ind;
-        Fc(end).name  = [U(i).name{1} 'x' U(j).name{1}];
-        Fc(end).p     = ip;
+    end
+end
+
+% Set metadata about each new interaction condition
+for i = 1:numel(U)
+    for j = 1:numel(U)
+        if ~isempty(Xcond{i,j})
+            Fc(end+1).i  = Xcond{i,j};
+            Fc(end).name = [U(i).name{1} 'x' U(j).name{1}];
+            Fc(end).p    = ones(1,numel(Xcond{i,j}));
+        end
     end
 end
