@@ -55,6 +55,7 @@ jobs:
           fetch-depth: 1
           lfs: false
       - name: Remove shallow-checked-out repo
+        shell: bash
         run: rm -rf tests/data
       - name: Try to retrieve commit from cache 
         id: cache-restore
