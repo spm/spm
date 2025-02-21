@@ -19,7 +19,8 @@ function [z,z0,outmesh] = spm_shp_sample_brains(varargin)
 % r2n    - Subject's import to native transform [default: identity]
 % can    - If true:  center samples about canonical brain (z=0)
 %          If false: center samples about subject's brain (z=z0)
-% RandSeed - the random seed used to make this brain (used only to neaten directory structure)    
+% RandSeed - the random seed used to make this brain (used only to neaten directory structure)
+% WriteClean - removes random seed directory if it exists
 % Returns
 % -------
 % z       - (M x K) Sampled latent codes
@@ -51,6 +52,7 @@ p.addParameter('y0',     []);
 p.addParameter('z0',     []);
 p.addParameter('zlimit',[]);
 p.addParameter('RandSeed',[])
+p.addParameter('WriteClean',[])
 p.parse(varargin{:});
 
 mesh    = p.Results.mesh;
@@ -67,6 +69,7 @@ r2n     = p.Results.r2n;
 can     = p.Results.can;
 zlimit  = p.Results.zlimit;
 RandSeed=p.Results.RandSeed;
+WriteClean=p.Results.WriteClean;
 % -------------------------------------------------------------------------
 % Prepare inputs
 
@@ -157,7 +160,14 @@ fsamp = fullfile(fout, 'Cerebros');
 if ~isempty(RandSeed)
     fsamp=[fsamp filesep sprintf('seed%03d',RandSeed)];
 end;
-mkdir(fsamp);    
+
+if WriteClean,
+    chk=rmdir(fsamp,'s');
+    if chk,
+        fprintf('\n Removed directory %s',fsamp);
+    end;
+end;
+mkdir(fsamp);
 
 % -------------------------------------------------------------------------
 % Define sample space
@@ -188,7 +198,7 @@ for j=1:length(absPC),
     for k=1:K,
 
         if (abs(z(absPC(j),k)+dz(j,k))>abs(zlimit)),
-            dz(j,k)=-dz(j,k); 
+            dz(j,k)=-dz(j,k);
             flip=flip+1;
         end; % if
         z(absPC(j),k)=z(absPC(j),k)+dz(j,k);
