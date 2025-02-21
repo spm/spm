@@ -71,7 +71,15 @@ LFsubdir.strtype     = 's';
 LFsubdir.val         = {'seed001'};
 LFsubdir.help        = {'Select name of the subdirectory to store leads in (normally seed001 etc)'};
 
-[cfg,varargout{1}] = deal({D, val,LFheadmodel,LFRedo,LFsubdir});
+WriteClean                  = cfg_menu;
+WriteClean.tag              = 'WriteClean';
+WriteClean.name             = 'Removes all files in existing seed directory';
+WriteClean.val              = {'Yes'};
+WriteClean.help             = {'Will force fresh empty directory for lead fields'};
+WriteClean.labels           = {'Yes', 'No'}';
+WriteClean.values           = {'Yes', 'No'}';
+
+[cfg,varargout{1}] = deal({D, val,LFheadmodel,LFRedo,LFsubdir,WriteClean});
 
 
 %==========================================================================
@@ -86,6 +94,7 @@ val        = job.val;
 D          = spm_eeg_load(job.D{val});
 [dum,b1,dum]=spm_fileparts(D.fname);
 folder_out = [D.path filesep b1 '_LFPCA'];
+
 LFsubdir=job.LFsubdir;
 Dc         = D.copy(folder_out); % work with copy of the original
 
@@ -110,7 +119,12 @@ headmodel        = job.LFheadmodel;
 uheadmodel       = regexprep(headmodel,' ', '_'); 
 % make a directory to contain headmodels and then surface leadfields
 folder_headmodel = fullfile(folder_out, uheadmodel); 
+
 mkdir(folder_headmodel);
+if exist([folder_headmodel filesep LFsubdir])&&(strcmp('WriteClean')),
+    fprintf('\n Deleting Seed directory %s\n ')
+    rmdir([folder_headmodel filesep LFsubdir],'s');
+end;
 mkdir([folder_headmodel filesep LFsubdir]);
 
 % -------------------------------------------------------------------------

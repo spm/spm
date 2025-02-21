@@ -108,8 +108,15 @@ RandSeed.num            = [1 1];
 RandSeed.val            = {1};
 RandSeed.help           = {'The random seed that defines trajectory'};
 
+WriteClean            = cfg_menu;
+WriteClean.tag        = 'WriteClean';
+WriteClean.name       = 'Delete random seed directory';
+WriteClean.val        = {'Yes'};
+WriteClean.help       = {'Will force delete of any existin random seed files'}';
+WriteClean.labels     = {'Yes', 'No'}';
+WriteClean.values     = {'Yes', 'No'}';
 
-[cfg,varargout{1}] = deal({D, val, PCAtemplate,TemplateRedo, DistortIndices, Npoints,Zrange,Zlimit,Zcentre,RandSeed});
+[cfg,varargout{1}] = deal({D, val, PCAtemplate,TemplateRedo, DistortIndices, Npoints,Zrange,Zlimit,Zcentre,RandSeed,WriteClean});
 
 
 %==========================================================================
@@ -195,7 +202,8 @@ fprintf(...
     'v0',     path_velocity,                    ... Subject's initial velocity
     'y0',     path_forward,                     ... Subject's forward transform
     'r2n',    path_latent,                       ... Subject's import-to-native transform
-    'RandSeed',job.RandSeed                     ... Random seed used to create this subject
+    'RandSeed',job.RandSeed,                     ... Random seed used to create this subject
+    'WriteClean',strcmp(job.WriteClean,'Yes')                  ... Delete the old random seed directory if this is true  
 );
 
 
