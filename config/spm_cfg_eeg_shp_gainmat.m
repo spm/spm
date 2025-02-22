@@ -121,7 +121,7 @@ uheadmodel       = regexprep(headmodel,' ', '_');
 folder_headmodel = fullfile(folder_out, uheadmodel); 
 
 mkdir(folder_headmodel);
-if exist([folder_headmodel filesep LFsubdir])&&(strcmp('WriteClean')),
+if exist([folder_headmodel filesep LFsubdir])&&(strcmp(job.WriteClean,'Yes')),
     fprintf('\n Deleting Seed directory %s\n ')
     rmdir([folder_headmodel filesep LFsubdir],'s');
 end;
