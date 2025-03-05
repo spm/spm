@@ -1,27 +1,30 @@
-function [spatialmodename,Nmodes,newpctest,testchans]=spm_eeg_inv_prep_modes_xval(filenames, Nmodes, spatialmodename,Nblocks,pctest)
+function [spatialmodename,Nmodes,newpctest,testchans]=spm_eeg_inv_prep_modes_xval(filenames, Nmodes,...
+    spatialmodename,Nblocks,pctest,gainmatfiles)
 % Prepare a spatial mode file for inversion
-% FORMAT [spatialmodename,Nmodes,newpctest,testchans]=spm_eeg_inv_prep_modes_xval(filenames, Nmodes, spatialmodename,Nblocks,pctest)
-%
+%[spatialmodename,Nmodes,newpctest,testchans]=spm_eeg_inv_prep_modes_xval(filenames, Nmodes,...
+%    spatialmodename,Nblocks,pctest,gainmatfiles)
 % this file ensures the same spatial modes are used across different files (which would contain the same data but different head-models for example)
 % it also makes sure that the same channels groups are preserved to allow comparable cross validation and free energy metrics
 % input a list of the M/EEG dataset names: filenames
 % Nmodes - number of required spatial modes (if empty uses all available
-% channels)
 % channels)
 % spatialmodename- name of output file
 % Nblocks- number of cross validation runs (optional and
 % default 1)
 % pctest- percentatge of channels to be used for testdata (optional and
 % default 0)
-% if pctest*Nblocks=100 then will use independent MEG channels and may adjust pctest (in output) to 
+% if pctest*Nblocks=100 then will use independent MEG channels and may adjust pctest (in output) to
 % accommodate this. ( k-fold cross val)
 % if pctest*Nblocks~=100 then uses random selection of pctest channels for each block (Monte-Carlo cross val)
-%
-% in output file
+% if gainmatfiles supplied uses these (rather than the one referenced by the spm
+% object) to create unbiased(to any file) spatial modes matrix
+% the output file (spatialmodename) will contain:
 % megind- good meg channel indices
 % testchans - indices to megind of channels to be turned off during training phase (and tested later)
 % U{} - a different spatial modes matrix for each set of training channels or megind without indexed testchans or megind(setdiff(1:length(megind),testchans(b,:)))
-%__________________________________________________________________________
+% newpctest- the percentage of MEG channels actually used (need integer number of channels) 
+% testchans- which channels used for testing
+% _________________________________________________________________________
 
 % Gareth Barnes
 % Copyright (C) 2010-2022 Wellcome Centre for Human Neuroimaging
@@ -33,6 +36,9 @@ end
 if nargin<5
     pctest=[];
 end
+if nargin<6,
+    gainmatfiles=[];
+end;
 
 if isempty(Nblocks)
     Nblocks=1;
@@ -42,9 +48,26 @@ if isempty(pctest)
 end
 
 Nfiles=size(filenames,1);
+if (Nfiles>1) && ~isempty(gainmatfiles),
+    error('please specify either number of spm files or gainmat files but not both')
+end;
 
 % get lead fields for all files /headmodels and get unbiased mixture
 %--------------------------------------------------------------------------
+fprintf('\n Loading gainmat files and checking for consistency')
+Ngchans=[];
+for f=1:size(gainmatfiles,1),
+    fprintf('\n gainmat %d %s',f,gainmatfiles(f,:))
+    a=load(deblank(gainmatfiles(f,:)));
+    if f==1,
+        baselabels=a.label;
+    end;
+    if ~isempty(setdiff(a.label,baselabels)),
+        setdiff(a.label,baselabels)
+        error('mismatch in gainmat channel labels')
+    end;
+    Ngchans=size(a.G,1);
+end;
 
 D=spm_eeg_load(deblank(filenames(1,:)));
 val=D.val;
@@ -53,16 +76,17 @@ origbadchans=D.badchannels;
 
 megind=setdiff(megind,origbadchans);
 fprintf('Removed %d bad channels\n',length(origbadchans));
-
+if ~isempty(Ngchans) && length(megind)~=Ngchans,
+    error('File bad chans and gain mat chans inconsistent')
+end;
 newpctest=pctest;
 if round(Nblocks*pctest)==100
     newpctest=floor(length(megind)/Nblocks)/length(megind)*100;
     fprintf('\nAdjusting pc test from %3.2f to %3.2f percent to make use of most MEG channels',pctest,newpctest);
-    
 else
     fprintf('\nTaking random selections of %3.2f percent of channels',newpctest);
 end
-    
+
 
 Ntest=round(newpctest*length(megind)/100); %% number of test channels per block
 
@@ -74,11 +98,6 @@ if isempty(Nmodes)
     fprintf('\nUsing maximum of %d spatial modes\n',Nmodes);
 else
     fprintf('\nUsing %d spatial modes\n',Nmodes);
-end
-allL=spm_eeg_lgainmat(D);
-
-if size(allL,1)~=length(megind)
-    error('Mismatch in channel numbers (internal error)');
 end
 
 
@@ -99,15 +118,27 @@ for b=1:Nblocks
     useind(b,:)=setdiff(1:length(megind),testchans(b,:)); %% training channels used here to get the spatial modes
 end
 
-for f=2:Nfiles
-    D=spm_eeg_load(deblank(filenames(f,:)));
-    val=D.val;
-    if D.indchantype(D.inv{val}.forward.modality)~=megind
-        error('different active channels in these files');
+if isempty(gainmatfiles), %% assume one or many spm files
+    allL=spm_eeg_lgainmat(D);
+    if size(allL,1)~=length(megind)
+        error('Mismatch in channel numbers (internal error)');
     end
-    L=spm_eeg_lgainmat(D);
-    allL=[allL L]; %% make composite lead field matrix
-end % for f
+    for f=2:Nfiles
+        D=spm_eeg_load(deblank(filenames(f,:)));
+        val=D.val;
+        if D.indchantype(D.inv{val}.forward.modality)~=megind
+            error('different active channels in these files');
+        end
+        L=spm_eeg_lgainmat(D);
+        allL=[allL L]; %% make composite lead field matrix
+    end % for f
+else %% multiple gain matfiles
+    allL=[]
+    for f=1:size(gainmatfiles),
+        a=load(deblank(gainmatfiles(f,:)));
+        allL=[allL a.G];
+    end;
+end;
 
 
 U={};

@@ -40,18 +40,23 @@ jobs:
             version: "R2023a" # Apple Silicon version not available
     runs-on: ${{matrix.os}}
     env:
-      cache-key: tests-data
+      cache-key: tests-data2
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
       
       - name: Get latest commit for tests data  # shallow fetch to get revision
         id: checkout-tests-data
-        uses: actions/checkout@v4.2.0 # 4.2.0 introduces checkout output
+        uses: actions/checkout@v4
         with:
           repository: spm/spm-tests-data
           token: ${{ secrets.TESTS_DATA_REPO_TOKEN }}
           path: tests/data
+          fetch-depth: 1
+          lfs: false
+      - name: Remove shallow-checked-out repo
+        shell: bash
+        run: rm -rf tests/data
       - name: Try to retrieve commit from cache 
         id: cache-restore
         uses: actions/cache/restore@v4

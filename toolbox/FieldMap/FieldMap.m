@@ -50,13 +50,10 @@ function varargout = FieldMap(varargin)
 % .bmask
 %
 % IP.mflags         : Struct containing parameters for brain maskin
-% .template         : Name of template for segmentation.
 % .fwhm             : fwhm of smoothing kernel for generating mask.
 % .nerode           : number of erosions
 % .ndilate          : number of dilations
 % .thresh           : threshold for smoothed mask.
-% .reg              : bias field regularisation
-% .graphics         : display or not
 %
 % IP.fm             : Struct containing field map information
 % IP.fm.upm         : Phase-unwrapped field map (Hz).
@@ -1259,7 +1256,7 @@ switch lower(Action)
       spm_orthviews('Reposition');
       %spm_orthviews('set_pos2cm');
       spm_orthviews('context_menu','ts',1);
-   end;
+   end
    curpos = spm_orthviews('pos',1);
    set(st.in, 'String',sprintf('%3.3f',spm_sample_vol(st.vols{1},curpos(1),curpos(2),curpos(3),st.hld)));
 
@@ -1378,7 +1375,7 @@ switch lower(Action)
       IP.vdmP = []; %% Check that this should be there %%
       IP.maskbrain = [];
       IP.uflags = struct('iformat','','method','','fwhm',[],'bmask',[],'pad',[],'etd',[],'ws',[]);
-      IP.mflags = struct('template',[],'fwhm',[],'nerode',[],'ndilate',[],'thresh',[],'reg',[],'graphics',0);
+      IP.mflags = struct('fwhm',[],'nerode',[],'ndilate',[],'thresh',[]);
 
       % Initially set brain mask to be empty
       IP.uflags.bmask = [];
@@ -1419,13 +1416,10 @@ switch lower(Action)
       IP.uflags.etd = pm_def.LONG_ECHO_TIME - pm_def.SHORT_ECHO_TIME;
 
       % Set parameters for brain masking
-      IP.mflags.template = pm_def.MFLAGS.TEMPLATE;
       IP.mflags.fwhm = pm_def.MFLAGS.FWHM;
       IP.mflags.nerode = pm_def.MFLAGS.NERODE;
       IP.mflags.ndilate = pm_def.MFLAGS.NDILATE;
       IP.mflags.thresh = pm_def.MFLAGS.THRESH;
-      IP.mflags.reg = pm_def.MFLAGS.REG;
-      IP.mflags.graphics = pm_def.MFLAGS.GRAPHICS;
 
       % Set parameters for unwarping
       IP.ajm = pm_def.DO_JACOBIAN_MODULATION;
@@ -1700,7 +1694,9 @@ switch lower(Action)
           'dt',     [varargin{5} spm_platform('bigend')],...
           'mat',    V.mat,...
           'descrip',varargin{6});
-
+      if nargin >= 7
+          img.pinfo = varargin{7};
+      end
       img = spm_write_vol(img,vol);
       varargout{1} = img;
 
@@ -1712,7 +1708,7 @@ switch lower(Action)
 
    case 'makedp'
 
-   if isfield(IP,'vdmP') && ~isempty(IP.vdmP);
+   if isfield(IP,'vdmP') && ~isempty(IP.vdmP)
       dP = struct('dim',  IP.vdmP.dim,...
                   'dt',[64 spm_platform('bigend')],...
                   'pinfo',   [1 0]',...
@@ -1911,8 +1907,7 @@ switch lower(Action)
             IP.fmagP = IP.P{2};
          end
       elseif ~isempty(IP.pP) && ~isempty(IP.fmagP)
-          msg=sprintf('Using %s for matching\n',IP.fmagP.fname);
-          disp(msg);
+          fprintf('Using %s for matching\n',IP.fmagP.fname);
       else
          IP.fmagP = spm_vol(spm_select(1,'image','Select field map magnitude image'));
       end
@@ -1928,7 +1923,7 @@ switch lower(Action)
       % 3) Apply resulting transformation matrix to voxel shift map
 
       if IP.epifm==1
-         [mi,M] = FieldMap('Coregister',IP.epiP,IP.fmagP);
+         [~,M] = FieldMap('Coregister',IP.epiP,IP.fmagP);
          MM = IP.fmagP.mat;
       else
          % Need to sample magnitude image in space of EPI to be unwarped...
@@ -1960,7 +1955,7 @@ switch lower(Action)
          IP.wfmagP = FieldMap('Write',IP.epiP,wfmag,'wfmag_',4,'Voxel shift map');
 
          % Now coregister warped magnitude field map to EPI
-         [mi,M] = FieldMap('Coregister',IP.epiP,IP.wfmagP);
+         [~,M] = FieldMap('Coregister',IP.epiP,IP.wfmagP);
 
          % Update the .mat file of the forward warped mag image
          spm_get_space(deblank(IP.wfmagP.fname),M*IP.wfmagP.mat);
@@ -2006,8 +2001,7 @@ switch lower(Action)
             IP.fmagP = IP.P{2};
          end
       elseif ~isempty(IP.pP) && ~isempty(IP.fmagP)
-          msg=sprintf('Using %s for matching\n',IP.fmagP.fname);
-          disp(msg);
+          fprintf('Using %s for matching\n',IP.fmagP.fname);
       else
          %IP.fmagP = spm_vol(spm_get(1,'*.img','Select field map magnitude image'));
          % SPM5 Update
@@ -2025,7 +2019,7 @@ switch lower(Action)
       % 3) Apply resulting transformation matrix to voxel shift map
 
       if IP.epifm==1
-         [mi,M] = FieldMap('Coregister',IP.epiP,IP.fmagP);
+         [~,M] = FieldMap('Coregister',IP.epiP,IP.fmagP);
          MM = IP.fmagP.mat;
       else
          % Need to sample magnitude image in space of EPI to be unwarped...
@@ -2057,7 +2051,7 @@ switch lower(Action)
          IP.wfmagP = FieldMap('Write',IP.epiP,wfmag,'wfmag_',4,'Voxel shift map');
 
          % Now coregister warped magnitude field map to EPI
-         [mi,M] = FieldMap('Coregister',IP.epiP,IP.wfmagP);
+         [~,M] = FieldMap('Coregister',IP.epiP,IP.wfmagP);
 
          % Update the .mat file of the forward warped mag image
          spm_get_space(deblank(IP.wfmagP.fname),M*IP.wfmagP.mat);
@@ -2108,8 +2102,7 @@ switch lower(Action)
 
          % If using real and imaginary data, calculate using sqrt(i1.^2 + i2.^2).
          % If using phase and magnitude, use magnitude image.
-         if IP.uflags.iformat=='RI'
-
+         if strcmp(IP.uflags.iformat,'RI')
                IP.fmagP = spm_imcalc(spm_vol([IP.P{1}.fname;IP.P{2}.fname]),IP.fmagP,'sqrt(i1.^2 + i2.^2)');
          else
                IP.fmagP = IP.P{2};
@@ -2206,7 +2199,7 @@ case 'loadstructural'
 
       x=spm_coreg(VG,VF,IP.cflags);
       M  = inv(spm_matrix(x));
-      MM = spm_get_space(deblank(VF.fname));
+     %MM = spm_get_space(deblank(VF.fname));
 
       varargout{1}=spm_coreg(x,VG,VF,2,IP.cflags.cost_fun,IP.cflags.fwhm);
       varargout{2}=M;
@@ -2232,10 +2225,9 @@ function V = smooth_uint8(V,fwhm)
 
 % Convolve the volume in memory (fwhm in voxels).
 lim = ceil(2*fwhm);
-s  = fwhm/sqrt(8*log(2));
-x  = [-lim(1):lim(1)]; x = smoothing_kernel(fwhm(1),x); x  = x/sum(x);
-y  = [-lim(2):lim(2)]; y = smoothing_kernel(fwhm(2),y); y  = y/sum(y);
-z  = [-lim(3):lim(3)]; z = smoothing_kernel(fwhm(3),z); z  = z/sum(z);
+x  = -lim(1):lim(1); x = smoothing_kernel(fwhm(1),x); x  = x/sum(x);
+y  = -lim(2):lim(2); y = smoothing_kernel(fwhm(2),y); y  = y/sum(y);
+z  = -lim(3):lim(3); z = smoothing_kernel(fwhm(3),z); z  = z/sum(z);
 i  = (length(x) - 1)/2;
 j  = (length(y) - 1)/2;
 k  = (length(z) - 1)/2;

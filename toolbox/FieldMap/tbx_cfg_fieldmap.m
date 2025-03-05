@@ -200,18 +200,6 @@ uflags.val     = {method fwhm pad ws };
 uflags.help    = {'Different options for phase unwrapping and field map processing'};
 
 %--------------------------------------------------------------------------
-% template Template image for brain masking
-%--------------------------------------------------------------------------
-template         = cfg_files;
-template.tag     = 'template';
-template.name    = 'Template image for brain masking';
-template.help    = {'Select template file for segmentation to create brain mask'};
-template.filter = 'nii';
-template.ufilter = '.*';
-template.num     = [1 1];
-template.def     = @(val)pm_get_defaults('MFLAGS.TEMPLATE', val{:});
-
-%--------------------------------------------------------------------------
 % fwhm FWHM
 %--------------------------------------------------------------------------
 fwhm         = cfg_entry;
@@ -256,23 +244,12 @@ thresh.num     = [1  1];
 thresh.def     = @(val)pm_get_defaults('MFLAGS.THRESH', val{:});
 
 %--------------------------------------------------------------------------
-% reg Regularization
-%--------------------------------------------------------------------------
-reg         = cfg_entry;
-reg.tag     = 'reg';
-reg.name    = 'Regularization';
-reg.help    = {'Regularization value used in the segmentation. A larger value helps the segmentation to converge.'};
-reg.strtype = 'e';
-reg.num     = [1  1];
-reg.def     = @(val)pm_get_defaults('MFLAGS.REG', val{:});
-
-%--------------------------------------------------------------------------
 % mflags mflags
 %--------------------------------------------------------------------------
 mflags         = cfg_branch;
 mflags.tag     = 'mflags';
 mflags.name    = 'mflags';
-mflags.val     = {template fwhm nerode ndilate thresh reg };
+mflags.val     = {fwhm nerode ndilate thresh};
 mflags.help    = {'Different options used for the segmentation and creation of the brain mask.'};
 
 %--------------------------------------------------------------------------
