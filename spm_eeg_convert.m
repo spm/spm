@@ -97,7 +97,7 @@ if ~isfield(S, 'mode') || ~isequal(S.mode, 'header')
     eventsamples      = Dhdr.events(':', 'samples');
 else
     %--------- Read and check header
-    hdr = ft_read_header(S.dataset, 'headerformat', S.inputformat, 'chanindx', S.chanindx);
+    hdr = ft_read_header(S.dataset, 'headerformat', S.inputformat, 'chanindx', S.chanindx, 'checkmaxfilter', 'no');
     
     if isfield(hdr, 'label')
         [unique_label,junk,ind] = unique(hdr.label);
