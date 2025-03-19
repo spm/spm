@@ -207,7 +207,7 @@ function specify_glm(data_path,options)
 % GLM SPECIFICATION, ESTIMATION & INFERENCE
 
 if nargin == 1
-    options = struct();
+    options = struct('pmod',false,'bf',1,'volterra',false);
 end
 
 spm_dir = fullfile(data_path,'GLM');
