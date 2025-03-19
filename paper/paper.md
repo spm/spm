@@ -126,7 +126,7 @@ The documentation for `SPM` was previously spread across multiple locations, mos
 
 - Support for MEG BIDS for specification of events, channels and fiducials [@westner2022unified].
 
-- Proof-of-concept routines for fusing M/EEG and fMRI data under a unified physiological model, to investigate neurovascular coupling [@friston2019dynamic; @jafarian2019neurovascular].
+- Proof-of-concept routines for fusing M/EEG and fMRI data under a unified physiological model, to investigate neurovascular coupling [@friston2019dynamic; @jafarian2020comparing].
 
 ### OPMs
 
