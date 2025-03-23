@@ -106,7 +106,7 @@ end
 
 % remove unitary mappings
 %==========================================================================
-for n = Nm:-1:2
+for n = flip(2:Nm)
 
     % find unitary likelihood mappings
     %======================================================================
@@ -261,8 +261,9 @@ for n = 1:Nm
         %------------------------------------------------------------------
         for f = 1:numel(MDP{n}.b)
             if ~isa(MDP{n}.b{f},'function_handle')
-                s     = MDP{n}.sB(f);
-                b     = spm_dir_norm(plus(MDP{n}.b{f},q(s)));
+                s = MDP{n}.sB(f);
+                b = MDP{n}.b{f};
+                b = spm_dir_norm(plus(b,q(s)));
 
                 MDP{n}.B{f} = b;
             end

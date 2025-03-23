@@ -397,7 +397,7 @@ title('True scene')
 % RG structure learning
 %==========================================================================
 tic,
-MDP = spm_faster_structure_learning(Q,[Nx,Ny,Nz],[1 8 8 8]);
+MDP = spm_faster_structure_learning(Q,[Nx,Ny,Nz],[1 64]);
 t   = toc;
 
 spm_figure('GetWin',sprintf('Paramters: level %i',numel(MDP))); clf

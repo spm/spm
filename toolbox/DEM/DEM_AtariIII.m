@@ -56,7 +56,7 @@ rng(2)
 %==========================================================================
 Nr = 12;                                     % number of rows
 Nc = 9;                                      % number of columns
-Sc = 3;                                      % scaling
+Sc = 9;                                      % scaling
 Nd = 4;                                      % random initial conditions
 C  = 32;                                     % log cost
 
@@ -148,8 +148,7 @@ for i = 1:128
 
     % Accumulate these states under random play
     %----------------------------------------------------------------------
-    q     = rem(i,100 - 1);
-    t     = (0:(NT + Ne)) + q*NT;
+    t     = (0:(NT + Ne)) + rem(i,100 - 1)*NT;
     for s = 1:Ne
         MDP = spm_merge_structure_learning(PDP.O(:,t + s),MDP);
     end
@@ -179,10 +178,7 @@ end
 
 % Retain (and sort) states with a high NESS probability
 %--------------------------------------------------------------------------
-for q = 1:2
-    MDP = spm_RDP_sort(MDP);
-    MDP = spm_RDP_basin(MDP,[2,3],[C,-C]);
-end
+MDP   = spm_RDP_sort(MDP);
 
 % Illustrate transitions in deep (generalised) state space 
 %-=========================================================================
@@ -190,7 +186,7 @@ MDP   = spm_set_goals(MDP,[2,3],[C,-C]);
 hid   = MDP{Nm}.id.hid;
 
 subplot(2,2,3)
-spm_dir_orbits(MDP{Nm}.b{1},hid,128);
+spm_dir_orbits(MDP{Nm}.b{1},hid,64);
 
 % paths to hits
 %--------------------------------------------------------------------------
@@ -443,26 +439,3 @@ end
 disp('number of parameters'), disp(np)
 
 return
-
-
-% NOTES
-%==========================================================================
-% NT    = 100;
-% NS    = [];
-% NU    = [];
-% for q = 0:NT:(GDP.T - NT)
-% 
-%     % get attracting paths
-%     %--------------------------------------------------------------------
-%     S   = spm_get_sequences(MDP);
-% 
-%     % augment MDP
-%     %--------------------------------------------------------------------
-%     t   = (1:NT) + q;
-%     MDP = spm_daisy_chain(PDP.O(:,t),S,MDP,GDP);
-% 
-%     disp(100*q/GDP.T)
-%     NS(end + 1) = size(MDP{Nm}.b{1},2);
-%     NU(end + 1) = size(MDP{Nm}.b{1},3);
-% 
-% end

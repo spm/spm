@@ -164,7 +164,7 @@ drawnow
 
 % RG structure learning
 %==========================================================================
-tic, MDP = spm_faster_structure_learning(O,[Nr,Nc],3); toc
+tic, MDP = spm_faster_structure_learning(O,[Nr,Nc],8); toc
 
 % rewarded events
 %--------------------------------------------------------------------------

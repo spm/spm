@@ -55,16 +55,16 @@ end
 A     = spm_dir_norm(A);
 B     = spm_dir_norm(B);
 C     = {};
-for s = max(MDP{1}.sB)
+for s = 2:max(MDP{1}.sB)
 
     % parents of factor of stream S
     %----------------------------------------------------------------------
     pD = MDP{n - 1}.id.D{MDP{n - 1}.sB == s};
     pE = MDP{n - 1}.id.E{MDP{n - 1}.sB == s};
 
-    % outcomes predicted by first stream
+    % outcomes predicted by first factor of first stream
     %----------------------------------------------------------------------
-    ps = find(ismember([MDP{n}.id.A{:}], find(MDP{n}.sB == 1)));
+    ps = find(ismember([MDP{n}.id.A{:}], find(MDP{n}.sB == 1,1,'first')));
 
     % initial states of stream S predicted by first stream
     %----------------------------------------------------------------------

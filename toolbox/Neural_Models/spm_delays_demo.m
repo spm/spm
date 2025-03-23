@@ -80,8 +80,8 @@ M.x   = spm_dcm_neural_x(pE,M);
 
 % delays
 %--------------------------------------------------------------------------
-k      = (1:8)/8;
-M.pst  = (1:128)/1000;
+k      = (1:8)/16;
+M.pst  = (1:64)/1000;
 for j  = 1:length(k)
     
     % keep total power of fluctuations constant

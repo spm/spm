@@ -26,7 +26,7 @@ function [v] = spm_MDP_VB_LFP(MDP,UNITS,f,SPECTRAL)
 % check for simulated neuronal responses
 %--------------------------------------------------------------------------
 if ~isfield(MDP(1),'xn')
-    warning ('please use another inversion scheme that simulates neuronal responses (e.g., spm_MDP_VB_XX)')
+    warning ('please use an inversion scheme that simulates neuronal responses (e.g., spm_MDP_VB_XX)')
     return
 end
 

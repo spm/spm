@@ -55,10 +55,11 @@ end
 % find outcomes that change over time
 %--------------------------------------------------------------------------
 No    = size(R,1);
-Nt    = Nt - 1;
 n     = false(1,No);
+r     = cell(1,No);
 for o = 1:No
-    n(o) = any(diff(spm_cat(R(o,:)),[],2),'all');
+    r{o} = spm_cat(R(o,:));
+    n(o) = any(diff(r{o},[],2),'all');
 end
 
 % evaluate mutual information among outcomes
@@ -71,12 +72,11 @@ for i = 1:No
         % if there is shareable information
         %------------------------------------------------------------------
         if n(i) && n(j)
-            for t = 1:Nt
-                p = p + R{i,t}*R{j,t}';
-            end
+            p       = r{i}*r{j}';
             MI(i,j) = spm_MDP_MI(p);
             MI(j,i) = MI(i,j);
         end
+
     end
 end
 
@@ -93,12 +93,12 @@ while numel(i)
     [e,v] = eig(MI(i,i),'nobalance');
     [~,j] = max(diag(v),[],1);
     [e,j] = sort(abs(e(:,j)),'descend');
-    l     = 1:min(numel(j),dx);
-    j     = j(l);
+    k     = 1:min(numel(j),dx);
+    j     = j(k);
 
     % eliminate outcomes outwith this cluster
     %----------------------------------------------------------------------
-    j(e(l) < U) = [];
+    j(e(k) < U) = [];
     G{end + 1}  = i(j);
     i(j)        = [];
 
@@ -114,8 +114,6 @@ for g = 1:numel(G)
     end
     G{g} = k;
 end
-
-
 
 return
 
