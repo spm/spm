@@ -13,6 +13,16 @@ function [i,j] = spm_unique(O)
 % Karl Friston
 % Copyright (C) 2012-2022 Wellcome Centre for Human Neuroimaging
 
+% Fast approximation by simply identifying unique locations in a
+% multinomial statistical manifold, after discretising to probabilities of
+% zero, half and one (using Matlab’s unique and fix operators).
+%--------------------------------------------------------------------------
+O       = spm_dir_norm(O);
+[~,i,j] = unique(logical(spm_cat(O)'),'rows','stable');
+
+
+return
+
 % distance matrix (i.e., normalised vectors on a hypersphere)
 %--------------------------------------------------------------------------
 D       = spm_information_distance(O);
@@ -21,12 +31,3 @@ D       = spm_information_distance(O);
 %--------------------------------------------------------------------------
 [~,i,j] = unique(D < 2,'rows','stable');
 
-return
-
-% Fast approximation by simply identifying unique locations in a
-% multinomial statistical manifold, after discretising to probabilities of
-% zero, half and one (using Matlab’s unique and fix operators).
-%--------------------------------------------------------------------------
-[~,i,j] = unique(fix(2*spm_cat(O)'),'rows','stable');
-
-return

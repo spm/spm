@@ -34,7 +34,7 @@ rng(1)
 Nr = 12;                               % number of rows
 Nc = 9;                                % number of columns
 S  = [Nr,Nc,1];                        % size of sector
-Sc = 4;                                % Spatial scaling
+Sc = 16;                               % Spatial scaling
 
 G  = @(Nr,Nc) spm_MDP_breakout(Nr,Nc); % game
 NT = 512;                              % exposures (training)
@@ -79,10 +79,7 @@ for n = 1:(NT*32)
         if numel(O)
             O = [O spm_i2p(PDP.o(:,1:t),No)]; 
         else
-
             O = spm_i2p(PDP.o(:,1:t),No);
-                 
-
         end
 
         % start after we left off
@@ -144,7 +141,7 @@ spm_show_RGB(PDP,RGB);
 
 % rewarded events
 %--------------------------------------------------------------------------
-[HID,~,HITS,~] = spm_get_episodes( hid,cid,GDP,MDP);
+[HID,~,HITS,~] = spm_get_episodes(hid,cid,GDP,MDP);
 
 % Illustrate orbits
 %==========================================================================

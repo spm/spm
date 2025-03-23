@@ -7,7 +7,7 @@ function [MDP] = spm_faster_structure_learning(O,S,dx,dt)
 %    S(:,2) - size (y) of group in each stream 
 %    S(:,3) - size (z) of group in each stream 
 %    S(:,4) - number of outcomes per group in each stream 
-% dx     - space scaling [default: 2 or 3]
+% dx     - space scaling [default: 2]
 % dt     - time  scaling [default: 2]
 %
 % This routine returns a hierarchy of generative models (MDP{n}), given a
@@ -51,8 +51,8 @@ end
 
 % scaling (RG flow)
 %--------------------------------------------------------------------------
-if nargin < 3,    dx = 2; end
-if nargin < 4,    dt = 2; end
+if nargin < 3, dx = 2; end
+if nargin < 4, dt = 2; end
 dx = [dx repmat(dx(end),1,16)];
 dt = [dt repmat(dt(end),1,16)];
 
@@ -104,7 +104,7 @@ for n = 1:8
             %--------------------------------------------------------------
             o = [0; prod(S,2)];
             o = o(s) + (1:prod(S(s,:)));
-            d = dx(n)^2;
+            d = dx(n);
             m = S(s,4);
             G = spm_rgm_group(O(o,:),d,m);
 
@@ -132,8 +132,8 @@ for n = 1:8
 
             % parents
             %--------------------------------------------------------------
-            iD      = 2*Ns + 2*g - 1;
-            iE      = 2*Ns + 2*g - 0;
+            iD    = 2*Ns + 2*g - 1;
+            iE    = 2*Ns + 2*g - 0;
             MDP{n}.id.A(gg) = {fg};                  % parents of outcomes                  
             MDP{n}.id.D(fg) = {iD};                  % parents of state
             MDP{n}.id.E(fg) = {iE};                  % parents of paths  
@@ -232,7 +232,7 @@ for n = 1:8
 
         % if all streams comprise one group
         %------------------------------------------------------------------
-        if max(Ng) < 2
+        if max(Ng) < 2 && n > 1
             break
         end
 
@@ -271,13 +271,13 @@ for n = 1:8
 
                 % remove parents of non-recurring states
                 %----------------------------------------------------------
-                if max(sum(b,2)) < 8 && n < 2
+                if max(sum(b,2)) < 1 && n < 2
                     d(f) = false;
                 end
 
                 % remove parents of itinerant states
                 %----------------------------------------------------------
-                if min(sum(b > 0,1)/size(b,1)) > 1/2
+                if min(sum(b > 0,1)/size(b,1)) > 1/2 && numel(b) > 4
                     d(f) = false;
                 end
 

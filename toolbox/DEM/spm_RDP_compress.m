@@ -1,8 +1,9 @@
-function [MDP] = spm_RDP_compress(MDP,R)
+function [MDP] = spm_RDP_compress(MDP,R,OPT)
 % BMR of superordinate states based upon predicted outcomes
-% FORMAT [MDP] = spm_RDP_compress(MDP,R)
+% FORMAT [MDP] = spm_RDP_compress(MDP,R,[OPT])
 % MDP   - cell array of MDP structures
 % R     - reduction operator
+% OPT   - flag to reduce all levels
 %
 % This routine implements a Bayesian model reduction in which the latent
 % (generalised) states that the highest level of the model are merged in a
@@ -53,8 +54,10 @@ catch
         B(:,:,u) = spm_dir_norm(R'*MDP{n}.B{1}(:,:,u)*R);
     end
     u            = any(B,[1,2]);
-    MDP{n}.B{1}  = B(:,:,u);end
+    MDP{n}.B{1}  = B(:,:,u);
+end
 
+if nargin > 2, return, end
 
 % propogate down hierachy
 %--------------------------------------------------------------------------

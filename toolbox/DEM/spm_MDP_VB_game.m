@@ -30,6 +30,13 @@ function Q = spm_MDP_VB_game(MDP)
 % Karl Friston
 % Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
+% check for simulated neuronal responses
+%--------------------------------------------------------------------------
+if ~isfield(MDP(1),'xn')
+    warning ('please use an inversion scheme that simulates neuronal responses (e.g., spm_MDP_VB_XX)')
+    return
+end
+
 % numbers of transitions, policies and states
 %--------------------------------------------------------------------------
 if iscell(MDP(1).X)

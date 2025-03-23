@@ -996,14 +996,16 @@ for t = 1:T
                 %----------------------------------------------------------
                 if  isfield(mdp,'P')
 
+                    if mdp.T > 1
+
                     if any(mdp.U(:,f))
 
                         % paths
-                        %--------------------------------------------------
+                            %----------------------------------------------
                         mdp.E{f} = mdp.P{f}(:,mdp.T);
 
                         % and states
-                        %--------------------------------------------------
+                            %----------------------------------------------
                         ps = mdp.X{f}(:,mdp.T);
                     pu = mdp.E{f};
                     if numel(pu) > 1
@@ -1015,6 +1017,29 @@ for t = 1:T
                     else
 
                         mdp.E{f} = spm_norm(ones(nu(f),1));
+                        mdp.D{f} = spm_norm(ones(ns(f),1));
+
+                    end
+
+                    else
+
+                        % paths
+                        %--------------------------------------------------
+                        if any(mdp.U(:,f))
+                            mdp.E{f} = mdp.P{f}(:,mdp.T);
+                        else
+                            mdp.E{f} = spm_norm(ones(nu(f),1));
+                        end
+
+                        % and states
+                        %--------------------------------------------------
+                        ps = mdp.X{f}(:,mdp.T);
+                        pu = mdp.E{f};
+                        if numel(pu) > 1
+                            mdp.D{f} = spm_dot(mdp.B{f},{pu})*ps;
+                        else
+                            mdp.D{f} = mdp.B{f}*ps;
+                        end
                         mdp.D{f} = spm_norm(ones(ns(f),1));
 
                     end
@@ -1838,7 +1863,7 @@ for k = 1:Nk
                     qo = spm_dot(A{m,g},Q(j));
                 end
 
-                % number of outomes
+                % number of outcomes
                 %----------------------------------------------------------
                 No(i) = No(i) + spm_log(numel(qo));
 
@@ -1850,7 +1875,7 @@ for k = 1:Nk
                 %----------------------------------------------------------
                 if numel(C{m,g})
                     
-                    % state-dependent contraint
+                    % state-dependent constraint
                     %------------------------------------------------------
                     if numel(id{m}.C{g})
                         f  = id{m}.C{g};
@@ -2387,13 +2412,14 @@ if isempty(hid), R = 32*D;  return, end
 
 % check for RGM
 %--------------------------------------------------------------------------
+N     = min(N,64);
 if isfield(id,'D') && N < 4
     N = 64;
 end
 
 % Threshold transition probabilities
 %--------------------------------------------------------------------------
-u     = 1/16;                         % probability threshold
+u     = 1/32;                            % probability threshold
 for f = hif
     b{f}  = false;
     for k = 1:size(B,3)
@@ -2416,14 +2442,17 @@ for f = hif
     Qf = spm_kron(Q{f},Qf);           % posterior over states
 end
 Bf        = and(Bf,D(:));                % constrained transitions
-
+if size(Bf,2) > 512
+   N = min(N,32);
+end
 
 % Backwards induction: from end states
 %==========================================================================
 
 % hid are indices (of multiple endpoints)
 %--------------------------------------------------------------------------
-for i = 1:size(hid,2)
+Nh    = size(hid,2);
+for i = 1:Nh
         I     = true;
     for f = 1:numel(hif)
         h           = false(Ns(f),1);
@@ -2436,7 +2465,8 @@ end
 
 % Backwards induction: paths of least action
 %==========================================================================
-for i = 1:size(hid,2)
+G     = zeros(N,Nh);
+for i = 1:Nh
 
     % for this end state
     %----------------------------------------------------------------------
@@ -2448,12 +2478,16 @@ for i = 1:size(hid,2)
 
         % any preceding states %%% & that have not been previously occupied
         %------------------------------------------------------------------
-        I(:,n + 1) = any(Bf(I(:,n),:),1)'; %%% & ~any(I,2);
+        j          = any(Bf(I(:,n),:),1)';        %%% & ~any(I,2);
+        I(:,n + 1) = j;
+
+        if ~any(j), break, end
 end
 
     % Find most likely point on paths of least action
     %----------------------------------------------------------------------
-    G(:,i) = I'*Qf;
+    j      = 1:size(I,2);
+    G(j,i) = I'*Qf;
     P{i}   = I;
 
 end

@@ -57,7 +57,7 @@ for m = 1:(Nm - 1)
         % propagate predictions under this state down hierarchy
         %------------------------------------------------------------------
         s{m}  = si;
-        for n = m:-1:2
+        for n = flip(2:m)
             
             % accumate subordinate states of S
             %--------------------------------------------------------------

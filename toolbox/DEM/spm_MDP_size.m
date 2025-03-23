@@ -19,6 +19,9 @@ if isfield(mdp,'a')
 else
     a = mdp.A;
 end
+if ~iscell(a)
+    a = {a};
+end
 if isfield(mdp,'b')
     b = mdp.b;
 else

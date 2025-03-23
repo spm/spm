@@ -302,9 +302,9 @@ MDP.C = C;                            % prior preferences
 MDP.D = D;                            % prior over initial states
 MDP.H = H;                            % prior over final states
 MDP.E = E;                            % prior over initial paths
-MDP.N = 0;                            % planning depth (2)
+MDP.N = 0;                            % planning depth
 
-MDP.id = id;                          % planning depth (2)
+MDP.id = id;                          % edges
 
 % RGB structure
 %==========================================================================

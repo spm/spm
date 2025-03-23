@@ -41,9 +41,10 @@ end
 pd = MDP{m - 1}.id.D{MDP{m - 1}.sB == S};
 pe = MDP{m - 1}.id.E{MDP{m - 1}.sB == S};
 
-% inital states predicted by first stream
+% inital states predicted by first factor of first stream
 %--------------------------------------------------------------------------
-ps = find(ismember([MDP{m}.id.A{:}], find(MDP{m}.sB == 1)));
+i  = find(MDP{m}.sB == 1,1,'first');
+ps = find(ismember([MDP{m}.id.A{:}],i));
 
 % initial states of stream S predicted by first stream
 %--------------------------------------------------------------------------
