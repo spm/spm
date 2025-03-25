@@ -491,12 +491,15 @@ function Fi = filter(d,vx,prm,c)
     persistent F
     if nargin>=2
       if nargin<4, c = 0.1; end
-        d2 = d;
+        bnd = spm_diffeo('bound');
+        spm_diffeo('bound',0)
+        d2  = d;
         d2(d2>1) = d2(d2>1)*2;
         l = spm_diffeo('kernel',d2(1:3),[vx prm 0 0])/vx(2);
         l(1,1,1) = l(1,1,1) + c;
         F = real(fftn(double(l)));
         F = 1./F(1:d(1),1:d(2),1:d(3));
+        spm_diffeo('bound',bnd);
     end
     Fi = F;
 end
