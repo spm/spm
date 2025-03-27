@@ -487,6 +487,7 @@ case 'plot'                                                          %-Plot
                 %----------------------------------------------------------
                 figure(Fgraph)
 
+                % 2D plot
                 ax = subplot(2,2,3,'Parent',Fgraph);
                 imagesc(pst,pst,Y,'Parent',ax)
                 axis(ax,'xy')
@@ -495,12 +496,33 @@ case 'plot'                                                          %-Plot
                 xlabel(ax,'peristimulus time {secs}','FontSize',FS(12))
                 ylabel(ax,'peristimulus time {secs}','FontSize',FS(12))
 
+                % Line plot
                 ax = subplot(2,2,4,'Parent',Fgraph);
-                plot(ax,pst,Y)
+                n = size(Y,2);
+                %c = gray(n + 5);
+                %c = c(1:(end-5),:);
+                c = jet(n);
+                c = flipud(c);
+                h = [];
+                for i = 1:n
+                    h(i)=plot(ax,pst,Y(:,i),'Color',c(i,:));
+                    hold on
+                end
+                hold off
                 axis(ax,'square')
                 grid(ax,'on')
                 title(ax,SPM.Sess(s).Fc(u).name,'FontSize',FS(12))
                 xlabel(ax,'peristimulus time {secs}','FontSize',FS(12))
+                                
+                % Legend
+                idx = round(linspace(1,n,5));
+                labels = {};
+                handles = [];
+                for i = 1:length(idx)
+                    labels{i} = sprintf('%0.0fs',pst(idx(i)));
+                    handles(i) = h(idx(i));
+                end
+                legend(handles,labels,'FontSize',12);
 
             % first  order kernel
             %--------------------------------------------------------------

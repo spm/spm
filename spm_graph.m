@@ -419,14 +419,22 @@ switch xG.def
 
             % Parameter estimates and kernel
             %--------------------------------------------------------------
-            B     = beta(SPM.Sess(s).col(SPM.Sess(s).Fc(u).i));
-            i     = 1;
-            Y     = 0;
-            for p = 1:size(bf,2)
-                for q = 1:size(bf,2)
-                    Y = Y + B(i)*bf(:,p)*bf(:,q)';
-                    i = i + 1;
+            B      = beta(SPM.Sess(s).col(SPM.Sess(s).Fc(u).i));
+            Bnames = SPM.xX.name(SPM.Sess(s).Fc(u).i);
+            
+            Y = 0;
+            for i = 1:length(Bnames)
+                % Identify the basis functions from condition name
+                % E.g. 'Sn(1) Photic*bf(1)xMotion*bf(2)' returns 1 and 2
+                matches = regexp(Bnames{i}, 'bf\((\d+)\)', 'tokens');
+                if length(matches) ~= 2
+                    error('Expected a second order term');
                 end
+                bf1 = str2double(matches{1}{1});
+                bf2 = str2double(matches{2}{1});
+                
+                % Calculate effect
+                Y = Y + B(i)*bf(:,bf1)*bf(:,bf2)';                
             end
 
         % first order kernel

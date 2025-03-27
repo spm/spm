@@ -110,7 +110,7 @@ else
         % Identify excluded regressors for subsequent checks
         if isnan(Ic)
             ex = 1:size(SPM.xX.X,2);
-        elseif Ic > 0
+        elseif Ic > 0 && isfield(SPM, 'xCon')
             ex = find(~any(SPM.xCon(Ic).c'));
         end
     end        
