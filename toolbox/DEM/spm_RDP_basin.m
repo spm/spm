@@ -2,8 +2,8 @@ function [MDP,d,o,h,c,r] = spm_RDP_basin(MDP,S,chi,L)
 % BMR of superordinate states based upon predicted outcomes
 % FORMAT [MDP,d,o,h,c,r] = spm_RDP_basin(MDP,S,chi,L)
 % MDP  - cell array of MDP structures
-% S    - list of modality streams; e.g. [2,3]
-% chi  - log prior for each modality; e.g., [-8,8]
+% S    - list of modality streams;    e.g., [2,3]
+% chi  - log prior for each modality; e.g., [8,-8]
 % L    - length of paths to and from goal states; e.g., [32,1] 
 %
 % MDP  - reduced MDP
@@ -54,7 +54,7 @@ Ns     = size(B,1);
 P      = false(Nt,Ns);
 P(1,h) = true;
 for t  = 1:Nt
-    p          = any(B(P(t,:),:),1)';
+    p  = any(B(P(t,:),:),1)';
     P(t + 1,:) = p;
 
     if ~any(p), break, end
@@ -66,14 +66,13 @@ Nt     = max(L(2),1);
 C      = false(Nt,Ns);
 C(1,h) = true;
 for t  = 1:Nt
-    p          = any(B(:,C(t,:)),2);
+    p  = any(B(:,C(t,:)),2);
     C(t + 1,:) = p;
-
+    
     if ~any(p), break, end
 end
 
-
-% remove coslty paths
+% remove costly paths
 %--------------------------------------------------------------------------
 R    = true(1,Ns);
 R(c) = false;

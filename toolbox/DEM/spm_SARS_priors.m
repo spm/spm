@@ -1,8 +1,9 @@
-function [P,C,str] = spm_SARS_priors(nN)
+function [P,C,str] = spm_SARS_priors(nN,date)
 % Generate prior expectation and covariance log parameters
-% FORMAT [pE,pC,str,rfx] = spm_SARS_priors(nN)
+% FORMAT [pE,pC,str,rfx] = spm_SARS_priors(nN,date)
 %
 % nN          - number of age groups
+% date        - end date ('dd-mmm-yyyy')
 %
 % pE          - prior expectation (structure)
 % pC          - prior covariances (structure)
@@ -57,6 +58,9 @@ function [P,C,str] = spm_SARS_priors(nN)
 %--------------------------------------------------------------------------
 % https://pubmed.ncbi.nlm.nih.gov/33948610/
 %--------------------------------------------------------------------------
+global DATE
+
+if isempty(DATE), DATE = date; end
 
 % priors for multiple age groups
 %==========================================================================
@@ -468,7 +472,7 @@ P.con = 0.2;                  % (47) LFD confirmation
 P.iso = 8.0;                  % (48) self-isolation (days)
 P.Tnn = 256;                  % (49) loss of T-cell immunity (days)
 
-i     = ceil((datenum(date) - datenum('01-02-2020'))/64);
+i     = ceil((datenum(DATE) - datenum('01-02-2020'))/64);
 
 P.lnr = 0.46;                 % (50) LFD sensitivity
 P.lpr = 0.0002;               % (51) LFD specificity

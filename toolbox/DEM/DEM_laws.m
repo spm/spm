@@ -65,7 +65,7 @@ No(4) = 2;                                % violation cue (e.g., car horn)
 %--------------------------------------------------------------------------
 Nu = [2,1,1];                             % location is controllable
 
-% initalise likelihoods A and priors B
+% initialise likelihoods A and priors B
 %==========================================================================
 Nf = numel(Ns);
 Ng = numel(No);
@@ -82,7 +82,7 @@ end
 
 % specify generative model under combinations of hidden states
 %--------------------------------------------------------------------------
-a     = 1/8;                              % a small uncertintiy parameter
+a     = 1/8;                              % a small uncertainty parameter
 S     = spm_combinations(Ns);
 for i = 1:size(S,1)
 
@@ -115,7 +115,7 @@ for i = 1:size(S,1)
         A{2}(:,loc,sta,nom) = [1; 1]/2;
     end
 
-    % emergency cue (heard everywhere, with slight amibiguity)
+    % emergency cue (heard everywhere, with slight ambiguity)
     %----------------------------------------------------------------------
     if nom == 1
         A{3}(:,loc,sta,nom) = [(1 - a);a];
@@ -136,7 +136,7 @@ for i = 1:size(S,1)
     C{4}(:,loc,sta,nom) = spm_softmax([3;0]);
 
 
-    % Priors and inital conditions (B and D)
+    % Priors and initial conditions (B and D)
     %======================================================================
     
     % location (move to next location if u = 2, otherwise stay)
@@ -169,7 +169,7 @@ end
 % Create MDP structure
 %==========================================================================
 U     = Nu > 1;                       % controllable factors
-MDP.T = 10;                           % numer of moves
+MDP.T = 10;                           % number of moves
 MDP.U = U;                            % controllable factors
 MDP.A = A;                            % likelihood probabilities
 MDP.B = B;                            % transition probabilities
@@ -180,7 +180,7 @@ MDP.N = 3;                            % planning depth (4)
 MDP.id    = id;                       % edges
 MDP.label = label;                    % names
 
-OPTIONS.N = 1;                        % swith on neuronal simulator
+OPTIONS.N = 1;                        % switch on neuronal simulator
 
 % Illustrate with an example by prescribing states of affairs
 %==========================================================================
@@ -208,4 +208,3 @@ spm_figure('GetWin','Figure 3'); clf
 spm_MDP_VB_LFP(PDP);
 
 return
-

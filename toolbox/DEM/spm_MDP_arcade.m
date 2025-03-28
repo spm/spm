@@ -1,16 +1,12 @@
-function [MDP,hid,cid,con,RGB] = spm_MDP_arcade(Nr,Nc,Nd,Na,Np)
+function [MDP,RGB] = spm_MDP_arcade(Nr,Nc,Nd,Nb)
 % Creates an MDP structure for a simple arcade game
-% FORMAT [MDP,hid,cid,con,RGB] = spm_MDP_arcade(Nr,Nc,Nd,Na,Np)
+% FORMAT [MDP,hid,cid,con,RGB] = spm_MDP_arcade(Nr,Nc,Nd,Nb)
 %--------------------------------------------------------------------------
 % Nr    - number of rows
 % Nc    - number of columns
 % Nd    - number of initial states [default: 1]
-% Na    - returns rewards, costs and action
-% Np    - number of distractor pixels
+% Np    - number of bombs
 %
-% hid   - Hidden states corresponding to hits
-% cid   - Hidden states corresponding to misses
-% con   - output modalities reporting control
 % RGB   - display structure
 %
 % outcomes(1) - paddle
@@ -24,10 +20,9 @@ function [MDP,hid,cid,con,RGB] = spm_MDP_arcade(Nr,Nc,Nd,Na,Np)
 % Copyright (C) 2022-2023 Wellcome Centre for Human Neuroimaging
 
 if nargin < 1, Nr  = 12; end
-if nargin < 2, Nc  = 9; end
-if nargin < 3, Nd  = 2; end
-if nargin < 4, Na  = 1; end
-if nargin < 5, Np  = 0; end
+if nargin < 2, Nc  = 9;  end
+if nargin < 3, Nd  = 2;  end
+if nargin < 4, Nb  = 2;  end
 
 % preliminaries
 %--------------------------------------------------------------------------
@@ -39,6 +34,14 @@ Ns(5) = 2;              % momentum of ball verical
 Ns(6) = 3;              % level of target
 Ns(7) = 4;              % level of bomb
 NS    = prod(Ns);       % number of states
+
+% bomb offsets
+%--------------------------------------------------------------------------
+bo{1} = [ 0,0];
+bo{2} = [+2,1];
+bo{3} = [-3,2];
+bo{4} = [-1,0];
+bo{5} = [-3,1];
 
 % likelihoods and priors
 %==========================================================================
@@ -78,6 +81,7 @@ for x = 1:Ns(1)          % location of paddle
 
                             % current state
                             %----------------------------------------------
+                            reset = false;
                             s     = sub2ind(Ns,x,i,j,p,q,h,b);
 
                             % likelihoods
@@ -91,7 +95,6 @@ for x = 1:Ns(1)          % location of paddle
                                 %------------------------------------------
                                 ij = spm_index([Nr,Nc],g);
 
-
                                 % likelihoods for target
                                 %------------------------------------------
                                 if ij(1) <= h
@@ -99,11 +102,16 @@ for x = 1:Ns(1)          % location of paddle
                                     A{g}(3,s) = true;
                                 end
 
-                                % likelihoods for bomb
+                                % likelihoods for bombs
                                 %------------------------------------------
-                                if ij(1) == (b + Nr - Ns(7)) && ij(2) == i0
-                                    A{g}(:,s) = false;
-                                    A{g}(4,s) = true;
+                                for n = 1:Nb
+                                    ib = (i0 + bo{n}(1));
+                                    jb = rem(b + bo{n}(2) - 1,Ns(7)) + 1;
+                                    jb = (jb + Nr - Ns(7));
+                                    if ij(1) == jb && ij(2) == ib
+                                        A{g}(:,s) = false;
+                                        A{g}(4,s) = true;
+                                    end
                                 end
 
                                 % likelihoods for ball
@@ -120,7 +128,40 @@ for x = 1:Ns(1)          % location of paddle
                                     A{g}(1,s) = true;
                                 end
 
+                            end
 
+                            % interoception (hid and cid)
+                            %==============================================
+
+                            % hit on target row
+                            %----------------------------------------------
+                            if j == (h + 1) && q == 1
+
+                                % goal
+                                %------------------------------------------
+                                if i > 2 && i < (Nc - 2)
+                                    hid(end + 1) = s;
+                                end
+
+                            end
+
+                            % miss
+                            %----------------------------------------------
+                            if j == Nr && x ~= i
+                                cid(end + 1) = s;
+                            end
+
+                            % bomb
+                            %----------------------------------------------
+                            for n = 1:Nb
+                                ib   = (i0 + bo{n}(1));
+                                jb   = rem(b + bo{n}(2) - 1,Ns(7)) + 1;
+
+                                bomb = jb == Ns(7) & x == ib;
+                                bomb = bomb & ~(i == i0 & j == Nr);
+                                if bomb
+                                    cid(end + 1) = s;
+                                end
                             end
 
                             % proprioception (P)
@@ -136,14 +177,14 @@ for x = 1:Ns(1)          % location of paddle
 
                                 % next state: paddle
                                 %------------------------------------------
-                                xt  = x + U(u);
+                                xt = x + U(u);
                                 if xt > Nc, xt = Nc;  end
                                 if xt < 1 , xt = 1;   end
 
                                 % next state: ball vertical
                                 %------------------------------------------
-                                ht  = h;
-                                qt  = q;
+                                ht = h;
+                                qt = q;
                                 if j <= h + 1, qt = 2; end
                                 if j == Nr,    qt = 1; end
 
@@ -151,7 +192,7 @@ for x = 1:Ns(1)          % location of paddle
 
                                 % next state: ball horizontal
                                 %------------------------------------------
-                                pt  = p;
+                                pt = p;
                                 if i == 1 && p == 1
                                     pt = 3;
                                 end
@@ -161,15 +202,14 @@ for x = 1:Ns(1)          % location of paddle
 
                                 % ball position
                                 %------------------------------------------
-                                it   = i + mp(pt);
-                                it   = max(min(it,Nc),1);
+                                it = i + mp(pt);
+                                it = max(min(it,Nc),1);
 
                                 % next state: bomb vertical
                                 %------------------------------------------
-                                bt  = rem(b,Ns(7)) + 1;
+                                bt = rem(b,Ns(7)) + 1;
                                 
-
-                                % miss and reset
+                                % miss and reset ball
                                 %==========================================
                                 if j == Nr                % ball at bottom
 
@@ -185,7 +225,6 @@ for x = 1:Ns(1)          % location of paddle
 
                                         % miss
                                         %----------------------------------
-                                        % xt = x0;
                                         jt = j0;
                                         pt = p0;
                                         qt = q0;
@@ -198,13 +237,9 @@ for x = 1:Ns(1)          % location of paddle
                                             B{1}(st,s,u) = true;
                                         end
 
-                                        % default reset of ball
+                                        % reset ball
                                         %----------------------------------
                                         it = i0;
-
-                                        % miss
-                                        %----------------------------------
-                                        cid(end + 1) = s;
 
                                     end
 
@@ -214,28 +249,17 @@ for x = 1:Ns(1)          % location of paddle
                                 %------------------------------------------
                                 if j == (h + 1) && q == 1
 
-                                    % elimiate target row
+                                    % eliminate target row
                                     %--------------------------------------
                                     ht = max(h - 1,1);
 
-                                    % goal
-                                    %--------------------------------------
-                                    if i > 2 && i < (Nc - 2)
-                                        hid(end + 1) = s;
-                                    end
-
-                                end
-
-                                % bomb
-                                %------------------------------------------
-                                bomb  = b == Ns(7) & x == i0;
-                                bomb  = bomb & ~(i == i0 & j == Nr);
-                                if bomb
-                                    cid(end + 1) = s;
                                 end
 
                                 % reset game
                                 %==========================================
+
+                                % hit on last row
+                                %------------------------------------------
                                 if j == 2 && q == 1
 
                                     % xt = x0;
@@ -289,43 +313,40 @@ cid = unique(cid);
 for g = 1:numel(A)
     id.A{g} = 1;                           % states of ball and bat
 end
-if Na
 
-    % hits
-    %----------------------------------------------------------------------
-    a        = false(2,size(B{1},1));
-    a(1,:,:) = true;
-    for s = 1:size(hid,2)
-        a(1,hid(1,s)) = false;
-        a(2,hid(1,s)) = true;
-    end
-    A{end + 1}    = a;
-    id.A{end + 1} = 1;
-    id.reward     = numel(A);
-
-    % and misses
-    %----------------------------------------------------------------------
-    a        = false(2,size(B{1},1));
-    a(1,:,:) = true;
-    for s = 1:size(cid,2)
-        a(1,cid(1,s)) = false;
-        a(2,cid(1,s)) = true;
-    end
-    A{end + 1}    = a;
-    id.A{end + 1} = 1;
-    id.contraint  = numel(A);
-
-    % and proprioception
-    %----------------------------------------------------------------------
-    A{end + 1}    = P;
-    id.A{end + 1} = 1;
-    id.control    = numel(A);
-
+% hits
+%--------------------------------------------------------------------------
+a        = false(2,size(B{1},1));
+a(1,:,:) = true;
+for s = 1:size(hid,2)
+    a(1,hid(1,s)) = false;
+    a(2,hid(1,s)) = true;
 end
+A{end + 1}    = a;
+id.A{end + 1} = 1;
+id.reward     = numel(A);
+
+% and misses
+%--------------------------------------------------------------------------
+a        = false(2,size(B{1},1));
+a(1,:,:) = true;
+for s = 1:size(cid,2)
+    a(1,cid(1,s)) = false;
+    a(2,cid(1,s)) = true;
+end
+A{end + 1}    = a;
+id.A{end + 1} = 1;
+id.contraint  = numel(A);
+
+% and proprioception
+%--------------------------------------------------------------------------
+A{end + 1}    = P;
+id.A{end + 1} = 1;
+id.control    = numel(A);
 
 
 % Enumerate the states and paths of the ensuing generative model
-%--------------------------------------------------------------------------
+%==========================================================================
 Ng    = numel(A);                    % number of outcome modalities
 Nf    = numel(B);                    % number of hidden factors
 for f = 1:Nf
