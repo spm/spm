@@ -484,7 +484,7 @@ for i = 1:M.T
         pcr28   = 1 - (1 - p{n}{4}(3))^28;  % probability of being positive
         pcr14   = 1 - (1 - p{n}{4}(3))^14;  % probability of being positive
         
-        % time-varying parameters and other vaiables
+        % time-varying parameters and other variables
         %------------------------------------------------------------------
         V.Ptra  = Ptra;
         V.Ptrn  = Ptrn;

@@ -385,10 +385,10 @@ for k = 1:M.Nmax
         end
     end
     
-    % convergence failure
+    % convergence failure: try IS(Ep,M,U)
     %----------------------------------------------------------------------
     if revert
-        error('SPM:spm_nlsi_GN','Convergence failure.');
+        error('SPM:spm_nlsi_GN','Convergence failure');
     end
     
     

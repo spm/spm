@@ -29,6 +29,7 @@ function spm_SARS_plot(Y,X,Z,U)
 % https://www.telegraph.co.uk/global-health/science-and-disease/huge-regional-differences-intensive-care-bed-numbers-threaten/
 %--------------------------------------------------------------------------
 global CHOLD, if isempty(CHOLD); CHOLD = 1; end
+global DATE, if isempty(DATE); DATE = date; end
 
 % plot prior responses
 %==========================================================================
@@ -45,8 +46,8 @@ if nargin < 2
     % number of age groups if not specified
     %----------------------------------------------------------------------
     nN      = 4;
-    pE      = spm_SARS_priors(nN);
-    M.T     = datenum(date) - datenum('01-01-2020','dd-mm-yyyy');
+    pE      = spm_SARS_priors(nN,DATE);
+    M.T     = datenum(DATE) - datenum('01-01-2020','dd-mm-yyyy');
     [Y,X,Z] = spm_SARS_gen(pE,M,U);
     spm_SARS_plot(Y,X,Z,U)
     
@@ -90,7 +91,7 @@ end
 
 % factors and names
 %--------------------------------------------------------------------------
-[pE,pC,str] = spm_SARS_priors;
+[~,~,str] = spm_SARS_priors;
 
 % graphics
 %--------------------------------------------------------------------------
@@ -117,7 +118,7 @@ for i = 1:numel(X)
     
     k = k + 1;
     subplot(6,2,k), set(gca,'ColorOrderIndex',1);
-    [d,j] = sort(max(X{i}));
+    [~,j] = sort(max(X{i}));
     
     % remove redundant states
     %----------------------------------------------------------------------

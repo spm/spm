@@ -63,15 +63,16 @@ INDUCTION = true;                            % inductive inference
 %==========================================================================
 Nr = 12;                                     % number of rows
 Nc = 9;                                      % number of columns
+Nb = 2;                                      % number of bombs
+Nd = 1;                                      % number of random positions
 Sc = 32;                                     % spatial scaling
-Nd = 1;                                      % random initial conditions
-C  = 32;                                     % log cost
 T  = 2;                                      % time scaling
-L  = [16,4];                                 % path lengths
+C  = 32;                                     % log cost
+L  = [16,0];                                 % path lengths
 
 % get game in MDP form
 %--------------------------------------------------------------------------
-[GDP,~,~,~,RGB] = spm_MDP_arcade(Nr,Nc,Nd,true);
+[GDP,RGB] = spm_MDP_arcade(Nr,Nc,Nd,Nb);
 
 % size of streams
 %--------------------------------------------------------------------------
@@ -128,10 +129,10 @@ spm_figure('GetWin','Discovery'); clf
 NT    = 100;                         % number of frames per game 
 NS    = [];                          % number of states  
 NU    = [];                          % number of paths 
-NA    = [];                          % number of childless states
+NA    = [];                          % number of absorbing states
 NO    = [];                          % number of orphan states
 NH    = [];                          % number of goal states
-NG    = [];                          % number of goal states with children
+NG    = [];                          % number of transient goal states
 NF    = [];                          % number of goal states in orbit
 GDP.T = NT;
 for i = 1:200
@@ -184,22 +185,22 @@ for i = 1:200
 
     subplot(4,2,1), plot(NS), title('Generalised states'), axis square
     subplot(4,2,2), plot(NU), title('Generalised paths'),  axis square
-    subplot(4,2,3), plot(NA), title('Childless states'),   axis square, hold on
-    subplot(4,2,3), plot(NO), title('Childless states'),   axis square, hold off
+    subplot(4,2,3), plot(NA), title('Absorbing states'),   axis square, hold on
+    subplot(4,2,3), plot(NO), title('Absorbing states'),   axis square, hold off
  
-    legend({'childless','orphans'},'Location','northwest','Box','off')
+    legend({'absorbing','orphans'},'Location','northwest','Box','off')
 
     subplot(4,2,4), plot(NH), title('Goal states'), axis square, hold on
     subplot(4,2,4), plot(NG), title('Goal states'), axis square, hold on
     subplot(4,2,4), plot(NF), title('Goal states'), axis square, hold off
 
-    legend({'goal states','with children','on attractor'},'Location','northwest','Box','off')
+    legend({'goal states','transient goal states','on attractor'},'Location','northwest','Box','off')
 
     [~,j] = sort(sum(R,1),'descend');
     subplot(4,2,5); spy(sum(MDP{Nm}.b{1},3),'.k')
     title('Transition discovery'), xlabel('states'), axis square
     subplot(4,2,6); imagesc(1 - R(j,j))
-    title('Goal adjacency'),       xlabel('games'),  axis square
+    title('Goal adjacency'),       xlabel('states'), axis square
     subplot(4,1,4); plot(sort(r,'descend'))
     title('Radius of goals'),      xlabel('goals'),  axis square
     drawnow
@@ -209,21 +210,15 @@ end
 % model reduction
 %==========================================================================
 
-% prune childless states
+% prune absorbing states
 %--------------------------------------------------------------------------
 MDP   = spm_RDP_prune(MDP);
-MDP   = spm_set_goals(MDP,[2,3],[C,-C]);
-hid   = MDP{end}.id.hid;
-cid   = MDP{end}.id.cid;
 
 % Eigenreduction to maximize expected reward under NESS density
 %--------------------------------------------------------------------------
 if EIGEN
-    for i = 1:2
-        MDP = spm_RDP_ness(MDP,hid,cid);
-        MDP = spm_set_goals(MDP,[2,3],[C,-C]);
-        hid = MDP{end}.id.hid;
-        cid = MDP{end}.id.cid;
+    for i = 1:8
+        MDP = spm_RDP_ness(MDP,[2,3],[C,-C]);
     end
 end
 
@@ -232,6 +227,9 @@ end
 spm_figure('GetWin','Attractors'); clf
 subplot(2,2,1); imagesc(1 - R(j,j)), title('Goal adjacencies'), axis square
 
+MDP   = spm_set_goals(MDP,[2,3],[C,-C]);
+hid   = MDP{end}.id.hid;
+cid   = MDP{end}.id.cid;
 [~,R] = spm_RDP_radius(MDP,hid,cid);
 [~,j] = sort(sum(R,1),'descend');
 

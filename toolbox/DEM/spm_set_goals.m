@@ -2,14 +2,14 @@ function MDP = spm_set_goals(MDP,S,chi)
 % Gets rewarded (and restricted) states at the deepest level of an MDP
 % FORMAT MDP = spm_set_goals(MDP,S,chi)
 % MDP  - Generative model (hierarchical)
-% S    - list of modality streams; e.g. [2,3]
+% S    - list of modality streams;    e.g., [ 2,3]
 % chi  - log prior for each modality; e.g., [-8,8]  
 %
 %--------------------------------------------------------------------------
 % This auxiliary routine identifies the episodes (i.e., paths) encoded by
 % states at the deepest or highest level of a hierarchical MDP that entail
 % intended or avoided outcomes at the lowest level.These intended or costly
-% latent states are indexed in MDP{end}.id.hid and MDP{end}.id.hid,
+% latent states are indexed in MDP{end}.id.hid and MDP{end}.id.cid,
 % respectively — in the highest level identifier field.
 %__________________________________________________________________________
 
@@ -27,8 +27,7 @@ end
 
 % Get sequences of generalised outcomes for stream S
 %==========================================================================
-m        = Nm;
-MDP{m}.U = 1;
+m = Nm;
 if chi >= 0
     MDP{m}.id.hid = [];
 end
@@ -53,8 +52,8 @@ pe = intersect(ps,pe);
 
 % for each state at this level
 %--------------------------------------------------------------------------
-s      = {};                          % sequences of states
-Ns     = size(MDP{m}.b{1},1);
+s  = {};                                              % sequences of states
+Ns = size(MDP{m}.b{1},1);
 for si = 1:Ns
 
     % generate level m outcomes under this state
@@ -134,5 +133,10 @@ if chi > 0 && numel(hid)
     MDP{m}.H{1} = spm_softmax(h);
 end
 
+% turn on control
+%--------------------------------------------------------------------------
+if numel(hid) || numel(cid)
+    MDP{m}.U = 1;
+end
 
 return

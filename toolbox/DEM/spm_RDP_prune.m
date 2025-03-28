@@ -1,8 +1,7 @@
-function [MDP,j] = spm_RDP_prune(MDP,hid)
+function [MDP,j] = spm_RDP_prune(MDP)
 % BMR of superordinate states based upon predicted outcomes
-% FORMAT [MDP,j] = spm_RDP_prune(MDP,[hid])
+% FORMAT [MDP,j] = spm_RDP_prune(MDP)
 % MDP  - cell array of MDP structures
-% hid  - list of goal states
 %
 % MDP  - reduced MDP
 % j    - list of deep states with children
@@ -37,24 +36,6 @@ for i = 1:Ns
     %----------------------------------------------------------------------
     if all(d), break, end
 end
-
-% remove states with a long (> Nt) path to goal states
-%==========================================================================
-if nargin > 1
-    Nt    = 32;
-    h     = sparse(1,hid,1,1,Ns);
-    h     = h(j);
-    P     = zeros(Nt,numel(j));
-    for t = 1:Nt
-        P(t,:) = h;
-        h      = (h*B) > 0;
-    end
-
-    % retain paths to hid
-    %----------------------------------------------------------------------
-    j     = j(any(P,1));
-end
-
 
 % reduce MDP
 %==========================================================================
