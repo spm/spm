@@ -1,6 +1,6 @@
-function [MDP,d,o,h,c,r] = spm_RDP_basin(MDP,S,chi,L)
+function [MDP,d,o,h,c] = spm_RDP_basin(MDP,S,chi,L)
 % BMR of superordinate states based upon predicted outcomes
-% FORMAT [MDP,d,o,h,c,r] = spm_RDP_basin(MDP,S,chi,L)
+% FORMAT [MDP,d,o,h,c] = spm_RDP_basin(MDP,S,chi,L)
 % MDP  - cell array of MDP structures
 % S    - list of modality streams;    e.g., [2,3]
 % chi  - log prior for each modality; e.g., [8,-8]
@@ -11,7 +11,6 @@ function [MDP,d,o,h,c,r] = spm_RDP_basin(MDP,S,chi,L)
 % o    - vector indicating whether deep states have parents  [true]
 % h    - list of goal states
 % c    - list of cost states
-% r    - radius of goal states
 %
 % This routine implements a Bayesian model reduction in which the latent
 % (generalised) states at the highest level of the model are retained only
@@ -95,11 +94,5 @@ d   = any(sum(MDP{end}.b{1},3),1);       % with children
 o   = any(sum(MDP{end}.b{1},3),2);       % with parents
 h   = MDP{end}.id.hid;
 c   = MDP{end}.id.cid;
-
-% requested, get radii of goal paths
-%--------------------------------------------------------------------------
-if nargout > 5
-    r = spm_RDP_radius(MDP,h,c);
-end
 
 return

@@ -30,6 +30,9 @@ end
 m = Nm;
 if chi >= 0
     MDP{m}.id.hid = [];
+    if isfield(MDP{m},'H')
+        MDP{m}    = rmfield(MDP{m},'H');
+    end
 end
 if chi <= 0
     MDP{m}.id.cid = [];
@@ -127,15 +130,17 @@ end
 
 % specify H
 %--------------------------------------------------------------------------
-hid = MDP{m}.id.hid;
-if chi > 0 && numel(hid)
-    h     = sparse(hid,1,chi,Ns,1);
+if chi > 0 && numel(MDP{m}.id.hid)
+    h = sparse(MDP{m}.id.hid,1,chi,Ns,1);
     MDP{m}.H{1} = spm_softmax(h);
 end
 
 % turn on control
 %--------------------------------------------------------------------------
-if numel(hid) || numel(cid)
+if chi > 0 && numel(MDP{m}.id.hid)
+    MDP{m}.U = 1;
+end
+if chi < 0 && numel(MDP{m}.id.cid)
     MDP{m}.U = 1;
 end
 

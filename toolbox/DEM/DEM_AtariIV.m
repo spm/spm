@@ -56,19 +56,15 @@ function MDP = DEM_AtariIV
 %--------------------------------------------------------------------------
 rng(1)
 
-EIGEN     = true;                            % eigenreduction
-INDUCTION = true;                            % inductive inference
-
 % Get game: i.e., generative process (as a partially observed MDP)
 %==========================================================================
 Nr = 12;                                     % number of rows
 Nc = 9;                                      % number of columns
-Nb = 2;                                      % number of bombs
+Nb = 3;                                      % number of bombs
 Nd = 1;                                      % number of random positions
 Sc = 32;                                     % spatial scaling
 T  = 2;                                      % time scaling
 C  = 32;                                     % log cost
-L  = [16,0];                                 % path lengths
 
 % get game in MDP form
 %--------------------------------------------------------------------------
@@ -91,9 +87,8 @@ spm_get_miss = @(o,id) find(o(id.contraint,:) > 1);
 %==========================================================================
 spm_figure('GetWin','Gameplay'); clf
 
-GDP.tau = 1;                                  % smoothness of random paths
-GDP.T   = 10000;                              % training length
-PDP     = spm_MDP_generate(GDP);              % generate play
+GDP.T = 10000;                              % training length
+PDP   = spm_MDP_generate(GDP);              % generate play
 
 % illustrate sequence of random play
 %---------------------------------------------------------------------------
@@ -106,14 +101,13 @@ for t = 1:128
     drawnow
 end
 
-% structure learning: grouping operators (iA,iB,iC,...)
+%% Structure learning: dependencies (iA,iB,iC,...)
 %==========================================================================
 MDP = spm_faster_structure_learning(PDP.O,S,Sc,T);
 
 % forget parameters
 %--------------------------------------------------------------------------
-Nm  = numel(MDP);
-for n = 1:Nm
+for n = 1:numel(MDP)
     for g = 1:numel(MDP{n}.a)
         MDP{n}.a{g} = [];
     end
@@ -122,151 +116,24 @@ for n = 1:Nm
     end
 end
 
-% Parameter learning: basins of attraction of goal states
+
+%% Parameter learning: basins of attraction
 %==========================================================================
 spm_figure('GetWin','Discovery'); clf
-
-NT    = 100;                         % number of frames per game 
-NS    = [];                          % number of states  
-NU    = [];                          % number of paths 
-NA    = [];                          % number of absorbing states
-NO    = [];                          % number of orphan states
-NH    = [];                          % number of goal states
-NG    = [];                          % number of transient goal states
-NF    = [];                          % number of goal states in orbit
-GDP.T = NT;
-for i = 1:200
-
-    % Accumulate states under random play
-    %======================================================================
-    if i < 1
-
-        % reuse continuous training data
-        %------------------------------------------------------------------
-        t = (0:(NT + T)) + rem(i,100 - 1)*NT;
-        
-    else
-
-        % regenerate training data from initial conditions
-        %------------------------------------------------------------------
-        t = (0:(NT - T));
-        for j = 1:128
-            PDP = spm_MDP_generate(GDP);
-
-            % break, if there is a least one hit
-            %--------------------------------------------------------------
-            if any(spm_get_hits(PDP.o,GDP.id))
-                break
-            end
-        end
-    end
-
-
-    % Accumulate these states
-    %----------------------------------------------------------------------
-    for s = 1:T
-        MDP = spm_merge_structure_learning(PDP.O(:,t + s),MDP);
-    end
-
-    % Retain states in basin of attraction to goal states
-    %----------------------------------------------------------------------
-    [MDP,d,o,h,c] = spm_RDP_basin(MDP,[2,3],[C,-C],L);
-    [r,R,g,f]     = spm_RDP_radius(MDP,h,c);
-
-    % report implcit physics discovery
-    %======================================================================
-    NS(end + 1) = size(MDP{Nm}.b{1},2);    
-    NU(end + 1) = size(MDP{Nm}.b{1},3);
-    NA(end + 1) = sum(~d);
-    NO(end + 1) = sum(~o);
-    NH(end + 1) = numel(h);
-    NF(end + 1) = numel(f);
-    NG(end + 1) = sum(g);
-
-    subplot(4,2,1), plot(NS), title('Generalised states'), axis square
-    subplot(4,2,2), plot(NU), title('Generalised paths'),  axis square
-    subplot(4,2,3), plot(NA), title('Absorbing states'),   axis square, hold on
-    subplot(4,2,3), plot(NO), title('Absorbing states'),   axis square, hold off
- 
-    legend({'absorbing','orphans'},'Location','northwest','Box','off')
-
-    subplot(4,2,4), plot(NH), title('Goal states'), axis square, hold on
-    subplot(4,2,4), plot(NG), title('Goal states'), axis square, hold on
-    subplot(4,2,4), plot(NF), title('Goal states'), axis square, hold off
-
-    legend({'goal states','transient goal states','on attractor'},'Location','northwest','Box','off')
-
-    [~,j] = sort(sum(R,1),'descend');
-    subplot(4,2,5); spy(sum(MDP{Nm}.b{1},3),'.k')
-    title('Transition discovery'), xlabel('states'), axis square
-    subplot(4,2,6); imagesc(1 - R(j,j))
-    title('Goal adjacency'),       xlabel('states'), axis square
-    subplot(4,1,4); plot(sort(r,'descend'))
-    title('Radius of goals'),      xlabel('goals'),  axis square
-    drawnow
-    
-end
-
-% model reduction
-%==========================================================================
-
-% prune absorbing states
-%--------------------------------------------------------------------------
-MDP   = spm_RDP_prune(MDP);
-
-% Eigenreduction to maximize expected reward under NESS density
-%--------------------------------------------------------------------------
-if EIGEN
-    for i = 1:8
-        MDP = spm_RDP_ness(MDP,[2,3],[C,-C]);
-    end
-end
-
-% illustrate pruning
-%--------------------------------------------------------------------------
-spm_figure('GetWin','Attractors'); clf
-subplot(2,2,1); imagesc(1 - R(j,j)), title('Goal adjacencies'), axis square
-
-MDP   = spm_set_goals(MDP,[2,3],[C,-C]);
-hid   = MDP{end}.id.hid;
-cid   = MDP{end}.id.cid;
-[~,R] = spm_RDP_radius(MDP,hid,cid);
-[~,j] = sort(sum(R,1),'descend');
-
-subplot(2,2,2); imagesc(1 - R(j,j)), title('After pruning'),    axis square
-
-
-% Illustrate transititions and paths to goals
-%-=========================================================================
-subplot(2,2,3)
-spm_dir_orbits(MDP{Nm}.b{1},hid,64);
-
-% paths to hits
-%--------------------------------------------------------------------------
-subplot(2,2,4)
-B     = sum(MDP{Nm}.b{1},3) > 0;
-Ns    = size(B,1);
-Nt    = 32;
-h     = sparse(1,hid,1,1,Ns);
-P     = zeros(Nt,Ns);
-for t = 1:Nt
-    P(t,:) = h;
-    h      = (h + h*B) > 0;
-end
-imagesc(P), hold on 
-plot(hid,zeros(size(hid)) + 1/2,'.g','MarkerSize',16), hold off
-title('Paths to goals','FontSize',14)
-xlabel('latent states'), ylabel('time steps'), axis square
-drawnow
+NO    = 64;                                 % number of goals in orbit
+NT    = 100;                                % number of frames per game
+NR    = 1000;                               % maximum number of games
+L     = [32,32];                            % path lengths
+MDP   = spm_parameter_learning(MDP,GDP,L,NT,NR,NO);
 
 % Illustrate generative (i.e., fictive) play
 %==========================================================================
 
 % assemble RGM
 %--------------------------------------------------------------------------
-RDP   = spm_set_goals(MDP,[2,3],[C,-C]);   % set intended states (hid/cid)
-RDP   = spm_set_costs(RDP,[2,3],[C,-C]);   % set contraints (C)
-RDP   = spm_mdp2rdp(RDP);                  % get nested model
+RDP   = spm_set_goals(MDP,[2,3],[C,-C]);    % set intended states (hid/cid)
+RDP   = spm_set_costs(RDP,[2,3],[C,-C]);    % set contraints (C)
+RDP   = spm_mdp2rdp(RDP);                   % get nested model
 RDP.T = fix(512/T);
 PDP   = spm_MDP_VB_XXX(RDP);
 
@@ -277,7 +144,7 @@ spm_show_RGB(PDP,RGB);
 
 % and hits
 %--------------------------------------------------------------------------
-subplot(Nm + 3,2,2*(Nm + 1))
+subplot(numel(MDP) + 3,2,2*(numel(MDP) + 1))
 h = spm_get_hits(PDP.Q.o{1},GDP.id);
 c = spm_get_miss(PDP.Q.o{1},GDP.id);
 plot(h,zeros(size(h)) - 2,'.g','MarkerSize',16)
@@ -285,110 +152,19 @@ plot(c,zeros(size(c)) - 2,'.r','MarkerSize',16)
 drawnow
 
 
-%% Active inference
+%% Continual learning under active inference
 %==========================================================================
 % In what follows, we engage inductive planning as inference, with explicit
 % action; namely, the generative process is used to engage actions that
-% reproduce predicted outcomes (here, bat position) at the lowest level.
+% reproduce predicted outcomes (here, paddle position) at the lowest level.
 %--------------------------------------------------------------------------
-
-% install generative process in MDP structure
-%--------------------------------------------------------------------------
-MDP{1}.GA  = GDP.A;
-MDP{1}.GB  = GDP.B;
-MDP{1}.GU  = GDP.U;
-MDP{1}.GD  = GDP.D;
-MDP{1}.GE  = GDP.E;
-
-MDP{1}.ID  = GDP.id;
-MDP{1}.chi = 512;                           % sticky action/shaky hand
-NS         = 512;                           % concentration parameter
-
-% Continual learning
-%--------------------------------------------------------------------------
-NT    = 200;                                 % length of each game
-NR    = 100;                                 % number of replications
-F     = NaN(5,NR);
-t     = 0:(NT - T);
-for i = 1:NR
-
-    % set intended states and constraints
-    %----------------------------------------------------------------------
-    RDP   = spm_set_goals(MDP,[2,3],[C,-C]);
-    RDP   = spm_set_costs(RDP,[2,3],[C,-C]);
-
-    % assemble RGM and reduce prior precision
-    %----------------------------------------------------------------------
-    RDP   = spm_mdp2rdp(RDP,0,1/NS);
-
-    % preclude inductive inference for illustrative purposes
-    %----------------------------------------------------------------------
-    if ~INDUCTION, RDP.U = spm_zeros(RDP.U); end
-
-    % active inference
-    %----------------------------------------------------------------------
-    RDP.T = fix(NT/T);
-    PDP   = spm_MDP_VB_XXX(RDP);
-    
-    % learn from mistakes
-    %======================================================================
-
-    % accumulate self-generated sequence (i.e., Dirichlet counts)
-    %----------------------------------------------------------------------
-    O     = PDP.Q.O{1};
-    for s = 1:T
-        MDP = spm_merge_structure_learning(O(:,t + s),MDP);
-    end
-
-    % retain states in basins of attraction
-    %----------------------------------------------------------------------
-    MDP   = spm_RDP_basin(MDP,[2,3],[C,-C],L);
+NS    = 512;                                % concentration parameter
+NT    = 200;                                % length of each game
+NR    = 50;                                 % number of replications
+MDP   = spm_continual_learning(MDP,GDP,L,NT,NR,NS);
 
 
-    % Illustrate intentional play
-    %======================================================================
-    spm_figure('GetWin','Active inference'); clf
-    spm_show_RGB(PDP,RGB,4,0);
-
-    % and hits
-    %----------------------------------------------------------------------
-    subplot(Nm + 3,2,2*(Nm + 1))
-    h = spm_get_hits(PDP.Q.o{1},GDP.id);
-    c = spm_get_miss(PDP.Q.o{1},GDP.id);
-    plot(h,zeros(size(h)) - 2,'.g','MarkerSize',16)
-    plot(c,zeros(size(c)) - 2,'.r','MarkerSize',16)
-    drawnow
-
-    % record structure learning and behaviour
-    %----------------------------------------------------------------------
-    F(1,i) = size(PDP.B{1},2);                  % number of (deep) states
-    F(2,i) = size(PDP.B{1},3);                  % number of (deep) paths
-    F(3,i) = PDP.Q.F + sum(PDP.F);              % ELBO
-    F(4,i) = numel(h);                          % number of hits
-    F(5,i) = numel(c);                          % number of misses
-
-    % plot results
-    %----------------------------------------------------------------------
-    spm_figure('GetWin','Structure learning');
-    str = {...
-        'Latent states',...
-        'Latent paths',...
-        'ELBO',...
-        'Rewards and losses'};
-    for f = 1:numel(str)
-        subplot(3,2,f)
-        plot(F(f,:)), axis square
-        title(str{f},'FontSize',14), xlabel('games')
-    end
-    plot((1:i)*NT,F(4,1:i)), hold on
-    plot((1:i)*NT,F(5,1:i)), hold off
-    legend({'rewards','losses'},'Location','northwest','Box','off')
-    title(str{4},'FontSize',14), xlabel('frames'), axis square
-    drawnow
-
-end
-
-% Illustrate performance : before compression
+%% Illustrate performance : before compression
 %-=========================================================================
 
 % assemble RGM
@@ -403,11 +179,11 @@ RDP.T = fix(512/T);
 PDP   = spm_MDP_VB_XXX(RDP);
 
 spm_figure('GetWin','Active inference (before compression)'); clf
-spm_show_RGB(PDP,RGB,8,false);
+spm_show_RGB(PDP,RGB,8,true);
 
 % and hits
 %--------------------------------------------------------------------------
-subplot(Nm + 3,2,2*(Nm + 1))
+subplot(numel(MDP) + 3,2,2*(numel(MDP) + 1))
 h = spm_get_hits(PDP.Q.o{1},GDP.id);
 c = spm_get_miss(PDP.Q.o{1},GDP.id);
 plot(h,zeros(size(h)) - 2,'.g','MarkerSize',16)
@@ -438,7 +214,7 @@ title('Paths to goals (before)','FontSize',14)
 xlabel('latent states'), ylabel('time steps'), axis square
 
 
-% Illustrate performance : after compression
+%% Illustrate performance : after compression
 %-=========================================================================
 
 % assemble RGM
@@ -456,11 +232,11 @@ PDP   = spm_MDP_VB_XXX(RDP);
 % Illustrate recursive model
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Active inference (with compression)'); clf
-spm_show_RGB(PDP,RGB,4,0);
+spm_show_RGB(PDP,RGB,8,true);
 
 % and hits
 %--------------------------------------------------------------------------
-subplot(Nm + 3,2,2*(Nm + 1))
+subplot(numel(MDP) + 3,2,2*(numel(MDP) + 1))
 h = spm_get_hits(PDP.Q.o{1},GDP.id);
 c = spm_get_miss(PDP.Q.o{1},GDP.id);
 plot(h,zeros(size(h)) - 2,'.g','MarkerSize',16)
@@ -493,7 +269,7 @@ xlabel('latent states'), ylabel('time steps'), axis square
 % number of parameters
 %--------------------------------------------------------------------------
 np    = 0;
-for n = 1:Nm
+for n = 1:numel(MDP)
     for g = 1:numel(MDP{n}.a)
         np = np + nnz(MDP{n}.a{g});
     end
@@ -502,12 +278,235 @@ for n = 1:Nm
     end
 end
 disp('number of parameters'), disp(np)
+disp('number of possible states'), disp(size(GDP.B{1},1))
+disp('number of possible transitions'), disp(numel(GDP.B{1}))
+disp('number of allowable transitions'), disp(nnz(GDP.B{1}))
+disp('size of code (Minimimum Description Length)'), disp('20,480 bytes')
+
+return
+
+
+%% subroutines
+%--------------------------------------------------------------------------
+
+% parameter learning from random play
+%==========================================================================
+function MDP = spm_parameter_learning(MDP,GDP,L,NT,NR,NO)
+
+% parameter learning from random play
+%==========================================================================
+spm_figure('GetWin','Discovery');
+
+% preliminaries
+%--------------------------------------------------------------------------
+if nargin < 6, NO = 128; end         % number of goals in orbit
+C     = 32;                          % log cost
+D     = 2;                           % double dipping
+EIGEN = 0;                           % switch for eigenreduction
+
+% reward and cost functions [of outcomes]
+%--------------------------------------------------------------------------
+spm_get_hits = @(o,id) find(o(id.reward,:) > 1);
+
+N     = NaN(7,NR);
+GDP.T = NT;
+t     = (0:(NT - D));
+for i = 1:NR
+
+    % Accumulate states under random play
+    %======================================================================
+
+    % generate training data from initial conditions
+    %----------------------------------------------------------------------
+    for j = 1:128
+        PDP = spm_MDP_generate(GDP);
+
+        % break, if there is a least one hit
+        %------------------------------------------------------------------
+        if any(spm_get_hits(PDP.o,GDP.id))
+            break
+        end
+    end
+
+    % Accumulate these states
+    %----------------------------------------------------------------------
+    for s = 1:D
+        MDP = spm_merge_structure_learning(PDP.O(:,t + s),MDP);
+    end
+
+    % Retain states in basin of attraction to goal states
+    %----------------------------------------------------------------------
+    [MDP,d,o,h,c] = spm_RDP_basin(MDP,[2,3],[C,-C],L);
+    [R,g,f]       = spm_RDP_radius(MDP,h,c);
+
+    % report implcit physics discovery
+    %======================================================================
+    N(1,i) = size(MDP{end}.b{1},2);      % number of states 
+    N(2,i) = size(MDP{end}.b{1},3);      % number of paths
+    N(3,i) = sum(~d);                    % number of absorbing states
+    N(4,i) = sum(~o);                    % number of orphan states
+    N(5,i) = numel(h);                   % number of goal states
+    N(6,i) = sum(g);                     % number of transient goal states
+    N(7,i) = sum(f);                     % number of goal states in orbit
+
+    subplot(4,2,1), plot(N(1,:),'k'), title('Generalised states','FontSize',16), axis square, hold off
+    subplot(4,2,2), plot(N(2,:),'k'), title('Generalised paths', 'FontSize',16),  axis square, hold off
+    subplot(4,2,3), plot(N(3,:),'k'), title('Absorbing states',  'FontSize',16),   axis square, hold on
+    subplot(4,2,3), plot(N(4,:),'r'), title('Absorbing states',  'FontSize',16),   axis square, hold off
+ 
+    xlabel('games')
+    legend({'absorbing','orphans'},'Location','northwest','Box','off')
+
+    subplot(4,2,4), plot(N(5,:),'k'), title('Goal states','FontSize',16), axis square, hold on
+    subplot(4,2,4), plot(N(6,:),'r'), title('Goal states','FontSize',16), axis square, hold on
+    subplot(4,2,4), plot(N(7,:),'g'), title('Goal states','FontSize',16), axis square, hold off
+
+    xlabel('games')
+    legend({'goal states','transient goal states','on attractor'},'Location','northwest','Box','off')
+
+    [~,j] = sort(sum(R,1),'descend');
+    subplot(4,2,5); spy(sum(MDP{end}.b{1},3),'.k')
+    title('Transition discovery','FontSize',16), xlabel('states'), axis square
+    subplot(4,2,6); imagesc(1 - R(j,j))
+    title('Goal adjacency',      'FontSize',16), xlabel('states'), axis square
+    drawnow
+
+    % break if orbit contains > 128 goals
+    %----------------------------------------------------------------------
+    if sum(f) > NO, break, end
+    
+end
+
+% return unless MDP is required
+%--------------------------------------------------------------------------
+if ~nargout, return, end
+
+% model reduction
+%==========================================================================
+
+% prune absorbing states
+%--------------------------------------------------------------------------
+MDP   = spm_RDP_prune(MDP);
+
+% Eigenreduction to maximize expected reward under NESS density
+%--------------------------------------------------------------------------
+for i = 1:EIGEN
+    MDP = spm_RDP_ness(MDP,[2,3],[C,-C]);
+end
+
+% illustrate pruning
+%--------------------------------------------------------------------------
+spm_figure('GetWin','Attractors'); clf
+subplot(3,2,1); imagesc(1 - R(j,j)),              title('Goal adjacencies',    'FontSize',16), axis square
+subplot(3,2,3); plot(digraph(R)),                 title('Directed graph',      'FontSize',16),   axis square
+subplot(3,2,5); plot(transreduction(digraph(R))), title('Transitive reduction','FontSize',16),     axis square
+
+MDP   = spm_set_goals(MDP,[2,3],[C,-C]);
+hid   = MDP{end}.id.hid;
+cid   = MDP{end}.id.cid;
+R     = spm_RDP_radius(MDP,hid,cid);
+[~,j] = sort(sum(R,1),'descend');
+
+subplot(3,2,2); imagesc(1 - R(j,j)),              title('After pruning',       'FontSize',16),    axis square
+subplot(3,2,4); plot(digraph(R)),                 title('Directed graph',      'FontSize',16),   axis square
+subplot(3,2,6); plot(transreduction(digraph(R))), title('Transitive reduction','FontSize',16),     axis square
 
 return
 
 
 
+%% Continual_learning
+%-=========================================================================
+function [MDP,F] = spm_continual_learning(MDP,GDP,L,NT,NR,NS)
 
+% preliminaries
+%--------------------------------------------------------------------------
+if nargin < 6, NS = 512; end                % concentration parameter
+D  = 2;                                     % double dipping
+C  = 32;                                    % log cost
+
+% reward and cost functions [of outcomes]
+%--------------------------------------------------------------------------
+spm_get_hits = @(o,id) find(o(id.reward,:)    > 1);
+spm_get_miss = @(o,id) find(o(id.contraint,:) > 1);
+
+% install generative process in MDP structure
+%--------------------------------------------------------------------------
+MDP{1}.GA  = GDP.A;
+MDP{1}.GB  = GDP.B;
+MDP{1}.GU  = GDP.U;
+MDP{1}.GD  = GDP.D;
+MDP{1}.GE  = GDP.E;
+
+MDP{1}.ID  = GDP.id;
+MDP{1}.chi = 512;                           % sticky action/shaky hand
+
+% Continual learning
+%--------------------------------------------------------------------------
+F     = NaN(5,NR);
+t     = 0:(NT - D);
+for i = 1:NR
+
+    % set intended states and constraints
+    %----------------------------------------------------------------------
+    RDP   = spm_set_goals(MDP,[2,3],[C,-C]);
+    RDP   = spm_set_costs(RDP,[2,3],[C,-C]);
+
+    % assemble RGM and reduce prior precision
+    %----------------------------------------------------------------------
+    RDP   = spm_mdp2rdp(RDP,0,1/NS);
+
+    % active inference
+    %----------------------------------------------------------------------
+    RDP.T = fix(NT/MDP{end}.T);
+    PDP   = spm_MDP_VB_XXX(RDP);
+    
+    % learn from mistakes
+    %======================================================================
+
+    % accumulate self-generated sequence (i.e., Dirichlet counts)
+    %----------------------------------------------------------------------
+    O     = PDP.Q.O{1};
+    for s = 1:D
+        MDP = spm_merge_structure_learning(O(:,t + s),MDP);
+    end
+
+    % retain states in basins of attraction
+    %----------------------------------------------------------------------
+    MDP   = spm_RDP_basin(MDP,[2,3],[C,-C],L);
+
+    % record structure learning and behaviour
+    %----------------------------------------------------------------------
+    h      = spm_get_hits(PDP.Q.o{1},GDP.id);
+    c      = spm_get_miss(PDP.Q.o{1},GDP.id);
+    F(1,i) = size(PDP.B{1},2);                  % number of (deep) states
+    F(2,i) = size(PDP.B{1},3);                  % number of (deep) paths
+    F(3,i) = PDP.Q.F + sum(PDP.F);              % ELBO
+    F(4,i) = numel(h);                          % number of hits
+    F(5,i) = numel(c);                          % number of misses
+
+    % plot results
+    %----------------------------------------------------------------------
+    spm_figure('GetWin','Structure learning');
+    str = {...
+        'Latent states',...
+        'Latent paths',...
+        'ELBO',...
+        'Rewards and losses'};
+    for f = 1:numel(str)
+        subplot(3,2,f)
+        plot(F(f,:)), axis square
+        title(str{f},'FontSize',14), xlabel('games')
+    end
+    plot((1:i)*NT,F(4,1:i)), hold on
+    plot((1:i)*NT,F(5,1:i)), hold off
+    legend({'rewards','losses'},'Location','northwest','Box','off')
+    title(str{4},'FontSize',14), xlabel('frames'), axis square
+    drawnow
+
+end
+
+return
 
 % UTILITY CODE
 %==========================================================================
@@ -518,70 +517,3 @@ return
 %         imshow(spm_O2rgb(S{:,h(j)},RGB))
 %         drawnow,pause
 %     end
-
-% structure learning from self-generated play
-%==========================================================================
-if SELF
-
-    % forget parameters
-    %----------------------------------------------------------------------
-    for n = 1:Nm
-        for g = 1:numel(MDP{n}.a)
-            MDP{n}.a{g} = [];
-        end
-        for f = 1:numel(MDP{n}.b)
-            MDP{n}.b{f} = [];
-        end
-    end
-
-    % self-teaching
-    %----------------------------------------------------------------------
-    NT    = 200;                                    % length of each game
-    NR    = 100;                                    % number of games
-    F     = NaN(5,NR);
-    t     = 0:(NT - T);
-    RDP.T = fix(NT/T);
-    for i = 1:NR
-
-        % accumulate self-generated sequence (i.e., Dirichlet counts)
-        %------------------------------------------------------------------
-        PDP   = spm_MDP_VB_XXX(RDP);
-        O     = PDP.Q.O{1};
-        for s = 1:T
-            MDP = spm_merge_structure_learning(O(:,t + s),MDP);
-        end
-
-        % retain states in basins of attraction
-        %------------------------------------------------------------------
-        MDP   = spm_RDP_basin(MDP,[2,3],[C,-C],L);
-
-        % record structure learning and behaviour
-        %------------------------------------------------------------------
-        h      = spm_get_hits(PDP.Q.o{1},GDP.id);
-        c      = spm_get_miss(PDP.Q.o{1},GDP.id);
-        F(1,i) = size(MDP{end}.b{1},2);             % number of (deep) states
-        F(2,i) = size(MDP{end}.b{1},3);             % number of (deep) paths
-        F(3,i) = PDP.Q.F + sum(PDP.F);              % ELBO
-        F(4,i) = numel(h);                          % number of hits
-        F(5,i) = numel(c);                          % number of misses
-
-        % plot results
-        %------------------------------------------------------------------
-        spm_figure('GetWin','Self-teaching');
-        str = {...
-            'Latent states',...
-            'Latent paths',...
-            'ELBO',...
-            'Rewards and losses'};
-        for f = 1:numel(str)
-            subplot(3,2,f)
-            plot(F(f,:)), axis square
-            title(str{f},'FontSize',14), xlabel('games')
-        end
-        plot(F(4,:)), hold on
-        plot(F(5,:)), hold off
-        legend({'rewards','losses'},'Location','northwest','Box','off')
-        drawnow
-    end
-end
-

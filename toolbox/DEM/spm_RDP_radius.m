@@ -1,14 +1,14 @@
-function [r,R,g,f] = spm_RDP_radius(MDP,h,c)
+function [R,g,f,r] = spm_RDP_radius(MDP,h,c)
 % BMR of superordinate states based upon predicted outcomes
-% FORMAT [r,R] = spm_RDP_radius(MDP,h,c)
+% FORMAT [R,g,f,r] = spm_RDP_radius(MDP,h,c)
 % MDP  - cell array of MDP structures
 % h    - list of goal states
 % c    - list of cost states
 %
-% r    - radius
 % R    - Ajaceny matrix among h
-% g    - list of goal states with children
-% f    - list of goal states that can be reached from each other
+% g    - goal states with children
+% f    - goal states on attractor
+% r    - radius
 %
 % This routine returns the radius of each intended (goal) state for the
 % leading factor of a renormalising generative model. The radius is defined
@@ -35,7 +35,6 @@ function [r,R,g,f] = spm_RDP_radius(MDP,h,c)
 %--------------------------------------------------------------------------
 B      = sum(MDP{end}.b{1},3) > 0;
 B(c,:) = false;
-
 
 Nt    = 32;
 Ns    = size(B,1);
@@ -83,11 +82,11 @@ for i = 1:Nh
 
 end
 
-if nargout < 4, return, end
+if nargout < 3, return, end
 
 % number of goal states constituting an orbit
 %--------------------------------------------------------------------------
 S  = R^32;
-f  = find(any(S,1) & any(S,2)');
+f  = any(S,1) & any(S,2)';
 
 return
