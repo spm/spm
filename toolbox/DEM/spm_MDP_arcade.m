@@ -1,6 +1,6 @@
 function [MDP,RGB] = spm_MDP_arcade(Nr,Nc,Nd,Nb)
 % Creates an MDP structure for a simple arcade game
-% FORMAT [MDP,hid,cid,con,RGB] = spm_MDP_arcade(Nr,Nc,Nd,Nb)
+% FORMAT [MDP,RGB] = spm_MDP_arcade(Nr,Nc,Nd,Nb)
 %--------------------------------------------------------------------------
 % Nr    - number of rows
 % Nc    - number of columns
@@ -39,7 +39,7 @@ NS    = prod(Ns);       % number of states
 %--------------------------------------------------------------------------
 bo{1} = [ 0,0];
 bo{2} = [+2,1];
-bo{3} = [-3,2];
+bo{3} = [-4,2];
 bo{4} = [-1,0];
 bo{5} = [-3,1];
 

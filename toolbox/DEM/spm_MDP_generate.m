@@ -146,9 +146,9 @@ end % end model (m)
 % inital policy and transitions
 %--------------------------------------------------------------------------
 try
-    tau = MDP(m).tau;
+    tau = max(MDP(m).tau,1);
 catch
-    tau = 2;
+    tau = 1;
 end
 K     = 1;
 PK    = (1 - 1/tau)*eye(Np(m),Np(m)) + (1/tau)/(Np(m));
