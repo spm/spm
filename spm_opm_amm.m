@@ -57,20 +57,30 @@ n = s.chanori(sinds,:);
 vrange = abs((max(v)-min(v)));
 [~,ind]=max(vrange);
 if ind==1
-[ o, r]=spheroid_fit(v,1);
-end
-
-if ind==2
-[ o, r ]=spheroid_fit(v,2);
+  % rotate coordinte system around 3rd axis
+  R = zeros(3,3);
+  R(1,2) = -1;
+  R(2,1) = 1;
+  R(3,3)= 1;
+  v = (R*v')';
+  n = (R*n')';
+  S.plotSpheroid = 1;
+  warning('2nd axis should be longest axis, please confirm spheroid fit');
 end
 
 if ind==3
-[ o, r]=spheroid_fit(v,3);
+  % rotate coordinte system around 1st axis
+  R = zeros(3,3);
+  R(2,3) = -1;
+  R(3,2) = 1;
+  R(1,1)= 1;
+  v = (R*v')';
+  n = (R*n')';
+  S.plotSpheroid = 1;
+  warning('2nd axis should be longest axis, please confirm spheroid fit');
 end
 
-if (ind~=2)
-error('Y is not longest axis.... fix please')
-end
+[ o, r ]=spheroid_fit(v,2);
 
 inside = (v(:,1)-o(1)).^2/r(1)^2+(v(:,2)-o(2)).^2/r(2)^2+(v(:,3)-o(3)).^2/r(3)^2;
 c = sum(inside>1);
