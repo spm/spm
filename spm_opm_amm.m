@@ -54,8 +54,26 @@ Yinds = indchannel(S.D,usedLabs);
 %--------------------------------------------------------------------------
 v = s.chanpos(sinds,:);
 n = s.chanori(sinds,:);
-vrange = abs((max(v)-min(v)));
-[~,ind]=max(vrange);
+
+[ o1, r1 ]=spheroid_fit(v,1);
+isprolate1 = r1(1)>r1(2);
+fit1 = (v(:,1)-o1(1)).^2/r1(1)^2+(v(:,2)-o1(2)).^2/r1(2)^2+(v(:,3)-o1(3)).^2/r1(3)^2;
+
+[ o2, r2 ]=spheroid_fit(v,2);
+isprolate2 = r2(2)>r2(1);
+fit2 = (v(:,1)-o2(1)).^2/r2(1)^2+(v(:,2)-o2(2)).^2/r2(2)^2+(v(:,3)-o2(3)).^2/r2(3)^2;
+
+[ o3, r3 ]=spheroid_fit(v,3);
+isprolate3 = r3(3)>r3(2);
+fit3 = (v(:,1)-o3(1)).^2/r3(1)^2+(v(:,2)-o3(2)).^2/r3(2)^2+(v(:,3)-o3(3)).^2/r3(3)^2;
+
+fits = [std(fit1), std(fit2), std(fit3)];
+isprolate = [isprolate1,isprolate2,isprolate3];
+if(~any(isprolate))
+  error('Array is not easily modelled as prolate spheroid.');
+end
+[~,ind] = min(fits(isprolate));
+
 if ind==1
   % rotate coordinte system around 3rd axis
   R = zeros(3,3);
