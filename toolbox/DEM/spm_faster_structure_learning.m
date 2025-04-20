@@ -365,24 +365,21 @@ function [mdp,j] = spm_structure_fast(O)
 %--------------------------------------------------------------------------
 [i,j] = spm_unique(O);
 
+% reduction matrix
+%--------------------------------------------------------------------------
+R     = sparse(1:numel(j),j,1,numel(j),numel(i));
+
 % Likelihood tensors
 %--------------------------------------------------------------------------
-Ns    = numel(i);                           % number of latent causes
 Ng    = size(O,1);                          % number in group
 a     = cell(Ng,1);
 for g = 1:Ng
-
-    % record unique outcomes
-    %----------------------------------------------------------------------
-    a{g}  = zeros(numel(O{g}),Ns);
-    for t = 1:numel(j)
-        a{g}(:,j(t)) = a{g}(:,j(t)) + O{g,t};
-    end
-
+    a{g} = spm_cat(O(g,:))*R;
 end
 
 % Transition tensors
 %--------------------------------------------------------------------------
+Ns    = numel(i);                           % number of latent causes
 Nt    = numel(j) - 1;
 b     = zeros(Ns,Ns);
 for t = 1:Nt

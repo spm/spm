@@ -34,5 +34,17 @@ D       = spm_information_distance(a);
 Ns  = numel(i);
 R   = sparse(1:numel(j),j,1,numel(j),Ns);
 
+% i.e.,
+%--------------------------------------------------------------------------
+% for i = 1:numel(j)
+%     for j = 1:max(j)
+%         if k(i) == j
+%             R(i,j) = 1;
+%         else
+%             R(i,j) = 0;
+%         end
+%     end
+% end
+
 
 
