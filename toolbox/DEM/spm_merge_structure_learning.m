@@ -187,7 +187,7 @@ Ng = size(A,1);                 % number of modalities
 Ns = size(B,1);                 % number of old states
 Nu = size(B,3);                 % number of old paths
 
-% append new states to each a{g}
+% Append new states to each A{g}
 %--------------------------------------------------------------------------
 for g = 1:Ng
     Na     = size(A{g,1},1);
@@ -198,35 +198,25 @@ for g = 1:Ng
     A{g,1} = a;
 end
 
-% Unique outputs
-%==========================================================================
-
 % discretise and return indices of unique outcomes
 %--------------------------------------------------------------------------
 [i,j] = spm_unique([A,O]);
 
-% accumulate likelihood tensors
+% reduction matrix
 %--------------------------------------------------------------------------
-Nn    = numel(i);               % number of new states
-j     = j((Ns + 1):end);
+R     = sparse(1:numel(j),j,1,numel(j),numel(i));
+
+% Likelihood tensors
+%--------------------------------------------------------------------------
 a     = cell(Ng,1);
 for g = 1:Ng
-
-    % previously encountered outcomes
-    %----------------------------------------------------------------------
-    No   = numel(O{g});
-    a{g} = zeros(No,Nn); a{g}(1:No,1:Ns) = A{g};
-
-    % add new outcomes
-    %----------------------------------------------------------------------
-    for t = 1:numel(j)
-        a{g}(:,j(t)) = a{g}(:,j(t)) + O{g,t};
-    end
-
+    a{g} = spm_cat([A{g} O{g,:}])*R;
 end
 
 % Transition tensors
 %--------------------------------------------------------------------------
+j     = j((Ns + 1):end);                    % new transitions
+Nn    = numel(i);                           % number of states
 Nt    = numel(j) - 1;
 b     = zeros(Nn,Nn,Nu); b(1:Ns,1:Ns,:) = B;
 for t = 1:Nt

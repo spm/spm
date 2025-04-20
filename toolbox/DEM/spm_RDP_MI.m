@@ -22,7 +22,7 @@ function [MDP] = spm_RDP_MI(MDP,o)
 
 % defaults
 %--------------------------------------------------------------------------
-if nargin < 2, o = 2; end
+if nargin < 2, o = 1; end
 
 % get predictive mapping from states to outcomes in trailing streams
 %==========================================================================

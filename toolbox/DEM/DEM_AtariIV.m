@@ -281,6 +281,7 @@ disp('number of parameters'), disp(np)
 disp('number of possible states'), disp(size(GDP.B{1},1))
 disp('number of possible transitions'), disp(numel(GDP.B{1}))
 disp('number of allowable transitions'), disp(nnz(GDP.B{1}))
+disp('number of retained transitions'), disp(nnz(MDP{end}.b{1}))
 disp('size of code (Minimimum Description Length)'), disp('20,480 bytes')
 
 return
