@@ -48,8 +48,8 @@ function DCM = DEM_Diabetes
 % where having a low risk (i.e., normal) genotype reduces reproductive
 % fitness when, and only when food insecure. The replicator dynamics are
 % situated in transitions among age groups, from child to adults and then
-% old. Mortality entails moving to the gene pool that slowly equilibria
-% rates over time. This means that replicator dynamics are mediated by
+% old. Mortality entails moving to the gene pool that slowly equilibriates
+% over time. This means that replicator dynamics are mediated by
 % replication rates that themselves depend upon genetic-environment
 % interactions. The clinical phenotype inherits from the BMI phenotype, in
 % the sense that the probability of moving from healthy to diabetic is
@@ -112,6 +112,8 @@ end
 %--------------------------------------------------------------------------
 spm_diabetes_T(pE);
 
+return
+
 % generate data
 %==========================================================================
 [Y,X] = spm_diabetes_gen(pE,M,U);
@@ -158,7 +160,7 @@ FS     = @(Y)real(sqrt(spm_vec(Y)));
 
 % model specification
 %==========================================================================
-M.Nmax = 4;                    % maximum number of iterations
+M.Nmax = 2;                    % maximum number of iterations
 M.G    = @spm_diabetes_gen;    % generative function
 M.FS   = FS;                   % feature selection  (link function)
 M.pE   = pE;                   % prior expectations (parameters)
@@ -188,7 +190,7 @@ spm_diabetes_plot(Y,X,M)
 
 % show parameter recovery
 %--------------------------------------------------------------------------
-spm_figure('GetWin','Latent states'), clf
+spm_figure('GetWin','Parameter recovery'); clf
 
 Vp      = spm_unvec(diag(Cp),pE);
 qP.P{1} = Ep;
@@ -210,36 +212,36 @@ function [P,C,str] = spm_diabetes_priors(U)
 
 % expectations
 %--------------------------------------------------------------------------
-P.size      = 1;               % population size
-P.diabetes  = 1/128;           % risk of diabetes | not low BMI
-P.excess    = 1/4;             % risk of diabetes | low BMI
-P.famine    = 1/32;            % P(food insecure | food secure)
-P.recovery  = 1/8;             % P(food secure | food insecure)
-P.nutrition = 1/4;             % P(normalisation of BMI | food secure)
-P.obesity   = 1/8;             % P(obesity | food secure)
-P.mortality = 1/16;            % P(morbidity | food insecure)
-P.fecundity = 1/2;             % P(replication | insecure and Low risk) 
-P.drift     = 1/128;           % genetic exchange between gene pools
-P.prod      = 1/8;             % sensitivity of production of food insecurity
-P.severity  = ones(size(U.T)); % severity of successive famines
+P.size       = 1;               % population size
+P.diabetes   = 1/128;           % risk of diabetes | not low BMI
+P.excess     = 1/4;             % risk of diabetes | low BMI
+P.famine     = 1/32;            % P(food insecure | food secure)
+P.recovery   = 1/8;             % P(food secure | food insecure)
+P.nutrition  = 1/4;             % P(normalisation of BMI | food secure)
+P.obesity    = 1/8;             % P(obesity | food secure)
+P.mortality  = 1/64;            % P(morbidity | food secure)
+P.risk       = 1/8;             % excess mortality risk if not low BMI
+P.epigenetic = 1/2;             % gene-environment interaction 
+P.prod       = 1/8;             % sensitivity of production of food insecurity
+P.severity   = ones(size(U.T)); % severity of successive famines
 
 % Variances (on log transformed parameters
 %--------------------------------------------------------------------------
 V     = exp(-2);               % uninformative priors
 W     = exp(-4);               % informative priors (weak)
 
-C.size      = V;
-C.diabetes  = V;
-C.excess    = W;
-C.famine    = W;
-C.recovery  = W;
-C.nutrition = W;
-C.obesity   = W;
-C.mortality = W;
-C.fecundity = W;
-C.drift     = W;
-C.prod      = W;
-C.severity  = ones(size(U.T))*V;
+C.size       = V;
+C.diabetes   = V;
+C.excess     = W;
+C.famine     = W;
+C.recovery   = W;
+C.nutrition  = W;
+C.obesity    = W;
+C.mortality  = W;
+C.risk       = W;
+C.epigenetic = W;
+C.prod       = W;
+C.severity   = ones(size(U.T))*V;
 
 
 % log transform
@@ -249,8 +251,6 @@ P   = spm_vecfun(P,@log);
 % field names of random effects
 %--------------------------------------------------------------------------
 str = fieldnames(P);
-
-return
 
 function [B,Ns] = spm_diabetes_T(P)
 % Generate parameterised probability transitions for Master equation
@@ -267,6 +267,10 @@ states{3} = {'Secure',    'Insecure'};
 states{4} = {'High Risk', 'Low Risk'};
 states{5} = {'Healthy',   'Diabetic'};
 %__________________________________________________________________________
+Nf    = numel(factor);
+for f = 1:Nf
+   eval([factor{f} ' = f;']);
+end
 
 % exponentiate
 %--------------------------------------------------------------------------
@@ -278,7 +282,7 @@ P     = spm_vecfun(P,@erf);               % ensure all P < 1
 Ns    = [4 3 2 2 2];                      % number of states per factor
 NS    = prod(Ns);                         % number of joint states
 B     = zeros(NS,NS);                     % transition matrix
-D     = 88;                               % Gene pool occupancy
+D     = 64;                               % Gene pool occupancy
 
 % specify generative model under combinations of hidden states
 %--------------------------------------------------------------------------
@@ -361,13 +365,62 @@ for s = 1:NS
 
     end
 
-    % and pool if food insecure
-    %------------------------------------------------------------------
-    if ismember(S(s,3),[1 2 3])
-        T      = S(s,:);
-        T(1)   = 4;
-        t      = ismember(S,T,'rows');
-        B(t,s) = P.mortality;
+    % mortality
+    %----------------------------------------------------------------------
+    if ismember(S(s,1),[1 2 3])
+
+        if S(s,3) == 1
+
+            % if young, adult or old and food secure move to gene pool
+            % -------------------------------------------------------------
+            T      = S(s,:);
+            T(1)   = 4;                     % gene pool
+            T(4)   = 2;                     % low risk
+            t      = ismember(S,T,'rows');
+            B(t,s) = P.mortality;
+
+            T      = S(s,:);
+            T(1)   = 4;                     % gene pool
+            T(4)   = 1;                     % high risk
+            t      = ismember(S,T,'rows');
+            B(t,s) = P.mortality;
+
+        elseif S(s,3) == 2
+
+            if S(s,2) == 1
+
+                % if food insecure & low BMI
+                % ---------------------------------------------------------
+                T      = S(s,:);
+                T(1)   = 4;                     % gene pool
+                T(4)   = 2;                     % low risk
+                t      = ismember(S,T,'rows');
+                B(t,s) = P.mortality;
+
+                T      = S(s,:);
+                T(1)   = 4;                     % gene pool
+                T(4)   = 1;                     % high risk
+                t      = ismember(S,T,'rows');
+                B(t,s) = P.mortality;
+
+            else
+
+                % if food insecure & not low BMI, increased mortality rate
+                % ---------------------------------------------------------
+                T      = S(s,:);
+                T(1)   = 4;                     % gene pool
+                T(4)   = 2;                     % low risk
+                t      = ismember(S,T,'rows');
+                B(t,s) = P.mortality;
+
+                T      = S(s,:);
+                T(1)   = 4;                     % gene pool
+                T(4)   = 1;                     % high risk
+                t      = ismember(S,T,'rows');
+                B(t,s) = P.mortality + P.risk;
+
+            end
+        end
     end
 
     % population dynamics
@@ -405,14 +458,35 @@ for s = 1:NS
 
         % replicator dynamics with epigenetic interactions
         %==================================================================
-        if S(s,3) == 1                        % food secure
+        if S(s,3) == 1                            % food secure
 
-            T      = S(s,:);
-            T(1)   = 1;                       % Child
-            T(2)   = 2;                       % Typical
-            T(5)   = 1;                       % healthy
-            t      = ismember(S,T,'rows');
-            B(t,s) = 1/D;
+            if S(s,4) == 1
+
+                % High genetic risk, move to Low BMI program
+                %----------------------------------------------------------
+                T      = S(s,:);
+                T(1)   = 1;                       % Child
+                T(2)   = 1;                       % Low BMI
+                T(5)   = 1;                       % healthy
+                t      = ismember(S,T,'rows');
+                B(t,s) = (1 - P.epigenetic)/D;
+
+                T      = S(s,:);
+                T(1)   = 1;                       % Child
+                T(2)   = 2;                       % Typical
+                T(5)   = 1;                       % healthy
+                t      = ismember(S,T,'rows');
+                B(t,s) = P.epigenetic/D;
+
+            else
+
+                T      = S(s,:);
+                T(1)   = 1;                       % Child
+                T(2)   = 2;                       % Typical
+                T(5)   = 1;                       % healthy
+                t      = ismember(S,T,'rows');
+                B(t,s) = 1/D;
+            end
 
         elseif S(s,3) == 2                        % food insecure
 
@@ -436,31 +510,9 @@ for s = 1:NS
                 T(2)   = 2;                       % Typical
                 T(5)   = 1;                       % healthy
                 t      = ismember(S,T,'rows');
-                B(t,s) = P.fecundity/D;
+                B(t,s) = 1/D;
 
             end
-
-        end
-
-        % genetic equilibration
-        %----------------------------------------------------------------------
-        if S(s,4) == 1
-
-            % if high risk move to low risk
-            %------------------------------------------------------------------
-            T      = S(s,:);
-            T(4)   = 2;
-            t      = ismember(S,T,'rows');
-            B(t,s) = P.drift;
-
-        elseif S(s,4) == 2
-
-            % if high risk move to low risk
-            %------------------------------------------------------------------
-            T      = S(s,:);
-            T(4)   = 1;
-            t      = ismember(S,T,'rows');
-            B(t,s) = P.drift;
 
         end
 
@@ -491,7 +543,7 @@ for f = 1:numel(m)
 end
 
 subplot(4,3,6)
-imagesc(B), axis square, title('Dynamics')
+imagesc(-log(B)), axis square, title('Dynamics')
 
 % directed graph with transitive closure
 %--------------------------------------------------------------------------
@@ -514,8 +566,8 @@ for f = 1:Nf
     i(f) = false;
     i    = [i,i];
     BF   = squeeze(spm_sum(b,find(i)));
-    BF   = log(BF);
-    imagesc(spm_dir_norm(BF)), axis square
+    BF   = spm_dir_norm(BF);
+    imagesc(-log(BF)), axis square
     title(factor{f})
 end
 
