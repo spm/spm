@@ -78,7 +78,7 @@ function DCM = DEM_Diabetes
 %==========================================================================
 M.factor    = {'Age', 'Phenotype', 'Environment', 'Genotype', 'Clinical'};
 %--------------------------------------------------------------------------
-M.states{1} = {'Child',     'Adult',    'Old', 'Pool'};
+M.states{1} = {'Child',     'Adult',   'Old', 'Pool'};
 M.states{2} = {'Low BMI',   'Typical', 'High BMI'};
 M.states{3} = {'Secure',    'Insecure'};
 M.states{4} = {'High Risk', 'Low Risk'};
@@ -112,7 +112,6 @@ end
 %--------------------------------------------------------------------------
 spm_diabetes_T(pE);
 
-return
 
 % generate data
 %==========================================================================
@@ -160,7 +159,7 @@ FS     = @(Y)real(sqrt(spm_vec(Y)));
 
 % model specification
 %==========================================================================
-M.Nmax = 2;                    % maximum number of iterations
+M.Nmax = 4;                    % maximum number of iterations
 M.G    = @spm_diabetes_gen;    % generative function
 M.FS   = FS;                   % feature selection  (link function)
 M.pE   = pE;                   % prior expectations (parameters)
@@ -202,6 +201,9 @@ spm_DEM_qP(qP,pP)
 
 return
 
+
+% subroutines
+%==========================================================================
 
 function [P,C,str] = spm_diabetes_priors(U)
 % Generate log transformed parameters
@@ -607,7 +609,7 @@ P0    = P.famine;
 X     = {};
 for t = 1:tmax
 
-    % time dependent parameters
+    % time-dependent parameters
     %----------------------------------------------------------------------
     u  = find(ismember(U.T,t));
     if numel(u)
