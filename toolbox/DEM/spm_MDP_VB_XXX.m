@@ -2817,10 +2817,15 @@ DEM_drone_telemetry         % functional forms for likehood and domains
 DEM_drone_V                 % functional forms for likehood and domains
 DEM_drone_VI                % RGM with control at first level
 DEM_MNIST_conv              % Active sampling and state-dependent codomains
+DEM_laws                    % Context-sensitive preferences
+
 
 DEM_Atari                   % RGM with control at final level
 DEM_AtariI                  % RGM with structure merging
 DEM_AtariII                 % RGM with streams
+DEM_AtariIII                % RGM with streams
+DEM_AtariIV                 % RGM with closed orbits (transitive closure)
+
 DEM_compression             % RGM for movies (simple) (dove)
 DEM_video_compression       % RGM for movies (with learning) (Robin)
 DEM_sound_compression       % RGM for WAV files (Birdsong)

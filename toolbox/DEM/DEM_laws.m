@@ -194,8 +194,6 @@ PDP = spm_MDP_VB_XXX(MDP,OPTIONS);
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Figure 1'); clf
 spm_MDP_VB_trial(PDP);
-
-return
  
 % illustrate behavioural responses and neuronal correlates
 %--------------------------------------------------------------------------

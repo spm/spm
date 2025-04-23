@@ -22,7 +22,7 @@ function varargout = DEM_demo(varargin)
 
 % Edit the above text to modify the response to help DEM_demo
 
-% Last Modified by GUIDE v2.5 03-Nov-2024 16:26:16
+% Last Modified by GUIDE v2.5 22-Apr-2025 17:41:06
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -749,7 +749,7 @@ run_demo_Callback(hObject, handles, 'DEMO_DCM_MB')
 
 % --- Executes on button press in pushbutton252.
 function pushbutton252_Callback(hObject, eventdata, handles)
-run_demo_Callback(hObject, handles, 'DEM_COVID')
+run_demo_Callback(hObject, handles, 'DEM_COVID_UK4')
 
 % --- Executes on button press in pushbutton247.
 function pushbutton247_Callback(hObject, eventdata, handles)
@@ -838,17 +838,17 @@ run_demo_Callback(hObject, handles, 'DEM_MNIST_conv')
 % --- Executes on button press in pushbutton286.
 function pushbutton286_Callback(hObject, eventdata, handles)
 handles.web = 'Active Inference A Process Theory';
-run_demo_Callback(hObject, handles, 'DEM_drone')
+run_demo_Callback(hObject, handles, 'DEM_drone_V')
 
 % --- Executes on button press in pushbutton287.
 function pushbutton287_Callback(hObject, eventdata, handles)
 handles.web = 'Active Inference A Process Theory';
-run_demo_Callback(hObject, handles, 'DEM_AtariII')
+run_demo_Callback(hObject, handles, 'DEM_AtariIII')
 
 % --- Executes on button press in pushbutton288.
 function pushbutton288_Callback(hObject, eventdata, handles)
 handles.web = 'Active Inference A Process Theory';
-run_demo_Callback(hObject, handles, 'DEM_Atari')
+run_demo_Callback(hObject, handles, 'DEM_AtariIV')
 
 % --- Executes on button press in pushbutton289.
 function pushbutton289_Callback(hObject, eventdata, handles)
@@ -899,3 +899,13 @@ run_demo_Callback(hObject, handles, 'ADEM_physics')
 function pushbutton298_Callback(hObject, eventdata, handles)
 handles.web = 'Active Inference A Process Theory';
 run_demo_Callback(hObject, handles, 'DEM_music_compression')
+
+% --- Executes on button press in pushbutton299.
+function pushbutton299_Callback(hObject, eventdata, handles)
+handles.web = 'Dynamic causal modelling';
+run_demo_Callback(hObject, handles, 'DEM_Diabetes')
+
+% --- Executes on button press in pushbutton300.
+function pushbutton300_Callback(hObject, eventdata, handles)
+handles.web = 'Active Inference A Process Theory';
+run_demo_Callback(hObject, handles, 'DEM_laws')
