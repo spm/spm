@@ -10,7 +10,9 @@ if ~nargin, c = spm_cfg; end
 if nargin && ischar(c), clean_latex_compile; return; end
 
 %cd(fullfile(spm('Dir'),'man'));
-
+if ~exist('docs','dir')
+    mkdir('docs')
+end
 fp = fopen(fullfile('docs','spm_manual.md'),'w');
 sectioning(c,fp);
 bibcstr = get_bib(fullfile(spm('dir'),'man','biblio'));
