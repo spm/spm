@@ -224,6 +224,52 @@ fcon.help = {
     'Technically speaking, an F-contrast defines a number of directions (as many as the rank of the contrast) in the space spanned by the column vectors of the design matrix. These directions are simply given by X*c if the vectors of X are orthogonal, if not, the space define by c is a bit more complex and takes care of the correlation within the design matrix. In essence, an F-contrast is defining a reduced model by imposing some linear constraints (that have to be estimable, see below) on the parameters estimates. Sometimes, this reduced model is simply made of a subset of the column of the original design matrix but generally, it is defined by a combination of those columns. (see spm_FcUtil for what (I hope) is an efficient handling of F-contrats computation).'
     }';
 
+
+%--------------------------------------------------------------------------
+% F-contrast columns for the reduced model
+%--------------------------------------------------------------------------
+columns         = cfg_entry;
+columns.tag     = 'columns';
+columns.name    = 'Columns list';
+convec.help    = {
+    'Enter the indiced of design matrix columns'
+    'The way they are interpreted depends on the "Specification mode" option'
+    'The the default "Exclude" choice is equivalent to the one in the GUI contrast manager.'   
+    };
+convec.strtype = 'n';
+convec.num     = [1 Inf];
+
+
+%--------------------------------------------------------------------------
+% Include/exclude
+%--------------------------------------------------------------------------
+specmode        = cfg_menu;
+specmode.tag    = 'specmode';
+specmode.name   = 'Specification mode';
+specmode.help   = {
+    'How to specify the reduced model.'
+    ''
+    'Test for the contribution of the listed columns (Include)'
+    'Test for the contribution of unlisted columns (Exclude, default)'
+    };
+specmode.labels = {'Include', 'Exclude'};
+specmode.values = {1 0};
+specmode.val    = {0};
+
+
+%==========================================================================
+% fcol F-contrast
+%==========================================================================
+fcol      = cfg_branch;
+fcol.tag  = 'fcol';
+fcol.name = 'F-contrast (reduced model)';
+fcol.val  = {name columns specmode sessrep};
+fcol.help = {
+    'An alternative way of specifying an F-contrast by listing the column indices for a reduced model.'
+    ''
+    'The contrast test for the significant contribution of the columns that are listed if the Include option is chosen or that are not listed if the Exclude option is chosen'
+};
+
 %--------------------------------------------------------------------------
 % name Name
 %--------------------------------------------------------------------------
@@ -430,7 +476,7 @@ consess.help   = {
     ''
     'For an F-contrast, SPM (spm_getSPM.m) writes the Extra Sum-of-Squares (the difference in the residual sums of squares for the full and reduced model) as ess_????.{img,nii}. (Note that the ess_????.{img,nii} and SPM{T,F}_????.{img,nii} images are not suitable input for a higher level analysis.)'
     }';
-consess.values = {tcon fcon tconsess};
+consess.values = {tcon fcon fcol tconsess};
 consess.num    = [0 Inf];
 
 %--------------------------------------------------------------------------

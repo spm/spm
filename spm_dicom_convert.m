@@ -1314,6 +1314,10 @@ if isfield(Header,'GE_ImageType')
             ImTyp = '-Imag';
         end
     end
+else
+    if isfield(Header,'ImageType') && ~isempty(regexp(Header.ImageType,'\P\'))
+        ImTyp = '-Phase';
+    end
 end
 
 % To use ICE Dims systematically in file names in order to avoid

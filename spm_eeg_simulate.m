@@ -1,6 +1,6 @@
 function [Dnew,meshsourceind]=spm_eeg_simulate(D,prefix,patchmni,simsignal,ormni,woi,whitenoise,SNRdB,trialind,mnimesh,dipfwhm,nAmdipmom);
 % Simulate a number of MSP patches at specified locations on existing mesh
-% FORMAT [Dnew,meshsourceind]=spm_eeg_simulate(D,prefix,patchmni,simsignal,woi,whitenoise,SNRdB,trialind,mnimesh,dipfwhm);
+% function [Dnew,meshsourceind]=spm_eeg_simulate(D,prefix,patchmni,simsignal,ormni,woi,whitenoise,SNRdB,trialind,mnimesh,dipfwhm,nAmdipmom);
 % D dataset
 % prefix : prefix of new simulated dataset
 % patchmni : patch centres in mni space or patch indices
@@ -8,10 +8,11 @@ function [Dnew,meshsourceind]=spm_eeg_simulate(D,prefix,patchmni,simsignal,ormni
 % woi: window of interest in seconds
 % whitenoise level in rms femto Tesla or micro volts
 % SNRdB power signal to noise ratio in dBs
+% if neither whitenoise nor SNRdB are specified. defaults to whitenoise=10
 % trialind: trials on which the simulated data will be added to the noise
 % mnimesh : a new mesh with vertices in mni space
-% dipfwhm - patch smoothness in mm
-%
+% dipfwhm - patch smoothness in mm, defaults to 0
+% nAmdipmom- dipole moment in nAm, defaults to 10
 % Outputs
 % Dnew- new dataset
 % meshsourceind- vertex indices of sources on the mesh
@@ -67,6 +68,10 @@ if nargin<11
     dipfwhm=[]; %% number of iterations used to smooth patch out (more iterations, larger patch)
 end;
 
+if nargin<12,
+    nAmdipmom=[];
+end;
+
 
 
 if isempty(prefix),
@@ -74,13 +79,19 @@ if isempty(prefix),
 end;
 
 if isempty(dipfwhm),
-    dipfwhm=6; %% FWHM in mm
+    dipfwhm=0; %% FWHM in mm
 end;
 
+if isempty(nAmdipmom),
+    nAmdipmom=10; % dipole moment in nAm
+end;
 if isempty(woi),
     woi=[D{useind}.time(1) D{useind}.time(end)];
 end;
 
+if isempty(whitenoise) && isempty(SNRdB), %% if neither option is selected take white noise level by default
+    whitenoise=10; 
+end;
 
 val=D{useind}.val;
 
@@ -185,7 +196,7 @@ Ntrials = Dnew.ntrials;             % Number of trials
 % define period over which dipoles are active
 startf1  = woi(1);                  % (sec) start time
 endf1 = woi(2); %% end time
-f1ind = intersect(find(Dnew.time>startf1),find(Dnew.time<=endf1));
+f1ind = intersect(find(Dnew.time>=startf1),find(Dnew.time<=endf1));
 
 if length(f1ind)~=size(simsignal,2),
     error('Signal does not fit in time window');

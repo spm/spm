@@ -29,9 +29,6 @@ jobs:
         uses: matlab-actions/setup-matlab@v2
       - name: Checkout SPM
         uses: actions/checkout@v4
-        with:
-          repository: korbinian90/spm
-          ref: build_test
 
       - name: Delete old MEX files on Ubuntu and Mac
         if: matrix.os != 'windows-latest'

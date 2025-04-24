@@ -54,23 +54,51 @@ Yinds = indchannel(S.D,usedLabs);
 %--------------------------------------------------------------------------
 v = s.chanpos(sinds,:);
 n = s.chanori(sinds,:);
-vrange = abs((max(v)-min(v)));
-[~,ind]=max(vrange);
-if ind==1
-[ o, r]=spheroid_fit(v,1);
-end
 
-if ind==2
-[ o, r ]=spheroid_fit(v,2);
+[ o1, r1 ]=spheroid_fit(v,1);
+isprolate1 = r1(1)>r1(2);
+fit1 = (v(:,1)-o1(1)).^2/r1(1)^2+(v(:,2)-o1(2)).^2/r1(2)^2+(v(:,3)-o1(3)).^2/r1(3)^2;
+
+[ o2, r2 ]=spheroid_fit(v,2);
+isprolate2 = r2(2)>r2(1);
+fit2 = (v(:,1)-o2(1)).^2/r2(1)^2+(v(:,2)-o2(2)).^2/r2(2)^2+(v(:,3)-o2(3)).^2/r2(3)^2;
+
+[ o3, r3 ]=spheroid_fit(v,3);
+isprolate3 = r3(3)>r3(2);
+fit3 = (v(:,1)-o3(1)).^2/r3(1)^2+(v(:,2)-o3(2)).^2/r3(2)^2+(v(:,3)-o3(3)).^2/r3(3)^2;
+
+fits = [std(fit1), std(fit2), std(fit3)];
+isprolate = [isprolate1,isprolate2,isprolate3];
+if(~any(isprolate))
+  error('Array is not easily modelled as prolate spheroid.');
+end
+[~,ind] = min(fits(isprolate));
+
+if ind==1
+  % rotate coordinte system around 3rd axis
+  R = zeros(3,3);
+  R(1,2) = -1;
+  R(2,1) = 1;
+  R(3,3)= 1;
+  v = (R*v')';
+  n = (R*n')';
+  S.plotSpheroid = 1;
+  warning('2nd axis should be longest axis, please confirm spheroid fit');
 end
 
 if ind==3
-[ o, r]=spheroid_fit(v,3);
+  % rotate coordinte system around 1st axis
+  R = zeros(3,3);
+  R(2,3) = -1;
+  R(3,2) = 1;
+  R(1,1)= 1;
+  v = (R*v')';
+  n = (R*n')';
+  S.plotSpheroid = 1;
+  warning('2nd axis should be longest axis, please confirm spheroid fit');
 end
 
-if (ind~=2)
-error('Y is not longest axis.... fix please')
-end
+[ o, r ]=spheroid_fit(v,2);
 
 inside = (v(:,1)-o(1)).^2/r(1)^2+(v(:,2)-o(2)).^2/r(2)^2+(v(:,3)-o(3)).^2/r(3)^2;
 c = sum(inside>1);

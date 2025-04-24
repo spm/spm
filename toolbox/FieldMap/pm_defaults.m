@@ -40,14 +40,10 @@ pm_def.WS = 1;                        % Weighted or normal smoothing.
 
 % Flags for brain extraction
 %==========================================================================
-% Default T1 template for segmentation
-pm_def.MFLAGS.TEMPLATE = fullfile(spm('Dir'),'toolbox','FieldMap','T1.nii');
 pm_def.MFLAGS.FWHM = 5;     % {mm} used for smoothing to fill holes in brain mask
 pm_def.MFLAGS.NERODE = 2;   % {vox} used for erosion to remove scalp from brain mask
 pm_def.MFLAGS.NDILATE = 4;  % {vox} used for dilation to condition scalp removal
 pm_def.MFLAGS.THRESH = 0.5; % Intensity thresholding for filling holes
-pm_def.MFLAGS.REG = 0.02;   % A larger value helps segmentation to converge
-pm_def.MFLAGS.GRAPHICS = 0; % Don't display segmentation results
 
 % Defaults for converting field map to voxel displacement map.
 %==========================================================================

@@ -1,5 +1,5 @@
-function tests = test_regress_spm_dcm_fmri
-% Regression test for DCM for fMRI including timseries extraction
+function tests = test_regress_fmri_glm_dcm
+% Regression test for GLM and DCM for fMRI including timseries extraction
 % % This script analyses the Attention to Visual Motion fMRI dataset
 % available from the SPM website using DCM:
 %   http://www.fil.ion.ucl.ac.uk/spm/data/attention/
@@ -9,76 +9,47 @@ function tests = test_regress_spm_dcm_fmri
 
 % Copyright (C) 2024 Wellcome Centre for Human Neuroimaging
 
-tests = functiontests(localfunctions);
+tests = functiontests({@setup;
+                       @test_glm_parametric_volterra;
+                       @test_regress_glm_dcm});
 
-
-function test_regress_attention_dcm(testCase)
-
-data_path = fullfile(spm('Dir'),'tests','data','attention');
+function setup(testCase)
 
 % Initialise SPM
-%--------------------------------------------------------------------------
 spm('Defaults','fMRI');
 spm_jobman('initcfg');
 spm_get_defaults('cmdline',true);
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% GLM SPECIFICATION, ESTIMATION & INFERENCE
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% -------------------------------------------------------------------------
+function test_glm_parametric_volterra(testCase)
+% Test GLM specification with extra features: 
+% parametric regressors, volterra kernels and 2 basis functions
 
-factors = load(fullfile(data_path,'factors.mat'));
+data_path = fullfile(spm('Dir'),'tests','data','attention');
 
-f = spm_select('FPList', fullfile(data_path,'functional'), '^snf.*\.img$');
+options.bf = 2;
+options.volterra = true;
+options.pmod = true;
 
-clear matlabbatch
+% Specify and estimate GLM
+specify_glm(data_path,options);
 
-% OUTPUT DIRECTORY
-%--------------------------------------------------------------------------
-matlabbatch{1}.cfg_basicio.file_dir.dir_ops.cfg_mkdir.parent = cellstr(data_path);
-matlabbatch{1}.cfg_basicio.file_dir.dir_ops.cfg_mkdir.name = 'GLM';
+% We expect 30 design matrix columns (9 first order, 21 second order)
+SPM = load(fullfile(data_path,'GLM','SPM.mat'));
+SPM = SPM.SPM;
+testCase.verifyTrue(size(SPM.xX.X,2)==30);
+% -------------------------------------------------------------------------
+function test_regress_glm_dcm(testCase)
+% Test a simpler GLM with timeseries extraction and DCM
 
-% MODEL SPECIFICATION
-%--------------------------------------------------------------------------
-matlabbatch{2}.spm.stats.fmri_spec.dir = cellstr(fullfile(data_path,'GLM'));
-matlabbatch{2}.spm.stats.fmri_spec.timing.units = 'scans';
-matlabbatch{2}.spm.stats.fmri_spec.timing.RT    = 3.22;
-matlabbatch{2}.spm.stats.fmri_spec.sess.scans            = cellstr(f);
-matlabbatch{2}.spm.stats.fmri_spec.sess.cond(1).name     = 'Photic';
-matlabbatch{2}.spm.stats.fmri_spec.sess.cond(1).onset    = [factors.phot];
-matlabbatch{2}.spm.stats.fmri_spec.sess.cond(1).duration = 10;
-matlabbatch{2}.spm.stats.fmri_spec.sess.cond(2).name     = 'Motion';
-matlabbatch{2}.spm.stats.fmri_spec.sess.cond(2).onset    = [factors.mot];
-matlabbatch{2}.spm.stats.fmri_spec.sess.cond(2).duration = 10;
-matlabbatch{2}.spm.stats.fmri_spec.sess.cond(3).name     = 'Attention';
-matlabbatch{2}.spm.stats.fmri_spec.sess.cond(3).onset    = [factors.att];
-matlabbatch{2}.spm.stats.fmri_spec.sess.cond(3).duration = 10;
+data_path = fullfile(spm('Dir'),'tests','data','attention');
 
-% MODEL ESTIMATION
-%--------------------------------------------------------------------------
-matlabbatch{3}.spm.stats.fmri_est.spmmat = cellstr(fullfile(data_path,'GLM','SPM.mat'));
-
-% INFERENCE
-%--------------------------------------------------------------------------
-matlabbatch{4}.spm.stats.con.spmmat = cellstr(fullfile(data_path,'GLM','SPM.mat'));
-matlabbatch{4}.spm.stats.con.consess{1}.fcon.name = 'Effects of Interest';
-matlabbatch{4}.spm.stats.con.consess{1}.fcon.weights = eye(3);
-matlabbatch{4}.spm.stats.con.consess{2}.tcon.name = 'Photic';
-matlabbatch{4}.spm.stats.con.consess{2}.tcon.weights = [1 0 0];
-matlabbatch{4}.spm.stats.con.consess{3}.tcon.name = 'Motion';
-matlabbatch{4}.spm.stats.con.consess{3}.tcon.weights = [0 1 0];
-matlabbatch{4}.spm.stats.con.consess{4}.tcon.name = 'Attention';
-matlabbatch{4}.spm.stats.con.consess{4}.tcon.weights = [0 0 1];
-
-spm_jobman('run',matlabbatch);
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% VOLUMES OF INTEREST
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Specify and estimate GLM
+specify_glm(data_path);
 
 clear matlabbatch
 
 % EXTRACTING TIME SERIES: V5
-%--------------------------------------------------------------------------
 matlabbatch{1}.spm.util.voi.spmmat = cellstr(fullfile(data_path,'GLM','SPM.mat'));
 matlabbatch{1}.spm.util.voi.adjust = 1;  % "effects of interest" F-contrast
 matlabbatch{1}.spm.util.voi.session = 1; % session 1
@@ -97,7 +68,6 @@ matlabbatch{1}.spm.util.voi.roi{2}.sphere.move.fixed = 1;
 matlabbatch{1}.spm.util.voi.expression = 'i1 & i2';
 
 % EXTRACTING TIME SERIES: V1
-%--------------------------------------------------------------------------
 matlabbatch{2}.spm.util.voi.spmmat = cellstr(fullfile(data_path,'GLM','SPM.mat'));
 matlabbatch{2}.spm.util.voi.adjust = 1;  % "effects of interest" F-contrast
 matlabbatch{2}.spm.util.voi.session = 1; % session 1
@@ -113,7 +83,6 @@ matlabbatch{2}.spm.util.voi.roi{2}.sphere.move.fixed = 1;
 matlabbatch{2}.spm.util.voi.expression = 'i1 & i2';
 
 % EXTRACTING TIME SERIES: SPC
-%--------------------------------------------------------------------------
 matlabbatch{3}.spm.util.voi.spmmat = cellstr(fullfile(data_path,'GLM','SPM.mat'));
 matlabbatch{3}.spm.util.voi.adjust = 1;  % "effects of interest" F-contrast
 matlabbatch{3}.spm.util.voi.session = 1; % session 1
@@ -233,3 +202,76 @@ testCase.verifyTrue(exp_var > 75);
 % Check the largest neural connection was non-trivial (> 0.5Hz)
 testCase.verifyTrue(max_connection > 0.5);
 
+% -------------------------------------------------------------------------
+function specify_glm(data_path,options)
+% GLM SPECIFICATION, ESTIMATION & INFERENCE
+
+if nargin == 1
+    options = struct('pmod',false,'bf',1,'volterra',false);
+end
+
+spm_dir = fullfile(data_path,'GLM');
+spm_mat = fullfile(spm_dir,'SPM.mat');
+if exist(spm_dir,'file') && exist(spm_mat,'file')
+    delete(spm_mat);
+end
+
+factors = load(fullfile(data_path,'factors.mat'));
+
+f = spm_select('FPList', fullfile(data_path,'functional'), '^snf.*\.img$');
+
+clear matlabbatch
+
+% OUTPUT DIRECTORY
+matlabbatch{1}.cfg_basicio.file_dir.dir_ops.cfg_mkdir.parent = cellstr(data_path);
+matlabbatch{1}.cfg_basicio.file_dir.dir_ops.cfg_mkdir.name = 'GLM';
+
+% MODEL SPECIFICATION
+matlabbatch{2}.spm.stats.fmri_spec.dir = cellstr(fullfile(data_path,'GLM'));
+matlabbatch{2}.spm.stats.fmri_spec.timing.units = 'scans';
+matlabbatch{2}.spm.stats.fmri_spec.timing.RT    = 3.22;
+matlabbatch{2}.spm.stats.fmri_spec.sess.scans            = cellstr(f);
+matlabbatch{2}.spm.stats.fmri_spec.sess.cond(1).name     = 'Photic';
+matlabbatch{2}.spm.stats.fmri_spec.sess.cond(1).onset    = [factors.phot];
+matlabbatch{2}.spm.stats.fmri_spec.sess.cond(1).duration = 10;
+matlabbatch{2}.spm.stats.fmri_spec.sess.cond(2).name     = 'Motion';
+matlabbatch{2}.spm.stats.fmri_spec.sess.cond(2).onset    = [factors.mot];
+matlabbatch{2}.spm.stats.fmri_spec.sess.cond(2).duration = 10;
+matlabbatch{2}.spm.stats.fmri_spec.sess.cond(3).name     = 'Attention';
+matlabbatch{2}.spm.stats.fmri_spec.sess.cond(3).onset    = [factors.att];
+matlabbatch{2}.spm.stats.fmri_spec.sess.cond(3).duration = 10;
+
+if options.pmod == true
+    % Add random parametric regressor to condition 1
+    rng(1);
+    p = randn(20,1);
+    matlabbatch{2}.spm.stats.fmri_spec.sess.cond(1).pmod.name = 'pmod';
+    matlabbatch{2}.spm.stats.fmri_spec.sess.cond(1).pmod.param = p;
+    matlabbatch{2}.spm.stats.fmri_spec.sess.cond(1).pmod.poly = 1;
+end
+    
+if options.bf == 2
+    % Add time derivative
+    matlabbatch{2}.spm.stats.fmri_spec.bases.hrf.derivs = [1 0];
+end
+
+if options.volterra == true
+    % Add interaction terms for estimating volterra kernels
+    matlabbatch{2}.spm.stats.fmri_spec.volt = 2;
+end
+
+% MODEL ESTIMATION
+matlabbatch{3}.spm.stats.fmri_est.spmmat = cellstr(fullfile(data_path,'GLM','SPM.mat'));
+
+% INFERENCE
+matlabbatch{4}.spm.stats.con.spmmat = cellstr(fullfile(data_path,'GLM','SPM.mat'));
+matlabbatch{4}.spm.stats.con.consess{1}.fcon.name = 'Effects of Interest';
+matlabbatch{4}.spm.stats.con.consess{1}.fcon.weights = eye(3);
+matlabbatch{4}.spm.stats.con.consess{2}.tcon.name = 'Photic';
+matlabbatch{4}.spm.stats.con.consess{2}.tcon.weights = [1 0 0];
+matlabbatch{4}.spm.stats.con.consess{3}.tcon.name = 'Motion';
+matlabbatch{4}.spm.stats.con.consess{3}.tcon.weights = [0 1 0];
+matlabbatch{4}.spm.stats.con.consess{4}.tcon.name = 'Attention';
+matlabbatch{4}.spm.stats.con.consess{4}.tcon.weights = [0 0 1];
+
+spm_jobman('run',matlabbatch);

@@ -30,22 +30,13 @@ function bmask = pm_brain_mask(P,flags)
 
 
 if nargin < 2 || isempty(flags)
-%  flags.template=fullfile(spm('Dir'),'toolbox','FieldMap','T1.nii');
    flags.fwhm     = 5;
    flags.nerode   = 2;
    flags.ndilate  = 4;
    flags.thresh   = 0.5;
-%  flags.reg      = 0.02;
-%  flags.graphics = 0;
 end
 
 disp('Segmenting and extracting brain...');
-%seg_flags.estimate.reg=flags.reg;
-%seg_flags.graphics = flags.graphics;
-
-% Updated to use renamed version of spm_segment
-%VO    = pm_segment(P.fname,flags.template,seg_flags);
-%bmask = double(VO(1).dat)+double(VO(2).dat)+double(VO(3).dat)>0;
 bmask = get_bmask(P.fname);
 bmask = open_it(bmask,flags.nerode,flags.ndilate); % Do opening to get rid of scalp
 

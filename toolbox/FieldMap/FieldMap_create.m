@@ -61,19 +61,15 @@ end
 
 % Set parameters for brain extraction
 if ~isfield(pm_defs,'mflags')
-    IP.mflags.template=pm_defs.MFLAGS.TEMPLATE;
     IP.mflags.fwhm=pm_defs.MFLAGS.FWHM;
     IP.mflags.nerode=pm_defs.MFLAGS.NERODE;
     IP.mflags.ndilate=pm_defs.MFLAGS.NDILATE;
     IP.mflags.thresh=pm_defs.MFLAGS.THRESH;
-    IP.mflags.reg=pm_defs.MFLAGS.REG;
 else
-    IP.mflags.template=pm_defs.mflags.template;
     IP.mflags.fwhm=pm_defs.mflags.fwhm;
     IP.mflags.nerode=pm_defs.mflags.nerode;
     IP.mflags.ndilate=pm_defs.mflags.ndilate;
     IP.mflags.thresh=pm_defs.mflags.thresh;
-    IP.mflags.reg=pm_defs.mflags.reg;
 end
 
 % Get FieldMap parameters
@@ -107,7 +103,6 @@ IP.pP = [];
 IP.epiP = [];
 IP.uepiP = [];
 IP.vdmP = [];
-ID = cell(4,1);
 
 %--------------------------------------------------------------------------
 % Load measured field map data - phase and magnitude or real and imaginary
@@ -198,7 +193,7 @@ elseif nsessions==1
     % Outputs -> uNAME-OF-EPI.img
     %----------------------------------------------------------------------
     unwarp_info=sprintf('Unwarped EPI:echo time difference=%2.2fms, EPI readout time=%2.2fms, Jacobian=%d',IP.uflags.etd, IP.tert,IP.ajm);
-    IP.uepiP = FieldMap('Write',IP.epiP,IP.uepiP.dat,'u',IP.epiP.dt(1),unwarp_info);
+    IP.uepiP = FieldMap('Write',IP.epiP,IP.uepiP.dat,'u',IP.epiP.dt(1),unwarp_info, IP.uepiP.pinfo);
     VDM{1}=IP.vdmP;
     IPcell{1}=IP;
 else
@@ -221,8 +216,7 @@ else
         if numel(IP.epiP) > 1, IP.epiP = IP.epiP(1); end  % 4D
         if isfield(pm_defs, 'match_vdm')
             if pm_defs.match_vdm
-                msg=sprintf('\nMatching session %d...\n',sessnum);
-                disp(msg);
+                fprintf('\nMatching session %d...\n',sessnum);
                 IP.vdmP = FieldMap('MatchVDM',IP);
             end
             % Now copy this file to a session specific file

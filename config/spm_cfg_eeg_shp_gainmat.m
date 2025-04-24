@@ -1,4 +1,4 @@
-function eeg_pca_gainmat = spm_cfg_eeg_shp_gainmat
+function eeg_shp_gainmat = spm_cfg_eeg_shp_gainmat
 % Configuration file for creating distorted versions of subject anatomy
 % Based on original antomical and predetermined 100 eigen component template space.
 %__________________________________________________________________________
@@ -6,14 +6,14 @@ function eeg_pca_gainmat = spm_cfg_eeg_shp_gainmat
 % Gareth Barnes, Yael Balbastre
 % Copyright (C) 2024 Imaging Neuroscience
 
-eeg_pca_gainmat          = cfg_exbranch;
-eeg_pca_gainmat.tag      = 'eeg_shp_gainmat';
-eeg_pca_gainmat.name     = 'Gain matrices for surfaces';
-eeg_pca_gainmat.val      = @eeg_shp_gainmat_cfg;
-eeg_pca_gainmat.help     = {'To compute new lead field/ gain matrices for multiple disto'};
-eeg_pca_gainmat.prog     = @specify_eeg_shp_gainmat;
-eeg_pca_gainmat.vout     = @vout_specify_eeg_shp_gainmat;
-eeg_pca_gainmat.modality = {'MEG'};
+eeg_shp_gainmat          = cfg_exbranch;
+eeg_shp_gainmat.tag      = 'eeg_shp_gainmat';
+eeg_shp_gainmat.name     = 'Gain matrices for surfaces';
+eeg_shp_gainmat.val      = @eeg_shp_gainmat_cfg;
+eeg_shp_gainmat.help     = {'To compute new lead field/ gain matrices for multiple disto'};
+eeg_shp_gainmat.prog     = @specify_eeg_shp_gainmat;
+eeg_shp_gainmat.vout     = @vout_specify_eeg_shp_gainmat;
+eeg_shp_gainmat.modality = {'MEG'};
 
 
 %==========================================================================
@@ -27,7 +27,6 @@ D.tag       = 'D';
 D.name      = 'M/EEG datasets';
 D.filter    = 'mat';
 D.val       = {''};
-% D.dir       = {'C:\Users\gbarnes\Documents\jimmydata\output\data\gb070167\'};
 D.num       = [1 1];
 D.help      = {'Select the M/EEG mat file'};
 
@@ -65,7 +64,22 @@ LFheadmodel.labels      = {'Single Shell', 'Single Sphere'}';
 LFheadmodel.values      = {'Single Shell', 'Single Sphere'}';
 
 
-[cfg,varargout{1}] = deal({D, val,LFheadmodel,LFRedo});
+LFsubdir             = cfg_entry;
+LFsubdir.tag         = 'LFsubdir';
+LFsubdir.name        = 'Name of subdir to store leads';
+LFsubdir.strtype     = 's';
+LFsubdir.val         = {'seed001'};
+LFsubdir.help        = {'Select name of the subdirectory to store leads in (normally seed001 etc)'};
+
+WriteClean                  = cfg_menu;
+WriteClean.tag              = 'WriteClean';
+WriteClean.name             = 'Removes all files in existing seed directory';
+WriteClean.val              = {'Yes'};
+WriteClean.help             = {'Will force fresh empty directory for lead fields'};
+WriteClean.labels           = {'Yes', 'No'}';
+WriteClean.values           = {'Yes', 'No'}';
+
+[cfg,varargout{1}] = deal({D, val,LFheadmodel,LFRedo,LFsubdir,WriteClean});
 
 
 %==========================================================================
@@ -78,7 +92,10 @@ val        = job.val;
 % Load D and make a working copy
 % ------------------------------
 D          = spm_eeg_load(job.D{val});
-folder_out = [D.path filesep 'outPCA' filesep];
+[dum,b1,dum]=spm_fileparts(D.fname);
+folder_out = [D.path filesep b1 '_LFPCA'];
+
+LFsubdir=job.LFsubdir;
 Dc         = D.copy(folder_out); % work with copy of the original
 
 % ------------------------
@@ -86,7 +103,8 @@ Dc         = D.copy(folder_out); % work with copy of the original
 % ------------------------
 path_mri       = Dc.inv{1}.mesh.sMRI;
 folder_mri     = spm_file(path_mri, 'path');
-folder_mesh    = fullfile(folder_mri, 'PCA', 'Cerebros');
+folder_mesh    = fullfile(folder_mri, 'PCA', 'Cerebros',LFsubdir);
+%orig_mesh    = fullfile(folder_mri, 'PCA', 'Cerebros',LFsubdir);
 [brianmeshes]  = spm_select('FPList', folder_mesh, '.*\.gii$');
 Nfiles         = size(brianmeshes,1);
 
@@ -101,7 +119,13 @@ headmodel        = job.LFheadmodel;
 uheadmodel       = regexprep(headmodel,' ', '_'); 
 % make a directory to contain headmodels and then surface leadfields
 folder_headmodel = fullfile(folder_out, uheadmodel); 
+
 mkdir(folder_headmodel);
+if exist([folder_headmodel filesep LFsubdir])&&(strcmp(job.WriteClean,'Yes')),
+    fprintf('\n Deleting Seed directory %s\n ')
+    rmdir([folder_headmodel filesep LFsubdir],'s');
+end;
+mkdir([folder_headmodel filesep LFsubdir]);
 
 % -------------------------------------------------------------------------
 % Compute forward model from real brain
@@ -125,15 +149,19 @@ for cerebro = 0:Nfiles
     if cerebro == 0
         % Iteration 0 corresponds to the true brain !
         brianmesh = brainmesh;
+        meshname = spm_file(brianmesh, 'basename');
+        path_gainmat = fullfile(folder_headmodel, ['GainMat_' meshname '.mat']);
     else
         % Distorted brain!
         % Keep file as it was on the first run
         % replace subject's cortex and delete any ref to lead fields
         brianmesh = deblank(brianmeshes(cerebro,:));
+        meshname = spm_file(brianmesh, 'basename');
         Dc.inv{val}.mesh.tess_ctx = brianmesh;
+        path_gainmat = fullfile(folder_headmodel,LFsubdir, ['GainMat_' meshname '.mat']);
     end
 
-    meshname = spm_file(brianmesh, 'basename');
+    
 
     % Load mesh (its vertices are in native space)
     gii_native = gifti(brianmesh);
@@ -154,13 +182,14 @@ for cerebro = 0:Nfiles
     % -----------------------------------------------------------
     fprintf('\nComputing lead fields')
 
-    path_gainmat = fullfile(folder_headmodel, ['GainMat_' meshname '.mat']);
+    
     if ~exist(path_gainmat, 'file') || strcmp(job.LFRedo,'Yes')
         Dc.inv{val}.gainmat = '';
         Dc.save;
         % Generate/load lead field
         [~,Dc]= spm_eeg_lgainmat(Dc);			
         spm_copy(fullfile(Dc.path, Dc.inv{val}.gainmat),path_gainmat);
+        fprintf('\n Creating gain mat file :\n %s',path_gainmat);
     end
     allgainmat{cerebro+1}=path_gainmat;
 end

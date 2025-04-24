@@ -156,13 +156,13 @@ try
     feval(@spm_bsplinc,1,ones(1,6));
 catch
     if ismac
-        url = 'https://www.fil.ion.ucl.ac.uk/spm/docs/development/compilation/macos/';
+        url = 'https://www.fil.ion.ucl.ac.uk/spm/docs/installation/#macos';
     elseif isunix
-        url = 'https://www.fil.ion.ucl.ac.uk/spm/docs/development/compilation/linux/';
+        url = 'https://www.fil.ion.ucl.ac.uk/spm/docs/installation/#linux';
     elseif ispc
-        url = 'https://www.fil.ion.ucl.ac.uk/spm/docs/development/compilation/windows/';
+        url = 'https://www.fil.ion.ucl.ac.uk/spm/docs/installation/#windows';
     else
-        url = 'https://www.fil.ion.ucl.ac.uk/spm/docs/development/compilation/';
+        url = 'https://www.fil.ion.ucl.ac.uk/spm/docs/installation/';
     end
     if strcmpi(platform,'octave')
         url = 'https://www.fil.ion.ucl.ac.uk/spm/docs/installation/octave/';

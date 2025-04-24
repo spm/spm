@@ -101,7 +101,7 @@ end % for k
 
 
 %==========================================================================
-function [q,dist,useind,areapervertex] = gauss_patch(M,i,FWHM,q)
+function [q,dist,dist2fwhm_ind,areapervertex] = gauss_patch(M,i,FWHM,q)
 %function [q,dist,useind,dist2fwhm,useind2]= gauss_patch(M,i,FWHM,q)
 
 
@@ -111,20 +111,23 @@ sigma=FWHM./2.355;
 sigma2=sigma^2;
 
 M.faces = double(M.faces); % Force faces to be double for new spm_mesh_geodisic 
-d = spm_mesh_geodesic(M,i); % Updated syntax - GCO;
+%d = spm_mesh_geodesic(M,i); % Updated syntax - GCO;
+d1=spm_mesh_distmtx(M); %5 get first order distance matrix
+warning('Computing only first-order distances (not geodesic distances)');
+dist2fwhm_ind=[i find(d1(i,:))];
+dist2fwhm=[full(d1(i,dist2fwhm_ind))]; 
+%useind2=find(d<10/1000); %% a much larger area so that for small FWHM the per vertex area can be calculated
+%dist2fwhm=d(useind2);
+areapervertex=pi*(max(dist2fwhm/2).^2)/length(dist2fwhm);
 
-useind2=find(d<10/1000); %% a much larger area so that for small FWHM the per vertex area can be calculated
-dist2fwhm=d(useind2);
-areapervertex=pi*(max(dist2fwhm/2).^2)/length(useind2);
 
-
-useind=find(d<=FWHM); %% maybe only extend just over 2 sigma in any one direction (i.e. cover 95% interval)
+%useind=dist2fwhm_ind(find(dist2fwhm<=FWHM)); %% maybe only extend just over 2 sigma in any one direction (i.e. cover 95% interval)
 
 if FWHM==0
-    useind=i;
+    
     dist=0;
-    q(useind)=1; %% impulse for 0 FWHM
+    q(i)=1; %% impulse for 0 FWHM
 else
-    dist=d(useind);
-    q(useind)=exp(-(dist.^2)/(2*sigma2));
+    dist=dist2fwhm;
+    q(dist2fwhm_ind)=exp(-(dist.^2)/(2*sigma2));
 end

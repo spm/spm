@@ -53,7 +53,6 @@ elseif isfield(job.defaults,'defaultsval')
     echotimes               = pm_defs.et;
     pm_defs.et              = {echotimes(1) echotimes(2)};
     pm_defs.uflags.etd      = pm_defs.et{2}-pm_defs.et{1};
-    pm_defs.mflags.template = pm_defs.mflags.template{1};
 end
 
 %--------------------------------------------------------------------------
