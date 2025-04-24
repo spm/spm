@@ -72,7 +72,10 @@ isprolate = [isprolate1,isprolate2,isprolate3];
 if(~any(isprolate))
   error('Array is not easily modelled as prolate spheroid.');
 end
-[~,ind] = min(fits(isprolate));
+isprolateinds = find(isprolate);
+ prolatefits = fits(isprolate);
+[~,mind] = min(prolatefits);
+ind = isprolateinds(mind);
 
 if ind==1
   % rotate coordinte system around 3rd axis
