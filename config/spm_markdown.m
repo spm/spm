@@ -13,7 +13,7 @@ if nargin && ischar(c), clean_latex_compile; return; end
 if ~exist('docs','dir')
     mkdir('docs')
 end
-fp = fopen(fullfile('docs','spm_manual.md'),'w');
+fp = fopen(fullfile('docs','index.md'),'w');
 sectioning(c,fp);
 bibcstr = get_bib(fullfile(spm('dir'),'man','biblio'));
 
@@ -38,7 +38,7 @@ switch class(c)
 end
 switch class(c)
     case {'cfg_exbranch'}
-        fprintf(fp,'\n\n%s [**%s**](../%s%s/)  \n',sec(level),texify(c.name),dr,c.tag);
+        fprintf(fp,'\n\n%s [**%s**](./%s%s.md)  \n',sec(level),texify(c.name),dr,c.tag);
         chapter(c, [dr c.tag '.md']);
 
     case {'cfg_branch'}
@@ -148,13 +148,10 @@ end
 str    = texify(hlp);
 indent = repmat('    ',[1 level-1]);
 if ~isempty(str)
-    fprintf(fp,'%s%s  \n', indent, str);
+    fprintf(fp,'%s%s   \n', indent, str);
 else
-    if true %indent>=1
-        fprintf(fp,'%s.  \n', indent);
-    else
-        fprintf(fp,'  \n');
-    end
+    fprintf(fp,'%s.   \n', indent);
+%   fprintf(fp,'\n');
 end
 
 

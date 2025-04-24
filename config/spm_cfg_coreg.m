@@ -14,13 +14,9 @@ estimate.name    = 'Coregister: Estimate';
 estimate.val     = @()[estimate_cfg eoptions_cfg];
 estimate.help    = {
     'Within-subject registration using a rigid-body model.'
-    ''
     'Because the registration algorithm uses objective functions derived from joint intensity histograms, it often works much better using scans that have been intensity non-uniformity (INU) corrected. Skull-stripping can also help.  INU corrected scans can be obtained as a by-product of SPM''s segmentation. These can be easily skull-stripped by masking them with the grey matter grey matter, white matter and CSF maps that the segmentation generates (e.g., using SPM''s ImCalc, and evaluating an expression like ``i1.*((i2+i3+i4)>0.5)``, where ``i1`` corresponds to the INU corrected scan, and ``i2``, ``i3`` and ``i4`` correspond to the tissue maps).'
-   '' 
     'The registration method used here is based on work by Collignon et al/* \cite{collignon95}*/. The original interpolation method described in this paper has been changed in order to give a smoother cost function.  The images are also smoothed slightly, as is the histogram.  This is all in order to make the cost function as smooth as possible, to give faster convergence and less chance of local minima.'
-    ''
     'At the end of coregistration, the voxel-to-voxel affine transformation matrix is displayed, along with the histograms for the images in the original orientations, and the final orientations.  The registered images are displayed at the bottom.'
-    ''
     'Registration parameters are stored in the headers of the "moved" and the "other" images.'
     }';
 estimate.prog = @spm_run_coreg;
@@ -49,15 +45,10 @@ estwrite.name = 'Coregister: Estimate & Reslice';
 estwrite.val  = @()[estimate_cfg eoptions_cfg roptions_cfg];
 estwrite.help = {
     'Within-subject registration using a rigid-body model and image reslicing.'
-    ''
     'Because the registration algorithm uses objective functions derived from joint intensity histograms, often works much better using scans that have been intensity non-uniformity (INU) corrected. Skull-stripping can also help.  INU corrected scans can be obtained as a by-product of SPM''s segmentation. These can be easily skull-stripped by masking them with the grey matter grey matter, white matter and CSF maps that the segmentation generates (e.g., using SPM''s ImCalc, and evaluating an expression like ``i1.*((i2+i3+i4)>0.5)``, where ``i1`` corresponds to the INU corrected scan, and ``i2``, ``i3`` and ``i4`` correspond to the tissue maps).'
-    ''
     'The registration method used here is based on work by Collignon et al/* \cite{collignon95}*/. The original interpolation method described in this paper has been changed in order to give a smoother cost function.  The images are also smoothed slightly, as is the histogram.  This is all in order to make the cost function as smooth as possible, to give faster convergence and less chance of local minima.'
-    ''
     'At the end of coregistration, the voxel-to-voxel affine transformation matrix is displayed, along with the histograms for the images in the original orientations, and the final orientations.  The registered images are displayed at the bottom.'
-    ''
     'Please note that Coreg only attempts rigid alignment between the images. fMRI tend to have large distortions, which are not corrected by rigid-alignment alone. There is not yet any functionality in the SPM software that is intended to correct this type of distortion when aligning distorted fMRI with relatively undistorted anatomical scans (e.g. MPRAGE).'
-    ''
     'Registration parameters are stored in the headers of the "moved" and the "other" images. These images are also resliced to match the fixed image voxel-for-voxel. The resliced images are named the same as the originals except that they are prefixed by ``r``.'
     }';
 estwrite.prog = @spm_run_coreg;
