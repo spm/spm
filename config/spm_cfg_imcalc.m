@@ -44,7 +44,7 @@ output         = cfg_entry;
 output.tag     = 'output';
 output.name    = 'Output Filename';
 output.help    = {'The output image is written to current working directory unless a valid full pathname is given. If a path name is given here, the output directory setting will be ignored.'
-    'If the field is left empty then the name of the 1st input image, preprended with ''i'', is used (change this letter in the spm_defaults if necessary).'};
+    'If the field is left empty then the name of the 1st input image, prepended with ''i'', is used (change this letter in the spm_defaults if necessary).'};
 output.strtype = 's';
 output.num     = [0 Inf];
 output.val     = {'output'};

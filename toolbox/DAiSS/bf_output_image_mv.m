@@ -234,7 +234,7 @@ if isfield(S.isdesign,'custom'),
     end
     
     if min(num_trials)~= max(num_trials)
-        warning ('Number of trials are not the same accross conditions- throwing away');
+        warning ('Number of trials are not the same across conditions- throwing away');
         num_trials
     end
     nt = min(num_trials); % ANNA -throw away the extra trials

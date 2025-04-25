@@ -115,7 +115,7 @@ trialength.tag     = 'trialength';
 trialength.name    = 'Trial length';
 trialength.strtype = 'r';
 trialength.num     = [1 1];
-trialength.help    = {'Arbitary trial length [ms].'};
+trialength.help    = {'Arbitrary trial length [ms].'};
 
 arbitrary      = cfg_branch;
 arbitrary.tag  = 'arbitrary';

@@ -121,7 +121,7 @@ if ~isempty(output)
         case 'same'
             % no change to output path
         case 'allin'
-            % put everythin the same predefined folder
+            % put everything the same predefined folder
             pth = output.outDir;
         case 'subjspec'
             % keep per-subject organisation in predefined folder

@@ -191,7 +191,7 @@ isfixedpatch.val = {randpatch};
 
 mselect = cfg_menu;
 mselect.tag = 'mselect';
-mselect.name = 'Selction of winning model';
+mselect.name = 'Selection of winning model';
 mselect.help = {'How to get the final current density estimate from multiple iterations'};
 mselect.labels = {'MaxF','Merge'};
 mselect.values = {0,1};
