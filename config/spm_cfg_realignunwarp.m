@@ -182,14 +182,14 @@ scans.num     = [1 Inf];
 scans.preview = @(f) spm_check_registration(char(f));
 
 %--------------------------------------------------------------------------
-% pmscan Phase map (vdm* file)
+% pmscan Phase map (vdm file)
 %--------------------------------------------------------------------------
 pmscan         = cfg_files;
 pmscan.tag     = 'pmscan';
-pmscan.name    = 'Voxel displacement map (vdm*)';
+pmscan.name    = 'Voxel displacement map (vdm)';
 pmscan.help    = {
     ['Select pre-calculated voxel displacement map, or leave empty for no  ' ...
-    'phase correction. The vdm* file is assumed to be already in alignment ' ...
+    'phase correction. The vdm file is assumed to be already in alignment ' ...
     'with the first scan of the first session.']}';
 pmscan.filter  = 'image';
 pmscan.ufilter = '^vdm5_.*';

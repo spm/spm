@@ -158,12 +158,9 @@ interp.help    = {
                   'With images of different sizes and orientations, the size and orientation of the first is used for the output image. A warning is given in this situation. Images are sampled into this orientation using the interpolation specified by the hold parameter.'
                   ''
                   'The method by which the images are sampled when being written in a different space.'
-                  '    0. **Nearest Neighbour**'
-                  '       Fastest, but not normally recommended.'
-                  '    1. **Trilinear Interpolation**'
-                  '       OK for PET, or realigned fMRI.'
-                  '    2. **Sinc Interpolation**'
-                  '       Better quality (but slower) interpolation, especially with higher degrees.'
+                  '    - **Nearest Neighbour**       Fastest, but not normally recommended.'
+                  '    - **Trilinear Interpolation** OK for PET, or realigned fMRI.'
+                  '    - **Sinc Interpolation**      Better quality (but slower) interpolation, especially with higher degrees.'
 }';
 interp.labels  = {
                   'Nearest neighbour'

@@ -11,7 +11,7 @@ function spmjobs = spm_cfg
 temporal        = cfg_choice;
 temporal.tag    = 'temporal';
 temporal.name   = 'Temporal';
-temporal.help   = {'Temporal pre-processing functions.'};
+temporal.help   = {'Temporal pre-processing functions for fMRI.'};
 temporal.values = { spm_cfg_st };
 
 %--------------------------------------------------------------------------
@@ -20,7 +20,7 @@ temporal.values = { spm_cfg_st };
 spatial        = cfg_choice;
 spatial.tag    = 'spatial';
 spatial.name   = 'Spatial';
-spatial.help   = {'Spatial pre-processing functions.'};
+spatial.help   = {'Spatial pre-processing functions for image data.'};
 spatial.values = { spm_cfg_realign spm_cfg_realignunwarp spm_cfg_coreg spm_cfg_preproc8 spm_cfg_norm spm_cfg_smooth };
 
 %--------------------------------------------------------------------------
@@ -29,7 +29,7 @@ spatial.values = { spm_cfg_realign spm_cfg_realignunwarp spm_cfg_coreg spm_cfg_p
 stats        = cfg_choice;
 stats.tag    = 'stats';
 stats.name   = 'Stats';
-stats.help   = {'Statistical modelling and inference functions.'};
+stats.help   = {'Statistical modelling and inference functions for image data.'};
 stats.values = { spm_cfg_fmri_spec spm_cfg_fmri_design spm_cfg_fmri_data spm_cfg_factorial_design spm_cfg_model_review spm_cfg_fmri_est spm_cfg_con spm_cfg_results spm_cfg_mfx spm_cfg_bms_map spm_cfg_ppi spm_cfg_setlevel };
 
 %--------------------------------------------------------------------------
@@ -55,7 +55,7 @@ dcm.values = { spm_cfg_dcm_spec spm_cfg_dcm_est spm_cfg_dcm_bms spm_cfg_dcm_peb 
 spm_cfg_import        = cfg_choice;
 spm_cfg_import.tag    = 'import';
 spm_cfg_import.name   = 'Import';
-spm_cfg_import.help   = {'Import.'};
+spm_cfg_import.help   = {'Tools for converting image data from various other file formats into NIfTI.'};
 spm_cfg_import.values = { spm_cfg_dicom spm_cfg_minc spm_cfg_ecat spm_cfg_parrec };
 
 util        = cfg_choice;

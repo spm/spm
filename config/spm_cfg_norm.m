@@ -305,12 +305,9 @@ interp.help    = {
                   'being written in a different space. ' ...
                   '(Note that Inf or NaN values are treated as zero, ' ...
                   'rather than as missing data)']
-                  '    Nearest Neighbour:'
-                  '      - Fastest, but not normally recommended.'
-                  '    Trilinear Interpolation:'
-                  '      - OK for PET, realigned fMRI, or segmentations'
-                  '    B-spline Interpolation:'
-                  ['      - Better quality (but slower) interpolation' ...
+                  '    - Nearest Neighbour       - Fastest, but not normally recommended.'
+                  '    - Trilinear Interpolation - OK for PET, realigned fMRI, or segmentations'
+                 ['    - B-spline Interpolation  - Better quality (but slower) interpolation' ...
                   '/* \cite{thevenaz00a}*/, especially with higher ' ...
                   'degree splines. Can produce values outside the ' ...
                   'original range (e.g. small negative values from an ' ...
@@ -335,7 +332,7 @@ interp.def    = @(val)spm_get_defaults('normalise.write.interp', val{:});
 prefix         = cfg_entry;
 prefix.tag     = 'prefix';
 prefix.name    = 'Filename Prefix';
-prefix.help    = {'Specify the string to be prepended to the filenames of the normalised image file(s). Default prefix is ''w''.'};
+prefix.help    = {'Specify the string to be prepended to the filenames of the normalised image file(s). Default prefix is ``w``.'};
 prefix.strtype = 's';
 prefix.num     = [1 Inf];
 prefix.def     = @(val)spm_get_defaults('normalise.write.prefix', val{:});

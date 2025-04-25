@@ -138,12 +138,15 @@ if isa(hlp, 'cfg_item')
     end
 end
 if iscell(hlp)
+    if length(hlp)==1 && isempty(hlp{1})
+        return
+    end
     for i=1:numel(hlp)
         if ~(numel(hlp{i}>1) && hlp{i}(1)=='%')
             write_help(hlp{i},fp, level);
         end
     end
-    return;
+    return
 end
 str    = texify(hlp);
 indent = repmat('    ',[1 level-1]);
