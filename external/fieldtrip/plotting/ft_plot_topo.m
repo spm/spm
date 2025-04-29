@@ -20,7 +20,7 @@ function [Zi, h] = ft_plot_topo(chanX, chanY, dat, varargin)
 %   'parent'        = handle which is set as the parent for all plots (default = [])
 %   'tag'           = string, the tag assigned to the plotted elements (default = '')
 %
-% It is possible to plot the object in a local pseudo-axis (c.f. subplot), which is specfied as follows
+% It is possible to plot the object in a local pseudo-axis (c.f. subplot), which is specified as follows
 %   'box'           = draw a box around the local axes, can be 'yes' or 'no'
 %   'hpos'          = horizontal position of the lower left corner of the local axes
 %   'vpos'          = vertical position of the lower left corner of the local axes
@@ -76,7 +76,7 @@ box           = ft_getopt(varargin, 'box', false);
 % convert the yes/no strings into boolean values
 box = istrue(box);
 
-% check for nans in the data, they can be still left incase people want to mask non channels.
+% check for nans in the data, they can be still left in case people want to mask nan channels.
 NaNind = isnan(dat);
 if any(NaNind) && ~isempty(mask) && isequal(isnan(dat), ~datmask)
   ft_warning('the interpolation will exclude channels containing NaNs');

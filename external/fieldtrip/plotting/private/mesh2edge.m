@@ -8,7 +8,7 @@ function [output] = mesh2edge(mesh)
 % Use as
 %   [edge] = mesh2edge(mesh)
 %
-% See also POLY2TRI
+% See also POLY2TRI, TRI2BND
 
 % Copyright (C) 2013-2020, Robert Oostenveld
 %
@@ -62,21 +62,21 @@ end % isfield(mesh)
 % keep the original as "edge" and the sorted one as "sedge"
 sedge = sort(edge, 2);
 
-% % find the edges that are not shared -> count the number of occurences
+% % find the edges that are not shared -> count the number of occurrences
 % n = size(sedge,1);
-% occurences = ones(n,1);
+% occurrences = ones(n,1);
 % for i=1:n
 %   for j=(i+1):n
 %     if all(sedge(i,:)==sedge(j,:))
-%       occurences(i) = occurences(i)+1;
-%       occurences(j) = occurences(j)+1;
+%       occurrences(i) = occurrences(i)+1;
+%       occurrences(j) = occurrences(j)+1;
 %     end
 %   end
 % end
 %
 % % make the selection in the original, not the sorted version of the edges
 % % otherwise the orientation of the edges might get flipped
-% edge = edge(occurences==1,:);
+% edge = edge(occurrences==1,:);
 
 % find the edges that are not shared
 indx = findsingleoccurringrows(sedge);

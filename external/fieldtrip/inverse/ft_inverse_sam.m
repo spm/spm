@@ -40,6 +40,22 @@ function [estimate] = ft_inverse_sam(sourcemodel, sens, headmodel, dat, C, varar
 % Copyright (C) 2005-2009, Arjan Hillebrand
 % Copyright (C) 2005-2009, Gareth Barnes
 %
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
+% for the documentation and details.
+%
+%    FieldTrip is free software: you can redistribute it and/or modify
+%    it under the terms of the GNU General Public License as published by
+%    the Free Software Foundation, either version 3 of the License, or
+%    (at your option) any later version.
+%
+%    FieldTrip is distributed in the hope that it will be useful,
+%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%    GNU General Public License for more details.
+%
+%    You should have received a copy of the GNU General Public License
+%    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
+%
 % $Id$
 
 if mod(nargin-5,2)
@@ -59,6 +75,12 @@ invopt = ft_setopt(invopt, 'lambda',    ft_getopt(varargin, 'lambda', 0));
 invopt = ft_setopt(invopt, 'kappa',     ft_getopt(varargin, 'kappa'));
 invopt = ft_setopt(invopt, 'tolerance', ft_getopt(varargin, 'tol'));
 invopt = ft_setopt(invopt, 'method',    ft_getopt(varargin, 'invmethod'));
+
+% construct the low-level options for the leadfield computation as key-value pairs, these are passed to FT_COMPUTE_LEADFIELD
+leadfieldopt = {};
+leadfieldopt = ft_setopt(leadfieldopt, 'normalize',      ft_getopt(varargin, 'normalize'));
+leadfieldopt = ft_setopt(leadfieldopt, 'normalizeparam', ft_getopt(varargin, 'normalizeparam'));
+leadfieldopt = ft_setopt(leadfieldopt, 'weight',         ft_getopt(varargin, 'weight'));
 
 % backwards compatibility information
 if ~isempty(fixedori)
@@ -108,9 +130,15 @@ if hasmom
 end
 
 if hasfilter
+  % check that the options normalize/reducerank/etc are not specified
+  assert(all(cellfun(@isempty, leadfieldopt(2:2:end))), 'the options for computing the leadfield must all be empty/default');
+  % check that the options for the inversion are not specified
+  assert(all(cellfun(@isempty, invopt(4:2:end))) && invopt{2}==0, 'the options for computing the inverse solution must all be empty/default');
   ft_info('using precomputed filters\n');
   sourcemodel.filter = sourcemodel.filter(sourcemodel.inside);
 elseif hasleadfield
+  % check that the options normalize/reducerank/etc are not specified
+  assert(all(cellfun(@isempty, leadfieldopt(2:2:end))), 'the options for computing the leadfield must all be empty/default');
   ft_info('using precomputed leadfields\n');
   sourcemodel.leadfield = sourcemodel.leadfield(sourcemodel.inside);
   
@@ -127,12 +155,6 @@ elseif hasleadfield
 else
   ft_info('computing forward model on the fly\n');
 
-   % construct the low-level options for the leadfield computation as key-value pairs, these are passed to FT_COMPUTE_LEADFIELD
-  leadfieldopt = {};
-  leadfieldopt = ft_setopt(leadfieldopt, 'normalize',      ft_getopt(varargin, 'normalize'));
-  leadfieldopt = ft_setopt(leadfieldopt, 'normalizeparam', ft_getopt(varargin, 'normalizeparam'));
-  leadfieldopt = ft_setopt(leadfieldopt, 'weight',         ft_getopt(varargin, 'weight'));
-  
   % check if a tangential orientation estimation is performed, i.e. if only orientations in the tangential plane are considered.
   % if this is the case, we perform the lead field rank reduction directly in  this script, since otherwise we would not
   % have access to the tangential plane defined by the full leadfield
