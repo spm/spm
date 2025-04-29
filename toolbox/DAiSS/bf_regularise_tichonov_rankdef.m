@@ -1,5 +1,5 @@
 function res = bf_regularise_tichonov_rankdef(BF, S)
-% Tichonov regularisation for rank deficient matrices based on the function
+% Tikhonov regularisation for rank deficient matrices based on the function
 %__________________________________________________________________________
 
 % Vladimir Litvak (contribute by Olaf Hauk)
@@ -24,8 +24,8 @@ if nargin == 0
     lambda.help = {'Select the regularisation (in %)'};
     
     res      = cfg_branch;
-    res.tag  = 'tichonov_rankdef';
-    res.name = 'Tichonov regularisation';
+    res.tag  = 'tikhonov_rankdef';
+    res.name = 'Tikhonov regularisation';
     res.val  = {rank, lambda};
     
     return

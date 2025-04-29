@@ -514,11 +514,12 @@ mn  = mn(:,ind);
 bb  = [mn'; mx'];
 
 vx  = [-1 1 1] .* abs(vx);
-%mn  = vx .* min(bb ./ vx);        % "first" voxel's mm coordinates
-mn = bsxfun(@times,vx,min(bsxfun(@rdivide,bb,vx)));
-%mx  = vx .* round(max(bb ./ vx)); % "last voxel's mm coords
-mx = bsxfun(@times,vx,max(bsxfun(@rdivide,bb,vx)));
-Mat = spm_matrix([mn 0 0 0 vx]) * spm_matrix([-1 -1 -1]);
+%mn = vx .* min(bb ./ vx);        % "first" voxel's mm coordinates
+mn  = bsxfun(@times,vx,min(bsxfun(@rdivide,bb,vx)));
+%mx = vx .* round(max(bb ./ vx)); % "last voxel's mm coords
+mx  = bsxfun(@times,vx,max(bsxfun(@rdivide,bb,vx)));
+%Mat= spm_matrix([mn 0 0 0 vx]) * spm_matrix([-1 -1 -1]);
+Mat = [diag(vx) mn'; 0 0 0 1]*[eye(3) [-1 -1 -1]'; 0 0 0 1];
 dm  = Mat \ [mx 1]';
 dm  = round(dm(1:3)');
 %==========================================================================

@@ -26,7 +26,7 @@ function out = spm_shoot_norm(job)
 % normalised for a 2nd level analysis.
 %
 % Two "preserve" options are provided.  One of them should do the
-% equavalent of generating smoothed "modulated" spatially normalised
+% equivalent of generating smoothed "modulated" spatially normalised
 % images.  The other does the equivalent of smoothing the modulated
 % normalised fMRI/PET, and dividing by the smoothed Jacobian determinants.
 %

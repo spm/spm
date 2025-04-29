@@ -1,4 +1,4 @@
-function [po,freq,sel] = spm_opm_psd(S)
+function [po,freq,indices] = spm_opm_psd(S)
 % Compute PSD for OPM data (for checking noise floor)
 % FORMAT [po,freq,sel] = spm_opm_psd(S)
 %   S               - input structure
@@ -11,18 +11,13 @@ function [po,freq,sel] = spm_opm_psd(S)
 %   S.units         - units of measurement                  - Default: 'fT'
 %   S.constant      - constant line to draw as reference    - Default: 15
 %   S.wind          - function handle for window            - Default: @hanning
-%   S.plotbad       - place asterisk over unusual channels  - Default: 0
-%	S.interact		- allow inspection of channels			- Default: 0
-%	S.select		- enable selection of channels			- Default: 0
+%	  S.selectbad		  - enable selection of badchannels			  - Default: 0
 
 %
 % Output:
 %   psd             - power spectral density
 %   f               - frequencies psd is sampled at
-%	sel				- selected channel index (see S.interactive)
-%						To get labels use:
-%							plotted_lab = chanlabels(S.D,S.channels);
-%							sel_lab = plotted_lab(sel);
+%	  indices				      - selected channel index 
 %__________________________________________________________________________
 
 % Tim Tierney
@@ -42,14 +37,9 @@ if ~isfield(S, 'D'),             error('D is required'); end
 if ~isfield(S, 'trials'),        S.trials=0; end
 if ~isfield(S, 'wind'),          S.wind=@hanning; end
 if ~isfield(S, 'interact'),      S.interact =1; end
-if ~isfield(S, 'plotbad'),       S.plotbad = 0; end
-if ~isfield(S, 'select')		
-	S.select = 0; 
-	sel = [];
-else
-	S.plot = 1;
-	S.interact = 0;
-end
+if ~isfield(S, 'selectbad'),		 S.selectbad = 0; end
+
+indices = [];
 
 %-channel Selection
 %--------------------------------------------------------------------------
@@ -146,26 +136,22 @@ po = psdx;
 med = repmat(median(po,2),1,size(po,2));
 ma = repmat(median(abs(po-med),2)*1.48,1,size(po,2));
 Z = (po-med)./ma;
-
 bin = Z>abs(spm_invNcdf(.025/(size(po,2)*100),0,1));
+badlabs = labs(sum(bin)>0)';
 
 if(S.plot)
-    f= figure();
-	if S.select
+  f= figure();
 		h = plot(freq,po,'LineWidth',2);
 		hold on
-		for i = 1:numel(h)
-			set(h(i), 'UserData', false);
-		end
-	else
-		hold on
-		for i = 1:size(po,2)
-			tag = [labs{i}, ', Index: ' num2str(indchannel(S.D,labs{i}))];
-			plot(freq,po(:,i)','LineWidth',2,'tag',tag);
-		end
-	end
-    set(gca,'yscale','log')
     
+		for i = 1:numel(h)
+			set(h(i), 'UserData', true);
+      tag = [labs{i}, ', Index: ' num2str(indchannel(S.D,labs{i}))];
+      set(h(i), 'tag', tag);      
+      set(h(i), 'Color', [h(i).Color(1:3), 1]);
+    end
+    
+    set(gca,'yscale','log')  
     xp2 =0:round(freq(end));
     yp2=ones(1,round(freq(end))+1)*S.constant;
     p2 =plot(xp2,yp2,'--k');
@@ -175,7 +161,6 @@ if(S.plot)
     xlabel('Frequency (Hz)')
     labY = ['$$PSD (' S.units ' \sqrt[-1]{Hz}$$)'];
     ylabel(labY,'interpreter','latex')
-    
     grid on
     ax = gca; % current axes
     ax.FontSize = 13;
@@ -183,29 +168,25 @@ if(S.plot)
     fig= gcf;
     fig.Color=[1,1,1];
     xlim([0,100]);
-    if(S.plotbad)
+     
+    
+    datacursormode on
+    dcm = datacursormode(gcf);
+    set(dcm,'UpdateFcn',@getLabel);
+    if(S.selectbad)
+      sel = false(1,length(labs));
+      % add badchannels to plot
       for i = 1:size(po,2)
         tag = [labs{i}, ', Index: ' num2str(indchannel(S.D,labs{i}))];
-        plot(freq(bin(:,i)), po(bin(:,i),i),'k*','tag',tag);
+        z=plot(freq(bin(:,i)), po(bin(:,i),i),'k*','tag',tag);
+        h = [h;z];
       end
+      % Set up selection mechanism
+      set(fig, 'WindowButtonMotionFcn', @startSelection);
+      % Wait for user to interact and close the figure
+      waitfor(fig);
     end
     
-    
-	if(S.interact)
-		datacursormode on
-		dcm = datacursormode(gcf);
-		set(dcm,'UpdateFcn',@getLabel)
-	end
-	if(S.select)
-		sel = false(1,length(labs));
-		numChannels = size(po, 2);
-		
-		% Set up selection mechanism
-		set(fig, 'WindowButtonDownFcn', @startSelection);
-		
-		% Wait for user to interact and close the figure
-		waitfor(fig);
-	end
 end
 
 function startSelection(~, ~)
@@ -219,7 +200,7 @@ xLimits = [min(point1(1,1), point2(1,1)), max(point1(1,1), point2(1,1))];
 yLimits = [min(point1(1,2), point2(1,2)), max(point1(1,2), point2(1,2))];
 
 % Check which lines are inside the box
-for chanIdx = 1:numChannels
+for chanIdx = 1:length(h)
 	xData = get(h(chanIdx), 'XData');
 	yData = get(h(chanIdx), 'YData');
 	
@@ -229,19 +210,20 @@ for chanIdx = 1:numChannels
 
 	% If any point of the line is within the selection box, toggle selection
 	if any(inX & inY)
-		if get(h(chanIdx), 'UserData') == false
-			set(h(chanIdx), 'UserData', true); 
-			set(h(chanIdx), 'Color', [h(chanIdx).Color(1:3), 0]);
-			sel(chanIdx) = true;
-			disp(['Selected ',labs{chanIdx}])
-		end
+      set(h(chanIdx), 'UserData', true);
+			set(h(chanIdx), 'Visible','off');
+      ta = get (h(chanIdx),'tag');
+      ind =str2num(ta((strfind(ta,':')+1):end));
+      sel(ind)=true;
+      indices = find(sel);
 	end
 end
-% Exclude selected channels from the mean calculation
+% Exclude selected channels from the median calculation
 set(p3, 'YData', median(po(:, ~sel), 2));
 maxSelPo = max(max(po(:,~sel)));
 minSelPo = min(min(po(:,~sel)));
 set(gca,'YLim',[minSelPo,maxSelPo])
+
 end
 
 end

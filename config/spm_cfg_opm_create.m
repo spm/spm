@@ -110,7 +110,7 @@ simulation.val  = {wholehead,space,offset,nSamples};
 %--------------------------------------------------------------------------
 positions = cfg_files;
 positions.tag = 'pos';
-positions.name = 'Sensor positins';
+positions.name = 'Sensor positions';
 positions.filter = '.*.tsv';
 positions.num = [1 Inf];
 positions.help = {'tsv file giving coordinates for labelled sensors'};
@@ -194,7 +194,7 @@ voltype.val = {'Single Shell'};
 lead  = cfg_entry;
 lead.tag     = 'lead';
 lead.name    = 'Compute Lead Field';
-lead.help    = {'If value is set to 1 then a lead field will be compted and saved'};
+lead.help    = {'If value is set to 1 then a lead field will be computed and saved'};
 lead.strtype = 'r';
 lead.num     = [1,1];
 lead.val     = {0};

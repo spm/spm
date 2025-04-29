@@ -20,8 +20,8 @@ if nargin == 0
     corr.name       = 'Correlated & homologous sources';
     corr.help       = {['Prior matrix is modified so to account for power in a location '...
         'and its correlated partner, allowing for correlated sources normally suppressed '...
-        'by beamformers to be reconstructed. Correlated pairs can be definied in a matrix'...
-        '(see below) or automatically guessed by looking for the mirror along the saggital plane.']};
+        'by beamformers to be reconstructed. Correlated pairs can be defined in a matrix'...
+        '(see below) or automatically guessed by looking for the mirror along the sagittal plane.']};
     corr.labels     = {'yes','no'};
     corr.values     = {true, false};
     corr.val        = {false};
@@ -50,7 +50,7 @@ if nargin == 0
     mixmethod.name   = 'Prior combination method';
     mixmethod.help   = {['How should we combine the correlated and uncorrelated '...
         'priors (assuming we have both) +SUM: simple addition of the two '...
-        'priors to make one matrix. +REML: Two seperate priors, where the ReML'...
+        'priors to make one matrix. +REML: Two separate priors, where the ReML'...
         'optimisation will scale them automatically. (Default: sum)']};
     mixmethod.labels = {'sum','reml'};
     mixmethod.values = {'sum','reml'};
@@ -64,12 +64,12 @@ if nargin == 0
     pairs.val       = {''};
     pairs.help      = {['[OPTIONAL] BF.mat file containing a binary adjacency matrix of correlated pairs. '...
         'If a matrix is not supplied, it will automatically look for a the homologous regions.'...
-        'TIP: If you want a source to not be correlated, pair it with itself (i.e. put a 1 on the diaconal element.']};
+        'TIP: If you want a source to not be correlated, pair it with itself (i.e. put a 1 on the diagonal element.']};
     
     iid             = cfg_menu;
     iid.tag         = 'iid';
     iid.name        = 'Identity source covariance';
-    iid.help        = {['Assumes sources are indepedent and identically distributed, equivalent to a Bayesian '...
+    iid.help        = {['Assumes sources are independent and identically distributed, equivalent to a Bayesian '...
         'minimum norm estimation. This option bypasses correlated source mode']};
     iid.labels      = {'yes','no'};
     iid.values      = {true, false};
@@ -294,7 +294,7 @@ else
             if ~isnan(L{i})
                 
                 if isempty(S.pairs)
-                    % We are looking for sources in the mirror of the saggital
+                    % We are looking for sources in the mirror of the sagittal
                     % plane, which means flipping the position in the x-axis and
                     % looking for the source which is the closest (Which isnt
                     % itself!)

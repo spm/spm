@@ -88,7 +88,7 @@ for i=1:nTrigs
     
     begSample=evSamples+offsetSamples;                 % Get first sample
     endSample=begSample+durationSamples;               % Get end sample
-    offset=offsetSamples.*ones(size(begSample));       % Replicate offset accross events
+    offset=offsetSamples.*ones(size(begSample));       % Replicate offset across events
     
     trlTemp=round([begSample'  endSample'  offset']);  % Construct temporary trial matrix
     nevents(i)=size(trlTemp,1);                        % Compute number of events per Condition
@@ -96,10 +96,10 @@ for i=1:nTrigs
     msg=[num2str(nevents(i)) ' Trials identified on ' triglab{:}];
     fprintf('%-40s: %30s\n',msg,spm('time'));
 
-    trl = [trl;trlTemp];                               % Combine trl matrices accross conditions
+    trl = [trl;trlTemp];                               % Combine trl matrices across conditions
     
-    condTemp =repmat({S.condLabels{i}},nevents(i),1);  % Replicate codition lable accross events
-    cond = {cond{:,:},condTemp{:,1}}';                 % Combine condition labels accross conditions
+    condTemp =repmat({S.condLabels{i}},nevents(i),1);  % Replicate codition lable across events
+    cond = {cond{:,:},condTemp{:,1}}';                 % Combine condition labels across conditions
     
 end
 

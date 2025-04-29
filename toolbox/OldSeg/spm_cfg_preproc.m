@@ -124,7 +124,7 @@ cleanup         = cfg_menu;
 cleanup.tag     = 'cleanup';
 cleanup.name    = 'Clean up any partitions';
 cleanup.help    = {
-                   'This uses a crude routine for extracting the brain from segmented images.  It begins by taking the white matter, and eroding it acouple of times to get rid of any odd voxels.  The algorithm continues on to do conditional dilations for several iterations, where the condition is based upon gray or white matter being present. This identified region is then used to clean up the grey and white matter partitions, and has a slight influences on the CSF partition.'
+                   'This uses a crude routine for extracting the brain from segmented images.  It begins by taking the white matter, and eroding it a couple of times to get rid of any odd voxels.  The algorithm continues on to do conditional dilations for several iterations, where the condition is based upon gray or white matter being present. This identified region is then used to clean up the grey and white matter partitions, and has a slight influences on the CSF partition.'
                    'If you find pieces of brain being chopped out in your data, then you may wish to disable or tone down the cleanup procedure.'
 }';
 cleanup.labels = {

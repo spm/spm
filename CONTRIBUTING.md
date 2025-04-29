@@ -3,11 +3,9 @@
 
 First off, thanks for taking the time to contribute! ❤️
 
- Please see the Table of Contents below to skip to the relevant section about how we process contributions. It will make it a lot easier for us to incorporate your contribution. 
-
 ## I Have a Question
 
- If you want to ask a question, it is best to search for existing [Issues](https://github.com/spm/spm/issues) that might help you. You can respond to this issue to contribute to the discussion. There is also a historical [mailing list](http://jiscmail.ac.uk/cgi-bin/webadmin?A0=SPM) that has many years of contributions from the community. If you can't find any information about how to solve your problem please contribute to SPM so we can improve our software. 
+If you want to ask a question, it is best to search for existing [Issues](https://github.com/spm/spm/issues) that might help you. You can respond to an issue to contribute to the discussion. There is also a historical [mailing list](http://jiscmail.ac.uk/cgi-bin/webadmin?A0=SPM) that has many years of contributions from the community. If you can't find any information about how to solve your problem please contribute to SPM so we can improve our software. 
 
 
 ## Reporting Bugs and Issues

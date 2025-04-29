@@ -112,7 +112,7 @@ WriteClean            = cfg_menu;
 WriteClean.tag        = 'WriteClean';
 WriteClean.name       = 'Delete random seed directory';
 WriteClean.val        = {'Yes'};
-WriteClean.help       = {'Will force delete of any existin random seed files'}';
+WriteClean.help       = {'Will force delete of any existing random seed files'}';
 WriteClean.labels     = {'Yes', 'No'}';
 WriteClean.values     = {'Yes', 'No'}';
 
