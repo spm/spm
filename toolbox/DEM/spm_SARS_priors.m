@@ -61,7 +61,7 @@ function [P,C,str] = spm_SARS_priors(nN)
 
 % number of basis functions (P.tra) (max 7)
 %--------------------------------------------------------------------------
-nb  = 4;
+nb  = 7;
 
 % priors for multiple age groups
 %==========================================================================

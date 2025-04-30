@@ -50,8 +50,8 @@ for i = 1:nP
     rE    = pE;
     rC    = pC;
     for j = 1:numel(pE.(param{i}))
-        rE.(param{i})(j) = rE.(param{i})(j) - 2;
-        rC.(param{i})(j) = rC.(param{i})(j)/exp(8);
+        rE.(param{i})(j) = rE.(param{i})(j) - 3;
+        rC.(param{i})(j) = rC.(param{i})(j)/exp(3);
         F  = spm_log_evidence(qE,qC,pE,pC,rE,rC);
         L(end + 1)   = 0 - F;
         str{end + 1} = param{i};
@@ -64,7 +64,7 @@ spm_figure('GetWin','BMR-MASKS'); clf;
 subplot(2,1,1)
 bar(L), hold on
 plot([0 numel(L)],[5,5],'-.')
-set(gca,'XTickLabel',str,'YLim',[-1024 1024])
+set(gca,'XTickLabel',str,'YLim',[-32 1024])
 title('Bayesian model comparison','Fontsize',16)
 xlabel('parameter'),ylabel('log Bayes factor')
 axis square, box off
@@ -90,9 +90,8 @@ title('Posterior correlations','Fontsize',16)
 xlabel('DCM parameter'), ylabel('correlation')
 axis square, box off
 
-
-spm_fieldindices(pE,65)
-spm_fieldindices(pE,148)
+% spm_fieldindices(pE,65)
+% spm_fieldindices(pE,148)
 
 % prior expectation
 %==========================================================================
