@@ -1,9 +1,8 @@
-function [P,C,str] = spm_SARS_priors(nN,date)
+function [P,C,str] = spm_SARS_priors(nN)
 % Generate prior expectation and covariance log parameters
-% FORMAT [pE,pC,str,rfx] = spm_SARS_priors(nN,date)
+% FORMAT [pE,pC,str,rfx] = spm_SARS_priors(nN)
 %
 % nN          - number of age groups
-% date        - end date ('dd-mmm-yyyy')
 %
 % pE          - prior expectation (structure)
 % pC          - prior covariances (structure)
@@ -58,9 +57,11 @@ function [P,C,str] = spm_SARS_priors(nN,date)
 %--------------------------------------------------------------------------
 % https://pubmed.ncbi.nlm.nih.gov/33948610/
 %--------------------------------------------------------------------------
-global DATE
 
-if isempty(DATE), DATE = date; end
+
+% number of basis functions (P.tra) (max 7)
+%--------------------------------------------------------------------------
+nb  = 4;
 
 % priors for multiple age groups
 %==========================================================================
@@ -69,7 +70,7 @@ if nargin
     % priors for single group              % age-dependent variability in:
     %----------------------------------------------------------------------
     [P,C,str] = spm_SARS_priors;
-    free  = {'N'  ,'trm',...               % population and seasonality
+    free  = {'N'  ,'msk'...                % population (and transmission)
              'Tim','Tnn',...               % immunity
              'Nin','Nou',...               % number of contacts
              'rut','out',...               % social distancing
@@ -311,6 +312,8 @@ names{57} = 'doses per seroconversion';
 names{58} = 'age-related testing';
 names{59} = 'self-isolation';
 names{60} = 'Sensitivity to contact rate';
+names{61} = 'Sensitivity to masks';
+
 
 
 % latent or hidden factors
@@ -471,20 +474,18 @@ P.lnf = 0.05;                 % (46) 1 - vaccine efficacy: fatality
 P.con = 0.2;                  % (47) LFD confirmation
 P.iso = 8.0;                  % (48) self-isolation (days)
 P.Tnn = 256;                  % (49) loss of T-cell immunity (days)
-
-i     = ceil((datenum(DATE) - datenum('01-02-2020'))/64);
-
 P.lnr = 0.46;                 % (50) LFD sensitivity
 P.lpr = 0.0002;               % (51) LFD specificity
 P.rel = 1;                    % (52) PCR testing of fatalities
 P.pro = 1;                    % (53) contact rate decay (days)
 P.oth = 0.1;                  % (54) relative survival outside hospital
 P.iad = 1;                    % (55) exponent: transfer to CCU
-P.tra = ones(1,i)*64/800;     % (56) transmissibility parameters
+P.tra = ones(1,nb)/8;         % (56) transmissibility parameters
 P.dps = [2 1];                % (57) doses per seroconversion
 P.abs = 1;                    % (58) age-related testing
 P.iss = 1;                    % (59) probability of self-isolation
 P.rut = 1;                    % (60) Sensitivity:contact rate fluctuations
+P.msk = 0.04;                 % (61) Sensitivity:contact rate fluctuations
 
 
 % infection fatality (for susceptible population)
@@ -494,7 +495,7 @@ P.rut = 1;                    % (60) Sensitivity:contact rate fluctuations
 
 % Variances (mildly informative priors, apart from initial cases and size)
 %==========================================================================
-U     = exp( 2);              % flat priors
+U     = exp( 0);              % flat priors
 V     = exp(-2);              % uninformative priors
 W     = exp(-4);              % informative priors (weak)
 X     = exp(-6);              % informative priors (strong)
@@ -521,7 +522,7 @@ C.s   = X;                    % (12) changes in infectivity
 C.Nin = X;                    % (13) effective number of contacts: home
 C.Nou = X;                    % (14) effective number of contacts: work
 C.trn = X;                    % (16) transmission strength
-C.trm = W;                    % (15) seasonality
+C.trm = Z;                    % (15) seasonality
 C.Tin = Z;                    % (17) infected period (days)
 C.Tcn = Z;                    % (18) infectious period (days)
 C.Tim = X;                    % (19) seropositive immunity (days)
@@ -577,7 +578,7 @@ C.dps = X;                    % (57) doses per seroconversion
 C.abs = X;                    % (58) age-related testing
 C.iss = X;                    % (59) probability of self-isolation
 C.rut = X;                    % (60) Sensitivity: contact rate fluctuations
-
+C.msk = V;                    % (61) Sensitivity: masks
 
 % check prior expectations and covariances are consistent
 %--------------------------------------------------------------------------
