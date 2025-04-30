@@ -36,7 +36,8 @@ cd('C:\Users\karl\Dropbox\Coronavirus\Dashboard')
 % set final date for retrospective analyses. Full analysis: '01-Dec-2023'
 %==========================================================================
 global DATE
-date = '01-Mar-2022';
+date = '22-Mar-2023';
+date = '01-Jul-2022';
 DATE = date;
 %--------------------------------------------------------------------------
 
@@ -729,7 +730,7 @@ M.end   = date;
 
 % get and set priors
 %==========================================================================
-[pE,pC] = spm_SARS_priors(nN,M.end);
+[pE,pC] = spm_SARS_priors(nN);
 pE.N    = log(N(:));
 pC.N    = spm_zeros(pE.N);
 
@@ -743,15 +744,14 @@ pC.wo   = ones(j,2)/8;         % prior variance
 pE.gd   = ones(j,1)*[-1 1];    % coefficients gross domestic product
 pC.gd   = ones(j,2)/8;         % prior variance
 
-% augment priors with fluctuations
+% augment priors with fluctuations: number of basis functions
 %--------------------------------------------------------------------------
-j       = ceil((datenum(M.end) - datenum(M.date))/64);
-i       = 24;                  % number of basis functions
+i       = ceil((datenum(M.end) - datenum(M.date))/64);
 
 pE.mob  = zeros(1,i);          % mobility
 pC.mob  = ones(1,i)/1024;      % prior variance
-pE.pcr  = zeros(1,j);          % testing
-pC.pcr  = ones(1,j)/8;         % prior variance
+pE.pcr  = zeros(1,i);          % testing
+pC.pcr  = ones(1,i)/8;         % prior variance
 
 % reporting lags
 %--------------------------------------------------------------------------
@@ -772,7 +772,7 @@ hE    = spm_vec(Y.h);
 
 % model specification
 %==========================================================================
-M.Nmax = 32;                   % maximum number of iterations
+M.Nmax = 16;                   % maximum number of iterations
 M.G    = @spm_SARS_gen;        % generative function
 M.FS   = @(Y)real(sqrt(Y));    % feature selection  (link function)
 M.pE   = pE;                   % prior expectations (parameters)
@@ -824,6 +824,12 @@ DCM.A  = A;
 % return if just DCM is required
 %--------------------------------------------------------------------------
 if nargout, return, end
+
+% otherwise save
+%--------------------------------------------------------------------------
+save('DCM_UK_tmp.mat','DCM')
+cd('C:\Users\karl\Dropbox\Coronavirus')
+save('DCM_UK_tmp.mat','DCM')
 
 % unpack model and posterior expectations
 %--------------------------------------------------------------------------
@@ -1265,17 +1271,12 @@ savefig(gcf,'Fig7_tmp')
 %--------------------------------------------------------------------------
 disp(spm_COVID_table(DCM.Ep,DCM.Cp,DCM.M))
 
-save('DCM_UK_tmp.mat','DCM')
-cd('C:\Users\karl\Dropbox\Coronavirus')
-save('DCM_UK_tmp.mat','DCM')
-
-
 return
 
 
 
 %% NOTES
-% postdoc fitting of age cohort-specific parameters
+% posthoc fitting of age cohort-specific parameters
 %==========================================================================
 clear
 DCM = load('DCM_UK.mat','DCM');
@@ -1394,7 +1395,7 @@ nP    = spm_length(Ep);
 V     = spm_speye(nP,i);
 dYdP  = spm_diff(M.G,Ep,M,4,1,{V});
 
-% plot resultsall
+% plot results
 %--------------------------------------------------------------------------
 subplot(2,1,1)
 plot(dYdP)
