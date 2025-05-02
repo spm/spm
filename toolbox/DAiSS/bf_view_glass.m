@@ -69,7 +69,7 @@ elseif nargin < 2
 end
 
 % if BF is a path rather than stucture, import
-if isa(BF,'string')
+if isa(BF,'string') || isa(BF,'char')
     BF = bf_load(BF);
 end
 
