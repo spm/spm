@@ -331,7 +331,7 @@ if positions
         scalp_mesh = gifti(D.inv{1}.mesh.tess_scalp);
         lay = spm_get_anatomical_layout(pos, grad.label, double(scalp_mesh.vertices), fid_struct, 0);
         pos2d = transpose(lay.pos);
-		
+
         % Scale to range = 1 for spm_eeg image methods
         pos2d = pos2d/max([max(pos2d(1,:)) - min(pos2d(1,:)); max(pos2d(2,:)) - min(pos2d(2,:))]);
 
@@ -784,9 +784,9 @@ function Snew = read_neuro1_data(Sold)
         Snew.positions = position;
     end
 
-    % Create channels.tsv file
+     % Create channels.tsv file
     [direc, dataFile] = fileparts(Sold.data);
-    spm_save(fullfile(direc, [dataFile,'_channels.tsv']), chans)
+    spm_save(fullfile(direc, [dataFile(1:(end-4)),'_channels.tsv']), chans)
 
     % Add in a warning if there's a datapoint missing
 
