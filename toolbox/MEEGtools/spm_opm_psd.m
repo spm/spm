@@ -172,6 +172,7 @@ if(S.plot)
 
 	% Highlight bad channel/frequency combinations
 	if(S.selectbad)
+    indices =[];
 		g = gobjects(1, numel(labs));
 		hold on
 		for i = 1:numel(labs)
@@ -263,9 +264,8 @@ else
 				end
 				sel(chanIdx) = true;
 				ta = get (h(chanIdx),'tag');
-      			ind = str2double(ta((strfind(ta,':')+1):end));
- 				sel(ind) = true;
-      			indices = find(sel);
+        ind = str2double(ta((strfind(ta,':')+1):end));
+      	indices = [indices, ind];
 			end
 		end
 	end
