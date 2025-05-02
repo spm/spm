@@ -608,22 +608,21 @@ for sens_idx = 1:length(sensor_positions(:, 1))
     y = 0.5 * sin(theta);
 
     % Plot point on line at distFrac from center
-    x_dist = 100 * cent_frac * x;
-    y_dist = 100 * cent_frac * y;
+    x_dist = cent_frac * x;
+    y_dist = cent_frac * y;
 
     lay.pos(sens_idx, 1:2) = [x_dist, y_dist];
     lay.label{sens_idx, 1} = sensor_labels{sens_idx};
-    lay.width(sens_idx, 1) = 5;
-    lay.height(sens_idx, 1) = 4;
+    lay.width(sens_idx, 1) = 0.076;
+    lay.height(sens_idx, 1) = 0.064;
 end
-
 
 %-STRUCTURE the output layout
 %==========================================================================
 % Add an outline 10% out for 10:20 compatibility
 samples = 128;
 theta = linspace(0, 2 * pi, samples);
-rad2 = 0.5 * 1.25 * 100;
+rad2 = 0.5 * 1.25;
 x2 =  rad2 * cos(theta);
 y2 =  rad2 * sin(theta);
 lay.outline{1, 1} = [x2', y2'];
