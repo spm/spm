@@ -625,9 +625,15 @@ function Snew = read_neuro1_data(Sold)
     time = lbv.time;
 
     % Get sampling frequency
-    sf_opts = [375, 750, 1500];
-    [~, sf_opt] = min(abs(sf_opts - mean(1./diff(time))));
-    sf = sf_opts(sf_opt);
+     
+    if isfield(Snew, 'fs')
+        sf = Snew.fs;
+    else
+        sf_opts = [375, 750, 1500];
+        [~, sf_opt] = min(abs(sf_opts - mean(1./diff(time))));
+        sf = sf_opts(sf_opt);
+    end
+    
 
     % Read column headers
     fid = fopen(Sold.data);
