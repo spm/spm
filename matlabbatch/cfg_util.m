@@ -1790,7 +1790,7 @@ else
                         '#job as displayed in this error message)\n' ...
                         '------------------ \nRunning job #%d' ...
                         '\n------------------\n'], cjob);
-    err.stack      = struct('file','','name','MATLABbatch system','line',0);
+    err.stack      = struct('file','','name','MATLABbatch system','line',0,'column',0);
 end
 if cfg_get_defaults('cfg_util.run_diary')
     diary off
