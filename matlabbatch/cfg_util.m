@@ -1453,7 +1453,8 @@ if isdeployed
     cfg_mlbatch_appcfg_master;
     [c0, jobs] = cfg_util_persistent;
 else
-    if exist('OCTAVE_VERSION','builtin')
+    is_octave = strcmp(spm_check_version,'octave');
+    if is_octave
         % workaround for bug #32088
         appcfgs = file_in_loadpath('cfg_mlbatch_appcfg.m', 'all');
     else

@@ -261,7 +261,8 @@ else
     ma = ma + ma.*1e-3;
 end
 
-if spm_check_version('matlab','8.4') >= 0
+is_octave = strcmp(spm_check_version,'octave');
+if is_octave || spm_check_version('matlab','8.4') >= 0
     dispmode = {'SortMethod','childorder'};
 else
     dispmode = {'drawmode','fast'};
