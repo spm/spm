@@ -221,8 +221,12 @@ if exist(user_defaults,'file')
             warning(lr.message);
         end
     end
-    if spm_check_version('matlab','8.0') >= 0, my_isequaln = @isequaln;
-    else my_isequaln = @isequalwithequalnans; end
+    is_octave = strcmp(spm_check_version,'octave');
+    if is_octave || spm_check_version('matlab','8.0') >= 0
+        my_isequaln = @isequaln;
+    else
+        my_isequaln = @isequalwithequalnans; 
+    end
     if ~my_isequaln(def,defaults)
         fprintf('Defaults settings have been modified by file(s):\n');
         for i=1:numel(user_defaults_file)

@@ -9,6 +9,7 @@ function varargout = spm_check_installation(action)
 % FORMAT rev = spm_check_installation('rev')
 % Return a lower bound of SPM SVN Revision number.
 % 
+%
 % FORMAT spm_check_installation('build')
 % Build signature of SPM distribution as used by 'full' option.
 % (for developers)
@@ -43,7 +44,7 @@ function check_basic
 
 %-Platform: MATLAB, GNU Octave
 %--------------------------------------------------------------------------
-if exist('OCTAVE_VERSION','builtin')
+if strcmp(spm_check_version,'octave');
     platform = 'Octave';
 else
     platform = 'MATLAB';
@@ -69,16 +70,19 @@ end
 
 %-Minimal MATLAB version required
 %--------------------------------------------------------------------------
-minVer = '7.4';
-try
-    v = spm_check_version('matlab',minVer);
-catch
-    error('A problem occurred with spm_check_version.m.');
-end
-if v < 0
-    error([...
-        'SPM requires MATLAB %s onwards in order to run.\n'...
-        'This MATLAB version is %s.'], minVer, version);
+is_octave = strcmp(spm_check_version,'octave');
+if is_octave == false
+  minVer = '7.4';
+  try
+      v = spm_check_version('matlab',minVer);
+  catch
+      error('A problem occurred with spm_check_version.m.');
+  end
+  if v < 0
+      error([...
+          'SPM requires MATLAB %s onwards in order to run.\n'...
+          'This MATLAB version is %s.'], minVer, version);
+  end
 end
 
 %-Check installation
@@ -194,7 +198,7 @@ fprintf('\n');
 
 %-
 %-------------------------------------------------------------------------------
-if exist('OCTAVE_VERSION','builtin')
+if strcmp(spm_check_version,'octave')
     software = 'Octave';
 else
     software = 'MATLAB';
@@ -342,7 +346,7 @@ end
 %--------------------------------------------------------------------------
 fprintf('MEX extension: %s\n',mexext);
 try
-    if ~exist('OCTAVE_VERSION','builtin')
+    if ~strcmp(spm_check_version,'octave')
         cc = mex.getCompilerConfigurations('C','Selected');
         if ~isempty(cc)
             cc = cc(1); % can be C or C++
@@ -626,7 +630,7 @@ str = native2unicode(str(:)','iso-8859-1');
 
 r = regexp(str,['\$Id: (?<file>\S+) (?<id>[0-9]+) (?<date>\S+) ' ...
                 '(\S+Z) (?<author>\S+) \$'],'names');
-                
+
 if isempty(r) || isempty(r(1).file)
     %sts = false;
     %fprintf('\n%s has no SVN Id.\n',f);
