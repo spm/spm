@@ -1315,7 +1315,7 @@ if isfield(Header,'GE_ImageType')
         end
     end
 else
-    if isfield(Header,'ImageType') && ~isempty(regexp(Header.ImageType,'\P\'))
+    if isfield(Header,'ImageType') && ~isempty(regexp(Header.ImageType,'\\P\\'))
         ImTyp = '-Phase';
     end
 end
