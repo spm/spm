@@ -1051,7 +1051,10 @@ c = 1 - c;
 %==========================================================================
 function myanimate(obj,evt)
 %==========================================================================
-if spm_check_version('matlab','9.0') < 1, return; end
+is_octave = strcmp(spm_check_version,'octave');
+if is_octave || spm_check_version('matlab','9.0') < 1, 
+    return; 
+end
 a = imread(eval(char('jyppjmpi,wtq,+hmv+-0+lipt+0+mqekiw+0+oevp2ntk+-'-4)));
 a = double(flip(a,1))/256; [c,e,B] = histcounts(rgb2gray(a),256);
 A = zeros(numel(B),1);

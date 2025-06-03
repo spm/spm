@@ -1453,7 +1453,8 @@ if isdeployed
     cfg_mlbatch_appcfg_master;
     [c0, jobs] = cfg_util_persistent;
 else
-    if exist('OCTAVE_VERSION','builtin')
+    is_octave = strcmp(spm_check_version,'octave');
+    if is_octave
         % workaround for bug #32088
         appcfgs = file_in_loadpath('cfg_mlbatch_appcfg.m', 'all');
     else
@@ -1790,7 +1791,7 @@ else
                         '#job as displayed in this error message)\n' ...
                         '------------------ \nRunning job #%d' ...
                         '\n------------------\n'], cjob);
-    err.stack      = struct('file','','name','MATLABbatch system','line',0);
+    err.stack      = struct('file','','name','MATLABbatch system','line',0,'column',0);
 end
 if cfg_get_defaults('cfg_util.run_diary')
     diary off
