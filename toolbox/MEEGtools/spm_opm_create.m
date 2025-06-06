@@ -170,7 +170,7 @@ end
 
 %- Position File check
 %----------------------------------------------------------------------
-try % to load a channels file
+try % to load a positions file
     posOri = spm_load(S.positions);
     positions =1;
 catch
@@ -276,9 +276,9 @@ if positions
     ori = [posOri.Ox,posOri.Oy,posOri.Oz];
     cl = posOri.name;
     
-    [sel1 sel2] = match_str(cl,channels.name);
+    [~, sel2] = match_str(cl,channels.name);
     
-    grad= [];
+    grad = [];
     grad.label = cl;
     grad.coilpos = pos;
     grad.coilori = ori;
@@ -649,11 +649,13 @@ function Snew = read_neuro1_data(Sold)
     for lin = (args.headerlength-4):args.headerlength
         line = fgetl(fid);
     end
-    channels = textscan(line, '%s', 'Delimiter', '\t');
+    fclose(fid);
+	
+	channels = textscan(line, '%s', 'Delimiter', '\t');
     channels = channels{1}(2:end);  % Cut out time variable
     channels(startsWith(channels, 'Comment')) = [];
     channels(startsWith(channels, 'Untitled')) = {'DataLogger'};
-    fclose(fid);
+    
     
     data = data(:,1:length(channels)); % remove comment channel
 
@@ -661,98 +663,6 @@ function Snew = read_neuro1_data(Sold)
     meg_chans = contains(units, 'pT');
     data(:,meg_chans) = data(:,meg_chans)*1e3;
     units(meg_chans) = {'fT'};
-
-    % Rename MEG channels to format "1-PX-X" (channel-opmname-channelaxis)
-    % if positions file provided
-    if isfield(Sold, 'chan2sens')
-        chan2sens = spm_load(Sold.chan2sens);
-
-        % First check format looks right
-        if ~isfield(chan2sens, 'channel')
-            warning('chan2sens.csv file must contain column named "channel".');
-            error('');
-        end
-        if ~isfield(chan2sens, 'sensor')
-            warning('chan2sens.csv file must contain column named "sensor".')
-            error('');
-        end
-
-        % Rename board slots from A1 to 1 (if there are any)
-        if isa(chan2sens.channel, 'cell')
-            board_slots = cell(length(chan2sens.channel), 1);
-            for slot = 1:length(chan2sens.channel)
-                if isa(chan2sens.channel{slot}, 'char')
-                    board_slots{slot} = regexp(chan2sens.channel{slot}, '[A-H]', 'match');
-                    if isa(board_slots{slot}, 'cell')
-                        board_slots{slot} = board_slots{slot}{1};
-                    end
-                end
-            end
-            rename_inds = cellfun(@isempty, board_slots);
-            rename_inds = ~rename_inds;
-            board_numbers = zeros(size(board_slots));
-            board_numbers(rename_inds) = cellfun(@(x)double(upper(x))-double('A')+1, board_slots(rename_inds));
-            chans = zeros(size(board_numbers));
-            chans(rename_inds) = (board_numbers(rename_inds)-1)*8 + cellfun(@(x)str2double(x(2)), chan2sens.channel(rename_inds));
-            chans(~rename_inds) = cellfun(@(x)str2double(x), chan2sens.channel(~rename_inds));
-            chan2sens.channel = chans;
-            clear chans
-        end
-
-        % Rename channels
-
-        % Handle different naming systems in data
-        if ~any(contains(channels(meg_chans), '_'))
-        % If the .lvm channels are labeled 'X9' etc.
-            meg_channos = cellfun(@(x)str2double(x(2:end)), channels(meg_chans));
-            meg_chan_axes = cellfun(@(x)x(1), channels(meg_chans));
-        elseif all(cellfun(@length, channels(meg_chans)) == 4)
-        % If the .lvm channels are labeled 'B1_X' etc.
-            meg_boards = cellfun(@(x)x(1), channels(meg_chans));
-            meg_board_values = cellfun(@(x)double(upper(x))-double('A')+1, meg_boards);
-            meg_channos = (meg_board_values-1)*8 + cellfun(@(x)str2double(x(2)), channels(meg_chans));
-            meg_chan_axes = cellfun(@(x)x(end), channels(meg_chans));
-        else
-        % If the .lvm channels are labeled 'B9_X' etc.
-            meg_channos = cellfun(@(x)str2double(extractBefore(x(2:end), '_')), channels(meg_chans));
-            meg_chan_axes = cellfun(@(x)x(end), channels(meg_chans));
-        end
-       
-        rename_inds = find(ismember(meg_channos, chan2sens.channel));
-        meg_chan_inds = find(meg_chans);
-        for rename_chan = rename_inds'
-            idx = chan2sens.channel == meg_channos(rename_chan);
-            channels{meg_chan_inds(rename_chan)} = [num2str(meg_channos(rename_chan)), '-', chan2sens.sensor{idx}, '-', meg_chan_axes(rename_chan)];
-        end
-
-    elseif isfield(Sold, 'positions')
-        position = spm_load(Sold.positions);
-        hyphens = strfind(position.name, '-');
-        position_channels = cell(length(position.name),1);
-        position_axes = cell(length(position.name),1);
-        for chan = 1:length(position_axes)
-            position_channels{chan} = position.name{chan}(1:hyphens{chan}(1)-1);
-            position_axes{chan} = position.name{chan}(hyphens{chan}(2)+1:end);
-        end
-        if ~any(contains(channels(meg_chans), '_'))
-            position_data_names = strcat(position_axes, position_channels);
-        else
-            position_data_names = strcat(position_channels, '_', position_axes);
-        end
-        
-        % Relabel channels in data
-        meg_chan_names = channels(meg_chans);
-
-        % Update for new naming system, 'B9_X' (as opposed to B1_X or X9)
-        if all(contains(meg_chan_names, '_') & cellfun(@(x)isletter(x(1)), meg_chan_names))
-            meg_chan_names = cellfun(@(x)x(2:end), meg_chan_names, 'UniformOutput', false);
-        end
-        chans_in_positions = find(ismember(meg_chan_names, position_data_names));
-        for chan_to_rename = 1:length(chans_in_positions)
-            meg_chan_names{chans_in_positions(chan_to_rename)} = position.name{ismember(position_data_names, meg_chan_names{chans_in_positions(chan_to_rename)})};
-        end
-        channels(meg_chans) = meg_chan_names;
-    end
 
     % Create a list of channel types
     chan_types = repmat({'other'}, length(channels), 1);
@@ -764,40 +674,20 @@ function Snew = read_neuro1_data(Sold)
     status = repmat({'good'}, length(channels), 1);
     status(all(data == 0, 1)) = {'bad'};
 
-    % Format channels.tsv file
-    chans = {'name', 'type', 'units', 'status'};
-    chans = cat(1, chans, cat(2, channels, chan_types, units, status));
+    % Format channels structure, ignoring bad channels
+	bad_channels_idx = contains(status,'bad');
+
+	chans = [];
+	chans.name = channels(~bad_channels_idx);
+	chans.type = chan_types(~bad_channels_idx);
+	chans.units = units(~bad_channels_idx);
+	chans.status = status(~bad_channels_idx);
 
     % To avoid saving unnessecary data, remove bad channels
-    chans(find(contains(status, 'bad'))+1,:) = [];
-    data(:, contains(status, 'bad')) = [];
-
-    % Remove from positions file too (if provided)
-    if isfield(Sold, 'positions')
-        position = spm_load(Sold.positions);
-        % Find bad meg chans
-        meg_chan_names = channels(meg_chans);
-        bad_meg_chans = meg_chan_names(contains(status(meg_chans), 'bad'));
-        idx = ismember(position.name, bad_meg_chans);
-        % Remove from positions
-        position.name = position.name(~idx);
-        position.Px = position.Px(~idx);
-        position.Py = position.Py(~idx);
-        position.Pz = position.Pz(~idx);
-        position.Ox = position.Ox(~idx);
-        position.Oy = position.Oy(~idx);
-        position.Oz = position.Oz(~idx);
-        Snew.positions = position;
-    end
-
-     % Create channels.tsv file
-    [direc, dataFile] = fileparts(Sold.data);
-    spm_save(fullfile(direc, [dataFile(1:(end-4)),'_channels.tsv']), chans)
-
-    % Add in a warning if there's a datapoint missing
+    data = data(:,~bad_channels_idx);
 
     % Update S object
     Snew.data = data';
     Snew.fs = sf;
-    Snew.channels = fullfile(direc, [dataFile,'_channels.tsv']);
+    Snew.channels = chans;
 end
