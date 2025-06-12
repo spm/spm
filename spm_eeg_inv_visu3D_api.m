@@ -617,8 +617,15 @@ for t = 1:length(handles.pst)
     if MOVIE, M(t) = getframe(handles.sources_axes); end
 end
 UpDate_Display_SENS(hObject,handles);
+
+% Check for Octave
+is_octave = strcmp(spm_check_version,'octave');
+if is_octave
+    error('Sorry, video writing is not yet implemented in Octave');
+end
+    
 try
-    filename = fullfile(handles.D.path,'SourceMovie');
+    filename = fullfile(handles.D.path,'SourceMovie');    
     if spm_check_version('matlab','7.10') > 0
         writerObj = VideoWriter(filename,'Uncompressed AVI');
         writerObj.FrameRate = 24;
