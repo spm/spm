@@ -70,10 +70,10 @@ p1  = min(p1,1-skel);
 vx = sqrt(sum(Nii(1).mat(1:3,1:3).^2));
 
 fprintf('Dist from WM: ');
-d2 = spm_distance3(p2,vx,10);
+d2 = spm_distance3(p2,vx,30);
 
 fprintf('Dist from CSF:');
-d3 = spm_distance3(p3,vx,10);
+d3 = spm_distance3(p3,vx,30);
 
 % Depth from outer surface (0) to inner surface (1)
 d  = d3./(d2+d3);
