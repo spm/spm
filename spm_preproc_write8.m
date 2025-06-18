@@ -286,6 +286,7 @@ else
     end
     q   = cat(3,q{:});
 
+    N = length(cr);
     for n=1:N
         tmp = round(cr{n}*res.intensity(n).interscal(2) + res.intensity(n).interscal(1));
         tmp = min(max(tmp,1),size(res.intensity(n).lik,1));
