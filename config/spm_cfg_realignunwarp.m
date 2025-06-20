@@ -446,10 +446,11 @@ fot.help    = {
     'translation; ``3`` = z translation ``4`` = x rotation,  ``5`` = y rotation and ``6`` = z rotation.']
     'To model pitch & roll enter: ``[4 5]``'
     'To model all movements enter: ``[1:6]``'
+    'To model NO first order dynamic changes leave blank'
     'Otherwise enter a customised set of movements to model'
     }';
 fot.strtype = 'n';
-fot.num     = [1 Inf];
+fot.num     = [Inf Inf];
 fot.def     = @(val)spm_get_defaults('unwarp.estimate.foe', val{:});
 
 %--------------------------------------------------------------------------
@@ -512,8 +513,9 @@ rem.def     = @(val)spm_get_defaults('unwarp.estimate.rem', val{:});
 noi         = cfg_entry;
 noi.tag     = 'noi';
 noi.name    = 'Number of Iterations';
-noi.help    = {'Maximum number of iterations.'};
-noi.strtype = 'n';
+noi.help    = {'Maximum number of iterations.'
+               'To deactivate dynamic field modelling enter ``0``'};
+noi.strtype = 'w';
 noi.num     = [1 1];
 noi.def     = @(val)spm_get_defaults('unwarp.estimate.noi', val{:});
 
