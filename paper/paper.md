@@ -10,42 +10,60 @@ tags:
   - PET
 authors:
   - name: Tim M. Tierney
+    orcid: 0009-0008-7575-679X
     affiliation: 1	
   - name: Nicholas A. Alexander
+    orcid: 0000-0001-5161-684X
     affiliation: 1	
   - name: John Ashburner
+    orcid: 0000-0001-7605-2518
     affiliation: 1	
   - name: Nicole Labra Avila
     affiliation: 1	
   - name: Yaël Balbastre
+    orcid: 0000-0001-8758-9978
     affiliation: 1	
   - name: Gareth Barnes
+    orcid: 0000-0002-5396-7712
     affiliation: 1	
   - name: Yulia Bezsudnova
+    orcid: 0000-0003-2443-7082
     affiliation: 1	
   - name: Mikael Brudfors
+    orcid: 0000-0002-2884-2336
     affiliation: 1	
   - name: Korbinian Eckstein
+    orcid: 0000-0002-4538-7072
     affiliation: 1	
   - name: Guillaume Flandin
+    orcid: 0000-0003-0077-7859
     affiliation: 1	
   - name: Karl Friston
+    orcid: 0000-0001-7984-8909
     affiliation: 1	
   - name: Amirhossein Jafarian
+    orcid: 0000-0001-9547-7941
     affiliation: 1		
   - name: Olivia S. Kowalczyk
+    orcid: 0000-0002-6543-290X
     affiliation: "1, 4"	
   - name: Vladimir Litvak
+    orcid: 0000-0001-8535-7452
     affiliation: 1	
   - name: Johan Medrano
+    orcid: 0000-0002-7558-2071
     affiliation: 1	
   - name: Stephanie Mellor
+    orcid: 0000-0001-8164-645X
     affiliation: "5, 6"	
   - name: George O'Neill
+    orcid: 0000-0002-0035-3768
     affiliation: 1	
   - name: Thomas Parr
+    orcid: 0000-0001-5108-5743
     affiliation: "1, 3"	
   - name: Adeel Razi
+    orcid: 0000-0002-0779-9439
     affiliation: "1, 2"	
   - name: Ryan Timms
     affiliation: 1	
