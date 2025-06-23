@@ -55,7 +55,7 @@ function DEM = spm_ADEM(DEM)
 %   G(i).W  = precision (state noise)
 %
 %   G(1).R  = restriction or rate matrix for action [default: 1];
-%   G(i).aP = precision (action)   [default: exp(-2)]
+%   G(i).aP = precision (action)                    [default: exp(-2)]
 %
 %   G(i).m  = number of inputs v(i + 1);
 %   G(i).n  = number of states x(i)
@@ -387,10 +387,8 @@ if ~np && ~nh, nE = 1; end
 %--------------------------------------------------------------------------
 [z,w]  = spm_DEM_z(G,nY);
 z{end} = C + z{end};
-a      = {G.a};
 Z      = spm_cat(z(:));
 W      = spm_cat(w(:));
-A      = spm_cat(a(:));
  
 % Iterate DEM
 %==========================================================================
@@ -443,7 +441,11 @@ for iE = 1:nE
         
         % pass action to pu.a (external states)
         %==================================================================
-        try, A = spm_cat({qU.a qu.a}); end
+        if iY > 1
+            A = spm_cat({qU.a qu.a});
+        else
+            A = spm_vec({G.a});
+        end
         
         % derivatives of responses and random fluctuations
         %------------------------------------------------------------------
