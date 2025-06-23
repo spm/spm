@@ -1,44 +1,46 @@
-function DEM = DEM_morphogenesis
-% This routine illustrates self-assembly or morphogenesis under active
+function DEM = DEM_swarm
+% This routine illustrates self-organisation and swarming under active
 % inference (free energy minimisation).  It exploits the fact that one can
-% express a systems (marginal) Lyapunov function in terms of a variational
-% free energy.  This means that one can prescribe an attracting set in
-% terms of the generative model that defines variational free energy.  In
-% this example, the attracting set is a point attractor in the phase space
-% of a multi-celled organism: where the states correspond to the location
-% and (chemotactic) signal expression of 16 cells.  The generative model
-% and process are remarkably simple; however, the ensuing migration and
-% differentiation of the 16 cells illustrates self-assembly - in the sense
-% that each cell starts of in the same location and releasing the same
-% signals.  In essence, the systems dynamics rest upon each cell inferring
-% its unique identity (in relation to all others) and behaving in accord
-% with those inferences; in other words, inferring its place in the
-% assembly and behaving accordingly.  Note that in this example there are
-% no hidden states and everything is expressed in terms of hidden causes
-% (because the attracting set is a point attractor)  Graphics are produced
-% illustrating the morphogenesis using colour codes to indicate the cell
-% type - that is interpreted in terms of genetic and epigenetic
-% processing.
+% express a joint-systems (marginal) Lyapunov function in terms of a
+% variational free energy. This means that one can prescribe an attracting
+% set in terms of the generative model that defines variational free
+% energy.  In this example, the attracting set is an orbit in the phase
+% space of an ensemble (e.g., swarm of drones): where the states correspond
+% to the location and (radio) signal expression of 8 agents. In essence,
+% the systems dynamics rest upon each agent inferring its unique identity
+% (in relation to all others) and behaving in accord with those inferences;
+% in other words, inferring its place in the assembly and realising those
+% inferences by moving.  In this example, the behaviour is rendered
+% autonomous by including hidden states that evolve in time. This allows
+% the frame of reference (within which agents communicate) to change
+% systematically. In this example, this frame of reference uses affine
+% transformations to simulate sequences of swarm dynamics.
+%
+% This scheme can be compared with the morphogenesis simulations. The key
+% difference is that we are now dealing with an autonomous system in which
+% behaviour is prescribed by the internal (autonomous) dynamics of the
+% generative model.
 % _________________________________________________________________________
  
 % Karl Friston
 % Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
- 
 % preliminaries
 %--------------------------------------------------------------------------
-clear global
 rng('default')
-SPLIT    = 0;                              % split: 1 = upper, 2 = lower
-N        = 32;                             % length of process (bins)
+N  = 256;                                 % length of process (time bins)
+
+% universal time
+%--------------------------------------------------------------------------
+global t, t = 0;
  
 % generative process and model
 %==========================================================================
 M(1).E.d  = 1;                             % approximation order
 M(1).E.n  = 2;                             % embedding order
-M(1).E.s  = 1;                             % smoothness
+M(1).E.s  = 1/2;                           % smoothness
  
-% priors (prototype)
+% priors (formation pattern)
 %--------------------------------------------------------------------------
 L     = 2;
 if L == 2
@@ -75,42 +77,41 @@ P.x   = spm_detrend([x(:) y(:)])'/2;
  
 % signalling of each cell type
 %--------------------------------------------------------------------------
-n     = size(P.x,2);                      % number of cells
+n     = size(P.x,2);                      % number of agents
 m     = size(p,3);                        % number of signals
-j     = find(p(:,:,1));
+j     = p(:,:,1);
 for i = 1:m
-    s        = p(:,:,i);
+    s    = p(:,:,i);
     P.s(i,:) = s(j);
 end
 P.s   = double(P.s);
-P.c   = morphogenesis(P.x,P.s);           % signal sensed at each position
+P.c   = signal(P.x,P.s);                  % signal sensed at each location
  
 % initialise action and expectations
 %--------------------------------------------------------------------------
-v     = randn(n,n)/8;                     % states (identity)
-g     = Mg([],v,P);
-a.x   = g.x;                              % action (chemotaxis)
-a.s   = g.s;                              % action (signal release)
- 
+v     = randn(n,n)/32;                    % states (identity)
+g     = Mg([],v,P);                       % outcomes generated
+a.x   = g.x;                              % action (movement)
+a.s   = g.s;                              % action (signalling)
  
 % generative process 
 %==========================================================================
+
+% rate (restruction matrix) dg/da
+%--------------------------------------------------------------------------
 R     = spm_cat({kron(eye(n,n),ones(2,2)) []; [] kron(eye(n,n),ones(4,4));
                  kron(eye(n,n),ones(4,2)) kron(eye(n,n),ones(4,4))});
 
 % level 1 of generative process
 %--------------------------------------------------------------------------
 G(1).g  = @(x,v,a,P) Gg(x,v,a,P);
-G(1).v  = Gg([],[],a,a);
-G(1).V  = exp(16);                         % precision (noise)
-G(1).U  = exp(2);                          % precision (action)
-G(1).R  = R;                               % restriction matrix
-G(1).pE = a;                               % form (action)
- 
+G(1).V  = exp(16);                          % precision (noise)
+G(1).U  = exp(4);                           % precision (action)
+G(1).R  = R*4;                              % restriction (rate) matrix
  
 % level 2; causes (action)
 %--------------------------------------------------------------------------
-G(2).a  = spm_vec(a);                      % endogenous cause (action)
+G(2).a  = a;                               % endogenous cause (action)
 G(2).v  = 0;                               % exogenous  cause
 G(2).V  = exp(16);
  
@@ -120,9 +121,8 @@ G(2).V  = exp(16);
  
 % level 1 of the generative model: 
 %--------------------------------------------------------------------------
-M(1).g  = @(x,v,P) Mg([],v,P);
-M(1).v  = g;
-M(1).V  = exp(3);
+M(1).g  = @(x,v,P) Mg(x,v,P);
+M(1).V  = exp(4);
 M(1).pE = P;
  
 % level 2: 
@@ -142,53 +142,11 @@ DEM.M = M;
 DEM.G = G;
 DEM.C = C;
 DEM.U = U;
- 
+
 % solve
 %==========================================================================
 DEM   = spm_ADEM(DEM);
 spm_DEM_qU(DEM.qU,DEM.pU);
-
-
-% split half simulations
-%==========================================================================
-if SPLIT
-    
-    % select (partially diferentiated cells to duplicate
-    %----------------------------------------------------------------------
-    t    = 8;
-    v    = spm_unvec(DEM.pU.v{1}(:,t),DEM.M(1).v);
-    if SPLIT > 1
-        [i j] = sort(v.x(1,:), 'ascend');
-    else
-        [i j] = sort(v.x(1,:),'descend');
-    end
-    j    = [j(1:n/2) j(1:n/2)];
-    
-    % reset hidden causes and expectations
-    %----------------------------------------------------------------------
-    v    = spm_unvec(DEM.qU.v{2}(:,t),DEM.M(2).v);
-    g    = spm_unvec(DEM.qU.v{1}(:,t),DEM.M(1).v);
-    a    = spm_unvec(DEM.qU.a{2}(:,t),DEM.G(1).pE);
-    
-    v    = v(:,j);
-    g.x  = g.x(:,j);
-    g.s  = g.s(:,j);
-    g.c  = g.c(:,j);
-    a.x  = a.x(:,j) + randn(size(a.x))/512;
-    a.s  = a.s(:,j) + randn(size(a.s))/512;
-    
-    DEM.M(1).v = g;
-    DEM.M(2).v = v;
-    DEM.G(2).a = spm_vec(a);
-    
-    % solve
-    %----------------------------------------------------------------------
-    DEM   = spm_ADEM(DEM);
-    spm_DEM_qU(DEM.qU,DEM.pU);
-    
-end
-
-
 
  
 % Graphics
@@ -203,7 +161,7 @@ h     = 2/3;
 x     = linspace(-A,A,32);
 [x,y] = ndgrid(x,x);
 x     = spm_detrend([x(:) y(:)])';
-c     = morphogenesis(P.x,P.s,x);
+c     = signal(P.x,P.s,x);
 c     = c - min(c(:));
 c     = c/max(c(:));
 for i = 1:size(c,2)
@@ -234,7 +192,7 @@ grid on
  
 subplot(2,2,2); cla
 v      = spm_unvec(DEM.qU.v{2}(:,end),DEM.M(2).v);
-[i j]  = max(v);
+[~,j]  = max(v);
 v(:,j) = v;
 imagesc(spm_softmax(v))
 title('softmax expectations','Fontsize',16)
@@ -243,28 +201,12 @@ ylabel('cell')
 axis square tight
  
  
-% target morphology
+% target formation
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Figure 2'); clf
+A = A*2;
 
 subplot(2,2,1); cla
-for i = 1:m
-    for j = 1:n
-        x = P.x(2,j);
-        y = P.x(1,j) + i/6;
-        if P.s(i,j)
-            plot(x,y,'.','markersize',24,'color','k'); hold on
-        else
-            plot(x,y,'.','markersize',24,'color','c'); hold on
-        end
-    end
-end
-xlabel('cell')
-title('Encoding','Fontsize',16)
-axis image off
-hold off
- 
-subplot(2,2,2); cla
 for i = 1:n
     x = P.x(:,i);
     c = P.s(end - 2:end,i);
@@ -273,7 +215,7 @@ for i = 1:n
     plot(x(2),x(1),'h','markersize',12,'color',h*c); hold on
 end
  
-title('morphogenesis','Fontsize',16)
+title('Formation','Fontsize',16)
 xlabel('location')
 ylabel('location')
 set(gca,'Color','k');
@@ -281,12 +223,11 @@ axis([-1 1 -1 1]*A)
 axis square, box off
 hold off
  
- 
-% graphics
+% trajectories
 %--------------------------------------------------------------------------
 subplot(2,2,3); cla;
 for t = 1:N
-    v = spm_unvec(DEM.qU.a{2}(:,t),a);
+    v = spm_unvec(DEM.pU.v{1}(:,t),g);
     for i = 1:n
         x = v.x(1,i);
         c = v.s(end - 2:end,i);
@@ -295,19 +236,19 @@ for t = 1:N
     end
 end
  
-title('morphogenesis','Fontsize',16)
+title('Trajectories','Fontsize',16)
 xlabel('time')
 ylabel('location')
 set(gca,'Color','k');
 set(gca,'YLim',[-1 1]*A)
 axis square, box off
 hold off
- 
-% movies
+
+% flight paths
 %--------------------------------------------------------------------------
-subplot(2,2,4);hold off, cla;
+subplot(2,2,4); cla;
 for t = 1:N
-    v = spm_unvec(DEM.qU.a{2}(:,t),a);
+    v = spm_unvec(DEM.pU.v{1}(:,t),g);
     
     for i = 1:n
         x = v.x(:,i);
@@ -323,6 +264,30 @@ for t = 1:N
         end
     end
     set(gca,'Color','k');
+    title('Flight paths','FontSize',16)
+    xlabel('location')
+    axis square, box off
+    axis([-1 1 -1 1]*A)
+    drawnow
+
+end
+
+% movie
+%--------------------------------------------------------------------------
+subplot(2,2,2);  cla;
+for t = 1:N
+    v = spm_unvec(DEM.pU.v{1}(:,t),g);
+    
+    for i = 1:n
+        x = v.x(:,i);
+        c = v.s(end - 2:end,i);
+        c = max(min(c,1),0);
+        plot(x(2),x(1),'.','markersize',16,'color',full(c));   hold on
+        plot(x(2),x(1),'h','markersize',12,'color',full(h*c));
+
+    end
+    hold off
+    set(gca,'Color','k');
     axis square, box off
     axis([-1 1 -1 1]*A)
     drawnow
@@ -335,8 +300,9 @@ end
  
 set(gca,'Userdata',{Mov,8})
 set(gca,'ButtonDownFcn','spm_DEM_ButtonDownFcn')
-title('Extrinsic (left click for movie)','FontSize',16)
-xlabel('location') 
+title('Swarming','FontSize',16)
+xlabel('location')
+
  
 return
  
@@ -346,10 +312,10 @@ return
  
 % sensed signal
 %--------------------------------------------------------------------------
-function c = morphogenesis(x,s,y)
+function c = signal(x,s,y)
 % x - location of cells
 % s - signals released
-% y - location of sampling [default: x]
+% y - location of sampling [default: x, y for plotting] 
 %__________________________________________________________________________
  
 % preliminaries
@@ -373,37 +339,62 @@ for i = 1:n
  
     end
 end
- 
- 
-% first level process: generating input
+
+
+% first level process: generating observations from causes; here, action
 %--------------------------------------------------------------------------
 function g = Gg(x,v,a,P)
-global t
-if isempty(t)
-    s = 0;
-else
-    s = (1 - exp(-t*2));
-end
-a        = spm_unvec(a,P);
 
-g.x(1,:) = a.x(1,:);                     % position  signal
-g.x(2,:) = a.x(2,:);                     % position  signal
-g.s      = a.s;                          % intrinsic signal
-g.c      = s*morphogenesis(a.x,a.s);     % extrinsic signal
- 
-% first level model: mapping hidden causes to sensations
+g.x = a.x;                               % position  signal
+g.s = a.s;                               % intrinsic signal
+g.c = signal(a.x,a.s);                   % extrinsic signal
+
+return
+
+% first level model: mapping hidden causes (identity) to sensations
 %--------------------------------------------------------------------------
 function g = Mg(x,v,P)
-global t
-if isempty(t)
-    s = 0;
+
+% time-depdendent changes in location priors (P.x)
+%==========================================================================
+global t                                 % universal time
+dxdt = 16;                               % velocity
+if t > 3/4
+
+    % mission 4 (return)
+    %----------------------------------------------------------------------
+    s   = exp(-(1/4)*8);
+    P.x = P.x + (1 - t)*dxdt;
+
+elseif t > 2/4
+
+    % mission 3 (converge)
+    %----------------------------------------------------------------------
+    s   = exp(-(t - 2/4)*8);
+    P.x = P.x*s + (1/4)*dxdt;
+
+elseif t > 1/4
+
+    % mission 2 (circle)
+    %----------------------------------------------------------------------
+    s   = (t - 1/4)*8;
+    S   = [cos(s),-sin(s);
+          sin(s), cos(s)];
+    P.x = S*P.x + (1/4)*dxdt;
+
 else
-    s = (1 - exp(-t*2));
+
+    % mission 1 (deploy)
+    %----------------------------------------------------------------------
+    P.x = P.x + t*dxdt;
+
 end
 
+% predicted position and signalling under this identity profile
+%==========================================================================
 p    = spm_softmax(v);                   % expected identity
-
 g.x  = P.x*p;                            % position
 g.s  = P.s*p;                            % intrinsic signal
-g.c  = s*P.c*p;                          % extrinsic signal
+g.c  = P.c*p;                            % extrinsic signal
 
+return
