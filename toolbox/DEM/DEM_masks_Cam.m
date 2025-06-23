@@ -1,6 +1,6 @@
 function DEM_masks_Cam
 % Bayesian model reduction for COVID models
-% FORMAT DEM_mask_Cam
+% FORMAT DEM_masks_Cam
 %
 % This subroutine applies Bayesian model reduction to a DCM for COVID,
 % asking whether mask wearing can be treated as fixed parameters by
