@@ -428,15 +428,14 @@ spm_progress_bar('init',Kb,'Warped Tissue Classes','Classes completed');
 for k1 = 1:Kb
     if ~isempty(cls{k1})
         c = single(cls{k1})/255;
-        if any(any(tc(:,[1 3])))
-            [c,w]       = spm_diffeo('push',c,y,d1(1:3));
-            vx          = sqrt(sum(M1(1:3,1:3).^2));
-            spm_field('boundary',1);
-            C(:,:,:,k1) = spm_field(w,c,[vx  1e-6 1e-4 0  2 2]);
+        if any(any(tc(:,[1 3]))) | any(any(tc(k1,[2 4])))
+            sd    = spm_mb_shape('samp_dens',M1,M0);
+            [c,w] = spm_mb_shape('push1',c, y, d1(1:3), sd);
+
+            if any(any(tc(:,[1 3])))
+                C(:,:,:,k1) = c./w;
+            end
             c = c*volsc;
-            clear w
-        elseif any(any(tc(k1,[2 4])))
-            c      = spm_diffeo('push',c,y,d1(1:3))*volsc;
         end
 
         if tc(k1,4), wc{k1} = c; end
@@ -566,7 +565,7 @@ return;
 %==========================================================================
 function dat = decimate(dat,fwhm)
 % Convolve the volume in memory (fwhm in voxels).
-lim = ceil(2*fwhm);
+lim = ceil(4*fwhm);
 x  = -lim(1):lim(1); x = spm_smoothkern(fwhm(1),x); x  = x/sum(x);
 y  = -lim(2):lim(2); y = spm_smoothkern(fwhm(2),y); y  = y/sum(y);
 z  = -lim(3):lim(3); z = spm_smoothkern(fwhm(3),z); z  = z/sum(z);
