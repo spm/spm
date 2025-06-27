@@ -27,7 +27,7 @@ if ~nargin
     root = pwd;
 elseif nargin == 1
     if ischar(varargin{1})
-        root = spm_select('CPath',varargin{1});
+        root = spm_file(varargin{1},'CPath');
     else
         varargout = varargin(1);
         return;
@@ -47,7 +47,8 @@ BIDS = struct(...
     'sessions',{{}},...           % cellstr of sessions
     'scans',struct([]),...        % content of sub-<participant_label>_scans.tsv (should go within subjects)
     'sess',struct([]),...         % content of sub-participants_label>_sessions.tsv (should go within subjects)
-    'participants',struct([]),... % content of participants.tsv
+    'participants',results_nidm
+struct([]),... % content of participants.tsv
     'subjects',struct([]));       % structure array of subjects
 
 %-Validation of BIDS root directory
