@@ -12,6 +12,8 @@ function varargout = spm_platform(varargin)
 %         - 'host'    - return system's host name
 %         - 'tempdir' - return name of temp directory
 %         - 'desktop' - return whether or not the Desktop is in use
+%         - 'runtime' - return the name of the runtime environment
+%                       (MATLAB, Octave, ...)
 %
 % FORMAT PlatFontNames = spm_platform('fonts')
 % Return structure with fields named after the generic (UNIX) fonts, the
@@ -109,6 +111,10 @@ case 'desktop'                                       %-Return desktop usage
 %==========================================================================
 varargout = {PLATFORM.desktop};
 
+case 'runtime'                                    %-Return runtime platform
+%==========================================================================
+varargout = {PLATFORM.runtime};
+
 case 'memory'                                   %-Return memory information
 %==========================================================================
 varargout = {meminfo(varargin{2:end})};
@@ -129,7 +135,13 @@ end
 
 function PLATFORM = init_platform           %-Initialise platform variables
 %==========================================================================
-if strcmpi(spm_check_version,'matlab')
+if exist('OCTAVE_VERSION','builtin')
+    PLATFORM.runtime = 'octave';
+else
+    PLATFORM.runtime = 'matlab';
+end
+
+if strcmpi(PLATFORM.runtime,'matlab')
     comp = computer;
 else
     if ismac

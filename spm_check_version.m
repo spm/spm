@@ -69,11 +69,7 @@ function varargout = spm_check_version(tbx,chk)
 
 %-Detect software used
 %==========================================================================
-if exist('OCTAVE_VERSION','builtin')
-    runtime = 'octave';
-else
-    runtime = 'matlab';
-end
+runtime = spm_platform('runtime');
 if ~nargin, varargout = {runtime}; return; end
 if isempty(tbx) % Not sure whether this should actually happen
     tbx = runtime;
