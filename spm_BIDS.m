@@ -27,7 +27,7 @@ if ~nargin
     root = pwd;
 elseif nargin == 1
     if ischar(varargin{1})
-        root = spm_select('CPath',varargin{1});
+        root = spm_file(varargin{1},'CPath');
     else
         varargout = varargin(1);
         return;
