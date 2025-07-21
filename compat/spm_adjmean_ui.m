@@ -641,11 +641,8 @@ Des = struct(...
         'aPMap',    aPMap,...
         'EXnames',  EXnames,...
         'iX',       iX      );
-if spm_check_version('matlab','7') >= 0
-    save('SPMadj.mat','-V6','SPMid','DesDef','Des','V','c','cNames','W','Fnames','rGX','GX');
-else
-    save('SPMadj.mat','SPMid','DesDef','Des','V','c','cNames','W','Fnames','rGX','GX');
-end;
+save('SPMadj.mat','SPMid','DesDef','Des','V','c','cNames','W','Fnames','rGX','GX',...
+        spm_get_defaults('mat.format'));
 
 
 %=======================================================================
