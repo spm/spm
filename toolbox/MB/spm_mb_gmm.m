@@ -117,6 +117,7 @@ for em=1:iter_max
         end
     end
 
+
     % ---------------------------------------------------------------------
     % Update mixing proportions
     for k1=unique(lkp)
@@ -141,6 +142,29 @@ cluster = {m, b, W, nu, gam, Alpha};
 %LB   = lb.P+ lb.X+ lb.mu+ lb.A;
 %fprintf('%g %g %g %g    %g\n', lb.mu, lb.A, lb.X, lb.P, LB);
 %%%%%%%%%%%%%%%%
+%==========================================================================
+
+%==========================================================================
+function [W,nu] = fix_W(W,nu)
+% Patch up some potential issues
+% Numerical issues can mean that W may not be positive definite because of
+% they way sufficient statistics are used.
+% Note: This function may cause issues for images with very tiny
+% intensities. This is just a workaround for until a proper fix
+% is made.
+tiny = 1e-6;
+N    = size(W,1);
+if N==1
+    W(W<tiny) = tiny;
+else
+    for k=1:K
+        [V,D] = eig(W(:,:,k));
+        d     = diag(D);
+        D     = diag(max(d,tiny));
+        W(:,:,k) = V*D*V';
+    end
+end
+nu = max(nu,N-1+tiny);
 %==========================================================================
 
 %==========================================================================
@@ -587,8 +611,8 @@ if ~constrained
             % ---
             % Update
            %nu0(k) = max(nu0(k) - H\g, N-1+N*eps);
-            reg   = 0.001; % Regularise so nu0 tends towards 0
-            nu0(k) = max((H+reg)\(H*nu0(k)-g), N-1+N*eps);
+            reg    = 0.001; % Regularise so nu0 tends towards 0
+            nu0(k) = max((H+reg)\(H*nu0(k)-g), N-1+1e-6);
         end
         % -----------------------------------------------------------------
 
@@ -689,7 +713,7 @@ else
 
                 % ---
                 % Update
-                nu0(k) = max(nu0(k) - H\g, N-1+N*eps);
+                nu0(k) = max(nu0(k) - H\g, N-1+1e-6);
             end
             % ------------------------------------------------------------
 
@@ -742,7 +766,7 @@ else
 
             % ---
             % Update
-            p0 = max(p0 - H\g, N-1+N*eps);
+            p0 = max(p0 - H\g, N-1+1e-6);
 
         end
         % -----------------------------------------------------------------
