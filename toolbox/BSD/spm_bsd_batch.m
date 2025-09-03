@@ -91,14 +91,14 @@ arrayvals         = cfg_entry;
 arrayvals.tag     = 'y';
 arrayvals.name    = 'Power spectra';
 arrayvals.help    = {'Specify the data matrix.'};
-arrayvals.strtype = 'n';
+arrayvals.strtype = 'r';
 arrayvals.num     = [Inf Inf];
 
 arrayfreq         = cfg_entry; 
 arrayfreq.tag     = 'Hz';
 arrayfreq.name    = 'Frequency vector';
 arrayfreq.help    = {'Specify the frequency vector.'};
-arrayfreq.strtype = 'n';
+arrayfreq.strtype = 'r';
 arrayfreq.num     = [1 Inf];
 
 dataarray      = cfg_branch; 
@@ -117,7 +117,7 @@ datasource.val    = {datameeg};
 fqcustom         = cfg_entry; 
 fqcustom.tag     = 'val';
 fqcustom.name    = 'Frequency range';
-fqcustom.strtype = 'n';
+fqcustom.strtype = 'r';
 fqcustom.num     = [1 2];
 
 fqdelta = cfg_entry; 
@@ -160,7 +160,7 @@ design         = cfg_entry;
 design.tag     = 'X';
 design.name    = 'Design matrix';
 design.help    = {'Specify the design matrix.'};
-design.strtype = 'n';
+design.strtype = 'r';
 design.num     = [Inf Inf];
 design.val     = {[]}; 
 
@@ -358,7 +358,6 @@ function BSD = spm_run_bsd(job)
         BSD.options.Tdcm   =  job.source.meeg.Tdcm; 
         BSD.options.Fdcm   =  job.source.meeg.Fdcm; 
 
-
         if isfield(job.source.meeg.chsel, 'chind')
             BSD.xY.Ic = job.source.meeg.chsel.chind; 
         elseif isfield(job.source.meeg.chsel, 'chnames')
@@ -369,6 +368,7 @@ function BSD = spm_run_bsd(job)
     else 
         BSD.xY.Hz = job.source.xY.Hz;
         BSD.xY.y  = job.source.xY.y;
+        BSD.options.DATA = 0; 
     end
 
     BSD.fqs = cellfun(@(c) c.val, job.freqs, 'UniformOutput', false); 

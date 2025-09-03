@@ -100,7 +100,42 @@ if DATA
         Ns   = BSD.M.dipfit.Ns; 
     end
 else 
+    if isfield(BSD, 'xY') 
+        if isfield(BSD.xY, 'y')
+           if isnumeric(BSD.xY.y)
+               BSD.xY.y = {BSD.xY.y}; 
+           elseif ~iscell(BSD.xY.y)
+               error('Field BSD.xY.y must be a cell array of numeric arrays [nfreqs, nchannels]');
+           end
+        else
+            error('BSD.xY.y not specified'); 
+        end
+
+        if isfield(BSD.xY, 'Hz') 
+            Nf = length(BSD.xY.Hz); 
+        else
+            error('BSD.xY.Hz must be specified with BSD.xY.y'); 
+        end
+
+        if ~isfield(BSD.xY, 'dt')
+            BSD.xY.dt = 1; 
+        end
+    else
+        error('BSD.xY not specified'); 
+    end
+    
+    if size(BSD.xY.y{1}, 1) ~= Nf 
+        error('Number of frequencies (BSD.xY.Hz) must match the first dimension of the data (BSD.xY.y)')
+    end
+
     Ns = size(BSD.xY.y{1},2);  
+    for i = 1:numel(BSD.xY.y)
+        if ~( size(BSD.xY.y{i}, 1) == Nf && size(BSD.xY.y{i}, 2) == Ns )
+            error('Shape mismatch in data for condition %d: expected (%d,%d), got (%d,%d).', i, Nf, Ns, ...
+                size(BSD.xY.y{i}, 1), size(BSD.xY.y{i}, 2));
+        end
+    end
+
     BSD.M.dipfit.Ns = Ns; 
     BSD.M.dipfit.Nc = Ns; 
 end
