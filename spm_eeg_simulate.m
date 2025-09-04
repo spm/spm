@@ -90,7 +90,7 @@ if isempty(woi),
 end;
 
 if isempty(whitenoise) && isempty(SNRdB), %% if neither option is selected take white noise level by default
-    whitenoise=10; 
+    whitenoise=10;
 end;
 
 val=D{useind}.val;
@@ -100,7 +100,7 @@ val=D{useind}.val;
 if isempty(patchmni),
     patchmni=[-45.4989  -30.6967    4.9213;...
         46.7322  -31.2311    4.0085];
-    
+
 end;
 
 
@@ -163,6 +163,38 @@ end;
 
 Ndip = size(simsignal,1);       % Number of dipoles
 
+try
+    chanind = Dnew.indchantype({'MEG', 'MEGPLANAR'}, 'GOOD');
+catch
+    chanind = Dnew.indchantype(modality(D{1}), 'GOOD');
+end
+
+
+%% new code to condition the new file
+if strncmp(Dnew.modality,'MEG',3),
+    if ~isfield(Dnew.inv{1}.forward,'sensors'),
+        fprintf('\n Copying sensor infor from datareg')
+        Dnew.inv{val}.forward.sensors=Dnew.inv{val}.datareg.sensors;
+    end;
+    fprintf('\nforcing SI units')
+    sensors_si=ft_convert_units(Dnew.inv{1}.forward.sensors,'m');
+    Dnew.inv{1}.forward.sensors=sensors_si;
+    Dnew.inv{1}.forward.siunits=1;
+    fprintf('\n Setting channel units to fT')
+    unitlabels='fT';
+
+    Dnew = units(Dnew,chanind,unitlabels)
+    fprintf('\n forcing vol units to metres')
+    vol=ft_convert_units(Dnew.inv{val}.forward.vol,'m');
+    Dnew.inv{val}.forward.vol=vol;
+    if std(Dnew.inv{1}.forward.mesh.vert(:,1))>1,
+        fprintf('\n changing mesh vertices from mm to m')
+        Dnew.inv{val}.forward.mesh.vert=Dnew.inv{val}.forward.mesh.vert./1000;
+    end;
+    
+end; % if ismodality
+
+
 
 
 sensorunits = Dnew.units; %% of sensors (T or fT)
@@ -170,17 +202,17 @@ sensorunits = Dnew.units; %% of sensors (T or fT)
 try Dnew.inv{val}.forward.vol.unit, %% units of forward model for distance (m or mm)
     switch(Dnew.inv{val}.forward.vol.unit), %% correct for non-SI lead field scaling
         case 'mm'
-            
+
             Lscale=1000*1000;
         case 'cm'
-            
+
             Lscale=100*100;
         case 'm'
             Lscale=1.0;
-            
+
         otherwise
             error('unknown volume unit');
-            
+
     end;
 catch
     disp('No distance units found');
@@ -204,11 +236,6 @@ end;
 
 
 %if isequal(modstr, 'MEG')
-try
-    chanind = Dnew.indchantype({'MEG', 'MEGPLANAR'}, 'GOOD');
-catch
-    chanind = Dnew.indchantype(modality(D{1}), 'GOOD');
-end
 
 
 
@@ -240,11 +267,11 @@ try
             whitenoise=whitenoise./1e6; %% volts
             tmp=tmp./1e6;
             error('not supported for EEG at the moment');
-            
+
         otherwise
             error('unknown sensor unit')
     end;
-    
+
 catch
     disp('No sensor sensorunits found');
 end;
@@ -258,7 +285,7 @@ if ~isempty(ormni), %%%% DIPOLE SIMULATION
     if size(ormni)~=size(patchmni),
         error('A 3D orientation must be specified for each source location');
     end;
-    
+
     posdipmm=Dnew.inv{val}.datareg.fromMNI*[patchmni ones(size(ormni,1),1)]'; %% put into MEG space
     posdipmm=posdipmm(1:3)';
     %% need to make a pure rotation for orientation transform to native space
@@ -266,71 +293,71 @@ if ~isempty(ormni), %%%% DIPOLE SIMULATION
     [U, L, V] = svd(M1(1:3, 1:3));
     ordip=ormni*(U*V');
     ordip=ordip./sqrt(dot(ordip,ordip)); %% make sure it is unit vector
-    
+
     %% NB COULD ADD A PURE DIPOLE SIMULATION IN FUTURE
     sens=Dnew.inv{val}.forward.sensors;
     vol=Dnew.inv{val}.forward.vol;
-    
-    
+
+
     %% Get good channels
     useind=Dnew.indchantype(Dnew.modality);
     useind=setxor(Dnew.badchannels,goodchans);
-    
-    
+
+
     tmp=zeros(length(chanind),Dnew.nsamples);
-    
+
     for i=1:Ndip,
         gmn = ft_compute_leadfield(posdipmm(i,:)*1e-3, sens, vol,  'dipoleunit', 'nA*m','chanunit',sensorunits);
         gain=gmn*ordip';
         tmp(:,f1ind)=tmp(:,f1ind)+gain(usedind,:)*simsignal(i,:);
     end; % for i
-    
-    
+
+
 else %%% CURRENT DENSITY ON SURFACE SIMULATION
     disp('SIMULATING CURRENT DISTRIBUTIONS ON MESH');
     %% CREATE A NEW FORWARD model for e mesh
     fprintf('Computing Gain Matrix: ')
     spm_input('Creating gain matrix',1,'d');    % Shows gain matrix computation
-    
+
     [L Dnew] = spm_eeg_lgainmat(Dnew);              % Gain matrix
     if isfield(Dnew.inv{val}.forward,'scale'),
         L=L./Dnew.inv{val}.forward.scale; %% account for rescaling of lead fields
     end;
-    
-    
-    
+
+
+
     Nd    = size(L,2);                          % number of dipoles
     Nchans=size(L,1);
-    
+
     fprintf(' - done\n')
-    
-    
-    
-    
+
+
+
+
     nativemesh=Dnew.inv{val}.forward.mesh;
-    
+
     Qe=[];, %% SNR may be defined by sensor level data in which case we have to get data first then go back
-    
+
     %[Qp,Qe,priors,priorfname] = spm_eeg_invert_EBconstruct_priors(Dnew,val,nativemesh,priors,Qe,L,'sim');
     base.FWHMmm=dipfwhm;
     base.nAm=nAmdipmom;
-    
-    
+
+
     [a1,b1,c1]=fileparts(Dnew.fname);
-    
+
     priordir=[Dnew.path filesep 'simprior_' b1 ];
     mkdir(priordir);
     fprintf('Saving prior in directory %s\n',priordir);
-    
+
     [Qp,Qe,priorfname]=spm_eeg_invert_setuppatches(meshsourceind,nativemesh,base,priordir,Qe,L);
-    
-    
+
+
 
     % Add waveform of all smoothed sources to their equivalent dipoles
     % QGs add up to 0.9854
     fullsignal=zeros(Ndip,Dnew.nsamples); %% simulation padded with zeros
     fullsignal(1:Ndip,f1ind)=simsignal;
-    
+
     tmp     = sparse(zeros(Nchans,Dnew.nsamples));                     % simulated data
     X=zeros(size(full(Qp{1}.q)));
     for j=1:Ndip
@@ -341,7 +368,7 @@ else %%% CURRENT DENSITY ON SURFACE SIMULATION
         end;
     end;
     tmp=tmp.*simscale; %% scale to sensor units
-    
+
 end; % if ori
 
 
@@ -404,14 +431,14 @@ dnewind=chanind(tmpind);
 if isempty(ormni)
     hold on
     mnivert=Dnew.inv{val}.mesh.tess_mni.vert;
-    
-    
+
+
     Nj      = size(mnivert,1);
     M       = X;
     G       = sqrt(sparse(1:Nj,1,abs(M),Nj,1)); %% ADDED IN ABS - NEED TO CHECK IN
     Fgraph  = spm_figure('GetWin','Graphics');
     j       = find(M);
-    
+
     clf(Fgraph)
     figure(Fgraph)
     spm_mip(G(j),mnivert(j,:)',6);
