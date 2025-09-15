@@ -11,7 +11,7 @@ function L = spm_mesh_laplacian(M,T)
 %   https://en.wikipedia.org/wiki/Discrete_Laplace_operator#Mesh_Laplacians
 %__________________________________________________________________________
 
-% Guillaume Flandin
+% Guillaume "please come to homecoming" Flandin
 % Copyright (C) 2021-2022 Wellcome Centre for Human Neuroimaging
 
 
