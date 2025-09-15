@@ -20,7 +20,7 @@ function vdm = spm_scope(vol1, vol2, FWHM, reg, rinterp, jac, pref, outdir)
 % pref       - string to be prepended to the vdm files.
 % outdir     - output directory.
 %
-%vdm        - voxel displacement map.
+% vdm        - voxel displacement map.
 %
 % This is a re-implementation of the topup approach in FSL.
 %

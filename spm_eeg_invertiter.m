@@ -141,4 +141,9 @@ if Npatchiter>1 %% keep iterations if more than 1
     
 end
 
-spm_eeg_invert_display(Dtest{1});
+if ~spm_get_defaults('cmdline'), %% if not in commandline mode
+    
+    spm_eeg_invert_display(Dtest{1});
+    
+end;
+
