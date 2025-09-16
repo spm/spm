@@ -568,37 +568,43 @@ bids.meg = meg;
 end
 
 function Snew = read_fieldline_data(S)
-hdr = ft_read_header(S.data);
-data = ft_read_data(S.data);
 
+coildef = fullfile(spm('dir'),'external','mne','coil_def.dat');
+hdr = ft_read_header(S.data,'coildeffile',coildef);
+data = ft_read_data(S.data, 'header', hdr);
 
 chans = [];
 chans.name = {hdr.orig.chs.ch_name}';
 chans.type = hdr.chantype;
-chans.units = cellstr(repmat('fT',size(hdr.label,1),1));
+meg_chans = match_str(chans.type,'megmag');
+chans.units = cellstr(repmat('unknown',size(hdr.label,1),1));
+[chans.units{meg_chans}] = deal('fT');
 chans.status = cellstr(repmat('good',size(hdr.label,1),1));
 
-
-nchans = size(hdr.orig.chs,2);
+% nchans = size(hdr.orig.chs,2);
 pos = [hdr.orig.chs.loc]';
 
 try
   positions = spm_load(S.positions);
 catch
-  % currently only radial support.
+  % ignore sensors with no position information
+  haspos = find(sum(pos==0,2)~=12);
   positions = [];
-  positions.Px = pos(:,1);
-  positions.Py = pos(:,2);
-  positions.Pz = pos(:,3);
-  positions.Ox = pos(:,10);
-  positions.Oy = pos(:,11);
-  positions.Oz = pos(:,12);
-  positions.name = {hdr.orig.chs.ch_name}';
+  positions.Px = pos(haspos,1);
+  positions.Py = pos(haspos,2);
+  positions.Pz = pos(haspos,3);
+  positions.Ox = pos(haspos,10);
+  positions.Oy = pos(haspos,11);
+  positions.Oz = pos(haspos,12);
+  positions.name = {hdr.orig.chs(haspos).ch_name}';
 end
 
+scaler = ones(size(chans.units));
+scaler(meg_chans) = 1e15;
+
 Snew=S;
-Snew.data =data*1e15;
-Snew.channels =chans;
+Snew.data = bsxfun(@times, data, scaler);
+Snew.channels = chans;
 Snew.positions= positions;
 Snew.fs = hdr.Fs;
 
