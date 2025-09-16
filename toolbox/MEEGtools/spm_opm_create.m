@@ -575,8 +575,8 @@ data = ft_read_data(S.data, 'header', hdr);
 
 chans = [];
 chans.name = {hdr.orig.chs.ch_name}';
-chans.type = hdr.chantype;
-meg_chans = match_str(chans.type,'megmag');
+chans.type = upper(hdr.chantype);
+meg_chans = match_str(chans.type,'MEGMAG');
 chans.units = cellstr(repmat('unknown',size(hdr.label,1),1));
 [chans.units{meg_chans}] = deal('fT');
 chans.status = cellstr(repmat('good',size(hdr.label,1),1));
@@ -589,6 +589,10 @@ try
 catch
   % ignore sensors with no position information
   haspos = find(sum(pos==0,2)~=12);
+  % Make sure orientation norms are unity
+  mag = sqrt(sum(pos(haspos,10:12).^2,2));
+  pos(haspos,10:12) = pos(haspos,10:12)./mag;
+
   positions = [];
   positions.Px = pos(haspos,1);
   positions.Py = pos(haspos,2);
