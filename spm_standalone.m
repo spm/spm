@@ -61,6 +61,7 @@ switch lower(action)
             '    script         Execute a script\n',...
             '    function       Execute a function\n',...
             '    eval           Evaluate a MATLAB expression\n',...
+            '    test           Run standalone tests\n',...
             '    [NODE]         Run a specified batch node\n',...
             '\n',...
             'Options:\n',...
@@ -159,6 +160,31 @@ switch lower(action)
         try
             eval(expr);
         catch
+            exit_code = 1;
+        end
+    
+    case 'test'
+    %----------------------------------------------------------------------
+        spm_banner;
+        try
+            if isempty(varargin(2:end))
+                % Run default tests
+                results = spm_run_standalone_tests();
+            else
+                % Run specific test
+                results = spm_run_standalone_tests(varargin{2});
+            end
+            
+            % Display results
+            fprintf('Test Results:\n');
+            fprintf('  Total: %d, Passed: %d, Failed: %d\n', ...
+                length(results), sum([results.Passed]), sum([results.Failed]));
+            
+            if any([results.Failed])
+                exit_code = 1;
+            end
+        catch ME
+            fprintf('Error running tests: %s\n', ME.message);
             exit_code = 1;
         end
         

@@ -1,0 +1,204 @@
+name: Test SPM Standalone Compilation and Testing
+
+on:
+  workflow_dispatch:  # Allows manual triggering
+    inputs:
+      matlab_version:
+        description: 'MATLAB version to use'
+        required: false
+        default: 'R2024b'
+      test_type:
+        description: 'Type of test to run'
+        required: false
+        default: 'basic'
+        type: choice
+        options:
+        - basic
+        - specific
+        - all
+
+jobs:
+  compile-and-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Setup MATLAB
+      uses: matlab-actions/setup-matlab@v2
+      with:
+        release: ${{ github.event.inputs.matlab_version || 'R2024b' }}
+        
+    - name: Check MATLAB Compiler availability
+      uses: matlab-actions/run-command@v2
+      with:
+        command: |
+          try
+              ver('compiler')
+              fprintf('MATLAB Compiler is available\n');
+          catch ME
+              fprintf('MATLAB Compiler error: %s\n', ME.message);
+              error('MATLAB Compiler not available');
+          end
+          
+    - name: Prepare SPM for compilation
+      uses: matlab-actions/run-command@v2
+      with:
+        command: |
+          % Add SPM to path
+          addpath(pwd);
+          addpath(fullfile(pwd, 'config'));
+          
+          % Verify our test runner exists
+          if exist('spm_run_standalone_tests.m', 'file')
+              fprintf('✓ Test runner found\n');
+          else
+              error('Test runner not found');
+          end
+          
+          % Verify SPM can be initialized
+          try
+              spm('defaults', 'fmri');
+              fprintf('✓ SPM can be initialized\n');
+          catch ME
+              fprintf('✗ SPM initialization failed: %s\n', ME.message);
+          end
+          
+    - name: Compile SPM to standalone
+      uses: matlab-actions/run-command@v2
+      with:
+        command: |
+          % Set up paths
+          addpath(pwd);
+          addpath(fullfile(pwd, 'config'));
+          
+          % Create output directory
+          standalone_dir = fullfile(pwd, 'standalone');
+          if ~exist(standalone_dir, 'dir')
+              mkdir(standalone_dir);
+          end
+          
+          try
+              % Use the SPM compilation script
+              fprintf('Starting SPM compilation...\n');
+              spm_make_standalone(standalone_dir);
+              fprintf('✓ SPM compilation completed\n');
+              
+              % List generated files
+              files = dir(standalone_dir);
+              fprintf('Generated files:\n');
+              for i = 1:length(files)
+                  if ~files(i).isdir
+                      fprintf('  %s (%d bytes)\n', files(i).name, files(i).bytes);
+                  end
+              end
+              
+          catch ME
+              fprintf('✗ Compilation failed: %s\n', ME.message);
+              
+              % Try manual compilation as fallback
+              fprintf('Attempting manual compilation...\n');
+              try
+                  % Manual mcc command
+                  mcc('-m', '-C', '-v', ...
+                      '-o', 'spm12', ...
+                      '-d', standalone_dir, ...
+                      '-a', pwd, ...
+                      'spm_standalone.m');
+                  fprintf('✓ Manual compilation completed\n');
+              catch ME2
+                  fprintf('✗ Manual compilation also failed: %s\n', ME2.message);
+                  error('Both compilation methods failed');
+              end
+          end
+          
+    - name: Test standalone executable
+      run: |
+        echo "=== Testing Standalone Executable ==="
+        cd standalone
+        
+        # List all files
+        echo "Files in standalone directory:"
+        ls -la
+        
+        # Check if executable exists
+        if [ -f "spm12" ]; then
+            echo "✓ Standalone executable found"
+            
+            # Make executable
+            chmod +x spm12
+            
+            # Test help
+            echo "Testing --help:"
+            ./spm12 --help || echo "Help command failed"
+            
+            # Test version
+            echo "Testing --version:"
+            ./spm12 --version || echo "Version command failed"
+            
+            # Test our custom test command
+            echo "Testing custom test command:"
+            ./spm12 test || echo "Test command failed"
+            
+        elif [ -f "run_spm12.sh" ]; then
+            echo "✓ Standalone script found"
+            
+            # Find MATLAB Runtime (should be available in GitHub Actions)
+            MCR_ROOT="/opt/matlabruntime/v*"
+            if [ -d $MCR_ROOT ]; then
+                echo "✓ MATLAB Runtime found at $MCR_ROOT"
+                
+                # Test help
+                echo "Testing --help:"
+                ./run_spm12.sh $MCR_ROOT --help || echo "Help command failed"
+                
+                # Test version
+                echo "Testing --version:"
+                ./run_spm12.sh $MCR_ROOT --version || echo "Version command failed"
+                
+                # Test our custom test command
+                echo "Testing custom test command:"
+                ./run_spm12.sh $MCR_ROOT test || echo "Test command failed"
+                
+            else
+                echo "✗ MATLAB Runtime not found"
+                exit 1
+            fi
+        else
+            echo "✗ No standalone executable found"
+            exit 1
+        fi
+        
+    - name: Upload standalone artifacts
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: spm-standalone
+        path: standalone/
+        retention-days: 7
+        
+    - name: Test specific SPM test (if requested)
+      if: github.event.inputs.test_type == 'specific'
+      run: |
+        cd standalone
+        if [ -f "spm12" ]; then
+            echo "Testing specific SPM test:"
+            ./spm12 test test_spm || echo "Specific test failed"
+        elif [ -f "run_spm12.sh" ]; then
+            MCR_ROOT="/opt/matlabruntime/v*"
+            echo "Testing specific SPM test:"
+            ./run_spm12.sh $MCR_ROOT test test_spm || echo "Specific test failed"
+        fi
+        
+    - name: Summary
+      if: always()
+      run: |
+        echo "=== Summary ==="
+        echo "✓ Repository checked out"
+        echo "✓ MATLAB setup completed"
+        echo "✓ SPM compilation attempted"
+        echo "✓ Standalone testing attempted"
+        echo ""
+        echo "Check the logs above for detailed results."
+        echo "Artifacts have been uploaded for manual inspection."

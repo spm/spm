@@ -1,0 +1,187 @@
+name: Test MATLAB Unit Testing in Standalone
+
+on:
+  workflow_dispatch:  # Allows manual triggering
+    inputs:
+      test_approach:
+        description: 'Testing approach to use'
+        required: false
+        default: 'runtests'
+        type: choice
+        options:
+        - runtests
+        - manual
+        - both
+
+jobs:
+  test-unit-framework:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Setup MATLAB
+      uses: matlab-actions/setup-matlab@v2
+      with:
+        release: R2024b
+        
+    - name: Create minimal test application
+      uses: matlab-actions/run-command@v2
+      with:
+        command: |
+          % Create a minimal standalone app that tests the Unit Testing Framework
+          fprintf('Creating minimal test application...\n');
+          
+          % Create the main function
+          fid = fopen('test_unittest_standalone.m', 'w');
+          fprintf(fid, 'function test_unittest_standalone(varargin)\n');
+          fprintf(fid, '%% Test if MATLAB Unit Testing Framework works in standalone\n');
+          fprintf(fid, '\n');
+          fprintf(fid, 'fprintf(''=== Unit Testing Framework Test ===\\n'');\n');
+          fprintf(fid, '\n');
+          fprintf(fid, '%% Test 1: Check if runtests exists\n');
+          fprintf(fid, 'if exist(''runtests'', ''builtin'')\n');
+          fprintf(fid, '    fprintf(''✓ runtests function is available\\n'');\n');
+          fprintf(fid, 'else\n');
+          fprintf(fid, '    fprintf(''✗ runtests function not available\\n'');\n');
+          fprintf(fid, '    return;\n');
+          fprintf(fid, 'end\n');
+          fprintf(fid, '\n');
+          fprintf(fid, '%% Test 2: Check if TestSuite exists\n');
+          fprintf(fid, 'try\n');
+          fprintf(fid, '    import matlab.unittest.TestSuite;\n');
+          fprintf(fid, '    fprintf(''✓ TestSuite can be imported\\n'');\n');
+          fprintf(fid, 'catch\n');
+          fprintf(fid, '    fprintf(''✗ TestSuite cannot be imported\\n'');\n');
+          fprintf(fid, 'end\n');
+          fprintf(fid, '\n');
+          fprintf(fid, '%% Test 3: Try to run a simple function-based test\n');
+          fprintf(fid, 'try\n');
+          fprintf(fid, '    % Create a simple test file\n');
+          fprintf(fid, '    create_simple_test();\n');
+          fprintf(fid, '    \n');
+          fprintf(fid, '    % Try to run it\n');
+          fprintf(fid, '    results = runtests(''simple_test.m'');\n');
+          fprintf(fid, '    if ~isempty(results)\n');
+          fprintf(fid, '        fprintf(''✓ Function-based test executed: %%d passed, %%d failed\\n'', ...\n');
+          fprintf(fid, '                sum([results.Passed]), sum([results.Failed]));\n');
+          fprintf(fid, '    else\n');
+          fprintf(fid, '        fprintf(''✗ No results from function-based test\\n'');\n');
+          fprintf(fid, '    end\n');
+          fprintf(fid, 'catch ME\n');
+          fprintf(fid, '    fprintf(''✗ Function-based test failed: %%s\\n'', ME.message);\n');
+          fprintf(fid, 'end\n');
+          fprintf(fid, '\n');
+          fprintf(fid, 'fprintf(''=== Test completed ===\\n'');\n');
+          fprintf(fid, '\n');
+          fprintf(fid, 'end\n');
+          fprintf(fid, '\n');
+          fprintf(fid, 'function create_simple_test()\n');
+          fprintf(fid, '%% Create a simple test file\n');
+          fprintf(fid, 'fid = fopen(''simple_test.m'', ''w'');\n');
+          fprintf(fid, 'fprintf(fid, ''function tests = simple_test\\n'');\n');
+          fprintf(fid, 'fprintf(fid, ''tests = functiontests(localfunctions);\\n'');\n');
+          fprintf(fid, 'fprintf(fid, ''end\\n'');\n');
+          fprintf(fid, 'fprintf(fid, ''function test_basic(testCase)\\n'');\n');
+          fprintf(fid, 'fprintf(fid, ''testCase.verifyEqual(1+1, 2);\\n'');\n');
+          fprintf(fid, 'fprintf(fid, ''end\\n'');\n');
+          fprintf(fid, 'fclose(fid);\n');
+          fprintf(fid, 'end\n');
+          fclose(fid);
+          
+          fprintf('✓ Minimal test application created\n');
+          
+    - name: Compile test application
+      uses: matlab-actions/run-command@v2
+      with:
+        command: |
+          fprintf('Compiling test application...\n');
+          try
+              mcc('-m', '-v', 'test_unittest_standalone.m');
+              fprintf('✓ Compilation successful\n');
+          catch ME
+              fprintf('✗ Compilation failed: %s\n', ME.message);
+              error('Compilation failed');
+          end
+          
+    - name: Test compiled application
+      run: |
+        echo "=== Testing Compiled Application ==="
+        
+        # List files
+        echo "Generated files:"
+        ls -la
+        
+        # Find the executable
+        if [ -f "test_unittest_standalone" ]; then
+            echo "✓ Executable found"
+            chmod +x test_unittest_standalone
+            echo "Running standalone test..."
+            ./test_unittest_standalone
+        elif [ -f "run_test_unittest_standalone.sh" ]; then
+            echo "✓ Script found"
+            # Find MATLAB Runtime
+            MCR_ROOT=$(find /opt -name "MATLAB_Runtime" -type d 2>/dev/null | head -1)
+            if [ -z "$MCR_ROOT" ]; then
+                MCR_ROOT="/opt/matlabruntime/v*"
+            fi
+            echo "Using MCR at: $MCR_ROOT"
+            echo "Running standalone test..."
+            ./run_test_unittest_standalone.sh $MCR_ROOT
+        else
+            echo "✗ No executable found"
+            exit 1
+        fi
+        
+    - name: Test SPM integration
+      uses: matlab-actions/run-command@v2
+      with:
+        command: |
+          % Test if we can compile SPM with our test runner
+          fprintf('Testing SPM test runner compilation...\n');
+          
+          % Add SPM to path
+          addpath(pwd);
+          
+          % Check if our test runner exists
+          if exist('spm_run_standalone_tests.m', 'file')
+              fprintf('✓ SPM test runner found\n');
+              
+              % Try to compile a minimal version
+              try
+                  % Create a wrapper that includes our test runner
+                  fid = fopen('spm_test_wrapper.m', 'w');
+                  fprintf(fid, 'function spm_test_wrapper(varargin)\n');
+                  fprintf(fid, 'addpath(''%s'');\n', pwd);
+                  fprintf(fid, 'if nargin == 0\n');
+                  fprintf(fid, '    results = spm_run_standalone_tests();\n');
+                  fprintf(fid, 'else\n');
+                  fprintf(fid, '    results = spm_run_standalone_tests(varargin{1});\n');
+                  fprintf(fid, 'end\n');
+                  fprintf(fid, 'end\n');
+                  fclose(fid);
+                  
+                  % Try to compile (this will test if everything needed is available)
+                  mcc('-m', '-v', '-a', pwd, 'spm_test_wrapper.m');
+                  fprintf('✓ SPM test wrapper compilation successful\n');
+                  
+              catch ME
+                  fprintf('✗ SPM test wrapper compilation failed: %s\n', ME.message);
+              end
+          else
+              fprintf('✗ SPM test runner not found\n');
+          end
+          
+    - name: Upload test artifacts
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: unit-test-standalone
+        path: |
+          test_unittest_standalone*
+          run_test_unittest_standalone.sh
+          simple_test.m
+          spm_test_wrapper*
+          run_spm_test_wrapper.sh
+        retention-days: 3
