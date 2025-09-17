@@ -33,7 +33,7 @@ function out = cfg_justify(varargin)
 
 out = {};
 
-if exist('OCTAVE_VERSION','builtin')
+if strcmp(spm_check_version,'octave')
 	out = char(varargin(2:end));
     return;
 end
