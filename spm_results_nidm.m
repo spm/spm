@@ -42,7 +42,7 @@ elseif nargin < 2
     if isstruct(SPM)
         xSPM = struct('swd',SPM.swd);
     else
-        xSPM = struct('swd',spm_file('cpath',SPM));
+        xSPM = struct('swd',spm_file(SPM,'cpath'));
     end
     [SPM,xSPM] = spm_getSPM(xSPM);
 end

@@ -1315,7 +1315,7 @@ if isfield(Header,'GE_ImageType')
         end
     end
 else
-    if isfield(Header,'ImageType') && ~isempty(regexp(Header.ImageType,'\P\'))
+    if isfield(Header,'ImageType') && ~isempty(regexp(Header.ImageType,'\\P\\'))
         ImTyp = '-Phase';
     end
 end
@@ -1923,7 +1923,7 @@ if isfield(Header,'PerFrameFunctionalGroupsSequence')
     % Multiframe DICOM
     N = numel(Header.PerFrameFunctionalGroupsSequence);
     if isfield(Header,'NumberOfFrames') && Header.NumberOfFrames ~= N
-        fprintf('"%s" has incompatible numbers of frames.', FGS.Filename);
+        fprintf('"%s" has incompatible numbers of frames.', Header.Filename);
     end
 
     % List of fields and subfields of those fields to retrieve information from.

@@ -96,9 +96,13 @@ if (~isfield(S,'derivative') || isempty(S.derivative))
     disp('Defaulting S.derivative to true');
     S.derivative = true;
 end
-if (~folder_only && (~isfield(S,'detailed') || isempty(S.detailed)))
-    disp('Defaulting S.detailed to true');
-    S.detailed = true;
+if (~isfield(S,'detailed') || isempty(S.detailed))
+    if ~folder_only
+		S.detailed = true;
+    else
+		disp('Defaulting S.detailed to true');
+		S.detailed = true;
+    end
 end
 if ~isfield(S,'prefix')
     S.prefix = '';

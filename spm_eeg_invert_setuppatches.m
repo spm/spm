@@ -32,7 +32,7 @@ M.faces=mesh.face;
 Ns=size(M.vertices,1);
 
 if isfield(base,'nAm')
-    nAm=base.nAm;
+    nAm=ones(Np,1).*base.nAm;
 else
     nAm=ones(Np,1).*10;
     fprintf('\nNo magnitudes defined, setting to %3.2fnAm\n',nAm(1));

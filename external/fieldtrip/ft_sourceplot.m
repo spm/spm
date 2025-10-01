@@ -162,11 +162,11 @@ function [cfg] = ft_sourceplot(cfg, functional, anatomical)
 %
 % The following parameters apply to cfg.method='surface' irrespective of whether an interpolation is required
 %   cfg.camlight       = 'yes' or 'no' (default = 'yes')
-%   cfg.facecolor      = [r g b] values or string, for example 'brain', 'cortex', 'skin', 'black', 'red', 'r',
+%   cfg.facecolor      = [r g b] values or string, for example 'skin', 'skull', 'brain', 'black', 'red', 'r',
 %                        or an Nx3 or Nx1 array where N is the number of faces
-%   cfg.vertexcolor    = [r g b] values or string, for example 'brain', 'cortex', 'skin', 'black', 'red', 'r',
+%   cfg.vertexcolor    = [r g b] values or string, for example 'skin', 'skull', 'brain', 'black', 'red', 'r',
 %                        or an Nx3 or Nx1 array where N is the number of vertices
-%   cfg.edgecolor      = [r g b] values or string, for example 'brain', 'cortex', 'skin', 'black', 'red', 'r'
+%   cfg.edgecolor      = [r g b] values or string, for example 'skin', 'skull', 'brain', 'black', 'red', 'r'
 %
 % When cfg.method = 'cloud', the functional data will be rendered as as clouds (groups of points), 
 % spheres, or single points at each sensor position. These spheres or point clouds can either be 
@@ -303,6 +303,24 @@ cfg.clim          = ft_getopt(cfg, 'clim',          [0 1]); % this is used to sc
 cfg.intersectmesh = ft_getopt(cfg, 'intersectmesh');
 cfg.renderer      = ft_getopt(cfg, 'renderer',      'opengl');
 cfg.interactive   = ft_getopt(cfg, 'interactive',   'yes'); % used to disable interaction for method=glassbrain
+
+% this is needed for the figure title
+if isfield(cfg, 'dataname') && ~isempty(cfg.dataname)
+  dataname = cfg.dataname;
+elseif isfield(cfg, 'inputfile') && ~isempty(cfg.inputfile)
+  dataname = cfg.inputfile;
+elseif nargin>1
+  dataname = arrayfun(@inputname, 2:nargin, 'UniformOutput', false);
+else
+  dataname = {};
+end
+
+% set the figure window title, if not defined by user
+if isempty(cfg.figurename) && ~isempty(dataname)
+  cfg.figurename = sprintf('%s: %s', mfilename, join_str(', ', dataname));
+else
+  cfg.figurename = sprintf('%s:', mfilename);
+end
 
 if isempty(cfg.flip)
   if strcmp(cfg.method, 'ortho')
@@ -1526,25 +1544,6 @@ switch cfg.method
     ft_error('unsupported method "%s"', cfg.method);
 end
 
-% this is needed for the figure title
-if isfield(cfg, 'dataname') && ~isempty(cfg.dataname)
-  dataname = cfg.dataname;
-elseif isfield(cfg, 'inputfile') && ~isempty(cfg.inputfile)
-  dataname = cfg.inputfile;
-elseif nargin>1
-  dataname = arrayfun(@inputname, 2:nargin, 'UniformOutput', false);
-else
-  dataname = {};
-end
-
-% set the figure window title
-if ~isempty(dataname)
-  set(gcf, 'Name', sprintf('%d: %s: %s', double(gcf), mfilename, join_str(', ', dataname)));
-else
-  set(gcf, 'Name', sprintf('%d: %s', double(gcf), mfilename));
-end
-set(gcf, 'NumberTitle', 'off');
-
 % do the general cleanup and bookkeeping at the end of the function
 ft_postamble debug
 ft_postamble previous functional
@@ -1587,7 +1586,7 @@ yi = opt.ijk(2);
 zi = opt.ijk(3);
 qi = opt.qi;
 
-if any([xi yi zi] > functional.dim) || any([xi yi zi] < 1)
+if any([xi yi zi] > functional.dim(1:3)) || any([xi yi zi] < 1)
   % do not redraw the functional data when the user clicked outside the volume
   return;
 end
@@ -1943,6 +1942,8 @@ if opt.interactive
   fprintf('==================================================================================\n');
   fprintf('Press "h" to show this help.\n');
   fprintf('Press "1", "2", or "3" to switch to the corresponding subplot.\n');
+  fprintf('Press "PageUp" and "PageDown" to zoom in or out.\n');
+  fprintf('Press "+" and "-" to increase or decrease the brightness.\n');
   fprintf('Use the arrow keys to navigate in the current axis.\n');
   fprintf('Click left mouse button to reposition the cursor.\n');
   fprintf('Click and hold right mouse button to update the position while moving the mouse.\n');
@@ -2135,7 +2136,7 @@ if ~isempty(tag) && ~opt.init
     opt.update = [1 1 1];
   end
 end
-opt.ijk = min(opt.ijk(:)', opt.dim+0.01);
+opt.ijk = min(opt.ijk(:)', opt.dim(1:3)+0.01);
 opt.ijk = max(opt.ijk(:)', [1 1 1]-0.01);
 
 setappdata(h, 'opt', opt);

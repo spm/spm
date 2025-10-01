@@ -292,7 +292,7 @@ for i=1:numel(fn)
 end
 
 if isempty(cfg.suffix)
-  modality = {'meg', 'eeg', 'ieeg', 'emg', 'motion', 'audio', 'video', 'eyetracker', 'physio', 'stim', 'motion', 'nirs'};
+  modality = {'meg', 'eeg', 'ieeg', 'emg', 'audio', 'video', 'eyetracker', 'physio', 'stim', 'motion', 'nirs'};
   for i=1:numel(modality)
     if isfield(cfg, modality{i}) && ~isempty(cfg.(modality{i}))
       % the user specified modality-specific options, assume that the datatype matches
@@ -1080,6 +1080,7 @@ dataset_description_settings = keepfields(cfg.dataset_description, fn);
 fn = fieldnames(cfg);
 fn = fn(~cellfun(@isempty, regexp(fn, '^[A-Z].*')));
 generic_settings = keepfields(cfg, fn);
+generic_settings = removefields(generic_settings, {'README', 'LICENSE', 'CHANGES'});
 
 % make the relevant selection, all json fields start with a capital letter
 fn = fieldnames(cfg.mri);
@@ -1176,6 +1177,8 @@ if need_channels_tsv
   % columns should appear in a specific order
   if need_nirs_json
     required = {'name', 'type', 'source', 'detector', 'wavelength_nominal', 'units'};
+  elseif need_motion_json
+    required = {'name', 'component', 'type', 'tracked_point', 'units'};
   else
     required = {'name', 'type', 'units', 'low_cutoff', 'high_cutoff'};
   end
