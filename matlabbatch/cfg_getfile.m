@@ -97,7 +97,7 @@ if nargin > 0 && ischar(varargin{1})
         case 'cpath'
             if nargin >= 2 && nargin <= 3
                 if all(cellfun(@iscellstr,varargin(2:end)))
-                    t = cpath(varargin{2:end});
+                    t = cfg_getfile_cpath(varargin{2:end});
                     sts = true;
                 else
                     cfg_message('cfg_getfile:notcellstr','Inputs to %s(''%s'',...) must be cellstr.', mfilename, varargin{1});
@@ -114,7 +114,7 @@ if nargin > 0 && ischar(varargin{1})
             if ndims(t) > 2 || size(t,2) > 1
                 cfg_message('cfg_getfile:notcolumncell','Input file lists to %s(''%s'',...) must be a column cellstr.', mfilename, varargin{1});
             end
-            t = cpath(t);
+            t = cfg_getfile_cpath(t);
             [unused,n,e] = cellfun(@fileparts,t,'UniformOutput',false);
             t1           = strcat(n,e);
             filt         = mk_filter(varargin{3:end});
@@ -142,7 +142,7 @@ if nargin > 0 && ischar(varargin{1})
                 prms = varargin(5:end);
             end
             filt    = mk_filter(typ, filt, prms{:});
-            direc   = cpath(cellstr(direc));
+            direc   = cfg_getfile_cpath(cellstr(direc));
             t       = cell(numel(direc),1);
             sts     = cell(numel(direc),1);
             for k = 1:numel(t)
@@ -158,7 +158,7 @@ if nargin > 0 && ischar(varargin{1})
                             t{k} = strcat(direc{k}, filesep, t{k});
                         end
                         if (nargout > 1) && ~isempty(sts{k})
-                            sts{k} = cpath(sts{k}, direc(k));
+                            sts{k} = cfg_getfile_cpath(sts{k}, direc(k));
                         end
                     end
                 end
@@ -233,7 +233,7 @@ if nargin<4 || isempty(already) || (iscell(already) && isempty(already{1}))
     already = {};
 else
     % Canonicalise already selected paths
-    already = cpath(already);
+    already = cfg_getfile_cpath(already);
     % Filter already selected files by type, but not by user defined filter
     [pd, nam, ext] = cellfun(@(a1)fileparts(a1), already, ...
         'UniformOutput',false);
@@ -256,7 +256,7 @@ if nargin<5 || isempty(wd) || ~(iscellstr(wd) || ischar(wd))
         end
     end
 end
-wd = char(cpath(cellstr(wd)));
+wd = char(cfg_getfile_cpath(cellstr(wd)));
 
 [col1,col2,col3,lf,bf] = colours;
 
@@ -504,7 +504,7 @@ c0 = uicontextmenu('Parent',fg);
 set(tmp,'uicontextmenu',c0);
 uimenu('Label','Select All', 'Parent',c0,'Callback',@select_all);
 
-updatedir_fun = @(ob,ev)(update(char(cpath(subsref(get(ob,'String'),substruct('()',{get(ob,'Value')}))))));
+updatedir_fun = @(ob,ev)(update(char(cfg_getfile_cpath(subsref(get(ob,'String'),substruct('()',{get(ob,'Value')}))))));
 
 % Drives
 if ispc
@@ -600,7 +600,7 @@ uicontrol(pdir,...
     'units','normalized',...
     'Position',[0.12 2/3 0.86 .95*1/3],...
     lf{:},...
-    'Callback',@(ob,ev)(update(char(cpath({get(ob,'String')})))),...
+    'Callback',@(ob,ev)(update(char(cfg_getfile_cpath({get(ob,'String')})))),...
     'tag','edit',...
     'BackgroundColor',col1,...
     'ForegroundColor',col3,...
@@ -629,7 +629,7 @@ if ishandle(sel)
         t = {''};
     elseif any(strcmp({sfilt.tfilt.typ},'dir'))
         % canonicalise non-empty folder selection
-        t = cpath(t, {pwd});
+        t = cfg_getfile_cpath(t, {pwd});
     end
     ok = 1;
 end
@@ -672,7 +672,7 @@ return;
 
 %=======================================================================
 function pd = pardirs(wd)
-pd1 = pathparts(cellstr(wd));
+pd1 = cfg_getfile_pathparts(cellstr(wd));
 if ispc
     pd = cell(numel(pd1{1}),1);
     pd{end} = pd1{1}{1};
@@ -988,82 +988,6 @@ if domsg
     msg(omsg);
 end
 return;
-%=======================================================================
-
-%=======================================================================
-function pp = pathparts(p)
-% parse paths in cellstr p
-% returns cell array of path component cellstr arrays
-% For PC (WIN) targets, both '\' and '/' are accepted as filesep, similar
-% to MATLAB fileparts
-if ispc
-    fs = '\\/';
-else
-    fs = filesep;
-end
-pp = cellfun(@(p1)textscan(p1,'%s','delimiter',fs,'MultipleDelimsAsOne',1),p);
-if ispc
-    for k = 1:numel(pp)
-        if ~isempty(regexp(pp{k}{1}, '^[a-zA-Z]:$', 'once'))
-            pp{k}{1} = strcat(pp{k}{1}, filesep);
-        elseif ~isempty(regexp(p{k}, '^\\\\', 'once'))
-            pp{k}{1} = strcat(filesep, filesep, pp{k}{1});
-        end
-    end
-end
-%=======================================================================
-
-%=======================================================================
-function t = cpath(t,d)
-% canonicalise paths to full path names, removing xxx/./yyy and xxx/../yyy
-% constructs
-% t must be a cell array of (relative or absolute) paths, d must be a
-% single cell containing the base path of relative paths in t
-if ispc % valid absolute paths
-    % Allow drive letter or UNC path
-    mch = '^([a-zA-Z]:)|(\\\\[^\\]*)';
-else
-    mch = '^/';
-end
-if (nargin<2)||isempty(d), d = {pwd}; end
-% Find partial paths, prepend them with d
-ppsel    = cellfun(@isempty, regexp(t,mch,'once'));
-t(ppsel) = cellfun(@(t1)fullfile(d{1},t1),t(ppsel),'UniformOutput',false);
-% Break paths into cell lists of folder names
-pt = pathparts(t);
-% Remove single '.' folder names
-sd = cellfun(@(pt1)strcmp(pt1,'.'),pt,'UniformOutput',false);
-for cp = 1:numel(pt)
-    pt{cp} = pt{cp}(~sd{cp});
-end
-% Go up one level for '..' folders, don't remove drive letter/server name
-% from PC path
-if ispc
-    ptstart = 2;
-else
-    ptstart = 1;
-end
-for cp = 1:numel(pt)
-    tmppt = {};
-    for cdir = ptstart:numel(pt{cp})
-        if strcmp(pt{cp}{cdir},'..')
-            tmppt = tmppt(1:end-1);
-        else
-            tmppt{end+1} = pt{cp}{cdir};
-        end
-    end
-    if ispc
-        pt{cp} = [pt{cp}(1) tmppt];
-    else
-        pt{cp} = tmppt;
-    end
-end
-% Assemble paths
-if ispc
-    t = cellfun(@(pt1)fullfile(pt1{:}),pt,'UniformOutput',false);
-else
-    t = cellfun(@(pt1)fullfile(filesep,pt1{:}),pt,'UniformOutput',false);
-end
 %=======================================================================
 
 %=======================================================================
