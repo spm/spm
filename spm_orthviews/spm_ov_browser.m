@@ -111,7 +111,8 @@ hS = uicontrol('Parent', Fgraph,...
     'Value',             1,...
     'SliderStep',        [1 1]/(numel(f)-1));
 try
-    if spm_check_version('matlab','8.4') >= 0
+    is_octave = strcmp(spm_check_version,'octave');
+    if is_octave || spm_check_version('matlab','8.4') >= 0
         hListener = addlistener(hS,'ContinuousValueChange',@browser_slider);
     else
         hListener = handle.listener(hS,'ActionEvent',@browser_slider);
