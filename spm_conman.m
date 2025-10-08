@@ -483,8 +483,12 @@ if (nargin==0) || ~ischar(varargin{1})
     xCon     = SPM.xCon;
     
     %-Save SPM.mat only if SPM structure as changed
-    if spm_check_version('matlab','8.0') >= 0, my_isequaln = @isequaln;
-    else my_isequaln = @isequalwithequalnans; end
+    is_octave = strcmp(spm_check_version,'octave');
+    if is_octave || spm_check_version('matlab','8.0') >= 0
+        my_isequaln = @isequaln;
+    else
+        my_isequaln = @isequalwithequalnans; 
+    end
     if ~my_isequaln(tmpSPM,SPM)
         fprintf('\t%-32s: %30s','Saving SPM.mat','...writing');         %-#
         fmt = spm_get_defaults('mat.format');
