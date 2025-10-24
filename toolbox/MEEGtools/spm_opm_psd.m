@@ -47,14 +47,20 @@ if ~isfield(S, 'selectbad'),     S.selectbad = 0; end
 indices = [];
 labs = S.channels;
 regex = cell(1,length(labs));
-for i = 1:length(labs)
+explicit = all(ismember(S.channels,chanlabels(S.D)));
+if (explicit)
+  chans = S.D.selectchannels(S.channels);
+else
+  for i = 1:length(labs)
     if isa(labs,'cell')
-        regex{i} = ['regexp_(',labs{i},')'];
+      regex{i} = ['regexp_(',labs{i},')'];
     else
-        regex{i} = ['regexp_(',labs,')'];
+      regex{i} = ['regexp_(',labs,')'];
     end
+  end
+  chans = [S.D.selectchannels(regex), indchantype(S.D,labs)];
 end
-chans = [S.D.selectchannels(regex), indchantype(S.D,labs)];
+
 labs = chanlabels(S.D,chans);
 %- set window
 %--------------------------------------------------------------------------
@@ -170,7 +176,7 @@ if(S.plot)
     fig.Color=[1,1,1];
     xlim([0,100]);
 
-	% Highlight bad channel/frequency combinations
+	% Highlight unusual channel/frequency combinations
 	if(S.selectbad)
     indices =[];
 		g = gobjects(1, numel(labs));
