@@ -50,34 +50,62 @@ for i = 1:nP
     rE    = pE;
     rC    = pC;
     for j = 1:numel(pE.(param{i}))
-        rE.(param{i})(j) = rE.(param{i})(j) - 3;
-        rC.(param{i})(j) = rC.(param{i})(j)/exp(3);
+        rE.(param{i})(j) = rE.(param{i})(j) -log(100);
         F  = spm_log_evidence(qE,qC,pE,pC,rE,rC);
         L(end + 1)   = 0 - F;
         str{end + 1} = param{i};
     end
 end
 
+L      = L(1:8);
+str    = str(1:8);
+str{1} = 'children';
+str{2} = 'young';
+str{3} = 'adults';
+str{4} = 'elderly';
+str{5} = 'alpha';
+str{6} = 'delta';
+str{7} = 'BA1';
+str{8} = 'BA2';
+
+
+
+
 % plot and display results of Bayesian model comparison
 %--------------------------------------------------------------------------
 spm_figure('GetWin','BMR-MASKS'); clf;
 subplot(2,1,1)
 bar(L), hold on
-plot([0 numel(L)],[5,5],'-.')
-set(gca,'XTickLabel',str,'YLim',[-32 1024])
-title('Bayesian model comparison','Fontsize',16)
-xlabel('parameter'),ylabel('log Bayes factor')
+plot([0 numel(L)], [5,5],':k')
+plot([0 numel(L)],-[5,5],':k')
+
+set(gca,'XTickLabel',str,'YLim',[-64 256])
+title('A: Bayesian model comparison','Fontsize',16)
+xlabel('mask use and variants'),ylabel('log Bayes factor')
 axis square, box off
 
 subplot(2,2,3), hold off
 x     = linspace(exp(-8),8/100,64);
 for i = 1:numel(Ep.msk)
     p = spm_Npdf(log(x),Ep.msk(i),Vp.msk(i));
+    p = p/sum(p);
     plot(x*100,p), hold on
+
+    % credible intervals
+    %----------------------------------------------------------------------
+    mn = Ep.msk(i);
+    cl = spm_invNcdf(0.05,Ep.msk(i),Vp.msk(i));
+    cu = spm_invNcdf(0.95,Ep.msk(i),Vp.msk(i));
+    mn = 100*exp(mn);
+    cl = 100*exp(cl);
+    cu = 100*exp(cu);
+    fprintf('Age %i : %0.2f (%0.2f to %0.2f)\n',i,mn,cl,cu)
+
+
 end
-title('Efficacy of face covering','Fontsize',16)
+title('B: Effectiveness of masks','Fontsize',16)
 xlabel('efficacy: % reduction in tranmission'), ylabel('posterior probability')
-xlabel('DCM parameter'), ylabel('correlation')
+xlabel('DCM parameter'), ylabel('posterior probability density')
 axis square, box off, legend({'children','young','adults','elderly'})
 
 subplot(2,2,4), hold off
@@ -86,9 +114,12 @@ Rp    = spm_cov2corr(Cp);
 for i = j(:)'
     plot(Rp(:,i)), hold on
 end
-title('Posterior correlations','Fontsize',16)
+title('C: Posterior correlations','Fontsize',16)
 xlabel('DCM parameter'), ylabel('correlation')
 axis square, box off
+
+
+return
 
 % spm_fieldindices(pE,65)
 % spm_fieldindices(pE,148)
