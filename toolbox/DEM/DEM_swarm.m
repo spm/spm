@@ -313,7 +313,7 @@ return
 % sensed signal
 %--------------------------------------------------------------------------
 function c = signal(x,s,y)
-% x - location of cells
+% x - location of drones
 % s - signals released
 % y - location of sampling [default: x, y for plotting] 
 %__________________________________________________________________________
@@ -333,7 +333,7 @@ for i = 1:n
         d      = y(:,i) - x(:,j);
         d      = sqrt(d'*d);
         
-        % signal concentration
+        % signal strength
         %------------------------------------------------------------------
         c(:,i) = c(:,i) + exp(-k*d).*s(:,j);
  

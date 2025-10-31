@@ -41,7 +41,7 @@ rng('default')
 %==========================================================================
 label.factor   = {'Location', 'Law' ,'Emergency'};
 label.name     = {{'1','2','3','4'}, {'stay','go'}, {' ','urgent'}};
-label.modality = {'Location', 'Walk sign', 'Alarm'};
+label.modality = {'Location', 'Walk sign', 'Siren', 'Horn'};
 label.outcome  = {{'1','2','3','4'}, {'red','green'}, {' ','alarm'}, {' ','alert'}};
 label.action   = {{'stay','go'}, {' '}, {' '}};
 

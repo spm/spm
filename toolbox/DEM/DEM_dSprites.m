@@ -212,7 +212,7 @@ end
 % uninformative preferences over vision
 %--------------------------------------------------------------------------
 for g = 1:numel(A)
-    C{g} = ones(1,size(A{g},1));
+    C{g} = ones(size(A{g},1),1);
 end
 C{end}   = spm_softmax([4; 0]); %%%%
 

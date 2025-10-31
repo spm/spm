@@ -44,7 +44,7 @@ if any(i ~= j)
             
             % Note p is unused but requesting it can make L sparser
             %--------------------------------------------------------------
-            [L,nondef,p] = chol(C, 'lower', 'vector');
+            [L,nondef] = chol(C, 'lower', 'vector');
             if ~nondef
                 
                 % pos. def. with Cholesky decomp L, and det(C) = det(L)^2
