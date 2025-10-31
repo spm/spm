@@ -26,7 +26,7 @@ function [F,sA,dFdA] = spm_MDP_log_evidence(qA,pA,rA)
 
 % change in free energy or log model evidence
 %--------------------------------------------------------------------------
-p  = 1/512;                             % preclude numerical overflow
+p  = 1/32;                             % preclude numerical overflow
 rA = rA + p;
 pA = pA + p;
 qA = qA + p;

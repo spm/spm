@@ -426,6 +426,14 @@ for m = 1:Nm
     % likelihood model (for a partially observed MDP)
     %----------------------------------------------------------------------
 
+    % model priors, if specified
+    %------------------------------------------------------------------
+    if isfield(MDP(m),'pA')
+        pA{m} = MDP(m).pA;
+    else
+        pA{m} = cell(size(MDP(m).A));
+    end
+
     for g = 1:Ng(m)
 
         % parameters (concentration parameters): a
@@ -468,6 +476,8 @@ for m = 1:Nm
         K{m,g} = spm_hnorm(A{m,g});
 
         end
+
+
 
         % prior preferences over outcomes (constraints) : C
         %------------------------------------------------------------------
@@ -1249,7 +1259,7 @@ for t = 1:T
         % posterior over hidden states (Q) and expected free energy (G)
         %==================================================================
         n          = min(T,t + N);
-        [G,Q,F,id] = spm_forwards(O,Q,A,BP,C,H,K,W,IP,t,T,n,m,id);
+        [G,Q,F,id,Pa] = spm_forwards(O,Q,A,BP,C,H,K,W,IP,t,T,n,m,id,pA,qa);
 
         % augment with prior probability over paths
         %------------------------------------------------------------------
@@ -1350,16 +1360,18 @@ for t = 1:T
                 [j,k] = spm_parents(id{m},g,Q(m,:,t));
                 if numel(k)
                     
+                    % update likelihood Dirichlet parameters
+                    %------------------------------------------------------
                 da    = 0;
                 for i = k
                     da = da + spm_cross(O{m,i,t},Q{m,j,t});
                 end
                 da(~qa{m,g}) = 0;
                     da      = reshape(da,size(qa{m,g}));
-
-                % update likelihood Dirichlet parameters
-                    %------------------------------------------------------
                 qa{m,g} = qa{m,g} + da;
+
+                    % update likelihood
+                    %------------------------------------------------------
                 A{m,g}  = spm_norm(qa{m,g});
 
                 % prior concentration parameters and novelty (W)
@@ -1383,10 +1395,10 @@ for t = 1:T
                 %----------------------------------------------------------
                 db = spm_cross(spm_cross(Q{m,f,t},Q{m,f,t - 1}),P{m,f,t - 1});
                 db(~qb{m,f}) = 0;
+                qb{m,f} = qb{m,f} + db;
 
                 % update prior Dirichlet parameters
                 %----------------------------------------------------------
-                qb{m,f} = qb{m,f} + db;
                 B{m,f}  = spm_norm(qb{m,f});
 
                 % prior concentration parameters and novelty (W)
@@ -1429,6 +1441,11 @@ for t = 1:T
             MDP(m).s  = MDP(m).s(:,1:T);        % states   at 1,...,T
             MDP(m).u  = MDP(m).u(:,1:T);        % control  at 1,...,T - 1
         end
+
+        % posterior over model priors
+        %------------------------------------------------------------------
+        MDP(m).Pa = Pa;
+
     end
 
 end % end of loop over time
@@ -1690,12 +1707,12 @@ for m = 1:size(MDP,1)
 
     % parameters
     %---------------------------------------------------------------------
-    if isfield(MDP(m),'a')
+    if isfield(MDP(m),'a') && ~isfield(MDP(m),'A')
         for g = 1:Ng(m)
             MDP(m).A{g} = spm_norm(MDP(m).a{g});
         end
     end
-    if isfield(MDP(m),'b')
+    if isfield(MDP(m),'b') && ~isfield(MDP(m),'B')
         for f = 1:Nf(m)
             MDP(m).B{f} = spm_norm(MDP(m).b{f});
         end
@@ -1729,10 +1746,10 @@ end
 
 % auxillary functions
 %==========================================================================
-function [G,P,F,id] = spm_forwards(O,P,A,B,C,H,K,W,I,t,T,N,m,id)
+function [G,P,F,id,Pa] = spm_forwards(O,P,A,B,C,H,K,W,I,t,T,N,m,id,pA,qa)
 % deep tree search over policies or paths
 %--------------------------------------------------------------------------
-% FORMAT [G,Q,F] = spm_forwards(O,P,A,B,C,H,K,W,I,t,T,N,m)
+% FORMAT [G,Q,F] = spm_forwards(O,P,A,B,C,H,K,W,I,t,T,N,m,id,pA)
 % O{m,g,t} - cell array of outcome probabilities for modality g
 % P{m,f,t} - cell array of priors over states
 % A{m,g}   - likelihood mappings from hidden states
@@ -1748,10 +1765,14 @@ function [G,P,F,id] = spm_forwards(O,P,A,B,C,H,K,W,I,t,T,N,m,id)
 % N        - policy horizon
 % m        - model or agent to update
 % id       - domains
+% pA{m}    - prior (likelihood) models
+% qa{m,g}  - posterior Dirichlet counts
 %
 % G(k,1)   - expected free energy over k policies
 % Q{m,f,t} - posterior over states
 % F        - variational free energy (negative or ELBO)
+% id       - domains
+% Pa{g}    - posterior over model priors pA{g}
 %
 % This subroutine performs a [deep] tree search over sequences of actions
 % to evaluate the expected free energy over policies or paths. Crucially,
@@ -1783,6 +1804,7 @@ Ni       = numel(id{m}.g);                  % number of covert policies
 Nk       = size(B,3);                       % number of overt policies
 Nf       = size(B,2);                       % number of factors
 G        = zeros(Nk,Ni);                    % log priors over policies
+Pa       = {};                              % priors over models
 
 % variational (Bayesian) belief updating and free energy (ELBO)
 %--------------------------------------------------------------------------
@@ -1899,6 +1921,25 @@ for k = 1:Nk
                 if numel(W{m,g})
                     G(k,i) = G(k,i) + qo'*spm_dot(W{m,g},Q(j));
         end
+
+                % expected information gain (likelihood priors) (pA)
+                %----------------------------------------------------------
+                if numel(pA{m}{g})
+
+                    % update likelihood Dirichlet parameters
+                    %------------------------------------------------------
+                    da      = spm_cross(qo,Q(j));
+
+                    % Bayesian model reduction
+                    %------------------------------------------------------
+                    Pa{g}  = spm_MDP_BMR(qa{m,g},     pA{m}{g});
+                    Pg     = spm_MDP_BMR(qa{m,g} + da,pA{m}{g});
+                    G(k,i) = G(k,i) + Pg'*(spm_log(Pg) - spm_log(Pa{g}));
+
+                else
+                    Pa{g}  = {};
+                end
+
             end
     end
 end
@@ -1927,9 +1968,16 @@ else
 
 end
 
+
+
+
 % deep (recursive) search over action sequences ( i.e., paths)
 %==========================================================================
 if t < N
+
+    % disable prior over models for future time steps
+    %--------------------------------------------------------------------------
+    pA{m} = cell(size(pA{m}));
 
     % probability over action (terminating search at a suitable threshold)
     %----------------------------------------------------------------------
@@ -2009,7 +2057,7 @@ if t < N
                     % prior over subsequent states under this action 
                     %------------------------------------------------------
                     P(m,:,t + 1) = Q;
-                E      = spm_forwards(O,P,A,B,C,H,K,W,I,t + 1,T,N,m,id);
+                    E = spm_forwards(O,P,A,B,C,H,K,W,I,t + 1,T,N,m,id,pA);
 
                     % expected free energy marginalised over action
                     %------------------------------------------------------
@@ -2028,6 +2076,9 @@ if t < N
     end % search over actions
 
 end % search over the future
+
+
+return
 
 
 function [Q,P,qa,qb,F] = spm_backwards(O,P,Q,D,E,pa,pb,U,m,id)

@@ -15,7 +15,7 @@ function [D] = spm_KL_cat(Q,P)
 % Copyright (C) 2022 Wellcome Centre for Human Neuroimaging
 
 
-% ensure sum to one constraint over first mention
+% ensure sum to one constraint over first dimension
 %--------------------------------------------------------------------------
 Q = spm_norm(Q(:,:));
 P = spm_norm(P(:,:));
