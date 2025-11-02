@@ -550,7 +550,7 @@ for k = 1:M.Nmax
     
     % E-Step: update
     %======================================================================
-    dp    = spm_dx(dFdpp,dFdp,{v},'Q');
+    dp    = spm_dx(dFdpp,dFdp,{v});
     p     = p + dp;
     Ep    = spm_unvec(spm_vec(pE) + V*p(ip),pE);
     

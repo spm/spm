@@ -49,6 +49,9 @@ function [cfg] = ft_singleplotTFR(cfg, varargin)
 %   cfg.figure         = 'yes', 'no', or 'subplot',  whether to open a new figure. You can also specify a figure
 %                        handle from FIGURE, GCF or SUBPLOT. (default = 'yes'). With multiple data inputs, 'subplot'
 %                        will make subplots in a single figure.
+%   cfg.figurename     = string, title of the figure window
+%   cfg.position       = location and size of the figure, specified as [left bottom width height] (default is automatic)
+%   cfg.renderer       = string, 'opengl', 'zbuffer', 'painters', see RENDERERINFO (default is automatic, try 'painters' when it crashes)
 %
 % The following options for the scaling of the EEG, EOG, ECG, EMG, MEG and NIRS channels
 % is optional and can be used to bring the absolute numbers of the different
@@ -159,6 +162,9 @@ cfg.colorbar       = ft_getopt(cfg, 'colorbar',      'yes');
 cfg.colormap       = ft_getopt(cfg, 'colormap',       'default');
 cfg.colorbartext   = ft_getopt(cfg, 'colorbartext',  '');
 cfg.interactive    = ft_getopt(cfg, 'interactive',   'yes');
+cfg.interactivecolor = ft_getopt(cfg, 'interactivecolor', [0 0 0]); % linecolor of selection rectangle
+cfg.interactivestyle = ft_getopt(cfg, 'interactivestyle', '--');    % linestyle of selection rectangle
+cfg.interactivewidth = ft_getopt(cfg, 'interactivewidth', 1.5);     % linewidth of selection rectangle
 cfg.hotkeys        = ft_getopt(cfg, 'hotkeys',       'yes');
 cfg.maskalpha      = ft_getopt(cfg, 'maskalpha',      1);
 cfg.maskparameter  = ft_getopt(cfg, 'maskparameter',  []);
@@ -181,6 +187,13 @@ elseif nargin>1
   dataname = arrayfun(@inputname, 2:nargin, 'UniformOutput', false);
 else
   dataname = {};
+end
+
+% set the figure window title, if not defined by user
+if isempty(cfg.figurename) && ~isempty(dataname)
+  cfg.figurename = sprintf('%s: %s', mfilename, join_str(', ', dataname));
+else
+  cfg.figurename = sprintf('%s:', mfilename);
 end
 
 makesubplots = false;
@@ -307,6 +320,14 @@ end
 
 % Take the desided subselection of channels, this is the same in all datasets
 [selchan] = match_str(varargin{1}.label, cfg.channel);
+
+% Add the list of selected channels to figurename
+if length(selchan) < 5
+  chans = join_str(', ', cfg.channel);
+else
+  chans = '<multiple channels>';
+end
+cfg.figurename = sprintf('%s (%s)', cfg.figurename, chans);
 
 % Get physical min/max range of x, i.e. time
 if strcmp(cfg.xlim, 'maxmin')
@@ -435,22 +456,19 @@ for i=1:Ndata
   end
 
   % Draw the data and mask NaN's if requested
+  plotopts = {'clim', [zmin zmax], 'tag', 'cip'};
   if isequal(cfg.masknans, 'yes') && isempty(cfg.maskparameter)
-    nans_mask = ~isnan(zval);
-    mask = double(nans_mask);
-    ft_plot_matrix(xval, yval, zval, 'clim', [zmin zmax], 'tag', 'cip', 'highlightstyle', cfg.maskstyle, 'highlight', mask)
+    mask     = double(~isnan(zval));
+    plotopts = cat(2, plotopts, {'highlightstyle', cfg.maskstyle, 'highlight', mask});
   elseif isequal(cfg.masknans, 'yes') && ~isempty(cfg.maskparameter)
-    nans_mask = ~isnan(zval);
-    mask = mask .* nans_mask;
-    mask = double(mask);
-    ft_plot_matrix(xval, yval, zval, 'clim', [zmin zmax], 'tag', 'cip', 'highlightstyle', cfg.maskstyle, 'highlight', mask)
+    mask     = double(mask .* (~isnan(zval)));
+    plotopts = cat(2, plotopts, {'highlightstyle', cfg.maskstyle, 'highlight', mask});
   elseif isequal(cfg.masknans, 'no') && ~isempty(cfg.maskparameter)
-    mask = double(mask);
-    ft_plot_matrix(xval, yval, zval, 'clim', [zmin zmax], 'tag', 'cip', 'highlightstyle', cfg.maskstyle, 'highlight', mask)
-  else
-    ft_plot_matrix(xval, yval, zval, 'clim', [zmin zmax], 'tag', 'cip')
+    mask     = double(mask);
+    plotopts = cat(2, plotopts, {'highlightstyle', cfg.maskstyle, 'highlight', mask});
   end
-
+  ft_plot_matrix(xval, yval, zval, plotopts{:});
+  
   % check if the colormap is in the proper format and set it
   if ~isequal(cfg.colormap, 'default')
     if ischar(cfg.colormap)
@@ -480,32 +498,13 @@ for i=1:Ndata
   if ~isempty(cfg.title)
     t = cfg.title;
   else
-    if length(cfg.channel) == 1
+    if isscalar(cfg.channel)
       t = [char(cfg.channel) ' / ' num2str(selchan) ];
     else
       t = sprintf('mean(%0s)', join_str(', ', cfg.channel));
     end
   end
   title(t, 'fontsize', cfg.fontsize, 'interpreter', cfg.interpreter);
-
-  % set the figure window title, add channel labels if number is small
-  if isempty(get(gcf, 'Name'))
-    if length(selchan) < 5
-      chans = join_str(', ', cfg.channel);
-    else
-      chans = '<multiple channels>';
-    end
-    if ~isempty(cfg.figurename)
-      set(gcf, 'name', cfg.figurename);
-      set(gcf, 'NumberTitle', 'off');
-    elseif ~isempty(dataname)
-      set(gcf, 'Name', sprintf('%d: %s: %s (%s)', double(gcf), mfilename, join_str(', ', dataname), chans));
-      set(gcf, 'NumberTitle', 'off');
-    else
-      set(gcf, 'Name', sprintf('%d: %s (%s)', double(gcf), mfilename, chans));
-      set(gcf, 'NumberTitle', 'off');
-    end
-  end
 
   axis tight
 
@@ -524,9 +523,10 @@ for i=1:Ndata
     info.(ident).cfg      = cfg;
     info.(ident).varargin = varargin;
     guidata(gcf, info);
-    set(gcf, 'WindowButtonUpFcn',     {@ft_select_range, 'multiple', false, 'callback', {@select_topoplotTFR}, 'event', 'WindowButtonUpFcn'});
-    set(gcf, 'WindowButtonDownFcn',   {@ft_select_range, 'multiple', false, 'callback', {@select_topoplotTFR}, 'event', 'WindowButtonDownFcn'});
-    set(gcf, 'WindowButtonMotionFcn', {@ft_select_range, 'multiple', false, 'callback', {@select_topoplotTFR}, 'event', 'WindowButtonMotionFcn'});
+    cb_options = {'multiple', false, 'callback', {@select_topoplotTFR}, 'linecolor', cfg.interactivecolor, 'linestyle', cfg.interactivestyle, 'linewidth', cfg.interactivewidth};
+    set(gcf, 'WindowButtonUpFcn',     [{@ft_select_range, 'event', 'WindowButtonUpFcn'}      cb_options]);
+    set(gcf, 'WindowButtonDownFcn',   [{@ft_select_range, 'event', 'WindowButtonDownFcn'},   cb_options]);
+    set(gcf, 'WindowButtonMotionFcn', [{@ft_select_range, 'event', 'WindowButtonMotionFcn'}, cb_options]);
   end
 end
 

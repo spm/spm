@@ -10,6 +10,7 @@ function h = spm_logo(S)
 %   S.colour  - Text colour
 %   S.background    - background colour
 %   S.angle   - Angle (in degrees) of the isometric progection
+%   S.save    - If true, generates image files for re-use
 %
 % h           - Handle figure
 %__________________________________________________________________________
@@ -27,6 +28,7 @@ if ~isfield(S,'width'), S.width = [0.05 0.02]; end
 if ~isfield(S,'colour'), S.colour = 'k'; end
 if ~isfield(S,'background'), S.background = 'w'; end
 if ~isfield(S,'angle'), S.angle = -30; end
+if ~isfield(S,'save'),  S.save = false; end
 
 if isscalar(S.width), S.width = [S.width S.width]; end
 if isnumeric(S.ver), S.ver = num2str(S.ver); end
@@ -51,7 +53,7 @@ digits = {
     };
 
 
-figure;
+h = figure;
 hold on;
 axis equal off;
 offset = 0;
@@ -84,7 +86,7 @@ for l = 1:length(digit_string)
     offset = offset + 1.25;  % Space between letters
 end
 
-set(gcf,'Color',S.background)
+set(h,'Color',S.background)
 
 offset = 2.55;
 
@@ -113,7 +115,10 @@ for l = 1:length(digit_string)
     offset = offset + 0.6;  % Space between letters
 end
 
-h = get(gcf);
+% Write image(s) if requested
+if S.save
+    saveas(h,'spm_logo.png');
+end
 
 end
 

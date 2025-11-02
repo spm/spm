@@ -423,13 +423,13 @@ figure
 
 aux = tmp(tmpind(end),:);
 subplot(2,1,1);
-plot(Dnew.time,Dnew(dnewind(end),:,1),Dnew.time,aux,'r');
+plot(Dnew.time,Dnew(dnewind(end),:,trialind(1)),Dnew.time,aux,'r');
 title('Measured activity over max sensor');
 legend('Noisy','Noiseless');
 ylabel(sensorunits{chanind(1)});
 subplot(2,1,2);
 aux = tmp(tmpind(floor(length(tmpind)/2)),:);
-plot(Dnew.time,Dnew(dnewind(floor(length(tmpind)/2)),:,1),Dnew.time,aux,'r');
+plot(Dnew.time,Dnew(dnewind(floor(length(tmpind)/2)),:,trialind(1)),Dnew.time,aux,'r');
 title('Measured activity over median sensor');
 legend('Noisy','Noiseless');
 ylabel(sensorunits{chanind(1)});
