@@ -22,7 +22,8 @@ function [S] = DEM_birdsong(file)
 if ~nargin
     file = fullfile(fileparts(mfilename('fullpath')),'lebi3.wav');
 end
-if spm_check_version('matlab','8.0') > 0
+is_octave = strcmp(spm_check_version,'octave');
+if is_octave || spm_check_version('matlab','8.0') > 0
     [Y,FS] = audioread(file);
 else
     [Y,FS] = wavread(file); %#ok

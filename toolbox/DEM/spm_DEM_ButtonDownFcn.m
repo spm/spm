@@ -12,6 +12,9 @@ function spm_DEM_ButtonDownFcn
 % default
 %--------------------------------------------------------------------------
 S = get(gcbo,'Userdata');
+
+is_octave = strcmp(spm_check_version,'octave');
+
 if isstruct(S{1})
     
     % play movie
@@ -26,7 +29,7 @@ if isstruct(S{1})
         [filename, pathname] = uiputfile('*.avi','movie file');
         if isequal(filename,0) || isequal(pathname,0), return; end
         fname = fullfile(pathname,filename);
-        if spm_check_version('matlab','7.10') > 0
+        if ~is_octave && spm_check_version('matlab','7.10') > 0
             writerObj = VideoWriter(fname,'Uncompressed AVI');
             writerObj.FrameRate = 15;
             open(writerObj);
@@ -52,7 +55,8 @@ else
         if isequal(filename,0) || isequal(pathname,0), return; end
         fname = fullfile(pathname,filename);
         S{1} = S{1}/max(S{1}(:));
-        if spm_check_version('matlab','8.0') > 0
+        
+        if ~is_octave && spm_check_version('matlab','8.0') > 0
             audiowrite(fname,S{1},S{2},'BitsPerSample',16);
         else
             wavwrite(S{1},S{2},16,fname); %#ok

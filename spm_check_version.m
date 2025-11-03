@@ -69,13 +69,10 @@ function varargout = spm_check_version(tbx,chk)
 
 %-Detect software used
 %==========================================================================
-if ~nargin || isempty(tbx)
-    if exist('OCTAVE_VERSION','builtin')
-        tbx = 'octave';
-    else
-        tbx = 'matlab';
-    end
-    if ~nargin, varargout = {tbx}; return; end
+runtime = spm_platform('runtime');
+if ~nargin, varargout = {runtime}; return; end
+if isempty(tbx) % Not sure whether this should actually happen
+    tbx = runtime;
 end
 
 
@@ -88,6 +85,10 @@ if strcmpi(tbx,'matlab')
 elseif strcmpi(tbx,'octave')
     tbxVer = version;
     tbxVer = strrep(tbxVer,'+','');
+elseif strcmpi(tbx,'spm')
+    % Octave does not consider SPM a toolbox unless it is packaged. Use raw
+    % SPM versioning instead.
+    [~, tbxVer] = spm('Ver','',1);
 else
     tbxStruct = ver(tbx);
     if isempty(tbxStruct)
@@ -98,19 +99,13 @@ else
     tbxVer = tbxStruct.Version;
 end
 
+% Return raw version string if no check requested
 if nargin == 1, varargout = {tbxVer}; return; end
 
 
-%-Parse user supplied version number
-%==========================================================================
-
-if strcmpi(tbx,'matlab') && strcmpi(spm_check_version,'octave')
-    varargout = {1}; % hack
-    return;
-end
-
 % SPM-specific versioning
 %--------------------------------------------------------------------------
+% Skip version checks for various SPM versions
 if strcmpi(tbx,'spm')
     [v,r] = spm('Ver','',1);
     % The release string can take the following forms:
@@ -145,13 +140,29 @@ end
 
 % Check if running MATLAB Online
 %--------------------------------------------------------------------------
-if strcmpi(chk, 'online') 
+if strcmpi(tbx, 'matlab') && strcmpi(chk, 'online')
     % No builtin MATLAB function to check this. 
     % Check for 'MATLAB Drive' drive. 
     status = logical(exist(fullfile(filesep, 'MATLAB Drive'), 'dir')); 
     varargout = {status};
     return;
 end
+
+% Bail out if running on octave, but requested check on MATLAB
+%--------------------------------------------------------------------------
+if strcmpi(runtime, 'octave') && strcmpi(tbx, 'matlab')
+    if strcmpi(chk, 'online')
+        varargout = {0};
+    else
+        warning('Running on octave, but version check requested for MATLAB.');
+        varargout = {1};
+    end
+    return;
+end
+
+
+%-Parse user supplied version number
+%==========================================================================
 
 % If a number is supplied then convert to text
 %--------------------------------------------------------------------------

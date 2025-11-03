@@ -62,6 +62,14 @@ if nargin == 0
     contrast.num = [1 Inf];
     contrast.val = {1};
     
+    erp         = cfg_menu;
+    erp.tag     = 'erp';
+    erp.name    = 'Project ERP';
+    erp.help    = {'Project the power of the evoked response rather than evoked power'};
+    erp.labels  = {'yes', 'no'};
+    erp.values  = {true, false};
+    erp.val = {false};
+
     logpower = cfg_menu;
     logpower.tag = 'logpower';
     logpower.name = 'Take log of power';
@@ -86,7 +94,7 @@ if nargin == 0
         'bytrial'
         }';
     result.val = {'singleimage'};
-    
+
     scale         = cfg_menu;
     scale.tag     = 'scale';
     scale.name    = 'Unit-noise-gain';
@@ -122,7 +130,7 @@ if nargin == 0
     image_power      = cfg_branch;
     image_power.tag  = 'image_power';
     image_power.name = 'Power image';
-    image_power.val  = {whatconditions, sametrials, woi, foi, contrast, logpower, result, scale, powermethod, modality};
+    image_power.val  = {whatconditions, sametrials, woi, foi, contrast, erp, logpower, result, scale, powermethod, modality};
     
     res = image_power;
     
@@ -205,54 +213,87 @@ end
 
 alltrials = spm_vec(trials);
 ntrials   = length(alltrials);
+condind = spm_unvec(1:ntrials, trials);
 
-spm('Pointer', 'Watch');drawnow;
-spm_progress_bar('Init', ntrials , 'Computing covariance'); drawnow;
-if ntrials  > 100, Ibar = floor(linspace(1, ntrials ,100));
-else Ibar = 1:ntrials; end
 
-sumYY = 0;
-N     = 0;
-for i = 1:ntrials
-    for j = 1:numel(samples)
-        Y  = U'*squeeze(D(channels, samples{j}, alltrials(i)));
-        Y  = detrend(Y', 'constant')';
-        
-        Y = Y*Tband;
-        
-        YY{i, j} = Y*Y';
-        sumYY = sumYY+YY{i,j};
-        N  = N+length(samples{j});
+if S.erp
+    sumYY = 0;
+    N     = 0;
+    for i = 1:numel(trials)
+        for j = 1:numel(samples)
+            Y  = U'*squeeze(mean(D(channels, samples{j}, trials{i}), 3));
+            Y  = detrend(Y', 'constant')';
+
+            Y = Y*Tband;
+
+            YY{i, j} = Y*Y';
+            sumYY = sumYY+YY{i,j};
+            N  = N+length(samples{j});
+        end
     end
-    if ismember(i, Ibar)
-        spm_progress_bar('Set', i); drawnow;
+    sumYY = sumYY./N;
+else
+    spm('Pointer', 'Watch');drawnow;
+    spm_progress_bar('Init', ntrials , 'Computing covariance'); drawnow;
+    if ntrials  > 100, Ibar = floor(linspace(1, ntrials ,100));
+    else Ibar = 1:ntrials; end
+
+    sumYY = 0;
+    N     = 0;
+    for i = 1:ntrials
+        for j = 1:numel(samples)
+            Y  = U'*squeeze(D(channels, samples{j}, alltrials(i)));
+            Y  = detrend(Y', 'constant')';
+
+            Y = Y*Tband;
+
+            YY{i, j} = Y*Y';
+            sumYY = sumYY+YY{i,j};
+            N  = N+length(samples{j});
+        end
+        if ismember(i, Ibar)
+            spm_progress_bar('Set', i); drawnow;
+        end
     end
+    sumYY = sumYY./N;
+
+    spm_progress_bar('Clear');
 end
-sumYY = sumYY./N;
-
-spm_progress_bar('Clear');
 
 W = BF.inverse.(S.modality).W;
 nvert = numel(W);
 
 Cy = {};
-condind = spm_unvec(1:ntrials, trials);
 
 switch S.result
     case 'singleimage'
         for i = 1:size(YY, 2)
-            Cy{1, i} = squeeze(sum(cat(3, YY{:, i}), 3))./((nsamples-1)*ntrials);
+            if S.erp
+                Cy{1, i} = squeeze(sum(cat(3, YY{:, i}), 3))./((nsamples-1)*numel(trials));
+            else
+                Cy{1, i} = squeeze(sum(cat(3, YY{:, i}), 3))./((nsamples-1)*ntrials);
+            end
         end
     case 'bycondition'
         for c = 1:numel(condind)
-            for i = 1:size(YY, 2)
-                Cy{c, i} = squeeze(sum(cat(3, YY{condind{c}, i}), 3))./((nsamples-1)*length(condind{c}));
+            if S.erp
+                for i = 1:size(YY, 2)
+                    Cy{c, i} = YY{c, i}./(nsamples-1);
+                end
+            else
+                for i = 1:size(YY, 2)
+                    Cy{c, i} = squeeze(sum(cat(3, YY{condind{c}, i}), 3))./((nsamples-1)*length(condind{c}));
+                end
             end
         end
     case 'bytrial'
-        for c = 1:ntrials
-            for i = 1:size(YY, 2)
-                Cy{c, i} = YY{c, i}./(nsamples-1);
+        if S.erp
+            error('By trial option is not available for the ERP setting');
+        else
+            for c = 1:ntrials
+                for i = 1:size(YY, 2)
+                    Cy{c, i} = YY{c, i}./(nsamples-1);
+                end
             end
         end
         

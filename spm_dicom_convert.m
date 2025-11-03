@@ -1114,7 +1114,13 @@ if Header.SamplesPerPixel ~= 1
     return;
 end
 
-prec = ['ubit' num2str(Header.BitsAllocated) '=>' 'uint32'];
+if strcmpi(spm_check_version, 'matlab')
+    prec = ['ubit' num2str(Header.BitsAllocated) '=>' 'uint32'];
+else
+    % Octave fread doesn't recognise ubit, but BitsAllocated should align
+    % to some sort of uint anyway
+    prec = ['uint' num2str(Header.BitsAllocated) '=>' 'uint32'];
+end
 
 if isfield(Header,'TransferSyntaxUID') && strcmp(Header.TransferSyntaxUID,'1.2.840.10008.1.2.2') && strcmp(Header.VROfPixelData,'OW')
     fp = fopen(Header.Filename,'r','ieee-be');
