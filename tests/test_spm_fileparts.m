@@ -1,11 +1,12 @@
-function tests = test_spm_fileparts
+classdef test_spm_fileparts < matlab.unittest.TestCase
 % Unit Tests for spm_fileparts
 %__________________________________________________________________________
 
 % Copyright (C) 2022 Wellcome Centre for Human Neuroimaging
 
 
-tests = functiontests(localfunctions);
+
+methods (Test)
 
 
 function test_spm_fileparts_char(testCase)
@@ -46,3 +47,7 @@ testCase.verifyEqual(pth, spm('Dir'));
 testCase.verifyEqual(nam, 'image');
 testCase.verifyEqual(ext, '.nii');
 testCase.verifyEqual(num, ',2,5');
+end
+end % methods (Test)
+
+end % classdef

@@ -1,11 +1,12 @@
-function tests = test_spm_eeg_merge
+classdef test_spm_eeg_merge < matlab.unittest.TestCase
 % Unit Tests for spm_eeg_merge
 %__________________________________________________________________________
 
 % Copyright (C) 2023 Wellcome Centre for Human Neuroimaging
 
 
-tests = functiontests(localfunctions);
+
+methods (Test)
 
 
 function test_spm_eeg_merge_1(testCase)
@@ -32,3 +33,7 @@ Dout.delete();
 D2.delete();
 
 testCase.verifyTrue(all(siD == [110,1000,2]));
+end
+end % methods (Test)
+
+end % classdef

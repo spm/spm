@@ -1,33 +1,33 @@
-function tests = test_spm_cfg_dcm_est
+classdef test_spm_cfg_dcm_est < matlab.unittest.TestCase
 % Unit Tests for test_spm_cfg_dcm_est (DCM model estimation batch)
 %__________________________________________________________________________
 
 % Copyright (C) 2016-2022 Wellcome Centre for Human Neuroimaging
 
+methods (TestClassSetup)
+    function setupSPM(testCase)
+        [input_path, path] = test_spm_cfg_dcm_est.prepare_paths(0);
 
-tests = functiontests(localfunctions);
+        % Paths to delete
+        paths = {fullfile(path,'tmp'); path};
 
-% -------------------------------------------------------------------------
-function setup(testCase)
-% Delete output directory before each test
-[input_path, path] = prepare_paths(0);
-
-% Paths to delete
-paths = {fullfile(path,'tmp'); path};
-
-for p = 1:length(paths)
-    if exist(paths{p},'file')
-        delete(fullfile(paths{p},'*.mat'));
-        rmdir(paths{p});
+        for p = 1:length(paths)
+            if exist(paths{p},'file')
+                delete(fullfile(paths{p},'*.mat'));
+                rmdir(paths{p});
+            end
+        end
     end
-end
+end % methods (TestClassSetup)
+
+methods (Test)
 
 % -------------------------------------------------------------------------
 function test_select_by_gcm(testCase)
 % Test selecting a group DCM file (GCM)
 
 % Prepare paths
-[input_path, path] = prepare_paths();
+[input_path, path] = test_spm_cfg_dcm_est.prepare_paths();
 
 % Expected output
 expected = fullfile(path,'GCM_test.mat');
@@ -49,14 +49,15 @@ testCase.assertEqual(actual,expected);
 testCase.assertTrue(exist(expected,'file') > 0);
 
 % Check output contents is correct
-assert_gcms_match(actual,gcm_file,testCase);
+test_spm_cfg_dcm_est.assert_gcms_match(actual,gcm_file,testCase);
+end
 
 % -------------------------------------------------------------------------
 function test_select_by_model(testCase)
 % Test selecting DCMs model-by-model
 
 % Prepare paths
-[input_path, path] = prepare_paths();
+[input_path, path] = test_spm_cfg_dcm_est.prepare_paths();
 
 % Expected output
 expected = fullfile(path,'GCM_test.mat');
@@ -88,14 +89,15 @@ testCase.assertTrue(exist(expected,'file') > 0);
 
 % Check output contents is correct
 gcm_file = fullfile(input_path,'GCM_simulated.mat'); 
-assert_gcms_match(actual,gcm_file,testCase);
+test_spm_cfg_dcm_est.assert_gcms_match(actual,gcm_file,testCase);
+end
 
 % -------------------------------------------------------------------------
 function test_select_by_subject(testCase)
 % Test selecting DCMs subject-by-subject
 
 % Prepare paths
-[input_path, path] = prepare_paths();
+[input_path, path] = test_spm_cfg_dcm_est.prepare_paths();
 
 % Expected output
 expected = fullfile(path,'GCM_test.mat');
@@ -124,14 +126,15 @@ testCase.assertTrue(exist(expected,'file') > 0);
 
 % Check output contents is correct
 gcm_file = fullfile(input_path,'GCM_simulated.mat'); 
-assert_gcms_match(actual,gcm_file,testCase);
+test_spm_cfg_dcm_est.assert_gcms_match(actual,gcm_file,testCase);
+end
 
 % -------------------------------------------------------------------------
 function test_separate_dcm_output(testCase)
 % Test that outputting separate DCMs gives the correct results
 
 % Prepare paths
-[input_path, path] = prepare_paths();
+[input_path, path] = test_spm_cfg_dcm_est.prepare_paths();
 
 % Copy all DCMs into a temporary folder
 tmp_path = fullfile(path, 'tmp');
@@ -163,13 +166,18 @@ testCase.assertEqual(actual,expected);
 % Check output contents is correct
 gcm_file = fullfile(input_path,'GCM_simulated.mat'); 
 GCM = spm_dcm_load(gcm_file);
-assert_gcms_match(actual,GCM(:,1),testCase);
+test_spm_cfg_dcm_est.assert_gcms_match(actual,GCM(:,1),testCase);
+end
 
+end % methods (Test)
+
+methods (Static, Access = private)
 % -------------------------------------------------------------------------
 function data_path = get_data_path()
 
 data_path = fullfile( spm('Dir'), 'tests', ...
     'data', 'fMRI', 'simulated_2region');
+end
 
 % -------------------------------------------------------------------------
 function [input_path, path] = prepare_paths(do_create)
@@ -179,13 +187,15 @@ if nargin < 1
     do_create = 1;
 end
 
-data_path   = get_data_path();
+data_path   = test_spm_cfg_dcm_est.get_data_path();
 input_path  = fullfile(data_path,'models');
 path = fullfile(data_path,'out');
 
 if do_create && ~exist(path,'file')
     mkdir(path);
 end
+end
+
 % -------------------------------------------------------------------------
 function assert_gcms_match(actual,expected,testCase)
 % Check that two GCM cell arrays match in terms of contents
@@ -217,3 +227,7 @@ for m = 1:nm
     testCase.assertEqual(actual_id,expected_id,...
         'AbsTol',0.001,sprintf('GCM index %d doesn''t match',m));
 end
+end
+end % methods (Static, Access = private)
+
+end % classdef

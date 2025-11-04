@@ -1,16 +1,19 @@
-function tests = test_spm_eeg_average
+classdef test_spm_eeg_average < matlab.unittest.TestCase
 % Unit Tests for spm_eeg_average
 %__________________________________________________________________________
 
 % Copyright (C) 2023 Wellcome Centre for Human Neuroimaging
 
+methods (TestClassSetup)
+    function setupSPM(testCase)
+        spm('defaults', 'eeg');
+    end
+end % methods (TestClassSetup)
 
-tests = functiontests(localfunctions);
+methods (Test)
 
 
 function test_spm_eeg_average_1(testCase)
-
-spm('defaults','eeg');
 
 fname = fullfile(spm('Dir'),'tests','data','OPM','test_opm.mat');
 D     = spm_eeg_load(fname);
@@ -41,3 +44,8 @@ exp = 6;
 
 
 testCase.verifyTrue(abs((act-exp)/exp)< 1e-6);
+end
+
+end % methods (Test)
+
+end % classdef

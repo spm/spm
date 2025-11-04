@@ -1,11 +1,12 @@
-function tests = test_spm_opm_psd
+classdef test_spm_opm_psd < matlab.unittest.TestCase
 % Unit Tests for spm_opm_psd
 %__________________________________________________________________________
 
 % Copyright (C) 2023 Wellcome Centre for Human Neuroimaging
 
 
-tests = functiontests(localfunctions);
+
+methods (Test)
 
 
 function test_spm_opm_psd_1(testCase)
@@ -28,3 +29,7 @@ S.plot=0;
 act = mean(mean(p))*sqrt(1000);
 
 testCase.verifyTrue(act>.85);
+end
+end % methods (Test)
+
+end % classdef

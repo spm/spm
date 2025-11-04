@@ -1,11 +1,12 @@
-function tests = test_spm_opm_rpsd
+classdef test_spm_opm_rpsd < matlab.unittest.TestCase
 % Unit Tests for spm_opm_rpsd
 %__________________________________________________________________________
 
 % Copyright (C) 2023 Wellcome Centre for Human Neuroimaging
 
 
-tests = functiontests(localfunctions);
+
+methods (Test)
 
 
 function test_spm_opm_rpsd_1(testCase)
@@ -36,3 +37,7 @@ D2.delete();
 
 % test  for at least 9 dB of shielding
 testCase.verifyTrue(act < -9);
+end
+end % methods (Test)
+
+end % classdef

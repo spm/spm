@@ -1,11 +1,12 @@
-function tests = test_spm_eeg_load
+classdef test_spm_eeg_load < matlab.unittest.TestCase
 % Unit Tests for spm_eeg_load
 %__________________________________________________________________________
 
 % Copyright (C) 2023 Wellcome Centre for Human Neuroimaging
 
 
-tests = functiontests(localfunctions);
+
+methods (Test)
 
 
 function test_spm_eeg_load_1(testCase)
@@ -26,3 +27,7 @@ testCase.verifyTrue(isequal(exp, act));
 exp = [110,1000,1];
 act = size(D);
 testCase.verifyTrue(isequal(exp, act));
+end
+end % methods (Test)
+
+end % classdef

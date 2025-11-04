@@ -1,11 +1,12 @@
-function tests = test_spm_mesh_area
+classdef test_spm_mesh_area < matlab.unittest.TestCase
 % Unit Tests for spm_mesh_area
 %__________________________________________________________________________
 
 % Copyright (C) 2021-2022 Wellcome Centre for Human Neuroimaging
 
 
-tests = functiontests(localfunctions);
+
+methods (Test)
 
 
 function test_spm_mesh_area_polyhedron(testCase)
@@ -30,7 +31,7 @@ a = 2;
 exp = sqrt(3)*a^2;
 act = spm_mesh_area(M);
 testCase.verifyEqual(act, exp, 'AbsTol',1e-6);
-
+end
 
 function test_spm_mesh_area_sphere(testCase)
 
@@ -47,3 +48,7 @@ testCase.verifyEqual(act, exp, 'AbsTol',1e-2);
 exp = 4*pi;
 act = sum(spm_mesh_area(M,'vertex'));
 testCase.verifyEqual(act, exp, 'AbsTol',1e-2);
+end
+end % methods (Test)
+
+end % classdef

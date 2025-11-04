@@ -1,4 +1,4 @@
-function tests = test_spm_run_dcm_bms
+classdef test_spm_run_dcm_bms < matlab.unittest.TestCase
 % Unit Tests for config/spm_run_dcm_bms. Tests are provided with and
 % without evidence for a particular model with artificially generated free
 % energies. Additionally, tests are included using real DCM files for
@@ -7,20 +7,22 @@ function tests = test_spm_run_dcm_bms
 
 % Copyright (C) 2015-2022 Wellcome Centre for Human Neuroimaging
 
+methods (TestMethodSetup)
+    function setup(testCase)
+        % Prepare output directory
+        out_dir = test_spm_run_dcm_bms.get_output_dir();
 
-tests = functiontests(localfunctions);
-
-function setup(testCase)
-% Prepare output directory
-out_dir = get_output_dir();
-
-% Delete existing files if they exist
-if exist(fullfile(out_dir,'BMS.mat'),'file')
-    delete(fullfile(out_dir,'BMS.mat'));
+        % Delete existing files if they exist
+        if exist(fullfile(out_dir,'BMS.mat'),'file')
+            delete(fullfile(out_dir,'BMS.mat'));
+        end
+        if exist(fullfile(out_dir,'F.mat'),'file')
+            delete(fullfile(out_dir,'F.mat'));
+        end
+    end
 end
-if exist(fullfile(out_dir,'F.mat'),'file')
-    delete(fullfile(out_dir,'F.mat'));
-end
+
+methods (Test)
 
 % -------------------------------------------------------------------------
 function test_ffx_fmri_dcm(testCase)
@@ -35,11 +37,13 @@ P2 = spm_select('FPList',models_path,'DCM_.*_m2\.mat$');
 P  = [cellstr(P1)  cellstr(P2)];
 
 % Run FFX BMS
-run_bms_dcm_files('FFX', P);
+test_spm_run_dcm_bms.run_bms_dcm_files('FFX', P);
 
 % Check
-load(fullfile(get_output_dir(), 'BMS.mat'));
+load(fullfile(test_spm_run_dcm_bms.get_output_dir(), 'BMS.mat'));
 testCase.assertTrue(BMS.DCM.ffx.model.post(2) > 0.99);
+end
+
 % -------------------------------------------------------------------------
 function test_ffx_csd_dcm(testCase)
 % Tests that the BMS can run on a CSD DCM
@@ -53,11 +57,13 @@ P2 = spm_select('FPList',models_path,'DCM_CSD.mat');
 P  = [cellstr(P1)  cellstr(P2)];
 
 % Run FFX BMS
-run_bms_dcm_files('FFX', P);
+test_spm_run_dcm_bms.run_bms_dcm_files('FFX', P);
 
 % Check
-load(fullfile(get_output_dir(), 'BMS.mat'));
+load(fullfile(test_spm_run_dcm_bms.get_output_dir(), 'BMS.mat'));
 testCase.assertTrue(BMS.DCM.ffx.model.post(2) == 0.5);
+end
+
 % -------------------------------------------------------------------------
 function test_rfx_no_evidence(testCase)
 % Tests RFX BMS in the context of equal model probabilities
@@ -93,11 +99,11 @@ F_gen  = mean_F + std_F .* randn(sum(m(:) > 0),1);
 F    = -13 + randn(n,4);
 F(m > 0) = F_gen;
 
-out_dir = get_output_dir();
+out_dir = test_spm_run_dcm_bms.get_output_dir();
 save(fullfile(out_dir,'F.mat'),'F');
 
 % Run
-run_bms_Fmatrix('RFX');
+test_spm_run_dcm_bms.run_bms_Fmatrix('RFX');
 
 % Load
 BMS=load(fullfile(out_dir,'BMS.mat'));
@@ -111,6 +117,8 @@ testCase.verifyThat(actual, IsEqualTo(r, 'Within', AbsoluteTolerance(0.1) ) );
 actual = BMS.DCM.rfx.model.bor;
 testCase.verifyThat(actual, IsGreaterThanOrEqualTo(0.9 ) );
 
+end
+
 % -------------------------------------------------------------------------
 function test_rfx_strong_evidence(testCase)
 % Tests RFX BMS in the context of an effect
@@ -119,7 +127,7 @@ function test_rfx_strong_evidence(testCase)
 import matlab.unittest.constraints.*
 rng('default');
 rng(1);
-out_dir = get_output_dir();
+out_dir = test_spm_run_dcm_bms.get_output_dir();
 
 n = 20;      % Subjects
 models = 4;  % Models per subject
@@ -149,7 +157,7 @@ F(m > 0) = F_gen;
 save(fullfile(out_dir,'F.mat'),'F');
 
 % Run
-run_bms_Fmatrix('RFX');
+test_spm_run_dcm_bms.run_bms_Fmatrix('RFX');
 
 % Load
 BMS=load(fullfile(out_dir,'BMS.mat'));
@@ -163,12 +171,14 @@ testCase.verifyThat(actual, IsEqualTo(r, 'Within', AbsoluteTolerance(0.1) ) );
 actual = BMS.DCM.rfx.model.bor;
 testCase.verifyThat(actual, IsLessThanOrEqualTo(0.1 ) );
 
+end
+
 % -------------------------------------------------------------------------
 function test_ffx_strong_evidence(testCase)
 % Tests FFX in the context of strong evidence
 
 import matlab.unittest.constraints.*
-out_dir = get_output_dir();
+out_dir = test_spm_run_dcm_bms.get_output_dir();
 
 % Free energies for model 1 and model 2
 F = [-10.3 -10.3 -10.3 -10.3 -10.3;
@@ -176,7 +186,7 @@ F = [-10.3 -10.3 -10.3 -10.3 -10.3;
 save(fullfile(out_dir,'F.mat'),'F');
 
 % Run
-run_bms_Fmatrix('FFX');
+test_spm_run_dcm_bms.run_bms_Fmatrix('FFX');
 
 % Check    
 BMS=load(fullfile(out_dir,'BMS.mat'));
@@ -190,12 +200,14 @@ testCase.verifyThat(actual_group_log_bf(2), ...
 testCase.verifyThat(actual_PP, ...
     IsEqualTo(0.95, 'Within', AbsoluteTolerance(0.01)));
 
+end
+
 % -------------------------------------------------------------------------
 function test_ffx_no_evidence(testCase)
 % Tests FFX in the context of no evidence
 
 import matlab.unittest.constraints.*
-out_dir = get_output_dir();
+out_dir = test_spm_run_dcm_bms.get_output_dir();
 
 % Free energies for model 1 and model 2
 F = [-10 -10 -10 -10 -10
@@ -203,7 +215,7 @@ F = [-10 -10 -10 -10 -10
 save(fullfile(out_dir,'F.mat'),'F');
 
 % Run
-run_bms_Fmatrix('FFX');
+test_spm_run_dcm_bms.run_bms_Fmatrix('FFX');
 
 % Check    
 BMS=load(fullfile(out_dir,'BMS.mat'));
@@ -217,10 +229,16 @@ testCase.verifyThat(actual_group_log_bf(2), ...
 testCase.verifyThat(actual_PP, ...
     IsEqualTo(0.5, 'Within', AbsoluteTolerance(0.01)));
 
+end
+
+end % methods (Test)
+
+
+methods (Static, Access = private)
 % -------------------------------------------------------------------------
 function run_bms_Fmatrix(method)
 % Run BMS using saved log evidence matrix
-out_dir = get_output_dir();
+out_dir = test_spm_run_dcm_bms.get_output_dir();
 clear matlabbatch;
 matlabbatch{1}.spm.dcm.bms.inference.dir = {out_dir};
 matlabbatch{1}.spm.dcm.bms.inference.sess_dcm = {};
@@ -231,6 +249,8 @@ matlabbatch{1}.spm.dcm.bms.inference.family_level.family_file = {''};
 matlabbatch{1}.spm.dcm.bms.inference.bma.bma_no = 0;
 matlabbatch{1}.spm.dcm.bms.inference.verify_id = 1;
 spm_jobman('run',matlabbatch);
+end
+
 % -------------------------------------------------------------------------
 function run_bms_dcm_files(method, P)
 % Run BMS using DCM .mat files
@@ -238,7 +258,7 @@ function run_bms_dcm_files(method, P)
 % P - subjects x models cell array
 
 clear matlabbatch;
-matlabbatch{1}.spm.dcm.bms.inference.dir = cellstr(get_output_dir());
+matlabbatch{1}.spm.dcm.bms.inference.dir = cellstr(test_spm_run_dcm_bms.get_output_dir());
 matlabbatch{1}.spm.dcm.bms.inference.model_sp = {''};
 matlabbatch{1}.spm.dcm.bms.inference.load_f = {''};
 matlabbatch{1}.spm.dcm.bms.inference.method = method;
@@ -251,6 +271,8 @@ for s = 1:size(P,1)
 end
 spm_jobman('run',matlabbatch);
 
+end
+
 % -------------------------------------------------------------------------
 function out_dir = get_output_dir()
 % Returns the directory for output files and creates it if needed
@@ -258,3 +280,8 @@ out_dir = fullfile( spm('Dir'), 'tests', 'output');
 if ~exist(out_dir,'file')
     mkdir(out_dir);
 end
+end
+
+end % methods (Static, Access = private)
+
+end % classdef

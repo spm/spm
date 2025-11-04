@@ -1,11 +1,12 @@
-function tests = test_spm_mesh_get_lm
+classdef test_spm_mesh_get_lm < matlab.unittest.TestCase
 % Unit Tests for spm_mesh_get_lm
 %__________________________________________________________________________
 
 % Copyright (C) 2016-2022 Wellcome Centre for Human Neuroimaging
 
 
-tests = functiontests(localfunctions);
+
+methods (Test)
 
 
 function test_spm_mesh_get_lm_octahedron(testCase)
@@ -15,6 +16,7 @@ T = [2 1 NaN 1 1 2]';
 exp = [1 6];
 act = spm_mesh_get_lm(M,T);
 testCase.verifyEqual(act, exp);
+end
 
 function test_spm_mesh_get_lm_one(testCase)
 M = spm_mesh_polyhedron('octahedron');
@@ -24,6 +26,7 @@ T(3) = 1;
 exp = 3;
 act = spm_mesh_get_lm(M,T);
 testCase.verifyEqual(act, exp);
+end
 
 function test_spm_mesh_get_lm_NaN(testCase)
 M = spm_mesh_polyhedron('octahedron');
@@ -32,6 +35,7 @@ T = NaN(size(M.vertices,1),1);
 exp = [];
 act = spm_mesh_get_lm(M,T);
 testCase.verifyEqual(act, exp);
+end
 
 function test_spm_mesh_get_lm_several(testCase)
 M = spm_mesh_polyhedron('icosahedron');
@@ -40,3 +44,7 @@ T = [1 NaN NaN NaN NaN NaN 7 8 9 10 11 12]';
 exp = [1 12];
 act = spm_mesh_get_lm(M,T);
 testCase.verifyEqual(act, exp);
+end
+end % methods (Test)
+
+end % classdef

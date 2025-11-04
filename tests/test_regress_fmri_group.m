@@ -1,57 +1,59 @@
-function tests = test_regress_fmri_group
+classdef test_regress_fmri_group < matlab.unittest.TestCase
 % Regression tests for second-level SPM for fMRI
 
-% Manual specification of tests to run
-tests = functiontests({@setup;
-                       @test_regress_onesample_ttest_classical;
-                       @test_regress_twosample_ttest_classical;
-                       @test_regress_flex_factorial_classical;
-                       @test_regress_flex_factorial_bayesian});
+methods (TestClassSetup)
+    function setupSPM(testCase)
+        spm('defaults','fmri');
+        spm_jobman('initcfg');
+        spm_get_defaults('cmdline',true);
+    end
+end % methods (TestClassSetup)
 
-% -------------------------------------------------------------------------
-function setup(testCase) 
-
-% Start SPM
-spm('defaults','fmri');
-spm_jobman('initcfg');
-spm_get_defaults('cmdline',true);
+methods (Test)
 
 % -------------------------------------------------------------------------
 function test_regress_onesample_ttest_classical(testCase)
 
-xyz_mm = run_onesample_ttest(false);
+xyz_mm = test_regress_fmri_group.run_onesample_ttest(false);
 
 % Check the global peak hasn't moved (3mm tolerance)
 tol = [3 3 3]';
 testCase.assertEqual(xyz_mm,[42 -82 -6]','AbsTol', tol);
+end
 
 % -------------------------------------------------------------------------
 function test_regress_twosample_ttest_classical(testCase)
 
-xyz_mm = run_twosample_ttest(false);
+xyz_mm = test_regress_fmri_group.run_twosample_ttest(false);
 
 % Check the global peak hasn't moved (3mm tolerance)
 tol = [3 3 3]';
 testCase.assertEqual(xyz_mm,[40 -22 52]','AbsTol', tol);
+end
 
 % -------------------------------------------------------------------------
 function test_regress_flex_factorial_classical(testCase)
 
-xyz_mm = run_flex_factorial(false);
+xyz_mm = test_regress_fmri_group.run_flex_factorial(false);
 
 % Check the global peak hasn't moved (3mm tolerance)
 tol = [3 3 3]';
 testCase.assertEqual(xyz_mm,[40 -22 52]','AbsTol', tol);
+end
 
 % -------------------------------------------------------------------------
 function test_regress_flex_factorial_bayesian(testCase)
 
-xyz_mm = run_flex_factorial(true);
+xyz_mm = test_regress_fmri_group.run_flex_factorial(true);
 
 % Check the global peak hasn't moved (3mm tolerance)
 tol = [3 3 3]';
 testCase.assertEqual(xyz_mm,[40 -22 52]','AbsTol', tol);
+end
 
+end % methods (Test)
+
+methods (Static, Access = private)
 % -------------------------------------------------------------------------
 function xyz_mm = run_onesample_ttest(bayesian)
 % Run a second level one sample t-test on fMRI data and get the global peak
@@ -116,7 +118,8 @@ matlabbatch{1}.spm.stats.con.consess{1}.tcon.sessrep = 'none';
 matlabbatch{1}.spm.stats.con.delete = 1;
 spm_jobman('run',matlabbatch);
 
-xyz_mm = get_global_peak(level2_dir,bayesian);
+xyz_mm = test_regress_fmri_group.get_global_peak(level2_dir,bayesian);
+end
 
 % -------------------------------------------------------------------------
 function xyz_mm = run_twosample_ttest(bayesian)
@@ -196,7 +199,8 @@ matlabbatch{1}.spm.stats.con.consess{1}.tcon.sessrep = 'none';
 matlabbatch{1}.spm.stats.con.delete = 1;
 spm_jobman('run',matlabbatch);
 
-xyz_mm = get_global_peak(level2_dir,bayesian);
+xyz_mm = test_regress_fmri_group.get_global_peak(level2_dir,bayesian);
+end
 
 % -------------------------------------------------------------------------
 function xyz_mm = run_flex_factorial(bayesian)
@@ -294,7 +298,8 @@ matlabbatch{1}.spm.stats.con.consess{1}.tcon.sessrep = 'none';
 matlabbatch{1}.spm.stats.con.delete = 1;
 spm_jobman('run',matlabbatch);
 
-xyz_mm = get_global_peak(level2_dir,bayesian);
+xyz_mm = test_regress_fmri_group.get_global_peak(level2_dir,bayesian);
+end
 
 % -------------------------------------------------------------------------
 function xyz_mm = get_global_peak(spm_dir,bayesian)
@@ -331,6 +336,7 @@ else
     % Get the global peak from the SPM results table
     xyz_mm = out{1}.TabDatvar.dat{1,end};
 end
+end
 
 % -------------------------------------------------------------------------
 % function test_timing_twosample_ttest(testCase)
@@ -357,3 +363,7 @@ end
 % 
 % % Run 3. No parallelisation:
 % % median 97.29 seconds [98.1365   97.2127   97.2867]
+% end
+end % methods (Static, Access = private)
+
+end % classdef

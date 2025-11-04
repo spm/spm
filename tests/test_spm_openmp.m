@@ -1,12 +1,13 @@
-function tests = test_spm_openmp
+classdef test_spm_openmp < matlab.unittest.TestCase
 % Unit Tests for OpenMP
 %__________________________________________________________________________
 
 % Copyright (C) 2019-2022 Wellcome Centre for Human Neuroimaging
 
 
-tests = functiontests(localfunctions);
-tests(1:end) = []; % ALL TESTS ARE DISABLED
+methods (Test, TestTags = {'Disabled'})
+
+% ALL TESTS ARE DISABLED - Use TestTags to skip these tests
 
 % Push returns different results because of the order of the summation.
 % No order is more right than the other, so it shouldn't be a problem.
@@ -26,18 +27,18 @@ fprintf('bsplinc\n');
 fprintf('----------\n');
 dim     = [100 100 100];
 i       = randn(dim, 'single');
-fprintf('Number of threads: %d\n', spm_set_num_threads(1));
+fprintf('Number of threads: %d\n', test_spm_openmp.spm_set_num_threads(1));
 tic
 o = spm_diffeo('bsplinc', i, [7 7 7]);
 t1 = toc;
-fprintf('Number of threads: %d\n', spm_set_num_threads(-1));
+fprintf('Number of threads: %d\n', test_spm_openmp.spm_set_num_threads(-1));
 tic
 oo = spm_diffeo('bsplinc', i, [7 7 7]);
 t2 = toc;
 fprintf('Speedup: %g\n', t1/t2);
 fprintf('Same output: %d\n', isequaln(o,oo));
 testCase.verifyEqual(o, oo);
-
+end
 
 function test_spm_openmp_diffeo_bsplins(testCase)
 fprintf('\n');
@@ -51,18 +52,18 @@ id        = cell(3,1);
 [id{1:3}] = ndgrid(single(1:dimo(1)),single(1:dimo(2)),single(1:dimo(3)));
 id        = cat(4,id{:});
 y         = (id -1)*0.5 + 1;
-fprintf('Number of threads: %d\n', spm_set_num_threads(1));
+fprintf('Number of threads: %d\n', test_spm_openmp.spm_set_num_threads(1));
 tic
 o = spm_diffeo('bsplins', i, y, [7 7 7]);
 t1 = toc;
-fprintf('Number of threads: %d\n', spm_set_num_threads(-1));
+fprintf('Number of threads: %d\n', test_spm_openmp.spm_set_num_threads(-1));
 tic
 oo = spm_diffeo('bsplins', i, y, [7 7 7]);
 t2 = toc;
 fprintf('Speedup: %g\n', t1/t2);
 fprintf('Same output: %d\n', isequaln(o,oo));
 testCase.verifyEqual(o, oo);
-
+end
 
 function test_spm_openmp_diffeo_pull(testCase)
 fprintf('\n');
@@ -76,18 +77,18 @@ id        = cell(3,1);
 [id{1:3}] = ndgrid(single(1:dimo(1)),single(1:dimo(2)),single(1:dimo(3)));
 id        = cat(4,id{:});
 y         = (id -1)*0.5 + 1;
-fprintf('Number of threads: %d\n', spm_set_num_threads(1));
+fprintf('Number of threads: %d\n', test_spm_openmp.spm_set_num_threads(1));
 tic
 o = spm_diffeo('pullc', i, y);
 t1 = toc;
-fprintf('Number of threads: %d\n', spm_set_num_threads(-1));
+fprintf('Number of threads: %d\n', test_spm_openmp.spm_set_num_threads(-1));
 tic
 oo = spm_diffeo('pullc', i, y);
 t2 = toc;
 fprintf('Speedup: %g\n', t1/t2);
 fprintf('Same output: %d\n', isequaln(o,oo));
 testCase.verifyEqual(o, oo);
-
+end
 
 function test_spm_openmp_diffeo_push(testCase)
 fprintf('\n');
@@ -101,11 +102,11 @@ id        = cell(3,1);
 [id{1:3}] = ndgrid(single(1:dimi(1)),single(1:dimi(2)),single(1:dimi(3)));
 id        = cat(4,id{:});
 y         = (id -1)*0.5 + 1;
-fprintf('Number of threads: %d\n', spm_set_num_threads(1));
+fprintf('Number of threads: %d\n', test_spm_openmp.spm_set_num_threads(1));
 tic
 [o,c] = spm_diffeo('pushc', i, y, dimo);
 t1 = toc;
-fprintf('Number of threads: %d\n', spm_set_num_threads(-1));
+fprintf('Number of threads: %d\n', test_spm_openmp.spm_set_num_threads(-1));
 tic
 [oo,cc] = spm_diffeo('pushc', i, y, dimo);
 t2 = toc;
@@ -114,7 +115,7 @@ fprintf('Same output: %d\n', isequaln(o,oo) && isequal(c,cc));
 tol = single(1E-5);
 testCase.verifyEqual(o, oo,'AbsTol',tol);
 testCase.verifyEqual(c, cc,'AbsTol',tol);
-
+end
 
 function test_spm_openmp_field_vel2mom(testCase)
 fprintf('\n');
@@ -124,19 +125,20 @@ fprintf('----------\n');
 dim = [200 200 200];
 i   = ones([dim 3], 'single');
 for bnd=[0 1]
-    spm_field('boundary', bnd);
+    test_spm_openmp.spm_field('boundary', bnd);
     fprintf('* boundary: %d\n', bnd);
-    fprintf('Number of threads: %d\n', spm_set_num_threads(1));
+    fprintf('Number of threads: %d\n', test_spm_openmp.spm_set_num_threads(1));
     tic
-    o = spm_field('vel2mom',i,[1 1 1 10 100 10000]);
+    o = test_spm_openmp.spm_field('vel2mom',i,[1 1 1 10 100 10000]);
     t1 = toc;
-    fprintf('Number of threads: %d\n', spm_set_num_threads(-1));
+    fprintf('Number of threads: %d\n', test_spm_openmp.spm_set_num_threads(-1));
     tic
-    oo = spm_field('vel2mom',i,[1 1 1 10 100 10000]);
+    oo = test_spm_openmp.spm_field('vel2mom',i,[1 1 1 10 100 10000]);
     t2 = toc;
-    fprintf('Speedup: %g\n', t1/t2);
-    fprintf('Same output: %d\n', isequaln(o,oo));
-    testCase.verifyEqual(o, oo);
+fprintf('Speedup: %g\n', t1/t2);
+fprintf('Same output: %d\n', isequaln(o,oo));
+testCase.verifyEqual(o, oo);
+end
 end
 
 
@@ -148,19 +150,20 @@ fprintf('----------\n');
 dim = [200 200 200];
 i   = ones([dim 3], 'single');
 for bnd=[0 1]
-    spm_diffeo('boundary', bnd);
+    test_spm_openmp.spm_diffeo('boundary', bnd);
     fprintf('* boundary: %d\n', bnd);
-    fprintf('Number of threads: %d\n', spm_set_num_threads(1));
+    fprintf('Number of threads: %d\n', test_spm_openmp.spm_set_num_threads(1));
     tic
-    o = spm_diffeo('vel2mom',i,[1 1 1 10 100 10000 10 10]);
+    o = test_spm_openmp.spm_diffeo('vel2mom',i,[1 1 1 10 100 10000 10 10]);
     t1 = toc;
-    fprintf('Number of threads: %d\n', spm_set_num_threads(-1));
+    fprintf('Number of threads: %d\n', test_spm_openmp.spm_set_num_threads(-1));
     tic
-    oo = spm_diffeo('vel2mom',i,[1 1 1 10 100 10000 10 10]);
+    oo = test_spm_openmp.spm_diffeo('vel2mom',i,[1 1 1 10 100 10000 10 10]);
     t2 = toc;
-    fprintf('Speedup: %g\n', t1/t2);
-    fprintf('Same output: %d\n', isequaln(o,oo));
-    testCase.verifyEqual(o, oo);
+fprintf('Speedup: %g\n', t1/t2);
+fprintf('Same output: %d\n', isequaln(o,oo));
+testCase.verifyEqual(o, oo);
+end
 end
 
 
@@ -173,19 +176,20 @@ dim = [200 200 200];
 H   = cat(4, ones([dim 3], 'single'), 1E-5*ones([dim 3], 'single'));
 g   = randn([dim 3], 'single');
 for bnd=[0 1]
-    spm_field('boundary', bnd);
+    test_spm_openmp.spm_field('boundary', bnd);
     fprintf('* boundary: %d\n', bnd);
-    fprintf('Number of threads: %d\n', spm_set_num_threads(1));
+    fprintf('Number of threads: %d\n', test_spm_openmp.spm_set_num_threads(1));
     tic
-    o = spm_field(H,g,[1 1 1 10 100 10000 2 2]);
+    o = test_spm_openmp.spm_field(H,g,[1 1 1 10 100 10000 2 2]);
     t1 = toc;
-    fprintf('Number of threads: %d\n', spm_set_num_threads(-1));
+    fprintf('Number of threads: %d\n', test_spm_openmp.spm_set_num_threads(-1));
     tic
-    oo = spm_field(H,g,[1 1 1 10 100 10000 2 2]);
+    oo = test_spm_openmp.spm_field(H,g,[1 1 1 10 100 10000 2 2]);
     t2 = toc;
-    fprintf('Speedup: %g\n', t1/t2);
-    fprintf('Same output: %d\n', isequaln(o,oo));
-    testCase.verifyEqual(o, oo);
+fprintf('Speedup: %g\n', t1/t2);
+fprintf('Same output: %d\n', isequaln(o,oo));
+testCase.verifyEqual(o, oo);
+end
 end
 
 
@@ -198,23 +202,32 @@ dim = [200 200 200];
 H   = cat(4, ones([dim 3], 'single'), 1E-5*ones([dim 3], 'single'));
 g   = randn([dim 3], 'single');
 for bnd=[0 1]
-    spm_diffeo('boundary', bnd);
+    test_spm_openmp.spm_diffeo('boundary', bnd);
     fprintf('* boundary: %d\n', bnd);
-    fprintf('Number of threads: %d\n', spm_set_num_threads(1));
+    fprintf('Number of threads: %d\n', test_spm_openmp.spm_set_num_threads(1));
     tic
-    o = spm_diffeo('fmg',H,g,[1 1 1 10 100 10000 10 10 2 2]);
+    o = test_spm_openmp.spm_diffeo('fmg',H,g,[1 1 1 10 100 10000 10 10 2 2]);
     t1 = toc;
-    fprintf('Number of threads: %d\n', spm_set_num_threads(-1));
+    fprintf('Number of threads: %d\n', test_spm_openmp.spm_set_num_threads(-1));
     tic
-    oo = spm_diffeo('fmg',H,g,[1 1 1 10 100 10000 10 10 2 2]);
-    t2 = toc;
-    fprintf('Speedup: %g\n', t1/t2);
-    fprintf('Same output: %d\n', isequaln(o,oo));
-    testCase.verifyEqual(o, oo);
+    oo = test_spm_openmp.spm_diffeo('fmg',H,g,[1 1 1 10 100 10000 10 10 2 2]);
+t2 = toc;
+fprintf('Speedup: %g\n', t1/t2);
+fprintf('Same output: %d\n', isequaln(o,oo));
+testCase.verifyEqual(o, oo);
+end
 end
 
+end % methods (Test)
 
+% Helper methods
+methods (Static, Access = private)
 function n = spm_set_num_threads(n)
 setenv('SPM_NUM_THREADS',sprintf('%d',n));
 try, spm_diffeo; end
 n = sscanf(getenv('SPM_NUM_THREADS'),'%d');
+end
+
+end % methods (Static, Access = private)
+
+end % classdef
