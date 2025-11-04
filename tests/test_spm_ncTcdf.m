@@ -1,11 +1,12 @@
-function tests = test_spm_ncTcdf
+classdef test_spm_ncTcdf < matlab.unittest.TestCase
 % Unit Tests for spm_ncTcdf
 %__________________________________________________________________________
 
 % Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
 
 
-tests = functiontests(localfunctions);
+
+methods (Test)
 
 
 function test_spm_ncTcdf_1(testCase)
@@ -13,36 +14,42 @@ exp = 0.5; % nctcdf(0,1,0)
 act = spm_ncTcdf(0,1,0);
 tol = 1e-12;
 testCase.verifyEqual(act, exp,'AbsTol',tol);
+end
 
 function test_spm_ncTcdf_2(testCase)
 exp = 0.5; % nctcdf(0,4,0)
 act = spm_ncTcdf(0,4,0);
 tol = 1e-12;
 testCase.verifyEqual(act, exp,'AbsTol',tol);
+end
 
 function test_spm_ncTcdf_3(testCase)
 exp = 0.022750131948179; % nctcdf(0,4,2)
 act = spm_ncTcdf(0,4,2);
 tol = 1e-12;
 testCase.verifyEqual(act, exp,'AbsTol',tol);
+end
 
 function test_spm_ncTcdf_4(testCase)
 exp = 4.218150123125319e-05; % nctcdf(-4,4,2)
 act = spm_ncTcdf(-4,4,2);
 tol = 1e-12;
 testCase.verifyEqual(act, exp,'AbsTol',tol);
+end
 
 function test_spm_ncTcdf_5(testCase)
 exp = 0.920822617476195; % nctcdf(5,4,2)
 act = spm_ncTcdf(5,4,2);
 tol = 1e-12;
 testCase.verifyEqual(act, exp,'AbsTol',tol);
+end
 
 function test_spm_ncTcdf_6(testCase)
 exp = 0.992600181884681; % nctcdf(10,4,2)
 act = spm_ncTcdf(10,4,2);
 tol = 1e-12;
 testCase.verifyEqual(act, exp,'AbsTol',tol);
+end
 
 function test_spm_ncTcdf_7(testCase)
 exp = [0.000000011096548  % nctcdf(-4:10,4,4)
@@ -63,3 +70,7 @@ exp = [0.000000011096548  % nctcdf(-4:10,4,4)
 act = spm_ncTcdf(-4:10,4,4);
 tol = 1e-12;
 testCase.verifyEqual(act, exp,'AbsTol',tol);
+end
+end % methods (Test)
+
+end % classdef

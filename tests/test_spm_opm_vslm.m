@@ -1,11 +1,12 @@
-function tests = test_spm_opm_vslm
+classdef test_spm_opm_vslm < matlab.unittest.TestCase
 % Unit Tests for spm_opm_vslm
 %__________________________________________________________________________
 
 % Copyright (C) 2023 Wellcome Centre for Human Neuroimaging
 
 
-tests = functiontests(localfunctions);
+
+methods (Test)
 
 
 function test_spm_opm_vslm_1(testCase)
@@ -62,3 +63,7 @@ H= [H,L3];
 act = sum(cs);
 
 testCase.verifyTrue(((15-act)/15) < 1e-5);
+end
+end % methods (Test)
+
+end % classdef

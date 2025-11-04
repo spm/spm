@@ -1,16 +1,10 @@
-function tests = test_spm_dcm_peb_to_gcm
+classdef test_spm_dcm_peb_to_gcm < matlab.unittest.TestCase
 % Unit Tests for spm_dcm_peb_to_gcm
 %__________________________________________________________________________
 
 % Copyright (C) 2015-2022 Wellcome Centre for Human Neuroimaging
 
-
-tests = functiontests(localfunctions);
-
-%--------------------------------------------------------------------------
-function data_path = get_data_path()
-data_path = fullfile( spm('Dir'), 'tests', ...
-    'data', 'test_spm_dcm_peb_to_gcm');
+methods (Test)
 
 %--------------------------------------------------------------------------
 function test_2groups(testCase)
@@ -26,7 +20,7 @@ beta  = 16;         % Within:between variance ratio for simulated parameters
 rng(1);
 
 % Load template DCM
-DCM_template = fullfile(get_data_path(), 'DCM_attention.mat');
+DCM_template = fullfile(test_spm_dcm_peb_to_gcm.get_data_path(), 'DCM_attention.mat');
 DCM_template = load(DCM_template);
 DCM_template = DCM_template.DCM;
 
@@ -40,7 +34,7 @@ X             = ones(n,2);
 X(group{2},2) = -1;
 
 % Create dummy PEB
-PEB = create_peb(DCM_template, X, b_Hz, param, beta);
+PEB = test_spm_dcm_peb_to_gcm.create_peb(DCM_template, X, b_Hz, param, beta);
 
 % Create GCM array
 options = struct('nsubjects',n);
@@ -58,7 +52,7 @@ Eps = Eps(PEB.Pind,:);
 
 % Check subject' parameters are similar to PEB.Ep(:,1)
 testCase.assertGreaterThanOrEqual(...
-    one_sample_tt(mean(Eps,2)-PEB.Ep(:,1)),...
+    test_spm_dcm_peb_to_gcm.one_sample_tt(mean(Eps,2)-PEB.Ep(:,1)),...
     0.05);
 
 % Check group difference in B-parameter is similar to PEB.Ep(idx,2)
@@ -76,14 +70,24 @@ for g = 1:length(group)
     
     % Check group mean is similar to PEB parameter
     testCase.assertGreaterThanOrEqual(...
-        one_sample_tt(Eps(idx,:), expected(g)),...
+        test_spm_dcm_peb_to_gcm.one_sample_tt(Eps(idx,:), expected(g)),...
         0.05);
     
     % Check that between-subjects variance of parameters is as expected
     testCase.assertGreaterThanOrEqual(...
-        one_sample_tt(diag(PEB.Ce) - var(Eps(PEB.Pind,:),[],2)),...
+        test_spm_dcm_peb_to_gcm.one_sample_tt(diag(PEB.Ce) - var(Eps(PEB.Pind,:),[],2)),...
         0.05);    
     
+end
+end
+
+end % methods (Test)
+
+methods (Static, Access = private)
+%--------------------------------------------------------------------------
+function data_path = get_data_path()
+data_path = fullfile( spm('Dir'), 'tests', ...
+    'data', 'test_spm_dcm_peb_to_gcm');
 end
 
 %--------------------------------------------------------------------------
@@ -125,6 +129,7 @@ PEB.Ep   = [gP(Pind) att(Pind)];
 PEB.beta = beta;
 PEB.Pind = Pind;
 PEB.M.X  = X;
+end
 
 % -------------------------------------------------------------------------
 function p = one_sample_tt(data,mu)
@@ -133,3 +138,7 @@ function p = one_sample_tt(data,mu)
 if nargin < 2, mu = 0; end
 t = (mean(data)-mu) / (std(data) / sqrt(length(data)));
 p = spm_Tcdf(-t,length(data)-1) * 2;
+end
+end % methods (Static, Access = private)
+
+end % classdef

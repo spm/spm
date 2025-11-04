@@ -1,20 +1,22 @@
-function tests = test_spm_dcm_peb
+classdef test_spm_dcm_peb < matlab.unittest.TestCase
 % Unit Tests for test_spm_dcm_peb
 %__________________________________________________________________________
 
 % Copyright (C) 2016-2022 Wellcome Centre for Human Neuroimaging
 
+methods (TestClassSetup)
+    function setupSPM(testCase)
+        spm_get_defaults('dcm.verbose', false);
+    end
+end % methods (TestClassSetup)
 
-tests = functiontests(localfunctions);
 
-% -------------------------------------------------------------------------
-function setup(testCase)
-spm_get_defaults('dcm.verbose', false);
+methods (Test)
 
 % -------------------------------------------------------------------------
 function test_peb(testCase)
 
-data_path = get_data_path();
+data_path = test_spm_dcm_peb.get_data_path();
 
 % Load first level DCMs
 GCM = load(fullfile(data_path,'models','GCM_simulated.mat'));
@@ -47,11 +49,13 @@ testCase.assertEqual(size(PEB(1).Cp),       [np*nx np*nx]);
 
 % % Save test PEB for other tests
 % %save(fullfile(data_path,'PEB_test.mat'),'PEB');
+end
+
 % -------------------------------------------------------------------------
 function test_precision_def(testCase)
 % Tests different configurations of precision components
 
-data_path = get_data_path();
+data_path = test_spm_dcm_peb.get_data_path();
 
 % Load first level DCMs
 GCM = load(fullfile(data_path,'models','GCM_simulated.mat'));
@@ -93,12 +97,13 @@ M.Q = Q;
 PEB = spm_dcm_peb(GCM(:,1), M);
 testCase.assertEqual(length(PEB.Eh), 2);
 testCase.assertEqual(length(PEB.Ch), 2);
+end
 
 % -------------------------------------------------------------------------
 function test_peb_of_pebs(testCase)
 % Tests hierarchical models with PEB as the input to other PEBs
 
-data_path = get_data_path();
+data_path = test_spm_dcm_peb.get_data_path();
 
 % Load first level DCMs
 GCM = load(fullfile(data_path,'models','GCM_simulated.mat'));
@@ -125,11 +130,12 @@ M = struct();
 M.X = [1 1; 1 -1];
 M.Q = 'none';
 PEB  = spm_dcm_peb({PEB1;PEB2},M);
+end
 
 % -------------------------------------------------------------------------
 function test_peb_with_rank_deficient_priors(testCase)
 
-data_path = get_data_path();
+data_path = test_spm_dcm_peb.get_data_path();
 
 % Load first level DCMs
 GCM = load(fullfile(data_path,'models','GCM_simulated.mat'));
@@ -150,9 +156,17 @@ PEB = spm_dcm_peb(GCM(:,1), X, fields);
 
 % Check output sizes
 testCase.assertTrue(all(PEB.Ep(5,:) == 0));
+end
 
+end % methods (Test)
+
+methods (Static, Access = private)
 % -------------------------------------------------------------------------
 function data_path = get_data_path()
 
 data_path = fullfile( spm('Dir'), 'tests', ...
     'data', 'fMRI', 'simulated_2region');
+end
+end % methods (Static, Access = private)
+
+end % classdef

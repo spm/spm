@@ -1,11 +1,12 @@
-function tests = test_spm_opm_sim
+classdef test_spm_opm_sim < matlab.unittest.TestCase
 % Unit Tests for spm_opm_sim
 %__________________________________________________________________________
 
 % Copyright (C) 2023 Wellcome Centre for Human Neuroimaging
 
 
-tests = functiontests(localfunctions);
+
+methods (Test)
 
 
 function test_spm_opm_sim_1(testCase)
@@ -31,7 +32,7 @@ testCase.verifyTrue(isequal(exp, act));
 exp = size(D,1);
 act = size(L,1);
 testCase.verifyTrue(isequal(exp, act));
+end
+end % methods (Test)
 
-
-
-
+end % classdef

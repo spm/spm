@@ -85,7 +85,11 @@ else
 end
 
 if ~isempty(options.tag)
+    % Use the specified tag filter
     suite = suite.selectIf(~HasTag | HasTag(options.tag));
+else
+    % By default, exclude tests tagged as 'Disabled'
+    suite = suite.selectIf(~HasTag('Disabled'));
 end
 
 %-Create a TestRunner
