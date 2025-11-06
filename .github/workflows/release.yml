@@ -62,7 +62,9 @@ jobs:
         uses: matlab-actions/setup-matlab@v2
         with:
           release: ${{matrix.version}}
-          products: MATLAB_Compiler
+          products: |
+            MATLAB_Compiler
+            Signal_Processing_Toolbox
 
       - name: Extract MATLAB version to file
         uses: matlab-actions/run-command@v2
@@ -173,3 +175,13 @@ jobs:
               "spm_release": "${{ env.SPM_RELEASE }}",
               "spm_revision": "${{ env.SPM_REVISION }}"
             }
+
+  test_release_standalone:
+    name: Test Released Standalone
+    needs: build_matlab_standalone
+    if: always() && needs.build_matlab_standalone.result == 'success'
+    uses: ./.github/workflows/install_test_standalone.yml
+    secrets: inherit
+    with:
+      source: release
+      release_tag: ${{ github.ref_name }}

@@ -1,11 +1,12 @@
-function tests = test_spm_jsonread
+classdef test_spm_jsonread < matlab.unittest.TestCase
 % Unit Tests for spm_jsonread
 %__________________________________________________________________________
 
 % Copyright (C) 2015-2022 Wellcome Centre for Human Neuroimaging
 
 
-tests = functiontests(localfunctions);
+
+methods (Test)
 
 
 function test_jsonread_from_string_1(testCase)
@@ -14,6 +15,7 @@ json = '["one", "two", "three"]';
 exp = {'one';'two';'three'};
 act = spm_jsonread(json);
 testCase.verifyTrue(isequal(exp, act));
+end
 
 function test_jsonread_from_string_2(testCase)
 json = '{"Width":800,"Height":600,"Title":"View from the 15th Floor","Animated":false,"IDs":[116,943,234,38793]}';
@@ -21,6 +23,7 @@ json = '{"Width":800,"Height":600,"Title":"View from the 15th Floor","Animated":
 exp = struct('Width',800,'Height',600,'Title','View from the 15th Floor','Animated',false,'IDs',[116;943;234;38793]);
 act = spm_jsonread(json);
 testCase.verifyTrue(isequal(exp, act));
+end
 
 function test_jsonread_all_types(testCase)
 
@@ -178,3 +181,7 @@ json = '[[[1,2],[3,4]],[[5,6],[7,8]]]';
 exp  = cat(3,[1,3;5,7],[2,4;6,8]);
 act  = spm_jsonread(json);
 testCase.verifyTrue(isequal(exp, act));
+end
+end % methods (Test)
+
+end % classdef

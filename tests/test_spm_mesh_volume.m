@@ -1,11 +1,12 @@
-function tests = test_spm_mesh_volume
+classdef test_spm_mesh_volume < matlab.unittest.TestCase
 % Unit Tests for spm_mesh_volume
 %__________________________________________________________________________
 
 % Copyright (C) 2021-2022 Wellcome Centre for Human Neuroimaging
 
 
-tests = functiontests(localfunctions);
+
+methods (Test)
 
 
 function test_spm_mesh_volume_polyhedron(testCase)
@@ -30,7 +31,7 @@ testCase.verifyEqual(act, exp, 'AbsTol',1e-6);
 % exp = sqrt(2)/12*a^3;
 % act = spm_mesh_volume(M);
 % testCase.verifyEqual(act, exp, 'AbsTol',1e-6);
-
+end
 
 function test_spm_mesh_volume_sphere(testCase)
 
@@ -40,3 +41,7 @@ r = 1;
 exp = 4/3*pi*r^3;
 act = spm_mesh_volume(M);
 testCase.verifyEqual(act, exp, 'AbsTol',1e-2);
+end
+end % methods (Test)
+
+end % classdef

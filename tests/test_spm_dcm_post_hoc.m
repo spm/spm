@@ -1,42 +1,38 @@
-function tests = test_spm_dcm_post_hoc
+classdef test_spm_dcm_post_hoc < matlab.unittest.TestCase
 % Unit Tests for spm_dcm_post_hoc
 %__________________________________________________________________________
 
 % Copyright (C) 2015-2022 Wellcome Centre for Human Neuroimaging
 
 
-tests = functiontests(localfunctions);
+methods (TestClassSetup)
+    function setupSPM(testCase)
+        data_path = test_spm_dcm_post_hoc.get_data_path();
 
+        % Expected outputs
+        artefacts = {fullfile(data_path,'DCM_BPA.mat');
+                    fullfile(data_path,'DCM_opt_fwd_bwd_simulated.mat')};
+            
+        % Delete if exist
+        for i = 1:length(artefacts)
+            spm_unlink(artefacts{i});   
+        end
 
-%--------------------------------------------------------------------------
-function data_path = get_data_path()
-data_path = fullfile( spm('Dir'), 'tests', ...
-    'data', 'test_spm_dcm_post_hoc');
+        % Initialize SPM
+        spm('defaults','fmri');
+        spm_get_defaults('cmdline',true);
 
+    end
+end % methods (TestClassSetup)
 
-%--------------------------------------------------------------------------
-function setup(testCase)
-data_path = get_data_path();
-
-% Expected outputs
-artefacts = {fullfile(data_path,'DCM_BPA.mat');
-             fullfile(data_path,'DCM_opt_fwd_bwd_simulated.mat')};
-    
-% Delete if exist
-for i = 1:length(artefacts)
-    spm_unlink(artefacts{i});   
-end
-
-% Initialize SPM
-spm('defaults','fmri');
-spm_get_defaults('cmdline',true);
+methods (Test)
 
 
 %--------------------------------------------------------------------------
 function test_on_simulated_attention_data(testCase)
 import matlab.unittest.constraints.*
  
-data_path = get_data_path();
+data_path = test_spm_dcm_post_hoc.get_data_path();
 
 % Load model matching the generative model
 DCM_fwd = load(fullfile(data_path, 'DCM_fwd_simulated.mat'));
@@ -74,3 +70,16 @@ testCase.assertTrue(all(pC_fwd == pC_opt));
 % 
 % subplot(2,2,4); spm_plot_ci(DCM_opt.Ep,DCM_opt.Cp);
 % title('Optimal model for subject'); xlabel('Parameter');
+end
+
+end % methods (Test)
+
+methods (Static, Access = private)
+    %--------------------------------------------------------------------------
+    function data_path = get_data_path()
+        data_path = fullfile( spm('Dir'), 'tests', ...
+            'data', 'test_spm_dcm_post_hoc');
+    end
+end
+
+end % classdef

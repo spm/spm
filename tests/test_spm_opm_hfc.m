@@ -1,11 +1,12 @@
-function tests = test_spm_opm_hfc
+classdef test_spm_opm_hfc < matlab.unittest.TestCase
 % Unit Tests for spm_opm_hfc
 %__________________________________________________________________________
 
 % Copyright (C) 2023 Wellcome Centre for Human Neuroimaging
 
 
-tests = functiontests(localfunctions);
+
+methods (Test)
 
 
 function test_spm_opm_hfc_1(testCase)
@@ -44,3 +45,7 @@ res = std(squeeze(hD(:,:,1)),[],2);
 ratio = mean(Y./res);
 
 testCase.verifyTrue(ratio>100);
+end
+end % methods (Test)
+
+end % classdef

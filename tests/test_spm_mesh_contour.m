@@ -1,11 +1,12 @@
-function tests = test_spm_mesh_contour
+classdef test_spm_mesh_contour < matlab.unittest.TestCase
 % Unit Tests for spm_mesh_contour
 %__________________________________________________________________________
 
 % Copyright (C) 2017-2022 Wellcome Centre for Human Neuroimaging
 
 
-tests = functiontests(localfunctions);
+
+methods (Test)
 
 
 function test_spm_mesh_contour_(testCase)
@@ -19,3 +20,7 @@ testCase.verifyGreaterThanOrEqual(act, exp);
 
 % all surfaces are closed
 testCase.verifyFalse(any([S.isopen]));
+end
+end % methods (Test)
+
+end % classdef

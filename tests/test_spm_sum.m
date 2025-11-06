@@ -1,11 +1,12 @@
-function tests = test_spm_sum
+classdef test_spm_sum < matlab.unittest.TestCase
 % Unit Tests for spm_sum
 %__________________________________________________________________________
 
 % Copyright (C) 2020-2022 Wellcome Centre for Human Neuroimaging
 
 
-tests = functiontests(localfunctions);
+
+methods (Test)
 
 
 function test_spm_sum_1(testCase)
@@ -22,6 +23,7 @@ testCase.verifyEqual(act, exp);
 exp = 25*26/2;
 act = spm_sum(X,[1 2]);
 testCase.verifyEqual(act, exp);
+end
 
 function test_spm_sum_2(testCase)
 X = 1:10;
@@ -46,6 +48,7 @@ testCase.verifyEqual(act, exp);
 exp = sum(X(:));
 act = spm_sum(X,[3 1 2]);
 testCase.verifyEqual(act, exp);
+end
 
 function test_spm_sum_3(testCase)
 X = (1:10)';
@@ -70,6 +73,7 @@ testCase.verifyEqual(act, exp);
 exp = sum(X(:));
 act = spm_sum(X,[3 1 2]);
 testCase.verifyEqual(act, exp);
+end
 
 function test_spm_sum_4(testCase)
 X = [magic(5);1:5];
@@ -104,3 +108,7 @@ testCase.verifyEqual(act, exp);
 exp = spm_sum(X,[1 2 3]);
 act = spm_sum(X,[2 1 3]);
 testCase.verifyEqual(act, exp);
+end
+end % methods (Test)
+
+end % classdef

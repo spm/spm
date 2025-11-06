@@ -1,11 +1,12 @@
-function tests = test_spm_mesh_refine
+classdef test_spm_mesh_refine < matlab.unittest.TestCase
 % Unit Tests for spm_mesh_refine
 %__________________________________________________________________________
 
 % Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
 
 
-tests = functiontests(localfunctions);
+
+methods (Test)
 
 
 function test_spm_mesh_refine_polyhedron(testCase)
@@ -14,6 +15,7 @@ M = spm_mesh_refine(P);
 exp = 4*size(P.faces,1);
 act = size(M.faces,1);
 testCase.verifyEqual(act, exp);
+end
 
 function test_spm_mesh_refine_gifti(testCase)
 P = gifti(fullfile(spm('Dir'),'canonical','cortex_8196.surf.gii'));
@@ -32,3 +34,7 @@ testCase.verifyEqual(act, exp);
 exp = size(P.cdata,2);
 act = size(M.cdata,2);
 testCase.verifyEqual(act, exp);
+end
+end % methods (Test)
+
+end % classdef

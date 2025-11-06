@@ -1,10 +1,10 @@
-function tests = test_spm_bireduce
+classdef test_spm_bireduce < matlab.unittest.TestCase
 % Unit Tests for test_spm_bireduce
 %__________________________________________________________________________
 
 % Copyright (C) 2016-2024 Wellcome Centre for Human Neuroimaging
 
-tests = functiontests(localfunctions);
+methods (Test)
 
 % -------------------------------------------------------------------------
 function test_bireduce(testCase)
@@ -27,3 +27,8 @@ M.l  = 2;                       % number of outputs
 
 % Verify spm_bireduce runs without warnings
 testCase.verifyWarningFree(@() spm_bireduce(M,M.pE));
+end
+
+end % methods (Test)
+
+end % classdef

@@ -1,17 +1,17 @@
-function tests = test_spm_dcm_specify
+classdef test_spm_dcm_specify < matlab.unittest.TestCase
 % Unit Tests for spm_dcm_specify_ui
 %__________________________________________________________________________
 
 % Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
 
 
-tests = functiontests(localfunctions);
+methods (Test)
 
 
 function test_inputs_by_name(testCase)
 
 % Identify SPM
-glm_dir = get_data_path();
+glm_dir = test_spm_dcm_specify.get_data_path();
 SPM = load(fullfile(glm_dir,'SPM.mat'));
 SPM = SPM.SPM;
 
@@ -33,7 +33,7 @@ cond(5).name    = 'Lag quadratic';
 cond(5).spmname = {'N2xLag^2','F2xLag^2'};
 
 % Specify DCM
-DCM = run_specify(cond,SPM,testCase);
+DCM = test_spm_dcm_specify.run_specify(cond,SPM,testCase);
 
 % Combine conditions manually and check they match those in the DCM
 k = 33:(size(SPM.Sess.U(1).u,1));
@@ -53,13 +53,13 @@ testCase.assertEqual(DCM.U.u(:,4), ...
 
 testCase.assertEqual(DCM.U.u(:,5), ...
     double(SPM.Sess.U(2).u(k,3) | SPM.Sess.U(4).u(k,3)));
-
+end
 
 % -------------------------------------------------------------------------
 function test_inputs_by_ID(testCase)
 
 % Identify SPM
-glm_dir = get_data_path();
+glm_dir = test_spm_dcm_specify.get_data_path();
 SPM = load(fullfile(glm_dir,'SPM.mat'));
 SPM = SPM.SPM;
 
@@ -67,7 +67,7 @@ u = [1 0 0
      0 1 0
      1 0 0
      0 0 1];
-DCM = run_specify(u,SPM,testCase);
+DCM = test_spm_dcm_specify.run_specify(u,SPM,testCase);
 
 % Get conditions manually and check they match those in the DCM
 k = 33:(size(SPM.Sess.U(1).u,1));
@@ -75,13 +75,19 @@ testCase.assertEqual(DCM.U.u(:,1), SPM.Sess.U(1).u(k,1));
 testCase.assertEqual(DCM.U.u(:,2), SPM.Sess.U(2).u(k,2));
 testCase.assertEqual(DCM.U.u(:,3), SPM.Sess.U(3).u(k,1));
 testCase.assertEqual(DCM.U.u(:,4), SPM.Sess.U(4).u(k,3));
+end
 
+end % methods (Test)
+
+
+% Helper methods
+methods (Static, Access = private)
 % -------------------------------------------------------------------------
 function DCM = run_specify(spec,SPM,testCase)
 % input 'spec' determines how the DCM input is specified. Can be a 
 % structure or matrix of condition indices.
 
-glm_dir = get_data_path();
+glm_dir = test_spm_dcm_specify.get_data_path();
 xY = {fullfile(glm_dir,'VOI_lFus_1.mat');
       fullfile(glm_dir,'VOI_rFus_1.mat')};
 
@@ -144,9 +150,15 @@ testCase.assertEqual(DCM.a,s.a);
 testCase.assertEqual(DCM.b,s.b);
 testCase.assertEqual(DCM.c,s.c);
 testCase.assertEqual(DCM.d,s.d);
+end
 
 % -------------------------------------------------------------------------
 function data_path = get_data_path()
 
 data_path = fullfile( spm('Dir'), 'tests', ...
     'data', 'test_spm_dcm_specify');
+end
+
+end % methods (Static, Access = private)
+
+end % classdef

@@ -1,11 +1,12 @@
-function tests = test_spm_mesh_laplacian
+classdef test_spm_mesh_laplacian < matlab.unittest.TestCase
 % Unit Tests for spm_mesh_laplacian
 %__________________________________________________________________________
 
 % Copyright (C) 2021-2022 Wellcome Centre for Human Neuroimaging
 
 
-tests = functiontests(localfunctions);
+
+methods (Test)
 
 
 function test_spm_mesh_laplacian_sphere(testCase)
@@ -38,3 +39,7 @@ testCase.verifyEqual(act, exp);
 act = full(sum(Lm,2));
 tol = 1e-10;
 testCase.verifyEqual(act, exp,'AbsTol',tol);
+end
+end % methods (Test)
+
+end % classdef

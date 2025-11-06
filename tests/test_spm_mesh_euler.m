@@ -1,11 +1,12 @@
-function tests = test_spm_mesh_euler
+classdef test_spm_mesh_euler < matlab.unittest.TestCase
 % Unit Tests for spm_mesh_euler
 %__________________________________________________________________________
 
 % Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
 
 
-tests = functiontests(localfunctions);
+
+methods (Test)
 
 
 function test_spm_mesh_euler_polyhedron(testCase)
@@ -23,6 +24,7 @@ M = spm_mesh_polyhedron('icosahedron');
 exp = 2;
 act = spm_mesh_euler(M);
 testCase.verifyEqual(act, exp);
+end
 
 function test_spm_mesh_euler_sphere(testCase)
 
@@ -38,3 +40,7 @@ M = spm_mesh_join([M1,M2]);
 exp = 4;
 act = spm_mesh_euler(M);
 testCase.verifyEqual(act, exp);
+end
+end % methods (Test)
+
+end % classdef
