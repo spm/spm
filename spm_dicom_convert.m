@@ -9,7 +9,7 @@ function out = spm_dicom_convert(Headers,opts,RootDirectory,format,OutputDirecto
 %              'standard' - standard DICOM files
 %              'spect'    - SIEMENS Spectroscopy DICOMs (some formats only)
 %                           This will write out a 5D NIFTI containing real
-%                           and imaginary part of the spectroscopy time 
+%                           and imaginary part of the spectroscopy time
 %                           points at the position of spectroscopy voxel(s)
 %              'raw'      - convert raw FIDs (not implemented)
 % RootDirectory - 'flat'       - do not produce file tree [default]
@@ -222,14 +222,14 @@ for i=1:length(Headers)
     if meta
         Nii = spm_dicom_metadata(Nii,Headers{i});
     end
-    
+
     % Write the data unscaled
     dat           = Nii.dat;
     dat.scl_slope = [];
     dat.scl_inter = [];
     % write out volume at once - see spm_write_plane.m for performance comments
     dat(:,:,:) = volume;
-    
+
     spm_progress_bar('Set',i);
 end
 spm_progress_bar('Clear');
@@ -257,8 +257,8 @@ function [SortedHeaders,dist] = SortIntoVolumes(Headers)
 
 SortedHeaders{1}{1} = Headers{1};
 for i=2:length(Headers)
-   %orient = reshape(Headers{i}.ImageOrientationPatient,[3 2]);
-   %xy1    = Headers{i}.ImagePositionPatient(:)*orient;
+    %orient = reshape(Headers{i}.ImageOrientationPatient,[3 2]);
+    %xy1    = Headers{i}.ImagePositionPatient(:)*orient;
     match  = 0;
     if isfield(Headers{i},'CSAImageHeaderInfo') && isfield(Headers{i}.CSAImageHeaderInfo,'name')
         ice1 = sscanf( ...
@@ -269,15 +269,15 @@ for i=2:length(Headers)
         ice1 = [];
     end
     for j=1:length(SortedHeaders)
-       %orient = reshape(SortedHeaders{j}{1}.ImageOrientationPatient,[3 2]);
-       %xy2    = SortedHeaders{j}{1}.ImagePositionPatient(:)*orient;
-        
+        %orient = reshape(SortedHeaders{j}{1}.ImageOrientationPatient,[3 2]);
+        %xy2    = SortedHeaders{j}{1}.ImagePositionPatient(:)*orient;
+
         % This line is a fudge because of some problematic data that Bogdan,
         % Cynthia and Stefan were trying to convert.  I hope it won't cause
         % problems for others -JA
         % dist2  = sum((xy1-xy2).^2);
         dist2 = 0;
-        
+
         if strcmp(Headers{i}.Modality,'CT') && ...
                 strcmp(SortedHeaders{j}{1}.Modality,'CT') % Our CT seems to have shears in slice positions
             dist2 = 0;
@@ -321,7 +321,7 @@ for i=2:length(Headers)
                 match = match && Headers{i}.EchoNumbers == SortedHeaders{j}{1}.EchoNumbers;
             end
             if isfield(Headers{i},    'GE_ImageType') && numel(   Headers{i}.GE_ImageType)==1 && ...
-               isfield(SortedHeaders{j}{1}, 'GE_ImageType') && numel(SortedHeaders{j}{1}.GE_ImageType)==1
+                    isfield(SortedHeaders{j}{1}, 'GE_ImageType') && numel(SortedHeaders{j}{1}.GE_ImageType)==1
                 match = match && Headers{i}.GE_ImageType == SortedHeaders{j}{1}.GE_ImageType;
             end
         catch
@@ -515,29 +515,29 @@ nr = Headers{1}.Rows;
 
 if length(Headers) == 1 && isfield(Headers{1},'NumberOfFrames') && Headers{1}.NumberOfFrames > 1
     if isfield(Headers{1},'ImagePositionPatient') &&...
-       isfield(Headers{1},'ImageOrientationPatient') &&...
-       isfield(Headers{1},'SliceThickness') &&...
-       isfield(Headers{1},'StartOfPixelData') &&...
-       isfield(Headers{1},'SizeOfPixelData')
+            isfield(Headers{1},'ImageOrientationPatient') &&...
+            isfield(Headers{1},'SliceThickness') &&...
+            isfield(Headers{1},'StartOfPixelData') &&...
+            isfield(Headers{1},'SizeOfPixelData')
 
-       orient           = reshape(Headers{1}.ImageOrientationPatient,[3 2]);
-       orient(:,3)      = null(orient');
-       if det(orient)<0, orient(:,3) = -orient(:,3); end
-       slicevec         = orient(:,3);
-   
-       Headers_temp = cell(1,Headers{1}.NumberOfFrames); % alternative: NumberofSlices
-       Headers_temp{1} = Headers{1};
-       Headers_temp{1}.SizeOfPixelData           = Headers{1}.SizeOfPixelData / Headers{1}.NumberOfFrames;
-       for sn = 2 : Headers{1}.NumberOfFrames
-           Headers_temp{sn}                      = Headers{1};
-           Headers_temp{sn}.ImagePositionPatient = Headers{1}.ImagePositionPatient + (sn-1) * Headers{1}.SliceThickness * slicevec;
-           Headers_temp{sn}.SizeOfPixelData      = Headers_temp{1}.SizeOfPixelData;
-           Headers_temp{sn}.StartOfPixelData     = Headers{1}.StartOfPixelData + (sn-1) * Headers_temp{1}.SizeOfPixelData;
-       end
-       Headers = Headers_temp;
-   else
-       error('spm_dicom_convert:WriteVolume','TAGS missing in DICOM file.');
-   end
+        orient           = reshape(Headers{1}.ImageOrientationPatient,[3 2]);
+        orient(:,3)      = null(orient');
+        if det(orient)<0, orient(:,3) = -orient(:,3); end
+        slicevec         = orient(:,3);
+
+        Headers_temp = cell(1,Headers{1}.NumberOfFrames); % alternative: NumberofSlices
+        Headers_temp{1} = Headers{1};
+        Headers_temp{1}.SizeOfPixelData           = Headers{1}.SizeOfPixelData / Headers{1}.NumberOfFrames;
+        for sn = 2 : Headers{1}.NumberOfFrames
+            Headers_temp{sn}                      = Headers{1};
+            Headers_temp{sn}.ImagePositionPatient = Headers{1}.ImagePositionPatient + (sn-1) * Headers{1}.SliceThickness * slicevec;
+            Headers_temp{sn}.SizeOfPixelData      = Headers_temp{1}.SizeOfPixelData;
+            Headers_temp{sn}.StartOfPixelData     = Headers{1}.StartOfPixelData + (sn-1) * Headers_temp{1}.SizeOfPixelData;
+        end
+        Headers = Headers_temp;
+    else
+        error('spm_dicom_convert:WriteVolume','TAGS missing in DICOM file.');
+    end
 end
 
 dim    = [nc nr length(Headers)];
@@ -615,7 +615,7 @@ end
 spm_progress_bar('Init',length(Headers),['Writing ' fname], 'Planes written');
 pinfos = [ones(length(Headers),1) zeros(length(Headers),1)];
 for i=1:length(Headers)
-    if isfield(Headers{i},'RescaleSlope'),      pinfos(i,1) = Headers{i}.RescaleSlope;      end 
+    if isfield(Headers{i},'RescaleSlope'),      pinfos(i,1) = Headers{i}.RescaleSlope;      end
     if isfield(Headers{i},'RescaleIntercept'),  pinfos(i,2) = Headers{i}.RescaleIntercept;  end
 
     % Philips do things differently. The following is for using their scales instead.
@@ -699,26 +699,26 @@ spm_progress_bar('Clear');
 
 if sum((dist-mean(dist)).^2)/length(dist)>1e-4
     % Adjusting for variable slice thickness
-    % This is sometimes required for CT data because these scans are often 
-    % acquired with a gantry tilt and thinner slices near the brain stem. 
-    % If uncorrected, the resulting NIfTI image can appear distorted. Here, 
+    % This is sometimes required for CT data because these scans are often
+    % acquired with a gantry tilt and thinner slices near the brain stem.
+    % If uncorrected, the resulting NIfTI image can appear distorted. Here,
     % the image is resampled to compensate for this effect.
     %----------------------------------------------------------------------
-    
+
     fprintf('***************************************************\n');
     fprintf('* Adjusting for variable slice thickness.         *\n');
     fprintf('***************************************************\n');
 
-    ovx = sqrt(sum(mat(1:3,1:3).^2));  
+    ovx = sqrt(sum(mat(1:3,1:3).^2));
     nvx = [ovx(1:2) max(min(dist),1)]; % Set new slice thickness in thick-slice direction to minimum of dist
-    
+
     Nii = nifti(fname);
     img = Nii.dat(:,:,:);
-    d   = size(img);    
-    
-    csdist = cumsum(dist);  
+    d   = size(img);
+
+    csdist = cumsum(dist);
     csdist = [1; 1 + csdist];
-    
+
     x       = zeros([d(1:3) 3],'single');
     [x1,x2] = meshgrid(single(1:d(2)),single(1:d(1)));
     for i=1:d(3)
@@ -731,21 +731,21 @@ if sum((dist-mean(dist)).^2)/length(dist)>1e-4
     Y = x(:,:,:,2);
     Z = x(:,:,:,3);
     clear x
-    
+
     if ~(csdist(end) == floor(csdist(end)))
         [Xq,Yq,Zq] = meshgrid(single(1:d(2)),single(1:d(1)),single([1:nvx(3):csdist(end) csdist(end)]));
     else
         [Xq,Yq,Zq] = meshgrid(single(1:d(2)),single(1:d(1)),single(1:nvx(3):csdist(end)));
     end
 
-    img = interp3(X,Y,Z,img,Xq,Yq,Zq,'linear'); 
-    
-    ndim = size(img);   
-    
+    img = interp3(X,Y,Z,img,Xq,Yq,Zq,'linear');
+
+    ndim = size(img);
+
     % Adjust orientation matrix
     D   = diag([ovx./nvx 1]);
-    mat = mat/D;    
-    
+    mat = mat/D;
+
     N             = nifti;
     N.dat         = file_array(fname,ndim,dt,0,pinfo(1),pinfo(2));
     N.mat         = mat;
@@ -762,17 +762,6 @@ end
 %==========================================================================
 function fnames = ConvertSpectroscopy(Headers, RootDirectory, format, OutputDirectory, meta)
 fnames = cell(length(Headers),1);
-for i=1:length(Headers)
-    fnames{i} = WriteSpectroscopyVolume(Headers(i), RootDirectory, format, OutputDirectory, meta);
-end
-
-
-%==========================================================================
-% function fname = WriteSpectroscopyVolume(Headers, RootDirectory, format, OutputDirectory, meta)
-%==========================================================================
-function fname = WriteSpectroscopyVolume(Headers, RootDirectory, format, OutputDirectory, meta)
-% Output filename
-%-------------------------------------------------------------------
 fname = getfilelocation(Headers{1}, RootDirectory,'S',format,OutputDirectory);
 
 % private field to use - depends on SIEMENS software version
@@ -790,6 +779,7 @@ end
 %--------------------------------------------------------------------------
 nc = GetNumaris4NumVal(privdat,'Columns');
 nr = GetNumaris4NumVal(privdat,'Rows');
+ns = GetNumaris4NumVal(privdat,'NumberOfFrames');
 % Guess number of timepoints in file - I don't know for sure whether this should be
 % 'DataPointRows'-by-'DataPointColumns', 'SpectroscopyAcquisitionDataColumns'
 % or sSpecPara.lVectorSize from SIEMENS ASCII header
@@ -802,7 +792,7 @@ catch
     fname = '';
     return;
 end
-dim    = [nc nr numel(Headers) 2 ntp];
+dim    = [nc nr ns ntp 2];
 dt     = spm_type('float32'); % Fixed datatype
 
 % Orientation information
@@ -822,7 +812,7 @@ dt     = spm_type('float32'); % Fixed datatype
 % y increases posterior to anterior
 % z increases  inferior to superior
 
-AnalyzeToDicom = [diag([1 -1 1]) [0 (dim(2)+1) 0]'; 0 0 0 1]; % Flip voxels in y
+AnalyzeToDicom = eye(4) ; % previously [diag([1 -1 1]) [0 (dim(2)+1) 0]'; 0 0 0 1]; % Flip voxels in y - not applicable to 3D CRT MRSI
 PatientToTal   = diag([-1 -1 1 1]); % Flip mm coords in x and y directions
 shift_vx       = [eye(4,3) [.5; .5; 0; 1]];
 
@@ -860,28 +850,28 @@ R  = [orient*diag(ps([2 1])); 0 0];
 x1 = [1;1;1;1];
 y1 = [pos; 1];
 
-if length(Headers)>1
-    error('spm_dicom_convert:spectroscopy',...
-        'Don''t know how to handle multislice spectroscopy data.');
-else
-    orient(:,3)      = null(orient');
-    if det(orient)<0, orient(:,3) = -orient(:,3); end
+
+orient(:,3)      = null(orient');
+if det(orient)<0, orient(:,3) = -orient(:,3); end
+
+z = GetNumaris4NumVal(privdat,...
+        'SliceThickness');
+
+if isempty(z)
     z = GetNumaris4NumVal(privdat,...
-        'VoiThickness');
-    if isempty(z)
-        z = GetNumaris4NumVal(privdat,...
-            'SliceThickness');
-    end
-    if isempty(z)
-        warning('spm_dicom_convert:spectroscopy',...
-            'Can not determine voxel thickness.');
-        z = 1;
-    end
-    x2 = [0;0;1;0];
-    y2 = [orient*[0;0;z];0];
+    'VoiThickness');
 end
+
+if isempty(z)
+    warning('spm_dicom_convert:spectroscopy',...
+        'Can not determine voxel thickness.');
+    z = 1;
+end
+x2 = [0;0;1;0];
+y2 = [orient*[0;0;z];0];
+
 DicomToPatient = [y1 y2 R]/[x1 x2 eye(4,2)];
-mat              = patient_to_tal*DicomToPatient*shift_vx*AnalyzeToDicom;
+mat              = PatientToTal*DicomToPatient*shift_vx*AnalyzeToDicom;
 
 % Possibly useful information
 %--------------------------------------------------------------------------
@@ -924,22 +914,27 @@ Nii.mat0_intent = 'Scanner';
 Nii.descrip     = descrip;
 % Store LCMODEL control/raw info in Nii.extras
 Nii.extras      = struct('MagneticFieldStrength', GetNumaris4NumVal(privdat,'MagneticFieldStrength'),...
-                         'TransmitterReferenceAmplitude', GetNumaris4NumVal(privdat,'TransmitterReferenceAmplitude'),...
-                         'ImagingFrequency', GetNumaris4NumVal(privdat,'ImagingFrequency'),...
-                         'EchoTime', GetNumaris4NumVal(privdat,'EchoTime'),...
-                         'RealDwellTime', GetNumaris4NumVal(privdat,'RealDwellTime'));
+    'TransmitterReferenceAmplitude', GetNumaris4NumVal(privdat,'TransmitterReferenceAmplitude'),...
+    'ImagingFrequency', GetNumaris4NumVal(privdat,'ImagingFrequency'),...
+    'EchoTime', GetNumaris4NumVal(privdat,'EchoTime'),...
+    'RealDwellTime', GetNumaris4NumVal(privdat,'RealDwellTime'));
 create(Nii);
 
 if meta
     Nii = spm_dicom_metadata(Nii,Headers{1});
 end
 
-% Read data, swap dimensions
-data = permute(reshape(ReadSpectData(Headers{1},ntp),dim([4 5 1 2 3])), ...
-                [3 4 5 1 2]);
-% plane = fliplr(plane);
+% InstanceNumber represents in 3D MRSI slice number, 
+% but depending on sequence version it starts with 0 or 1:
+ns_min = min(cellfun(@(x) x.InstanceNumber, Headers([1 ns]))); 
 
-Nii.dat(:,:,:,:,:) = data;
+for slice = 1:ns
+    % Read data, swap dimensions
+
+    data = permute(reshape(ReadSpectData(Headers{slice},nr, nc, ntp),[dim([5 4 1 2]) 1]), ...
+        [3 4 5 2 1]);
+    Nii.dat(:,:,Headers{slice}.InstanceNumber+mod(1,ns_min),:,:) = data;
+end
 
 
 %==========================================================================
@@ -951,29 +946,31 @@ guff   = {};
 for i=1:length(Headers)
     if ~CheckFields(Headers{i},'Modality') || ...
             ~(strcmp(Headers{i}.Modality,'MR') || ...
-              strcmp(Headers{i}.Modality,'PT') || ...
-              strcmp(Headers{i}.Modality,'NM') || ...
-              strcmp(Headers{i}.Modality,'CT'))
+            strcmp(Headers{i}.Modality,'PT') || ...
+            strcmp(Headers{i}.Modality,'NM') || ...
+            strcmp(Headers{i}.Modality,'CT'))
         if CheckFields(Headers{i},'Modality')
             fprintf('File "%s" can not be converted because it is of type "%s", which is not MRI, CT, NM or PET.\n', ...
-                    Headers{i}.Filename, Headers{i}.Modality);
+                Headers{i}.Filename, Headers{i}.Modality);
         else
             fprintf('File "%s" can not be converted because it does not encode an image.\n', Headers{i}.Filename);
         end
         guff = [guff(:)',Headers(i)];
- 
+
     elseif ~CheckFields(Headers{i},'StartOfPixelData','SamplesPerPixel',...
             'Rows','Columns','BitsAllocated','BitsStored','HighBit','PixelRepresentation')
-        fprintf('Cant find "Image Pixel" information for "%s".\n',Headers{i}.Filename);
+        if ~strcmp(Headers{1, 1}.PrivateCreatorCode,'SIEMENS CSA NON-IMAGE ') % suppressing this for 3D MRSI
+            fprintf('Cant find "Image Pixel" information for "%s".\n',Headers{i}.Filename);
+        end
         guff = [guff(:)',Headers(i)];
-        
+
     elseif ~(CheckFields(Headers{i},'PixelSpacing','ImagePositionPatient','ImageOrientationPatient') ...
             || isfield(Headers{i},'CSANonImageHeaderInfoVA') || isfield(Headers{i},'CSANonImageHeaderInfoVB'))
         if isfield(Headers{i},'SharedFunctionalGroupsSequence') || isfield(Headers{i},'PerFrameFunctionalGroupsSequence')
             fprintf(['\n"%s" appears to be multi-frame DICOM.\n'...
-                     'Converting these data is still experimental and has only been tested on a very small number of\n'...
-                     'multiframe DICOM files. Feedback about problems would be appreciated - particularly if you can\n'...
-                     'give us examples of problematic data (providing there are no subject confidentiality issues).\n\n'], Headers{i}.Filename);
+                'Converting these data is still experimental and has only been tested on a very small number of\n'...
+                'multiframe DICOM files. Feedback about problems would be appreciated - particularly if you can\n'...
+                'give us examples of problematic data (providing there are no subject confidentiality issues).\n\n'], Headers{i}.Filename);
             images = [images(:)',Headers(i)];
         else
             fprintf('No "Image Plane" information for "%s".\n',Headers{i}.Filename);
@@ -981,7 +978,7 @@ for i=1:length(Headers)
         end
 
     elseif ~CheckFields(Headers{i},'SeriesNumber','AcquisitionNumber','InstanceNumber')
-       %disp(['Cant find suitable filename info for "' Headers{i}.Filename '".']);
+        %disp(['Cant find suitable filename info for "' Headers{i}.Filename '".']);
         if ~isfield(Headers{i},'SeriesNumber')
             fprintf('Setting SeriesNumber to 1.\n');
             Headers{i}.SeriesNumber = 1;
@@ -1007,12 +1004,12 @@ for i=1:length(Headers)
             Headers{i}.InstanceNumber = 1;
             images = [images(:)',Headers(i)];
         end
-    %elseif isfield(Headers{i},'Private_2001_105f'),
-    %    % This field corresponds to: > Stack Sequence 2001,105F SQ VNAP, COPY
-    %    % http://www.medical.philips.com/main/company/connectivity/mri/index.html
-    %    % No documentation about this private field is yet available.
-    %    disp('Cant yet convert Philips Intera DICOM.');
-    %    guff = {guff{:},Headers{i}};
+        %elseif isfield(Headers{i},'Private_2001_105f'),
+        %    % This field corresponds to: > Stack Sequence 2001,105F SQ VNAP, COPY
+        %    % http://www.medical.philips.com/main/company/connectivity/mri/index.html
+        %    % No documentation about this private field is yet available.
+        %    disp('Cant yet convert Philips Intera DICOM.');
+        %    guff = {guff{:},Headers{i}};
     else
         images = [images(:)',Headers(i)];
     end
@@ -1098,7 +1095,7 @@ end
 %==========================================================================
 function clean = StripUnwantedChars(dirty)
 msk = (dirty>='a'&dirty<='z') | (dirty>='A'&dirty<='Z') |...
-      (dirty>='0'&dirty<='9') | dirty=='_';
+    (dirty>='0'&dirty<='9') | dirty=='_';
 clean = dirty(msk);
 
 
@@ -1140,42 +1137,42 @@ end
 
 if isfield(Header,'TransferSyntaxUID')
     switch(Header.TransferSyntaxUID)
-    case {'1.2.840.10008.1.2.4.50','1.2.840.10008.1.2.4.51',... % 8 bit JPEG & 12 bit JPEG
-          '1.2.840.10008.1.2.4.57','1.2.840.10008.1.2.4.70',... % lossless NH JPEG & lossless NH, 1st order
-          '1.2.840.10008.1.2.4.80','1.2.840.10008.1.2.4.81',... % lossless JPEG-LS & near lossless JPEG-LS
-          '1.2.840.10008.1.2.4.90','1.2.840.10008.1.2.4.91',... % lossless JPEG 2000 & possibly lossy JPEG 2000, Part 1
-          '1.2.840.10008.1.2.4.92','1.2.840.10008.1.2.4.93' ... % lossless JPEG 2000 & possibly lossy JPEG 2000, Part 2
-         }
-        % try to read PixelData as JPEG image
-        fseek(fp,Header.StartOfPixelData,'bof');
-        fread(fp,2,'uint16'); % uint16 encoding 65534/57344 (Item)
-        offset = double(fread(fp,1,'uint32')); % followed by 4 0 0 0
-        fread(fp,2,'uint16'); % uint16 encoding 65534/57344 (Item)
-        fread(fp,offset);
-        
-        sz  = double(fread(fp,1,'*uint32'));
-        img = fread(fp,sz,'*uint8');
+        case {'1.2.840.10008.1.2.4.50','1.2.840.10008.1.2.4.51',... % 8 bit JPEG & 12 bit JPEG
+                '1.2.840.10008.1.2.4.57','1.2.840.10008.1.2.4.70',... % lossless NH JPEG & lossless NH, 1st order
+                '1.2.840.10008.1.2.4.80','1.2.840.10008.1.2.4.81',... % lossless JPEG-LS & near lossless JPEG-LS
+                '1.2.840.10008.1.2.4.90','1.2.840.10008.1.2.4.91',... % lossless JPEG 2000 & possibly lossy JPEG 2000, Part 1
+                '1.2.840.10008.1.2.4.92','1.2.840.10008.1.2.4.93' ... % lossless JPEG 2000 & possibly lossy JPEG 2000, Part 2
+                }
+            % try to read PixelData as JPEG image
+            fseek(fp,Header.StartOfPixelData,'bof');
+            fread(fp,2,'uint16'); % uint16 encoding 65534/57344 (Item)
+            offset = double(fread(fp,1,'uint32')); % followed by 4 0 0 0
+            fread(fp,2,'uint16'); % uint16 encoding 65534/57344 (Item)
+            fread(fp,offset);
 
-        % Next uint16 seem to encode 65534/57565 (SequenceDelimitationItem), followed by 0 0
+            sz  = double(fread(fp,1,'*uint32'));
+            img = fread(fp,sz,'*uint8');
 
-        % save PixelData into temp file - imread and its subroutines can only
-        % read from file, not from memory
-        tfile = tempname;
-        tfp   = fopen(tfile,'w+');
-        fwrite(tfp,img,'uint8');
-        fclose(tfp);
+            % Next uint16 seem to encode 65534/57565 (SequenceDelimitationItem), followed by 0 0
 
-        % read decompressed data, transpose to match DICOM row/column order
-        img = uint32(imread(tfile)');
-        delete(tfile);
-    case {'1.2.840.10008.1.2.4.94' ,'1.2.840.10008.1.2.4.95' ,... % JPIP References & JPIP Referenced Deflate Transfer
-          '1.2.840.10008.1.2.4.100','1.2.840.10008.1.2.4.101',... % MPEG2 MP@ML & MPEG2 MP@HL
-          '1.2.840.10008.1.2.4.102',                          ... % MPEG-4 AVC/H.264 High Profile and BD-compatible
-         }
-         warning('spm:dicom',[Header.Filename ': cannot deal with JPIP/MPEG data (' Header.TransferSyntaxUID ')']);
-    otherwise
-        fseek(fp,Header.StartOfPixelData,'bof');
-        img = fread(fp,Header.Rows*Header.Columns*NFrames,prec);
+            % save PixelData into temp file - imread and its subroutines can only
+            % read from file, not from memory
+            tfile = tempname;
+            tfp   = fopen(tfile,'w+');
+            fwrite(tfp,img,'uint8');
+            fclose(tfp);
+
+            % read decompressed data, transpose to match DICOM row/column order
+            img = uint32(imread(tfile)');
+            delete(tfile);
+        case {'1.2.840.10008.1.2.4.94' ,'1.2.840.10008.1.2.4.95' ,... % JPIP References & JPIP Referenced Deflate Transfer
+                '1.2.840.10008.1.2.4.100','1.2.840.10008.1.2.4.101',... % MPEG2 MP@ML & MPEG2 MP@HL
+                '1.2.840.10008.1.2.4.102',                          ... % MPEG-4 AVC/H.264 High Profile and BD-compatible
+                }
+            warning('spm:dicom',[Header.Filename ': cannot deal with JPIP/MPEG data (' Header.TransferSyntaxUID ')']);
+        otherwise
+            fseek(fp,Header.StartOfPixelData,'bof');
+            img = fread(fp,Header.Rows*Header.Columns*NFrames,prec);
     end
 else
     fseek(fp,Header.StartOfPixelData,'bof');
@@ -1206,15 +1203,15 @@ img = reshape(img,[Header.Columns,Header.Rows,NFrames]);
 %==========================================================================
 % function img = ReadSpectData(Header,privdat)
 %==========================================================================
-function img = ReadSpectData(Header,ntp)
+function img = ReadSpectData(Header,nr, nc, ntp)
 % Data is stored as complex float32 values, timepoint by timepoint, voxel
-% by voxel. Reshaping is done in WriteSpectroscopyVolume.
-if ntp*2*4 ~= Header.SizeOfCSAData
+% by voxel. Reshaping is done in ConvertSpectroscopy.
+if nr*nc*ntp*2*4 ~= Header.SizeOfCSAData
     warning('spm:dicom', [Header.Filename,': Data size mismatch.']);
 end
 fp = fopen(Header.Filename,'r','ieee-le');
 fseek(fp,Header.StartOfCSAData,'bof');
-img = fread(fp,2*ntp,'float32');
+img = fread(fp,2*nr*nc*ntp,'float32');
 fclose(fp);
 
 
@@ -1312,12 +1309,12 @@ ImTyp = '';
 if isfield(Header,'GE_ImageType')
     if numel(Header.GE_ImageType)==1
         switch Header.GE_ImageType
-        case 1
-            ImTyp = '-Phase';
-        case 2
-            ImTyp = '-Real';
-        case 3
-            ImTyp = '-Imag';
+            case 1
+                ImTyp = '-Phase';
+            case 2
+                ImTyp = '-Real';
+            case 3
+                ImTyp = '-Imag';
         end
     end
 else
@@ -1329,14 +1326,14 @@ end
 % To use ICE Dims systematically in file names in order to avoid
 % overwriting uncombined coil images, which have identical file name
 % otherwise)
-try 
+try
     ICE_Dims = GetNumaris4Val(Header.CSAImageHeaderInfo,'ICE_Dims');
     % extract ICE dims as an array of numbers (replace 'X' which is for
-    % combined images by '-1' first): 
+    % combined images by '-1' first):
     CHA = sscanf(strrep(ICE_Dims,'X','-1'), '%i_%i_%i_%i_%i_%i_%i_%i_%i')';
     if CHA(1)>0
         CHA = sprintf('%.3d',CHA(1));
-    else 
+    else
         CHA = '';
     end
 catch
@@ -1350,23 +1347,23 @@ if strcmp(RootDirectory, 'flat')
         if CheckFields(Header,'EchoNumbers')
             if ~isempty(CHA)
                 fname = sprintf('%s%s-%.4d-%.5d-%.6d-%.2d-%s%s.%s', prefix, StripUnwantedChars(PatientID),...
-                                SeriesNumber, AcquisitionNumber, InstanceNumber, EchoNumbers, CHA, ImTyp, format);
+                    SeriesNumber, AcquisitionNumber, InstanceNumber, EchoNumbers, CHA, ImTyp, format);
             else
                 fname = sprintf('%s%s-%.4d-%.5d-%.6d-%.2d%s.%s', prefix, StripUnwantedChars(PatientID),...
-                                SeriesNumber, AcquisitionNumber, InstanceNumber, EchoNumbers, ImTyp, format);
+                    SeriesNumber, AcquisitionNumber, InstanceNumber, EchoNumbers, ImTyp, format);
             end
         else
             if ~isempty(CHA)
                 fname = sprintf('%s%s-%.4d-%.5d-%.6d-%s%s.%s', prefix, StripUnwantedChars(PatientID),...
-                                SeriesNumber, AcquisitionNumber, InstanceNumber, CHA, ImTyp, format);
+                    SeriesNumber, AcquisitionNumber, InstanceNumber, CHA, ImTyp, format);
             else
                 fname = sprintf('%s%s-%.4d-%.5d-%.6d%s.%s', prefix, StripUnwantedChars(PatientID),...
-                                SeriesNumber, AcquisitionNumber, InstanceNumber, ImTyp, format);
+                    SeriesNumber, AcquisitionNumber, InstanceNumber, ImTyp, format);
             end
         end
     else
         fname = sprintf('%s%s-%.6d%s.%s',prefix, ...
-                        StripUnwantedChars(PatientID), InstanceNumber, ImTyp, format);
+            StripUnwantedChars(PatientID), InstanceNumber, ImTyp, format);
     end
 
     fname = fullfile(OutputDirectory,fname);
@@ -1427,10 +1424,10 @@ ma    = sprintf('%02d', floor(rem(AcquisitionTime/60,60)));
 ha    = sprintf('%02d', floor(AcquisitionTime/3600));
 if ~isempty(CHA)
     fname = sprintf('%s%s-%s%s%s-%.5d-%.5d-%d-%s%s.%s', prefix, id, ha, ma, sa, ...
-            AcquisitionNumber, InstanceNumber, EchoNumbers, CHA, ImTyp, format);
+        AcquisitionNumber, InstanceNumber, EchoNumbers, CHA, ImTyp, format);
 else
     fname = sprintf('%s%s-%s%s%s-%.5d-%.5d-%d%s.%s', prefix, id, ha, ma, sa, ...
-            AcquisitionNumber, InstanceNumber, EchoNumbers, ImTyp, format);
+        AcquisitionNumber, InstanceNumber, EchoNumbers, ImTyp, format);
 end
 fname = fullfile(dname, fname);
 
@@ -1489,13 +1486,14 @@ if ~isempty(X)
     tokens = textscan(char(X),'%s', ...
         'delimiter',char(10));
     tokens{1}=regexprep(tokens{1},{'\[([0-9]*)\]','"(.*)"','^([^"]*)0x([0-9a-fA-F]*)','#.*','^.*\._.*$'},{'($1+1)','''$1''','$1hex2dec(''$2'')','',''});
+
     % If everything would evaluate correctly, we could use
     % eval(sprintf('ret.%s;\n',tokens{1}{:}));
     for k = 1:numel(tokens{1})
         if ~isempty(tokens{1}{k})
             try
-                [tlhrh] = regexp(tokens{1}{k}, '(?:=)+', 'split', 'match');
-                [tlh]   = regexp(tlhrh{1}, '(?:\.)+', 'split', 'match');
+                [tlhrh,~] = regexp(regexprep(tokens{1}{k},'\s+',''), '(?:=)+', 'split', 'match');
+                [tlh,~]   = regexp(tlhrh{1}, '(?:\.)+', 'split', 'match');
                 tlh = cellfun(@genvarname, tlh, 'UniformOutput',false);
                 tlh = sprintf('.%s', tlh{:});
                 eval(sprintf('ret%s = %s;', tlh, tlhrh{2}));
@@ -1520,7 +1518,7 @@ if Header.BitsStored>16
         Datatype = [spm_type('uint32') BigEndian];
     end
 else
-    if Header.PixelRepresentation 
+    if Header.PixelRepresentation
         Datatype = [spm_type( 'int16') BigEndian];
     else
         Datatype = [spm_type('uint16') BigEndian];
@@ -1581,7 +1579,7 @@ for n=1:size(ord,2)
     % Identify all slices that should go into the same output file
     %ind  = find(all(bsxfun(@eq,stuff,u(n,:)),2));
     ind = find(ord(:,n));
-    this = FGS(ind); 
+    this = FGS(ind);
     if size(ord,2)>1
         fname = sprintf('%s_%-.3d',fname0,n);
     else
@@ -1626,7 +1624,7 @@ for n=1:size(ord,2)
     orient      = reshape(this(1).ImageOrientationPatient,[3 2]);
     orient(:,3) = null(orient');
     if det(orient)<0, orient(:,3) = -orient(:,3); end
-        
+
     Positions  = cat(2,this.ImagePositionPatient)';
     [proj,slice_order,inv_slice_order] = unique(round(Positions*orient(:,3)*100)/100);
     if any(abs(diff(diff(proj),1,1))>0.025)
@@ -1634,7 +1632,7 @@ for n=1:size(ord,2)
     else
         problem1 = false;
     end
- 
+
     inv_time_order = ones(numel(this),1);
     for i=1:numel(slice_order)
         ind = find(inv_slice_order == i);
@@ -1649,7 +1647,7 @@ for n=1:size(ord,2)
         end
     end
 
-    
+
     % Image dimensions
     %----------------------------------------------------------------------
     nc   = Header.Columns;
@@ -1678,7 +1676,7 @@ for n=1:size(ord,2)
         fprintf('"%s" has slices missing.\nSee the result in %s%s\n\n', Header.Filename,fname,ext0);
         % break % Option to skip writing out the NIfTI image
     end
- 
+
     if dim(3)>1
         y1 = [this(slice_order(  1)).ImagePositionPatient(:); 1];
         y2 = [this(slice_order(end)).ImagePositionPatient(:); 1];
@@ -1710,14 +1708,14 @@ for n=1:size(ord,2)
         tim = datevec(Header.AcquisitionTime/(24*60*60));
     elseif isfield(Header,'StudyTime')
         tim = datevec(Header.StudyTime/(24*60*60));
-    elseif isfield(Header,'ContentTime') 
-        tim = datevec(Header.ContentTime/(24*60*60));      
+    elseif isfield(Header,'ContentTime')
+        tim = datevec(Header.ContentTime/(24*60*60));
     else
         tim = '';
     end
     if ~isempty(tim), tim = sprintf(' %d:%d:%.5g', tim(4),tim(5),tim(6)); end
 
-    if isfield(Header,'AcquisitionDate') 
+    if isfield(Header,'AcquisitionDate')
         day = datestr(Header.AcquisitionDate);
     elseif isfield(Header,'StudyDate')
         day = datestr(Header.StudyDate);
@@ -1726,22 +1724,22 @@ for n=1:size(ord,2)
     else
         day = '';
     end
-    when = [day tim]; 
+    when = [day tim];
 
     if CheckFields(Header,'MagneticFieldStrength','MRAcquisitionType',...
-                   'ScanningSequence','RepetitionTime','EchoTime','FlipAngle')
+            'ScanningSequence','RepetitionTime','EchoTime','FlipAngle')
         if isfield(Header,'ScanOptions')
             ScanOptions = Header.ScanOptions;
         else
             ScanOptions = 'no';
         end
         modality = sprintf('%gT %s %s TR=%gms/TE=%gms/FA=%gdeg/SO=%s',...
-                           Header.MagneticFieldStrength, Header.MRAcquisitionType,...
-                           deblank(Header.ScanningSequence),...
-                           Header.RepetitionTime, Header.EchoTime, Header.FlipAngle,...
-                           ScanOptions);
+            Header.MagneticFieldStrength, Header.MRAcquisitionType,...
+            deblank(Header.ScanningSequence),...
+            Header.RepetitionTime, Header.EchoTime, Header.FlipAngle,...
+            ScanOptions);
     else
-         modality = [Header.Modality ' ' Header.ImageType];
+        modality = [Header.Modality ' ' Header.ImageType];
     end
     descrip = [modality ' ' when];
 
@@ -1761,18 +1759,18 @@ for n=1:size(ord,2)
         if isfield(this(i),'MRScaleIntercept'), pinfos(i,2) =  -this(i).MRScaleIntercept*pinfos(i,1); end
 
     end
-    
-    % The following requires more testing. Only tested on the following 
+
+    % The following requires more testing. Only tested on the following
     % multiframe datasets (all Philips MRI data):
     % - EPI series (either GRE-EPI (fMRI) or SE-EPI (DWI)),
     % - structural mono-volume images (FLAIR, T1FFE),
     % - structural multi-echo images (MPM protocol)
     % - B0 mapping (two volumes including magnitude and phase in
     %   milliradians).
-    % The first three cases above correspond to 
+    % The first three cases above correspond to
     % any(any(diff(pinfos,1))) == false (identical scaling for all frames,
     % no problem there), while the latter corresponds to
-    % any(any(diff(pinfos,1))) == true (variable scaling and problems).  
+    % any(any(diff(pinfos,1))) == true (variable scaling and problems).
     if ~any(any(diff(pinfos,1)))
         % Same slopes and intercepts for all slices
         dt    = DetermineDatatype(Header);
@@ -1781,18 +1779,18 @@ for n=1:size(ord,2)
         % Variable slopes and intercept (maybe PET/SPECT) - or
         % magnitude/phase data, or...?
 
-        % If variable slopes and intercepts in the multiframe dataset, 
+        % If variable slopes and intercepts in the multiframe dataset,
         % each volume is saved as a separate NIfTI file with appropriate
         % slope and intercept. NB: we assume that the same pinfo is used
         % for all frames in a given volume - might not be the case?
-        dt = DetermineDatatype(Header); 
+        dt = DetermineDatatype(Header);
         dt    = 'int16-be';
         pinfo = [];
         for cv = 1:max(inv_time_order)
             ind = find(inv_time_order==cv);
-            pinfo = [pinfo; pinfos(ind(1),:)]; 
+            pinfo = [pinfo; pinfos(ind(1),:)];
         end
-        
+
         % Ensure random numbers are reproducible (see later)
         % when intensities are jittered to prevent aliasing effects.
         % Done the old way for compatibility with MATLAB versions older than R2011a
@@ -1811,7 +1809,7 @@ for n=1:size(ord,2)
             fname = sprintf('%s-%.4d',fname0,cNii);
             dim = dim(1:3);
         end
-        
+
         % Create nifti file
         Nii{cNii}      = nifti; %#ok<*AGROW>
         fname          = sprintf('%s%s', fname, ext0);
@@ -1822,10 +1820,10 @@ for n=1:size(ord,2)
         Nii{cNii}.mat0_intent = 'Scanner';
         Nii{cNii}.descrip     = descrip;
         create(Nii{cNii});
-    
+
         % for json metadata, need to sort out the portion of the Header
         % that corresponds to the current Nii volume (if multiscale &
-        % multiframe data -> 3D volumes): 
+        % multiframe data -> 3D volumes):
         if meta
             cHeader{cNii} = Header;
             if size(pinfo,1)>1
@@ -1838,7 +1836,7 @@ for n=1:size(ord,2)
             end
             Nii{cNii} = spm_dicom_metadata(Nii{cNii},cHeader{cNii});
         end
-        
+
         Nii{cNii}.dat(end,end,end,end,end) = 0;
     end
 
@@ -1934,23 +1932,23 @@ if isfield(Header,'PerFrameFunctionalGroupsSequence')
 
     % List of fields and subfields of those fields to retrieve information from.
     Macros = {'PixelMeasuresSequence',{'PixelSpacing','SliceThickness'}
-              'FrameContentSequence',{'Frame Acquisition Number','FrameReferenceDatetime',...
-                                      'FrameAcquisitionDatetime','FrameAcquisitionDuration',...
-                                      'CardiacCyclePosition','RespiratoryCyclePosition',...
-                                      'DimensionIndexValues','TemporalPositionIndex','Stack ID',...
-                                      'InStackPositionNumber','FrameComments'}
-              'PlanePositionSequence',{'ImagePositionPatient'}
-              'PlaneOrientationSequence',{'ImageOrientationPatient'}
-              'ReferencedImageSequence',{'ReferencedSOPClassUID','ReferencedSOPInstanceUID',...
-                                         'ReferencedFrameNumber','PurposeOfReferenceCode'}
-              'PixelValueTransformationSequence',{'RescaleIntercept','RescaleSlope','RescaleType'}
-              % for specific PHILIPS rescaling
-              'PhilipsSequence_2005_140f',{'MRScaleSlope','MRScaleIntercept'}};
+        'FrameContentSequence',{'Frame Acquisition Number','FrameReferenceDatetime',...
+        'FrameAcquisitionDatetime','FrameAcquisitionDuration',...
+        'CardiacCyclePosition','RespiratoryCyclePosition',...
+        'DimensionIndexValues','TemporalPositionIndex','Stack ID',...
+        'InStackPositionNumber','FrameComments'}
+        'PlanePositionSequence',{'ImagePositionPatient'}
+        'PlaneOrientationSequence',{'ImageOrientationPatient'}
+        'ReferencedImageSequence',{'ReferencedSOPClassUID','ReferencedSOPInstanceUID',...
+        'ReferencedFrameNumber','PurposeOfReferenceCode'}
+        'PixelValueTransformationSequence',{'RescaleIntercept','RescaleSlope','RescaleType'}
+        % for specific PHILIPS rescaling
+        'PhilipsSequence_2005_140f',{'MRScaleSlope','MRScaleIntercept'}};
 
     if isfield(Header,'SharedFunctionalGroupsSequence')
         for d=1:numel(DimOrg)
             if isfield(Header.SharedFunctionalGroupsSequence{1}, DimOrg(d).FunctionalGroupPointer) && ...
-               isfield(Header.SharedFunctionalGroupsSequence{1}.(DimOrg(d).FunctionalGroupPointer){1}, DimOrg(d).DimensionIndexPointer)
+                    isfield(Header.SharedFunctionalGroupsSequence{1}.(DimOrg(d).FunctionalGroupPointer){1}, DimOrg(d).DimensionIndexPointer)
                 for n=N:-1:1
                     FGS(n).(DimOrg(d).DimensionIndexPointer) = Header.SharedFunctionalGroupsSequence{1}.(DimOrg(d).FunctionalGroupPointer){1}.(DimOrg(d).DimensionIndexPointer);
                 end
@@ -1976,7 +1974,7 @@ if isfield(Header,'PerFrameFunctionalGroupsSequence')
         F = Header.PerFrameFunctionalGroupsSequence{n};
         for d=1:numel(DimOrg)
             if isfield(F,DimOrg(d).FunctionalGroupPointer) && ...
-               isfield(F.(DimOrg(d).FunctionalGroupPointer){1}, DimOrg(d).DimensionIndexPointer)
+                    isfield(F.(DimOrg(d).FunctionalGroupPointer){1}, DimOrg(d).DimensionIndexPointer)
                 FGS(n).(DimOrg(d).DimensionIndexPointer) = F.(DimOrg(d).FunctionalGroupPointer){1}.(DimOrg(d).DimensionIndexPointer);
             end
         end
