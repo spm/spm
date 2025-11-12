@@ -21,10 +21,7 @@ end;
 
 D     = spm_eeg_load(fname);
 
-mstr='od'; % markers
-colstr='kc'; %colours
 invmethods={'EBB','IID'}; %% methods to be used
-plotinv=[1,2]; %% methods to plot
 
 %% simulate a source
 prefix='sim';
@@ -293,6 +290,13 @@ else %if REDOCALC=0
     load([resultsdir filesep sprintf('summary_%d_cond_CTF%s_seed%d_scale%03d.mat',Crossval,simpos,RandSeed,round(scale*1000))])
 end; % if REDOCALC
 
+%% plot preferences
+mstr='do'; % markers for inversions
+colstr='br'; %colours for inversions
+col_dist_str='mc'; %% for distorted surfaces
+lspec_dist='-:'; %% line spec for true vs. distorted
+plotinv=[1,2]; %% methods to plot
+
 disterr=[0 mean(derr)]; %average distance error, including true brain at start
 simind=1;
 
@@ -337,41 +341,11 @@ for invind=1:numel(invmethods),
 
         J=squeeze(Jpk(f,invind,:));
 
-        %% PLOTS CURRENT FLOW ON CORTEX
-%         figure;
-%         hm=meshplot4spm(M0i,[1 1 1].*0.9);
-%         hold on;
+      
          plotJ=abs(J);
          plotJ(find(plotJ<max(plotJ/20)))=0;
          allplotJ(fs,:)=plotJ;
-%         h=trisurf(M0i.faces,M0i.vertices(:,1),M0i.vertices(:,2),M0i.vertices(:,3))
-%         cmap=colormap('hot');
-%         colormap(flipud(cmap));
-%         set(h,'FaceVertexAlphaData',plotJ)
-%         set(h,'FaceAlpha','flat')
-%         set(h,'EdgeColor','none');
 
-   %     figure;
-%         X=plotJ;
-% 
-% 
-%         [~, id] = sort(abs(X),'descend');
-%         threshold=0.5;
-%         ndips = sum(abs(X) >=threshold*max(abs(X)))
-%         id = id(1:ndips)
-% 
-% 
-%         pos=Drecon.inv{1}.mesh.tess_mni.vert;
-
-%     %    spm_mip(X(id),pos(id,:),6);
-% 
-%         cmap=colormap('gray');
-%         cmap(64,:)=[1 1 1];
-%         cmap(1:64,:)=cmap(1:4:256,:)
-%         colormap(cmap(1:63,:));
-%         colorbar
-%         title([invmethods{invind} num2str(usesurfind(fs))]);
-% 
        [ZI]=spm_eeg_plotScalpData(squeeze(Fieldmap(fs,invind,:)),c2d,chanlabel);
         allPredmap(fs,:,:)=ZI;
         title('Predicted field')
@@ -384,18 +358,19 @@ for invind=1:numel(invmethods),
     end; % for fs
 
     figure ; hold on;
-    lspec='-:'
+    
     maxmap=max(max(abs(allPredmap(1,:,:))))
     mstep=2*maxmap/10;
     clines=[-maxmap+mstep:mstep:maxmap-mstep]
     for fs=1:length(usesurfind),
-        [c,h]=contour(squeeze(allPredmap(fs,:,:)),clines,lspec(fs)); %% J*L
+        [c,h]=contour(squeeze(allPredmap(fs,:,:)),clines,lspec_dist(fs)); %% J*L
         set(h,'Linewidth',4)
 
         if fs==2,
             set(h,'Linewidth',2)
-            set(h,'Linecolor',colstr(fs))
+            set(h,'Linecolor',col_dist_str(fs))
         end;
+        
 
     end;
     fprintf('\nPc variance between distorted and undistorted sensor estimates for %s',invmethods{invind})
@@ -414,12 +389,12 @@ for invind=1:numel(invmethods),
     set(gca,'YTick',[])
     title([invmethods{invind}])
     figure ; hold on;
-    lspec='-:';
+    
     maxmap=max(max(abs(allZFmap(1,:,:))))
     mstep=2*maxmap/10;
     clines=[-maxmap+mstep:mstep:maxmap-mstep]
     for fs=1:length(usesurfind),
-        [c,h]=contour(squeeze(allZFmap(fs,:,:)),clines,lspec(fs))
+        [c,h]=contour(squeeze(allZFmap(fs,:,:)),clines,lspec_dist(fs))
         set(h,'Linewidth',4)
         if fs==2,
             set(h,'Linewidth',2)
@@ -460,13 +435,14 @@ for invind=1:numel(invmethods),
 
         h=trisurf(MS.faces,MS.vertices(:,1),MS.vertices(:,2),MS.vertices(:,3));
         view(viewind)
-        set(h,'EdgeColor',colstr(fs))
-        set(h,'FaceColor',colstr(fs))
+        set(h,'EdgeColor',col_dist_str(fs))
+        %set(h,'FaceColor',col_dist_str(fs))
+        set(h,'FaceColor','none')
         hold on;
         qscale=6;
         h1=quiver3(simpos(:,1),simpos(:,2),simpos(:,3),...
             simori(:,1),simori(:,2),simori(:,3),qscale);
-        set(h1,'Color','m')
+        set(h1,'Color',colstr(invind))
         set(h1,'Linewidth',4)
         if fs>1,
             set(h1,'Linestyle',':')
@@ -490,27 +466,23 @@ for invind=1:numel(invmethods),
         h=trisurf(MS.faces,MS.vertices(:,1),MS.vertices(:,2),MS.vertices(:,3),plotJslice)
         xlabel('x');zlabel('z')
         view(viewind)
-        %         h1=plot3(MS.vertices(highind,1),MS.vertices(highind,2),MS.vertices(highind,3),[colstr(fs) 'd']);
-        %         set(h1,'Markersize',20)
-        %         set(h1,'Linewidth',5)
-        %         %set(h,'EdgeColor',colstr(fs))
-        set(h,'FaceColor','Interp')
-
-        set(h,'FaceVertexAlphaData',plotJslice')
-        % set(h,'FaceVertexCData',plotJslice')
-        set(h,'FaceAlpha','flat')
-        %set(h,'EdgeColor','none');
-        %h=plot(Mmesh{f}.vertices(useind,1),Mmesh{f}.vertices(useind,2),'.')
-
+        set(h,'EdgeColor',col_dist_str(fs))
+        set(h,'FaceColor','none')
+%         set(h,'FaceColor','Interp')
+% 
+%         set(h,'FaceVertexAlphaData',plotJslice')
+%         
+%         set(h,'FaceAlpha','flat')
+%         
+        
         for g=1:length(highind),
             Jscale=10*plotJslice(highind(g));
             arrowscale=0.6;
             hq=quiver3(MS.vertices(highind(g),1),MS.vertices(highind(g),2),MS.vertices(highind(g),3),...
                 nvslice(highind(g),1)*Jscale,nvslice(highind(g),2)*Jscale,nvslice(highind(g),3)*Jscale,arrowscale);
             set(hq,'Linewidth',3);
-            set(hq,'color','m')
-            %set(hq,'Arrowlengthratio',4)
-            %set(hq,'AutoScale','on', 'AutoScaleFactor', 2)
+            set(hq,'color',colstr(invind))
+            
             axis([-70 0 -inf inf 10 80])
 
         end;
@@ -547,7 +519,7 @@ set(gca,'Xtick',1:Npoints+1);
 set(gca,'Xticklabel',round(sdist*10)/10)
 set(gca,'FontSize',18)
 ylabel('Free Energy')
-xlabel('Distance (mm)')
+xlabel('Distortion (mm)')
 legend(legstr)
 
 
@@ -589,7 +561,7 @@ for i1d=1:length(plotinv),
     axis([0 max(sdist) -Inf Inf]);
     set(gca,'Xtick',1:length(sdist));
     set(gca,'Xticklabel',round(sdist*10)/10)
-    xlabel('Distance to true mesh (mm)')
+    xlabel('Distortion (mm)')
     set(h(1),'Linewidth',2)
     ylabel('Free Energy')
 
@@ -612,7 +584,7 @@ end; % for i1
 axis([0 3 -Inf Inf])
 set(gca,'XtickLabels',strvcat(' ',invmethods{plotinv(1)},invmethods{plotinv(2)},' '))
 xlabel('Method')
-ylabel('Distance (mm)')
+ylabel('Distortion (mm)')
 set(gca,'Fontsize',18)
 
 figure;
