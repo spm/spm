@@ -5,7 +5,7 @@ spm('defaults','eeg');
 
 resultsdir='D:\matlab\jimmymatfiles\'; %% user specified.
 
-REDOCALC=1; %% should =1 first time code is run or if want to simulate again (Or calc new meshes etc)
+REDOCALC=0; %% should =1 first time code is run or if want to simulate again (Or calc new meshes etc)
 %% after that =0 just loads in results.
 
 
@@ -515,8 +515,8 @@ for f=1:length(plotinv)
     set(h2,'MarkerSize',15)
     legstr{end+1}=['Peak ' invmethods{plotinv(f)}];
 end;
-set(gca,'Xtick',1:Npoints+1);
-set(gca,'Xticklabel',round(sdist*10)/10)
+%set(gca,'Xtick',1:Npoints+1);
+%set(gca,'Xticklabel',round(sdist*10)/10)
 set(gca,'FontSize',18)
 ylabel('Free Energy')
 xlabel('Distortion (mm)')
@@ -559,8 +559,8 @@ for i1d=1:length(plotinv),
     set(h0,'Markersize',20)
 
     axis([0 max(sdist) -Inf Inf]);
-    set(gca,'Xtick',1:length(sdist));
-    set(gca,'Xticklabel',round(sdist*10)/10)
+%     set(gca,'Xtick',1:length(sdist));
+%     set(gca,'Xticklabel',round(sdist*10)/10)
     xlabel('Distortion (mm)')
     set(h(1),'Linewidth',2)
     ylabel('Free Energy')
