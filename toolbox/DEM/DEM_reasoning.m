@@ -86,12 +86,12 @@ label.outcome  = { ...
 
 % initialise likelihoods A and priors B
 %==========================================================================
-Nu = [1,1,1,4,4];
 Nf = numel(label.factor);
 Ng = numel(label.modality);
 Ns = zeros(1,Nf);
 for f = 1:Nf
     Ns(f) = numel(label.name{f});
+    Nu(f) = numel(label.action{f});
 end
 No = zeros(1,Ng);
 for g = 1:Ng
@@ -153,7 +153,9 @@ end
 
 % alternative mappings - hypothesis or model space
 %==========================================================================
-pA{3} = spm_MDP_rules(A{3});
+[pA{3}, Rules] = spm_MDP_rules(label,3);
+
+disp(Rules{65})
 
 % model average and priors
 %--------------------------------------------------------------------------
@@ -267,18 +269,17 @@ for i = 1:N
 
     % posterior probabilities over rules
     %----------------------------------------------------------------------
-    P(i,:) = PDP.Pa{3};
     L      = max(PDP.Pa{3});
     O(i)   = log(L) - log(1 - L);
     if O(i) > 16
 
         % Baysian model average
         %------------------------------------------------------------------
-        sp   = 0;
+        aa   = 0;
         for j = 1:numel(PDP.Pa{3})
-            sp = sp + PDP.Pa{3}(j)*pA{3}{j};
+            aa = aa + PDP.Pa{3}(j)*pA{3}{j};
         end
-        MDP.a{3} = sp*512;
+        MDP.a{3} = aa*512;
         MDP.C{3} = C{3};
         MDP.N    = 1;
 
@@ -286,11 +287,12 @@ for i = 1:N
 
     % record
     %----------------------------------------------------------------------
-    F(i) = sum(PDP.F);                         % ELBO (states)
-    w(i) = sum(PDP.w);                         % policy precision
-    o(i) = sum(PDP.o(3,:) == 2);               % wins
-    p(i) = sum(PDP.o(3,:) == 3);               % losses
-    K(i) = spm_KL_cat(RA,PDP.a{3});            % KL divergence from rule
+    F(i)   = sum(PDP.F);                       % ELBO (states)
+    w(i)   = sum(PDP.w);                       % policy precision
+    o(i)   = sum(PDP.o(3,:) == 2);             % wins
+    p(i)   = sum(PDP.o(3,:) == 3);             % losses
+    K(i)   = spm_KL_cat(RA,PDP.a{3});          % KL divergence from rule
+    P(:,i) = spm_log(PDP.Pa{3});               % log evidence
 
     % slices of inferred and true likelihood tensor
     %----------------------------------------------------------------------
@@ -307,10 +309,11 @@ for i = 1:N
     subplot(6,1,2), plot(o),  xlabel('trial'), spm_axis tight, title('Outcomes',   'Fontsize',16), ylabel('score'), hold on
     subplot(6,1,2), plot(p),  xlabel('trial'), spm_axis tight, title('Outcomes',   'Fontsize',16), ylabel('score'), hold off
     subplot(6,1,3), plot(K),  xlabel('trial'), spm_axis tight, title('Divergence',         'Fontsize',16), ylabel('nats')
-    subplot(4,2,5), imagesc(a3),       title('Posterior likelihoods','Fontsize',16), ylabel('trial'), xlabel('latent state')
-    subplot(4,2,7), imagesc(A3),       title('True likelihoods',     'Fontsize',16), ylabel('trial'), xlabel('latent state')
-    subplot(4,2,6), imagesc(P.^(1/4)), title('Model comparison',     'Fontsize',16), ylabel('trial'), xlabel('rule or model')
-    subplot(4,2,8), plot(O),           title('Occams Razor',         'Fontsize',16), xlabel('trial'), ylabel('nats')
+    subplot(4,2,5), imagesc(a3),  title('Posterior likelihoods','Fontsize',16), ylabel('trial'), xlabel('latent state')
+    subplot(4,2,7), imagesc(A3),  title('True likelihoods',     'Fontsize',16), ylabel('trial'), xlabel('latent state')
+    subplot(4,2,6), imagesc(P),   title('Model comparison',     'Fontsize',16), xlabel('trial'), ylabel('rule or model')
+    subplot(4,2,8), plot(O),      title('Occams Razor',         'Fontsize',16), xlabel('trial'), ylabel('nats'), hold on
+    subplot(4,2,8), plot([0,i],[16,16],':k'), axis([0,i,0,25])
     drawnow
 
 end
@@ -351,11 +354,11 @@ for k = 1:64                                   % for K agents
 
             % Baysian model average
             %--------------------------------------------------------------
-            sp   = 0;
+            aa   = 0;
             for j = 1:numel(PDP.Pa{3})
-                sp = sp + PDP.Pa{3}(j)*pA{3}{j};
+                aa = aa + PDP.Pa{3}(j)*pA{3}{j};
             end
-            MDP.a{3} = sp*512;
+            MDP.a{3} = aa*512;
             MDP.C{3} = C{3};
             MDP.N    = 1;
 
@@ -409,7 +412,7 @@ return
 
 % alternative mappings - hypothesis or model space
 %==========================================================================
-function pa = spm_MDP_rules(A)
+function pa = spm_MDP_rules_(A)
 % returns (likelihood) hypothesis or model space
 % FORMAT pa = spm_MDP_rules(A)
 %__________________________________________________________________________
@@ -514,17 +517,19 @@ return
 % get results of various solutions
 %--------------------------------------------------------------------------
 cd('C:\Users\Karl\Dropbox\matlab')
-
-load Reasoning1
+load Reasoning0        % EIG states, parameters
+W0 = WP;
+T0 = KT;
+load Reasoning1        % EIG states, parameters and models
 W1 = WP;
 T1 = KT;
-load Reasoning2
+load Reasoning2        % EIG states
 W2 = WP;
 T2 = KT;
-load Reasoning3
+load Reasoning3        % no application of BMS
 W3 = WP;
 T3 = KT;
-load Reasoning4
+load Reasoning4        % no EIG
 W4 = WP;
 T4 = KT;
 
@@ -553,21 +558,42 @@ spm_figure('GetWin','Figure 4'); clf;
 axw = [-64,256];
 axt = [1,64];
 subplot(3,2,1), plot(T1,T2,'ok',axt,axt,'r'), axis([axt,axt]), axis square
-xlabel('trials'), ylabel('trials: no EIG over parameters'), title('Discovery time','Fontsize',16)
+xlabel('trials'), ylabel('trials: no AR'), title('Discovery time','Fontsize',16)
 subplot(3,2,2), plot(W1,W2,'ok',axw,axw,'r'), axis([axw,axw]), axis square
-xlabel('score'),  ylabel('score: no EIG over parameters'),  title('Performance','Fontsize',16)
+xlabel('score'),  ylabel('score: no AR'),  title('Performance','Fontsize',16)
 
 % compare solutions with and without EIG over parameters and states
 %--------------------------------------------------------------------------
 subplot(3,2,3), plot(T1,T4,'ok',axt,axt,'r'), axis([axt,axt]), axis square
-xlabel('trials'), ylabel('trials: : no EIG over parameters or states'), title('Discovery time','Fontsize',16)
+xlabel('trials'), ylabel('trials: no EIG'), title('Discovery time','Fontsize',16)
 subplot(3,2,4), plot(W1,W4,'ok',axw,axw,'r'), axis([axw,axw]), axis square
-xlabel('score'),  ylabel('score: no EIG over parameters or states'),  title('Performance','Fontsize',16)
+xlabel('score'),  ylabel('score: no EIG'),  title('Performance','Fontsize',16)
 
 % compare solutions with and without EIG over parameters and states
 %--------------------------------------------------------------------------
 subplot(3,1,3), plot(W1,W3,'ok',axw,axw,'r'), axis([axw,axw]), axis square
-xlabel('score'),  ylabel('score: no model selection'),  title('Performance','Fontsize',16)
+xlabel('score'),  ylabel('score: no BMS'),  title('Performance','Fontsize',16)
+
+
+
+% NOTES
+%==========================================================================
+
+% Jensens equality (of sorts)
+%--------------------------------------------------------------------------
+f = @(a) minus(psi(a),psi(sum(a)));
+
+hold off
+for i = 1:64
+    a = 1/8 + rand(4,32).^4;
+    a = times(a,1./sum(a));
+    plot(mean(f(a),2),f(mean(a,2)),'.k'), hold on
+end
+plot([-16,1],[-16,1],':')
+
+
+
+
 
 
 

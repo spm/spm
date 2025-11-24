@@ -1,7 +1,7 @@
 function [i,j] = spm_unique(O)
 % Information geometry of a likelihood mapping or [probabilitic] outcome
 % FORMAT [i,j] = spm_unique(O)
-% O{n,m}    - cell arraye of Dirichlet counts or outcomes
+% O{n,m}    - cell array of Dirichlet counts or outcomes
 %
 % returns indices (i,j) where U = O(i) and O = U(j)
 % where U = unique(O{:,u})
@@ -13,9 +13,8 @@ function [i,j] = spm_unique(O)
 % Karl Friston
 % Copyright (C) 2012-2022 Wellcome Centre for Human Neuroimaging
 
-% Fast approximation by simply identifying unique locations in a
-% multinomial statistical manifold, after discretising to probabilities of
-% zero, half and one (using Matlab’s unique and fix operators).
+% Fast approximation by simply identifying unique locations on a
+% multinomial statistical manifold, using Matlab's unique operator.
 %--------------------------------------------------------------------------
 O       = spm_dir_norm(O);
 [~,i,j] = unique(logical(spm_cat(O)'),'rows','stable');
