@@ -9,7 +9,7 @@ spm('defaults','eeg');
 %resultsdir='D:\matlab\jimmymatfiles\'; %% user specified.
 resultsdir = fullfile(cd, 'results');  % standard within current folder, but user should adapt
 
-% Flexibly create results 
+% Flexibly create results folder if missing
 if not(isfolder(resultsdir))
     mkdir(resultsdir)
 end
@@ -53,10 +53,7 @@ Zrange=[-Zrange,Zrange];
 trajvals=linspace(Zrange(1),Zrange(2),Npoints);
 DistortIndices=[8 100]; %% only distort higher order components
 
-
 Crossval=0; %% do cross validation or not (takes ~10* longer)
-
-
 
 simstr={'1motor'}; %% simulation scenario
 
@@ -72,6 +69,7 @@ else
 end;
 
 
+% Loop over sims
 if REDOCALC
 
     for simind=1:numel(simstr), %% was on simind=12
@@ -89,7 +87,7 @@ if REDOCALC
 
         end; % case simpos
 
-        %% find a peak in the simulated signal at around the central cycle (only used for visualization in figure)
+        %% Find a peak in the simulated signal at around the central cycle (only used for visualization in figure)
         l1=length(mult_simsignal(1,:));
         l2=round(freq*2*pi/D.nsamples)*4;
         [dum,peakl2]=max(mult_simsignal(1,round(l1/2)-l2:round(l1/2)+l2))
@@ -99,7 +97,6 @@ if REDOCALC
         [Dnew,meshsourceind]=spm_eeg_simulate({D},prefix,mnicoord,mult_simsignal);
 
         PCAtemplate=fullfile(spm('Dir'),'tpm','shp','Template_0.nii');
-
 
         F_vals=[];
         R2=[];
@@ -123,7 +120,7 @@ if REDOCALC
 
             [aM,b]=spm_jobman('run', matlabbatch);
 
-            %% now compute distances of brians to brain.
+            %% Now compute distances of brians to brain.
             M0=gifti(aM{1}.brain); %% get original cortex
             for i=1:numel(aM{1}.brians),
                 M1=gifti(aM{1}.brians(i));
@@ -131,7 +128,7 @@ if REDOCALC
             end;
 
 
-            %% now make lead fields for each surface (looks in directory seedXXX as specified by RandomSeed above)
+            %% Now make lead fields for each surface (looks in directory seedXXX as specified by RandomSeed above)
 
             LFsubdir=sprintf('seed%03d',RandSeed);
             matlabbatch=[];
@@ -144,7 +141,7 @@ if REDOCALC
             [aL,b]=spm_jobman('run', matlabbatch);
 
 
-            %% now quantify how much the lead fields for the distorted surfaces differ from the original
+            %% Now quantify how much the lead fields for the distorted surfaces differ from the original
             G=load(aL{1}.gainmat{1}); %% original lead fields
             L0=G.G;
             for i=1:Npoints+1,
@@ -172,7 +169,7 @@ if REDOCALC
             [spatialmodesname,Nmodes,pctest]=spm_eeg_inv_prep_modes_xval(Dnew.fullfile, [], spatialmodesname, Nblocks, pctest,gainmatfiles);
 
 
-            %% now invert these data using this headmodel
+            %% Now invert these data using this headmodel
 
             Ngainmat=size(gainmatfiles,1);
 
@@ -184,17 +181,19 @@ if REDOCALC
             for f=1:Ngainmat,
                 starttime=tic;
                 D=spm_eeg_load(Dnew.fullfile);
-                %% load in a dataset but swap in different gainmat (lead field) files
+
+                %% Load in a dataset but swap in different gainmat (lead field) files
                 gainmatfile=deblank(gainmatfiles(f,:));
                 [gpath,gname,gext]=spm_fileparts(gainmatfile);
                 copyfile(gainmatfile,[D.path filesep gname gext]); % have to put gainmat in spmfile directory
                 D.inv{val}.gainmat=[gname gext]; %%  just change name of gainmat in file
                 D.save;
 
-                %% now run the inversion
+                %% Now run the inversion
                 matlabbatch={};
                 batch_idx=1;
                 for i1=1:numel(invmethods),
+
                     % Source reconstruction
                     matlabbatch{batch_idx}.spm.meeg.source.invertiter.D = {Dnew.fullfile};
                     matlabbatch{batch_idx}.spm.meeg.source.invertiter.val = 1;
@@ -237,7 +236,7 @@ if REDOCALC
                         c2d=Drecon.coor2D;
                         chanlabel=Drecon.chanlabels;
                     end;
-                    %% now get classical distances between simulated and actual sources
+                    %% Now get classical distances between simulated and actual sources
 
                     meshpwr=sum(allJ'.^2); %% total power across mesh
                     [maxsumJ2(f,i1,RandSeed),ind]=max(meshpwr); %%
@@ -274,7 +273,8 @@ if REDOCALC
                         d1=(repmat(mnicoord(s,:),size(allmni,1),1)-allmni)';
                         d0(s)=min(sqrt(dot(d1,d1)));
                     end;
-                    %% record some distances between simulated and reconstructed
+
+                    %% Record some distances between simulated and reconstructed
                     Mindist(f,i1,RandSeed)=min(d0);
                     Maxdist(f,i1,RandSeed)=max(d0);
                     Meandist(f,i1,RandSeed)=mean(d0);
@@ -282,7 +282,7 @@ if REDOCALC
                 end; % for invmethods
 
 
-                %% clean up
+                %% Clean up
                 fprintf('\n Done %d of %d',f,Ngainmat);
                 fprintf('\n Deleting Gainmat')
                 delete([D.path filesep gname gext]); %% remove copied gainmat file to save disk space
@@ -304,7 +304,8 @@ else %if REDOCALC=0
     load([resultsdir filesep sprintf('summary_%d_cond_CTF%s_seed%d_scale%03d.mat',Crossval,simpos,RandSeed,round(scale*1000))])
 end; % if REDOCALC
 
-%% plot preferences
+%% Plot preferences
+
 mstr='do'; % markers for inversions
 colstr='br'; %colours for inversions
 col_dist_str='mc'; %% for distorted surfaces
@@ -541,14 +542,8 @@ legend(legstr)
 %end; % if justoneseed
 
 
-
 medists=[];
 sedists=[]
-
-
-
-
-
 
 
 figure;
