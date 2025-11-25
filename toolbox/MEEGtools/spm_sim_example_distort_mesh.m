@@ -1,13 +1,23 @@
+% Clean up
 clear all;
 close all;
 
+% Set defaults SPM settings
 spm('defaults','eeg');
 
-resultsdir='D:\matlab\jimmymatfiles\'; %% user specified.
+% Set results folder
+%resultsdir='D:\matlab\jimmymatfiles\'; %% user specified.
+resultsdir = fullfile(cd, 'results');  % standard within current folder, but user should adapt
 
+% Flexibly create results 
+if not(isfolder(resultsdir))
+    mkdir(resultsdir)
+end
+
+% Main parameter
 REDOCALC=0; %% should =1 first time code is run or if want to simulate again (Or calc new meshes etc)
-%% after that =0 just loads in results.
 
+%% After that = 0 just loads in results.
 
 if ~exist(resultsdir),
     error('need to set up a directory to hold the results !')
@@ -19,11 +29,15 @@ if ~exist(fname),
     error('Need to download SPM test data')
 end;
 
-D     = spm_eeg_load(fname);
+D = spm_eeg_load(fname);
+
+% Fix paths to make sure to use the canonical templates included in one's
+% own SPM version
+D = spm_setmeshpaths(D,fullfile(spm('Dir'),'canonical'))
 
 invmethods={'EBB','IID'}; %% methods to be used
 
-%% simulate a source
+%% Simulate a source
 prefix='sim';
 freq=30; %% frequency of sinusoid
 scale=[0.1]; % how much to scale simulated source by
@@ -31,7 +45,7 @@ scale=[0.1]; % how much to scale simulated source by
 HeadModel='Single Shell'; % forward model to use
 peakdistthresh=20; %% min distance between local maxima to be deemed different
 
-%% now make some distorted brians.
+%% Now make some distorted brians.
 Npoints=17; %% number of surfaces
 Zrange=3; %% amount of distortion (as Z score)
 Nseed=8; %% number of random seeds to use
@@ -425,6 +439,7 @@ for invind=1:numel(invmethods),
     useind=intersect(find(M0.vertices(:,slicedim)<sliceind+sthick),find(M0.vertices(:,slicedim)>sliceind-sthick))
     C=zeros(size(M0.vertices,1),1);
     C(useind)=1;
+
     %% PLOTS DISTORTED ANATOMY
     for fs=1:length(usesurfind),
         f=usesurfind(fs);
