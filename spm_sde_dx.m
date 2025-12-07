@@ -49,7 +49,7 @@ s     = diag(s);
 u     = pinv(v);
 s     = 1j*imag(s) + min(real(s),-4);
 eJdt  = real(v*diag(exp(s*dt))*u);
-dfdx  = real(v*diag(s)*u);
+dfdx  = real(v*diag(s*dt)*u);
 
 % flow operators
 %--------------------------------------------------------------------------

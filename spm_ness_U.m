@@ -34,8 +34,12 @@ function U = spm_ness_U(M,x)
 % event space: get or create X - coordinates of evaluation grid
 %--------------------------------------------------------------------------
 if isfield(M,'FUN'), FUN = M.FUN; else, FUN = 'POLY'; end
-if isfield(M,'K'),   K   = M.K;   else, K = 3;        end
-if isfield(M,'L'),   K   = max(K,M.L);                end
+if isfield(M,'K'),   K   = M.K;   else, K = 2;        end
+if isfield(M,'L'),   L   = M.L;   else, L = 3;        end
+
+% upper bound on order
+%--------------------------------------------------------------------------
+K   = max(K,L);
 
 if nargin < 2
     
@@ -56,20 +60,51 @@ if nargin < 2
 
     end
 
-    % use M.X
+    % state space
     %----------------------------------------------------------------------
     for i = 1:n
         x{i}  = unique(X(:,i));
     end
 
 else
-    
-    % use x
+
+    % if sample points
     %----------------------------------------------------------------------
-    [X,x]     = spm_ndgrid(x);
-    [b,D,H,o] = spm_polymtx(x,K,FUN);
-    [nX,n]    = size(X);
-    
+    if isnumeric(x)
+
+        % use M.X
+        %------------------------------------------------------------------
+        X      = x;
+        [nX,n] = size(X);
+        for  i = 1:nX
+            x               = num2cell(X(i,:));
+            [bi,Di,Hi,o]    = spm_polymtx(x,K,FUN);
+            b(i,:)          = full(bi);
+            for j = 1:n
+                D{j,1}(i,:) = full(Di{j});
+                for k = 1:n
+                    H{j,k}(i,:) = full(Hi{j,k});
+                end
+            end
+
+        end
+
+        % state space
+        %------------------------------------------------------------------
+        for i = 1:n
+            x{i}  = unique(X(:,i));
+        end
+
+    else
+
+        % state space
+        %------------------------------------------------------------------
+        [X,x]     = spm_ndgrid(x);
+        [b,D,H,o] = spm_polymtx(x,K,FUN);
+        [nX,n]    = size(X);
+
+    end
+
 end
 
 % size of subspace (nx)

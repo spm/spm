@@ -35,8 +35,8 @@ function [DEM] = spm_DEM(DEM)
 %   qU.v    = Conditional expectation of causal states
 %   qU.w    = Conditional prediction error (states)
 %   qU.z    = Conditional prediction error (causes)
-%   qU.C    = Conditional covariance: cov(v)
 %   qU.S    = Conditional covariance: cov(x)
+%   qU.C    = Conditional covariance: cov(v)
 %
 % conditional moments of model-parameters - q(p)
 %--------------------------------------------------------------------------

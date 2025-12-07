@@ -68,18 +68,18 @@ for i = 1:g
         box off
         set(gca,'XLim',[0 np + 1])
 
-        % prior or true means
-        %------------------------------------------------------------------
-        try
-            hold on, bar(1:length(qi),pi,1/4), hold off
-        end
-
         % conditional variances
         %------------------------------------------------------------------
         for k = 1:np
             line([k k], [-1 1]*c(k) + qi(k),'LineWidth',4,'Color',col);
         end
 
+        % prior or true means
+        %------------------------------------------------------------------
+        try
+            hold on
+            plot(1:k,pi,'.r','MarkerSize',16);
+        end
 
         % labels
         %------------------------------------------------------------------

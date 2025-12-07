@@ -1,27 +1,26 @@
 function [ks,kq,kg,kh] = spm_NESS_constraints(o,A,K,L)
-% constraints on polynomial coefficients or dynamical systems
+% constraints on polynomial coefficients of dynamical systems
 % FORMAT [ks,kq,kg,kh] = spm_NESS_constraints(o,A,K,L);
 % o - matrix of orders for polynomial expansion
 % A - adjacency matrix (dynamical coupling)
 % K - upper bound on order for surprisal parameters
-% J - upper bound on order for flow operator parameters
+% L - upper bound on order for flow operator parameters (K > L)
 %
 % ks  - indices for surprisal   parameters
 % kq  - indices for solenoidal  parameters
 % kg  - indices for dissipative parameters
 % kh  - indices for curvature   parameters
-
-%
-%--------------------------------------------------------------------------
 %__________________________________________________________________________
 
 % Karl Friston
 % Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
 % constraints on potential parameters due to dissipative flow
-%--------------------------------------------------------------------------
+%==========================================================================
 [n,nb] = size(o);                            % number of basis functions
 
+% terms for suprisal kernel
+%--------------------------------------------------------------------------
 ks    = sum(o) > K;                          % polynomial order constraints
 ks    = ks | ~sum(o);                        % suppress constant
 for i = 1:n
@@ -36,7 +35,7 @@ end
 %--------------------------------------------------------------------------
 kh    = any(o == 2);
 
-% constraints on the order of the polynomial expansion
+% constraints on the order of the polynomial expansion for flow
 %--------------------------------------------------------------------------
 k     = cell(n,n);
 for i = 1:n
@@ -77,7 +76,7 @@ for i = 1:n
     end
 end
 
-% constraints due to diagonal elements of Hessian S
+% preclude dissipative part of Q (i.e., G, which is modelled by M.W)
 %--------------------------------------------------------------------------
 for i = 1:n
     for j = 1:n
@@ -95,7 +94,6 @@ for i = 1:n
         kg = [kg (k{i,j} | k{j,i})];
     end
 end
-
 
 return
 

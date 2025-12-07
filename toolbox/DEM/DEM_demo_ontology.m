@@ -208,8 +208,6 @@ spm_dcm_bmr_all(PEB)
 subplot(3,2,3), hold on, bar(1:4,M(2).pE.B(:),1/3), hold off
  
  
- 
- 
 % plotting sub function
 %==========================================================================
 function spm_DEM_plot(DEM)
