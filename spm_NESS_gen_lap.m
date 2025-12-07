@@ -4,8 +4,8 @@ function [F,S,Q,L,H,DS] = spm_NESS_gen_lap(P,M,x)
 % FORMAT [F,S,Q,L,H,D] = spm_NESS_gen_lap(P,M,U)
 %--------------------------------------------------------------------------
 % P.Qp    - polynomial coefficients for solenoidal operator
-% P.Sp    - polynomial coefficients for Kernel
-% P.Rp    - polynomial coefficients for mean
+% P.Sp    - polynomial coefficients for Kernel (suprisal)
+% P.Rp    - polynomial coefficients for mean   (suprisal)
 %
 % F       - polynomial approximation to flow
 % S       - negative potential (log NESS density)
@@ -29,7 +29,21 @@ function [F,S,Q,L,H,DS] = spm_NESS_gen_lap(P,M,x)
 % U.bG    - projection of flow operator (symmetric part: G)
 % U.dQdp  - gradients of flow operator Q  w.r.t. flow parameters
 % U.dbQdp - gradients of bQ w.r.t. flow parameters
-% U.dLdp  - gradients of L w.r.t. flow parameters
+% U.dLdp  - gradients of L  w.r.t. flow parameters
+%
+% This routine returns the flow at a number of specified points in state
+% space under a polynomial approximation to any Helmholtz-Hodge
+% decomposition of nonequilibrium steady-state dynamics. This routine
+% shares many of the same constructs as spm_NESS_fx; with the exception
+% that the dissipative part of the flow (i.e., amplitude of random
+% fluctuations G) is specified as the precision of a state-space model:
+% M.W.
+%
+% In brief, spm_NEES_fx returns the flow for a particular point in state
+% space, whereas this routine returns the flow for an arbitrary number of
+% points at the same time. These flows can then be used as a generative
+% model for the flow sampled over grid points in state space—or during the
+% evolution of some path through state space.
 %__________________________________________________________________________
 
 % Karl Friston
@@ -119,36 +133,3 @@ for i = 1:n
 end
 
 return
-
-
-
-% kernel for Hessian Sp
-%--------------------------------------------------------------------------
-for i = 1:n
-    for j = i:n
-        if i == j
-            H(i,j,:) = (U.b*P.Sp(:,i,j)).^2;
-            for k = 1:n
-                DH(i,j,k,:) = 2*(U.D{k}*P.Sp(:,i,j)).*squeeze(H(i,j,:));
-            end
-        else
-            H(i,j,:) = U.b*P.Sp(:,i,j);
-            H(j,i,:) = H(i,j,:);
-            for k = 1:n
-                DH(i,j,k,:) = U.D{k}*P.Sp(:,i,j);
-                DH(j,i,k,:) = DH(i,j,k,:);
-            end
-        end
-    end
-end
-
-% gradients D*S
-%--------------------------------------------------------------------------
-DS    = cell(n,1);
-for k = 1:nX
-    X      = U.X(k,:) - E(k,:);
-    S(k,1) = X*H(:,:,k)*X'/2;
-    for j = 1:n
-        DS{j}(k,1) = X*DH(:,:,j,k)*X' + H(j,:,k)*X';
-    end
-end

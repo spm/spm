@@ -37,11 +37,9 @@ f      = U.f';                 % target flow
 
 % get constraints (allowing G to be free parameters)
 %--------------------------------------------------------------------------
-J      = any(U.J,3);
-J      = J'.*J;
+J      = ones(n,n);
 [ks,kq,kg] = spm_NESS_constraints(U.o,J,M.K,M.L);
 k      = find(~(kq | kg));
-k      = find(~(kg));
 nb     = size(U.b,2);
 nQ     = n*n/2 + n/2;
 

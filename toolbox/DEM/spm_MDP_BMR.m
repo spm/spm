@@ -1,5 +1,5 @@
 function [L] = spm_MDP_BMR(qp,rp)
-% returns the likelihhod of reduced (Dirichlet) models
+% returns the likelihood of reduced (Dirichlet) models
 % FORMAT [L] = spm_MDP_BMR(qp,rp)
 %
 % qp    - posterior Dirichlet parameters (tensor or numeric array)

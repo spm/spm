@@ -1154,8 +1154,8 @@ M.x  = x0;
 M.m  = 0;
 M.pE = P;
 M.W  = diag([1/8 1/16 1/32]);           % precision of random fluctuations
-M.K  = 2;
-M.L  = 3;
+M.K  = 2;                               % order of expansion (suprisal)
+M.L  = 3;                               % order of expansion (flow)
 
 % state-space for (Laplace) solution 
 %--------------------------------------------------------------------------
@@ -1357,7 +1357,7 @@ Sp      = (b\log(p0(:) + exp(-32)))*2;
 %--------------------------------------------------------------------------
 Ep    = NESS.Ep;
 Ep.G  = inv(M.W)/2;
-dt    = 1/8;
+dt    = 1/16;
 for t = 1:25
     dS = spm_NESS_ds(Sp,Ep);
     Sp = Sp - dS*dt;
@@ -1375,7 +1375,7 @@ end
 
 % Run system forwards in time to nonequilibrium steady-state density
 %--------------------------------------------------------------------------
-dt    = 1/8
+dt    = 1/16
 for T = 1:8
     P0    = 0;
     for t = 1:16
