@@ -67,6 +67,20 @@ vol_oppo.help    = {...
 vol_oppo.preview = @(f) spm_image('Display',char(f));
 
 %--------------------------------------------------------------------------
+% Voxel Displacement Map prior, i.e. starting estimate
+%--------------------------------------------------------------------------
+vdm_prior         = cfg_files;
+vdm_prior.tag     = 'VDMprior';
+vdm_prior.name    = 'Voxel Displacement Map - initial estimate';
+vdm_prior.filter  = 'image';
+vdm_prior.ufilter = '.*';
+vdm_prior.num     = [1 inf];
+vdm_prior.help    = {...
+['Select an image containing the initial estimate of the voxel displacement map. ', ...
+ 'Leave empty if no initial estimate is available.']}; 
+vdm_prior.preview = @(f) spm_image('Display',char(f));
+
+%--------------------------------------------------------------------------
 % fwhm values
 %--------------------------------------------------------------------------
 fwhm         = cfg_entry;
@@ -162,7 +176,7 @@ outdir.help    = {[...
 'in the specified directory. The voxel displacement map is saved to disk as ',...
 'a vdm file (``vdm5_*.nii``)']};
 
-[cfg,varargout{1}] = deal({vol_same,vol_oppo,fwhm,reg,rinterp,jac,prefix,outdir});
+[cfg,varargout{1}] = deal({vol_same,vol_oppo, vdm_prior, fwhm,reg,rinterp,jac,prefix,outdir});
 
 %==========================================================================
 function out = spm_run_scope(cmd, job)
@@ -170,7 +184,7 @@ function out = spm_run_scope(cmd, job)
 switch lower(cmd)
     case 'run'
         vdm               = spm_scope(job.vol1,job.vol2,job.fwhm,job.reg, ...
-                                      job.rinterp,job.jac,job.prefix,job.outdir{1});
+                                      job.rinterp,job.jac,job.prefix,job.outdir{1}, job.VDMprior);
         out.vdmfile       = {vdm.dat.fname};
 
     case 'vout'
