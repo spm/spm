@@ -448,16 +448,25 @@ if isempty(ormni)
 end;
 figure
 
+addednoise=std(randn(size(Dnew(:,:,1)))'.*whitenoise);
+
 aux = tmp(tmpind(end),:);
+[dum,maxind]=max(tmp(tmpind(end),:));
 subplot(2,1,1);
 plot(Dnew.time,Dnew(dnewind(end),:,trialind(1)),Dnew.time,aux,'r');
-title('Measured activity over max sensor');
+
+snr_dB=full(20*log10(abs(tmp(tmpind(end),maxind))/whitenoise));
+title(sprintf('Measured activity over max sensor (SNR=%3.2f dB)',snr_dB));
 legend('Noisy','Noiseless');
+
 ylabel(sensorunits{chanind(1)});
 subplot(2,1,2);
 aux = tmp(tmpind(floor(length(tmpind)/2)),:);
-plot(Dnew.time,Dnew(dnewind(floor(length(tmpind)/2)),:,trialind(1)),Dnew.time,aux,'r');
-title('Measured activity over median sensor');
+
+snr_dB=full(20*log10(abs(tmp(tmpind(floor(length(tmpind)/2)),maxind))/whitenoise));
+plot(Dnew.time,Dnew(dnewind(tmpind(floor(length(tmpind)/2))),:,trialind(1)),Dnew.time,aux,'r');
+
+title(sprintf('Measured activity over median sensor (SNR=%3.2f dB)',snr_dB));
 legend('Noisy','Noiseless');
 ylabel(sensorunits{chanind(1)});
 xlabel('Time in sec');

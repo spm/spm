@@ -495,6 +495,14 @@ end
 %--------------------------------------------------------------------------
 %-Diffusion imaging data
 %--------------------------------------------------------------------------
+
+% all required and optional entities from
+% https://bids-specification.readthedocs.io/en/stable/appendices/entity-table.html
+% retrived 2025-11-13
+dwi_entities = {'sub','ses','task','acq','ce','rec','dir','run','part','recording', ...
+                ... bvec and bval are not entities but read from _dwi.{bvec,bval} files
+                'bvec','bval'};
+
 pth = fullfile(subject.path,'dwi');
 if exist(pth,'dir')
     f = spm_select('FPList',pth,...
@@ -504,7 +512,14 @@ if exist(pth,'dir')
 
         %-Diffusion imaging file
         %------------------------------------------------------------------
-        p = parse_filename(f{i}, {'sub','ses','acq','run', 'bval','bvec'});
+        p = parse_filename(f{i}, dwi_entities);
+        % parse_filename will return struct() when f{i} has extra entities
+        % that will cause an error on concat if not caught here
+        % will see 'Ignoring file ...' warning already
+        if isempty(p)
+            continue;
+        end
+
         subject.dwi = [subject.dwi p];
 
         %-bval file
@@ -731,8 +746,11 @@ if nargin == 2
         end
     end
     try
-        p = orderfields(p,['filename','ext','type',fields]);
-    catch
+        % orderfields fails if second arg is not same set as fieldnames()
+        % filename, ext, and type are not BIDS entities but are part of stuct
+        p = orderfields(p,{'filename','ext','type',fields{:}});
+    catch e
+        disp(e); % report error so python users have someting useful to show
         warning('Ignoring file "%s" not matching template.',filename);
         p = struct([]);
     end

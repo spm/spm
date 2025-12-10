@@ -9,6 +9,13 @@ if isempty(val),
     val=1;
 end;
 
+if nargin<2,
+    newpath=[];
+end;
+
+if isempty(newpath),
+    newpath=D.path; %% default to file location
+end;
 [a1,b1,c1]=fileparts(D.inv{val}.mesh.tess_iskull);
 D.inv{val}.mesh.tess_iskull=[newpath filesep b1 c1];
 
