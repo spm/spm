@@ -312,7 +312,6 @@ for i=2:numel(P)
     d  = [size(V) 1 1];
     d  = d(1:3);
     ss = Inf;
-    countdown = -1;
     for iter=1:128
         [y1,y2,y3] = coords([0 0 0  0 0 0],P(1).mat,P(i).mat,x1,x2,x3);
         msk        = find((y1>=1 & y1<=d(1) & y2>=1 & y2<=d(2) & y3>=1 & y3<=d(3)));
@@ -381,7 +380,6 @@ for i=1:numel(P)
     V  = smooth_vol(P(i),flags.interp,flags.wrap,fwhm);
     d  = [size(V) 1 1 1];
     ss = Inf;
-    countdown = -1;
     for iter=1:128
         [y1,y2,y3] = coords([0 0 0  0 0 0],M,P(i).mat,x1,x2,x3);
         msk        = find((y1>=1 & y1<=d(1) & y2>=1 & y2<=d(2) & y3>=1 & y3<=d(3)));
