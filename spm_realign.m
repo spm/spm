@@ -313,7 +313,7 @@ for i=2:numel(P)
     d  = d(1:3);
     ss = Inf;
     countdown = -1;
-    for iter=1:64
+    for iter=1:128
         [y1,y2,y3] = coords([0 0 0  0 0 0],P(1).mat,P(i).mat,x1,x2,x3);
         msk        = find((y1>=1 & y1<=d(1) & y2>=1 & y2<=d(2) & y3>=1 & y3<=d(3)));
         if length(msk)<32, error_message(P(i)); end
@@ -323,7 +323,8 @@ for i=2:numel(P)
 
         b1         = b(msk);
         sc         = sum(b1.*F)/sum(b1.^2);
-        soln       = AA\(A0(msk,:)'*(b1-F*sc));
+        b1         = b1-F*sc;
+        soln       = AA\(A0(msk,:)'*b1);
 
         p          = [0 0 0  0 0 0  1 1 1  0 0 0];
         p(lkp)     = p(lkp) + soln';
@@ -331,14 +332,16 @@ for i=2:numel(P)
 
         pss        = ss;
         ss         = sum(b1.^2)/length(b1);
-        if (pss-ss)/pss < 1e-8 && countdown == -1 % Stopped converging.
-            countdown = 2;
-        end
-        if countdown ~= -1
-            if countdown==0, break; end
-            countdown = countdown -1;
+        if iter==1
+            pss0 = ss;
+        else
+            %fprintf(' %g',abs(pss-ss)/pss0)
+            if abs(pss-ss)/pss0 < 1e-7
+                break
+            end
         end
     end
+    %fprintf('\n')
     if flags.rtm
         % Generate mean and derivatives of mean
         tiny = 5e-2; % From spm_vol_utils.c
@@ -379,7 +382,7 @@ for i=1:numel(P)
     d  = [size(V) 1 1 1];
     ss = Inf;
     countdown = -1;
-    for iter=1:64
+    for iter=1:128
         [y1,y2,y3] = coords([0 0 0  0 0 0],M,P(i).mat,x1,x2,x3);
         msk        = find((y1>=1 & y1<=d(1) & y2>=1 & y2<=d(2) & y3>=1 & y3<=d(3)));
         if length(msk)<32, error_message(P(i)); end
@@ -389,7 +392,8 @@ for i=1:numel(P)
 
         b1         = b(msk);
         sc         = sum(b1.*F)/sum(b1.^2);
-        soln       = AA\(A0(msk,:)'*(b1-F*sc));
+        b1         = b1-F*sc;
+        soln       = AA\(A0(msk,:)'*b1);
 
         p          = [0 0 0  0 0 0  1 1 1  0 0 0];
         p(lkp)     = p(lkp) + soln';
@@ -397,15 +401,16 @@ for i=1:numel(P)
 
         pss        = ss;
         ss         = sum(b1.^2)/length(b1);
-        if (pss-ss)/pss < 1e-8 && countdown == -1 % Stopped converging.
-            % Do three final iterations to finish off with
-            countdown = 2;
-        end
-        if countdown ~= -1
-            if countdown==0, break; end
-            countdown = countdown -1;
+        if iter==1
+            pss0 = ss;
+        else
+            %fprintf(' %g',abs(pss-ss)/pss0)
+            if (pss-ss)/pss0 < 1e-7
+                break
+            end
         end
     end
+    %fprintf('\n');
     spm_progress_bar('Set',i);
 end
 spm_progress_bar('Clear');
