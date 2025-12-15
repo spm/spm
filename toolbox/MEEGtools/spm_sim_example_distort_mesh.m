@@ -9,13 +9,14 @@ spm('defaults','eeg');
 %resultsdir='D:\matlab\jimmymatfiles\'; %% user specified.
 resultsdir = fullfile(cd, 'results');  % standard within current folder, but user should adapt
 
+
 % Flexibly create results folder if missing
 if not(isfolder(resultsdir))
     mkdir(resultsdir)
 end
 
 % Main parameter
-REDOCALC=0; %% should =1 first time code is run or if want to simulate again (Or calc new meshes etc)
+REDOCALC=1; %% should =1 first time code is run or if want to simulate again (Or calc new meshes etc)
 
 %% After that = 0 just loads in results.
 
@@ -512,8 +513,6 @@ for f=1:length(plotinv),
 
     [sFvals(:,f),sdist]=simplify_dist_metric(tmpFvals(:,f)',disterr)
 end;
-warning('Boosting IID by 8000 so it appears on plot')
-%   sFvals(:,2)=sFvals(:,2)+8000;
 hold on;
 
 for f=1:length(plotinv)
@@ -531,15 +530,12 @@ for f=1:length(plotinv)
     set(h2,'MarkerSize',15)
     legstr{end+1}=['Peak ' invmethods{plotinv(f)}];
 end;
-%set(gca,'Xtick',1:Npoints+1);
-%set(gca,'Xticklabel',round(sdist*10)/10)
 set(gca,'FontSize',18)
 ylabel('Free Energy')
 xlabel('Distortion (mm)')
 legend(legstr)
 
 
-%end; % if justoneseed
 
 
 medists=[];
@@ -557,8 +553,6 @@ for i1d=1:length(plotinv),
     [tF_vals,sdist]=simplify_dist_metric(squeeze(F_vals(:,i1,:))',disterr);
     h=plot(sdist,squeeze(tF_vals),colstr(i1d));
     set(h,'Linewidth',1)
-    % set(h1,'Linewidth',4)
-    %set(h0,'Linewidth',4)
     [maxval,maxinds]=max(squeeze(tF_vals)');
 
     h01=plot(sdist(maxinds(1)),maxval(1),[colstr(i1d) mstr(i1d)])
@@ -569,8 +563,6 @@ for i1d=1:length(plotinv),
     set(h0,'Markersize',20)
 
     axis([0 max(sdist) -Inf Inf]);
-%     set(gca,'Xtick',1:length(sdist));
-%     set(gca,'Xticklabel',round(sdist*10)/10)
     xlabel('Distortion (mm)')
     set(h(1),'Linewidth',2)
     ylabel('Free Energy')
@@ -599,11 +591,9 @@ set(gca,'Fontsize',18)
 
 figure;
 
-%plot(1:length(plotinv),dist2sim,'*')
 se2dsim=std(Meandist(1,plotinv,:),[],3)./sqrt(Nseed-1);
 hold on;
 
-%  h=errorbar(1:length(plotinv),dist2sim,se2dsim,'o');
 for f=1:length(plotinv)
     h1=plot(f,dist2sim(f),['*' colstr(f)]);
     set(h1,'Markersize',20)
