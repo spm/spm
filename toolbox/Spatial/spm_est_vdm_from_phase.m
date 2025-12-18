@@ -77,7 +77,6 @@ Nio.dat(:,:,:,:) = Nii_pha;
 
 pha_file = oname;
 
-if isempty(outdir); outdir = pwd; end
 % fix for unix library conflict for ROMEO phase unwrapping
 if isunix; paths = getenv('LD_LIBRARY_PATH'); setenv('LD_LIBRARY_PATH'); end
 % calling ROMEO phase unwrapping
@@ -93,7 +92,7 @@ vdm_pha = pha_unwr*total_readout_time/(2*pi*TE)*PE_dir ;
 [~, mask] = spm_mask_from_segments(vol1_mean);
 
 % fast VDM smoothing and extrapolation
-vdm_pha = spm_smooth_extrap_fast(vdm_pha, mask) ;
+vdm_pha = spm_smooth_extrap(vdm_pha, mask) ;
 
 
 end
@@ -184,7 +183,7 @@ URL = sprintf('https://github.com/korbinian90/CompileMRI.jl/releases/download/v%
 file_targz = websave(sprintf('%s.tar.gz',outdir), URL);
 file_tar = char(gunzip(file_targz));
 untar(file_tar,outdir);
-movefile(fullfile(outdir,sprintf('%s_%s/*',assetKey, version_tag)), outdir)
+movefile(fullfile(outdir,sprintf('%s_%s',assetKey, version_tag),'*'), outdir)
 rmdir(fullfile(outdir,sprintf('%s_%s',assetKey, version_tag)))
 delete(file_targz)
 delete(file_tar)

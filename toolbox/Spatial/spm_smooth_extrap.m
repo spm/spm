@@ -1,6 +1,6 @@
 function image = spm_smooth_extrap(image, mask, k, Niter)
 % Fast convolution Gaussian smoothing in 3D plus extrapolation to missing data
-% FORMAT v = spm_fast_smooth(v, k)
+% FORMAT v = spm_smooth_extrap(image, mask, k, Niter)
 % Inputs:
 %   image: 3D image to be smoothed  
 %   mask: 3D binary mask defining voxels with valid data
