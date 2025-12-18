@@ -77,6 +77,7 @@ Nio.dat(:,:,:,:) = Nii_pha;
 
 pha_file = oname;
 
+if isempty(outdir); outdir = pwd; end
 % fix for unix library conflict for ROMEO phase unwrapping
 if isunix; paths = getenv('LD_LIBRARY_PATH'); setenv('LD_LIBRARY_PATH'); end
 % calling ROMEO phase unwrapping
