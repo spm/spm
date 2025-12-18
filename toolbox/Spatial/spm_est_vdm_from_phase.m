@@ -1,12 +1,38 @@
 function vdm_pha = spm_est_vdm_from_phase(vol1, vol1_mean, vol1_pha, total_readout_time, TE, PE_dir, outdir)
 
+%==========================================================================
+% Estimate Voxel Displacement Map (VDM) from phase images using ROMEO phase
+% unwrapping tool.
+% FORMAT: 
+% vdm_pha = spm_est_vdm_from_phase(vol1, vol1_mean, vol1_pha,
+%                                         total_readout_time, TE, PE_dir, outdir)       
+%
+% Input:
+%   vol1                - cell array of file names of magnitude images with
+%                         the same PE direction as the fMRI data to be corrected
+%   vol1_mean          - file name of mean magnitude image with the same PE
+%                         direction as the fMRI data to be corrected
+%   vol1_pha           - cell array of file names of phase images with the
+%                         same PE direction as the fMRI data to be corrected
+%   total_readout_time - total readout time in seconds
+%   TE                 - echo time in seconds
+%   PE_dir             - phase-encoding direction (+1 or -1)
+%   outdir             - output directory for temporary files   
+%
+% Output:
+%   vdm_pha            - Voxel Displacement Map (in mm) estimated from phase
+%                         images    
+%
+% Barbara Dymerska
+% Copyright (C) 2025 Department of Imaging Neuroscience, UCL
+%==========================================================================
+
 mritools_dir = fullfile(spm('Dir'),'external', 'mritools');
 romeo_bin = fullfile(mritools_dir,'bin', 'romeo') ;
 if ~exist(romeo_bin, 'file')
     fprintf('ROMEO binary for phase unwrapping not found. Downloading from https://github.com/korbinian90/CompileMRI.jl/releases \n')
     mkdir(mritools_dir)
     download_mritools(mritools_dir, '4.7.1')
-    gunzip(fullfile(mritools_dir, 'mritools.gz'), fullfile(mritools_dir,'mritools'));
 end
 
 if numel(vol1(:,1))~=numel(vol1_pha(:,1))
@@ -51,18 +77,23 @@ Nio.dat(:,:,:,:) = Nii_pha;
 
 pha_file = oname;
 
+% fix for unix library conflict for ROMEO phase unwrapping
 if isunix; paths = getenv('LD_LIBRARY_PATH'); setenv('LD_LIBRARY_PATH'); end
-system(sprintf('%s -p %s -m %s -t epi -v -i -g -k nomask', romeo_bin,pha_file,mag_file));
+% calling ROMEO phase unwrapping
+system(sprintf('%s -p %s -m %s -o %s -t epi -v -i -g -k nomask', romeo_bin,pha_file,mag_file, outdir));
 % returning to default MATLAB library environment:
 if isunix; setenv('LD_LIBRARY_PATH', paths); end
 
 pha_unwr = nifti(fullfile(outdir, 'unwrapped.nii')).dat(:,:,:,:) ;
 pha_unwr = mean(pha_unwr,4) ;
 
-vdm_pha = pha_unwr*total_readout_time/(2*pi*TE) ;
+vdm_pha = pha_unwr*total_readout_time/(2*pi*TE)*PE_dir ;
 
-[~, mask] = spm_segment_mask(vol1_mean);
-vdm_pha = PE_dir*vdm_pha.*mask ;
+[~, mask] = spm_mask_from_segments(vol1_mean);
+
+% fast VDM smoothing and extrapolation
+vdm_pha = spm_smooth_extrap_fast(vdm_pha, mask) ;
+
 
 end
 
@@ -73,6 +104,11 @@ function download_mritools(outdir, version_tag)
 %
 % Usage:
 %       download_mritools('/my/download/path', '1.2.3')
+% Inputs:
+%   outdir      - target directory where to download and extract the files
+%   version_tag - version tag of CompileMRI.jl release (e.g. '1.2.3')
+% Note: this function requires an internet connection.
+%==========================================================================
 
 if ~exist(outdir, 'dir')
     error('Target directory does not exist: %s', outdir);
@@ -109,7 +145,7 @@ elseif ismac
     parts = regexp(verStr, '(\d+)\.(\d+)', 'tokens', 'once');
     major = str2double(parts{1});
 
-    % Only these exist: 13, 14, 15
+    % Only these exist in the ROMEO repo: 13, 14, 15
     if major < 13
         error('No asset available for macOS version %d.', major);
     end
@@ -117,7 +153,7 @@ elseif ismac
 
 elseif isunix
     % Linux → specifically check for Ubuntu version
-    [~, distro] = system('lsb_release -d');  % "Description: Ubuntu 22.04 LTS"
+    [~, distro] = system('lsb_release -d');  % "Example description: Ubuntu 22.04 LTS"
     tokens = regexp(distro, 'Ubuntu\s+(\d+)\.(\d+)', 'tokens', 'once');
 
     if isempty(tokens)
