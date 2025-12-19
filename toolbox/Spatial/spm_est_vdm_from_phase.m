@@ -3,9 +3,9 @@ function vdm_pha = spm_est_vdm_from_phase(vol1, vol1_mean, vol1_pha, total_reado
 %==========================================================================
 % Estimate Voxel Displacement Map (VDM) from phase images using ROMEO phase
 % unwrapping tool.
-% FORMAT: 
+% FORMAT:
 % vdm_pha = spm_est_vdm_from_phase(vol1, vol1_mean, vol1_pha,
-%                                         total_readout_time, TE, PE_dir, outdir)       
+%                                         total_readout_time, TE, PE_dir, outdir)
 %
 % Input:
 %   vol1                - cell array of file names of magnitude images with
@@ -17,11 +17,11 @@ function vdm_pha = spm_est_vdm_from_phase(vol1, vol1_mean, vol1_pha, total_reado
 %   total_readout_time - total readout time in seconds
 %   TE                 - echo time in seconds
 %   PE_dir             - phase-encoding direction (+1 or -1)
-%   outdir             - output directory for temporary files   
+%   outdir             - output directory for temporary files
 %
 % Output:
 %   vdm_pha            - Voxel Displacement Map (in mm) estimated from phase
-%                         images    
+%                         images
 %
 % Barbara Dymerska
 % Copyright (C) 2025 Department of Imaging Neuroscience, UCL
@@ -30,8 +30,6 @@ function vdm_pha = spm_est_vdm_from_phase(vol1, vol1_mean, vol1_pha, total_reado
 mritools_dir = fullfile(spm('Dir'),'external', 'mritools');
 romeo_bin = fullfile(mritools_dir,'bin', 'romeo') ;
 if ~exist(romeo_bin, 'file')
-    fprintf('ROMEO binary for phase unwrapping not found. Downloading from https://github.com/korbinian90/CompileMRI.jl/releases \n')
-    mkdir(mritools_dir)
     download_mritools(mritools_dir, '4.7.1')
 end
 
@@ -100,93 +98,78 @@ end
 %% ===========================================================================
 function download_mritools(outdir, version_tag)
 % download_mritools  Download the correct OS-specific mritools binary
-% from the specific GitHub release of CompileMRI.jl.
+% from the GitHub release of CompileMRI.jl.
 %
 % Usage:
 %       download_mritools('/my/download/path', '1.2.3')
 % Inputs:
 %   outdir      - target directory where to download and extract the files
 %   version_tag - version tag of CompileMRI.jl release (e.g. '1.2.3')
+%
 % Note: this function requires an internet connection.
 %==========================================================================
 
-if ~exist(outdir, 'dir')
-    error('Target directory does not exist: %s', outdir);
-end
+if ~exist(outdir, 'dir'); mkdir(outdir); end
 
 %% ============================================
 %  Detect OS and derive release-year identifier
 % ============================================
 if ispc
     % Windows Server year detection — approximate using build number
-    [~, verStr] = system('wmic os get version');
-
-    % Example: "10.0.26100" → build 26100 → Windows Server 2025
-    t = regexp(verStr, '(\d+)\.(\d+)\.(\d+)', 'tokens', 'once');
-    if isempty(t)
-        yr = 2022;  % default fall-back
-        return;
-    end
-
-    build = str2double(t{3});
-
-    if build < 19000
-        yr = 2019;
-    elseif build < 25000
-        yr = 2022;
-    else
-        yr = 2025; % default fall-back
-    end
-    assetKey = sprintf('mritools_windows-%d', yr);
+    v = System.Environment.OSVersion.Version.Build ;
+    WinYr = 2019 + (v >= 19041) * 3 + (v >= 22000) * 3;
+    WinYr = min(WinYr, 2025);   % cap at latest supported
+    assetKey = sprintf('mritools_windows-%d', WinYr);
 
 elseif ismac
     % macOS version: e.g. 14.4 → major=14
     [~, verStr] = system('sw_vers -productVersion');
     parts = regexp(verStr, '(\d+)\.(\d+)', 'tokens', 'once');
     major = str2double(parts{1});
-
-    % Only these exist in the ROMEO repo: 13, 14, 15
-    if major < 13
-        error('No asset available for macOS version %d.', major);
-    end
+    major = max(major, 13) ; %assets only for 13+
     assetKey = sprintf('mritools_macOS-%d', major);
 
 elseif isunix
-    % Linux → specifically check for Ubuntu version
-    [~, distro] = system('lsb_release -d');  % "Example description: Ubuntu 22.04 LTS"
-    tokens = regexp(distro, 'Ubuntu\s+(\d+)\.(\d+)', 'tokens', 'once');
+    [~, distro] = system('lsb_release -d');
+    tok = regexp(distro, 'Ubuntu\s+(\d+)', 'tokens', 'once');
 
-    if isempty(tokens)
-        error('Non-Ubuntu Linux detected; only Ubuntu assets exist.');
+    if isempty(tok)
+        warning('Non-Ubuntu Linux detected; only Ubuntu assets exist hence these taken.');
+        uYr = 22 ;
+    else
+        uYr = str2double(tok{1});
+        uYr = 24 - 2 * (uYr < 24);   % map <24 → 22, else 24
     end
-
-    uYear = str2double(tokens{1});  % e.g. 22 or 24
-
-    supported = [22, 24];
-    if ~ismember(uYear, supported)
-        error('No mritools asset available for Ubuntu %d.xx.', uYear);
-    end
-
-    assetKey = sprintf('mritools_ubuntu-%d.04', uYear);
+    assetKey = sprintf('mritools_ubuntu-%d.04', uYr);
 
 else
     error('Unknown or unsupported operating system.');
 end
 
-fprintf('Asset key: %s\n', assetKey);
+fprintf('mritools (ROMEO) asset key: %s\n', assetKey);
 
 %% ============================================
-% Retrieve latest release page HTML
+% Retrieve release page HTML
 % ============================================
-URL = sprintf('https://github.com/korbinian90/CompileMRI.jl/releases/download/v%s/%s_%s.tar.gz',version_tag, assetKey, version_tag);
-
-file_targz = websave(sprintf('%s.tar.gz',outdir), URL);
-file_tar = char(gunzip(file_targz));
-untar(file_tar,outdir);
-movefile(fullfile(outdir,sprintf('%s_%s',assetKey, version_tag),'*'), outdir)
-rmdir(fullfile(outdir,sprintf('%s_%s',assetKey, version_tag)))
-delete(file_targz)
-delete(file_tar)
-fprintf('mritools download complete.\n');
+if ispc
+    extension = 'zip' ;
+else
+    extension = 'tar.gz' ;
 end
 
+URL = sprintf('https://github.com/korbinian90/CompileMRI.jl/releases/download/v%s/%s_%s.%s',version_tag, assetKey, version_tag, extension);
+fprintf('ROMEO binary for phase unwrapping not found. Downloading from %s \n',URL)
+file_compressed = websave(sprintf('%s.%s',outdir, extension), URL);
+if ispc
+    unzip(file_compressed,outdir);
+else
+    file_tar = char(gunzip(file_compressed));
+    untar(file_tar,outdir);
+    movefile(fullfile(outdir,sprintf('%s_%s',assetKey, version_tag),'*'), outdir)
+    rmdir(fullfile(outdir,sprintf('%s_%s',assetKey, version_tag)))
+    delete(file_tar)
+end
+delete(file_compressed)
+
+fprintf('mritools download complete.\n');
+end
