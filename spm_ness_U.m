@@ -1,5 +1,5 @@
 function U = spm_ness_U(M,x)
-% Nonequilibrium steady-state under a Helmholtz decomposition
+% basis functions for NESS under a Helmholtz decomposition
 % FORMAT U = spm_ness_U(M,x)
 %--------------------------------------------------------------------------
 % M   - model specification structure
@@ -9,7 +9,8 @@ function U = spm_ness_U(M,x)
 %    M.x   - (n x 1) = x(0) = expansion point
 %    M.W   - (n x n) - precision matrix of random fluctuations
 %    M.X   - sample points
-%    M.K   - order of polynomial expansion
+%    M.K   - order of polynomial expansion (suprisal)
+%    M.L   - order of polynomial expansion (solenoidal)
 %
 % x       - sample points
 %
@@ -20,6 +21,7 @@ function U = spm_ness_U(M,x)
 % U.b     - polynomial basis
 % U.D     - derivative operator
 % U.G     - amplitude of random fluctuations
+% U.H     - Hessian operator
 % U.dQdp  - gradients of flow operator Q  w.r.t. flow parameters
 % U.dbQdp - gradients of bQ w.r.t. flow parameters
 % U.dLdp  - gradients of L w.r.t. flow parameters
@@ -72,8 +74,9 @@ else
     %----------------------------------------------------------------------
     if isnumeric(x)
 
-        % use M.X
+        % use x
         %------------------------------------------------------------------
+        if isvector(x), x = x(:)'; end
         X      = x;
         [nX,n] = size(X);
         for  i = 1:nX
@@ -139,7 +142,7 @@ end
 X     = full(X);
 f     = zeros(n,nX,'like',X);
 J     = zeros(n,n,nX,'like',X);
-if isfield(M,'f')
+if  all(isfield(M,{'f','pE'}))
     for i = 1:nX
         
         % Jacobian at this point in state space

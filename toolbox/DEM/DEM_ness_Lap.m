@@ -26,27 +26,55 @@ function DEM_ness_Lap
 
 %% Create a model under polynomial NESS
 %==========================================================================
-rng(1)
+rng(0)
 
 % states and precisons
 %--------------------------------------------------------------------------
-n   = 3;                      % number of states
+nm  = 3;                      % number of master states
+ns  = 1;                      % number of slave states
+n   = nm + ns;                % total number of states
 K   = 2;                      % order of polynomial expansion (suprisal)
-V   = 128;                     % precision of parameters (prior)
+L   = 2;                      % order of polynomial expansion (solenoidal)
+V   = 32;                     % precision of parameters (prior)
 W   = 256;                    % precision of random fluctuations
 
 % times
 %--------------------------------------------------------------------------
 dt   = 1;                     % sampling interval (e.g., days)
-nT   = 64;                    % duration of forecasting period
+nT   = 32;                    % duration of forecasting period
 T    = 128;                   % number of past samples
 
-% get model parameters (polynomial coeficients)
+% constraints on model parameters (polynomial coeficients)
 %--------------------------------------------------------------------------
-[pE,pC] = spm_NESS_priors(n,K,V,W);
+i      = (1:ns) + nm;
+j      = 1:nm;
+J      = ones(n,n);           % contraints on Jacobian
+J(j,i) = 0;                   % i.e., causal coupling
+J(i,j) = 0;                   % i.e., causal coupling
+
+R      = zeros(n,n);          % enslaving state (first master state)
+R(i,1) = 1;                   % and enslaved states
+
+W      = ones(1,n)*W;         % precision of random fluctuations
+W(i)   = 256;                 % for enslaved state
+W      = diag(W);
+
+C      = ones(1,n);            % covaraince of NESS density
+C(i)   = 1/8;                  % for enslaved state
+C      = diag(C);
+
+% get priors and sample some parameters (i.e., polynomial coefficients)
+%--------------------------------------------------------------------------
+[pE,pC] = spm_NESS_priors(n,K,V,W,J,R,C);
+pC      = diag(spm_vec(pC));
 Np      = spm_length(pE);
 P       = spm_unvec(spm_vec(pE) + sqrt(pC)*randn(Np,1)/4,pE);
-pP.P{1} = P;             
+P.Rp    = ~~P.Rp/2;
+pP.P{1} = P;
+
+% evaluate Jacobian at initial state
+%--------------------------------------------------------------------------
+disp(full(spm_diff(@spm_fx_NESS,ones(n,1),[],P,[],1)))
 
 
 %% solution of stochastic and underlying ordinary differential equation
@@ -56,8 +84,6 @@ spm_figure('GetWin','NESS'); clf
 x0  = randn(n,1);             % initial state
 M.f = @spm_fx_NESS;           % flow under NESS
 M.x = x0;                     % expansion point
-M.W = W;                      % precision of random fluctuations
-M.K = K;                      % order of polynomial expansion (suprisal)
 
 % deterministic solution
 %--------------------------------------------------------------------------
@@ -79,7 +105,7 @@ DEM.M(1).f  = @spm_fx_NESS;    % dynamics
 DEM.M(1).g  = @(x,u,P) x;      % observer function
 DEM.M(1).x  = x0;              % inital state
 DEM.M(1).pE = P;               % parameters
-DEM.M(1).V  = 512;             % precision of data
+DEM.M(1).V  = exp(8);          % precision of data
 DEM.M(1).W  = W;               % precision of dynamics
  
 % orders of generalised motion
@@ -88,7 +114,6 @@ DEM.M(1).E.s      = 1/2;       % smoothness of fluctuations
 DEM.M(1).E.n      = 2;         % order of generalised motion (states)
 DEM.M(1).E.d      = 1;         % order of generalised motion (data)
 DEM.M(1).E.nD     = 2;         % number of integrations per dt
-DEM.M(1).E.linear = 4;         % differentiation scheme
 
 
 DEM   = spm_DEM_generate(DEM.M,T + nT);
@@ -101,7 +126,14 @@ title('Trajectory: stochastic','Fontsize',16)
 xlabel('time'), ylabel('states')
 spm_axis tight, box off
 
-%%% return
+% NESS density and expected flow
+%--------------------------------------------------------------------------
+M.W = W;
+M.K = K;
+M.L = L;
+
+[F,S,Q,L,H] = spm_NESS_gen_lap(P,M,x0);
+
 
 % model inversion with Variational Laplace (fitting motion)
 %==========================================================================
@@ -110,6 +142,7 @@ spm_axis tight, box off
 %--------------------------------------------------------------------------
 M      = rmfield(M,'f');
 M.X    = Y.y;
+M.W    = W;
 U      = spm_ness_U(M);        % get state space and flow
 F      = gradient(M.X',dt)';   % target flow
 
@@ -119,17 +152,14 @@ M.Nmax = 64;                   % maximum number of iterations
 M.G    = @spm_NESS_gen_lap;    % generative function
 M.pE   = pE;                   % prior expectations (parameters)
 M.pC   = pC;                   % prior covariances  (parameters)
-M.hE   = log(W);               % prior expectation  (of log-precision)
-M.hC   = 1/512;                % prior covariances  (of log-precision)
+M.hE   = log(diag(W));         % prior expectation  (of log-precision)
+M.hC   = 1/32;                 % prior covariances  (of log-precision)
 
 % model inversion with Variational Laplace
 %--------------------------------------------------------------------------
-[Ep,Cp] = spm_nlsi_GN(M,U,F);
-
-% NESS density and expected flow
-%--------------------------------------------------------------------------
-% [F,S,Q,L,H] = spm_NESS_gen_lap(Ep,M,U);
-
+[Ep,Cp,Eh] = spm_nlsi_GN(M,U,F);
+W          = diag(exp(Eh));
+Ep.W       = W;
 
 % model inversion with generlized filtering
 %==========================================================================
@@ -140,7 +170,9 @@ DEM.M(1).E.s      = 1/2;       % smoothness of fluctuations
 DEM.M(1).E.n      = 2;         % order of generalised motion (states)
 DEM.M(1).E.d      = 1;         % order of generalised motion (data)
 DEM.M(1).E.nD     = 2;         % number of integrations per dt
-DEM.M(1).E.linear = 4;         % differentiation scheme
+DEM.M(1).E.nN     = 2;         % number of interations
+DEM.M(1).E.nE     = 8;         % number of interations
+DEM.M(1).E.linear = 1;         % differentiation scheme
 
 % model
 %--------------------------------------------------------------------------
@@ -148,15 +180,15 @@ DEM.M(1).f  = @spm_fx_NESS;    % dynamics
 DEM.M(1).g  = @(x,u,P) x;      % observer function
 DEM.M(1).x  = x0;              % intial state
 DEM.M(1).pE = Ep;              % posterior esimates from VL
-DEM.M(1).pC = pC;              % posterior esimates from VL
-DEM.M(1).V  = 512;
+DEM.M(1).pC = Cp;              % posterior esimates from VL
+DEM.M(1).V  = exp(16);
 DEM.M(1).W  = W;
 
 % invert
 %--------------------------------------------------------------------------
 DEM.Y = Y.y';
 DEM.U = zeros(1,T);
-DEM   = spm_LAP(DEM);
+DEM   = spm_DEM(DEM);
 
 % illustrate results
 %--------------------------------------------------------------------------
@@ -172,19 +204,79 @@ spm_DEM_qP(DEM.qP,pP)
 %==========================================================================
 spm_figure('GetWin','forecasting'); clf
 
-spm_NESS_forecasting(DEM,nT);
+spm_NESS_forecasting(DEM,nT,nm,ns);
 
 % overlay actual outcomes if specified
 %--------------------------------------------------------------------------
 z = (1:nT) + T;
-subplot(2,2,1), hold on
-plot(z,Z(z,:),'.k'), hold off
+subplot(2,2,1), hold on, set(gca,'ColorOrderIndex',1),
+for i = 1:size(Z,2)
+    plot(z,Z(z,i),'.')
+end
 
-subplot(2,1,2), hold on
-plot(z,Z(z,:),'.k'), hold off
+% enslaving outcomes
+%--------------------------------------------------------------------------
+subplot(4,1,3), hold on, set(gca,'ColorOrderIndex',1),
+for i = 1:1:nm
+    plot(z,Z(z,i),'.')
+end
+
+% enslaved outcomes
+%--------------------------------------------------------------------------
+for i = (nm + 1):n
+    subplot(4,1,4), hold on
+    set(gca,'ColorOrderIndex',i),
+    plot(z,Z(z,i),'.')
+end
 
 return
 
+
+
+% NOTES
+
+function NESS = spm_Lorenz2Lap
+% FORMAT NESS = spm_Lorenz2Lap
+% return a numerical estimate of polynomial coefficients for Lorenz system
+%__________________________________________________________________________
+
+%% Illustration of high order density learning
+%==========================================================================
+% dxdt = f(x) + w:  see notes at the end of this script
+%--------------------------------------------------------------------------
+f    = @(x,v,P,M) [P(1)*x(2) - P(1)*x(1);
+                   P(3)*x(1) - x(2) - x(1)*x(3);
+                  -P(2)*x(3) + x(1)*x(2)]/64;
+J    = @(x,v,P,M) [[     -P(1),P(1),     0];
+                   [P(3) - x(3), -1, -x(1)];
+                   [     x(2), x(1), -P(2)]]/64;
+P    = [10; 8/3; 32];                  % parameters [sig, beta, rho]
+x0   = [1; 1; 24];                     % initial state
+
+% state-space model (for SPM integrators)
+%--------------------------------------------------------------------------
+M.f  = f;
+M.J  = J;
+M.g  = @(x,v,P,M) x;
+M.x  = x0;
+M.m  = 0;
+M.pE = P;
+M.W  = diag([1/8 1/16 1/32]);           % precision of random fluctuations
+M.K  = 2;                               % order of expansion (suprisal)
+M.L  = 3;                               % order of expansion (flow)
+
+% state-space for (Laplace) solution 
+%--------------------------------------------------------------------------
+N    = 8;                                % number of bins
+d    = 12;                               % distance
+m    = [0 0 28];
+x{1} = linspace(m(1) - d,m(1) + d,N);
+x{2} = linspace(m(2) - d,m(2) + d,N);
+x{3} = linspace(m(3) - d,m(3) + d,N);
+
+% estimate
+%--------------------------------------------------------------------------
+NESS = spm_ness_Lap(M,x);
 
 
 

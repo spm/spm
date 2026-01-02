@@ -18,849 +18,911 @@ function DCM = DEM_FIN
 
 % set up and get data
 %==========================================================================
-close all
-clear all
-clc
-spm_figure('GetWin','SI'); clf;
 cd('C:\Users\karl\Dropbox\Fintech')
-
-% set final date for retrospective analyses. Full analysis: '01-Dec-2023'
-%==========================================================================
-global DATE
-date = '31/12/2007';
-DATE = date;
-%--------------------------------------------------------------------------
-
+rng(1)
 
 
 %% import data
-%==========================================================================
-data   = importdata('data_yfinance_daily.csv');
-
-prices = {'SPY', 'VEA', 'AGG', 'VNQ', 'DBC', 'BIL'};
-ip     = ismember(data.textdata(1,2:end),prices);
-d      = 1;
-
-% create data structure
 %--------------------------------------------------------------------------
-Y(1).type = 'indicator';
-Y(1).unit = 'number/day';
-Y(1).date = datenum(data.textdata((1 + d):end,1),'dd/mm/yyyy');
-Y(1).Y    = data.data(d:end,~ip);
-Y(1).h    = 0;
+data = importdata('data_yfinance_daily.csv');
 
-% create data structure
+EFT  = {'SPY', 'VEA', 'AGG', 'VNQ', 'DBC', 'BIL'};
+name = data.textdata(1,2:end);
+iy   =  ismember(name,EFT);
+iu   = ~ismember(name,EFT);
+
+date = datenum(data.textdata(2:end,1),'dd/mm/yyyy');
+U    = data.data(1:end,iu);
+V    = data.data(1:end,iy);
+
+i    = [2 6 3 5 4 1];
+V    = V(:,i);
+EFT  = EFT(i);
+
+
+% remove null indicator variables
 %--------------------------------------------------------------------------
-Y(2).type = 'prices';
-Y(2).unit = 'number/day';
-Y(2).date = datenum(data.textdata((1 + d):end,1),'dd/mm/yyyy');
-Y(2).Y    = data.data(d:end,ip);
-Y(2).h    = 0;
+d    = find(min(U) > 0);
+U    = U(:,d);
+name = name(d);
+
+% decimate and smooth
+%--------------------------------------------------------------------------
+dt   = 5;                       % sampling interval (e.g., a week)
+t    = numel(date);             % number of samples
+d    = 1:dt:t;                  % time series for eigenreduction
+nT   = 64;                      % duration of simulation (in dt)
+dT   = 4;                       % time between rebalancing (in dt)
+T    = numel(d) - nT;           % start of simulation
+D    = 512;                     % depth of training data
+date = date(d);
+
+% Exchange-Traded Funds
+%--------------------------------------------------------------------------
+V    = spm_log(V);              % log value
+L    = gradient(V')';           % rate of log return per day
+L    = spm_conv(L,dt,0);        % smooth before decimating
+L    = L(d,:)*dt;               % decimated RoR per dt
+
+% detrend in log space to condition data under NESS assumption
+%--------------------------------------------------------------------------
+U    = spm_log(U);              % log indicators
+U    = spm_conv(U,16,0);      % smoothing
+U    = U(d,:);                  % decimated indicators
+I    = spm_eigenreduce(U,1:T,L);% eigenvariates
+
+
+% specify
+%--------------------------------------------------------------------------
+n    = 4;                     % number of indicator states
+m    = 6;                     % number of assets
+
+% plot data
+%--------------------------------------------------------------------------
+spm_figure('GetWin','Data'); clf;
+
+% response and explanatory variables
+%--------------------------------------------------------------------------
+t    = (T - D):T;
+I    = [I(:,1:n)];            % indicator variables
+L    = [L(:,1:m)];            % rate of log return
+Y    = [I(t,:),L(t,:)];       % training data
 
 subplot(2,1,1)
-plot(Y(1).date,Y(1).Y)
-datetick('x','mmm-yy')
+plot(date,I), title('Log indicator variables','FontSize',14)
+datetick('x','mmm-yy'), xlabel('time')
 
 subplot(2,1,2)
-plot(Y(2).date,Y(2).Y)
-datetick('x','mmm-yy')
+plot(L(:,1:m)), title('Log return (%)','FontSize',14)
+xlabel('time')
 
-Ny    = size(Y(1).Y,1); 
-X     = spm_orth([ones(Ny,1) (1:Ny)']);
-for j = 1:size(Y(1).Y,2)
 
-    % test for nature of data
-    %----------------------------------------------------------------------
-    if all(Y(1).Y(:,j) >= 0)
-        y(:,j) = spm_log(Y(1).Y(:,j));
-    else
-        y(:,j) = Y(1).Y(:,j);
-    end
-
-    % detrend (in log sapce)
-    %----------------------------------------------------------------------
-    B(:,j) = X\y(:,j);
-    y(:,j) = y(:,j) - X*B(:,j);
-
-end
-
-% modes
+% system identification
 %==========================================================================
-yy      = spm_en(y);
-[u,s,v] = spm_svd(yy);
-s       = diag(s);
 
-d  = y(:,26) > 2;
+% scaling
+%--------------------------------------------------------------------------
+scale = std(Y);
+X     = rdivide(Y,scale);
 
-subplot(2,2,1)
-plot3(u(:,1),u(:,2),u(:,3)); hold on, plot3(u(d,1),u(d,2),u(d,3),'.r'), hold off
-subplot(2,2,2)
-plot3(u(:,2),u(:,3),u(:,4)); hold on, plot3(u(d,2),u(d,3),u(d,4),'.r'), hold off
+% prior over precision of states and random fluctuations
+%--------------------------------------------------------------------------
+W     = var(gradient(X')');
+W     = W/(8^2);
+W     = diag(1./W);
 
-
-
-return
-
-
-% remove NANs, smooth and sort by date
+% model inversion with Variational Laplace (fitting flow)
 %==========================================================================
-M.date  = '01-Jan-2020';
-M.end   = date;
-[Y,S]   = spm_COVID_Y(Y,M.date,8,M.end);
 
-% get and set priors
-%==========================================================================
-[pE,pC] = spm_SARS_priors(nN);
-pE.N    = log(N(:));
-pC.N    = spm_zeros(pE.N);
-
-% age-specific
+% get model parameters (polynomial coeficients)
 %--------------------------------------------------------------------------
-j       = nN;
-pE.mo   = ones(j,1)*[ 0 1];    % coefficients for transport
-pC.mo   = ones(j,2)/8;         % prior variance
-pE.wo   = ones(j,1)*[ 0 1];    % coefficients for workplace
-pC.wo   = ones(j,2)/8;         % prior variance
-pE.gd   = ones(j,1)*[-1 1];    % coefficients gross domestic product
-pC.gd   = ones(j,2)/8;         % prior variance
+K     = 2;                    % order of polynomial expansion plus one
+P     = 1/32;                 % precision of parameters (prior)
 
-% augment priors with fluctuations: number of basis functions
+% constraints on model parameters (polynomial coefficients)
 %--------------------------------------------------------------------------
-i       = ceil((datenum(M.end) - datenum(M.date))/64);
+J      = cell(3,3);
+J{1,1} = ones(n,n);
+J{2,2} = eye(m,m);
+J{2,1} = ones(m,n);
+J      = spm_cat(J);
 
-pE.mob  = zeros(1,i);          % mobility
-pC.mob  = ones(1,i)/1024;      % prior variance
-pE.pcr  = zeros(1,i);          % testing
-pC.pcr  = ones(1,i)/8;         % prior variance
-
-% reporting lags
+% coupling from indicator to response
 %--------------------------------------------------------------------------
-lag([Y.U]) = [Y.lag];
-pE.lag  = spm_zeros(lag);      % reporting delays
-pC.lag  = lag; 
+Q      = cell(3,3);
+Q{1,1} = zeros(n,n);
+Q{2,2} = zeros(m,m);
+Q{2,1} = ones(m,n);
+Q      = spm_cat(Q);
 
-% data structure with vectorised data and covariance components
+% get priors 
 %--------------------------------------------------------------------------
-xY.y  = spm_vec(Y.Y);
-nY    = numel(Y);
-for i = 1:nY
-    Q       = spm_zeros({Y.Q});
-    Q{i}    = Y(i).Q;
-    xY.Q{i} = spm_cat(spm_diag(Q));   
-end
-hE    = spm_vec(Y.h);
+[pE,pC] = spm_NESS_priors(size(J,1),K,P,W,J,Q);
+
+% scaling
+%--------------------------------------------------------------------------
+pE.scale = scale(:);
+pC.scale = pE.scale*0;
+
+%% Variational Laplace
+%--------------------------------------------------------------------------
+
+% get domain of phase-space and polynomial basis set
+%--------------------------------------------------------------------------
+x0  = X(1,:)';                 % initial state
+M.x = x0;                      % expansion point
+M.W = W;                       % precision of random fluctuations
+M.K = K;                       % order of polynomial expansion
+M.L = K;                       % order of polynomial expansion
+M.X = X;                       % legacy points in state-space
 
 % model specification
-%==========================================================================
-M.Nmax = 16;                   % maximum number of iterations
-M.G    = @spm_SARS_gen;        % generative function
-M.FS   = @(Y)real(sqrt(Y));    % feature selection  (link function)
+%--------------------------------------------------------------------------
+M.EFT  = EFT(1:m);             % asset names
+M.Nmax = 128;                  % maximum number of iterations
+M.dt   = dt;                   % sampling interval (days)
+M.G    = @spm_NESS_gen_lap;    % generative function
 M.pE   = pE;                   % prior expectations (parameters)
 M.pC   = pC;                   % prior covariances  (parameters)
-M.hE   = hE;                   % prior expectation  (log-precision)
-M.hC   = 1/128;                % prior covariances  (log-precision)
-M.T    = Y;                    % data structure
+M.hE   = log(diag(W));         % prior expectation  (of log-precision)
+M.hC   = 1/32;                 % prior covariances  (of log-precision)
+M.date = date;
 
-U      = [Y.U];                % outputs to model
-A      = [Y.age];              % age bands
-
-% initialisation
+% model inversion with Variational Laplace
 %--------------------------------------------------------------------------
-if true
-    
-    % load previous posteriors
+B      = spm_ness_U(M);        % get basis functions
+F      = gradient(M.X')';      % target flow
+
+% posterior over parameters
+%--------------------------------------------------------------------------
+[Ep,Cp,Eh] = spm_nlsi_GN(M,B,F);
+
+% posterior precision of random fluctuations
+%----------------------------------------------------------------------
+W      = diag(exp(Eh));
+Ep.W   = W;                    % posterior volatility
+M.W    = W;                    % update for flow model
+
+% Bayesian belief updating
+%----------------------------------------------------------------------
+M.pE   = Ep;                   % and parameters of flow
+M.pC   = Cp;                   % and covariance of parameters
+M.hE   = Eh;                   % and log-precision
+
+% update initial expectations (parameters)
+%----------------------------------------------------------------------
+M.P    = Ep;
+
+% Bayesian model reduction
+%--------------------------------------------------------------------------
+% DCM.M  = M;
+% DCM.Ep = Ep;
+% DCM.Cp = Cp;
+% DCM    = spm_dcm_bmr_all(DCM,'All','BMS');
+% 
+% M.pE   = DCM.M.pE;            % reduced prior expectations (parameters)
+% M.pC   = DCM.M.pC;            % reduced prior covariances  (parameters)
+% M.P    = DCM.Ep;              % reduced prior covariances  (parameters)
+% [Ep,Cp,Eh] = spm_nlsi_GN(M,U,F);
+%--------------------------------------------------------------------------
+
+
+% evaluate Jacobian at initial state
+%--------------------------------------------------------------------------
+fprintf('\nJacobian at initial conditions\n')
+disp(full(spm_diff(@spm_fx_NESS,x0,[],Ep,[],1)))
+
+% Bayesian model comparison of enslaving
+%==========================================================================
+
+% get reduced priors: first-order effects
+%--------------------------------------------------------------------------
+J      = cell(3,3);
+J{1,1} = ones(n,n);
+J{2,2} = eye(m,m);
+J{2,1} = ones(m,n);
+J      = spm_cat(J);
+
+% coupling from indicator to response
+%--------------------------------------------------------------------------
+Q      = cell(3,3);
+Q{1,1} = zeros(n,n);
+Q{2,2} = zeros(m,m);
+Q{2,1} = zeros(m,n); %%% remove coupling
+Q      = spm_cat(Q);
+
+% get priors 
+%--------------------------------------------------------------------------
+[rE,rC]  = spm_NESS_priors(size(J,1),K,P,W,J,Q);
+rE.scale = scale;
+rC.scale = spm_zeros(scale);
+F        = spm_log_evidence_reduce(Ep,Cp,pE,pC,rE,rC);
+fprintf('\nLog-evidence for 1st order coupling: %.2f\n',F)
+
+
+% get reduced priors: second-order effects
+%--------------------------------------------------------------------------
+J      = cell(3,3);
+J{1,1} = ones(n,n);
+J{2,2} = eye(m,m);
+J{2,1} = zeros(m,n); %%% remove coupling
+J      = spm_cat(J);
+
+% coupling from indicator to response
+%--------------------------------------------------------------------------
+Q      = cell(3,3);
+Q{1,1} = zeros(n,n);
+Q{2,2} = zeros(m,m);
+Q{2,1} = ones(m,n);
+Q      = spm_cat(Q);
+
+% get priors 
+%--------------------------------------------------------------------------
+[rE,rC]  = spm_NESS_priors(size(J,1),K,P,W,J,Q);
+rE.scale = scale;
+rC.scale = spm_zeros(scale);
+F        = spm_log_evidence_reduce(Ep,Cp,pE,pC,rE,rC);
+fprintf('\nLog-evidence for 2nd order coupling: %.2f\n',F)
+
+
+% get reduced priors: predicability of indicator variables
+%--------------------------------------------------------------------------
+J      = cell(3,3);
+J{1,1} = eye(n,n); %%% remove coupling
+J{2,2} = eye(m,m);
+J{2,1} = ones(m,n);
+J      = spm_cat(J);
+
+% coupling from indicator to response
+%--------------------------------------------------------------------------
+Q      = cell(3,3);
+Q{1,1} = zeros(n,n);
+Q{2,2} = zeros(m,m);
+Q{2,1} = ones(m,n);
+Q      = spm_cat(Q);
+
+% get priors 
+%--------------------------------------------------------------------------
+[rE,rC]  = spm_NESS_priors(size(J,1),K,P,W,J,Q);
+rE.scale = scale;
+rC.scale = spm_zeros(scale);
+F        = spm_log_evidence_reduce(Ep,Cp,pE,pC,rE,rC);
+fprintf('\nLog-evidence for stochastic choas: %.2f\n',F)
+
+
+
+% model inversion with generlized filtering
+%==========================================================================
+
+% serial correlations and orders of motion
+%--------------------------------------------------------------------------
+DEM.M(1).E.s      = 0;         % smoothness of fluctuations
+DEM.M(1).E.n      = 1;         % order of generalised motion (states)
+DEM.M(1).E.d      = 1;         % order of generalised motion (data)
+DEM.M(1).E.nD     = 2;         % number of integrations per dt
+DEM.M(1).E.nE     = 2;         % number of iterations
+DEM.M(1).E.nN     = 2;         % number of iterations
+DEM.M(1).E.linear = 4;         % differentiation scheme
+
+% model
+%--------------------------------------------------------------------------
+DEM.M(1).f  = @spm_fx_NESS;    % flow
+DEM.M(1).g  = @(x,u,P) x.*P.scale; % observer function
+DEM.M(1).x  = x0;              % intial state
+DEM.M(1).pE = Ep;              % posterior esimates from VL
+DEM.M(1).pC = Cp;              % posterior esimates from VL
+DEM.M(1).V  = exp(16);
+DEM.M(1).W  = W;
+
+% invert
+%--------------------------------------------------------------------------
+% DEM.Y = Y';
+% DEM.U = 1:T;
+% DEM   = spm_LAP(DEM);
+% 
+% % illustrate results
+% %--------------------------------------------------------------------------
+% spm_DEM_qU(DEM.qU)
+% subplot(2,2,1), hold on, plot(DEM.Y','.k'), hold off
+
+
+
+%% forecasting - analytic
+%==========================================================================
+spm_figure('GetWin','Fokker Planck'); clf
+
+Nf         = max(2*dT,8);      % forecasting period
+DEM.T      = T;
+DEM.Y      = Y';               % legacy (training) data
+DEM.M(1).x = X(end,:)';        % intial state
+
+
+% prepare basis functions for analytic forecasting (U)
+%------------------------------------------------------------------
+N     = numel(x0);
+x     = randn(N*N,N);
+A.K   = 3;
+A.L   = 3;
+A.W   = M.W;
+DEM.B = spm_ness_U(A,x);
+
+[Ez,Cz,Vz] = spm_NESS_forecast(DEM,Nf);
+
+% overlay actual outcomes if specified
+%--------------------------------------------------------------------------
+t     = (1:Nf) + T;
+for i = 1:n
+    subplot(6,2,i), hold on, set(gca,'ColorOrderIndex',i),
+    plot(t,I(t,i),'.')
+end
+
+% enslaved outcomes
+%--------------------------------------------------------------------------
+for i = (1:m) + n
+    subplot(6,2,i), hold on, set(gca,'ColorOrderIndex',i),
+    plot(t,L(t,i - n),'.')
+end
+
+
+
+%% forecasting - numerical
+%==========================================================================
+spm_figure('GetWin','Forecasting'); clf
+
+[Ez,Cz,Vz,Py] = spm_NESS_forecasting(DEM,Nf,n,m);
+
+% overlay actual outcomes if specified
+%--------------------------------------------------------------------------
+t  = (1:Nf) + T;
+subplot(2,2,1), hold on, set(gca,'ColorOrderIndex',1),
+for i = 1:n
+    plot(t,I(t,i),'.')
+end
+
+% enslaving outcomes
+%--------------------------------------------------------------------------
+subplot(4,1,3), hold on, set(gca,'ColorOrderIndex',1),
+for i = 1:n
+    plot(t,I(t,i),'.')
+end
+
+% enslaved outcomes
+%--------------------------------------------------------------------------
+for i = 1:m
+    subplot(4,1,4), hold on
+    set(gca,'ColorOrderIndex',i),
+    plot(t,L(t,i),'.')
+end
+
+if ~m, return, end
+
+%% Projections
+%==========================================================================
+spm_figure('GetWin','Responses'); clf
+
+% extract response variables
+%--------------------------------------------------------------------------
+z     = (1:nT) + T;            % future time points with data
+t     = (1:Nf) + T - 1;        % future time points predicted
+i     = (1:m) + n;             % indices of response variables
+EL    = Ez(i,:);               % posterior predictive expectations
+VL    = Vz(i,:);               % posterior predictive variances
+
+% plot credible intervals and data
+%--------------------------------------------------------------------------
+xLim  = [T - 2*Nf,T + Nf];
+for i = 1:m
+
+    % predictive posterior
     %----------------------------------------------------------------------
-    load DCM_UK_tmp
-    
-    % initialise if previous posteriors are the right size
+    subplot(6,2,i), hold off
+    set(gca,'ColorOrderIndex',i + n)
+    spm_plot_ci(EL(i,:),VL(i,:),t), hold on
+
+    % overlay past and future outcomes
     %----------------------------------------------------------------------
-    M.P   = pE;
-    field = fieldnames(M.P);
-    for i = 1:numel(field)
-        try
-            if all(size(pE.(field{i})) == size(DCM.Ep.(field{i})))
-                M.P.(field{i}) = DCM.Ep.(field{i});
+    set(gca,'ColorOrderIndex',i + n)
+    plot(1:T,L(1:T,i),'LineWidth',2), hold on
+    set(gca,'ColorOrderIndex',i + n)
+    plot(z,L(z,i),'.'), plot(xLim,[0,0],':'),hold off
+    title(['RoR: ' EFT{i}],'FontSize',14)
+    set(gca,'XLim',xLim)
+
+end
+
+% free energy and Market cycles
+%==========================================================================
+
+% NESS density and expected flow
+%--------------------------------------------------------------------------
+% [F,S] = spm_NESS_gen_lap(Ep,M);
+
+
+
+% simulate portfolio management under this genertive model
+%==========================================================================
+spm_figure('GetWin','Portfolio forecasts'); clf
+
+M.Nmax = 32; % maximum number of iterations
+tab    = spm_portfolio(L,I,M,DEM,T,dT);
+
+return
+
+
+function I = spm_eigenreduce(U,T,L)
+% eigenreduction of indicator variables
+% U  - indicator variables
+% T  - based on first T samples
+% L  - response variables
+%__________________________________________________________________________
+n    = size(U,1);
+X    = spm_dctmtx(n,4);
+B    = X(T,:)\U(T,:);
+u    = U(T,:) - X(T,:)*B;
+U    = U - X*B;
+
+% get eigenvectors
+%--------------------------------------------------------------------------
+v    = spm_svd(spm_en(u)');
+I    = U*v;
+I    = spm_en(I)*sqrt(n);
+
+return
+
+% Augment explanatory and response variables
+%--------------------------------------------------------------------------
+n    = size(U,1);
+X    = spm_en([U, spm_dctmtx(n,4)]);
+
+% Canonical variates analysis
+%--------------------------------------------------------------------------
+s    = numel(T)/16;
+Y    = spm_conv(L,s,0);
+Y    = spm_detrend(Y(T,:));
+CVA  = spm_cva(Y,X(T,:),[],[],8);
+I    = X*CVA.W;
+I    = spm_en(I)*sqrt(n);
+
+
+return
+
+function tab = spm_portfolio(L,I,M,DEM,Ti,dT)
+% FORMAT spm_portfolio(L,DEM)
+% simulate portfolio managment
+%--------------------------------------------------------------------------
+% L   - rate of log return per M.dt
+% I   - indicator variables
+% M   - flow model
+% DEM - generative model
+% Ti  - time of initial investment
+% dT  - time between rebalancing
+%__________________________________________________________________________
+
+% policies
+%--------------------------------------------------------------------------
+policies = {'Buy and hold', ...
+    'Retrospective: Expected RoR'...
+    'Retrospective: Risk sensitive'...
+    'Prospective: Expected RoR'...
+    'Prospective: Risk sensitive'...
+    };
+
+% get sizes and times
+%--------------------------------------------------------------------------
+dt    = M.dt;                 % period (days)
+Ann   = 100*365/dt;           % scaling for annualised % RoR
+Tf    = size(L,1);            % time of final investment
+m     = size(L,2);            % number of (aggregated) assets
+
+% prior preferences
+%--------------------------------------------------------------------------
+try  RoR    = DEM.RoR;    catch, RoR    = 100; end
+try  Sharpe = DEM.Sharpe; catch, Sharpe = 1;  end
+
+m_p   = RoR/Ann;              % prior RoR per dt
+s_p   = m_p/Sharpe;           % prior volitility (s.d.)
+c_p   = s_p^2;                % prior volitility (variance)
+
+% set up policies: moving funds from one assets to another nP times
+%--------------------------------------------------------------------------
+dP    = .5;                   % proportional transaction
+cP    = .001;                 % proportional cost of transaction
+nP    = 3;                    % number of transactions
+p     = spm_combinations([m,m]);
+np    = size(p,1);
+Pk    = cell(1,np);
+for k = 1:np
+    i    = p(k,1);
+    j    = p(k,2);
+    Pij  = eye(m,m);
+
+    % transaction (from asset j to i)
+    %----------------------------------------------------------------------
+    Pij(i,j) = Pij(i,j) + dP;
+    Pij(j,j) = Pij(j,j) - dP;
+
+    % cost of transaction
+    %----------------------------------------------------------------------
+    if i ~= j
+        Pij(i,j) = Pij(i,j) - cP;
+    end
+
+    % k-th transaction
+    %----------------------------------------------------------------------
+    Pk{k} = Pij;
+end
+
+% compound policies; i.e., compositions of unitary transactions
+%--------------------------------------------------------------------------
+p     = spm_combinations(ones(1,nP)*np);
+np    = size(p,1);
+P     = cell(1,np);
+for i = 1:size(p,1)
+    Pij   = 1;
+    for j = 1:size(p,2)
+        Pij = Pij*Pk{p(i,j)};
+    end
+    P{i}  = Pij;
+end
+
+% simulate allocations and ensuing resturns
+%==========================================================================
+Np    = 5;                     % number of policies to simulate
+W     = ones(m,Np)/m;          % inital (flat) weights
+R     = zeros(Tf,Np);          % cumulative RoR
+D     = zeros(Tf,Np);          % RoR per dt
+l     = (1:m) + size(I,2);     % indices of RoR
+for i = Ti:Tf
+
+   
+   % cumulative return on investment per dt
+   %-----------------------------------------------------------------------
+   D(i,:) = L(i,1:m)*W;
+   R(i,:) = R(i - 1,:) + D(i,:);
+
+   % portfolio allocations
+   %-----------------------------------------------------------------------
+   Wret(:,i)  = W(:,3);
+   Wpro(:,i)  = W(:,5);
+
+    % transactions
+    %-----------------------------------------------------------------------
+    if ~rem(i,dT)
+
+        % buy and hold 
+        %------------------------------------------------------------------
+        W(:,1)  = P{1}*W(:,1);
+
+        % retrospective
+        %==================================================================
+        ti    = i - (1:dT) + 1;
+        EL    = L(i,1:m);
+        CL    = cov(L(ti,1:m));
+        F     = zeros(1,np);
+        G     = zeros(1,np);
+        for k = 1:np
+
+            % expected utility
+            %--------------------------------------------------------------
+            W_k  = P{k}*W(:,2);
+            m_q  = EL*W_k;
+            F(k) = m_q;
+
+            % risk sensitive
+            %--------------------------------------------------------------
+            W_k  = P{k}*W(:,3);
+            m_q  = EL*W_k;
+            c_q  = W_k'*CL*W_k;
+            G(k) = spm_kl_normal(m_q,c_q,m_p,c_p);
+
+        end
+
+        % expected utility
+        %------------------------------------------------------------------
+        [~,j]  = max(F);
+        W(:,2) = P{j}*W(:,2);
+
+        % risk sensitive
+        %------------------------------------------------------------------
+        [~,j]  = min(G);
+        W(:,3) = P{j}*W(:,3);
+
+
+        % prospective
+        %==================================================================
+        if false
+
+            % upper bound on performance, if the future were known
+            %--------------------------------------------------------------
+            for t = 1:dT
+                try
+                    Ey(t,:) = L(i + t,1:m);
+                    Cy{t}   = cov(L((1:dT) + i,1:m));
+                catch
+                    Ey(t,:) = L(end,1:m);
+                    Cy{t}   = cov(L(end - (1:dT) + 1,1:m));
+                end
+            end
+        else
+
+            % posterior predictive density over RoR
+            %--------------------------------------------------------------
+            j          = 1:i;
+            [Ez,Cz,M]  = spm_forecast_update(L(j,:),I(j,:),M,DEM,dT + 1);
+            for t = 1:dT
+                Ey(t,:) = Ez(l,t + 1)';
+                Cy{t}   = Cz{t + 1}(l,l);
+            end
+
+        end
+
+        % for each policy
+        %------------------------------------------------------------------
+        F     = zeros(1,np);
+        G     = zeros(1,np);
+        for k = 1:np
+
+            % expected utility
+            %--------------------------------------------------------------
+            W_k   = P{k}*W(:,4);
+            for t = 1:dT
+
+                % predictive posterior over outcomes
+                %----------------------------------------------------------
+                m_q  = Ey(t,:)*W_k;
+
+                % path integral of expected free energy (risk)
+                %----------------------------------------------------------
+                F(k) = F(k) + m_q;
+
+            end
+
+            % risk sensitive
+            %--------------------------------------------------------------
+            W_k   = P{k}*W(:,5);
+            for t = 1:dT
+
+                % predictive posterio over outcomes
+                %----------------------------------------------------------
+                m_q  = Ey(t,:)*W_k;
+                c_q  = W_k'*Cy{t}*W_k;
+
+                % path integral of expected free energy (risk)
+                %----------------------------------------------------------
+                G(k) = G(k) + spm_kl_normal(m_q,c_q,m_p,c_p);
+
             end
         end
-    end
-    clear DCM
-end
 
-% model inversion with Variational Laplace (Gauss Newton)
-%==========================================================================
-[Ep,Cp,Eh,F] = spm_nlsi_GN(M,U,xY);
+        % expected utility
+        %------------------------------------------------------------------
+        [~,j]  = max(F);
+        W(:,4) = P{j}*W(:,4);
 
-% save in DCM structure
-%--------------------------------------------------------------------------
-DCM.M  = M;
-DCM.Ep = Ep;
-DCM.Eh = Eh;
-DCM.Cp = Cp;
-DCM.F  = F;
-DCM.Y  = S;
-DCM.U  = U;
-DCM.A  = A;
-
-% return if just DCM is required
-%--------------------------------------------------------------------------
-if nargout, return, end
-
-% otherwise save
-%--------------------------------------------------------------------------
-save('DCM_UK_tmp.mat','DCM')
-cd('C:\Users\karl\Dropbox\Coronavirus')
-save('DCM_UK_tmp.mat','DCM')
-
-% unpack model and posterior expectations
-%--------------------------------------------------------------------------
-M   = DCM.M;                                 % model (priors)
-Ep  = DCM.Ep;                                % posterior expectation
-Cp  = DCM.Cp;                                % posterior covariances
-S   = DCM.Y;                                 % smooth timeseries
-U   = DCM.U;                                 % indices of outputs
-A   = DCM.A;                                 % age cohort
+        % risk sensitive
+        %------------------------------------------------------------------
+        [~,j]  = min(G);
+        W(:,5) = P{j}*W(:,5);
 
 
-% posterior predictions
-%==========================================================================
-spm_figure('GetWin','United Kingdom'); clf;
-%--------------------------------------------------------------------------
-M.T       = 128 + datenum(M.end) - datenum(M.date);
-u         = [find(U == 1,1) find(U == 2,1) find(U == 3,1)];
-[H,X,~,R] = spm_SARS_gen(Ep,M,[1 2 3]);
-spm_SARS_plot(H,X,S(:,u),[1 2 3])
-
-spm_figure('GetWin','outcomes (1)'); clf;
-%--------------------------------------------------------------------------
-Y     = DCM.M.T;
-j     = 0;
-k     = 1;
-for i = 1:numel(Y)
-    
-    j = j + 1;
-    subplot(4,2,j)
-    spm_SARS_ci(Ep,Cp,S(:,i),U(i),M,[],A(i)); hold on
-    plot(datenum(M.end)*[1,1],get(gca,'YLim'),'-.b')
-    title(Y(i).type,'FontSize',14), ylabel(Y(i).unit)
-
-    
-    % add R = 1 and current date
-    %----------------------------------------------------------------------
-    if Y(i).U == 4
-        plot(get(gca,'XLim'),[1,1],'-.r')
-        plot(datenum(M.end)*[1,1],get(gca,'YLim'),'-.b')
-        set(gca,'YLim',[0 5]), ylabel('ratio')
-    end
-    
-    % hold plot
-    %----------------------------------------------------------------------
-    if Y(i).hold
-        j = j - 1; hold on
-    end
-
-    % new figure
-    %----------------------------------------------------------------------
-    if j == 8
-        k = k + 1;
-        j = 0;
-        spm_figure('GetWin',sprintf('outcomes (%i)',k)); clf;
-    end
-    
-end
-
-% time varying parameters
-%==========================================================================
-
-% infection fatality ratios (%)
-%--------------------------------------------------------------------------
-j     = j + 1;
-subplot(4,2,j)
-for i = 1:numel(R)
-    spm_SARS_ci(Ep,Cp,[],21,M,[],i); hold on
-end
-ylabel('percent'), title('Infection fatality ratio','FontSize',14)
-
-% transmission risk
-%--------------------------------------------------------------------------
-j    = j + 1;
-subplot(4,2,j), hold off
-plot([R{end}.Ptrn]), hold on
-plot(erf([R{end}.Ptra]*exp(Ep.trn))), spm_axis tight
-title('Transmission risk','FontSize',14)
-xlabel('days'),ylabel('probability')
-hold on, plot([1,1]*size(DCM.Y,1),[0,1/2],':'), box off
-
-% contact rate
-%--------------------------------------------------------------------------
-j    = j + 1;
-subplot(4,2,j), hold on
-for i = 1:numel(R)
-    plot([R{i}.Pout])
-end
-spm_axis tight
-title('Contact rate','FontSize',14)
-xlabel('days'),ylabel('probability')
-hold on, plot([1,1]*size(DCM.Y,1),[0,1/2],':'), box off
-
-% case fatality ratio
-%--------------------------------------------------------------------------
-j    = j + 1;
-subplot(4,2,j), hold on
-for i = 1:numel(R)
-    plot(100 * [R{i}.Pfat])
-end
-spm_axis tight
-title('Fatality risk | ARDS','FontSize',14)
-xlabel('days'),ylabel('percent')
-hold on, plot([1,1]*size(DCM.Y,1),[0,1/2],':'), box off
-legend({'<15yrs','15-35yrs','35-70yrs','>70yrs'})
-
-
-%% long-term forecasts (12 months from the current data)
-%==========================================================================
-spm_figure('GetWin','outcomes (4)'); clf
-
-Ep  = DCM.Ep;
-Cp  = DCM.Cp;
-M   = DCM.M;
-M.T = 30*12 + datenum(M.end) - datenum(M.date);
-t   = (1:M.T) + datenum(M.date);
-
-% infection fatality ratios (%)
-%--------------------------------------------------------------------------
-subplot(3,1,1)
-spm_SARS_ci(Ep,Cp,[],19,M); hold on
-spm_SARS_ci(Ep,Cp,[],20,M); hold on
-ylabel('cases per 100,000'), title('Incidence per 100,000','FontSize',14)
-plot(datenum(M.end)*[1,1],get(gca,'YLim'),':')
-legend({'CI per day','actual cases per day','CI per week','confirmed cases per week'})
-
-subplot(3,1,2)
-spm_SARS_ci(Ep,Cp,[],34,M); hold on
-spm_SARS_ci(Ep,Cp,S(:,1),2, M); hold on
-title('Actual and confirmed daily cases','FontSize',14)
-plot(datenum(M.end)*[1,1],get(gca,'YLim'),':')
-legend({'CI per day','actual cases','CI per day','confirmed cases'})
-
-subplot(3,1,3)
-spm_SARS_ci(Ep,Cp,[],28,M); hold on
-plot(datenum(M.end)*[1,1],get(gca,'YLim'),':')
-legend({'CI per day','Incidence'})
-
-
-%% switch windows
-%--------------------------------------------------------------------------
-spm_figure('GetWin','long-term (1)'); clf
-
-% fatalities
-%--------------------------------------------------------------------------
-subplot(2,1,1)
-
-i   = find(DCM.U == 1,1);  D = DCM.Y(:,i); spm_SARS_ci(Ep,Cp,D,1,M);  hold on
-i   = find(DCM.U == 15,1); D = DCM.Y(:,i); spm_SARS_ci(Ep,Cp,D,15,M); hold on
-
-plot(datenum(M.end)*[1,1],get(gca,'YLim'),':k')
-ylabel('number per day'), title('Daily deaths','FontSize',14)
-legend({'CI 28-day','PCR test within 28 days','ONS','CI certified','certified deaths'})
-legend boxoff
-drawnow
-
-% lockdown and mobility
-%--------------------------------------------------------------------------
-subplot(2,1,2)
-i       = find(DCM.U == 14,1);
-try
-    [~,~,q] = spm_SARS_ci(Ep,Cp,DCM.Y(:,i),14,M,[],DCM.A(i)); hold on
-catch
-    [~,~,q] = spm_SARS_ci(Ep,Cp,[],14,M); hold on
-end
-
-% thresholds
-%--------------------------------------------------------------------------
-% q  = spm_SARS_gen(Ep,M,14); plot(t,q); hold on
-%--------------------------------------------------------------------------
-u1   = datenum('10-May-2020','dd-mmm-yyyy') - t(1) + 1;
-u2   = datenum('10-Aug-2020','dd-mmm-yyyy') - t(1) + 1;
-u3   = datenum('10-Sep-2020','dd-mmm-yyyy') - t(1) + 1;
-U    = sort([0 q(u1) q(u2) q(u3)]); U(end) = 90;
-dstr = datestr(t,'dd-mmm');
-
-% loop over levels
-%==========================================================================
-for i = 1:numel(U)
-    
-    % intervals for this level
-    %----------------------------------------------------------------------
-    if i == 1
-        j  = find(q <= U(i + 1));
-    elseif i == numel(U)
-        j  = find(q >= U(i));
-    else
-        j  = find(q >= U(i) & q <= U(i + 1));
-    end
-    
-    % Timeline
-    %----------------------------------------------------------------------
-    for k = 1:numel(j)
-        try
-            fill(t(j(k) + [0 1 1 0]),[0 0 1 1]*32,'r', ...
-                'FaceAlpha',(numel(U) - i)/16,'Edgecolor','none')
+        % predictive posterior over RoR under this policy
+        %------------------------------------------------------------------
+        for t = 1:dT
+            W_k    = W(:,5);
+            ti     = i + t;
+            Er(ti) = Ey(t,:)*W_k;
+            Cr(ti) = W_k'*Cy{t}*W_k;
         end
+
     end
-    
-    % label level crossings
-    %----------------------------------------------------------------------
-    if i <numel(U)
-        j = find((q(1:end - 1) <= U(i + 1)) & (q(2:end) > U(i + 1)));
-    else
-        j = [];
-    end
-    for k = 1:numel(j)
-        text(t(j(k)),i*8,dstr(j(k),:),'Color','k','FontSize',10)
-    end
-    
-    % plot levels
-    %----------------------------------------------------------------------
-    plot([t(1),t(end)],U(i)*[1,1],':r')
-    
+
 end
 
-% UEFA EURO 2020/Dates
+% legend labels
 %--------------------------------------------------------------------------
-% d1 = datenum('11-Jun-2021','dd-mmm-yyyy');
-% d2 = datenum('11-Jul-2021','dd-mmm-yyyy');
-% plot([d1,d2],[120,120],'k','Linewidth',8)
-% text(d1 - 86,120,'EURO 2020','FontSize',10)
-
-
-ylabel('percent'),  title('Mobility and lockdown','FontSize',14)
-legend({'credible interval','mobility (%)','Google workplace'}), legend boxoff
-drawnow
-
-
-%% prevalence and reproduction ratio
-%--------------------------------------------------------------------------
-spm_figure('GetWin','long-term (2)'); clf
-
-M.T = 30*12   + datenum(M.end) - datenum(M.date);
-t   = (1:M.T) + datenum(M.date);
-
-subplot(2,1,1)
-i   = find(DCM.U == 4,1);
-spm_SARS_ci(Ep,Cp,[],11,M); hold on
-[~,~,q,c] = spm_SARS_ci(Ep,Cp,DCM.Y(:,i),4,M); hold on
-
-j   = find(t == datenum(M.end));
-q   = q(j);
-d   = sqrt(c{1}(j,j))*1.64;
-str = sprintf('Prevalence and reproduction ratio (%s): R = %.2f (CI %.2f to %.2f)',datestr(date,'dd-mmm-yy'),q,q - d,q + d);
-
-% attack rate, herd immunity and herd immunity threshold
-%--------------------------------------------------------------------------
-E         = 1 - mean(erf(exp(Ep.vef)))*mean(exp(Ep.ves));
-[H,~,~,R] = spm_SARS_gen(Ep,M,[4 29 26 35]);
-i         = 8:32;                           % pre-pandemic period
-TRN       = [R{1}.Ptrn];                    % transmission risk
-TIC       = [R{1}.Tic];                     % incubation period (days)
-TIN       = [R{1}.Tin];                     % exposure time (days)
-ST        = H(:,4);                         % serial interval (days)
-R0        = max(H(i,1));                    % basic reproduction ratio
-RT        = R0*TRN(:)/min(TRN(i));          % effective reproduction ratio
-HIT       = 100 * (1 - 1./RT)/E;            % herd immunity threshold
-
-% Add R0
-%--------------------------------------------------------------------------
-alpha   = datenum('20-Sep-2020','dd-mmm-yyyy');
-delta   = datenum('20-Mar-2021','dd-mmm-yyyy');
-omicron = datenum('15-Nov-2021','dd-mmm-yyyy');
-
-plot(t,RT)
-text(alpha,4,'alpha','FontSize',10,'HorizontalAlignment','center')
-text(delta,4,'delta','FontSize',10,'HorizontalAlignment','center')
-text(omicron,4,'omicron','FontSize',10,'HorizontalAlignment','center')
-
-% add R = 1 and current dateline
-%--------------------------------------------------------------------------
-plot(get(gca,'XLim'),[1,1],':k')
-plot(datenum(M.end)*[1,1],[0 max(RT)],':k')
-set(gca,'YLim',[0 10]), ylabel('ratio or percent')
-title(str,'FontSize',14)
-
-legend({'90% CI','Prevalence (%)',' ','Effective R-number',...
-    'UKHSA estimate','Basic R_{0}'},'Interpreter','tex','location','northwest')
-legend boxoff
-drawnow
-
-% attack rate, herd immunity and herd immunity threshold
-%--------------------------------------------------------------------------
-subplot(2,1,2)
-spm_SARS_ci(Ep,Cp,[],25,M); hold on
-spm_SARS_ci(Ep,Cp,[],26,M); hold on
-
-% effective immunity threshold at 80% contact rates
-%--------------------------------------------------------------------------
-plot(t,HIT), hold on
-spm_SARS_ci(Ep,Cp,[],29,M); hold on
-
-plot(get(gca,'XLim'),[100 100],':k')
-plot(datenum(M.end)*[1,1],[0 100],':k')
-ylabel('percent'),  title('Attack rate and immunity','FontSize',14)
-legend({' ','Attack rate',' ',...
-       'Effective population immunity',...
-       'Effective immunity threshold',' '....
-       'Effective antibodies'},'location','west')
-legend boxoff
-
-
-%% infection fatality ratio (%)
-% probability of becoming symptomatic: (1 - Pinf.^(Q{n}.Tin + Q{n}.Tcn))
-%----------------------------------------------------------------------
-for n = 1:numel(R)
-    
-    Psev     = [R{n}.Psev]';
-    Pfat     = [R{n}.Pfat]';
-    IFR(n,1) = 100 * Psev(j).*Pfat(j);
-
-    Psev = Psev*exp(Ep.lnk(n));         % vaccine efficiency: pathogenicity
-    Pfat = Pfat*exp(Ep.lnf(1));         % vaccine efficiency: fatality
-    IFR(n,2) = 100 * Psev(j).*Pfat(j);
-end
-
-fprintf('\n\n(Symptomatic) IFR: likelihood of dying from COVID-19 (%s) \n','%');
-fprintf('            Age group  0-14     15-34    35-69   70+  \n');
-fprintf('   recent vaccination: %.3f    %.3f    %.3f   %.3f \n',IFR(:,2));
-fprintf('no vaccine protection: %.3f    %.3f    %.3f   %.3f \n\n',IFR(:,1));
-
-
-% report vaccine efficiency
-%--------------------------------------------------------------------------
-q   = Ep.vef(end);
-d   = spm_unvec(diag(Cp),Ep);
-d   = sqrt(d.vef(end))*1.64;
-qE  = 100*(1 - erf(exp(q)));
-qL  = 100*(1 - erf(exp(q + d)));
-qU  = 100*(1 - erf(exp(q - d)));
-fprintf('preventing infection: %.1f%s (CI %.1f to %.1f)\n',qE,'%',qL,qU)
-q   = Ep.ves(end);
-d   = spm_unvec(diag(Cp),Ep);
-d   = sqrt(d.ves(end))*1.64;
-qE  = 100*(1 - exp(q));
-qL  = 100*(1 - exp(q + d));
-qU  = 100*(1 - exp(q - d));
-fprintf('preventing transmission following infection %.1f%s (CI %.1f to %.1f)\n',qE,'%',qL,qU)
-q   = Ep.lnk(2);
-d   = spm_unvec(diag(Cp),Ep);
-d   = sqrt(d.lnk(2))*1.64;
-qE  = 100*(1 - exp(q));
-qL  = 100*(1 - exp(q + d));
-qU  = 100*(1 - exp(q - d));
-fprintf('preventing serious illness when symptomatic (age 15-34) %.1f%s (CI %.1f to %.1f)\n',qE,'%',qL,qU)
-q   = Ep.lnk(3);
-d   = spm_unvec(diag(Cp),Ep);
-d   = sqrt(d.lnk(3))*1.64;
-qE  = 100*(1 - exp(q));
-qL  = 100*(1 - exp(q + d));
-qU  = 100*(1 - exp(q - d));
-fprintf('preventing serious illness when symptomatic (age 35-70) %.1f%s (CI %.1f to %.1f)\n',qE,'%',qL,qU)
-q   = Ep.lnf(end);
-d   = spm_unvec(diag(Cp),Ep);
-d   = sqrt(d.lnf(end))*1.64;
-qE  = 100*(1 - exp(q));
-qL  = 100*(1 - exp(q + d));
-qU  = 100*(1 - exp(q - d));
-fprintf('preventing fatality when seriously ill %.1f%s (CI %.1f to %.1f)\n',qE,'%',qL,qU)
-disp(' ')
-
-disp('The corresponding cumulative (vaccinated vs. unvaccinated) risks are:')
-disp(' ')
-
-q      = (mean(exp(Ep.Tin)) + mean(exp(Ep.Tcn))*mean(exp(Ep.ves))) /...
-         (mean(exp(Ep.Tin)) + mean(exp(Ep.Tcn)));
-
-infect = mean(erf(exp(Ep.vef)));
-mild   = q*infect;
-severe = mean(exp(Ep.lnk))*mild;
-death  = mean(exp(Ep.lnf))*severe;
-fprintf('relative risk of infection %.1f%s\n',      infect*100,'%')
-fprintf('relative risk of mild illness %.1f%s\n',   mild*100,  '%')
-fprintf('relative risk of severe illness %.1f%s\n', severe*100,'%')
-fprintf('relative risk of fatality %.1f%s\n',       death*100, '%')
-disp(' ')
-
-fprintf('%s%.1f%s\n\n','For example, vaccination reduces the risk of being infected and subsequently developing a severe illness to ',severe*100,'% of the risk prior to vaccination. The risk then increases slowly until the next vaccination.')
-
-% mean serial interval
-%--------------------------------------------------------------------------
-fprintf('%s%.1f%s\n','The average serial interval has fallen to ',ST(j),' days')
-
-% exposure time
-%--------------------------------------------------------------------------
-fprintf('%s%.1f%s\n','The average period between exposure and becoming infectious is ',TIN(j),' days')
-
-% mean incubation (asymptomatic).
-%--------------------------------------------------------------------------
-fprintf('%s%.1f%s\n\n','The average asymptomatic period is currently ',TIC(j),' days')
-
-% report transmissibility and basic reproduction number
-%--------------------------------------------------------------------------
-disp('relative transmissibility');
-disp(100*TRN(j)/mean(TRN(1:j)))
-disp('basic reproduction number');
-disp(RT(j))
-disp(' ')
-
-%% ancillary predictions
-%--------------------------------------------------------------------------
-% Z      = spm_SARS_gen(Ep,M,[1,16,31]);
-% 
-% fprintf('vaccine effectiveness (prevalence of infection) %.1f%s\n', Z(j,3),'%')
-% disp(' ')
-% 
-% [m,d] = max(Z(j:end,2));
-% fprintf('peak hospital admissions:  %.0f on %s\n', m,datestr(t(j + d)))
-% disp(' ')
-% 
-% [m,d] = max(Z(j:end,1));
-% fprintf('peak (28-day) death rates:  %.0f on %s\n', m,datestr(t(j + d)))
-% disp(' ')
-
-%% save figures
-%--------------------------------------------------------------------------
-spm_figure('GetWin','outcomes (1)');
-savefig(gcf,'Fig1_tmp')
-
-spm_figure('GetWin','outcomes (2)');
-savefig(gcf,'Fig2_tmp')
-
-spm_figure('GetWin','outcomes (3)');
-savefig(gcf,'Fig3_tmp')
-
-spm_figure('GetWin','outcomes (4)');
-savefig(gcf,'Fig4_tmp')
-
-spm_figure('GetWin','United Kingdom');
-savefig(gcf,'Fig5_tmp')
-
-spm_figure('GetWin','long-term (2)');
-savefig(gcf,'Fig6_tmp')
-
-spm_figure('GetWin','long-term (1)');
-savefig(gcf,'Fig7_tmp')
-
-% Table
-%--------------------------------------------------------------------------
-disp(spm_COVID_table(DCM.Ep,DCM.Cp,DCM.M))
-
-return
-
-
-
-%% NOTES
-% posthoc fitting of age cohort-specific parameters
-%==========================================================================
-clear
-DCM = load('DCM_UK.mat','DCM');
-DCM = DCM.DCM;
-
-% unpack model and posterior expectations
-%--------------------------------------------------------------------------
-M   = DCM.M;                                 % model (priors)
-Ep  = DCM.Ep;                                % posterior expectation
-Cp  = DCM.Cp;                                % posterior covariances
-S   = DCM.Y;                                 % smooth timeseries
-U   = DCM.U;                                 % indices of outputs
-Y   = DCM.M.T; 
-
-xY.y  = spm_vec(Y.Y);
-xY.Q  = spm_Ce([Y.n]);
-
-% empirical priors
-%--------------------------------------------------------------------------
-pE    = Ep;
-pC    = spm_zeros(DCM.M.pC);
-
-% augment priors
-%--------------------------------------------------------------------------
-nN      = numel(Ep.N);
-k       = numel(Ep.tra)*2;
-pE.mob  = zeros(nN,k);                       % fluctuations in mobility
-pC.mob  = ones(nN,k)/8;                      % prior variance
-
-% augment posteriors
-%----------------------------------------------------------------------
-M.pE      = pE;                    % empirical prior expectation
-M.pC      = pC;                    % fix expectations
-[Ep,Cp]   = spm_nlsi_GN(M,U,xY);   % new posterior expectation
-
-return
-
-% Notes for precision – increasing precision of recent (64 day) data
-%==========================================================================
-nY    = numel(Y);
-Q     = [];
-rdate = datenum(M.end) - 64;
-for i = 1:numel(Y)
-    j      = Y(i).date > rdate;
-    q      = zeros(Y(i).n,nY);
-    q(:,i) = 1;
-    q(j,i) = 16;
-    Q      = [Q; q];
-end
-nQ    = size(Q,1);
-for i = 1:numel(Y)
-    xY.Q{i} = sparse(1:nQ,1:nQ,Q(:,i));
-end
-
-% fluctuations (adiabatic mean field approximation)
-%==========================================================================
-for f = 1:numel(fluct)
-    
-    % augment priors
-    %----------------------------------------------------------------------
-    pE.(fluct{f})   = zeros(1,16);           % add new prior expectation
-    pC.(fluct{f})   =  ones(1,16);           % add new prior covariance
-    
-    % augment posteriors
-    %----------------------------------------------------------------------
-    i               = 1:size(Cp,1);          % number of parameters
-    C               = Cp;                    % empirical prior covariance
-    M.pE            = Ep;                    % empirical prior expectation
-    M.pC            = spm_zeros(M.pC);       % fix expectations
-    M.pE.(fluct{f}) = zeros(1,16);           % add new prior expectation
-    M.pC.(fluct{f}) =  ones(1,16);           % add new prior covariance
-    
-    [Ep,Cp,Eh,Ff]   = spm_nlsi_GN(M,U,xY);   % new posterior expectation
-    Cp(i,i)         = C;                     % new posterior covariance
-    F               = F + Ff;                % free energy
-    
-    % save priors
-    %----------------------------------------------------------------------
-    M.pE   = pE;
-    M.pC   = pC;
-    
-end
-
-return
-
-%% age-group specific inversion
-%--------------------------------------------------------------------------
-a = 2;
-N = N(a);
-i = [Y.age] == a;
-Y = Y(i);
-S = S(:,i);
-for i = 1:numel(Y)
-    Y(i).age = 0;
-end
-
-% retrieve age-specific priors
-%--------------------------------------------------------------------------
-pE.Nin = pE.Nin(a,a);
-pE.Nou = pE.Nou(a,a);
-pC.Nin = pC.Nin(a,a);
-pC.Nou = pC.Nou(a,a);
-field = fieldnames(pE);
-for i = 1:numel(field)
-    if size(pE.(field{i}),1) > 1
-        pE.(field{i}) = pE.(field{i})(a,:);
-        pC.(field{i}) = pC.(field{i})(a,:);
-    end
-end
-
-
-%% sensitivity analysis in terms of partial derivatives
-%--------------------------------------------------------------------------
-i     = spm_fieldindices(Ep,'oth');
-nP    = spm_length(Ep);
-V     = spm_speye(nP,i);
-dYdP  = spm_diff(M.G,Ep,M,4,1,{V});
-
-% plot results
-%--------------------------------------------------------------------------
-subplot(2,1,1)
-plot(dYdP)
-subplot(2,1,2)
-plot(cumsum(dYdP))
-ylabel('First-order sensitivity','FontSize',16), box off
-spm_fieldindices(Ep,9)
-
-
-
-
-%% Interventions
-%==========================================================================
-% Y(:,1)  - Daily deaths (28 days)
-% Y(:,2)  - Daily confirmed cases
-% Y(:,3)  - Mechanical ventilation
-% Y(:,4)  - Reproduction ratio (R)
-% Y(:,5)  - Seroprevalence {%}
-% Y(:,6)  - PCR testing rate
-% Y(:,7)  - Risk of infection (%)
-% Y(:,8)  - Prevalence (true) {%}
-% Y(:,9)  - Daily contacts
-% Y(:,10) - Daily incidence (%)
-% Y(:,11) - Prevalence (positivity){%}
-% Y(:,12) - Number symptomatic
-% Y(:,13) - Mobility (%)
-% Y(:,14) - Workplace (%)
-% Y(:,15) - Certified deaths
-% Y(:,16) - Hospital admissions
-% Y(:,17) - Hospital deaths
-% Y(:,18) - Non-hospital deaths
-% Y(:,19) - Daily incidence (per hundred thousand)
-% Y(:,20) - Weekly confirmed cases (per hundred thousand)
-% Y(:,21) - Infection fatality ratio (%)
-% Y(:,22) - Cumulative first dose
-% Y(:,23) - PCR case positivity (%)
-% Y(:,24) - Lateral flow tests
-% Y(:,25) - Cumulative attack rate
-% Y(:,26) - Population immunity (total)
-% Y(:,27) - Hospital cases
-% Y(:,28) - Incidence of Long Covid
-% Y(:,29) - Proportion vaccinated
-% Y(:,30) - Cumulative admissions
-% Y(:,31) - Vaccine effectiveness (prevalence)
-% Y(:,32) - Gross domestic product
-
-% get posterior estimates
-%--------------------------------------------------------------------------
-clear
-DCM = load('DCM_UK.mat','DCM');
-DCM = DCM.DCM;
-
-% unpack model and posterior expectations
-%--------------------------------------------------------------------------
-M   = DCM.M;                                 % model (priors)
-Ep  = DCM.Ep;                                % posterior expectation
-Cp  = DCM.Cp;                                % posterior covariances
-S   = DCM.Y;                                 % smooth timeseries
-U   = DCM.U;                                 % indices of outputs
-A   = DCM.A;                                 % age cohort
-
-% plot epidemiological trajectories and hold plots
-%==========================================================================
-spm_figure('GetWin','states'); clf;
-%--------------------------------------------------------------------------
-T      = datenum(M.end) - datenum(DCM.M.date);
-M.T    = T + 360*2;                          % forecast dates
-u      = [1];                                % empirical outcome
-a      = 0;                                  % age cohort (0 for everyone)
-Ep.qua = DCM.Ep.qua + 0;                     % adjusted (log) parameter
-
-[Z,X]  = spm_SARS_gen(Ep,M,u,[],a); % posterior prediction
-
-% and plot
-%--------------------------------------------------------------------------
+spm_figure('GetWin','Portfolio management'); clf
 try
-    j     = [];
-    for i = 1:numel(u)
-        j = [j find(U == u(i) & A == a(i))];  
-    end
-    spm_SARS_plot(Z,X,S(:,j),u)
+    EFT = DEM.EFT;
 catch
-    spm_SARS_plot(Z,X,[],u)
+    for i = 1:m
+        EFT{i} = sprintf('Asset %i',i);
+    end
 end
-subplot(3,2,1), hold on
-plot([T T]/7,[min(Z) max(Z)],'--')
+
+% Cumulative returns of policies
+%--------------------------------------------------------------------------
+xLim = [Ti - 1,Tf];
+subplot(3,1,1), hold off
+plot(exp(R)*100)
+title('Cumulative returns of policies (%)','FontSize',14)
+xlabel('time'), ylabel('%')
+set(gca,'XLim',xLim)
+legend(policies,'Location','northwest')
+
+% Log returns of assets
+%--------------------------------------------------------------------------
+subplot(6,1,3), hold off
+plot(L(:,1:m)*Ann)
+title(sprintf('Rate of log return of assets (annualised)'),'FontSize',14)
+ylabel('%'), set(gca,'XLim',xLim), legend(EFT)
+
+% Allocation
+%--------------------------------------------------------------------------
+subplot(6,1,4), hold off
+imagesc(Wpro)
+title('Allocation: prospective','FontSize',14)
+set(gca,'XLim',xLim)
+set(gca,'YTickLabel', EFT)
+set(gca,'YTick',1:m)
+
+subplot(6,1,5), hold off
+imagesc(Wret)
+title('Allocation: retrospective','FontSize',14)
+set(gca,'XLim',xLim)
+set(gca,'YTickLabel', EFT)
+set(gca,'YTick',1:m)
+
+% Predicted and realised returns
+%--------------------------------------------------------------------------
+subplot(6,1,6), hold off
+set(gca,'ColorOrderIndex',1)
+spm_plot_ci(Er*Ann,Ann*Cr*Ann), hold on
+set(gca,'ColorOrderIndex',1)
+plot(D(:,5)*Ann,'.r')
+title('Predicted and realised RoR','FontSize',14)
+ylabel('%'), set(gca,'XLim',xLim)
+
+
+% Annualised performance (D)
+%==========================================================================
+D     = exp(D(Ti:Tf,:)) - 1;
+for i = 1:size(D,2)
+
+    for t = 1:(size(D,1) - dT)
+        ti    = t + (1:dT);
+
+        % Annualised return
+        %----------------------------------------------------------------------
+        m(t)  = mean(D(ti,i))*Ann;
+
+        % Volatility
+        %----------------------------------------------------------------------
+        s(t)  = std(D(ti,i))*Ann;
+
+        % Sharpe ratio
+        %----------------------------------------------------------------------
+        r(t) = (m(t) - 2)/s(t);
+
+    end
+
+    % Annual return
+    %----------------------------------------------------------------------
+    tab{i,1} = mean(m);
+
+    % Volatility
+    %----------------------------------------------------------------------
+    tab{i,2} = mean(s);
+
+    % Sharpe ratio
+    %----------------------------------------------------------------------
+    tab{i,3} = mean(r);
+
+    % Drawdown
+    %----------------------------------------------------------------------
+    tab{i,4} = min(D(:,i))*100;
+
+
+end
+
+VariableNames{1} = 'Annual RoR (%)';
+VariableNames{2} = 'Volatility (%)';
+VariableNames{3} = 'Sharpe ratio';
+VariableNames{4} = 'Drawdown (%)';
+RowNames = {'hold','max-ret','risk-ret','max-pro','risk-pro'};
+
+Tab = cell2table(tab);
+Tab.Properties.VariableNames = VariableNames;
+Tab.Properties.RowNames      = RowNames
+
+return
+
+function [Ey,Cy,M] = spm_forecast_update(L,I,M,DEM,dT)
+% FORMAT [Ey,Cy,M] = spm_forecast_update(L,I,M,DEM,dT)
+% updates model parameters and generates forecast
+% L   - rate of log return (per dt)
+% U   - indicator variables (normalised)
+% M   - flow model
+% DEM - generative model
+% dT  - forecast period
+%__________________________________________________________________________
+
+% get scale
+%--------------------------------------------------------------------------
+scale = diag(DEM.M(1).pE.scale);
+
+% response and explanatory variables
+%--------------------------------------------------------------------------
+T    = size(L,1);               % current time
+D    = dT;                      % past duration
+t    = (T - D):T;               % past period
+Y    = [I(t,:),L(t,:)];         % training data
+X    = Y/scale;                 % scale
+
+% model inversion with Variational Laplace
+%==========================================================================
+if false
+
+    fig  = gcf;                     % get current figure
+    M.X  = X;                       % legacy points in state-space
+    B    = spm_ness_U(M);           % get state space and flow
+    F    = gradient(M.X')';         % target flow
+
+    % posterior over parameters
+    %----------------------------------------------------------------------
+    [Ep,Cp,Eh] = spm_nlsi_GN(M,B,F);
+
+    % posterior precision of random fluctuations
+    %----------------------------------------------------------------------
+    W    = diag(exp(Eh));
+    Ep.W = W;                       % posterior volatility
+    M.W  = W;                       % update for flow model
+
+    % Bayesian belief updating
+    %----------------------------------------------------------------------
+    M.pE = Ep;                      % and parameters of flow
+    M.pC = Cp;                      % and covariance of parameters
+    M.hE = Eh;                      % and log-precision
+
+    % update initial expectations (parameters)
+    %----------------------------------------------------------------------
+    M.P  = Ep;
+
+    % update generative model
+    %======================================================================
+
+    % model
+    %----------------------------------------------------------------------
+    DEM.M(1).pE = Ep;               % posterior esimates from VL
+    DEM.M(1).pC = Cp;               % posterior esimates from VL
+    DEM.M(1).V  = exp(16);
+    DEM.M(1).W  = W;
+    figure(fig)
+
+end
+
+% forecast
+%==========================================================================
+DEM.T      = T;
+DEM.Y      = Y';
+DEM.M(1).x = X(end,:)';
+[Ey,Cy]    = spm_NESS_forecast(DEM,dT);
+
+return
+
+function [X] = spm_exp_conv(X,t)
+% Epponential convolution
+% FORMAT [X] = spm_exp_conv(X,t)
+% X    - matrix
+% sx   - kernel length
+%__________________________________________________________________________
+%
+% spm_exp_conv is a onedimensional convolution of a matrix variable in
+% working memory.
+%__________________________________________________________________________
+
+% Karl Friston
+% Copyright (C) 1999-2022 Wellcome Centre for Human Neuroimaging
+
+%--------------------------------------------------------------------------
+n  = size(X,1);
+K  = exp(-(0:(6*t)).^2/(2*t^2));
+C  = spm_convmtx(K(:),n);
+C  = C(1:n,1:n);
+C  = diag(1./sum(C,2))*C;
+X  = C*X;
+
+
+
+
 
 

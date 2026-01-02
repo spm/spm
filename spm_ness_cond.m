@@ -46,7 +46,7 @@ for i = 1:n
         
     end
 end
-C   = inv(-P);                         % covariance
+C   = spm_inv(-P);                     % covariance
 m   = C*E;                             % mean
 
 % Conditional moments, if requested

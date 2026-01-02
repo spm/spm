@@ -1,7 +1,8 @@
-function [F,S,Q,L,H,DS] = spm_NESS_gen_lap(P,M,x)
+function [F,S,Q,L,H,DS,E] = spm_NESS_gen_lap(P,M,x)
 % Generate flow (f) at locations x
-% FORMAT [F,S,Q,L,H,D] = spm_NESS_gen_lap(P,M,x)
-% FORMAT [F,S,Q,L,H,D] = spm_NESS_gen_lap(P,M,U)
+% FORMAT [F,S,Q,L,H,D,E] = spm_NESS_gen_lap(P,M)
+% FORMAT [F,S,Q,L,H,D,E] = spm_NESS_gen_lap(P,M,x)
+% FORMAT [F,S,Q,L,H,D,E] = spm_NESS_gen_lap(P,M,U)
 %--------------------------------------------------------------------------
 % P.Qp    - polynomial coefficients for solenoidal operator
 % P.Sp    - polynomial coefficients for Kernel (suprisal)
@@ -13,6 +14,7 @@ function [F,S,Q,L,H,DS] = spm_NESS_gen_lap(P,M,x)
 % L       - correction term for derivatives of solenoidal flow
 % H       - Hessian
 % D       - potential gradients
+% E       - expectation of NESS density
 %
 % U = spm_ness_U(M)
 %--------------------------------------------------------------------------
@@ -39,7 +41,7 @@ function [F,S,Q,L,H,DS] = spm_NESS_gen_lap(P,M,x)
 % fluctuations G) is specified as the precision of a state-space model:
 % M.W.
 %
-% In brief, spm_NEES_fx returns the flow for a particular point in state
+% In brief, spm_NESS_fx returns the flow for a particular point in state
 % space, whereas this routine returns the flow for an arbitrary number of
 % points at the same time. These flows can then be used as a generative
 % model for the flow sampled over grid points in state space—or during the
@@ -49,16 +51,26 @@ function [F,S,Q,L,H,DS] = spm_NESS_gen_lap(P,M,x)
 % Karl Friston
 % Copyright (C) 2021-2022 Wellcome Centre for Human Neuroimaging
 
-
 % get basis set and gradients
 %--------------------------------------------------------------------------
-if ~isstruct(x)
-    if ~iscell(x)
-        x = num2cell(x(:)'); 
-    end
-    U   = spm_ness_U(M,x);
+if nargin < 3
+
+    % assume M.X is specified
+    %----------------------------------------------------------------------
+    U   = spm_ness_U(M);
+
 else
-    U = x;
+
+    % get basis set and gradients
+    %----------------------------------------------------------------------
+    if ~isstruct(x)
+        if ~iscell(x)
+            x = num2cell(x(:)');
+        end
+        U   = spm_ness_U(M,x);
+    else
+        U = x;
+    end
 end
 
 % dimensions and correction terms to flow operator
@@ -107,17 +119,19 @@ for i = 1:n
     end
 end
 
-% expectation (mean) Rp
-%--------------------------------------------------------------------------
-E = U.b(:,1)*P.Rp;
 
 % gradients D*S
 %--------------------------------------------------------------------------
 DS    = cell(n,1);
+i     = 1:size(P.Rp,1);
 for k = 1:nX
-    X          = U.X(k,:) - E(k,:);
-    H(:,:,k)   = K(:,:,k)'*K(:,:,k);
-    S(k,1)     = X*H(:,:,k)*X'/2;
+
+    % expectation (mean) Rp and Hessian H
+    %----------------------------------------------------------------------
+    E        = U.b(k,i)*P.Rp;
+    X        = U.X(k,:) - E;
+    H(:,:,k) = K(:,:,k)'*K(:,:,k);
+    S(k,1)   = X*H(:,:,k)*X'/2;
     for j = 1:n
         DS{j}(k,1) = X*DK(:,:,j,k)'*K(:,:,k)*X' + H(j,:,k)*X';
     end
