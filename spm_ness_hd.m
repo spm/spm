@@ -10,6 +10,7 @@ function NESS = spm_ness_hd(M,x)
 %    M.W   - (n x n) - precision matrix of random fluctuations
 % x    - cell array of vectors specifying evaluation grid
 %
+% NESS.Ep - parameters of log NESS
 % NESS.p0 - nonequilibrium steady-state
 % NESS.X  - evaluation points of state space
 % NESS.F  - expected flow
@@ -21,8 +22,7 @@ function NESS = spm_ness_hd(M,x)
 % NESS.H2 - expected Euclidean norm of Hessian
 % NESS.J2 - expected Euclidean norm of Jacobian
 % NESS.D2 - correlation dimension
-% NESS.bS - p0 = spm_softmax(spm_dctmtx(nx,nb)*bS);
-% NESS.nb - number of basis functions
+% NESS.o  - parameter orders
 %__________________________________________________________________________
 
 % Karl Friston
@@ -248,13 +248,13 @@ Ep.Qp = Qp;
 
 % assemble NESS structure
 %--------------------------------------------------------------------------
+NESS.Ep = Ep;                             % parameters of log NESS
 NESS.H  = spm_dot(H   ,p0);               % expected Hessian
 NESS.J  = spm_dot(J   ,p0);               % expected Jacobian
 NESS.E  = spm_dot(E   ,p0);               % Lyapunov exponents
 NESS.H2 = spm_dot(H.^2,p0);               % expected Euclidean norm of Hessian
 NESS.J2 = spm_dot(J.^2,p0);               % expected Euclidean norm of Jacobian
 NESS.D2 = 2 + abs(E(1) + E(2))/abs(E(3)); % correlation dimension
-NESS.Ep = Ep;                             % parameters of flow
 NESS.o  = o;                              % parameter orders
 NESS.nE = nE;                             % error norm
 
@@ -262,7 +262,12 @@ NESS.nE = nE;                             % error norm
 %--------------------------------------------------------------------------
 % NB: generally, p0 = spm_softmax(spm_polymtx(x,nb)*Ep.Sp);
 
-NESS.p0 = reshape(p0,U.nx);               % nonequilibrium steady-state
 NESS.X  = X;                              % evaluation points of state space
 NESS.F  = F;                              % expected flow
 NESS.f  = f';                             % original flow
+try
+    NESS.p0 = reshape(p0,U.nx);           % nonequilibrium steady-state
+catch
+    NESS.p0 = p0;                         % nonequilibrium steady-state
+end
+

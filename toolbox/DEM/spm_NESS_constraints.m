@@ -4,7 +4,7 @@ function [ks,kq,kg,kh] = spm_NESS_constraints(o,A,K,L)
 % o - matrix of orders for polynomial expansion
 % A - adjacency matrix (dynamical coupling)
 % K - upper bound on order for surprisal parameters
-% L - upper bound on order for flow operator parameters (K > L)
+% L - upper bound on order for flow operator parameters (K < L)
 %
 % ks  - indices for surprisal   parameters
 % kq  - indices for solenoidal  parameters

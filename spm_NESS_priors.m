@@ -1,14 +1,18 @@
-function [pE,pC] = spm_NESS_priors(n,K,V,W)
+function [pE,pC] = spm_NESS_priors(n,L,V,W,J,R,C)
 % priors for a NESS genertive model
-% FORMAT [pE,pC] = spm_NESS_priors(n,K,V,W)
+% FORMAT [pE,pC] = spm_NESS_priors(n,L,V,[W,J,R,C])
 %--------------------------------------------------------------------------
-% n   = 3;                    % number of states
-% K   = 1 + 1;                % order (+1) of polynomial expansion (suprisal)
-% V   = 512                   % prior precision over parameters
-% W   = 32;                   % precision of random fluctuations
+% n   - number of states (n)
+% L   - order (+1) of polynomial expansion
+% V   - prior precision over parameters
+% W   - precisions of random fluctuations
+% J   - contraints on Jacobian [ones(n,n)]
+% R   - coupling to mean (first order) [zeros(n,n)]
+% C   - covaraince of NESS [eye(n,n)]
 %
 % pE  - prior expectation
-% pC  - prior covariances
+% pC  - prior covariances (matrix)
+% sC  - prior covariances (structure)
 %
 % This routine returns the prior expectations and covariances of the
 % parameters (i.e., polynomial coefficients) of a nonequilibrium
@@ -31,114 +35,114 @@ function [pE,pC] = spm_NESS_priors(n,K,V,W)
 % Karl Friston
 % Copyright (C) 2021-2022 Wellcome Centre for Human Neuroimaging
 
-% assume second-order approximation (for solenoidal flow)
+% checks and defaults
 %--------------------------------------------------------------------------
-L     = 3;
+if nargin < 5,  J = ones(n,n);  end
+if nargin < 6,  R = zeros(n,n); end
+if nargin < 7,  C = eye(n,n);   end
 
-% get (polynomial) expansion: L > K = 3
+if isscalar(C), C = eye(n,n)*C; end
+if isscalar(W), W = eye(n,n)*W; end
+
+% get (polynomial) expansion: assume first-order approximation
 %--------------------------------------------------------------------------
 o     = (1:L) - 1;
 for i = 2:n
     o = repmat(o,1,L);
     o = [o; kron((1:L) - 1,ones(1,L^(i - 1)))];
 end
-k  = sum(o) < L;
-o  = o(:,k);
-    
+k     = sum(o) < L;
+o     = o(:,k);
+nb    = size(o,2);
+
 % get parameters
 %--------------------------------------------------------------------------
-nb     = size(o,2);
-nQ     = n*n/2 + n/2;
+pE.Qp = zeros(nb,n,n);    % polynomial coefficients for solenoidal operator
+pE.Rp = zeros(nb,n);      % polynomial coefficients for surprisal mean
+pE.Sp = zeros(nb,n,n);    % polynomial coefficients for surprisal kernel
+pE.W  = W;                % precision of random fluctuations
 
-pE.Qp  = zeros(nb*nQ,1);  % polynomial coefficients for solenoidal operator
-pE.Rp  = zeros(1,n);      % polynomial coefficients for surprisal mean
-pE.Sp  = zeros(nb,n,n);   % polynomial coefficients for surprisal kernel
-pE.W   = W;               % precision of random fluctuations
-
-
-pC.Qp  = pE.Qp;
-pC.Rp  = pE.Rp;
-pC.Sp  = pE.Sp;
-pC.W   = 0;
+pC.Qp = pE.Qp;
+pC.Rp = pE.Rp;
+pC.Sp = pE.Sp;
+pC.W  = W*0;
 
 % constraints on solenoidal operator (G is modelled by M.W)
 %--------------------------------------------------------------------------
-[ks,kq]  = spm_NESS_indices(o,K);
-k        = find(kq);
-pC.Qp(k) = 1/V;
+for i = 1:n
+    for j = 1:n
+        if J(i,j)
+            d     = ~J(i,:);
+            for k = 1:nb
 
-% constraints on mean
-%--------------------------------------------------------------------------
-k        = 1:n;
-pC.Rp(k) = 0; %%%
+                % if j influences i and upper diagonal part of Q
+                %----------------------------------------------------------
+                if j > i && ~any(o(d,k))
+                    pC.Qp(k,i,j) = 1/V;
+                end
+
+            end
+        end
+    end
+end
 
 % constraints on potential (surprisal)
 %--------------------------------------------------------------------------
-k     = find(ks);
 for i = 1:n
     for j = 1:n
-        if i == j
-           pE.Sp(1,i,j) = 1; %%% exp(-j);
-        end
-        if j == i   %%%
-           pC.Sp(k,i,j) = 1/V;
+        if J(i,j)
+            d     = ~J(i,:);
+            for k = 1:nb
+
+                % if j influences i 
+                %----------------------------------------------------------
+                if i == j
+                    pE.Sp(1,i,j) = sqrt(1/C(i,j));   % precision of NESS
+                end
+                if j == i && ~any(o(d,k))   % j >= i for nonorthogonal NESS
+                    pC.Sp(k,i,j) = 1/V;
+                end
+
+            end
         end
     end
 end
 
-% priors
+
+
+
+% constraints on mean
 %--------------------------------------------------------------------------
-pC    = diag(spm_vec(pC));
+pC.Rp(1,:) = 1;
 
-return
-
-function [ks,kq,kg] = spm_NESS_indices(o,K)
-% constraints on polynomial coefficients of dynamical systems
-% FORMAT [ks,kq,kg] = spm_NESS_indices(o,K);
-% o - matrix of orders for polynomial expansion
-% K - upper bound on order for surprisal parameters
-%
-% ks  - indices for surprisal   parameters
-% kq  - indices for solenoidal  parameters
-% kg  - indices for dissipative parameters
-%__________________________________________________________________________
-
-% Karl Friston
-% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
-
-% constraints on potential parameters due to dissipative flow
-%==========================================================================
-[n,nb] = size(o);                           % number of basis functions
-
-% terms for suprisal kernel
+% constraints on mean (coupling to enslaved states)
 %--------------------------------------------------------------------------
-ks    = sum(o) < K;                         % polynomial order constraints
+for i = 1:n
+    for j = 1:n
+        if R(i,j)
+            for k = 1:nb
 
-% solenoidal part of Q (i.e., R)
-%--------------------------------------------------------------------------
-kq    = [];
+                % if this basis is first order in j
+                %----------------------------------------------------------
+                if sum(o(:,k)) == 1 && o(j,k)
+                    pC.Rp(k,i) = 1;
+                end
+            end
+        end
+    end
+end
+
+qE    = [];
+qC    = [];
 for i = 1:n
     for j = i:n
-        if j == i
-            kq = [kq false(1,nb)];
-        else
-            kq = [kq  true(1,nb)];
+        for k = 1:nb
+            qE(end + 1) = pE.Qp(k,i,j);
+            qC(end + 1) = pC.Qp(k,i,j);
         end
     end
 end
-
-% dissipative part of Q (i.e., G, which is modelled by W)
-%--------------------------------------------------------------------------
-kg    = [];
-for i = 1:n
-    for j = i:n
-        if j == i
-            kg = [kg  true(1,nb)];
-        else
-            kg = [kg false(1,nb)];
-        end
-    end
-end
+pE.Qp = qE;
+pC.Qp = qC;
 
 return
-

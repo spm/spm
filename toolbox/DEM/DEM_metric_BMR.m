@@ -51,7 +51,7 @@ M  = size(X,1);                               % number of locations
 
 % create some sample likihoods based on a true location probability
 %--------------------------------------------------------------------------
-Te  = [14,12];                               % true position
+Te  = [8,12];                               % true position
 Ts  = 2.3;                                   % true disperion (s.d.)
 Tp  = eye(2,2)/(Ts^2);
 for i = 1:M

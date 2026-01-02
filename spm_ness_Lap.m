@@ -87,8 +87,8 @@ S.G    = @spm_NESS_gen_lap;    % generative function
 S.FS   = @(y)y(:);             % generative function
 S.pE   = pE;                   % prior expectations (parameters)
 S.pC   = pC;                   % prior covariances  (parameters)
-S.hE   = 8;                    % prior expectation  (log-precision)
-S.hC   = 1/512;                % prior covariances  (log-precision)
+S.hE   = 16;                   % prior expectation  (log-precision)
+S.hC   = 1/128;                % prior covariances  (log-precision)
 
 % model inversion with Variational Laplace (Gauss Newton)
 %==========================================================================

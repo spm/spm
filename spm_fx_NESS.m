@@ -51,10 +51,19 @@ function F = spm_fx_NESS(x,u,P,M)
 % Copyright (C) 2021-2022 Wellcome Centre for Human Neuroimaging
 
 
+% defaults
+%--------------------------------------------------------------------------
+L = 2;
+if nargin > 3
+    if isfield(M,'L')
+        L = M.L;
+    end
+end
+
 % get (polynomial) expansion of x
 %--------------------------------------------------------------------------
 x   = num2cell(x(:)');
-U   = spm_NESS_U(x);
+U   = spm_NESS_U(x,L);
 
 % dimensions and correction terms to flow operator
 %==========================================================================
@@ -108,26 +117,27 @@ end
 
 % expectation (mean) Rp
 %--------------------------------------------------------------------------
-E = U.b(:,1)*P.Rp;
+j     = 1:size(P.Rp,1);
+E     = U.b(1,j)*P.Rp;
 
 % gradients D*S
 %--------------------------------------------------------------------------
-DS      = zeros(n,1);
-X       = U.X - E;
-H       = K'*K;
+DS    = zeros(n,1);
+X     = U.X - E;
+H     = K'*K;
 for j = 1:n
     DS(j) = X*DK(:,:,j)'*K*X' + H(j,:)*X';
 end
 
 % predicted flow: F   = -Q*D*S - L
 %--------------------------------------------------------------------------
-F = -Q*DS-L;
+F = -Q*DS - L;
 
 return
 
-function U = spm_NESS_U(x)
+function U = spm_NESS_U(x,L)
 % Nonequilibrium steady-state under a Helmholtz decomposition
-% FORMAT U = spm_NESS_U(x)
+% FORMAT U = spm_NESS_U(x,L)
 %--------------------------------------------------------------------------
 % x       - sample point
 %
@@ -144,7 +154,7 @@ function U = spm_NESS_U(x)
 % state space
 %--------------------------------------------------------------------------
 [X,x] = spm_ndgrid(x);
-[b,D] = spm_polymtx(x,3);
+[b,D] = spm_polymtx(x,L);
 n     = numel(x);
 
 % sparse diagonal operator

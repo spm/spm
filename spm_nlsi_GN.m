@@ -587,24 +587,24 @@ for k = 1:M.Nmax
         tstr = sprintf('%s: %i','prediction and response: E-Step',k);
         if isreal(spm_vec(y))
             
-            subplot(2,1,1)
-            plot(x,real(f)), hold on
+            subplot(2,1,1), set(gca,'ColorOrderIndex',1)
+            plot(x,real(f)), hold on, set(gca,'ColorOrderIndex',1)
             plot(x,real(f + e),':'), hold off
             xlabel(xLab)
             title(tstr,'FontSize',16)
             grid on
             
         else
-            subplot(2,2,1)
-            plot(x,real(f)), hold on
+            subplot(2,2,1), set(gca,'ColorOrderIndex',1)
+            plot(x,real(f)), hold on, set(gca,'ColorOrderIndex',1)
             plot(x,real(f + e),':'), hold off
             xlabel(xLab)
             ylabel('real')
             title(tstr,'FontSize',16)
             grid on
             
-            subplot(2,2,2)
-            plot(x,imag(f)), hold on
+            subplot(2,2,2), set(gca,'ColorOrderIndex',1)
+            plot(x,imag(f)), hold on, set(gca,'ColorOrderIndex',1)
             plot(x,imag(f + e),':'), hold off
             xlabel(xLab)
             ylabel('imaginary')
