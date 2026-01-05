@@ -110,13 +110,18 @@ echo_time.help    = {'Specify EPI echo time in seconds'};
 %--------------------------------------------------------------------------
 PE_dir         = cfg_menu;
 PE_dir.tag     = 'PE_dir';
-PE_dir.name    = 'Phase encoding direction of the fMRI';
+PE_dir.name    = 'fMRI phase polarity';
 PE_dir.val     = {1};
 PE_dir.labels  = {
-              'Anterior-Posterior'
-              'Posterior-Anterior'
+              '-1'
+              '1'
                 }';
 PE_dir.values     = {-1 1};
+PE_dir.help = {
+    'Depending on the scanner vendor, image reconstruction algorithm, and phase-encoding direction,'
+    'the phase image may need to be multiplied by −1 to ensure correct distortion correction.'
+    'Using the wrong sign will exacerbate distortions rather than correct them.'
+    } ;
 
 %--------------------------------------------------------------------------
 % Phase-based initial VDM estimate calculation branch
