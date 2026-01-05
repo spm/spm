@@ -32,9 +32,9 @@ image_orig = image ;
 mask_orig = mask ;
 
 for iter = 1:Niter
-image = spm_smooth_fast(image.*mask, k) ;
+image = spm_smooth_fft(image.*mask, k) ;
 % slightly increased smoothing kernel to get smooth edges of extrapolated region:
-mask = spm_smooth_fast(single(mask), k+0.1); 
+mask = spm_smooth_fft(single(mask), k+0.1); 
 
 image = image ./ max(mask, eps);
 if iter<Niter
@@ -46,7 +46,7 @@ end
 end
 
 %% ===========================================================================
-function v = spm_smooth_fast(v, k)
+function v = spm_smooth_fft(v, k)
 
 dims=size(v);
 
