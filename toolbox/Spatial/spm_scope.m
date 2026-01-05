@@ -1,4 +1,4 @@
-function vdm = spm_scope(vol1, vol2, FWHM, reg, rinterp, jac, pref, outdir, VDMprior)
+function vdm = spm_scope(vol1, vol2, FWHM, reg, rinterp, jac, pref, outdir, VDMprior, vol1_pha, t_readout, TE, PE_dir)
 % Susceptibility Correction using Opposite PE
 % FORMAT vdm = spm_scope(vol1, vol2, FWHM, reg, save, VDMprior)
 % vol1       - path to first image (s) (same phase-encode direction)
@@ -56,19 +56,55 @@ end
 if nargin < 8
     outdir = '';          % Output directory
 end
+if nargin < 9
+    VDMprior=[];
+end
+if nargin < 10
+    vol1_pha='';
+end
+if nargin < 11
+    t_readout=[];
+end
+if nargin < 12
+    TE=[];
+end
+if nargin < 13
+    PE_dir=1;
+end
 
-vol1 = alignment_stuff(vol1);
-vol2 = alignment_stuff(vol2);
+%-Realignment of magnitude inputs
+vol1_mean = alignment_stuff(vol1);
+vol2_mean = alignment_stuff(vol2);
+
+%-Optional: loading or calculating initial VDM estimate: 
+hasVDM = exist('VDMprior','var') && ~isempty(VDMprior);
+hasPH = exist('vol1_pha','var')   && ~isempty(vol1_pha);
+
+if ~hasVDM && ~hasPH
+    % neither VDM prior nor phase provided
+    u0 = zeros(size(nifti(vol1_mean).dat),'single');
+elseif hasVDM && ~hasPH
+    % only VDM prior provided
+    Nu0 = nifti(VDMprior);
+    u0  = single(Nu0.dat(:,:,:));
+elseif ~hasVDM && hasPH
+    % only phase provided
+    u0 = spm_est_vdm_from_phase(vol1, vol1_mean, vol1_pha, t_readout, TE, PE_dir, outdir) ;  
+else 
+    error(sprintf(['Both initial estimate of VDM and phase provided - not sure what to use as VDM prior.' ...
+               'Please provide only one or the other.']));
+end
+
 
 %-Estimate noise level
 %--------------------------------------------------------------------------
-sd   = spm_noise_estimate(strvcat(vol1, vol2)); % Rice mixture model to estimate image noise
+sd   = spm_noise_estimate(strvcat(vol1_mean, vol2_mean)); % Rice mixture model to estimate image noise
 sig2 = sum(sd.^2);                              % Variance of difference is sum of variances
 
 %-Load volumes (mess about with extra stuff to deal with 4D files)
 %--------------------------------------------------------------------------
-[nam1,ind1] = name_and_number(vol1);
-[nam2,ind2] = name_and_number(vol2);
+[nam1,ind1] = name_and_number(vol1_mean);
+[nam2,ind2] = name_and_number(vol2_mean);
 Nii  = nifti(strvcat(nam1,nam2));
 f1_0 = single(Nii(1).dat(ind1{:}));
 f2_0 = single(Nii(2).dat(ind2{:}));
@@ -78,18 +114,15 @@ ord  = [0 rinterp 0  0 0 0];
 spm_field('bound',1);                     % Set boundary conditions for spm_field
 
 d    = size(f1_0);
-if nargin < 9
-    u0 = zeros(d,'single');
-else
-    Nu0 = nifti(VDMprior);
-    u0  = single(Nu0.dat(:,:,:));
-    if length(d) ~= length(size(u0)) || ~all(size(u0) == d)
-        error('Incompatible dimensions of supplied VDM.')
-    end
-end
+
 if length(d) ~= length(size(f2_0)) || ~all(size(f2_0) == d)
     error('Incompatible image dimensions.')
 end
+
+if length(d) ~= length(size(u0)) || ~all(size(u0) == d)
+    error('The dimensions of the initial VDM estimate (supplied or derived from phase images) are incompatible with magnitude images.')
+end
+
 u   = u0; % Starting estimates of displacements
 
 % Set the windows figure
@@ -120,7 +153,7 @@ end
 
 % wf1 (same PE direction image, average if more than one was entered)
 %--------------------------------------------------------------------------
-basename = spm_file(vol1,'basename');
+basename = spm_file(vol1_mean,'basename');
 oname    = spm_file(basename,'prefix','scope_','ext','.nii');
 oname    = fullfile(outdir,oname);
 Nio      = nifti;
@@ -132,7 +165,7 @@ Nio.dat(:,:,:) = wf1;
 
 % wf2 (opposite PE image, average if more than one was entered)
 %--------------------------------------------------------------------------
-basename = spm_file(vol2,'basename');
+basename = spm_file(vol2_mean,'basename');
 oname    = spm_file(basename,'prefix','scope_','ext','.nii');
 oname    = fullfile(outdir,oname);
 Nio      = nifti;
@@ -144,7 +177,7 @@ Nio.dat(:,:,:) = wf2;
 
 % Write vdm file
 %--------------------------------------------------------------------------
-basename       = spm_file(vol1,'basename');
+basename       = spm_file(vol1_mean,'basename');
 oname          = spm_file(basename,'prefix',pref,'ext','.nii');
 oname          = fullfile(outdir,oname);
 Nio            = nifti;
