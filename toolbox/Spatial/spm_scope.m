@@ -114,6 +114,11 @@ for fwhm = FWHM % Loop over spatial scales
     end
 end
 
+if jac==1
+    descrip = sprintf('SCOPE: preserve integrals %.3g,%.3g,%.3g',reg);
+else
+    descrip = sprintf('SCOPE: preserve intensity %.3g,%.3g,%.3g',reg);
+end
 
 %-Save distortion-corrected blip reversed images and vdm
 %==========================================================================
@@ -127,6 +132,7 @@ Nio      = nifti;
 Nio.dat  = file_array(oname,d,'float32');
 Nio.mat  = Nii(1).mat;
 Nio.mat0 = Nii(1).mat;
+Nio.descrip = [descrip ' Same'];
 create(Nio);
 Nio.dat(:,:,:) = wf1;
 
@@ -139,6 +145,7 @@ Nio      = nifti;
 Nio.dat  = file_array(oname,d,'float32');
 Nio.mat  = Nii(2).mat;
 Nio.mat0 = Nii(2).mat0;
+Nio.descrip = [descrip ' Opposite'];
 create(Nio);
 Nio.dat(:,:,:) = wf2;
 
@@ -150,6 +157,7 @@ oname          = fullfile(outdir,oname);
 Nio            = nifti;
 Nio.dat        = file_array(oname,size(u),'float32');
 Nio.mat        = Nii(1).mat;
+Nio.descrip    = descrip;
 create(Nio);
 Nio.dat(:,:,:) = u;
 
