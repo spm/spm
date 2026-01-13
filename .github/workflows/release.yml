@@ -17,11 +17,11 @@ jobs:
       matrix:
         # This actions compiles by default with the newest available matlab version
         version: ["latest"] # ["R2021a", "R2021b", "R2022a", "R2022b", "R2023a", "R2023b", "R2024a", "R2024b"]
-        os: ["ubuntu-latest", "macos-13", "macos-latest", "windows-latest"] # macos-13 has Intel architecture, macos-latest has Apple Silicon
+        os: ["ubuntu-latest", "macos-15-intel", "macos-latest", "windows-latest"] # macos-15-intel has Intel architecture, macos-latest has Apple Silicon
         include: # These includes are just giving the OSs additional names
           - os: ubuntu-latest
             os_name: Linux
-          - os: macos-13
+          - os: macos-15-intel
             os_name: macOS_Intel
           - os: macos-latest
             os_name: macOS_Apple_Silicon
