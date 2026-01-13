@@ -589,18 +589,20 @@ try
 catch
   % ignore sensors with no position information
   haspos = find(sum(pos==0,2)~=12);
-  % Make sure orientation norms are unity
-  mag = sqrt(sum(pos(haspos,10:12).^2,2));
-  pos(haspos,10:12) = pos(haspos,10:12)./mag;
-
-  positions = [];
-  positions.Px = pos(haspos,1);
-  positions.Py = pos(haspos,2);
-  positions.Pz = pos(haspos,3);
-  positions.Ox = pos(haspos,10);
-  positions.Oy = pos(haspos,11);
-  positions.Oz = pos(haspos,12);
-  positions.name = {hdr.orig.chs(haspos).ch_name}';
+  if ~isempty(haspos)
+      % Make sure orientation norms are unity
+      mag = sqrt(sum(pos(haspos,10:12).^2,2));
+      pos(haspos,10:12) = pos(haspos,10:12)./mag;
+    
+      positions = [];
+      positions.Px = pos(haspos,1);
+      positions.Py = pos(haspos,2);
+      positions.Pz = pos(haspos,3);
+      positions.Ox = pos(haspos,10);
+      positions.Oy = pos(haspos,11);
+      positions.Oz = pos(haspos,12);
+      positions.name = {hdr.orig.chs(haspos).ch_name}';
+  end
 end
 
 scaler = ones(size(chans.units));
@@ -609,7 +611,9 @@ scaler(meg_chans) = 1e15;
 Snew=S;
 Snew.data = bsxfun(@times, data, scaler);
 Snew.channels = chans;
-Snew.positions= positions;
+if exist('positions','var')
+    Snew.positions= positions;
+end
 Snew.fs = hdr.Fs;
 
 end 
