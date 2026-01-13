@@ -1,4 +1,4 @@
-function F = spm_fx_NESS(x,u,P,M)
+function F = spm_fx_NESS(x,u,P,M,OPT)
 % Generate flow (f) at locations x
 % FORMAT f = spm_fx_NESS(x,u,P,M)
 %--------------------------------------------------------------------------
@@ -64,14 +64,10 @@ end
 %--------------------------------------------------------------------------
 x   = num2cell(x(:)');
 U   = spm_NESS_U(x,L);
+n   = numel(U.D);
 
 % dimensions and correction terms to flow operator
 %==========================================================================
-
-% sparse diagonal operator
-%--------------------------------------------------------------------------
-n   = numel(U.D);
-spd = @(x)diag(x(:));
 
 % flow operator (bQ)
 %--------------------------------------------------------------------------
@@ -95,7 +91,7 @@ L     = zeros(n,1,'like',U.b(1));
 for i = 1:n
     for j = 1:n
         bQij   = squeeze(bQ(i,j,:));
-        Q(i,j) = spd(U.b*bQij + G(i,j));
+        Q(i,j) = U.b*bQij + G(i,j);
         L(i)   = L(i) - U.D{j}*bQij;
     end
 end
@@ -117,21 +113,41 @@ end
 
 % expectation (mean) Rp
 %--------------------------------------------------------------------------
-j     = 1:size(P.Rp,1);
-E     = U.b(1,j)*P.Rp;
-
-% gradients D*S
-%--------------------------------------------------------------------------
-DS    = zeros(n,1);
-X     = U.X - E;
-H     = K'*K;
-for j = 1:n
-    DS(j) = X*DK(:,:,j)'*K*X' + H(j,:)*X';
+p   = 1:size(P.Rp,1);
+E   = U.b(1,p)*P.Rp;
+DX  = zeros(n,n);
+for i = 1:n
+    for j = 1:n
+        if i == j
+            DX(i,j) = 1;
+        else
+            %%% DX(i,j) = -U.D{j}(1,p)*P.Rp(p,i);
+        end
+    end
 end
 
-% predicted flow: F   = -Q*D*S - L
+% gradients D*S: S  = (X - E(X))'*K(X)'*K(X)*(X - E(X))/2   =>
+%                DS = DX'*H(X)*(X - E) + (X - E)'*DK'*K(X)*(X - E)
 %--------------------------------------------------------------------------
-F = -Q*DS - L;
+X     = (U.X - E)';
+DS    = zeros(n,1);
+H     = K'*K;
+for i = 1:n
+   DS(i) = X'*DK(:,:,i)*K*X;
+end
+DS = DS + DX'*H*X;
+
+% predicted flow: F = -Q*D*S - L
+%--------------------------------------------------------------------------
+F  = -Q*DS - L;
+
+% required output
+%--------------------------------------------------------------------------
+if nargin > 4
+    S = X'*(K'*K)*X/2;
+    F = eval(OPT);
+end
+
 
 return
 

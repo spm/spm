@@ -30,6 +30,7 @@ X     = DEM.Y'/scale;                % past states
 x     = X(end,:);                    % current state                
 pE    = DEM.M(1).pE;                 % flow parameters (order K) 
 W     = DEM.M(1).W;                  % precision
+n     = numel(x);                    % number od states
 
 % parameters of equilibrium density (Ep: Laplace approximation)
 %==========================================================================
@@ -40,41 +41,17 @@ M.K   = 2;
 M.L   = 2;
 M.W   = W;
 [~,~,~,~,H,~,E] = spm_NESS_gen_lap(pE,M,x);
-C      = inv(H);
-[Sp,o] = spm_ness_cond_inv(E(:),C);
-Ep.Sp  = Sp;
+C     = inv(H + eye(n,n)/4);
+Ep.Sp = spm_ness_cond_inv(E(:),C);
 
 % solenoidal coefficients (for a K = 3 basis set)
 %--------------------------------------------------------------------------
-n     = numel(x);
-K     = 2;
-p     = (1:K) - 1;
-for i = 2:n
-    p = repmat(p,1,K);
-    p = [p; kron((1:K) - 1,ones(1,K^(i - 1)))];
-end
-k     = sum(p) < K;
-p     = p(:,k);
-no    = size(o,2);
-nb    = size(p,2);
-Qp    = zeros(no,n,n);
-for k = 1:nb
-    r(k) = find(ismember(o',p(:,k)','rows'));
-end
-d     = 1;
-for i = 1:n
-    for j = i:n
-        for k = 1:nb
-            Qp(r(k),i,j) = pE.Qp(d);
-            d = d + 1;
-        end
-    end
-end
+nb    = numel(Ep.Sp);
 Ep.Qp = [];
 for i = 1:n
     for j = i:n
-        for k = 1:no
-            Ep.Qp(end + 1) = Qp(k,i,j);
+        for k = 1:nb
+            Ep.Qp(end + 1) = 0;
         end
     end
 end
@@ -104,26 +81,11 @@ for t = 1:N
     Cy{t}   = scale*C*scale;
     Vy(:,t) = diag(Cy{t});
 
-    % time-derivative of surprisal coefficients
+    % update surprisal coefficients of current density
     %----------------------------------------------------------------------
     dS = spm_NESS_ds(Sp,Ep,U);
     dS = U.b\dS;
-
-    % update mean and (positive definite) covariance
-    %----------------------------------------------------------------------
-    [dm,dC] = spm_ness_cond(n,3,Sp + dS*dt);
-
-    dm = dm - m;
-    dC = dC - C;
-    m  = m + dm;
-    C  = expm(logm(C) + C\dC);
-    Sp = spm_ness_cond_inv(m,C);
-
-    % update surprisal coefficients
-    %----------------------------------------------------------------------
-    % [~,~,~,~,H,~,E] = spm_NESS_gen_lap(pE,M,m);
-    % Ep.Sp           = spm_ness_cond_inv(E(:),inv(H));
-    % fprintf('Fokker–Planck: %i of %i\n',t,N)
+    Sp = Sp + dS*dt;
 
 end
 
@@ -148,15 +110,43 @@ Vy    = Vy(:,i);
 
 % Density dynamics
 %--------------------------------------------------------------------------
-xLim  = [-4 1]*nT + T;
 for i = 1:n
     subplot(6,2,i),  hold on, set(gca,'ColorOrderIndex',i)
     spm_plot_ci(Ey(i,:),Vy(i,:),t,[],'plot')
     hold on, set(gca,'ColorOrderIndex',i),
-    plot(r,DEM.Y(i,:),'LineWidth',2), plot(xLim,[0,0],':k')
+    plot(r,DEM.Y(i,:),'LineWidth',2), plot(get(gca,'XLim'),[0,0],':k')
     title('predictive density','FontSize',14)
-    set(gca,'XLim',xLim)
 end
 
-
 return
+
+% Notes
+%==========================================================================
+
+% update mean and (positive definite) covariance
+%--------------------------------------------------------------------------
+[dm,dC] = spm_ness_cond(n,3,Sp + dS/1e6);
+
+dm      = (dm - m)*1e6;
+m       = m + dm*dt;
+[e,v]   = eig(C);
+v       = diag(v);
+dv      = (diag(e'*dC*e)./v - 1)*1e6;
+v       = log(v) + dv*dt;
+C       = e*diag(exp(v))*e';
+Sp      = spm_ness_cond_inv(m,C);
+
+% method of moments: based on sampled surprisal
+%--------------------------------------------------------------------------
+X     = DEM.B.X;
+for i = 1:size(X,1)
+    [~,s]  = spm_NESS_gen_lap(pE,M,X(i,:) + E);
+    S(i,1) = s;
+end
+p = spm_softmax(-S);
+e = p'*X;
+c = 0;
+for i = 1:size(X,1)
+    s = X(i,:) - e;
+    c = c + p(i)*(s'*s);
+end

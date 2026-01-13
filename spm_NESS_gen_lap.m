@@ -1,5 +1,5 @@
-function [F,S,Q,L,H,DS,E] = spm_NESS_gen_lap(P,M,x)
-% Generate flow (f) at locations x
+function [F,S,Q,L,H,DS,E] = spm_NESS_gen_lap(P,M,x,OPT)
+% Generate flow (F) at locations x
 % FORMAT [F,S,Q,L,H,D,E] = spm_NESS_gen_lap(P,M)
 % FORMAT [F,S,Q,L,H,D,E] = spm_NESS_gen_lap(P,M,x)
 % FORMAT [F,S,Q,L,H,D,E] = spm_NESS_gen_lap(P,M,U)
@@ -108,6 +108,8 @@ end
 
 % kernel for Hessian Sp
 %--------------------------------------------------------------------------
+K     = zeros(n,n,nX);
+DK    = zeros(n,n,n,nX);
 for i = 1:n
     for j = i:n
         K(i,j,:) = U.b*P.Sp(:,i,j);
@@ -120,24 +122,48 @@ for i = 1:n
 end
 
 
+% expectation (mean) Rp
+%--------------------------------------------------------------------------
+p     = 1:size(P.Rp,1);
+DX    = zeros(n,n,nX);
+for i = 1:n
+    for j = 1:n
+        if i == j
+            DX(i,j,:) = 1;
+        else
+            %%% DX(i,j,:) = - U.D{j}(:,p)*P.Rp(p,i);
+        end
+    end
+end
+
 % gradients D*S
 %--------------------------------------------------------------------------
 DS    = cell(n,1);
-i     = 1:size(P.Rp,1);
+DXHX  = zeros(n,1);
+S     = zeros(nX,1);
+H     = zeros(n,n,nX);
 for k = 1:nX
 
     % expectation (mean) Rp and Hessian H
     %----------------------------------------------------------------------
-    E        = U.b(k,i)*P.Rp;
-    X        = U.X(k,:) - E;
+    E        = U.b(k,p)*P.Rp;
+
+    % gradients D*S: S  = (X - E)'*K(X)'*K(X)*(X - E)/2   =>
+    %                DS =  DX'*H(X)*(X - E) + (X - E)'*DK'*K(X)*(X - E)
+    %--------------------------------------------------------------------------
+    X        = (U.X(k,:) - E)';
     H(:,:,k) = K(:,:,k)'*K(:,:,k);
-    S(k,1)   = X*H(:,:,k)*X'/2;
-    for j = 1:n
-        DS{j}(k,1) = X*DK(:,:,j,k)'*K(:,:,k)*X' + H(j,:,k)*X';
+    S(k,1)   = X'*H(:,:,k)*X/2;
+
+    DXH   = DX(:,:,k)'*H(:,:,k);
+    for i = 1:n
+        DXHX(i)    = X'*DK(:,:,i,k)*K(:,:,k)*X;
+        DS{i}(k,1) = DXHX(i) + DXH(i,:)*X;
     end
+
 end
 
-% predicted flow: F   = -Q*D*S - L
+% predicted flow: F = -Q*D*S - L
 %--------------------------------------------------------------------------
 for i = 1:n
     for j = 1:n
@@ -145,5 +171,13 @@ for i = 1:n
     end
     F(:,i) = F(:,i) - L(:,i);
 end
+
+% required output
+%--------------------------------------------------------------------------
+if nargin > 3
+    F = eval(OPT);
+end
+
+
 
 return

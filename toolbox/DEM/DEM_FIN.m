@@ -1,5 +1,5 @@
-function DCM = DEM_FIN
-% FORMAT DCM = DEM_FIN
+function Tab = DEM_FIN(SIM)
+% FORMAT Tab = DEM_FIN
 %
 % Demonstration of COVID-19 modelling using variational Laplace (4 groups)
 %__________________________________________________________________________
@@ -19,7 +19,7 @@ function DCM = DEM_FIN
 % set up and get data
 %==========================================================================
 cd('C:\Users\karl\Dropbox\Fintech')
-rng(1)
+rng(0)
 
 
 %% import data
@@ -30,15 +30,15 @@ EFT  = {'SPY', 'VEA', 'AGG', 'VNQ', 'DBC', 'BIL'};
 name = data.textdata(1,2:end);
 iy   =  ismember(name,EFT);
 iu   = ~ismember(name,EFT);
-
 date = datenum(data.textdata(2:end,1),'dd/mm/yyyy');
 U    = data.data(1:end,iu);
 V    = data.data(1:end,iy);
 
-i    = [2 6 3 5 4 1];
+% order assets
+%--------------------------------------------------------------------------
+i    = [2 3 6 5 4 1];
 V    = V(:,i);
 EFT  = EFT(i);
-
 
 % remove null indicator variables
 %--------------------------------------------------------------------------
@@ -46,36 +46,65 @@ d    = find(min(U) > 0);
 U    = U(:,d);
 name = name(d);
 
-% decimate and smooth
-%--------------------------------------------------------------------------
+
+%% simulation parameters
+%==========================================================================
+if nargin
+
+    % durations
+    %----------------------------------------------------------------------
+    N    = SIM.N;               % end point (weeks)
+    D    = SIM.D;               % depth of training data (weeks)
+    nT   = SIM.nT;              % duration of simulation (in weeks)
+    dT   = SIM.dT;              % time between rebalancing (in weeks)
+
+    % specify number of indicator states and assets
+    %----------------------------------------------------------------------
+    n    = SIM.n;               % number of indicator states
+    m    = SIM.m;               % number of assets
+    d    = SIM.d;               % order of detrending
+
+else
+
+    % defaults
+    %----------------------------------------------------------------------
+    N    = 52*7;                   % end point (weeks)
+    D    = 512;                 % depth of training data (weeks)
+    nT   = 52;                  % duration of simulation (in weeks)
+    dT   = 4;                   % time between rebalancing (in weeks)
+
+    % specify number of indicator states and assets
+    %----------------------------------------------------------------------
+    n    = 3;                   % number of indicator states
+    m    = 6;                   % number of assets
+    d    = 4;                   % order of detrending
+
+end
 dt   = 5;                       % sampling interval (e.g., a week)
-t    = numel(date);             % number of samples
-d    = 1:dt:t;                  % time series for eigenreduction
-nT   = 64;                      % duration of simulation (in dt)
-dT   = 4;                       % time between rebalancing (in dt)
-T    = numel(d) - nT;           % start of simulation
-D    = 512;                     % depth of training data
-date = date(d);
+N    = size(V,1) - N*dt;        % numer of samples (in days)
+U    = U(1:N,:);
+V    = V(1:N,:);
+
+% decimation matrix: days to weeks
+%--------------------------------------------------------------------------
+t    = ceil(N/dt);              % numer of weeks
+K    = kron(eye(t,t), ones(1,dt)/dt);
+K    = K(:,1:N);                % convolution kernel
+K    = times(K,1./sum(K,2));    % returning average
+T    = t - nT;                  % start of simulation (weeks)
+date = date((1:t)*dt - 1);      % dates
 
 % Exchange-Traded Funds
 %--------------------------------------------------------------------------
 V    = spm_log(V);              % log value
-L    = gradient(V')';           % rate of log return per day
-L    = spm_conv(L,dt,0);        % smooth before decimating
-L    = L(d,:)*dt;               % decimated RoR per dt
+L    = spm_grad(V);             % rate of log return per day
+L    = K*L*dt;                  % rate of log return per week
 
-% detrend in log space to condition data under NESS assumption
+% eigenreduce
 %--------------------------------------------------------------------------
 U    = spm_log(U);              % log indicators
-U    = spm_conv(U,16,0);      % smoothing
-U    = U(d,:);                  % decimated indicators
-I    = spm_eigenreduce(U,1:T,L);% eigenvariates
-
-
-% specify
-%--------------------------------------------------------------------------
-n    = 4;                     % number of indicator states
-m    = 6;                     % number of assets
+U    = K*U;                     % decimate
+I    = spm_eigenreduce([U L],1:T,d);
 
 % plot data
 %--------------------------------------------------------------------------
@@ -84,17 +113,24 @@ spm_figure('GetWin','Data'); clf;
 % response and explanatory variables
 %--------------------------------------------------------------------------
 t    = (T - D):T;
-I    = [I(:,1:n)];            % indicator variables
-L    = [L(:,1:m)];            % rate of log return
-Y    = [I(t,:),L(t,:)];       % training data
+I    = [I(:,1:n)];              % indicator variables
+L    = [L(:,1:m)];              % rate of log return
+Y    = [I(t,:),L(t,:)];         % training data
 
-subplot(2,1,1)
+subplot(3,1,1)
 plot(date,I), title('Log indicator variables','FontSize',14)
-datetick('x','mmm-yy'), xlabel('time')
+datetick('x','mmm-yy'), xlabel('time (mmm-yy')
 
-subplot(2,1,2)
-plot(L(:,1:m)), title('Log return (%)','FontSize',14)
-xlabel('time')
+subplot(3,1,2)
+plot(V), title('Log value of ETFs','FontSize',14)
+xlabel('time (days)'), spm_axis tight
+
+subplot(3,1,3)
+plot(L), hold on
+plot([T,T],[-1,1]/4,'-.r')
+plot([T,T] - D,[-1,1]/4,'-.k')
+title('Log return (per week)','FontSize',14)
+xlabel('time (weeks)'), spm_axis tight
 
 
 % system identification
@@ -105,19 +141,17 @@ xlabel('time')
 scale = std(Y);
 X     = rdivide(Y,scale);
 
+% get priors over62 model parameters (polynomial coeficients)
+%--------------------------------------------------------------------------
+K     = 2;                    % order of polynomial expansion plus one
+P.Qp  = 32;                   % variance of parameters (solenoidal)
+P.Sp  = 32;                   % variance of parameters (surprisal)
+P.Rp  = 32;                   % variance of parameters (expectation)
+
 % prior over precision of states and random fluctuations
 %--------------------------------------------------------------------------
 W     = var(gradient(X')');
-W     = W/(8^2);
-W     = diag(1./W);
-
-% model inversion with Variational Laplace (fitting flow)
-%==========================================================================
-
-% get model parameters (polynomial coeficients)
-%--------------------------------------------------------------------------
-K     = 2;                    % order of polynomial expansion plus one
-P     = 1/32;                 % precision of parameters (prior)
+W     = diag(64./W);
 
 % constraints on model parameters (polynomial coefficients)
 %--------------------------------------------------------------------------
@@ -125,7 +159,7 @@ J      = cell(3,3);
 J{1,1} = ones(n,n);
 J{2,2} = eye(m,m);
 J{2,1} = ones(m,n);
-J      = spm_cat(J);
+J      = full(spm_cat(J));
 
 % coupling from indicator to response
 %--------------------------------------------------------------------------
@@ -133,7 +167,7 @@ Q      = cell(3,3);
 Q{1,1} = zeros(n,n);
 Q{2,2} = zeros(m,m);
 Q{2,1} = ones(m,n);
-Q      = spm_cat(Q);
+Q      = full(spm_cat(Q));
 
 % get priors 
 %--------------------------------------------------------------------------
@@ -144,8 +178,9 @@ Q      = spm_cat(Q);
 pE.scale = scale(:);
 pC.scale = pE.scale*0;
 
-%% Variational Laplace
-%--------------------------------------------------------------------------
+
+% model inversion with Variational Laplace (fitting flow)
+%==========================================================================
 
 % get domain of phase-space and polynomial basis set
 %--------------------------------------------------------------------------
@@ -189,9 +224,6 @@ M.pE   = Ep;                   % and parameters of flow
 M.pC   = Cp;                   % and covariance of parameters
 M.hE   = Eh;                   % and log-precision
 
-% update initial expectations (parameters)
-%----------------------------------------------------------------------
-M.P    = Ep;
 
 % Bayesian model reduction
 %--------------------------------------------------------------------------
@@ -210,7 +242,12 @@ M.P    = Ep;
 % evaluate Jacobian at initial state
 %--------------------------------------------------------------------------
 fprintf('\nJacobian at initial conditions\n')
-disp(full(spm_diff(@spm_fx_NESS,x0,[],Ep,[],1)))
+J     = full(spm_diff(@spm_fx_NESS,x0,[],Ep,[],1))
+spm_figure('GetWin','CVA: smoothing'); clf;
+subplot(2,1,1)
+imagesc(J), title('Jacobian (causal coupling)','FontSize',14)
+xlabel('latent states'),ylabel('latent states')
+axis square
 
 % Bayesian model comparison of enslaving
 %==========================================================================
@@ -287,16 +324,17 @@ Q      = spm_cat(Q);
 rE.scale = scale;
 rC.scale = spm_zeros(scale);
 F        = spm_log_evidence_reduce(Ep,Cp,pE,pC,rE,rC);
-fprintf('\nLog-evidence for stochastic choas: %.2f\n',F)
+fprintf('\nLog-evidence for stochastic chaos: %.2f\n',F)
 
 
 
 % model inversion with generlized filtering
 %==========================================================================
+DEM.EFT = M.EFT;
 
 % serial correlations and orders of motion
 %--------------------------------------------------------------------------
-DEM.M(1).E.s      = 0;         % smoothness of fluctuations
+DEM.M(1).E.s      = 1/2;       % smoothness of fluctuations
 DEM.M(1).E.n      = 1;         % order of generalised motion (states)
 DEM.M(1).E.d      = 1;         % order of generalised motion (data)
 DEM.M(1).E.nD     = 2;         % number of integrations per dt
@@ -321,7 +359,7 @@ DEM.M(1).W  = W;
 % DEM   = spm_LAP(DEM);
 % 
 % % illustrate results
-% %--------------------------------------------------------------------------
+% %------------------------------------------------------------------------
 % spm_DEM_qU(DEM.qU)
 % subplot(2,2,1), hold on, plot(DEM.Y','.k'), hold off
 
@@ -331,11 +369,11 @@ DEM.M(1).W  = W;
 %==========================================================================
 spm_figure('GetWin','Fokker Planck'); clf
 
-Nf         = max(2*dT,8);      % forecasting period
-DEM.T      = T;
+Nf         = max(2*dT,12);     % forecasting period
+DEM.T      = T;                % initial time point
 DEM.Y      = Y';               % legacy (training) data
+DEM.G      = M;                % generative model of flow
 DEM.M(1).x = X(end,:)';        % intial state
-
 
 % prepare basis functions for analytic forecasting (U)
 %------------------------------------------------------------------
@@ -350,10 +388,12 @@ DEM.B = spm_ness_U(A,x);
 
 % overlay actual outcomes if specified
 %--------------------------------------------------------------------------
+xLim  = [(T - 4*Nf),(T + Nf)];
 t     = (1:Nf) + T;
 for i = 1:n
     subplot(6,2,i), hold on, set(gca,'ColorOrderIndex',i),
     plot(t,I(t,i),'.')
+    set(gca,'XLim',xLim)
 end
 
 % enslaved outcomes
@@ -361,6 +401,7 @@ end
 for i = (1:m) + n
     subplot(6,2,i), hold on, set(gca,'ColorOrderIndex',i),
     plot(t,L(t,i - n),'.')
+    set(gca,'XLim',xLim)
 end
 
 
@@ -379,19 +420,22 @@ for i = 1:n
     plot(t,I(t,i),'.')
 end
 
-% enslaving outcomes
+% overlay actual outcomes if specified
 %--------------------------------------------------------------------------
-subplot(4,1,3), hold on, set(gca,'ColorOrderIndex',1),
+xLim  = [(T - 4*Nf),(T + Nf)];
+t     = (1:Nf) + T;
 for i = 1:n
+    subplot(8,3,12 + i), hold on, set(gca,'ColorOrderIndex',i),
     plot(t,I(t,i),'.')
+    set(gca,'XLim',xLim)
 end
 
 % enslaved outcomes
 %--------------------------------------------------------------------------
-for i = 1:m
-    subplot(4,1,4), hold on
-    set(gca,'ColorOrderIndex',i),
-    plot(t,L(t,i),'.')
+for i = (1:m) + n
+    subplot(8,3,12 + i), hold on, set(gca,'ColorOrderIndex',i),
+    plot(t,L(t,i - n),'.')
+    set(gca,'XLim',xLim)
 end
 
 if ~m, return, end
@@ -430,472 +474,176 @@ for i = 1:m
 
 end
 
-% free energy and Market cycles
-%==========================================================================
-
-% NESS density and expected flow
-%--------------------------------------------------------------------------
-% [F,S] = spm_NESS_gen_lap(Ep,M);
-
-
-
 % simulate portfolio management under this genertive model
 %==========================================================================
 spm_figure('GetWin','Portfolio forecasts'); clf
 
-M.Nmax = 32; % maximum number of iterations
-tab    = spm_portfolio(L,I,M,DEM,T,dT);
+% constraints on Bayesian belief updating
+%--------------------------------------------------------------------------
+Rp         = pC;
+Rp.Qp      = spm_zeros(pC.Qp);
+Rp.Sp      = spm_zeros(pC.Sp);
+
+Rp.Rp      = (pC.Rp > 0)/6;
+Rp         = diag(spm_vec(Rp));
+DEM.G.pC   = Rp*DEM.M.pC*Rp;
+
+DEM.RoR    = 60;
+DEM.Sharpe = 1;
+Tab        = spm_portfolio(L,I,DEM,T,dT)
+
+return
+
+% % line search for Rp.Rp
+% %--------------------------------------------------------------------------
+% for i = 1:8
+%     Rp     = pC;
+%     Rp.Qp  = spm_zeros(pC.Qp);
+%     Rp.Sp  = spm_zeros(pC.Sp);
+%     Rp.Rp  = (pC.Rp > 0)/i;
+%     Rp     = diag(spm_vec(Rp));
+%     M.pC   = Rp*DEM.M.pC*Rp;
+% 
+%     spm_figure('GetWin','Portfolio forecasts'); clf
+%     Tab    = spm_portfolio(L,I,M,DEM,T,dT)
+%     tab    = table2array(Tab);
+%     RoR(i) = tab(5,1)
+%     Rat(i) = tab(5,3)
+% end
+
+% line search for expected utility (RoR) under a Sharpe ratio of 2
+%--------------------------------------------------------------------------
+% for i = 1:8
+%     DEM.RoR    = 20*i;
+%     DEM.Sharpe = 1/2;
+%     spm_figure('GetWin','Portfolio forecasts'); clf
+%     Tab    = spm_portfolio(L,I,M,DEM,T,dT)
+%     tab    = table2array(Tab);
+%     RoR(i) = tab(5,1)
+%     Rat(i) = tab(5,3)
+% end
+
+% repeat for increasing intervals between rebalancing
+%==========================================================================
+% for i = 1:11
+%     spm_figure('GetWin','Portfolio forecasts'); clf
+%     Tab    = spm_portfolio(L,I,M,DEM,T,i + 1)
+%     tab    = table2array(Tab);
+%     RoR(i) = tab(5,1);
+%     Rat(i) = tab(5,3);
+% end
+% 
+% spm_figure('GetWin','Re-balancing'); clf
+% subplot(2,2,1), bar((1:numel(RoR)) + 1,RoR)
+% title('Annualised rate of return','FontSize',14)
+% xlabel('number of weeks'), ylabel('%')
+% axis square, box off
+% 
+% subplot(2,2,2), bar((1:numel(Rat)) + 1,Rat)
+% title('Sharpe ratio','FontSize',14)
+% xlabel('number of weeks'), ylabel('ratio')
+% axis square, box off
+%  
+% return
+
+% free energy and Market cycles
+%==========================================================================
+spm_figure('GetWin','Financial free energy'); clf
+
+% surprisal in the past
+%--------------------------------------------------------------------------
+F     = [];
+d     = 128;
+for t = (T - d):(T + dT - 1)
+    x     = [I(t,:) L(t,:)]./scale;
+    [~,S] = spm_NESS_gen_lap(Ep,M,x);
+    F(t)  = S;
+end
+
+% surprisal forecasts
+%--------------------------------------------------------------------------
+Fi    = [];
+for i = 1:size(Py,3)
+    f = [];
+    for t = 1:dT
+        x     = Py(:,t,i)'./scale;
+        [~,s] = spm_NESS_gen_lap(Ep,M,x);
+        f(t)  = s;
+    end
+
+    % prepend legacy data
+    %----------------------------------------------------------------------
+    Fi(i,:) = [F(1:T) f(2:end)];
+end
+
+% free energy fluctuations
+%--------------------------------------------------------------------------
+subplot(2,1,1), hold off
+t = M.date;
+i = (T - d):(T + dT - 1);
+plot(t(i),Fi(:,i)','r','LineWidth',1/4), hold on
+plot(t(i),F(i),'b','LineWidth',1)
+datetick('x','mmm-yy'), xlabel('time'), ylabel('surprisal (nats)');
+title('Financial free energy','FontSize',14)
+
+% Phase portraits
+%--------------------------------------------------------------------------
+S     = interp(F,32);
+for i = 1:size(Fi,1)
+
+    % interpolate free energy fluctuations
+    %----------------------------------------------------------------------
+    Si(i,:) = interp(Fi(i,:),32);
+end
+
+subplot(2,1,2), hold off
+dSdt  = gradient(S);
+dFdt  = gradient(Si);
+plot(dFdt',Si','r:','LineWidth',1/4), hold on
+plot(dSdt,S,'b','LineWidth',1)
+plot([0,0],get(gca,'YLim'),':k')
+axis square, title('Phase portrait','FontSize',14)
+xlabel('time derivative'), ylabel('surprisal (nats)');
+
+return
+
+% subroutines
+%==========================================================================
+
+function X = spm_grad(X)
+% gradients based on diff operator (i.e. the past)
+% X  - mattrix of variables
+%__________________________________________________________________________
+
+X  = diff(X);
+X  = [X(1,:); X];
 
 return
 
 
-function I = spm_eigenreduce(U,T,L)
+function I = spm_eigenreduce(U,T,d)
 % eigenreduction of indicator variables
+% FORMAT I = spm_eigenreduce(U,T,[d])
+%--------------------------------------------------------------------------
 % U  - indicator variables
 % T  - based on first T samples
-% L  - response variables
+% d  - order of DCT (detrending)
 %__________________________________________________________________________
-n    = size(U,1);
-X    = spm_dctmtx(n,4);
-B    = X(T,:)\U(T,:);
-u    = U(T,:) - X(T,:)*B;
-U    = U - X*B;
+% U  = spm_detrend(U);
+% U  = spm_en(U);
+% U  = spm_en(U')';
+
+n  = size(U,1);
+X  = spm_dctmtx(n,d);
+B  = X(T,:)\U(T,:);
+U  = U - X*B;
 
 % get eigenvectors
 %--------------------------------------------------------------------------
-v    = spm_svd(spm_en(u)');
-I    = U*v;
-I    = spm_en(I)*sqrt(n);
-
-return
-
-% Augment explanatory and response variables
-%--------------------------------------------------------------------------
-n    = size(U,1);
-X    = spm_en([U, spm_dctmtx(n,4)]);
-
-% Canonical variates analysis
-%--------------------------------------------------------------------------
-s    = numel(T)/16;
-Y    = spm_conv(L,s,0);
-Y    = spm_detrend(Y(T,:));
-CVA  = spm_cva(Y,X(T,:),[],[],8);
-I    = X*CVA.W;
-I    = spm_en(I)*sqrt(n);
-
-
-return
-
-function tab = spm_portfolio(L,I,M,DEM,Ti,dT)
-% FORMAT spm_portfolio(L,DEM)
-% simulate portfolio managment
-%--------------------------------------------------------------------------
-% L   - rate of log return per M.dt
-% I   - indicator variables
-% M   - flow model
-% DEM - generative model
-% Ti  - time of initial investment
-% dT  - time between rebalancing
-%__________________________________________________________________________
-
-% policies
-%--------------------------------------------------------------------------
-policies = {'Buy and hold', ...
-    'Retrospective: Expected RoR'...
-    'Retrospective: Risk sensitive'...
-    'Prospective: Expected RoR'...
-    'Prospective: Risk sensitive'...
-    };
-
-% get sizes and times
-%--------------------------------------------------------------------------
-dt    = M.dt;                 % period (days)
-Ann   = 100*365/dt;           % scaling for annualised % RoR
-Tf    = size(L,1);            % time of final investment
-m     = size(L,2);            % number of (aggregated) assets
-
-% prior preferences
-%--------------------------------------------------------------------------
-try  RoR    = DEM.RoR;    catch, RoR    = 100; end
-try  Sharpe = DEM.Sharpe; catch, Sharpe = 1;  end
-
-m_p   = RoR/Ann;              % prior RoR per dt
-s_p   = m_p/Sharpe;           % prior volitility (s.d.)
-c_p   = s_p^2;                % prior volitility (variance)
-
-% set up policies: moving funds from one assets to another nP times
-%--------------------------------------------------------------------------
-dP    = .5;                   % proportional transaction
-cP    = .001;                 % proportional cost of transaction
-nP    = 3;                    % number of transactions
-p     = spm_combinations([m,m]);
-np    = size(p,1);
-Pk    = cell(1,np);
-for k = 1:np
-    i    = p(k,1);
-    j    = p(k,2);
-    Pij  = eye(m,m);
-
-    % transaction (from asset j to i)
-    %----------------------------------------------------------------------
-    Pij(i,j) = Pij(i,j) + dP;
-    Pij(j,j) = Pij(j,j) - dP;
-
-    % cost of transaction
-    %----------------------------------------------------------------------
-    if i ~= j
-        Pij(i,j) = Pij(i,j) - cP;
-    end
-
-    % k-th transaction
-    %----------------------------------------------------------------------
-    Pk{k} = Pij;
-end
-
-% compound policies; i.e., compositions of unitary transactions
-%--------------------------------------------------------------------------
-p     = spm_combinations(ones(1,nP)*np);
-np    = size(p,1);
-P     = cell(1,np);
-for i = 1:size(p,1)
-    Pij   = 1;
-    for j = 1:size(p,2)
-        Pij = Pij*Pk{p(i,j)};
-    end
-    P{i}  = Pij;
-end
-
-% simulate allocations and ensuing resturns
-%==========================================================================
-Np    = 5;                     % number of policies to simulate
-W     = ones(m,Np)/m;          % inital (flat) weights
-R     = zeros(Tf,Np);          % cumulative RoR
-D     = zeros(Tf,Np);          % RoR per dt
-l     = (1:m) + size(I,2);     % indices of RoR
-for i = Ti:Tf
-
-   
-   % cumulative return on investment per dt
-   %-----------------------------------------------------------------------
-   D(i,:) = L(i,1:m)*W;
-   R(i,:) = R(i - 1,:) + D(i,:);
-
-   % portfolio allocations
-   %-----------------------------------------------------------------------
-   Wret(:,i)  = W(:,3);
-   Wpro(:,i)  = W(:,5);
-
-    % transactions
-    %-----------------------------------------------------------------------
-    if ~rem(i,dT)
-
-        % buy and hold 
-        %------------------------------------------------------------------
-        W(:,1)  = P{1}*W(:,1);
-
-        % retrospective
-        %==================================================================
-        ti    = i - (1:dT) + 1;
-        EL    = L(i,1:m);
-        CL    = cov(L(ti,1:m));
-        F     = zeros(1,np);
-        G     = zeros(1,np);
-        for k = 1:np
-
-            % expected utility
-            %--------------------------------------------------------------
-            W_k  = P{k}*W(:,2);
-            m_q  = EL*W_k;
-            F(k) = m_q;
-
-            % risk sensitive
-            %--------------------------------------------------------------
-            W_k  = P{k}*W(:,3);
-            m_q  = EL*W_k;
-            c_q  = W_k'*CL*W_k;
-            G(k) = spm_kl_normal(m_q,c_q,m_p,c_p);
-
-        end
-
-        % expected utility
-        %------------------------------------------------------------------
-        [~,j]  = max(F);
-        W(:,2) = P{j}*W(:,2);
-
-        % risk sensitive
-        %------------------------------------------------------------------
-        [~,j]  = min(G);
-        W(:,3) = P{j}*W(:,3);
-
-
-        % prospective
-        %==================================================================
-        if false
-
-            % upper bound on performance, if the future were known
-            %--------------------------------------------------------------
-            for t = 1:dT
-                try
-                    Ey(t,:) = L(i + t,1:m);
-                    Cy{t}   = cov(L((1:dT) + i,1:m));
-                catch
-                    Ey(t,:) = L(end,1:m);
-                    Cy{t}   = cov(L(end - (1:dT) + 1,1:m));
-                end
-            end
-        else
-
-            % posterior predictive density over RoR
-            %--------------------------------------------------------------
-            j          = 1:i;
-            [Ez,Cz,M]  = spm_forecast_update(L(j,:),I(j,:),M,DEM,dT + 1);
-            for t = 1:dT
-                Ey(t,:) = Ez(l,t + 1)';
-                Cy{t}   = Cz{t + 1}(l,l);
-            end
-
-        end
-
-        % for each policy
-        %------------------------------------------------------------------
-        F     = zeros(1,np);
-        G     = zeros(1,np);
-        for k = 1:np
-
-            % expected utility
-            %--------------------------------------------------------------
-            W_k   = P{k}*W(:,4);
-            for t = 1:dT
-
-                % predictive posterior over outcomes
-                %----------------------------------------------------------
-                m_q  = Ey(t,:)*W_k;
-
-                % path integral of expected free energy (risk)
-                %----------------------------------------------------------
-                F(k) = F(k) + m_q;
-
-            end
-
-            % risk sensitive
-            %--------------------------------------------------------------
-            W_k   = P{k}*W(:,5);
-            for t = 1:dT
-
-                % predictive posterio over outcomes
-                %----------------------------------------------------------
-                m_q  = Ey(t,:)*W_k;
-                c_q  = W_k'*Cy{t}*W_k;
-
-                % path integral of expected free energy (risk)
-                %----------------------------------------------------------
-                G(k) = G(k) + spm_kl_normal(m_q,c_q,m_p,c_p);
-
-            end
-        end
-
-        % expected utility
-        %------------------------------------------------------------------
-        [~,j]  = max(F);
-        W(:,4) = P{j}*W(:,4);
-
-        % risk sensitive
-        %------------------------------------------------------------------
-        [~,j]  = min(G);
-        W(:,5) = P{j}*W(:,5);
-
-
-        % predictive posterior over RoR under this policy
-        %------------------------------------------------------------------
-        for t = 1:dT
-            W_k    = W(:,5);
-            ti     = i + t;
-            Er(ti) = Ey(t,:)*W_k;
-            Cr(ti) = W_k'*Cy{t}*W_k;
-        end
-
-    end
-
-end
-
-% legend labels
-%--------------------------------------------------------------------------
-spm_figure('GetWin','Portfolio management'); clf
-try
-    EFT = DEM.EFT;
-catch
-    for i = 1:m
-        EFT{i} = sprintf('Asset %i',i);
-    end
-end
-
-% Cumulative returns of policies
-%--------------------------------------------------------------------------
-xLim = [Ti - 1,Tf];
-subplot(3,1,1), hold off
-plot(exp(R)*100)
-title('Cumulative returns of policies (%)','FontSize',14)
-xlabel('time'), ylabel('%')
-set(gca,'XLim',xLim)
-legend(policies,'Location','northwest')
-
-% Log returns of assets
-%--------------------------------------------------------------------------
-subplot(6,1,3), hold off
-plot(L(:,1:m)*Ann)
-title(sprintf('Rate of log return of assets (annualised)'),'FontSize',14)
-ylabel('%'), set(gca,'XLim',xLim), legend(EFT)
-
-% Allocation
-%--------------------------------------------------------------------------
-subplot(6,1,4), hold off
-imagesc(Wpro)
-title('Allocation: prospective','FontSize',14)
-set(gca,'XLim',xLim)
-set(gca,'YTickLabel', EFT)
-set(gca,'YTick',1:m)
-
-subplot(6,1,5), hold off
-imagesc(Wret)
-title('Allocation: retrospective','FontSize',14)
-set(gca,'XLim',xLim)
-set(gca,'YTickLabel', EFT)
-set(gca,'YTick',1:m)
-
-% Predicted and realised returns
-%--------------------------------------------------------------------------
-subplot(6,1,6), hold off
-set(gca,'ColorOrderIndex',1)
-spm_plot_ci(Er*Ann,Ann*Cr*Ann), hold on
-set(gca,'ColorOrderIndex',1)
-plot(D(:,5)*Ann,'.r')
-title('Predicted and realised RoR','FontSize',14)
-ylabel('%'), set(gca,'XLim',xLim)
-
-
-% Annualised performance (D)
-%==========================================================================
-D     = exp(D(Ti:Tf,:)) - 1;
-for i = 1:size(D,2)
-
-    for t = 1:(size(D,1) - dT)
-        ti    = t + (1:dT);
-
-        % Annualised return
-        %----------------------------------------------------------------------
-        m(t)  = mean(D(ti,i))*Ann;
-
-        % Volatility
-        %----------------------------------------------------------------------
-        s(t)  = std(D(ti,i))*Ann;
-
-        % Sharpe ratio
-        %----------------------------------------------------------------------
-        r(t) = (m(t) - 2)/s(t);
-
-    end
-
-    % Annual return
-    %----------------------------------------------------------------------
-    tab{i,1} = mean(m);
-
-    % Volatility
-    %----------------------------------------------------------------------
-    tab{i,2} = mean(s);
-
-    % Sharpe ratio
-    %----------------------------------------------------------------------
-    tab{i,3} = mean(r);
-
-    % Drawdown
-    %----------------------------------------------------------------------
-    tab{i,4} = min(D(:,i))*100;
-
-
-end
-
-VariableNames{1} = 'Annual RoR (%)';
-VariableNames{2} = 'Volatility (%)';
-VariableNames{3} = 'Sharpe ratio';
-VariableNames{4} = 'Drawdown (%)';
-RowNames = {'hold','max-ret','risk-ret','max-pro','risk-pro'};
-
-Tab = cell2table(tab);
-Tab.Properties.VariableNames = VariableNames;
-Tab.Properties.RowNames      = RowNames
-
-return
-
-function [Ey,Cy,M] = spm_forecast_update(L,I,M,DEM,dT)
-% FORMAT [Ey,Cy,M] = spm_forecast_update(L,I,M,DEM,dT)
-% updates model parameters and generates forecast
-% L   - rate of log return (per dt)
-% U   - indicator variables (normalised)
-% M   - flow model
-% DEM - generative model
-% dT  - forecast period
-%__________________________________________________________________________
-
-% get scale
-%--------------------------------------------------------------------------
-scale = diag(DEM.M(1).pE.scale);
-
-% response and explanatory variables
-%--------------------------------------------------------------------------
-T    = size(L,1);               % current time
-D    = dT;                      % past duration
-t    = (T - D):T;               % past period
-Y    = [I(t,:),L(t,:)];         % training data
-X    = Y/scale;                 % scale
-
-% model inversion with Variational Laplace
-%==========================================================================
-if false
-
-    fig  = gcf;                     % get current figure
-    M.X  = X;                       % legacy points in state-space
-    B    = spm_ness_U(M);           % get state space and flow
-    F    = gradient(M.X')';         % target flow
-
-    % posterior over parameters
-    %----------------------------------------------------------------------
-    [Ep,Cp,Eh] = spm_nlsi_GN(M,B,F);
-
-    % posterior precision of random fluctuations
-    %----------------------------------------------------------------------
-    W    = diag(exp(Eh));
-    Ep.W = W;                       % posterior volatility
-    M.W  = W;                       % update for flow model
-
-    % Bayesian belief updating
-    %----------------------------------------------------------------------
-    M.pE = Ep;                      % and parameters of flow
-    M.pC = Cp;                      % and covariance of parameters
-    M.hE = Eh;                      % and log-precision
-
-    % update initial expectations (parameters)
-    %----------------------------------------------------------------------
-    M.P  = Ep;
-
-    % update generative model
-    %======================================================================
-
-    % model
-    %----------------------------------------------------------------------
-    DEM.M(1).pE = Ep;               % posterior esimates from VL
-    DEM.M(1).pC = Cp;               % posterior esimates from VL
-    DEM.M(1).V  = exp(16);
-    DEM.M(1).W  = W;
-    figure(fig)
-
-end
-
-% forecast
-%==========================================================================
-DEM.T      = T;
-DEM.Y      = Y';
-DEM.M(1).x = X(end,:)';
-[Ey,Cy]    = spm_NESS_forecast(DEM,dT);
+v  = spm_svd(spm_en(U(T,:))');
+I  = U*v;
+s  = diag(1./std(I(T,:)));
+I  = I*s;
 
 return
 
@@ -906,7 +654,7 @@ function [X] = spm_exp_conv(X,t)
 % sx   - kernel length
 %__________________________________________________________________________
 %
-% spm_exp_conv is a onedimensional convolution of a matrix variable in
+% spm_exp_conv is a one dimensional convolution of a matrix variable in
 % working memory.
 %__________________________________________________________________________
 
@@ -915,14 +663,103 @@ function [X] = spm_exp_conv(X,t)
 
 %--------------------------------------------------------------------------
 n  = size(X,1);
-K  = exp(-(0:(6*t)).^2/(2*t^2));
+K  = exp(-(0:(6*t)).^2/(2*(t^2)));
 C  = spm_convmtx(K(:),n);
 C  = C(1:n,1:n);
 C  = diag(1./sum(C,2))*C;
 X  = C*X;
 
+return
 
 
+% Iterated simulations
+%==========================================================================
+tab   = zeros(5,4,8);
+for i = 1:8
+
+    % durations
+    %----------------------------------------------------------------------
+    SIM.N  = (i - 1)*52;        % end point (weeks)
+    SIM.D  = 512;               % depth of training data (weeks)
+    SIM.nT = 52;                % duration of simulation (in weeks)
+    SIM.dT = 4;                 % time between rebalancing (in weeks)
+
+    % specify number of indicator states and assets
+    %----------------------------------------------------------------------
+    SIM.n  = 3;                 % number of indicator states
+    SIM.m  = 6;                 % number of assets
+    SIM.d  = 4;                 % order of detrending
+
+    Tab = DEM_FIN(SIM);
+    tab(:,:,i) = table2array(Tab);
+
+end
+
+% bar chart results
+%--------------------------------------------------------------------------
+spm_figure('GetWin','Annual performance'); clf
+for i = 1:4
+    subplot(2,2,i)
+    bar(squeeze(tab(:,i,:))')
+    title(Tab.Properties.VariableNames{i})
+    legend(Tab.Properties.RowNames)
+    axis square
+end
 
 
+% NOTES: numerical checks on Jacobian
+%==========================================================================
 
+% specify
+%--------------------------------------------------------------------------
+n    = 3;                       % number of enslaving states
+m    = 2;                       % number of enslaved  states
+K    = 2;                       % order of polynomial expansion
+W    = eye(n + m,n + m);
+
+% constraints on model parameters (polynomial coefficients)
+%--------------------------------------------------------------------------
+J      = cell(3,3);
+J{1,1} = ones(n,n);
+J{2,2} = eye(m,m);
+J{2,1} = ones(m,n);
+J      = full(spm_cat(J));
+
+% coupling from indicator to response
+%--------------------------------------------------------------------------
+Q      = cell(3,3);
+Q{1,1} = zeros(n,n);
+Q{2,2} = zeros(m,m);
+Q{2,1} = ones(m,n);
+Q      = full(spm_cat(Q));
+
+% get priors 
+%--------------------------------------------------------------------------
+[pE,pC] = spm_NESS_priors(size(J,1),K,1,W,J,Q);
+
+% numerical check of Jacobian
+%--------------------------------------------------------------------------
+Ep   = spm_unvec(spm_vec(pC)/2,pE);
+Ep.W = W;
+M.W  = W;
+M.K  = K;
+M.L  = K;
+x    = ones(n + m,1);
+full(spm_diff(@spm_fx_NESS,x,[],Ep,[],1))
+
+% ensure numerical consistency of flow
+%--------------------------------------------------------------------------
+spm_NESS_gen_lap(Ep,M,x)'
+spm_fx_NESS(x,[],Ep)
+
+% ensure numerical equivalence and consistency of surprisal gradients
+%--------------------------------------------------------------------------
+spm_fx_NESS(x,[],Ep,[],'DS')
+full(spm_diff(@spm_fx_NESS,x,[],Ep,[],'S',1)')
+
+cell2mat(spm_NESS_gen_lap(Ep,M,x,'DS'))
+full(spm_diff(@spm_NESS_gen_lap,Ep,M,x,'S',3)')
+
+% effect of parameters on Jacobian
+%--------------------------------------------------------------------------
+dJdP  = spm_diff(@spm_fx_NESS,x,[],Ep,[],[1 3]);

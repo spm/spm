@@ -25,10 +25,11 @@ k     = sum(o) < K;
 o     = o(:,k);
 
 
-% evaluate expectation and precision
+% convert to polynomial coefficients
 %--------------------------------------------------------------------------
-P     = -spm_inv(C);                         % precision
+P     = -spm_inv(C);                     % precision
 E     = -P*m ;                           % expectation
+Sp    = zeros(size(o,2),1);
 for i = 1:n
     k     = (sum(o) == 1) & o(i,:) == 1;
     Sp(k,1) = E(i);
@@ -39,7 +40,6 @@ for i = 1:n
         else
             k = (sum(o) == 2) & (o(i,:) == 1) & (o(j,:) == 1);
             Sp(k,1) = P(i,j);
-            Sp(k,1) = P(j,i);
         end
     end
 end
