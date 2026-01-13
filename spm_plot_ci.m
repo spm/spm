@@ -34,12 +34,12 @@ function spm_plot_ci(E,C,x,j,s)
 ax   = gca;
 col  = get(ax,'ColorOrder');
 coli = get(ax,'ColorOrderIndex');
-coll = col(coli,:);
+coll = col(1 + rem(coli - 1,7),:);
 colf = erf(coll + 1);
 
 % confidence region (CR) plotting
 %--------------------------------------------------------------------------
-if size(E,1) == 1 && size(E,2) == 2
+if size(E,1) == 1 && size(E,2) == 2 && ~strcmpi(s,'plot')
     E  = E';
     CR = true;
 else
@@ -139,29 +139,38 @@ end
 
 % plot line or bar chart
 %--------------------------------------------------------------------------
-if N >= 8
+alpha = 0.8;
+if N >= 8 || strcmpi(s,'plot')
     
     % time-series plot
     %======================================================================
     x  = x(:)';
     if strcmpi(s,'exp')
         fill([x fliplr(x)],exp([full(E + c) fliplr(full(E - c))]),...
-            colf,'EdgeColor','none','Parent',ax,'FaceAlpha', 0.4);
+            colf,'EdgeColor','none','Parent',ax,'FaceAlpha',alpha);
         hold(ax,'on');
         plot(x,exp(E),'Color',coll);
         set(ax,'ColorOrderIndex',coli + 1);
-        
+
     elseif strcmpi(s,'log')
         fill([x fliplr(x)],log(abs([full(E + c) fliplr(full(E - c))])),...
-            colf,'EdgeColor','none','Parent',ax,'FaceAlpha', 0.4);
+            colf,'EdgeColor','none','Parent',ax,'FaceAlpha',alpha);
         hold(ax,'on');
         plot(x,log(abs(E)),'Color',coll);
         set(ax,'ColorOrderIndex',coli + 1);
-        
-        
+
+
+    elseif strcmpi(s,'plot')
+
+        fill([x fliplr(x)],[full(E + c) fliplr(full(E - c))],...
+            colf,'EdgeColor','none','Parent',ax,'FaceAlpha',alpha);
+        hold(ax,'on');
+        plot(ax,x,E,'Color',coll);
+        set(ax,'ColorOrderIndex',coli + 1);
+
     else
         fill([x fliplr(x)],[full(E + c) fliplr(full(E - c))],...
-            colf,'EdgeColor','none','Parent',ax,'FaceAlpha', 0.4);
+            colf,'EdgeColor','none','Parent',ax,'FaceAlpha',alpha);
         hold(ax,'on');
         plot(ax,x,E,s,'Color',coll);
         set(ax,'ColorOrderIndex',coli + 1);

@@ -39,7 +39,7 @@ U   = DCM.U;
 %==========================================================================
 spm_figure('GetWin','testing and cases'); clf;
 %--------------------------------------------------------------------------
-M.T = datenum('01-08-2021','dd-mm-yyyy') - datenum(M.date,'dd-mm-yyyy');
+M.T = datenum('01-08-2021','dd-mm-yyyy') - datenum(M.date);
 
 % positive PCR cases and underlying number of new infections per day 
 %--------------------------------------------------------------------------
@@ -89,7 +89,7 @@ spm_SARS_ci(Ep,Cp,YS(:,2),1,M); hold on
 Tdate = {'11-Dec-2020'};
 M.FTT = .24;
 for i = 1:numel(Tdate)
-    M.TTT = datenum(Tdate{i},'dd-mmm-yyyy') - datenum(M.date,'dd-mm-yyyy');
+    M.TTT = datenum(Tdate{i},'dd-mmm-yyyy') - datenum(M.date);
     spm_SARS_ci(Ep,Cp,YS(:,2),1,M);
 end
 
@@ -110,7 +110,7 @@ subplot(2,1,2); spm_SARS_ci(Ep,Cp,YS(:,9),13,M); hold on
 
 M.FTT = .24;
 for i = 1:numel(Tdate)
-    M.TTT = datenum(Tdate{i},'dd-mmm-yyyy') - datenum(M.date,'dd-mm-yyyy');
+    M.TTT = datenum(Tdate{i},'dd-mmm-yyyy') - datenum(M.date);
     subplot(2,1,1); spm_SARS_ci(Ep,Cp,YS(:,3),3,M);  hold on
     subplot(2,1,2); spm_SARS_ci(Ep,Cp,YS(:,9),13,M); hold on
 end

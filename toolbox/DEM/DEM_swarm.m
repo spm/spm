@@ -1,0 +1,400 @@
+function DEM = DEM_swarm
+% This routine illustrates self-organisation and swarming under active
+% inference (free energy minimisation).  It exploits the fact that one can
+% express a joint-systems (marginal) Lyapunov function in terms of a
+% variational free energy. This means that one can prescribe an attracting
+% set in terms of the generative model that defines variational free
+% energy.  In this example, the attracting set is an orbit in the phase
+% space of an ensemble (e.g., swarm of drones): where the states correspond
+% to the location and (radio) signal expression of 8 agents. In essence,
+% the systems dynamics rest upon each agent inferring its unique identity
+% (in relation to all others) and behaving in accord with those inferences;
+% in other words, inferring its place in the assembly and realising those
+% inferences by moving.  In this example, the behaviour is rendered
+% autonomous by including hidden states that evolve in time. This allows
+% the frame of reference (within which agents communicate) to change
+% systematically. In this example, this frame of reference uses affine
+% transformations to simulate sequences of swarm dynamics.
+%
+% This scheme can be compared with the morphogenesis simulations. The key
+% difference is that we are now dealing with an autonomous system in which
+% behaviour is prescribed by the internal (autonomous) dynamics of the
+% generative model.
+% _________________________________________________________________________
+ 
+% Karl Friston
+% Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
+ 
+% preliminaries
+%--------------------------------------------------------------------------
+rng('default')
+N  = 256;                                 % length of process (time bins)
+
+% universal time
+%--------------------------------------------------------------------------
+global t, t = 0;
+ 
+% generative process and model
+%==========================================================================
+M(1).E.d  = 1;                             % approximation order
+M(1).E.n  = 2;                             % embedding order
+M(1).E.s  = 1/2;                           % smoothness
+ 
+% priors (formation pattern)
+%--------------------------------------------------------------------------
+L     = 2;
+if L == 2
+    T =[0 0 2 0 0 0 0 0 0 0 0;
+        0 0 0 0 1 0 0 0 0 0 0;
+        2 0 0 0 0 0 4 0 4 0 3;
+        0 0 0 0 1 0 0 0 0 0 0;
+        0 0 2 0 0 0 0 0 0 0 0;
+        0 0 0 0 0 0 0 0 0 0 0];
+end
+ 
+if L == 4
+    T =[0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0;
+        0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0;
+        0 0 0 0 0 2 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0;
+        0 0 0 0 0 0 0 2 0 0 0 3 0 0 0 0 0 0 0 0 0 0;
+        0 0 0 2 0 0 0 0 0 3 0 0 0 4 0 0 0 0 0 0 0 0;
+        0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 4 0 4 0 1 0 0;
+        0 0 0 2 0 0 0 0 0 3 0 0 0 4 0 0 0 0 0 0 0 1;
+        0 0 0 0 0 0 0 2 0 0 0 3 0 0 0 0 0 0 0 0 0 0;
+        0 0 0 0 0 2 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0;
+        0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0;
+        0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0];
+end
+ 
+     
+p(:,:,1) = T > 0;
+p(:,:,2) = T == 2 | T == 1;
+p(:,:,3) = T == 3 | T == 1;
+p(:,:,4) = T == 4;
+ 
+[y,x] = find(p(:,:,1));
+P.x   = spm_detrend([x(:) y(:)])'/2; 
+ 
+% signalling of each cell type
+%--------------------------------------------------------------------------
+n     = size(P.x,2);                      % number of agents
+m     = size(p,3);                        % number of signals
+j     = p(:,:,1);
+for i = 1:m
+    s    = p(:,:,i);
+    P.s(i,:) = s(j);
+end
+P.s   = double(P.s);
+P.c   = signal(P.x,P.s);                  % signal sensed at each location
+ 
+% initialise action and expectations
+%--------------------------------------------------------------------------
+v     = randn(n,n)/32;                    % states (identity)
+g     = Mg([],v,P);                       % outcomes generated
+a.x   = g.x;                              % action (movement)
+a.s   = g.s;                              % action (signalling)
+ 
+% generative process 
+%==========================================================================
+
+% rate (restruction matrix) dg/da
+%--------------------------------------------------------------------------
+R     = spm_cat({kron(eye(n,n),ones(2,2)) []; [] kron(eye(n,n),ones(4,4));
+                 kron(eye(n,n),ones(4,2)) kron(eye(n,n),ones(4,4))});
+
+% level 1 of generative process
+%--------------------------------------------------------------------------
+G(1).g  = @(x,v,a,P) Gg(x,v,a,P);
+G(1).V  = exp(16);                          % precision (noise)
+G(1).U  = exp(4);                           % precision (action)
+G(1).R  = R*4;                              % restriction (rate) matrix
+ 
+% level 2; causes (action)
+%--------------------------------------------------------------------------
+G(2).a  = a;                               % endogenous cause (action)
+G(2).v  = 0;                               % exogenous  cause
+G(2).V  = exp(16);
+ 
+ 
+% generative model
+%==========================================================================
+ 
+% level 1 of the generative model: 
+%--------------------------------------------------------------------------
+M(1).g  = @(x,v,P) Mg(x,v,P);
+M(1).V  = exp(4);
+M(1).pE = P;
+ 
+% level 2: 
+%--------------------------------------------------------------------------
+M(2).v  = v;
+M(2).V  = exp(-2);
+ 
+ 
+% hidden cause and prior identity expectations (and time)
+%--------------------------------------------------------------------------
+U     = zeros(n*n,N);
+C     = zeros(1,N);
+ 
+% assemble model structure
+%--------------------------------------------------------------------------
+DEM.M = M;
+DEM.G = G;
+DEM.C = C;
+DEM.U = U;
+
+% solve
+%==========================================================================
+DEM   = spm_ADEM(DEM);
+spm_DEM_qU(DEM.qU,DEM.pU);
+
+ 
+% Graphics
+%==========================================================================
+ 
+% expected signal concentrations
+%--------------------------------------------------------------------------
+subplot(2,2,2); cla
+A     = max(abs(P.x(:)))*3/2;
+h     = 2/3;
+ 
+x     = linspace(-A,A,32);
+[x,y] = ndgrid(x,x);
+x     = spm_detrend([x(:) y(:)])';
+c     = signal(P.x,P.s,x);
+c     = c - min(c(:));
+c     = c/max(c(:));
+for i = 1:size(c,2)
+    col = c(end - 2:end,i);
+    plot(x(2,i),x(1,i),'.','markersize',32,'color',col); hold on
+end
+ 
+title('target signal','Fontsize',16)
+xlabel('location')
+ylabel('location')
+set(gca,'Color','k');
+axis([-1 1 -1 1]*A*(1+1/16))
+axis square, box off
+ 
+ 
+% free energy and expectations
+%--------------------------------------------------------------------------
+spm_figure('GetWin','Figure 1'); clf
+colormap pink
+subplot(2,2,1); cla
+ 
+plot(-DEM.J)
+title('Free energy','Fontsize',16)
+xlabel('time')
+ylabel('Free energy')
+axis square tight
+grid on
+ 
+subplot(2,2,2); cla
+v      = spm_unvec(DEM.qU.v{2}(:,end),DEM.M(2).v);
+[~,j]  = max(v);
+v(:,j) = v;
+imagesc(spm_softmax(v))
+title('softmax expectations','Fontsize',16)
+xlabel('cell')
+ylabel('cell')
+axis square tight
+ 
+ 
+% target formation
+%--------------------------------------------------------------------------
+spm_figure('GetWin','Figure 2'); clf
+A = A*2;
+
+subplot(2,2,1); cla
+for i = 1:n
+    x = P.x(:,i);
+    c = P.s(end - 2:end,i);
+    c = full(max(min(c,1),0));
+    plot(x(2),x(1),'.','markersize',16,'color',c);   hold on
+    plot(x(2),x(1),'h','markersize',12,'color',h*c); hold on
+end
+ 
+title('Formation','Fontsize',16)
+xlabel('location')
+ylabel('location')
+set(gca,'Color','k');
+axis([-1 1 -1 1]*A)
+axis square, box off
+hold off
+ 
+% trajectories
+%--------------------------------------------------------------------------
+subplot(2,2,3); cla;
+for t = 1:N
+    v = spm_unvec(DEM.pU.v{1}(:,t),g);
+    for i = 1:n
+        x = v.x(1,i);
+        c = v.s(end - 2:end,i);
+        c = full(max(min(c,1),0));
+        plot(t,x,'.','markersize',16,'color',c); hold on
+    end
+end
+ 
+title('Trajectories','Fontsize',16)
+xlabel('time')
+ylabel('location')
+set(gca,'Color','k');
+set(gca,'YLim',[-1 1]*A)
+axis square, box off
+hold off
+
+% flight paths
+%--------------------------------------------------------------------------
+subplot(2,2,4); cla;
+for t = 1:N
+    v = spm_unvec(DEM.pU.v{1}(:,t),g);
+    
+    for i = 1:n
+        x = v.x(:,i);
+        c = v.s(end - 2:end,i);
+        c = max(min(c,1),0);
+        plot(x(2),x(1),'.','markersize',8,'color',full(c)); hold on
+        
+        % destination
+        %------------------------------------------------------------------
+        if t == N
+            plot(x(2),x(1),'.','markersize',16,'color',full(c));   hold on
+            plot(x(2),x(1),'h','markersize',12,'color',full(h*c)); hold on
+        end
+    end
+    set(gca,'Color','k');
+    title('Flight paths','FontSize',16)
+    xlabel('location')
+    axis square, box off
+    axis([-1 1 -1 1]*A)
+    drawnow
+
+end
+
+% movie
+%--------------------------------------------------------------------------
+subplot(2,2,2);  cla;
+for t = 1:N
+    v = spm_unvec(DEM.pU.v{1}(:,t),g);
+    
+    for i = 1:n
+        x = v.x(:,i);
+        c = v.s(end - 2:end,i);
+        c = max(min(c,1),0);
+        plot(x(2),x(1),'.','markersize',16,'color',full(c));   hold on
+        plot(x(2),x(1),'h','markersize',12,'color',full(h*c));
+
+    end
+    hold off
+    set(gca,'Color','k');
+    axis square, box off
+    axis([-1 1 -1 1]*A)
+    drawnow
+    
+    % save
+    %----------------------------------------------------------------------
+    Mov(t) = getframe(gca);
+    
+end
+ 
+set(gca,'Userdata',{Mov,8})
+set(gca,'ButtonDownFcn','spm_DEM_ButtonDownFcn')
+title('Swarming','FontSize',16)
+xlabel('location')
+
+ 
+return
+ 
+ 
+% Equations of motion and observer functions
+%==========================================================================
+ 
+% sensed signal
+%--------------------------------------------------------------------------
+function c = signal(x,s,y)
+% x - location of drones
+% s - signals released
+% y - location of sampling [default: x, y for plotting] 
+%__________________________________________________________________________
+ 
+% preliminaries
+%--------------------------------------------------------------------------
+if nargin < 3; y = x; end                  % sample locations
+n     = size(y,2);                         % number of locations
+m     = size(s,1);                         % number of signals
+k     = 1;                                 % signal decay over space 
+c     = zeros(m,n);                        % signal sensed at each location
+for i = 1:n
+    for j = 1:size(x,2)
+        
+        % distance
+        %------------------------------------------------------------------
+        d      = y(:,i) - x(:,j);
+        d      = sqrt(d'*d);
+        
+        % signal strength
+        %------------------------------------------------------------------
+        c(:,i) = c(:,i) + exp(-k*d).*s(:,j);
+ 
+    end
+end
+
+
+% first level process: generating observations from causes; here, action
+%--------------------------------------------------------------------------
+function g = Gg(x,v,a,P)
+
+g.x = a.x;                               % position  signal
+g.s = a.s;                               % intrinsic signal
+g.c = signal(a.x,a.s);                   % extrinsic signal
+
+return
+
+% first level model: mapping hidden causes (identity) to sensations
+%--------------------------------------------------------------------------
+function g = Mg(x,v,P)
+
+% time-depdendent changes in location priors (P.x)
+%==========================================================================
+global t                                 % universal time
+dxdt = 16;                               % velocity
+if t > 3/4
+
+    % mission 4 (return)
+    %----------------------------------------------------------------------
+    s   = exp(-(1/4)*8);
+    P.x = P.x + (1 - t)*dxdt;
+
+elseif t > 2/4
+
+    % mission 3 (converge)
+    %----------------------------------------------------------------------
+    s   = exp(-(t - 2/4)*8);
+    P.x = P.x*s + (1/4)*dxdt;
+
+elseif t > 1/4
+
+    % mission 2 (circle)
+    %----------------------------------------------------------------------
+    s   = (t - 1/4)*8;
+    S   = [cos(s),-sin(s);
+          sin(s), cos(s)];
+    P.x = S*P.x + (1/4)*dxdt;
+
+else
+
+    % mission 1 (deploy)
+    %----------------------------------------------------------------------
+    P.x = P.x + t*dxdt;
+
+end
+
+% predicted position and signalling under this identity profile
+%==========================================================================
+p    = spm_softmax(v);                   % expected identity
+g.x  = P.x*p;                            % position
+g.s  = P.s*p;                            % intrinsic signal
+g.c  = P.c*p;                            % extrinsic signal
+
+return

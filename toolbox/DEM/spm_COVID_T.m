@@ -160,7 +160,7 @@ Kinf = exp(-1/P.Tin);                      % infection rate
 Kcon = exp(-1/P.Tcn);                      % infectious rate
 Pres = 1 - erf(2*P.res)/2;                 % non-resistant proportion
 Pvef = erf(P.vef);                         % vaccination: Infection risk 
-Prev = P.ves*Pres;                         % vaccination: Infectious risk
+Prev = erf(P.ves)*Pres;                    % vaccination: Infectious risk
 
 Pvac = P.nac;                              % 1 - vaccination rate
 Rvac = 1 - Pvac;                           % vaccination rate
@@ -326,12 +326,12 @@ Ptes = erf(pcr1*P.tes(1) + pcr2*P.tes(2));     % testing rate | infection   PCR
 Plen = erf(Plfd);                              % testing rate | susceptible LFD
 Ples = erf(Plfd*P.tts);                        % testing rate | infection   LFD
 
-Sens = 1 - P.fnr(1);                           % sensitivity PCR | infected
-Senc = 1 - P.fnr(2);                           % sensitivity PCR | infectious
-Spec = 1 - P.fpr(1);                           % specificity PCR
-Speb = 1 - P.fpr(2);                           % specificity PCR | Ab +ve
-Lens = 1 - P.lnr;                              % sensitivity LFD
-Lpec = 1 - P.lpr;                              % specificity LFD   
+Sens = 1 - erf(P.fnr(1));                      % sensitivity PCR | infected
+Senc = 1 - erf(P.fnr(2));                      % sensitivity PCR | infectious
+Spec = 1 - erf(P.fpr(1));                      % specificity PCR
+Speb = 1 - erf(P.fpr(2));                      % specificity PCR | Ab +ve
+Lens = 1 - erf(P.lnr);                         % sensitivity LFD
+Lpec = 1 - erf(P.lpr);                         % specificity LFD   
 Kdel = exp(-1/P.del);                          % exp(-1/waiting period) PCR
 
 Pcon = erf(P.con);                             % LFD PCR Confirmation

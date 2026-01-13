@@ -311,7 +311,6 @@ for i = 1:g
     
     % check Q and R (precision components)
     %======================================================================
-
     
     % check components and assume i.i.d if not specified
     %----------------------------------------------------------------------

@@ -1,4 +1,4 @@
-function [dx] = spm_dx(dfdx,f,t,Q)
+function [dx] = spm_dx(dfdx,f,t,~)
 % Returns dx(t) = (expm(dfdx*t) - I)*inv(dfdx)*f
 % FORMAT [dx] = spm_dx(dfdx,f,[t])
 % dfdx   = df/dx

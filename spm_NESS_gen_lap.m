@@ -1,11 +1,12 @@
-function [F,S,Q,L,H,DS] = spm_NESS_gen_lap(P,M,x)
-% Generate flow (f) at locations x
-% FORMAT [F,S,Q,L,H,D] = spm_NESS_gen_lap(P,M,x)
-% FORMAT [F,S,Q,L,H,D] = spm_NESS_gen_lap(P,M,U)
+function [F,S,Q,L,H,DS,E] = spm_NESS_gen_lap(P,M,x,OPT)
+% Generate flow (F) at locations x
+% FORMAT [F,S,Q,L,H,D,E] = spm_NESS_gen_lap(P,M)
+% FORMAT [F,S,Q,L,H,D,E] = spm_NESS_gen_lap(P,M,x)
+% FORMAT [F,S,Q,L,H,D,E] = spm_NESS_gen_lap(P,M,U)
 %--------------------------------------------------------------------------
 % P.Qp    - polynomial coefficients for solenoidal operator
-% P.Sp    - polynomial coefficients for Kernel
-% P.Rp    - polynomial coefficients for mean
+% P.Sp    - polynomial coefficients for Kernel (suprisal)
+% P.Rp    - polynomial coefficients for mean   (suprisal)
 %
 % F       - polynomial approximation to flow
 % S       - negative potential (log NESS density)
@@ -13,6 +14,7 @@ function [F,S,Q,L,H,DS] = spm_NESS_gen_lap(P,M,x)
 % L       - correction term for derivatives of solenoidal flow
 % H       - Hessian
 % D       - potential gradients
+% E       - expectation of NESS density
 %
 % U = spm_ness_U(M)
 %--------------------------------------------------------------------------
@@ -29,22 +31,46 @@ function [F,S,Q,L,H,DS] = spm_NESS_gen_lap(P,M,x)
 % U.bG    - projection of flow operator (symmetric part: G)
 % U.dQdp  - gradients of flow operator Q  w.r.t. flow parameters
 % U.dbQdp - gradients of bQ w.r.t. flow parameters
-% U.dLdp  - gradients of L w.r.t. flow parameters
+% U.dLdp  - gradients of L  w.r.t. flow parameters
+%
+% This routine returns the flow at a number of specified points in state
+% space under a polynomial approximation to any Helmholtz-Hodge
+% decomposition of nonequilibrium steady-state dynamics. This routine
+% shares many of the same constructs as spm_NESS_fx; with the exception
+% that the dissipative part of the flow (i.e., amplitude of random
+% fluctuations G) is specified as the precision of a state-space model:
+% M.W.
+%
+% In brief, spm_NESS_fx returns the flow for a particular point in state
+% space, whereas this routine returns the flow for an arbitrary number of
+% points at the same time. These flows can then be used as a generative
+% model for the flow sampled over grid points in state space—or during the
+% evolution of some path through state space.
 %__________________________________________________________________________
 
 % Karl Friston
 % Copyright (C) 2021-2022 Wellcome Centre for Human Neuroimaging
 
-
 % get basis set and gradients
 %--------------------------------------------------------------------------
-if ~isstruct(x)
-    if ~iscell(x)
-        x = num2cell(x(:)'); 
-    end
-    U   = spm_ness_U(M,x);
+if nargin < 3
+
+    % assume M.X is specified
+    %----------------------------------------------------------------------
+    U   = spm_ness_U(M);
+
 else
-    U = x;
+
+    % get basis set and gradients
+    %----------------------------------------------------------------------
+    if ~isstruct(x)
+        if ~iscell(x)
+            x = num2cell(x(:)');
+        end
+        U   = spm_ness_U(M,x);
+    else
+        U = x;
+    end
 end
 
 % dimensions and correction terms to flow operator
@@ -82,6 +108,8 @@ end
 
 % kernel for Hessian Sp
 %--------------------------------------------------------------------------
+K     = zeros(n,n,nX);
+DK    = zeros(n,n,n,nX);
 for i = 1:n
     for j = i:n
         K(i,j,:) = U.b*P.Sp(:,i,j);
@@ -93,23 +121,49 @@ for i = 1:n
     end
 end
 
+
 % expectation (mean) Rp
 %--------------------------------------------------------------------------
-E = U.b(:,1)*P.Rp;
+p     = 1:size(P.Rp,1);
+DX    = zeros(n,n,nX);
+for i = 1:n
+    for j = 1:n
+        if i == j
+            DX(i,j,:) = 1;
+        else
+            %%% DX(i,j,:) = - U.D{j}(:,p)*P.Rp(p,i);
+        end
+    end
+end
 
 % gradients D*S
 %--------------------------------------------------------------------------
 DS    = cell(n,1);
+DXHX  = zeros(n,1);
+S     = zeros(nX,1);
+H     = zeros(n,n,nX);
 for k = 1:nX
-    X          = U.X(k,:) - E(k,:);
-    H(:,:,k)   = K(:,:,k)'*K(:,:,k);
-    S(k,1)     = X*H(:,:,k)*X'/2;
-    for j = 1:n
-        DS{j}(k,1) = X*DK(:,:,j,k)'*K(:,:,k)*X' + H(j,:,k)*X';
+
+    % expectation (mean) Rp and Hessian H
+    %----------------------------------------------------------------------
+    E        = U.b(k,p)*P.Rp;
+
+    % gradients D*S: S  = (X - E)'*K(X)'*K(X)*(X - E)/2   =>
+    %                DS =  DX'*H(X)*(X - E) + (X - E)'*DK'*K(X)*(X - E)
+    %--------------------------------------------------------------------------
+    X        = (U.X(k,:) - E)';
+    H(:,:,k) = K(:,:,k)'*K(:,:,k);
+    S(k,1)   = X'*H(:,:,k)*X/2;
+
+    DXH   = DX(:,:,k)'*H(:,:,k);
+    for i = 1:n
+        DXHX(i)    = X'*DK(:,:,i,k)*K(:,:,k)*X;
+        DS{i}(k,1) = DXHX(i) + DXH(i,:)*X;
     end
+
 end
 
-% predicted flow: F   = -Q*D*S - L
+% predicted flow: F = -Q*D*S - L
 %--------------------------------------------------------------------------
 for i = 1:n
     for j = 1:n
@@ -118,37 +172,12 @@ for i = 1:n
     F(:,i) = F(:,i) - L(:,i);
 end
 
+% required output
+%--------------------------------------------------------------------------
+if nargin > 3
+    F = eval(OPT);
+end
+
+
+
 return
-
-
-
-% kernel for Hessian Sp
-%--------------------------------------------------------------------------
-for i = 1:n
-    for j = i:n
-        if i == j
-            H(i,j,:) = (U.b*P.Sp(:,i,j)).^2;
-            for k = 1:n
-                DH(i,j,k,:) = 2*(U.D{k}*P.Sp(:,i,j)).*squeeze(H(i,j,:));
-            end
-        else
-            H(i,j,:) = U.b*P.Sp(:,i,j);
-            H(j,i,:) = H(i,j,:);
-            for k = 1:n
-                DH(i,j,k,:) = U.D{k}*P.Sp(:,i,j);
-                DH(j,i,k,:) = DH(i,j,k,:);
-            end
-        end
-    end
-end
-
-% gradients D*S
-%--------------------------------------------------------------------------
-DS    = cell(n,1);
-for k = 1:nX
-    X      = U.X(k,:) - E(k,:);
-    S(k,1) = X*H(:,:,k)*X'/2;
-    for j = 1:n
-        DS{j}(k,1) = X*DH(:,:,j,k)*X' + H(j,:,k)*X';
-    end
-end

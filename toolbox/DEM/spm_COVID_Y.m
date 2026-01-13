@@ -1,13 +1,14 @@
-function [Y,S,dates] = spm_COVID_Y(Y,date0,days)
+function [Y,S,dates] = spm_COVID_Y(Y,date0,days,date1)
 % prepares data array for COVID routines
 % FORMAT [Y,S,dates] = spm_COVID_Y(Y,date0)
 % Y     - structure array
-% date0 - initial date ('dd-mm-yyy')
+% date0 - initial date ('dd-mmm-yyyy')
 % days  - number of days over which to average (smooth)
+% date1 - final date ('dd-mmm-yyyy') [default: date]
 %
 % Y     - structure array (time ordered, withough NaNs and smoothed)
 % S     - corresponding data matrix
-% dates - date numbers from 'dd-mm-yyyy' to last data point
+% dates - date numbers from 'dd-mmm-yyyy' to last data point
 %
 %    Y(i).type = datatype (string)
 %    Y(i).unit = units (string)
@@ -26,11 +27,15 @@ function [Y,S,dates] = spm_COVID_Y(Y,date0,days)
 
 % set up
 %==========================================================================
-if nargin < 2, date0 = '01-02-2020'; end
-if nargin < 3, days  = 7;            end
+if nargin < 2, date0 = '01-Jan-2020'; end
+if nargin < 3, days  = 7;             end
+if nargin < 4, date1 = date;          end
 
 if ischar(date0)
-    date0 = datenum(date0,'dd-mm-yyyy');
+    date0 = datenum(date0);
+end
+if ischar(date1)
+    date1 = datenum(date1);
 end
 
 % check for missing fields
@@ -64,6 +69,12 @@ for i = 1:numel(Y)
     % remove data prior to initial date
     %----------------------------------------------------------------------
     j         = Y(i).date >= date0;
+    Y(i).date = Y(i).date(j);
+    Y(i).Y    = Y(i).Y(j,:);
+
+    % remove data after end date
+    %----------------------------------------------------------------------
+    j         = Y(i).date <= date1;
     Y(i).date = Y(i).date(j);
     Y(i).Y    = Y(i).Y(j,:);
     
