@@ -14,7 +14,11 @@ function H = spm_logdet(C,symmetric)
 % Note that whether sparse or full, rank deficient cases are handled in the
 % same way as in spm_logdet revision 4068, using svd on a full version of C
 
-try sym = symmetric; catch, sym = 0; end
+if nargin == 2
+    sym = symmetric;
+else
+    sym = 0;
+end
 
 % remove null variances
 %--------------------------------------------------------------------------
