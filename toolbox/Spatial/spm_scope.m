@@ -1,6 +1,6 @@
-function vdm = spm_scope(vol1, vol2, FWHM, reg, rinterp, jac, pref, outdir)
+function vdm = spm_scope(vol1, vol2, FWHM, reg, rinterp, jac, pref, outdir, VDMprior)
 % Susceptibility Correction using Opposite PE
-% FORMAT vdm = spm_scope(vol1, vol2, FWHM, reg, save)
+% FORMAT vdm = spm_scope(vol1, vol2, FWHM, reg, save, VDMprior)
 % vol1       - path to first image (s) (same phase-encode direction)
 % vol2       - path to second image(s) (opposite phase-encode direction)
 % fwhm       - Gaussian kernel spatial scales (default: [8 4 2 1 0])
@@ -19,6 +19,7 @@ function vdm = spm_scope(vol1, vol2, FWHM, reg, rinterp, jac, pref, outdir)
 %              and compression.
 % pref       - string to be prepended to the vdm files.
 % outdir     - output directory.
+% VDMprior   - Path to VDM prior (and starting estimates)
 %
 % vdm        - voxel displacement map.
 %
@@ -77,10 +78,19 @@ ord  = [0 rinterp 0  0 0 0];
 spm_field('bound',1);                     % Set boundary conditions for spm_field
 
 d    = size(f1_0);
+if nargin < 9
+    u0 = zeros(d,'single');
+else
+    Nu0 = nifti(VDMprior);
+    u0  = single(Nu0.dat(:,:,:));
+    if length(d) ~= length(size(u0)) || ~all(size(u0) == d)
+        error('Incompatible dimensions of supplied VDM.')
+    end
+end
 if length(d) ~= length(size(f2_0)) || ~all(size(f2_0) == d)
     error('Incompatible image dimensions.')
 end
-u   = zeros(d,'single'); % Starting estimates of displacements
+u   = u0; % Starting estimates of displacements
 
 % Set the windows figure
 FG = spm_figure('GetWin','Graphics');
@@ -98,12 +108,17 @@ for fwhm = FWHM % Loop over spatial scales
     spm_smooth(f2,f2,[1 1 1]*fwhm); % Note the side effects
 
     if jac==1
-        [u,wf1,wf2] = scope_jacobians(u, f1,f2, sig2, vx, reg, ord, 2e-3, 6, FG, fwhm);
+        [u,wf1,wf2] = scope_jacobians(u, f1,f2, sig2, vx, reg, ord, 2e-3, 6, FG, fwhm, u0);
     else
-        [u,wf1,wf2] = scope_basic(u, f1,f2, sig2, vx, reg, ord, 2e-3, 8, FG, fwhm);
+        [u,wf1,wf2] = scope_basic(u, f1,f2, sig2, vx, reg, ord, 2e-3, 8, FG, fwhm, u0);
     end
 end
 
+if jac==1
+    descrip = sprintf('SCOPE: preserve integrals %.3g,%.3g,%.3g',reg);
+else
+    descrip = sprintf('SCOPE: preserve intensity %.3g,%.3g,%.3g',reg);
+end
 
 %-Save distortion-corrected blip reversed images and vdm
 %==========================================================================
@@ -117,6 +132,7 @@ Nio      = nifti;
 Nio.dat  = file_array(oname,d,'float32');
 Nio.mat  = Nii(1).mat;
 Nio.mat0 = Nii(1).mat;
+Nio.descrip = [descrip ' Same'];
 create(Nio);
 Nio.dat(:,:,:) = wf1;
 
@@ -129,6 +145,7 @@ Nio      = nifti;
 Nio.dat  = file_array(oname,d,'float32');
 Nio.mat  = Nii(2).mat;
 Nio.mat0 = Nii(2).mat0;
+Nio.descrip = [descrip ' Opposite'];
 create(Nio);
 Nio.dat(:,:,:) = wf2;
 
@@ -140,6 +157,7 @@ oname          = fullfile(outdir,oname);
 Nio            = nifti;
 Nio.dat        = file_array(oname,size(u),'float32');
 Nio.mat        = Nii(1).mat;
+Nio.descrip    = descrip;
 create(Nio);
 Nio.dat(:,:,:) = u;
 
@@ -196,17 +214,19 @@ end
 % ===========================================================================
 
 % ===========================================================================
-function [u,wf1,wf2] = scope_basic(u, f1,f2, sig2, vx, reg, ord, tol, nit, FG, fwhm)
+function [u,wf1,wf2] = scope_basic(u, f1,f2, sig2, vx, reg, ord, tol, nit, FG, fwhm, u0)
 % Basic scope, without accounting for jacobian modulation for stretching and compression.
 if isempty(u)
     u   = zeros(size(f1));
 end
-if nargin<10|| isempty(FG),   FG   = 0;     end
-if nargin<9 || isempty(nit),  nit  = 10;    end
-if nargin<8 || isempty(tol),  tol  = 2e-3; end
-if nargin<7 || isempty(ord),  ord  = [1 1 1  0 0 0]; end
-if nargin<6 || isempty(reg),  reg  = [0 10 100]; end
-if nargin<5 || isempty(vx),   vx   = [1 1 1]; end
+if nargin<12 || isempty(u0),   u0   = zeros(size(u), 'single'); end
+if nargin<11 || isempty(fwhm), fwhm = 0;     end
+if nargin<10 || isempty(FG),   FG   = 0;     end
+if nargin<9  || isempty(nit),  nit  = 10;    end
+if nargin<8  || isempty(tol),  tol  = 2e-3;  end
+if nargin<7  || isempty(ord),  ord  = [1 1 1  0 0 0]; end
+if nargin<6  || isempty(reg),  reg  = [0 10 100]; end
+if nargin<5  || isempty(vx),   vx   = [1 1 1]; end
 
 d   = size(f1);
 id  = identity2(d);
@@ -228,13 +248,13 @@ for it = 1:nit
     [wf2,~,gf2,~] = spm_diffeo('bsplins',f2,phi,ord);
 
     % Regularisation term is \tfrac{1}{2} u^T L u. Compute L u.
-    Lu  = spm_field('vel2mom', u, [vx reg]);
+    Lu  = spm_field('vel2mom', u-u0, [vx reg]);
 
     % Compute cost function. Note the slightly ad hoc treatment of
     % missing data (where one of the phis points outside the FOV).
     % Note that there isn't a clear underlying generative model
     % of the data (so "log-likelihood" is in scare quotes).
-    res = 0.5*((wf1 - wf2).^2/sig2 + Lu.*u);
+    res = 0.5*((wf1 - wf2).^2/sig2 + Lu.*(u-u0));
     msk = isfinite(res);
     Eprev = E;
     E   = sum(res(msk(:)))/sum(msk(:));
@@ -280,24 +300,27 @@ end
 % ===========================================================================
 
 % ===========================================================================
-function [u,wf1,wf2] = scope_jacobians(u, f1,f2, sig2, vx, reg, ord, tol, nit, FG, fwhm)
+function [u,wf1,wf2] = scope_jacobians(u, f1,f2, sig2, vx, reg, ord, tol, nit, FG, fwhm, u0)
 % It include in the process the changes of intensities due to
 % stretching and compression.
 if isempty(u)
     u   = zeros(size(f1));
 end
-if nargin<10|| isempty(FG),   FG   = 0;     end
-if nargin<9 || isempty(nit),  nit  = 10;    end
-if nargin<8 || isempty(tol),  tol  = 2e-3; end
-if nargin<7 || isempty(ord),  ord  = [1 1 1  0 0 0]; end
-if nargin<6 || isempty(reg),  reg  = [0 10 100]; end
-if nargin<5 || isempty(vx),   vx   = [1 1 1]; end
+if nargin<12 || isempty(u0),   u0   = zeros(size(u), 'single'); end
+if nargin<11 || isempty(fwhm), fwhm = 0;     end
+if nargin<10 || isempty(FG),   FG   = 0;     end
+if nargin<9  || isempty(nit),  nit  = 10;    end
+if nargin<8  || isempty(tol),  tol  = 2e-3;  end
+if nargin<7  || isempty(ord),  ord  = [1 1 1  0 0 0]; end
+if nargin<6  || isempty(reg),  reg  = [0 10 100]; end
+if nargin<5  || isempty(vx),   vx   = [1 1 1]; end
 
 d   = size(f1);
 L   = regop(d, vx, reg);
 G   = vx(2)*kron(kron(idop(d(3)),diffop(d(2),vx(2))),idop(d(1))); % Difference operator
 G   = (G-G')/2; % Gradient operator (c.f. grad in MATLAB)
 u   = double(u);
+u0  = double(u0);
 id  = identity2(d);
 phi = id;
 filter(d,vx,reg);
@@ -322,11 +345,11 @@ for it = 1:nit
     nvox     = numel(u) - numel(msk);
 
     Gu    = reshape(full(G*u(:)),d);
-    Lu    = reshape(full(L*u(:)),d); % L*u
+    Lu    = reshape(full(L*(u(:)-u0(:))),d); % L*u
 
     b     = wf1.*(1+Gu) - wf2.*(1-Gu);
     Eprev = E;
-    E     = b(:)'*b(:)/(2*sig2) + 0.5*(u(:)'*Lu(:));
+    E     = b(:)'*b(:)/(2*sig2) + 0.5*((u(:)-u0(:))'*Lu(:));
 
     fprintf(' %7.4f', E/nvox)
     if (Eprev-E)/nvox < tol, break; end
