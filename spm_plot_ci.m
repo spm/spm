@@ -39,7 +39,7 @@ colf = erf(coll + 1);
 
 % confidence region (CR) plotting
 %--------------------------------------------------------------------------
-if size(E,1) == 1 && size(E,2) == 2
+if size(E,1) == 1 && size(E,2) == 2 && ~strcmpi(s,'plot')
     E  = E';
     CR = true;
 else

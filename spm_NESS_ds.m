@@ -150,7 +150,7 @@ end
 
 % return time derivatives of coefficients or log density
 %--------------------------------------------------------------------------
-if nargin < 3
+if nargin < 3 && isa(ds,'double')
     dS = b\ds;
 else
     dS = ds;

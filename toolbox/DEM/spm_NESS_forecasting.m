@@ -133,32 +133,13 @@ for i = 1:nT
     Vy(:,i) = var(y);
 end
 
-% enslaving outcomes
-%==========================================================================
-if nargin < 3, return; end
-
-% scaled legacy (training) data
+% Density dynamics
 %--------------------------------------------------------------------------
-subplot(4,1,3), set(gca,'ColorOrderIndex',1), hold on
-in    = 1:n;
-for i = in
-    spm_plot_ci(Ey(i,:),Vy(i,:),t), hold on
-end
-set(gca,'ColorOrderIndex',1)
-plot(r,DEM.Y(in,:),'LineWidth',2), hold off
-title('enslaving forecast','FontSize',14)
-set(gca,'XLim',xLim)
-
-% enslaved outcomes
-%==========================================================================
-im    = (1:m) + n;
-for i = im
-    subplot(4,1,4),  hold on,       set(gca,'ColorOrderIndex',i)
-    spm_plot_ci(Ey(i,:),Vy(i,:),t), set(gca,'ColorOrderIndex',i)
-    hold on, plot(r,DEM.Y(i,:),'LineWidth',2)
-    title('enslaved forecast','FontSize',14)
-    set(gca,'XLim',xLim)
+for i = 1:nY
+    subplot(8,3,12 + i), hold on, set(gca,'ColorOrderIndex',i)
+    spm_plot_ci(Ey(i,:),Vy(i,:),t,[],'plot')
+    hold on, set(gca,'ColorOrderIndex',i),
+    plot(r,DEM.Y(i,:),'LineWidth',2), plot(get(gca,'XLim'),[0,0],':k')
 end
 
-return
 

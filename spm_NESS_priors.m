@@ -4,7 +4,7 @@ function [pE,pC] = spm_NESS_priors(n,L,V,W,J,R,C)
 %--------------------------------------------------------------------------
 % n   - number of states (n)
 % L   - order (+1) of polynomial expansion
-% V   - prior precision over parameters
+% V   - prior covariance over parameters
 % W   - precisions of random fluctuations
 % J   - contraints on Jacobian [ones(n,n)]
 % R   - coupling to mean (first order) [zeros(n,n)]
@@ -44,6 +44,13 @@ if nargin < 7,  C = eye(n,n);   end
 if isscalar(C), C = eye(n,n)*C; end
 if isscalar(W), W = eye(n,n)*W; end
 
+if isnumeric(V)
+    P.Qp  = V;            % covariance of parameters (solenoidal)
+    P.Sp  = V;            % covariance of parameters (surprisal)
+    P.Rp  = V;            % covariance of parameters (expectation)
+    V     = P;
+end
+
 % get (polynomial) expansion: assume first-order approximation
 %--------------------------------------------------------------------------
 o     = (1:L) - 1;
@@ -78,7 +85,7 @@ for i = 1:n
                 % if j influences i and upper diagonal part of Q
                 %----------------------------------------------------------
                 if j > i && ~any(o(d,k))
-                    pC.Qp(k,i,j) = 1/V;
+                    pC.Qp(k,i,j) = V.Qp;
                 end
 
             end
@@ -91,16 +98,19 @@ end
 for i = 1:n
     for j = 1:n
         if J(i,j)
+
+            % disallowed influences
+            %--------------------------------------------------------------
             d     = ~J(i,:);
             for k = 1:nb
 
                 % if j influences i 
                 %----------------------------------------------------------
                 if i == j
-                    pE.Sp(1,i,j) = sqrt(1/C(i,j));   % precision of NESS
+                    pE.Sp(1,i,j) = sqrt(1/C(i,j));      % precision of NESS
                 end
                 if j == i && ~any(o(d,k))   % j >= i for nonorthogonal NESS
-                    pC.Sp(k,i,j) = 1/V;
+                    pC.Sp(k,i,j) = V.Sp;
                 end
 
             end
@@ -113,7 +123,7 @@ end
 
 % constraints on mean
 %--------------------------------------------------------------------------
-pC.Rp(1,:) = 1;
+pC.Rp(1,:) = V.Rp;
 
 % constraints on mean (coupling to enslaved states)
 %--------------------------------------------------------------------------
@@ -125,7 +135,7 @@ for i = 1:n
                 % if this basis is first order in j
                 %----------------------------------------------------------
                 if sum(o(:,k)) == 1 && o(j,k)
-                    pC.Rp(k,i) = 1;
+                    pC.Rp(k,i) = V.Rp;
                 end
             end
         end

@@ -23,11 +23,18 @@ function NESS = spm_ness_hd(M,x)
 % NESS.J2 - expected Euclidean norm of Jacobian
 % NESS.D2 - correlation dimension
 % NESS.o  - parameter orders
+%
+% This routine returns the polynomial coefficients of a Laplace
+% approximation to nonequilibrium steady-state dynamics given some
+% equations of motion, which themselves could be based upon a Helmholtz
+% decomposition with a different polynomial expansion. In other words, it
+% converts a more or less expressive parameterisation of density dynamics
+% into a second order Laplace approximation that is suitable for solving
+% density dynamics.
 %__________________________________________________________________________
 
 % Karl Friston
 % Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
-
 
 % event space: get or create X - coordinates of evaluation grid
 %--------------------------------------------------------------------------

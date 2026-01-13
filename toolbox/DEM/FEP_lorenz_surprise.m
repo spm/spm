@@ -1134,6 +1134,8 @@ return
 
 %% Illustration of high order density learning
 %==========================================================================
+clear
+
 % dxdt = f(x) + w:  see notes at the end of this script
 %--------------------------------------------------------------------------
 f    = @(x,v,P,M) [P(1)*x(2) - P(1)*x(1);
@@ -1426,7 +1428,7 @@ Ep.Sp = s;
 Ep.Qp = q;
 Ep.G  = diag(G);
 
-dS    = spm_NESS_ds(Sp,Ep);
+dS    = spm_NESS_ds(Sp,Ep)
 
 return
 
