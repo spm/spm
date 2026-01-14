@@ -97,25 +97,12 @@ jobs:
         run: |
           TAG="${{ inputs.release_tag }}"
           OS_NAME="${{ matrix.os_name }}"
-          
-          # Map os_name to release asset name
-          case "$OS_NAME" in
-            Linux)
-              ASSET_NAME="spm_standalone_Linux.zip"
-              ;;
-            macOS_Intel)
-              ASSET_NAME="spm_standalone_macOS_Intel.zip"
-              ;;
-            macOS_Apple_Silicon)
-              ASSET_NAME="spm_standalone_macOS_Apple_Silicon.zip"
-              ;;
-            Windows)
-              ASSET_NAME="spm_standalone_Windows.zip"
-              ;;
-          esac
-          
+          ASSET_NAME="spm_standalone_${TAG}_${OS_NAME}.zip"
+
           echo "Downloading $ASSET_NAME from release $TAG"
           gh release download "$TAG" --repo ${{ github.repository }} --pattern "$ASSET_NAME"
+          # Rename to the canonical name expected by subsequent steps
+          mv "$ASSET_NAME" "spm_standalone_${OS_NAME}.zip"
       
       - name: Upload as artifact
         uses: actions/upload-artifact@v4
