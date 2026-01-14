@@ -17,21 +17,15 @@ jobs:
       matrix:
         # This actions compiles by default with the newest available matlab version
         version: ["latest"] # ["R2021a", "R2021b", "R2022a", "R2022b", "R2023a", "R2023b", "R2024a", "R2024b"]
-        os: ["ubuntu-latest", "macos-15-intel", "macos-latest", "windows-latest"] # macos-15-intel has Intel architecture, macos-latest has Apple Silicon
+        os: ["macos-latest"]
         include: # These includes are just giving the OSs additional names
-          - os: ubuntu-latest
-            os_name: Linux
-          - os: macos-15-intel
-            os_name: macOS_Intel
           - os: macos-latest
             os_name: macOS_Apple_Silicon
-          - os: windows-latest
-            os_name: Windows
         exclude: # To exclude not working versions in case all Matlab targets are compiled
-          - os: windows-latest
-            version: "R2021a" # Compiler not available
-          - os: windows-latest
-            version: "R2021b" # Compiler not available
+          - os: macos-latest
+            version: "R2021a" # Apple Silicon version not available
+          - os: macos-latest
+            version: "R2021b" # Apple Silicon version not available
           - os: macos-latest
             version: "R2021a" # Apple Silicon version not available
           - os: macos-latest
@@ -94,8 +88,17 @@ jobs:
         shell: bash
         # Replace the second line of Contents.m with the version line
         run: |
-          tag="${{ github.ref_name }}"
-          SPM_RELEASE=${tag:0:2}
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+             SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
+             tag="dev-$SHORT_SHA"
+             SPM_RELEASE="dev"
+             echo "PRERELEASE=true" >> $GITHUB_ENV
+          else
+             tag="${{ github.ref_name }}"
+             SPM_RELEASE=${tag:0:2}
+          fi
+          echo "BUILD_TAG=$tag" >> $GITHUB_ENV
+
           date=$(date +'%d-%b-%Y')
           version_line="% Version $tag (SPM${SPM_RELEASE}) $date"
           echo "version_line=$version_line"
@@ -114,29 +117,143 @@ jobs:
               compiler.runtime.customInstaller('Runtime_${{ env.MATLAB_VERSION }}_for_spm_standalone_${{ github.ref_name }}', '../standalone/requiredMCRProducts.txt', OutputDir='../runtime_installer');
             end
 
+      - name: Copy Raw Compilation for Upload
+        if: github.event_name == 'workflow_dispatch' && runner.os == 'macOS'
+        run: cp -R ../standalone raw_compilation_debug
+
+      - name: Upload Raw Compilation Artifact
+        if: github.event_name == 'workflow_dispatch' && runner.os == 'macOS'
+        uses: actions/upload-artifact@v4
+        with:
+          name: raw_compilation_${{ matrix.os_name }}
+          path: raw_compilation_debug/
+
+      - name: Package as App on Mac
+        if: runner.os == 'macOS'
+        run: |
+          set -x  # Enable debug logging
+
+          # Debug: Show input artifacts
+          echo "Listing structure of ../standalone:"
+          ls -R ../standalone
+          # 1. Prepare Release Folder with Versioned Subfolder
+          APP_FOLDER_NAME="SPM-${{ env.BUILD_TAG }}"
+          mkdir -p "release_package/SPM_MacOS_Release/$APP_FOLDER_NAME"
+          ROOT_DIR="release_package/SPM_MacOS_Release"
+          APP_DIR="$ROOT_DIR/$APP_FOLDER_NAME"
+
+          # 2. Locate and Move SPM App
+          SPM_APP=$(find ../standalone -maxdepth 1 -name "*.app" | head -n 1)
+
+          if [ -n "$SPM_APP" ]; then
+             echo "Found SPM App: $SPM_APP"
+             mv "$SPM_APP" "$APP_DIR/SPM.app"
+          else
+             echo "Error: Could not find .app bundle in ../standalone"
+             exit 1
+          fi
+
+          # 3. Locate and Copy MCR Installer
+          INSTALLER_SOURCE=$(find ../runtime_installer -name "Runtime*" | head -n 1)
+          if [ -n "$INSTALLER_SOURCE" ]; then
+             echo "Found installer: $INSTALLER_SOURCE"
+             cp -R -v "$INSTALLER_SOURCE" "$APP_DIR/Runtime_Installer.app"
+          else
+             echo "Warning: No MCR Installer found."
+          fi
+
+          # 4. Icon Replacement (macOS only)
+          # Always download from Organization
+          echo "Downloading logo from 'spm' organization..."
+          curl -L -o "spm_org_logo.png" "https://github.com/spm.png"
+
+          if [ -s "spm_org_logo.png" ]; then
+             echo "Downloaded organization logo successfully."
+             ICON_SRC="spm_org_logo.png"
+          else
+             echo "Warning: Failed to download logo."
+             ICON_SRC=""
+          fi
+
+          if [ -f "$ICON_SRC" ]; then
+             echo "Generating ICNS from $ICON_SRC..."
+             mkdir spm.iconset
+             # Create various sizes (sips is standard on macOS)
+             sips -z 16 16     "$ICON_SRC" --out spm.iconset/icon_16x16.png
+             sips -z 32 32     "$ICON_SRC" --out spm.iconset/icon_16x16@2x.png
+             sips -z 32 32     "$ICON_SRC" --out spm.iconset/icon_32x32.png
+             sips -z 64 64     "$ICON_SRC" --out spm.iconset/icon_32x32@2x.png
+             sips -z 128 128   "$ICON_SRC" --out spm.iconset/icon_128x128.png
+             sips -z 256 256   "$ICON_SRC" --out spm.iconset/icon_128x128@2x.png
+             sips -z 512 512   "$ICON_SRC" --out spm.iconset/icon_512x512.png
+             # Create icns
+             iconutil -c icns spm.iconset -o AppIcon.icns
+             
+             # Locate Info.plist to find current icon name
+             PLIST="$APP_DIR/SPM.app/Contents/Info.plist"
+             # Defaults usually 'membrane.icns' or similar. We will just overwrite and update plist.
+             cp AppIcon.icns "$APP_DIR/SPM.app/Contents/Resources/spm_icon.icns"
+             
+             # Update Info.plist to point to new icon
+             # Using plutil to replace CFBundleIconFile
+             plutil -replace CFBundleIconFile -string "spm_icon.icns" "$PLIST"
+             echo "Icon updated successfully."
+          else
+             echo "Warning: No icon source found."
+          fi
+
+          # 5. Copy Instructions & Update Placeholder
+          if [ -f "config/README_macOS_standalone.txt" ]; then
+             cp "config/README_macOS_standalone.txt" "$ROOT_DIR/README_macOS_standalone.txt"
+             # Replace placeholder with actual folder name
+             sed -i '' "s/SPM_FOLDER_PLACEHOLDER/$APP_FOLDER_NAME/g" "$ROOT_DIR/README_macOS_standalone.txt"
+          else
+             echo "Warning: config/README_macOS_standalone.txt not found."
+             echo "Please run: sudo xattr -cr ." > "$ROOT_DIR/README_macOS_standalone.txt"
+          fi
+
+          # 6. Ensure Binaries are Executable (just in case)
+          chmod +x "$APP_DIR/SPM.app/Contents/MacOS/"* || true
+
+          # 7. Zip Release
+          echo "Zipping release..."
+          cd "release_package"
+          zip -r -y "$GITHUB_WORKSPACE/../spm_standalone_${{ env.BUILD_TAG }}_${{ matrix.os_name }}.zip" ./*
+
       - name: Install zip on Windows
         if: runner.os == 'Windows'
         run: choco install zip -y
         shell: bash
 
-      - name: Compress to ZIP (latest)
-        if: matrix.version == 'latest'
+      - name: Compress to ZIP (Windows/Linux)
+        if: runner.os != 'macOS'
         run: |
           cd ..
           mv standalone spm_standalone
-          zip -r spm_standalone_${{ github.ref_name }}_${{ matrix.os_name }}.zip spm_standalone runtime_installer
-      - name: Compress to ZIP (specific MCR version)
-        if: matrix.version != 'latest'
-        run: |
-          cd ..
-          mv standalone spm_standalone
-          zip -r spm_standalone_${{ github.ref_name }}_${{ matrix.os_name }}_${{ env.MATLAB_VERSION }}.zip spm_standalone runtime_installer
+          if [ "${{ matrix.version }}" == "latest" ]; then
+             zip -r spm_standalone_${{ env.BUILD_TAG }}_${{ matrix.os_name }}.zip spm_standalone runtime_installer
+          else
+             zip -r spm_standalone_${{ env.BUILD_TAG }}_${{ matrix.os_name }}_${{ env.MATLAB_VERSION }}.zip spm_standalone runtime_installer
+          fi
 
       - name: Release standalone
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ env.BUILD_TAG }} # Required for dispatch events (refs/heads/main -> dev)
           prerelease: ${{ env.PRERELEASE }}
           files: ../spm_standalone*.zip
+
+      - name: Copy Zip for Upload
+        if: github.event_name == 'workflow_dispatch'
+        run: cp ../spm_standalone*.zip .
+
+      - name: Upload Artifact (Dev/Test)
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: spm_standalone_${{ env.BUILD_TAG }}_${{ matrix.os_name }}_${{ matrix.version }}
+          # Path must be within workspace, ../ is not allowed
+          path: spm_standalone*.zip
 
       # The next steps are only performed once for OS=Linux and MATLAB version=latest
       # Release SPM (not standalone)
@@ -144,25 +261,25 @@ jobs:
         if: runner.os == 'Linux' && matrix.version == 'latest'
         run: |
           cd ..
-          zip -r spm_${{ github.ref_name }}.zip spm
+          zip -r spm_${{ env.BUILD_TAG }}.zip spm
 
       - name: Release SPM
-        if: runner.os == 'Linux' && matrix.version == 'latest'
+        if: runner.os == 'Linux' && matrix.version == 'latest' && github.event_name != 'workflow_dispatch'
         uses: softprops/action-gh-release@v2
         with:
           prerelease: ${{ env.PRERELEASE }}
           files: ../spm*.zip
 
-      # Trigger Container Build in spm-docker 
+      # Trigger Container Build in spm-docker
       - name: Parse tag into SPM_RELEASE and SPM_REVISION
-        if: runner.os == 'Linux' && matrix.version == 'latest'
+        if: runner.os == 'Linux' && matrix.version == 'latest' && github.event_name != 'workflow_dispatch'
         run: |
-          tag="${{ github.ref_name }}"
+          tag="${{ env.BUILD_TAG }}"
           echo "SPM_RELEASE=${tag:0:5}" >> $GITHUB_ENV
           echo "SPM_REVISION=${tag:6}" >> $GITHUB_ENV
 
       - name: Trigger workflow in spm-docker
-        if: env.PRERELEASE == 'false' && runner.os == 'Linux' && matrix.version == 'latest'
+        if: env.PRERELEASE == 'false' && runner.os == 'Linux' && matrix.version == 'latest' && github.event_name != 'workflow_dispatch'
         uses: peter-evans/repository-dispatch@v3
         with:
           token: ${{ secrets.PAT_TOKEN_SPM_DOCKER }}
@@ -179,7 +296,7 @@ jobs:
   test_release_standalone:
     name: Test Released Standalone
     needs: build_matlab_standalone
-    if: always() && needs.build_matlab_standalone.result == 'success'
+    if: always() && needs.build_matlab_standalone.result == 'success' && github.event_name != 'workflow_dispatch'
     uses: ./.github/workflows/install_test_standalone.yml
     secrets: inherit
     with:
