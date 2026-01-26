@@ -111,6 +111,12 @@ for i = 1:n
     end
 end
 
+% exogenous effects if specified
+%--------------------------------------------------------------------------
+if isfield(P,'U')
+    P.Rp(1,:) = u(:)'*P.U;
+end
+
 % expectation (mean) Rp
 %--------------------------------------------------------------------------
 p   = 1:size(P.Rp,1);
@@ -121,7 +127,7 @@ for i = 1:n
         if i == j
             DX(i,j) = 1;
         else
-            %%% DX(i,j) = -U.D{j}(1,p)*P.Rp(p,i);
+            DX(i,j) = -U.D{j}(1,p)*P.Rp(p,i);
         end
     end
 end

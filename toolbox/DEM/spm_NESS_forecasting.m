@@ -1,11 +1,10 @@
-function [Ey,Cy,Vy,pY] = spm_NESS_forecasting(DEM,nT,n,m)
-% Generates paths into the future over nT time points
-% FORMAT [Ey,Cy,Vy,pY] = spm_NESS_forecasting(DEM,nT,n,m)
+function [Ey,Cy,Vy,pY] = spm_NESS_forecasting(DEM)
+% Generates paths into the future over size(DEM.U,2) time points
+% FORMAT [Ey,Cy,Vy,pY] = spm_NESS_forecasting(DEM)
 %--------------------------------------------------------------------------
-% DEM - inverted DEM structure
-% nT  - number of future time points
-% n   - number of enslaving states
-% m   - number of enslaved states
+% DEM - inverted DEM structure (with future causes DEM.U)
+%  DEM.Y - past responses
+%  DEM.U - future casues
 %
 % Ey  - posterior expectation
 % Cy  - posterior covariances
@@ -32,7 +31,8 @@ N     = 32;                        % number of paths
 nx    = spm_length(DEM.M(1).x);    % number of states
 np    = spm_length(DEM.M(1).pE);   % number of parameters
 nY    = size(DEM.Y,1);             % number of outcomes
-r     = size(DEM.Y,2);
+r     = size(DEM.Y,2);             % number of past time points 
+nT    = size(DEM.U,2);             % number of future time points          
 r     = (1:r)  + T - r;            % past time points
 t     = (1:nT) + T - 1;            % future time points
 
@@ -101,7 +101,7 @@ for i = 1:N
         P          = Ep + spm_sqrtm(Cp)*randn(np,1)*V;
         P          = spm_unvec(P,pE);
         DEM.M(1).x = x0;
-        FEM        = spm_DEM_generate(DEM.M,nT,P);
+        FEM        = spm_DEM_generate(DEM.M,DEM.U,P);
         if all(all(isfinite(FEM.Y)))
             break
         end
