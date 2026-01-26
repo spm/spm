@@ -1,12 +1,12 @@
-function Tab = spm_portfolio(L,I,DEM,Ti,dT)
+function Tab = spm_portfolio(L,I,U,DEM,dT)
 % FORMAT spm_portfolio(L,DEM)
 % simulate portfolio managment
 %--------------------------------------------------------------------------
 % L   - rate of log return per week
 % I   - indicator variables
+% U   - exogenous variables
 % DEM - generative model
-% Ti  - time of initial investment
-% dT  - (maxiumum) time between rebalancing 
+% dT  - (maxiumum) time between rebalancing
 %__________________________________________________________________________
 
 % policies
@@ -22,17 +22,32 @@ policies = {'Buy and hold', ...
 %--------------------------------------------------------------------------
 dt    = DEM.G.dt;               % period (days)
 Ann   = 100*365/dt;             % scaling for annualised % RoR
+Ti    = DEM.T;                  % time of inital investment
 Tf    = size(L,1);              % time of final investment
 m     = size(L,2);              % number of (aggregated) assets
+DEM.t = Ti;
 
 % prior preferences
 %--------------------------------------------------------------------------
-try  RoR    = DEM.RoR;    catch, RoR    = 80;  end
-try  Sharpe = DEM.Sharpe; catch, Sharpe = 1/2; end
+RoR   = [8, 16, 32, 64, 128, 256];    % prior RoR percent
+Rat   = [2, 3, 4];                    % Sharpe ratio
+ni    = numel(RoR);             % number of prior preferences
+nj    = numel(Rat);             % number of prior preferences
+m_p   = zeros(ni,nj);
+c_p   = zeros(ni,nj);
+p_p   = zeros(ni,nj);
+for i = 1:ni
+    for j = 1:nj
+        m_p(i,j) = RoR(i)/Ann;
+        c_p(i,j) = ((RoR(i) + 16)/Ann/Rat(j))^2;
+        p_p(i,j) = -log(RoR(i)) - log(Rat(j));
 
-m_p   = RoR/Ann;                % prior RoR per dt
-s_p   = m_p/Sharpe;             % prior volitility (s.d.)
-c_p   = s_p^2;                  % prior volitility (variance)
+    end
+end
+p_p   = p_p - min(p_p(:));
+p_p   = p_p*0; %%%
+
+
 
 % set up policies: moving funds from one assets to another nP times
 %--------------------------------------------------------------------------
@@ -81,98 +96,122 @@ end
 Np     = 5;                       % number of policies to simulate
 W      = ones(m,Np)/m;            % inital (flat) weights
 % or
-% W(1,:) = 0.1;  % 'VEA': 0.1
-% W(2,:) = 0.05; % 'BIL': 0.05
-% W(3,:) = 0.35; % 'AGG': 0.35
-% W(4,:) = 0.05; % 'DBC': 0.05
-% W(5,:) = 0.10; % 'VNQ': 0.10
-% W(6,:) = 0.35; % 'SPY': 0.35
+W(1,:) = 0.1;  % 'VEA': 0.1
+W(2,:) = 0.05; % 'BIL': 0.05
+W(3,:) = 0.35; % 'AGG': 0.35
+W(4,:) = 0.05; % 'DBC': 0.05
+W(5,:) = 0.10; % 'VNQ': 0.10
+W(6,:) = 0.35; % 'SPY': 0.35
+
+
+% amplitude of random fluctuations
+%--------------------------------------------------------------------------
+l     = (1:m) + size(I,2);        % indices of RoR
+scale = diag(DEM.G.pE.scale);     % scaling of variables [I,L] -> X
 
 % simulate allocations and ensuing resturns
 %==========================================================================
-scale = diag(DEM.G.pE.scale);     % scaling of variables [I,L] -> X
-TOL   = 128;                      % free energy threshold for rebalancing
+TOL   = 64;                       % free energy threshold for rebalancing
+r     = -128:256;                 % domain of RoR (%) for plotting
 R     = zeros(Tf,Np);             % cumulative RoR
 S     = zeros(Tf,1);              % Surprise (Free energy)
 D     = zeros(Tf,Np);             % RoR per dt
-l     = (1:m) + size(I,2);        % indices of RoR
-r     = -128:128;                 % domain of RoR (%)
-for i = Ti:Tf
+E     = [];                       % expected free energy
+T     = [];                       % times of policy evaluation
+for t = Ti:Tf
 
-   
-   % cumulative return on investment per dt
-   %-----------------------------------------------------------------------
-   D(i,:) = L(i,1:m)*W;
-   R(i,:) = R(i - 1,:) + D(i,:);
+    % cumulative return on investment per dt
+    %======================================================================
+    D(t,:) = L(t,:)*W;
+    R(t,:) = R(t - 1,:) + D(t,:);
 
-   % Free energy
-   %=======================================================================
-   j   = (i - 2):i;               % immediate past
-   X   = [I(j,:),L(j,:)]/scale;   % scaled states
-
-   % place in generative model
-   %-----------------------------------------------------------------------
-   G   = DEM.G; G.Nmax = 1;       % generative model    
-   G.x = X(1,:)';                 % initial state
-   G.X = X;                       % legacy points in state-space
-
-   % model inversion with Variational Laplace
-   %-----------------------------------------------------------------------
-   B   = spm_ness_U(G);           % basis functions
-   f   = gradient(G.X')';         % flow
-
-   % evaluate free energy
-   %-----------------------------------------------------------------------
-   [~,~,~,Fi] = spm_nlsi_GN(G,B,f);
-   S(i)       = -Fi;
+    % plot outcomes
+    %----------------------------------------------------------------------
+    subplot(6,2,12), hold on
+    plot([1,1]*D(t,5)*Ann,get(gca,'YLim'),'g')
+    plot([1,1]*R(t,5)*100,get(gca,'YLim'),'m')
 
 
-   % portfolio allocations
-   %-----------------------------------------------------------------------
-   W4(:,i)  = W(:,4);
-   W5(:,i)  = W(:,5);
+    % Free energy
+    %======================================================================
+    j   = (t - 2):t;               % immediate past
+    X   = [I(j,:),L(j,:)]/scale;   % scaled states
+
+    % place in generative model
+    %----------------------------------------------------------------------
+    G   = DEM.G; G.Nmax = 1;       % generative model
+    G.x = X(1,:)';                 % initial state
+    G.X = X;                       % legacy points in state-space
+
+    % model inversion with Variational Laplace
+    %----------------------------------------------------------------------
+    B   = spm_ness_U(G);           % basis functions
+    B.u = U(j,:);                  % exogenous input
+    f   = gradient(G.X')';         % flow
+
+    % evaluate free energy
+    %----------------------------------------------------------------------
+    [~,~,~,Fi] = spm_nlsi_GN(G,B,f);
+    S(t)       = -Fi;
+
+    % portfolio allocations
+    %----------------------------------------------------------------------
+    W4(:,t)  = W(:,4);
+    W5(:,t)  = W(:,5);
 
     % transactions
-    %----------------------------------------------------------------------
-    if ~rem(i,dT) || S(i) > TOL || i < (Ti - dT)
+    %======================================================================
+    if ~rem(t,dT) || S(t) - S(t - 1) > TOL
 
-        % buy and hold 
+        % buy and hold
         %------------------------------------------------------------------
         W(:,1)  = P{1}*W(:,1);
 
         % retrospective
         %==================================================================
-        ti    = i - (1:dT) + 1;
-        EL    = L(i,1:m);
-        CL    = cov(L(ti,1:m));
+        EL    = L(t,:);                     % expected RoR
+        CL    = cov(L((t - 16):t,:));       % sample covriance of RoR
         F     = zeros(1,np);
-        G     = zeros(1,np);
+        G     = zeros(ni,nj,np);
         for k = 1:np
 
             % expected utility
             %--------------------------------------------------------------
             W_k  = P{k}*W(:,2);
             m_q  = EL*W_k;
-            F(k) = m_q;
+
+            % path integral of expected free energy (risk)
+            %--------------------------------------------------------------
+            kl   = m_q;
+            F(k) = F(k) - kl;
 
             % risk sensitive
             %--------------------------------------------------------------
             W_k  = P{k}*W(:,3);
             m_q  = EL*W_k;
             c_q  = W_k'*CL*W_k;
-            G(k) = spm_kl_normal(m_q,c_q,m_p,c_p);
+
+            % for every prior preference
+            %--------------------------------------------------------------
+            for i = 1:ni
+                for j = 1:nj
+                    kl       = spm_kl_normal(m_q,c_q,m_p(i,j),c_p(i,j));
+                    G(i,j,k) = G(i,j,k) + kl + p_p(i,j);
+                end
+            end
 
         end
 
         % expected utility
         %------------------------------------------------------------------
-        [~,k]  = max(F);
+        [~,k]  = min(F);
         W(:,2) = P{k}*W(:,2);
 
         % risk sensitive
         %------------------------------------------------------------------
-        [~,k]  = min(G);
-        W(:,3) = P{k}*W(:,3);
+        [~,j]   = min(G,[],'all');
+        [~,~,k] = ind2sub([ni,nj,np],j);
+        W(:,3)  = P{k}*W(:,3);
 
 
         % prospective
@@ -181,107 +220,128 @@ for i = Ti:Tf
 
             % upper bound on performance, if the future were known
             %--------------------------------------------------------------
-            for t = 1:dT
+            for s = 1:dT
                 try
-                    Ey(t,:) = L(i + t,1:m);
-                    Cy{t}   = cov(L((1:dT) + i,1:m));
+                    Ey(s,:) = L(s + t,1:m);
+                    Cy{s}   = cov(L((1:dT) + s,:));
                 catch
-                    Ey(t,:) = L(end,1:m);
-                    Cy{t}   = cov(L(end - (1:dT) + 1,1:m));
+                    Ey(s,:) = L(end,1:m);
+                    Cy{s}   = cov(L(end - (1:dT) + 1,:));
                 end
             end
+
         else
 
             % posterior predictive density over RoR
             %--------------------------------------------------------------
-            j           = 1:i;
-            [Ez,Cz,DEM] = spm_forecast_update(L(j,:),I(j,:),DEM,dT + 1);
-            
-            for t = 1:dT
-                Ey(t,:) = Ez(l,t + 1)';
-                Cy{t}   = Cz{t + 1}(l,l);
+            s           = 1:t;
+            [Ez,Cz,DEM] = spm_forecast_update(L(s,:),I(s,:),U(s,:),DEM,dT + 1);
+
+            for s = 1:dT
+                Ey(s,:) = Ez(l,s + 1)';
+                Cy{s}   = Cz{s + 1}(l,l);
             end
 
         end
 
+
         % for each policy
         %------------------------------------------------------------------
         F     = zeros(1,np);
-        G     = zeros(1,np);
+        G     = zeros(ni,nj,np);
         for k = 1:np
 
             % expected utility
             %--------------------------------------------------------------
             W_k   = P{k}*W(:,4);
-            for t = 1:dT
+            for s = 1:dT
 
                 % predictive posterior over outcomes
                 %----------------------------------------------------------
-                m_q  = Ey(t,:)*W_k;
+                m_q  = Ey(s,:)*W_k;
 
                 % path integral of expected free energy (risk)
                 %----------------------------------------------------------
-                F(k) = F(k) + m_q;
+                kl   = m_q;
+                F(k) = F(k) - kl;
 
             end
 
             % risk sensitive
             %--------------------------------------------------------------
             W_k   = P{k}*W(:,5);
-            for t = 1:dT
+            for s = 1:dT
 
                 % predictive posterior over outcomes
                 %----------------------------------------------------------
-                m_q  = Ey(t,:)*W_k;
-                c_q  = W_k'*Cy{t}*W_k;
+                m_q  = Ey(s,:)*W_k;
+                c_q  = W_k'*Cy{s}*W_k;
 
                 % path integral of expected free energy (risk)
                 %----------------------------------------------------------
-                G(k) = G(k) + spm_kl_normal(m_q,c_q,m_p,c_p);
-
-                % and drawdown contraint
-                %----------------------------------------------------------
-                f    = spm_Npdf(r,m_q*Ann,Ann*c_q*Ann);
-                fc = 1;
-                kl   = f*(log(f) - fc);
-                G(k) = G(k) + kl;
-
+                for i = 1:ni
+                    for j = 1:nj
+                        kl       = spm_kl_normal(m_q,c_q,m_p(i,j),c_p(i,j));
+                        G(i,j,k) = G(i,j,k) + kl + p_p(i,j);
+                    end
+                end
             end
+
         end
 
         % expected utility
         %------------------------------------------------------------------
-        [~,k]  = max(F);
+        [~,k]  = min(F);
         W(:,4) = P{k}*W(:,4);
 
-        % risk sensitive
+        % risk sensitive: find best policy (k) under preferences (j)
         %------------------------------------------------------------------
-        [~,k]  = min(G);
-        W(:,5) = P{k}*W(:,5);
+        [e,j]   = min(G,[],'all');
+        [i,j,k] = ind2sub([ni,nj,np],j);
+        W(:,5)  = P{k}*W(:,5);
 
         % predictive posterior over RoR under Risk-sensitive policy
-        %------------------------------------------------------------------
-        subplot(6,1,6), hold off
+        %==================================================================
+        subplot(6,2,12), hold off
 
-        % prior preferences
+        % prior preferences (j)
         %------------------------------------------------------------------
-        f     = spm_Npdf(r,m_p*Ann,Ann*c_p*Ann);
+        f     = spm_Npdf(r,m_p(i,j)*Ann,Ann*c_p(i,j)*Ann);
         plot(r,f,'r'), hold on
+        plot([0,0],get(gca,'YLim'),'--r')
 
         W_k   = W(:,5);
-        for t = 1:dT
+        for s = 1:dT
 
             % predictive posterior over outcomes
             %--------------------------------------------------------------
-            m_q    = Ey(t,:)*W_k;
-            c_q    = W_k'*Cy{t}*W_k;
-            f      = spm_Npdf(r,m_q*Ann,Ann*c_q*Ann);
-            plot(r,f,'b'), hold on
+            m_q  = Ey(s,:)*W_k;
+            c_q  = W_k'*Cy{s}*W_k;
+            f    = spm_Npdf(r,m_q*Ann,Ann*c_q*Ann);
+            if s > 1
+                plot(r,f,'b:'), hold on
+            else
+                plot(r,f,'b'), hold on
+            end
+            title('Predictive and preferred densities')
+            xlabel('Annualised RoR (%)')
 
-            ti     = i + t;
-            Er(ti) = m_q;
-            Cr(ti) = c_q;
+            Er(s + t) = m_q;
+            Cr(s + t) = c_q;
         end
+
+        subplot(6,4,21)
+        imagesc(-p_p)
+        xlabel('Sharpe'), ylabel('RoR'), title('Prior preferences')
+
+        subplot(6,4,22)
+        imagesc(-sum(G,3))
+        xlabel('Sharpe'), ylabel('RoR'), title('Expected free energy')
+
+        % expected free energy
+        %------------------------------------------------------------------
+        E(end + 1) = e;
+        T(end + 1) = t;
 
     end
 
@@ -289,7 +349,10 @@ end
 
 % legend labels
 %--------------------------------------------------------------------------
-spm_figure('GetWin','Portfolio management'); clf
+di  = datestr(DEM.G.date(Ti),'mmm-yy');
+df  = datestr(DEM.G.date(Tf),'mmm-yy');
+str = sprintf('Portfolio management: %s to %s',di,df);
+spm_figure('GetWin',str); clf
 try
     EFT = DEM.EFT;
 catch
@@ -312,19 +375,19 @@ legend(policies,'Location','northwest')
 %--------------------------------------------------------------------------
 subplot(8,1,3), hold off
 plot(L(:,1:m)*Ann)
-title(sprintf('Rate of log return of assets (annualised)'),'FontSize',14)
+title(sprintf('Rate of log return of assets (annualised)'),'FontSize',12)
 ylabel('%'), set(gca,'XLim',xLim), legend(EFT)
 
 % Allocation
 %--------------------------------------------------------------------------
 subplot(8,1,4), hold off
 bar(W4(:,Ti:end)',1,'stacked','Edgecolor','none')
-title('Expected Utility','FontSize',14)
+title('Expected Utility','FontSize',12)
 legend(EFT)
 
 subplot(8,1,5), hold off
 bar(W5(:,Ti:end)',1,'stacked','Edgecolor','none')
-title('Risk-sensitive','FontSize',14)
+title('Risk-sensitive','FontSize',12)
 legend(EFT)
 
 % Predicted and realised returns
@@ -334,15 +397,23 @@ set(gca,'ColorOrderIndex',1)
 spm_plot_ci(Er*Ann,Ann*Cr*Ann), hold on
 set(gca,'ColorOrderIndex',1)
 plot(D(:,5)*Ann,'.r')
-title('Predicted and realised RoR','FontSize',14)
+title('Predicted and realised RoR','FontSize',12)
 ylabel('%'), set(gca,'XLim',xLim)
 
-% Free energy
+% Variational free energy
 %--------------------------------------------------------------------------
 subplot(8,1,7), hold off
 plot(S), hold on
 plot([Ti,Tf],[1,1]*TOL,':r')
-title('Uncertainty (Free Energy)','FontSize',14)
+title('Uncertainty: Variational Free Energy','FontSize',12)
+ylabel('nats'), set(gca,'XLim',xLim)
+
+% Expected free energy
+%--------------------------------------------------------------------------
+subplot(8,1,8), hold off
+plot(T,E,'o'), hold on
+plot([Ti,Tf],[1,1]*3,':r')
+title('Confidence: Expected Free Energy','FontSize',12)
 ylabel('nats'), set(gca,'XLim',xLim)
 
 
@@ -389,11 +460,12 @@ Tab.Properties.RowNames      = RowNames;
 
 return
 
-function [Ey,Cy,DEM] = spm_forecast_update(L,I,DEM,dT)
-% FORMAT [Ey,Cy,DEM] = spm_forecast_update(L,I,DEM,dT)
+function [Ey,Cy,DEM] = spm_forecast_update(L,I,U,DEM,dT)
+% FORMAT [Ey,Cy,DEM] = spm_forecast_update(L,I,U,DEM,dT)
 % updates model parameters and generates forecast
 % L   - rate of log return (per dt)
-% U   - indicator variables (normalised)
+% I   - indicator variables
+% U   - exogenous variables
 % DEM - generative model
 % dT  - forecast period
 %__________________________________________________________________________
@@ -405,42 +477,50 @@ scale = diag(DEM.G.pE.scale);
 % response and explanatory variables
 %--------------------------------------------------------------------------
 T    = size(L,1);                   % current time
-D    = dT;                          % past duration
-t    = (T - D):T;                   % past period
-Y    = [I(t,:),L(t,:)];             % training data
-X    = Y/scale;                     % scale
+t    = (T - dT):T;                  % recent past
+Y    = [I(t,:),L(t,:)];             % recent data
+X    = Y/scale;                     % recent states
 
 % model inversion with Variational Laplace
 %==========================================================================
 if true
-    
+
     M    = DEM.G;                   % generative model of flow
     M.X  = X;                       % legacy points in state-space
     B    = spm_ness_U(M);           % get state space and flow
+    B.u  = U(t,:);
     F    = gradient(M.X')';         % target flow
 
     % posterior over parameters
     %----------------------------------------------------------------------
-    [Ep,Cp] = spm_nlsi_GN(M,B,F);
+    M.nograph = 1;
+    M.Nmax    = 32;
+    [Ep,Cp]   = spm_nlsi_GN(M,B,F);
 
     % Bayesian belief updating
     %----------------------------------------------------------------------
-    DEM.G.pE = Ep;                  % parameters of flow
-    DEM.G.pC = Cp;                  % and covariance of parameters
+    M.pE = Ep;                      % parameters of flow
+    M.pC = Cp;                      % and covariance of parameters
 
     % update model parameters in DEM
     %----------------------------------------------------------------------
     DEM.M(1).pE = Ep;               % posterior esimates from VL
     DEM.M(1).pC = Cp;               % posterior esimates from VL
+    DEM.G       = M;                % generative model of flow
 
 end
 
 % forecast
 %==========================================================================
-spm_figure('GetWin','Portfolio forecasts');
-DEM.T      = T;
-DEM.Y      = Y';
-DEM.M(1).x = X(end,:)';
+df  = datestr(DEM.G.date(DEM.t),'mmm-yy');
+str = sprintf('Portfolio forecasts: from %s',df);
+spm_figure('GetWin',str);
+
+DEM.Y      = Y';                    % update recent data
+DEM.T      = T;                     % update current time
+DEM.M(1).x = X(end,:)';             % intial state
+DEM.M(2).v = U(end,:)';             % intial cause
+
 [Ey,Cy]    = spm_NESS_forecast(DEM,dT);
 
 return
