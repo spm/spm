@@ -495,7 +495,7 @@ for k = 1:M.Nmax
     
     % objective function: F(p) = log evidence - divergence
     %----------------------------------------------------------------------
-    L(1) = spm_logdet(iS, true)*nq/2  - real(e'*iS*e)/2 - ny*log(8*atan(1))/2;
+    L(1) = spm_logdet(iS)*nq/2  - real(e'*iS*e)/2 - ny*log(8*atan(1))/2;
     L(2) = spm_logdet(ipC*Cp)/2 - p'*ipC*p/2;
     L(3) = spm_logdet(ihC*Ch)/2 - d'*ihC*d/2;
     F    = sum(L);

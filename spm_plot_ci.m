@@ -39,7 +39,7 @@ colf = erf(coll + 1);
 
 % confidence region (CR) plotting
 %--------------------------------------------------------------------------
-if size(E,1) == 1 && size(E,2) == 2 && ~strcmpi(s,'plot')
+if size(E,1) == 1 && size(E,2) == 2
     E  = E';
     CR = true;
 else
@@ -127,7 +127,7 @@ end
 
 % plot elliptical confidence region
 %--------------------------------------------------------------------------
-if CR
+if CR  && ~strcmpi(s,'plot')
     [x,y] = ellipsoid(E(1),E(2),1,c(1),c(2),0,32);
     fill(x(16,:)',y(16,:)',[1 1 1]*gr,'EdgeColor',[1 1 1]*.5,'Parent',ax);
     hold(ax,'on');
