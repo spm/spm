@@ -109,6 +109,21 @@ function download_mritools(outdir, version_tag)
 % Note: this function requires an internet connection.
 %==========================================================================
 
+% Generate pop-up warning stating that mritools are being downloaded
+% and allowing the user to cancel the download if desired.
+choice = questdlg([ ...
+    'The mritools (ROMEO) binary required for phase unwrapping was not found on your system.' newline newline ...
+    'On first use, the required binary will be automatically downloaded from the official CompileMRI.jl GitHub releases:' newline ...
+    'https://github.com/korbinian90/CompileMRI.jl/releases' newline newline ...
+    'An active internet connection is required.' newline newline ...
+    'Do you want to proceed with the download?' ], ...
+    'Download mritools (ROMEO)?', ...
+    'Yes', 'No', 'No');
+ 
+if strcmp(choice, 'No')
+    error('mritools (ROMEO) download cancelled by the user');
+end
+
 if ~exist(outdir, 'dir'); mkdir(outdir); end
 
 %% ============================================
@@ -158,7 +173,7 @@ else
 end
 
 URL = sprintf('https://github.com/korbinian90/CompileMRI.jl/releases/download/v%s/%s_%s.%s',version_tag, assetKey, version_tag, extension);
-fprintf('ROMEO binary for phase unwrapping not found. Downloading from %s \n',URL)
+fprintf('Downloading ROMEO binary from %s \n',URL)
 file_compressed = websave(sprintf('%s.%s',outdir, extension), URL);
 if ispc
     unzip(file_compressed,outdir);
