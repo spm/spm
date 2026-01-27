@@ -1,11 +1,12 @@
-function tests = test_spm_update
+classdef test_spm_update < matlab.unittest.TestCase
 % Unit Tests for spm_update
 %__________________________________________________________________________
 
 % Copyright (C) 2017-2025 Wellcome Centre for Human Neuroimaging
 
 
-tests = functiontests(localfunctions);
+
+methods (Test)
 
 
 function test_version_check(testCase)
@@ -32,3 +33,8 @@ if all(failed)
     disp(sts);
     disp(msg);
 end
+end
+
+end % methods (Test)
+
+end % classdef

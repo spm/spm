@@ -1,5 +1,5 @@
 function U = spm_ness_U(M,x)
-% Nonequilibrium steady-state under a Helmholtz decomposition
+% basis functions for NESS under a Helmholtz decomposition
 % FORMAT U = spm_ness_U(M,x)
 %--------------------------------------------------------------------------
 % M   - model specification structure
@@ -9,7 +9,8 @@ function U = spm_ness_U(M,x)
 %    M.x   - (n x 1) = x(0) = expansion point
 %    M.W   - (n x n) - precision matrix of random fluctuations
 %    M.X   - sample points
-%    M.K   - order of polynomial expansion
+%    M.K   - order of polynomial expansion (suprisal)
+%    M.L   - order of polynomial expansion (solenoidal)
 %
 % x       - sample points
 %
@@ -20,6 +21,7 @@ function U = spm_ness_U(M,x)
 % U.b     - polynomial basis
 % U.D     - derivative operator
 % U.G     - amplitude of random fluctuations
+% U.H     - Hessian operator
 % U.dQdp  - gradients of flow operator Q  w.r.t. flow parameters
 % U.dbQdp - gradients of bQ w.r.t. flow parameters
 % U.dLdp  - gradients of L w.r.t. flow parameters
@@ -34,8 +36,12 @@ function U = spm_ness_U(M,x)
 % event space: get or create X - coordinates of evaluation grid
 %--------------------------------------------------------------------------
 if isfield(M,'FUN'), FUN = M.FUN; else, FUN = 'POLY'; end
-if isfield(M,'K'),   K   = M.K;   else, K = 3;        end
-if isfield(M,'L'),   K   = max(K,M.L);                end
+if isfield(M,'K'),   K   = M.K;   else, K = 2;        end
+if isfield(M,'L'),   L   = M.L;   else, L = 3;        end
+
+% upper bound on order
+%--------------------------------------------------------------------------
+K   = max(K,L);
 
 if nargin < 2
     
@@ -56,20 +62,52 @@ if nargin < 2
 
     end
 
-    % use M.X
+    % state space
     %----------------------------------------------------------------------
     for i = 1:n
         x{i}  = unique(X(:,i));
     end
 
 else
-    
-    % use x
+
+    % if sample points
     %----------------------------------------------------------------------
-    [X,x]     = spm_ndgrid(x);
-    [b,D,H,o] = spm_polymtx(x,K,FUN);
-    [nX,n]    = size(X);
-    
+    if isnumeric(x)
+
+        % use x
+        %------------------------------------------------------------------
+        if isvector(x), x = x(:)'; end
+        X      = x;
+        [nX,n] = size(X);
+        for  i = 1:nX
+            x               = num2cell(X(i,:));
+            [bi,Di,Hi,o]    = spm_polymtx(x,K,FUN);
+            b(i,:)          = full(bi);
+            for j = 1:n
+                D{j,1}(i,:) = full(Di{j});
+                for k = 1:n
+                    H{j,k}(i,:) = full(Hi{j,k});
+                end
+            end
+
+        end
+
+        % state space
+        %------------------------------------------------------------------
+        for i = 1:n
+            x{i}  = unique(X(:,i));
+        end
+
+    else
+
+        % state space
+        %------------------------------------------------------------------
+        [X,x]     = spm_ndgrid(x);
+        [b,D,H,o] = spm_polymtx(x,K,FUN);
+        [nX,n]    = size(X);
+
+    end
+
 end
 
 % size of subspace (nx)
@@ -104,7 +142,7 @@ end
 X     = full(X);
 f     = zeros(n,nX,'like',X);
 J     = zeros(n,n,nX,'like',X);
-if isfield(M,'f')
+if  all(isfield(M,{'f','pE'}))
     for i = 1:nX
         
         % Jacobian at this point in state space

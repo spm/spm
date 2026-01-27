@@ -1,4 +1,4 @@
-function tests = test_regress_fmri_glm_dcm
+classdef test_regress_fmri_glm_dcm < matlab.unittest.TestCase
 % Regression test for GLM and DCM for fMRI including timseries extraction
 % % This script analyses the Attention to Visual Motion fMRI dataset
 % available from the SPM website using DCM:
@@ -9,16 +9,15 @@ function tests = test_regress_fmri_glm_dcm
 
 % Copyright (C) 2024 Wellcome Centre for Human Neuroimaging
 
-tests = functiontests({@setup;
-                       @test_glm_parametric_volterra;
-                       @test_regress_glm_dcm});
+methods (TestClassSetup)
+    function setupSPM(testCase)
+        spm('Defaults','fMRI');
+        spm_jobman('initcfg');
+        spm_get_defaults('cmdline', true);
+    end
+end % methods (TestClassSetup)
 
-function setup(testCase)
-
-% Initialise SPM
-spm('Defaults','fMRI');
-spm_jobman('initcfg');
-spm_get_defaults('cmdline',true);
+methods (Test)
 
 % -------------------------------------------------------------------------
 function test_glm_parametric_volterra(testCase)
@@ -32,12 +31,14 @@ options.volterra = true;
 options.pmod = true;
 
 % Specify and estimate GLM
-specify_glm(data_path,options);
+test_regress_fmri_glm_dcm.specify_glm(data_path,options);
 
 % We expect 30 design matrix columns (9 first order, 21 second order)
 SPM = load(fullfile(data_path,'GLM','SPM.mat'));
 SPM = SPM.SPM;
 testCase.verifyTrue(size(SPM.xX.X,2)==30);
+end
+
 % -------------------------------------------------------------------------
 function test_regress_glm_dcm(testCase)
 % Test a simpler GLM with timeseries extraction and DCM
@@ -45,7 +46,7 @@ function test_regress_glm_dcm(testCase)
 data_path = fullfile(spm('Dir'),'tests','data','attention');
 
 % Specify and estimate GLM
-specify_glm(data_path);
+test_regress_fmri_glm_dcm.specify_glm(data_path);
 
 clear matlabbatch
 
@@ -201,7 +202,14 @@ testCase.verifyTrue(exp_var > 75);
 
 % Check the largest neural connection was non-trivial (> 0.5Hz)
 testCase.verifyTrue(max_connection > 0.5);
+end
 
+end % methods (Test)
+
+
+% Helper methods
+methods (Static, Access = private)
+    
 % -------------------------------------------------------------------------
 function specify_glm(data_path,options)
 % GLM SPECIFICATION, ESTIMATION & INFERENCE
@@ -275,3 +283,8 @@ matlabbatch{4}.spm.stats.con.consess{4}.tcon.name = 'Attention';
 matlabbatch{4}.spm.stats.con.consess{4}.tcon.weights = [0 0 1];
 
 spm_jobman('run',matlabbatch);
+end
+
+end % methods (Static, Access = private)
+
+end % classdef

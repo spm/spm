@@ -357,7 +357,7 @@ end
 
 % name of outcomes under each modality
 %--------------------------------------------------------------------------
-for i = 1:Ng
+for i = 1:min(Ng,8)
     try
         MDP.label.modality(i);
     catch

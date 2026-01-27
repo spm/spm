@@ -1484,12 +1484,7 @@ case 'cfg'
     %-Save SPM.mat and set output argument
     %-------------------------------------------------------------------
     fprintf('%-40s: ','Saving SPM configuration')                    %-#
-
-    if spm_check_version('matlab','7') >=0
-        save('SPM.mat', 'SPM', '-V6');
-    else
-        save('SPM.mat', 'SPM');
-    end;
+    save('SPM.mat', 'SPM', spm_get_defaults('mat.format'));
     fprintf('%30s\n','...SPM.mat saved')                             %-#
     varargout = {SPM};
     

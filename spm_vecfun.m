@@ -1,4 +1,4 @@
-function [X] = spm_vecfun(X,fun)
+function [X] = spm_vecfun(X,fun,varargin) 
 % Apply a function to the numeric elements of a cell or structure array
 % FORMAT [X] = spm_vecfun(X,fun)
 % X   - numeric, cell or stucture array
@@ -15,20 +15,20 @@ function [X] = spm_vecfun(X,fun)
 % vectorise numerical arrays
 %--------------------------------------------------------------------------
 if isnumeric(X)
-    X = fun(X);
+    X = fun(X,varargin{:});
 
 % vectorise structure into cell arrays
 %--------------------------------------------------------------------------
 elseif isstruct(X)
     f     = fieldnames(X);
     for i = 1:numel(f)
-        X.(f{i}) = spm_vecfun(X.(f{i}),fun);
+        X.(f{i}) = spm_vecfun(X.(f{i}),fun,varargin{:});
     end
 
 % vectorise cells into numerical arrays
 %--------------------------------------------------------------------------
 elseif iscell(X)
     for i = 1:numel(X)
-        X{i} = spm_vecfun(X{i},fun);
+        X{i} = spm_vecfun(X{i},fun,varargin{:});
     end
 end

@@ -2,6 +2,7 @@ function [dS,G,Q,L] = spm_NESS_ds(Sp,P,x)
 % Generate changes in log density (coefficients or at x)
 % FORMAT [dS,G,Q,L] = spm_NESS_ds(Sp,P)
 % FORMAT [ds,G,Q,L] = spm_NESS_ds(Sp,P,x)
+% FORMAT [ds,G,Q,L] = spm_NESS_ds(Sp,P,U)
 %--------------------------------------------------------------------------
 % Sp      - polynomial coefficients of initial potential
 % P.Qp    - polynomial coefficients of solenoidal operator
@@ -17,7 +18,7 @@ function [dS,G,Q,L] = spm_NESS_ds(Sp,P,x)
 % L       - correction term for derivatives of solenoidal flow
 %
 % This routine assumes that K = 3; i.e., the log density is second order in
-% the states (Laplace assumption). if call with two arguments the time
+% the states (Laplace assumption). if called with two arguments the time
 % derivatives of the (second-order) polynomial coefficients of the log
 % density are returned. If called with three arguments, the time derivative
 % of the log density at the specified points in state space are returned.
@@ -30,18 +31,65 @@ function [dS,G,Q,L] = spm_NESS_ds(Sp,P,x)
 % get sample points
 %==========================================================================
 if nargin < 3
-    n    = size(P.G,1);
-    N    = 3;
-    for i = 1:n
-        x{i} = linspace(-1,1,N);
+
+    n = size(P.G,1);
+    if n < 6
+
+        % create minimal state domain to evaluate dSp/dt
+        %------------------------------------------------------------------
+        N = 3;
+        for i = 1:n
+            x{i} = linspace(-1,1,N);
+        end
+
+        % x is the domain of state space
+        %----------------------------------------------------------------------
+        [b,D,H] = spm_polymtx(x,3);
+
+    else
+
+        % sample from current density
+        %------------------------------------------------------------------
+        [m,C] = spm_ness_cond(n,3,P.Sp);
+        N     = numel(P.Sp);
+        x     = randn(2*N,n)*sqrtm(C);
+        x     = plus(x,m');
+
+        % x is a numeric array of sample points (> nb)
+        %----------------------------------------------------------------------
+        M.K = 3;
+        M.L = 3;
+        M.W = inv(2*P.G);
+
+        U   = spm_ness_U(M,x);
+        b   = U.b;
+        D   = U.D;
+        H   = U.H;
+
     end
+
+elseif iscell(x)
+
+    % x is the domain of state space
+    %----------------------------------------------------------------------
+    [b,D,H] = spm_polymtx(x,3);
+
+elseif isstruct(x)
+
+    % x is a pre-computed basis set U
+    %----------------------------------------------------------------------
+    U   = x;
+    b   = U.b;
+    D   = U.D;
+    H   = U.H;
+
 end
+
 
 % assume the log density is second-order in the states (Laplace assumption)
 %--------------------------------------------------------------------------
-[b,D,H] = spm_polymtx(x,3);
 [nX,nb] = size(b);
-n       = numel(x);
+n       = size(P.G,1);
 
 % derivatives of flow operator Q
 %--------------------------------------------------------------------------
@@ -102,7 +150,7 @@ end
 
 % return time derivatives of coefficients or log density
 %--------------------------------------------------------------------------
-if nargin < 3
+if nargin < 3 && isa(ds,'double')
     dS = b\ds;
 else
     dS = ds;

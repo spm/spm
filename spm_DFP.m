@@ -310,7 +310,7 @@ if ~nf && ~nh, nN = 1; end
 %==========================================================================
 for iN = 1:nN
     
-    % get time and celar persistent variables in evaluation routines
+    % get time and clear persistent variables in evaluation routines
     %----------------------------------------------------------------------
     tic; clear spm_DEM_eval
  

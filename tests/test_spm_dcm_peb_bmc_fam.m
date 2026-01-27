@@ -1,16 +1,16 @@
-function tests = test_spm_dcm_peb_bmc_fam
+classdef test_spm_dcm_peb_bmc_fam < matlab.unittest.TestCase
 % Unit Tests for test_spm_dcm_peb_bmc_fam
 %__________________________________________________________________________
 
 % Copyright (C) 2016-2022 Wellcome Centre for Human Neuroimaging
 
 
-tests = functiontests(localfunctions);
+methods (Test)
 
 % -------------------------------------------------------------------------
 function test_peb_bmc_fam(testCase)
 
-data_path = get_data_path();
+data_path = test_spm_dcm_peb_bmc_fam.get_data_path();
 
 % Load
 GCM = load(fullfile(data_path,'models','GCM_simulated.mat'));
@@ -61,9 +61,17 @@ for f = 1:2
 end
 testCase.assertTrue(...
     all(family_total_prior(:) - family_total_prior(1) < 1e-10));
+end
 
+end % methods (Test)
+
+methods (Static, Access = private)
 % -------------------------------------------------------------------------
 function data_path = get_data_path()
 
 data_path = fullfile( spm('Dir'), 'tests', ...
     'data', 'fMRI', 'simulated_2region');
+end
+end % methods (Static, Access = private)
+
+end % classdef

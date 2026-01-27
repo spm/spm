@@ -82,7 +82,7 @@ DCM.Y      = Y;
 % posterior predictions
 %==========================================================================
 spm_figure('GetWin',country); clf;
-M.T     = datenum(date) + 256 - datenum(M.date,'dd-mm-yyyy');
+M.T     = datenum(date) + 256 - datenum(M.date);
 [Z,X]   = spm_SARS_gen(DCM.Ep,M,[1 2 15]);
 spm_SARS_plot(Z,X,DCM.Y,[1 2 15])
 
@@ -129,7 +129,7 @@ return
 subplot(3,1,1); hold on
 M.FTT = 1/4;
 for c = [0 4]*7
-    M.TTT = datenum(date) - datenum(M.date,'dd-mm-yyyy') + c;
+    M.TTT = datenum(date) - datenum(M.date) + c;
     spm_SARS_ci(Ep,Cp,Y,1,M);
 end
 
@@ -143,7 +143,7 @@ CBT   = datenum(date) - datenum(DCM.M.date,'dd-mm-yyyy') + 4;
 CBD   = 14;                         % duration of circuit breaker
 
 M     = DCM.M;
-M.T   = datenum('01-1-2021','dd-mm-yyyy') - datenum(M.date,'dd-mm-yyyy');
+M.T   = datenum('01-Jan-2021') - datenum(M.date);
 [Z,X] = spm_SARS_gen(DCM.Ep,M,[1 2 3]);
 spm_SARS_plot(Z,X,DCM.Y)
 for j = 1:6
@@ -160,7 +160,7 @@ spm_SARS_plot(Z,X,DCM.Y)
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Circuit break - deaths'); clf
 M     = DCM.M;
-M.T   = datenum('01-01-2021','dd-mm-yyyy') - datenum(M.date,'dd-mm-yyyy');
+M.T   = datenum('01-Jan-2021') - datenum(M.date);
 spm_SARS_ci(DCM.Ep,DCM.Cp,DCM.Y,1,M); hold on
 
 M.CBT = CBT;

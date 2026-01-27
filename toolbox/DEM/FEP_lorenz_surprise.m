@@ -154,7 +154,7 @@ x{1} = linspace(m(1) - d,m(1) + d,N);
 x{2} = linspace(m(2) - d,m(2) + d,N);
 x{3} = linspace(m(3) - d,m(3) + d,N);
 %--------------------------------------------------------------------------
-% auxiliary code performing align search over precision
+% auxiliary code performing a line search over precision
 %--------------------------------------------------------------------------
 % W  = (1:64);
 % nE = W;
@@ -1134,6 +1134,8 @@ return
 
 %% Illustration of high order density learning
 %==========================================================================
+clear
+
 % dxdt = f(x) + w:  see notes at the end of this script
 %--------------------------------------------------------------------------
 f    = @(x,v,P,M) [P(1)*x(2) - P(1)*x(1);
@@ -1154,8 +1156,8 @@ M.x  = x0;
 M.m  = 0;
 M.pE = P;
 M.W  = diag([1/8 1/16 1/32]);           % precision of random fluctuations
-M.K  = 2;
-M.L  = 3;
+M.K  = 2;                               % order of expansion (suprisal)
+M.L  = 3;                               % order of expansion (flow)
 
 % state-space for (Laplace) solution 
 %--------------------------------------------------------------------------
@@ -1289,6 +1291,7 @@ return
 %% dynamics and parameters of a Lorentz system (with Jacobian)
 %==========================================================================
 clear
+
 % dxdt = f(x) + w:  see notes at the end of this script
 %--------------------------------------------------------------------------
 f    = @(x,v,P,M) [P(1)*x(2) - P(1)*x(1);
@@ -1333,7 +1336,7 @@ n    = numel(x);                                    % dimensionality
 % Density dynamics
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Density dynamics'); clf
-N    = 32
+N    = 32;
 x{1} = linspace(-48,48,N);
 x{2} = linspace(-48,48,N);
 x{3} = linspace(  0,48,N);
@@ -1357,7 +1360,7 @@ Sp      = (b\log(p0(:) + exp(-32)))*2;
 %--------------------------------------------------------------------------
 Ep    = NESS.Ep;
 Ep.G  = inv(M.W)/2;
-dt    = 1/8;
+dt    = 1/16;
 for t = 1:25
     dS = spm_NESS_ds(Sp,Ep);
     Sp = Sp - dS*dt;
@@ -1375,7 +1378,7 @@ end
 
 % Run system forwards in time to nonequilibrium steady-state density
 %--------------------------------------------------------------------------
-dt    = 1/8
+dt    = 1/16;
 for T = 1:8
     P0    = 0;
     for t = 1:16
@@ -1425,7 +1428,7 @@ Ep.Sp = s;
 Ep.Qp = q;
 Ep.G  = diag(G);
 
-dS    = spm_NESS_ds(Sp,Ep);
+dS    = spm_NESS_ds(Sp,Ep)
 
 return
 

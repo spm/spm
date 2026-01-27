@@ -118,7 +118,7 @@ DCM.Y     = {MDP.u};                % responses (action or choices)
 %--------------------------------------------------------------------------
 [Ep,Cp,F] = spm_nlsi_Newton(DCM.M,DCM.U,DCM.Y);
 
-% Store posterior densities and log evidnce (free energy)
+% Store posterior densities and log evidence (free energy)
 %--------------------------------------------------------------------------
 DCM.Ep    = Ep;
 DCM.Cp    = Cp;

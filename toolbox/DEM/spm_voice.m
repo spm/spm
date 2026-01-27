@@ -42,9 +42,6 @@ function spm_voice(PATH)
 % directory of sound files if necessary
 %--------------------------------------------------------------------------
 clear global VOX
-close all
-%clear all
-clc
 if ~nargin
     PATH = 'C:\Users\karl\Dropbox\Papers\Voice recognition\Sound files';
 end

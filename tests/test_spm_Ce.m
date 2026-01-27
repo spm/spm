@@ -1,11 +1,11 @@
-function tests = test_spm_Ce
+classdef test_spm_Ce < matlab.unittest.TestCase
 % Unit Tests for spm_Ce
 %__________________________________________________________________________
 
 % Copyright (C) 2017-2022 Wellcome Centre for Human Neuroimaging
 
 
-tests = functiontests(localfunctions);
+methods (Test)
 
 
 function test_spm_Ce_1(testCase)
@@ -23,7 +23,7 @@ testCase.verifyThat(C, IsEqualTo(spm_Ce(N)));
 
 C = spm_Ce(N,0.2);
 testCase.verifyThat(C, HasLength(2*numel(N)));
-
+end
 
 function test_spm_Ce_2(testCase)
 import matlab.unittest.constraints.*
@@ -36,7 +36,7 @@ testCase.verifyThat(C, IsEqualTo(spm_Ce(N,[])));
 
 C = spm_Ce('ar',N,0.4);
 testCase.verifyThat(C, IsEqualTo(spm_Ce(N,0.4)));
-
+end
 
 function test_spm_Ce_3(testCase)
 import matlab.unittest.constraints.*
@@ -45,3 +45,8 @@ testCase.verifyThat(C, IsOfClass('cell'));
 
 C = spm_Ce('fast',[16 32],3);
 testCase.verifyThat(C, IsOfClass('cell'));
+end
+
+end % methods (Test)
+
+end % classdef

@@ -1,11 +1,12 @@
-function tests = test_spm_ncTpdf
+classdef test_spm_ncTpdf < matlab.unittest.TestCase
 % Unit Tests for spm_ncTpdf
 %__________________________________________________________________________
 
 % Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
 
 
-tests = functiontests(localfunctions);
+
+methods (Test)
 
 
 function test_spm_ncTpdf_1(testCase)
@@ -28,6 +29,7 @@ exp = spm_Tpdf(-2:2,1:5);
 act = spm_ncTpdf(-2:2,1:5,0);
 tol = 1e-12;
 testCase.verifyEqual(act, exp,'AbsTol',tol);
+end
 
 function test_spm_ncTpdf_2(testCase)
 exp = 0.193064705260108; % nctpdf(0,1,1)
@@ -49,3 +51,7 @@ exp = [... % nctpdf(-1:3,6:10,-2:2);
 act = spm_ncTpdf(-1:3,6:10,-2:2);
 tol = 1e-12;
 testCase.verifyEqual(act, exp,'AbsTol',tol);
+end
+end % methods (Test)
+
+end % classdef

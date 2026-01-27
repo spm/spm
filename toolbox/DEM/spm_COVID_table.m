@@ -70,13 +70,13 @@ for i = 1:numel(str.field)
     
     Tab{i,4}  = sprintf('%g',eP);
     Tab{i,5}  = sprintf('%g',lb);
-    Tab{i,6} = sprintf('%g',ub);
+    Tab{i,6}  = sprintf('%g',ub);
     
     Tab{i,7}  = sprintf('%g',Pe);
     Tab{i,8}  = sprintf('%g',1/pc);
 
     Tab{i,9}  = sprintf('%g',lB);
-    Tab{i,10}  = sprintf('%g',uB);
+    Tab{i,10} = sprintf('%g',uB);
    
 end
 
@@ -86,12 +86,12 @@ VariableNames{3}  = 'description';
 
 VariableNames{4}  = 'posterior';
 VariableNames{5}  = 'from';
-VariableNames{6} = 'to';
+VariableNames{6}  = 'to';
 
 VariableNames{7}  = 'prior';
 VariableNames{8}  = 'precision';
 VariableNames{9}  = 'lower';
-VariableNames{10}  = 'upper';
+VariableNames{10} = 'upper';
 
 Tab = cell2table(Tab);
 Tab.Properties.Description  = 'parameter estimates';

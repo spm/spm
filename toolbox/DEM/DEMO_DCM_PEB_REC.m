@@ -33,8 +33,6 @@ try
 catch
     cd('C:\Users\karl\Documents\SPM\DCM tests')
 end
-close all, clear all
-clc
 rng('default')
 
 % set up

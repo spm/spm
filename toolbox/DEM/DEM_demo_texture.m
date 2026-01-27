@@ -45,7 +45,7 @@ rng('default')
 %--------------------------------------------------------------------------
 G(1).v  = zeros(128,1);                   % output channels (stimuli)
 G(1).V  = 16;                             % error precision (noise)
-G(1).g  = inline('spm_conv(v,2)','x','v','P');
+G(1).g  = @(x,v,P) spm_conv(v,2);
 
 
 % level 2; underlying causes (three Gaussian patches)
@@ -53,7 +53,7 @@ G(1).g  = inline('spm_conv(v,2)','x','v','P');
 G(2).v  = zeros(128,1);                   % textured stimulus
 G(2).V  = [];
 G(2).ph = @ph1;
-G(2).g  = inline('zeros(128,1)','x','v','P');
+G(2).g  = @(x,v,P) zeros(128,1);
 
 
 % level 2; amplitude and size
@@ -67,7 +67,6 @@ U       = [1;1;0]*(8 + 4);                % amplitude and size
 LAP     = spm_DEM_generate(G,U);
 
 
- 
 % invert to simulate  predictive coding
 %==========================================================================
 LAP.M(3).v = U - U + 8;                           % use correct starting estimates
@@ -98,7 +97,6 @@ return
  
 % Create a generative model: two dimensions
 %==========================================================================
-clear 
 rng('default')
                                        
 % level 1; textured stimulus with noise (log precision of four)
@@ -161,7 +159,7 @@ subplot(3,2,6), title('true causes','FontSize',16)
 return
 
 
-function p = ph1(x,v,h,M)
+function p = ph1(~,v,~,~)
 % returns log precision
 %__________________________________________________________________________
 n     = numel(v);
@@ -178,7 +176,7 @@ p  = 8 - p(:);
 return
 
 
-function p = ph2(x,v,h,M)
+function p = ph2(~,v,~,~)
 % returns log precision
 %__________________________________________________________________________
 n       = sqrt(numel(v));

@@ -1,11 +1,11 @@
-function tests = test_spm_BMS_gibbs
+classdef test_spm_BMS_gibbs < matlab.unittest.TestCase
 % Unit Tests for spm_BMS_gibbs
 %__________________________________________________________________________
 
 % Copyright (C) 2015-2022 Wellcome Centre for Human Neuroimaging
 
 
-tests = functiontests(localfunctions);
+methods (Test)
 
 
 function test_strong_evidence(testCase)
@@ -51,3 +51,8 @@ testCase.verifyThat(actual, IsEqualTo(r, 'Within', AbsoluteTolerance(0.1) ) );
 % Check exceedance probability
 actual = xp(1);
 testCase.verifyThat(actual, IsGreaterThanOrEqualTo(0.95) );
+end
+
+end % methods (Test)
+
+end % classdef

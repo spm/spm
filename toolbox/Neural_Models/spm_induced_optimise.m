@@ -111,7 +111,7 @@ for k = 1:length(P)
     
     if isnumeric(Q)
         for i = 1:size(Q,1)
-            for j = 1:size(Q,2);
+            for j = 1:size(Q,2)
                 
                 % line search (with solution for steady state)
                 %----------------------------------------------------------
@@ -186,8 +186,8 @@ xmax = spm_unvec(max(erp{1}),x);
 xmin = spm_unvec(min(erp{1}),x);
     
 for i = 1:size(x,1)
-    for j = 1:size(x,2);
-        for k = 1:size(x,3);
+    for j = 1:size(x,2)
+        for k = 1:size(x,3)
             
             % line search
             %--------------------------------------------------------------

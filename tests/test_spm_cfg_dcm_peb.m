@@ -1,40 +1,41 @@
-function tests = test_spm_cfg_dcm_peb
+classdef test_spm_cfg_dcm_peb < matlab.unittest.TestCase
 % Unit Tests for spm_cfg_dcm_peb (PEB batch)
 %__________________________________________________________________________
 
 % Copyright (C) 2016-2022 Wellcome Centre for Human Neuroimaging
 
+methods (TestClassSetup)
+    function setupSPM(testCase)
+        % Initialize SPM
+        spm('defaults','fmri');
+        spm_jobman('initcfg');
+        spm_get_defaults('cmdline',true);
+        spm_get_defaults('dcm.verbose',false);
 
-tests = functiontests(localfunctions);
+        % Delete artefacts before each test
+        model_dir = fullfile(test_spm_cfg_dcm_peb.get_data_path(),'models');
+        expected_output = {fullfile(model_dir,'PEB_test.mat');
+                        fullfile(model_dir,'BMA_PEB_test.mat');
+                        fullfile(model_dir,'LOO_test.mat');
+                        fullfile(model_dir,'GCM_simulated_abridged.mat')};
 
-% -------------------------------------------------------------------------
-function setup(testCase)
-
-% Initialize SPM
-spm('defaults','fmri');
-spm_jobman('initcfg');
-spm_get_defaults('cmdline',true);
-spm_get_defaults('dcm.verbose',false);
-
-% Delete artefacts before each test
-model_dir = fullfile(get_data_path(),'models');
-expected_output = {fullfile(model_dir,'PEB_test.mat');
-                   fullfile(model_dir,'BMA_PEB_test.mat');
-                   fullfile(model_dir,'LOO_test.mat');
-                   fullfile(model_dir,'GCM_simulated_abridged.mat')};
-
-for i = 1:length(expected_output)
-    if exist(expected_output{i},'file')
-        spm_unlink(expected_output{i});
+        for i = 1:length(expected_output)
+            if exist(expected_output{i},'file')
+                spm_unlink(expected_output{i});
+            end
+        end
     end
-end
+end % methods (TestClassSetup)
+
+
+methods (Test)
 
 % -------------------------------------------------------------------------
 function test_specify_peb(testCase)
 % Test specifying & estimating a PEB model
 
 % Prepare paths
-data_path = get_data_path();
+data_path = test_spm_cfg_dcm_peb.get_data_path();
 model_dir = fullfile(data_path,'models');
 X_file    = fullfile(data_path,'design_matrix.mat');
 GCM_file  = fullfile(model_dir,'GCM_simulated.mat');
@@ -81,13 +82,14 @@ testCase.assertEqual(size(PEB.Ep,2), expected_covariates);
 testCase.assertEqual(size(PEB.Snames,1), expected_subjects);
 testCase.assertEqual(PEB.M.hE, repmat(hE,np,1));
 testCase.assertEqual(PEB.M.hC, diag(repmat(hC,np,1)));
+end
 
 % -------------------------------------------------------------------------
 function test_specify_peb_precision_options(testCase)
 % Test specifying & estimating a PEB model
 
 % Prepare paths
-data_path = get_data_path();
+data_path = test_spm_cfg_dcm_peb.get_data_path();
 model_dir = fullfile(data_path,'models');
 X_file    = fullfile(data_path,'design_matrix.mat');
 GCM_file  = fullfile(model_dir,'GCM_simulated.mat');
@@ -150,12 +152,13 @@ spm_jobman('run',matlabbatch);
 PEB = load(expected_output);
 PEB = PEB.PEB;
 testCase.assertFalse(isfield(PEB.M,'Q'));
+end
 
 % -------------------------------------------------------------------------
 function test_compare_models(testCase)
 
 % Prepare paths
-data_path = get_data_path();
+data_path = test_spm_cfg_dcm_peb.get_data_path();
 model_dir = fullfile(data_path,'models');
 X_file    = fullfile(data_path,'design_matrix.mat');
 GCM_file  = fullfile(model_dir,'GCM_simulated.mat');
@@ -200,11 +203,13 @@ expected_output = fullfile(model_dir,'BMA_PEB_test.mat');
 testCase.assertTrue(exist(expected_output,'file') > 0);
 
 close all;
+end
+
 % -------------------------------------------------------------------------
 function test_search_reduced_models(testCase)
 
 % Prepare paths
-data_path = get_data_path();
+data_path = test_spm_cfg_dcm_peb.get_data_path();
 model_dir = fullfile(data_path,'models');
 X_file    = fullfile(data_path,'design_matrix.mat');
 GCM_file  = fullfile(model_dir,'GCM_simulated.mat');
@@ -249,11 +254,13 @@ expected_output = fullfile(model_dir,'BMA_search_PEB_test.mat');
 testCase.assertTrue(exist(expected_output,'file') > 0);
 
 close all;
+end
+
 % -------------------------------------------------------------------------
 function test_loo(testCase)
 
 % Prepare paths
-data_path = get_data_path();
+data_path = test_spm_cfg_dcm_peb.get_data_path();
 model_dir = fullfile(data_path,'models');
 X_file    = fullfile(data_path,'design_matrix.mat');
 GCM_file  = fullfile(model_dir,'GCM_simulated.mat');
@@ -294,8 +301,17 @@ expected_output = fullfile(model_dir,'LOO_test.mat');
 testCase.assertTrue(exist(expected_output,'file') > 0);
 
 close all;
+end
+
+end % methods (Test)
+
+methods (Static, Access = private)
 % -------------------------------------------------------------------------
 function data_path = get_data_path()
 
 data_path = fullfile( spm('Dir'), 'tests', ...
     'data', 'fMRI', 'simulated_2region');
+end
+end % methods (Static, Access = private)
+
+end % classdef

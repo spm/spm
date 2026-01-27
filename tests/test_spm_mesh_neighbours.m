@@ -1,11 +1,12 @@
-function tests = test_spm_mesh_neighbours
+classdef test_spm_mesh_neighbours < matlab.unittest.TestCase
 % Unit Tests for spm_mesh_neighbours
 %__________________________________________________________________________
 
 % Copyright (C) 2016-2022 Wellcome Centre for Human Neuroimaging
 
 
-tests = functiontests(localfunctions);
+
+methods (Test)
 
 
 function test_spm_mesh_neighbours_tetrahedron(testCase)
@@ -17,3 +18,7 @@ testCase.verifyEqual(act, exp);
 
 act = spm_mesh_neighbours(sparse(ones(4)-eye(4)));
 testCase.verifyEqual(act, exp);
+end
+end % methods (Test)
+
+end % classdef

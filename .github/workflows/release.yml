@@ -17,11 +17,11 @@ jobs:
       matrix:
         # This actions compiles by default with the newest available matlab version
         version: ["latest"] # ["R2021a", "R2021b", "R2022a", "R2022b", "R2023a", "R2023b", "R2024a", "R2024b"]
-        os: ["ubuntu-latest", "macos-13", "macos-latest", "windows-latest"] # macos-13 has Intel architecture, macos-latest has Apple Silicon
+        os: ["ubuntu-latest", "macos-15-intel", "macos-latest", "windows-latest"] # macos-15-intel has Intel architecture, macos-latest has Apple Silicon
         include: # These includes are just giving the OSs additional names
           - os: ubuntu-latest
             os_name: Linux
-          - os: macos-13
+          - os: macos-15-intel
             os_name: macOS_Intel
           - os: macos-latest
             os_name: macOS_Apple_Silicon
@@ -62,7 +62,9 @@ jobs:
         uses: matlab-actions/setup-matlab@v2
         with:
           release: ${{matrix.version}}
-          products: MATLAB_Compiler
+          products: |
+            MATLAB_Compiler
+            Signal_Processing_Toolbox
 
       - name: Extract MATLAB version to file
         uses: matlab-actions/run-command@v2
@@ -173,3 +175,13 @@ jobs:
               "spm_release": "${{ env.SPM_RELEASE }}",
               "spm_revision": "${{ env.SPM_REVISION }}"
             }
+
+  test_release_standalone:
+    name: Test Released Standalone
+    needs: build_matlab_standalone
+    if: always() && needs.build_matlab_standalone.result == 'success'
+    uses: ./.github/workflows/install_test_standalone.yml
+    secrets: inherit
+    with:
+      source: release
+      release_tag: ${{ github.ref_name }}

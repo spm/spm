@@ -30,6 +30,13 @@ function Q = spm_MDP_VB_game(MDP)
 % Karl Friston
 % Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
+% check for simulated neuronal responses
+%--------------------------------------------------------------------------
+if ~isfield(MDP(1),'xn')
+    warning ('please use an inversion scheme that simulates neuronal responses (e.g., spm_MDP_VB_XX)')
+    return
+end
+
 % numbers of transitions, policies and states
 %--------------------------------------------------------------------------
 if iscell(MDP(1).X)
@@ -45,7 +52,11 @@ end
 %==========================================================================
 Nt    = numel(MDP);                      % number of trials
 Ne    = MDP(1).T;                        % number of outcomes per trial
-Np    = size(MDP(1).V,2);                % number of policies
+try
+    Np = size(MDP(1).V,2);                % number of policies
+catch
+    Np = size(MDP(1).U,1);                % number of policies
+end
 for i = 1:Nt
     
     % assemble expectations of hidden states and outcomes
@@ -231,19 +242,4 @@ for f = 1:Nf
     try
         set(gca,'YTickLabel',MDP(1).Bname{f});
     end
-end
-if isfield(MDP(1),'c')
-    title('Learning (C and D)')
-else
-    return
-end
-
-% Habit learning
-%--------------------------------------------------------------------------
-k     = round(linspace(1,Nt,6));
-for j = 1:length(k)
-    h = MDP(k(j)).c;
-    h = h*diag(1./sum(h));
-    subplot(6,6,30 + j), image(64*(1 - h))
-    axis image
 end

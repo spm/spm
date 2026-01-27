@@ -35,8 +35,8 @@ function [DEM] = spm_DEM(DEM)
 %   qU.v    = Conditional expectation of causal states
 %   qU.w    = Conditional prediction error (states)
 %   qU.z    = Conditional prediction error (causes)
-%   qU.C    = Conditional covariance: cov(v)
 %   qU.S    = Conditional covariance: cov(x)
+%   qU.C    = Conditional covariance: cov(v)
 %
 % conditional moments of model-parameters - q(p)
 %--------------------------------------------------------------------------
@@ -139,7 +139,7 @@ if M(1).E.linear == 1
 else
     te = 0;
 end
-tm     = 4;                             % integration time for M-Step
+tm     = 4;                            % integration time for M-Step
  
 % precision components Q{} requiring [Re]ML estimators (M-Step)
 %==========================================================================
@@ -207,7 +207,7 @@ ph.h  = spm_vec({M.hE M.gE});               % prior expectation of h
 ph.c  = spm_cat(spm_diag({M.hC M.gC}));     % prior covariances of h
 qh.h  = ph.h;                               % conditional expectation
 qh.c  = ph.c;                               % conditional covariance
-ph.ic = spm_pinv(ph.c);                     % prior precision
+ph.ic = spm_inv(ph.c);                      % prior precision
  
 % priors on parameters (in reduced parameter space)
 %==========================================================================
@@ -247,9 +247,8 @@ for i = 1:(nl - 1)
     end
 end
 qp.e  = spm_vec(qp.e);
-qp.c  = sparse(nf,nf);
 qp.b  = sparse(ny,nb);
- 
+qp.c  = sparse(nf,nf);
  
 % initialise dedb
 %--------------------------------------------------------------------------
@@ -529,13 +528,13 @@ for iE = 1:nE
         end
         
         
-        % Accumulate; dF/dP = <dL/dp>, dF/dpp = ...
+        % Accumulate gradients dF/dP = <dL/dp>, dF/dpp = <dL/dpp>
         %------------------------------------------------------------------
         dFdp  = dFdp  - dWdp/2  - real(dE.dP'*iS*E);
         dFdpp = dFdpp - dWdpp/2 - real(dE.dP'*iS*dE.dP);
         qp.ic = qp.ic           + real(dE.dP'*iS*dE.dP);
         
-        % and quantities for M-Step
+        % and suficient statistics for M-Step
         %------------------------------------------------------------------
         EE    = real(E*E') + EE;
         ECE   = ECE + ECEu + ECEp;
@@ -642,7 +641,6 @@ for iE = 1:nE
         tm      = min(tm + 1/2,4);
         B.qp    = qp;
         B.qh    = qh;
-        B.pp    = pp;
         
         % E-step: update expectation (p)
         %==================================================================
@@ -665,7 +663,6 @@ for iE = 1:nE
         %------------------------------------------------------------------
         nM      = 1;
         qp      = B.qp;
-        pp      = B.pp;
         qh      = B.qh;
         te      = min(te - 2, -2);
         tm      = min(tm - 2, -2); 
@@ -681,7 +678,7 @@ for iE = 1:nE
         v     = spm_unvec(qU(t).v{1},v);
         x     = spm_unvec(qU(t).x{1},x);
         z     = spm_unvec(qE{t}(1:(ny + nv)),{M.v});
-        w     = spm_unvec(qE{t}([1:nx] + (ny + nv)*n),{M.x});
+        w     = spm_unvec(qE{t}((1:nx) + (ny + nv)*n),{M.x});
         for i = 1:(nl - 1)
             if M(i).m, QU.v{i + 1}(:,t) = spm_vec(v{i}); end
             if M(i).n, QU.x{i}(:,t)     = spm_vec(x{i}); end

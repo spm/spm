@@ -1,11 +1,12 @@
-function tests = test_spm_opm_epoch_trigger
+classdef test_spm_opm_epoch_trigger < matlab.unittest.TestCase
 % Unit Tests for spm_eeg_average
 %__________________________________________________________________________
 
 % Copyright (C) 2023 Wellcome Centre for Human Neuroimaging
 
 
-tests = functiontests(localfunctions);
+
+methods (Test)
 
 
 function test_spm_opm_epoch_trigger_1(testCase)
@@ -31,3 +32,7 @@ eD=spm_opm_epoch_trigger(S);
 exp = 3;
 act = size(eD,3);
 testCase.verifyTrue(isequal(exp, act));
+end
+end % methods (Test)
+
+end % classdef

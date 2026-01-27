@@ -4,7 +4,7 @@ function [s,q,f] = spm_Lap2Lorenz(P,w,x)
 % s - second order polynomial coefficients for(negative) potential
 % q - second-order polynomial coefficients for flow
 %
-% this routine evaluates the Laplacian version of a Lorentz system with
+% This routine evaluates the Laplacian version of a Lorentz system with
 % supplied parameters in terms of second order polynomial coefficients.
 % This is an exact solution that conforms to the Helmholtz decomposition;
 % however, with an improper steady-state density due to the absence of a

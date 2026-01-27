@@ -23,8 +23,8 @@ function [b,D,H,o] = spm_polymtx(x,K,FUN)
 
 % defaults
 %--------------------------------------------------------------------------
-if nargin < 2, K   = 3; end
-if nargin < 3, FUN = 'POLY'; end
+if nargin < 2, K   = 3;      end
+if nargin < 3, FUN = 'POLY'; end   
 
 % Kroneckor form for n-dimensional DCTs
 %--------------------------------------------------------------------------

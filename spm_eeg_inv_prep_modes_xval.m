@@ -134,7 +134,7 @@ if isempty(gainmatfiles), %% assume one or many spm files
     end % for f
 else %% multiple gain matfiles
     allL=[]
-    for f=1:size(gainmatfiles),
+    for f=1:size(gainmatfiles,1),
         a=load(deblank(gainmatfiles(f,:)));
         allL=[allL a.G];
     end;

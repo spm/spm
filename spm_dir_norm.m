@@ -10,5 +10,20 @@ function A = spm_dir_norm(A)
 % Karl Friston 
 % Copyright (C) 2022 Wellcome Centre for Human Neuroimaging
 
-A           = rdivide(A,sum(A,1));
-A(isnan(A)) = 1/size(A,1);
+% deal with cells
+%--------------------------------------------------------------------------
+if iscell(A)
+    for g = 1:numel(A)
+        if ~ isa(A{g},'function_handle')
+            A{g} = spm_dir_norm(A{g});
+        end
+    end
+    return
+end
+
+% deal with Dirichlet tensors
+%--------------------------------------------------------------------------
+A0      = sum(A,1);
+i       = logical(A0);
+A       = rdivide(A,A0);
+A(:,~i) = 1/size(A,1);

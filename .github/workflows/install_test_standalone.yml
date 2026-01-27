@@ -1,0 +1,445 @@
+name: Test SPM Standalone
+on:
+  workflow_dispatch:
+    inputs:
+      source:
+        description: 'Source of standalone binaries'
+        required: false
+        default: 'build'
+        type: choice
+        options:
+          - build
+          - release
+      release_tag:
+        description: 'Release tag (only for release source)'
+        required: false
+        type: string
+  workflow_call:
+    inputs:
+      source:
+        description: 'Source of standalone binaries'
+        required: false
+        default: 'release'
+        type: string
+      release_tag:
+        description: 'Release tag'
+        required: true
+        type: string
+
+env:
+  MLM_LICENSE_TOKEN: ${{ secrets.MATLAB_BATCH_TOKEN }}
+
+jobs:
+  download_test_data:
+    name: Download Test Data
+    runs-on: ubuntu-latest
+    env:
+      cache-key: tests-data2
+    steps:
+      - name: Get latest commit for tests data
+        id: checkout-tests-data
+        uses: actions/checkout@v4
+        with:
+          repository: spm/spm-tests-data
+          token: ${{ secrets.TESTS_DATA_REPO_TOKEN }}
+          path: tests/data
+          fetch-depth: 1
+          lfs: false
+      
+      - name: Remove shallow-checked-out repo
+        shell: bash
+        run: rm -rf tests/data
+      
+      - name: Try to retrieve commit from cache
+        id: cache-restore
+        uses: actions/cache/restore@v4
+        with:
+          path: tests/data
+          key: ${{ env.cache-key }}-${{ steps.checkout-tests-data.outputs.commit }}
+          restore-keys: ${{ env.cache-key }}
+          enableCrossOsArchive: true
+      
+      - name: If cache missed, pull latest commit
+        id: checkout-tests-data-lfs
+        if: ${{ steps.cache-restore.outputs.cache-hit != 'true' }}
+        uses: actions/checkout@v4
+        with:
+          repository: spm/spm-tests-data
+          token: ${{ secrets.TESTS_DATA_REPO_TOKEN }}
+          path: tests/data
+          lfs: true
+      
+      - name: Cache latest commit
+        if: ${{ steps.cache-restore.outputs.cache-hit != 'true' }}
+        uses: actions/cache/save@v4
+        with:
+          path: tests/data
+          key: ${{ env.cache-key }}-${{ steps.checkout-tests-data.outputs.commit }}
+      
+      - name: Upload test data as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-data
+          path: tests/data
+          retention-days: 1
+
+  download_release_standalone:
+    name: Download Release Standalone
+    if: inputs.source == 'release'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os_name: [Linux, macOS_Intel, macOS_Apple_Silicon, Windows]
+    steps:
+      - name: Download release asset
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="${{ inputs.release_tag }}"
+          OS_NAME="${{ matrix.os_name }}"
+          
+          # Map os_name to release asset name
+          case "$OS_NAME" in
+            Linux)
+              ASSET_NAME="spm_standalone_Linux.zip"
+              ;;
+            macOS_Intel)
+              ASSET_NAME="spm_standalone_macOS_Intel.zip"
+              ;;
+            macOS_Apple_Silicon)
+              ASSET_NAME="spm_standalone_macOS_Apple_Silicon.zip"
+              ;;
+            Windows)
+              ASSET_NAME="spm_standalone_Windows.zip"
+              ;;
+          esac
+          
+          echo "Downloading $ASSET_NAME from release $TAG"
+          gh release download "$TAG" --repo ${{ github.repository }} --pattern "$ASSET_NAME"
+      
+      - name: Upload as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: spm-standalone-${{ matrix.os_name }}
+          path: spm_standalone_${{ matrix.os_name }}.zip
+          retention-days: 1
+
+  build_standalone:
+    name: Build Standalone on ${{ matrix.os_name }}
+    if: inputs.source == 'build' || inputs.source == ''
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ["ubuntu-latest", "macos-15-intel", "macos-latest", "windows-latest"]
+        include:
+          - os: ubuntu-latest
+            os_name: Linux
+          - os: macos-15-intel
+            os_name: macOS_Intel
+          - os: macos-latest
+            os_name: macOS_Apple_Silicon
+          - os: windows-latest
+            os_name: Windows
+
+    steps:
+      - name: Checkout SPM
+        uses: actions/checkout@v4
+
+      - name: Set up MATLAB
+        uses: matlab-actions/setup-matlab@v2
+        with:
+          release: latest
+          products: |
+            MATLAB_Compiler
+            Signal_Processing_Toolbox
+
+      - name: Extract MATLAB version to file
+        uses: matlab-actions/run-command@v2
+        with:
+          command: |
+            fileID = fopen('matlab_release.txt', 'w');
+            fprintf(fileID, matlabRelease.Release);
+            fclose(fileID);
+        timeout-minutes: 2
+        continue-on-error: true
+
+      - name: Set environment variable with MATLAB version
+        shell: bash
+        run: |
+          matlab_release=$(cat matlab_release.txt)
+          echo "MATLAB_VERSION=$matlab_release" >> $GITHUB_ENV
+
+      # Build the standalone
+      - name: Build MATLAB standalone
+        uses: matlab-actions/run-command@v2
+        with:
+          command: |
+            addpath(genpath('.'));
+            savepath;
+            spm_make_standalone
+            mkdir('runtime_installer');
+            if ~isMATLABReleaseOlderThan("R2024b")
+              compiler.runtime.customInstaller('Runtime_${{ env.MATLAB_VERSION }}_for_spm_standalone', '../standalone/requiredMCRProducts.txt', OutputDir='../runtime_installer');
+            end
+
+      # Install zip on Windows
+      - name: Install zip on Windows
+        if: runner.os == 'Windows'
+        run: choco install zip -y
+        shell: bash
+
+      # Compress standalone for artifact upload (same as release.yml)
+      - name: Compress standalone
+        shell: bash
+        run: |
+          cd ..
+          mv standalone spm_standalone
+          ls -la
+          echo "Contents of spm_standalone:"
+          ls -la spm_standalone | head -20
+          echo "Contents of runtime_installer:"
+          ls -la runtime_installer | head -20
+          zip -r spm_standalone_${{ matrix.os_name }}.zip spm_standalone runtime_installer
+          mv spm_standalone_${{ matrix.os_name }}.zip spm/
+          echo "Verifying ZIP contents:"
+          unzip -l spm/spm_standalone_${{ matrix.os_name }}.zip | head -30
+
+      # Upload standalone as artifact
+      - name: Upload standalone artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: spm-standalone-${{ matrix.os_name }}
+          path: spm_standalone_${{ matrix.os_name }}.zip
+          retention-days: 7
+
+  test_standalone:
+    name: Test Standalone on ${{ matrix.os_name }}
+    needs: [download_test_data, build_standalone, download_release_standalone]
+    if: |
+      always() && 
+      needs.download_test_data.result == 'success' &&
+      (needs.build_standalone.result == 'success' || needs.download_release_standalone.result == 'success')
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ["ubuntu-latest", "macos-15-intel", "macos-latest", "windows-latest"]
+        include:
+          - os: ubuntu-latest
+            os_name: Linux
+          - os: macos-15-intel
+            os_name: macOS_Intel
+          - os: macos-latest
+            os_name: macOS_Apple_Silicon
+          - os: windows-latest
+            os_name: Windows
+
+    steps:
+      - name: Download standalone artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: spm-standalone-${{ matrix.os_name }}
+          path: .
+
+      # Extract standalone
+      - name: Extract standalone
+        shell: bash
+        run: |
+          unzip -q spm_standalone_${{ matrix.os_name }}.zip
+          ls -la spm_standalone
+          ls -la runtime_installer
+
+      # Install MATLAB Runtime from runtime_installer
+      - name: Install MATLAB Runtime (Linux)
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          INSTALLER=$(ls runtime_installer/*.install | head -n 1)
+          echo "Installing MATLAB Runtime from $INSTALLER"
+          
+          # Extract MATLAB version from installer filename
+          MATLAB_VER=$(basename "$INSTALLER" | sed -n 's/Runtime_\(R[0-9]\{4\}[ab]\)_for_spm_standalone\.install/\1/p')
+          echo "Detected MATLAB version: $MATLAB_VER"
+          echo "MATLAB_VERSION=$MATLAB_VER" >> $GITHUB_ENV
+          
+          # Install to /usr/local/MATLAB/MATLAB_Runtime
+          chmod +x "$INSTALLER"
+          sudo "$INSTALLER" -agreeToLicense yes -destinationFolder /usr/local/MATLAB/MATLAB_Runtime
+          
+          # Set environment variables
+          echo "LD_LIBRARY_PATH=/usr/local/MATLAB/MATLAB_Runtime/${MATLAB_VER}/runtime/glnxa64:/usr/local/MATLAB/MATLAB_Runtime/${MATLAB_VER}/bin/glnxa64:/usr/local/MATLAB/MATLAB_Runtime/${MATLAB_VER}/sys/os/glnxa64:/usr/local/MATLAB/MATLAB_Runtime/${MATLAB_VER}/sys/opengl/lib/glnxa64:/usr/local/MATLAB/MATLAB_Runtime/${MATLAB_VER}/extern/bin/glnxa64" >> $GITHUB_ENV
+          echo "MCR_INHIBIT_CTF_LOCK=1" >> $GITHUB_ENV
+          echo "SPM_HTML_BROWSER=0" >> $GITHUB_ENV
+          echo "MATLAB_RUNTIME_PATH=/usr/local/MATLAB/MATLAB_Runtime" >> $GITHUB_ENV
+
+      - name: Install MATLAB Runtime (macOS)
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          INSTALLER=$(ls -d runtime_installer/*.app | head -n 1)
+          echo "Installing MATLAB Runtime from $INSTALLER"
+          
+          # Extract MATLAB version from installer filename
+          MATLAB_VER=$(basename "$INSTALLER" .app | sed -n 's/Runtime_\(R[0-9]\{4\}[ab]\)_for_spm_standalone/\1/p')
+          echo "Detected MATLAB version: $MATLAB_VER"
+          echo "MATLAB_VERSION=$MATLAB_VER" >> $GITHUB_ENV
+          
+          # Run installer
+          sudo "$INSTALLER/Contents/MacOS/setup" -agreeToLicense yes -destinationFolder "$HOME/MATLAB_Runtime" 2>&1 | tee install.log
+          
+          # Wait for installation to finish
+          sleep 2
+          
+          # Fix permissions (installer runs as sudo, files are owned by root)
+          sudo chown -R $USER "$HOME/MATLAB_Runtime"
+          sudo chown -R $USER "$HOME/.matlab" 2>/dev/null || true
+          
+          echo "MATLAB_RUNTIME_PATH=$HOME/MATLAB_Runtime/${MATLAB_VER}" >> $GITHUB_ENV
+          echo "✓ MATLAB Runtime installed at $HOME/MATLAB_Runtime/${MATLAB_VER}"
+
+      - name: Install MATLAB Runtime (Windows)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          INSTALLER=$(ls runtime_installer/*.exe | head -n 1)
+          echo "Installing MATLAB Runtime from $INSTALLER"
+          
+          # Extract MATLAB version from installer filename
+          MATLAB_VER=$(basename "$INSTALLER" .exe | sed -n 's/Runtime_\(R[0-9]\{4\}[ab]\)_for_spm_standalone/\1/p')
+          echo "Detected MATLAB version: $MATLAB_VER"
+          echo "MATLAB_VERSION=$MATLAB_VER" >> $GITHUB_ENV
+          
+          # Run installer
+          "$INSTALLER" -agreeToLicense yes -destinationFolder "C:\\MATLAB_Runtime"
+          echo "Installation command completed"
+          
+          # Add runtime to PATH and set environment variable
+          echo "C:\\MATLAB_Runtime\\${MATLAB_VER}\\runtime\\win64" >> $GITHUB_PATH
+          echo "MATLAB_RUNTIME_PATH=C:\\MATLAB_Runtime" >> $GITHUB_ENV
+          echo "✓ MATLAB Runtime installed successfully at C:\\MATLAB_Runtime"
+
+      # Download test data artifact (shared across all OS)
+      - name: Download test data artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: test-data
+          path: tests/data
+      
+      - name: Verify test data
+        shell: bash
+        run: |
+          if [ -d "tests/data" ]; then
+            echo "✓ Test data available from shared cache"
+            echo "Test data size: $(du -sh tests/data 2>/dev/null || echo 'unknown')"
+          else
+            echo "Error: Test data not found"
+            exit 1
+          fi
+
+      - name: Setup SPM standalone (Linux)
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          # Detect SPM version
+          SPM_VERSION=$(ls spm_standalone/spm* 2>/dev/null | grep -E 'spm[0-9]+$' | head -n 1 | xargs basename | sed 's/spm//')
+          echo "Detected SPM version: $SPM_VERSION"
+          echo "SPM_VERSION=$SPM_VERSION" >> $GITHUB_ENV
+          
+          # Make executable and extract CTF archive
+          chmod +x "spm_standalone/spm${SPM_VERSION}"
+          echo "Extracting CTF archive..."
+          "spm_standalone/spm${SPM_VERSION}" function exit || true
+          
+          echo "SPM standalone setup complete"
+      
+      - name: Setup SPM standalone (macOS)
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          # Detect SPM version
+          RUN_SCRIPT=$(ls spm_standalone/run_spm*.sh 2>/dev/null | head -n 1)
+          SPM_VERSION=$(basename "$RUN_SCRIPT" .sh | sed 's/run_spm//')
+          echo "Detected SPM version: $SPM_VERSION"
+          echo "SPM_VERSION=$SPM_VERSION" >> $GITHUB_ENV
+          
+          # Make script executable and extract CTF archive
+          chmod +x "spm_standalone/run_spm${SPM_VERSION}.sh"
+          echo "Extracting CTF archive..."
+          cd spm_standalone
+          ./run_spm${SPM_VERSION}.sh "$MATLAB_RUNTIME_PATH" function exit || true
+          cd ..
+          
+          echo "SPM standalone setup complete"
+      
+      - name: Setup SPM standalone (Windows)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          # Detect SPM version
+          SPM_EXEC=$(ls spm_standalone/spm*.exe 2>/dev/null | head -n 1)
+          SPM_VERSION=$(basename "$SPM_EXEC" .exe | sed 's/spm//')
+          echo "Detected SPM version: $SPM_VERSION"
+          echo "SPM_VERSION=$SPM_VERSION" >> $GITHUB_ENV
+          
+          # Extract CTF archive
+          echo "Extracting CTF archive..."
+          cd spm_standalone
+          ./spm${SPM_VERSION}.exe function exit || true
+          cd ..
+          
+          echo "SPM standalone setup complete"
+      
+      - name: Copy test data to SPM location (Linux)
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          TEST_DIR="spm_standalone/spm${SPM_VERSION}_mcr/spm${SPM_VERSION}/tests"
+          mkdir -p "$TEST_DIR"
+          cp -r tests/data "$TEST_DIR/"
+          chmod -R u+w "$TEST_DIR/data"
+          echo "Test data copied to $TEST_DIR/data"
+      
+      - name: Copy test data to SPM location (macOS)
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          TEST_DIR="spm_standalone/spm${SPM_VERSION}.app/Contents/Resources/spm${SPM_VERSION}_mcr/spm${SPM_VERSION}/tests"
+          mkdir -p "$TEST_DIR"
+          cp -r tests/data "$TEST_DIR/"
+          chmod -R u+w "$TEST_DIR/data"
+          echo "Test data copied to $TEST_DIR/data"
+      
+      - name: Copy test data to SPM location (Windows)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          TEST_DIR="spm_standalone/spm${SPM_VERSION}_mcr/spm${SPM_VERSION}/tests"
+          mkdir -p "$TEST_DIR"
+          cp -r tests/data "$TEST_DIR/"
+          chmod -R u+w "$TEST_DIR/data"
+          echo "Test data copied to $TEST_DIR/data"
+      
+      - name: Test standalone (Linux)
+        if: runner.os == 'Linux'
+        timeout-minutes: 15
+        shell: bash
+        run: |
+          cd spm_standalone
+          ./spm${SPM_VERSION} test
+
+      - name: Test standalone (macOS)
+        if: runner.os == 'macOS'
+        timeout-minutes: 15
+        shell: bash
+        run: |
+          cd spm_standalone
+          ./run_spm${SPM_VERSION}.sh $MATLAB_RUNTIME_PATH test
+
+      - name: Test standalone (Windows)
+        if: runner.os == 'Windows'
+        timeout-minutes: 15
+        shell: bash
+        run: |
+          cd spm_standalone
+          ./spm${SPM_VERSION}.exe test

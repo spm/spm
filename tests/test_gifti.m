@@ -1,11 +1,11 @@
-function tests = test_gifti
+classdef test_gifti < matlab.unittest.TestCase
 % Unit Tests for gifti
 %__________________________________________________________________________
 
 % Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
 
 
-tests = functiontests(localfunctions);
+methods (Test)
 
 
 function test_gifti_constructor(testCase)
@@ -38,7 +38,7 @@ testCase.verifyThat(struct(g4), IsEqualTo(s));
 
 testCase.verifyThat(g5, IsOfClass('gifti'));
 testCase.verifyThat(g5, HasField('cdata'));
-
+end
 
 function test_gifti_accessor(testCase)
 import matlab.unittest.constraints.*
@@ -55,7 +55,7 @@ g2 = gifti(cdata);
 testCase.verifyEqual(cdata,g2.cdata);
 testCase.verifyEqual(cdata(8),g2.cdata(8));
 testCase.verifyEqual(cdata(8,1),g2.cdata(8,1));
-
+end
 
 function test_gifti_mutator(testCase)
 import matlab.unittest.constraints.*
@@ -83,12 +83,13 @@ g.cdata = rand(size(g.vertices,1),1);
 g.cdata(1) = pi;
 g.cdata(2:end) = exp(1);
 testCase.verifyEqual(g.cdata(1), single(pi));
-
+end
 
 function test_gifti_export(testCase)
 import matlab.unittest.constraints.*
-mri = load('mri');
-g = gifti(isosurface(smooth3(squeeze(mri.D)),5));
+fn = fullfile(spm('Dir'),'canonical','single_subj_T1.nii');
+mri = uint8(256 * spm_read_vols(spm_vol(fn))); % scale from [0;1] to uint8 range
+g = gifti(isosurface(smooth3(mri),5));
 s = export(g);
 testCase.verifyThat(s, HasField('vertices'));
 testCase.verifyThat(s, HasField('faces'));
@@ -105,7 +106,7 @@ testCase.verifyThat(s, HasField('tri'));
 s = export(g,'spm');
 testCase.verifyThat(s, HasField('vert'));
 testCase.verifyThat(s, HasField('face'));
-
+end
 
 function test_gifti_load(testCase)
 import matlab.unittest.constraints.*
@@ -115,11 +116,13 @@ for i=1:numel(files)
     g = gifti(fullfile(d,files(i).name));
     testCase.verifyThat(evalc('g'), ~IsEmpty); % check display()
 end
+end
 
 
 function test_gifti_save(testCase)
-mri = load('mri');
-g = gifti(isosurface(smooth3(squeeze(mri.D)),5));
+fn = fullfile(spm('Dir'),'canonical','single_subj_T1.nii');
+mri = uint8(256 * spm_read_vols(spm_vol(fn))); % scale from [0;1] to uint8 range
+g = gifti(isosurface(smooth3(mri),5));
 g.cdata = rand(size(g.vertices,1),1);
 basename = tempname;
 file = [basename '.gii'];
@@ -154,3 +157,9 @@ for i=1:numel(encoding)
         end
     end
 end
+
+end
+
+end % methods (Test)
+
+end % classdef

@@ -1,11 +1,12 @@
-function tests = test_spm_ncFpdf
+classdef test_spm_ncFpdf < matlab.unittest.TestCase
 % Unit Tests for spm_ncFpdf
 %__________________________________________________________________________
 
 % Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
 
 
-tests = functiontests(localfunctions);
+
+methods (Test)
 
 
 function test_spm_ncFpdf_1(testCase)
@@ -23,6 +24,7 @@ exp = 0.187052298433871; % ncfpdf(2,2,10,2)
 act = spm_ncFpdf(2,[2,10],2);
 tol = 1e-12;
 testCase.verifyEqual(act, exp,'AbsTol',tol);
+end
 
 function test_spm_ncFpdf_2(testCase)
 exp = [0 % ncfpdf(0:0.3:5,3,24,pi)
@@ -45,3 +47,7 @@ exp = [0 % ncfpdf(0:0.3:5,3,24,pi)
 act = spm_ncFpdf(0:0.3:5,[3,24],pi);
 tol = 1e-12;
 testCase.verifyEqual(act, exp,'AbsTol',tol);
+end
+end % methods (Test)
+
+end % classdef

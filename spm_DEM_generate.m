@@ -4,6 +4,8 @@ function [DEM] = spm_DEM_generate(M,U,P,h,g)
 % FORMAT [DEM] = spm_DEM_generate(M,U,P,h,g): size(U,2) samples using U
 %
 % M(i)     - HDM
+% M(i).x   - initial states
+% M(i).v   - initial causes
 % U(n x N} - causes or N number of causes
 % P{i}     - model-parameters for level i (defaults to M.pE)
 % h{i}     - log-precisions   for level i (defaults to 32 - no noise)
@@ -28,15 +30,6 @@ function [DEM] = spm_DEM_generate(M,U,P,h,g)
 % Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 
-% please parametric form in model if necessary
-%--------------------------------------------------------------------------
-% m     = numel(M);
-% for i = 1:m
-%     if ~isfield(M(i),'pE')
-%         try, M(i).pE = P{i}; end
-%     end
-% end
-
 % sequence length specified by priors on causes
 %--------------------------------------------------------------------------
 M     = spm_DEM_M_set(M);
@@ -56,8 +49,8 @@ end
 % initialize model-parameters if specified
 %--------------------------------------------------------------------------
 try, P; if ~iscell(P), P = {P}; end, catch, P = {M.pE}; end
-try, h; if ~iscell(h), h = {h}; end, catch, h = {}; end
-try, g; if ~iscell(P), g = {g}; end, catch, g = {}; end
+try, h; if ~iscell(h), h = {h}; end, catch, h = {M.hE}; try, catch, h = {}; end; end
+try, g; if ~iscell(P), g = {g}; end, catch, g = {M.gE}; try, catch, g = {}; end; end
  
 % transcribe parameters and hyperparameters into prior expectations
 %--------------------------------------------------------------------------

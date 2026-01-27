@@ -1,11 +1,12 @@
-function tests = test_spm_mesh_label
+classdef test_spm_mesh_label < matlab.unittest.TestCase
 % Unit Tests for spm_mesh_label
 %__________________________________________________________________________
 
 % Copyright (C) 2022 Wellcome Centre for Human Neuroimaging
 
 
-tests = functiontests(localfunctions);
+
+methods (Test)
 
 
 function test_spm_mesh_label_vertices(testCase)
@@ -18,7 +19,7 @@ testCase.verifyEqual(act, exp);
 act = size(C);
 exp = [sum(N) 1];
 testCase.verifyEqual(act, exp);
-
+end
 
 function test_spm_mesh_label_faces(testCase)
 P = export(gifti(fullfile(spm('Dir'),'canonical','cortex_8196.surf.gii')),'patch');
@@ -33,3 +34,7 @@ testCase.verifyEqual(act, exp);
 act = size(C);
 exp = [size(P.faces,1) 1];
 testCase.verifyEqual(act, exp);
+end
+end % methods (Test)
+
+end % classdef

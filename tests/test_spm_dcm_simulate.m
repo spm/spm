@@ -1,16 +1,16 @@
-function tests = test_spm_dcm_simulate
+classdef test_spm_dcm_simulate < matlab.unittest.TestCase
 % Unit Tests for test_spm_dcm_simulate
 %__________________________________________________________________________
 
 % Copyright (C) 2016-2022 Wellcome Centre for Human Neuroimaging
 
 
-tests = functiontests(localfunctions);
+methods (Test)
 
 % -------------------------------------------------------------------------
 function test_simulate_snr_var_fmri(testCase)
 % Test simulation based on SNR variance
-data_path = get_data_path();
+data_path = test_spm_dcm_simulate.get_data_path();
 
 % Load DCMs
 GCM = load(fullfile(data_path,'GCM_simulated.mat'));
@@ -44,14 +44,15 @@ nr = size(actual_snr,2); % Number of regions
 % the expected value (one-sample ttest)
 for n = 1:nr    
     data = actual_snr(:,n);
-    p    = one_sample_tt(data,SNR);
+    p    = test_spm_dcm_simulate.one_sample_tt(data,SNR);
     testCase.assertTrue(p >= 0.05);
+end
 end
 
 % -------------------------------------------------------------------------
 function test_simulate_snr_std_fmri(testCase)
 % Test simulation based on SNR standard deviatoin
-data_path = get_data_path();
+data_path = test_spm_dcm_simulate.get_data_path();
 
 % Load DCMs
 GCM = load(fullfile(data_path,'GCM_simulated.mat'));
@@ -84,14 +85,15 @@ nr = size(actual_snr,2); % Number of regions
 % the expected value (one-sample ttest)
 for n = 1:nr    
     data = actual_snr(:,n);
-    p    = one_sample_tt(data,SNR);
+    p    = test_spm_dcm_simulate.one_sample_tt(data,SNR);
     testCase.assertTrue(p >= 0.05);
+end
 end
 
 % -------------------------------------------------------------------------
 function test_simulate_snr_var(testCase)
 % Test simulation based on fixed noise variance
-data_path = get_data_path();
+data_path = test_spm_dcm_simulate.get_data_path();
 
 % Load DCMs
 GCM = load(fullfile(data_path,'GCM_simulated.mat'));
@@ -125,14 +127,15 @@ nr = size(actual_var,2); % Number of regions
 % the expected value (one-sample ttest)
 for n = 1:nr    
     data = actual_var(:,n);
-    p    = one_sample_tt(data,noise_var);
+    p    = test_spm_dcm_simulate.one_sample_tt(data,noise_var);
     testCase.assertTrue(p >= 0.05);
+end
 end
 
 % -------------------------------------------------------------------------
 function test_simulate_Ce(testCase)
 % Test simulation based on fixed noise variance
-data_path = get_data_path();
+data_path = test_spm_dcm_simulate.get_data_path();
 
 % Load DCMs
 GCM = load(fullfile(data_path,'GCM_simulated.mat'));
@@ -171,18 +174,29 @@ nr = size(actual_var,2); % Number of regions
 % the expected value (one-sample ttest)
 for n = 1:nr    
     data = actual_var(:,n);
-    p    = one_sample_tt(data,noise_var(n));
+    p    = test_spm_dcm_simulate.one_sample_tt(data,noise_var(n));
     testCase.assertTrue(p >= 0.05);
 end
+end
 
+end % methods (Test)
+
+% Helper methods
+methods (Static, Access = private)
 % -------------------------------------------------------------------------
 function p = one_sample_tt(data,mu)
 % One sample t-test
 t = (mean(data)-mu) / (std(data) / sqrt(length(data)));
 p = spm_Tcdf(-t,length(data)-1) * 2;
+end
 
 % -------------------------------------------------------------------------
 function data_path = get_data_path()
 
 data_path = fullfile( spm('Dir'), 'tests', ...
     'data', 'fMRI', 'simulated_2region', 'models');
+end
+
+end % Helper methods
+
+end % classdef

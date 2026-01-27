@@ -3,7 +3,7 @@ function [x,f,h] = spm_dcm_x_neural(P,model)
 % FORMAT [x,f,h] = spm_dcm_x_neural(P,'model')
 %
 %  P      - parameter structure
-% 'model' - 'ERP','SEP','CMC','LFP','CMM','NNM', 'MFM' or 'CMM NMDA'
+% 'model' - 'ERP','SEP','CMC','LFP','CMM','NMM', 'MFM' or 'CMM NMDA'
 %
 % x   - initial states
 % f   - state equation dxdt = f(x,u,P,M)  - synaptic activity
@@ -118,7 +118,7 @@ switch lower(model)
         x  = x{1};
         f  = 'spm_fx_mfm';
         
-            % Neural mass model (nonlinear in states)
+    % Neural mass model (nonlinear in states)
     %======================================================================
     case{'nmda'}
         

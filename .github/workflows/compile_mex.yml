@@ -13,11 +13,11 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-13, macos-latest, windows-latest]
+        os: [ubuntu-latest, macos-15-intel, macos-latest, windows-latest]
         include:
           - os: ubuntu-latest
             mex_ext: mexa64
-          - os: macos-13
+          - os: macos-15-intel
             mex_ext: mexmaci64
           - os: macos-latest
             mex_ext: mexmaca64

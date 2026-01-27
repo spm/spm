@@ -37,11 +37,9 @@ f      = U.f';                 % target flow
 
 % get constraints (allowing G to be free parameters)
 %--------------------------------------------------------------------------
-J      = any(U.J,3);
-J      = J'.*J;
+J      = ones(n,n);
 [ks,kq,kg] = spm_NESS_constraints(U.o,J,M.K,M.L);
 k      = find(~(kq | kg));
-k      = find(~(kg));
 nb     = size(U.b,2);
 nQ     = n*n/2 + n/2;
 
@@ -89,8 +87,8 @@ S.G    = @spm_NESS_gen_lap;    % generative function
 S.FS   = @(y)y(:);             % generative function
 S.pE   = pE;                   % prior expectations (parameters)
 S.pC   = pC;                   % prior covariances  (parameters)
-S.hE   = 8;                    % prior expectation  (log-precision)
-S.hC   = 1/512;                % prior covariances  (log-precision)
+S.hE   = 16;                   % prior expectation  (log-precision)
+S.hC   = 1/128;                % prior covariances  (log-precision)
 
 % model inversion with Variational Laplace (Gauss Newton)
 %==========================================================================

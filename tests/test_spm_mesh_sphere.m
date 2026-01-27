@@ -1,11 +1,12 @@
-function tests = test_spm_mesh_sphere
+classdef test_spm_mesh_sphere < matlab.unittest.TestCase
 % Unit Tests for spm_mesh_sphere
 %__________________________________________________________________________
 
 % Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
 
 
-tests = functiontests(localfunctions);
+
+methods (Test)
 
 
 function test_spm_mesh_sphere_icosahedron(testCase)
@@ -47,7 +48,7 @@ testCase.verifyTrue(isstruct(M));
 exp = [10242 20480];
 act = [size(M.vertices,1) size(M.faces,1)];
 testCase.verifyEqual(act, exp);
-
+end
 
 function test_spm_mesh_sphere_octahedron(testCase)
 M = spm_mesh_sphere(0,spm_mesh_polyhedron('octahedron'));
@@ -61,3 +62,7 @@ testCase.verifyTrue(isstruct(M));
 exp = [4098 8192];
 act = [size(M.vertices,1) size(M.faces,1)];
 testCase.verifyEqual(act, exp);
+end
+end % methods (Test)
+
+end % classdef

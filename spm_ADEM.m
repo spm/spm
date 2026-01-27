@@ -1,5 +1,5 @@
 function DEM = spm_ADEM(DEM)
-% Dynamic expectation maximisation:  Active inversion
+% Dynamic expectation maximisation: Active inversion
 % FORMAT DEM = spm_ADEM(DEM)
 %
 % DEM.G  - generative process
@@ -9,19 +9,18 @@ function DEM = spm_ADEM(DEM)
 %__________________________________________________________________________
 %
 % This implementation of DEM is the same as spm_DEM but integrates both the
-% generative process and model inversion in parallel. Its functionality is 
+% generative process and model inversion in parallel. Its functionality is
 % exactly the same apart from the fact that confounds are not accommodated
-% explicitly.  The generative model is specified by DEM.G and the veridical
-% causes by DEM.C; these may or may not be used as priors on the causes for
-% the inversion model DEM.M (i.e., DEM.U = DEM.C).  Clearly, DEM.G does not
-% require any priors or precision components; it will use the values of the
-% parameters specified in the prior expectation fields.
+% explicitly.  The generative process is specified by DEM.G and the
+% veridical causes by DEM.C; these may or may not be used as priors on the
+% causes for the inversion model DEM.M (i.e., DEM.U = DEM.C).  Clearly,
+% DEM.G does not require any priors or precision components: it will use
+% the values of the parameters specified in the prior expectation fields.
 %
 % This routine is not used for model inversion per se but to simulate the
-% dynamical inversion of models.  Critically, it includes action 
-% variables a - that couple the model back to the generative process 
-% This enables active inference (c.f., action-perception) or embodied 
-% inference.
+% dynamical inversion of models.  Crucially, it includes action variables
+% (a) that couple the model back to the generative process This enables
+% active inference (c.f., action-perception) or embodied inference.
 %
 % hierarchical models M(i)
 %--------------------------------------------------------------------------
@@ -56,7 +55,7 @@ function DEM = spm_ADEM(DEM)
 %   G(i).W  = precision (state noise)
 %
 %   G(1).R  = restriction or rate matrix for action [default: 1];
-%   G(i).aP = precision (action)   [default: exp(-2)]
+%   G(i).aP = precision (action)                    [default: exp(-2)]
 %
 %   G(i).m  = number of inputs v(i + 1);
 %   G(i).n  = number of states x(i)
@@ -197,7 +196,7 @@ try, dt = M(1).E.dt; catch, dt = 1;  end
  
 % initialise regularisation parameters
 %--------------------------------------------------------------------------
-te = 2;                                   % log integration time for E-Step
+te = 4;                                   % log integration time for E-Step
 global t
 
 
@@ -388,10 +387,8 @@ if ~np && ~nh, nE = 1; end
 %--------------------------------------------------------------------------
 [z,w]  = spm_DEM_z(G,nY);
 z{end} = C + z{end};
-a      = {G.a};
 Z      = spm_cat(z(:));
 W      = spm_cat(w(:));
-A      = spm_cat(a(:));
  
 % Iterate DEM
 %==========================================================================
@@ -444,7 +441,11 @@ for iE = 1:nE
         
         % pass action to pu.a (external states)
         %==================================================================
-        try, A = spm_cat({qU.a qu.a}); end
+        if iY > 1
+            A = spm_cat({qU.a qu.a});
+        else
+            A = spm_vec({G.a});
+        end
         
         % derivatives of responses and random fluctuations
         %------------------------------------------------------------------
@@ -595,7 +596,7 @@ for iE = 1:nE
 
         % Gradients and curvatures for E-Step: W = tr(C*J'*iS*J)
         %==================================================================
-        if np
+        if np && iY > d
             for i = 1:np
                 CJu(:,i)   = spm_vec(qu.c*dE.dup{i}'*iS);
                 dEdup(:,i) = spm_vec(dE.dup{i}');
@@ -607,8 +608,7 @@ for iE = 1:nE
             %--------------------------------------------------------------
             dFdp  = dFdp  - dWdp/2  - dE.dp'*iS*E;
             dFdpp = dFdpp - dWdpp/2 - dE.dp'*iS*dE.dp;
-            qp.ic = qp.ic           + dE.dp'*iS*dE.dp;
-            
+            qp.ic = qp.ic           + dE.dp'*iS*dE.dp;            
         end
  
         % accumulate SSE

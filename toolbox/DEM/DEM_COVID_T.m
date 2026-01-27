@@ -69,7 +69,7 @@ U     = [1 2 6];                  % outputs to model
 
 % assemble prior and posterior estimates (and log evidence)
 %--------------------------------------------------------------------------
-M.date = '25-01-2020';            % date of first time point
+M.date = '25-Jan-2020';            % date of first time point
 DCM.M  = M;
 DCM.Ep = Ep;
 DCM.Cp = Cp;
@@ -455,7 +455,8 @@ spm_figure('GetWin','Heisberg'); clf;
 % immunity is already underway." They recommended that politicians start to
 % lift some of the regions' restrictions.
 %--------------------------------------------------------------------------
-T     = datenum('25-Jan-2020') - datenum('6-Apr-2020') + size(DCM.Y,1);
+T     = datenum('25-01-2020','dd-mm-yyyy') - ...
+        datenum('06-01-2020','dd-mm-yyyy') + size(DCM.Y,1);
 [Y,X] = spm_COVID_gen(GCM.Ep,GCM.M,5);
 X     = X{2};
 

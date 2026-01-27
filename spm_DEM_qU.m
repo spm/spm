@@ -115,14 +115,14 @@ for i = 1:g
         %------------------------------------------------------------------
         subplot(g,2,2*i - 1)
         try
-            plot(t,pV{i}','-.k')
+            plot(t,pV{i}','-.k'),    set(gca,'ColorOrderIndex',1)
         end
         hold on
         try
-            plot(t,full(V{i})')
+            plot(t,full(V{i})'),     set(gca,'ColorOrderIndex',1)
         end
         try
-            plot(t,full(E{i})',':')
+            plot(t,full(E{i})',':'), set(gca,'ColorOrderIndex',1)
         end
         box off, hold off
         set(gca,'XLim',[t(1) t(end)])
@@ -143,12 +143,14 @@ for i = 1:g
                 fill([t fliplr(t)]',[full(V{i} + y) fliplr(full(V{i} - y))]',...
                     [1 1 1]*.8,'EdgeColor',[1 1 1]*.8)
             end
+            set(gca,'ColorOrderIndex',1)
             try
-                plot(t,pV{i}','-.k')
+                plot(t,pV{i}','-.')
             end
             try
                 plot(t,full(E{i}'),':')
             end
+            set(gca,'ColorOrderIndex',1)
             plot(t,full(V{i})'),box off
             hold off
         end
@@ -183,6 +185,7 @@ for i = 1:g
                 plot(t,full(pX{i}'),'-.k')
                 box off, hold off
             end
+            set(gca,'ColorOrderIndex',1)
             plot(t,full(X{i}')),box off
             set(gca,'XLim',[t(1) t(end)])
             a   = axis;
@@ -195,9 +198,10 @@ for i = 1:g
                 fill([t fliplr(t)],[full(X{i} + y) fliplr(full(X{i} - y))],...
                         [1 1 1]*.8,'EdgeColor',[1 1 1]*.8)
                 try
-                    plot(t,full(pX{i}'),'-.k'),box off
+                    plot(t,full(pX{i}'),'-.k')
                 end
-                plot(t,full(X{i}')),box off
+                set(gca,'ColorOrderIndex',1)
+                plot(t,full(X{i}')), box off
                 hold off
             end
                       

@@ -538,7 +538,8 @@ Finter = figure('IntegerHandle','off',...
     'DefaultUicontrolInterruptible','on',...
     'Renderer','painters',...
     'Visible',Vis);
-if spm_check_version('matlab','8.3') < 0
+is_octave = strcmp(spm_check_version,'octave');
+if ~is_octave && spm_check_version('matlab','8.3') < 0
     set(Finter,'DoubleBuffer','on');
 end
 varargout = {Finter};

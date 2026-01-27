@@ -101,7 +101,10 @@ switch cmd
                     end
                 elseif domovie == 2
                     fname = sprintf('%s-%02d-%1d.avi',prefix,vh(ci),ca);
-                    if spm_check_version('matlab','7.10') > 0
+                    is_octave = strcmp(spm_check_version,'octave');
+                    if is_octave
+                        error('Movie writing is not yet implemented in Octave');
+                    elseif spm_check_version('matlab','7.10') > 0
                         writerObj = VideoWriter(fname,char(comp));
                         open(writerObj);
                         writeVideo(writerObj,M{ci,ca});

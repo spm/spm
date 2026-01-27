@@ -1,11 +1,12 @@
-function tests = test_spm_get_data
+classdef test_spm_get_data < matlab.unittest.TestCase
 % Unit Tests for spm_get_data
 %__________________________________________________________________________
 
 % Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
 
 
-tests = functiontests(localfunctions);
+
+methods (Test)
 
 
 function test_spm_get_data_1(testCase)
@@ -23,8 +24,12 @@ act = spm_get_data(char(...
     fullfile(spm('Dir'),'canonical','avg152T2.nii')),[1 1 1;2 2 2]');
 testCase.verifyTrue(isnumeric(act));
 testCase.verifyTrue(isequal(size(act),[3 2]));
-
+end
 
 function test_spm_get_data_error(testCase)
 err = @() evalc('spm_get_data(struct(''fname'',tempname),[1 1 1]'')');
 testCase.verifyError(err, ?MException);
+end
+end % methods (Test)
+
+end % classdef

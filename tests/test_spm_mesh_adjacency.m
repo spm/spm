@@ -1,11 +1,12 @@
-function tests = test_spm_mesh_adjacency
+classdef test_spm_mesh_adjacency < matlab.unittest.TestCase
 % Unit Tests for spm_mesh_adjacency
 %__________________________________________________________________________
 
 % Copyright (C) 2016-2022 Wellcome Centre for Human Neuroimaging
 
 
-tests = functiontests(localfunctions);
+
+methods (Test)
 
 
 function test_spm_mesh_adjacency_tetrahedron(testCase)
@@ -17,7 +18,7 @@ testCase.verifyEqual(act, exp);
 
 act = spm_mesh_adjacency(M.faces);
 testCase.verifyEqual(act, exp);
-
+end
 
 function test_spm_mesh_adjacency_octahedron(testCase)
 M = spm_mesh_polyhedron('octahedron');
@@ -34,7 +35,7 @@ testCase.verifyEqual(act, exp);
 
 act = spm_mesh_adjacency(M.faces);
 testCase.verifyEqual(act, exp);
-
+end
 
 function test_spm_mesh_adjacency_icosahedron(testCase)
 M = spm_mesh_polyhedron('icosahedron');
@@ -57,3 +58,7 @@ testCase.verifyEqual(act, exp);
 
 act = spm_mesh_adjacency(M.faces);
 testCase.verifyEqual(act, exp);
+end
+end % methods (Test)
+
+end % classdef

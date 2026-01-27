@@ -28,7 +28,7 @@ end
 % check data or generative model
 % -------------------------------------------------------------------------
 try
-    N     = length(DEM.C);
+    N     = size(DEM.C,2);
 catch
     errordlg('please specify causes (e.g., sparse(0,N)')
 end
@@ -43,12 +43,6 @@ end
 if ~isfield(DEM,'U')
     DEM.U = sparse(DEM.M(end).l,N);
 end
-
-% transpose causes and confounds, if specified in conventional fashion
-%--------------------------------------------------------------------------
-try, if size(DEM.U,2) < N, DEM.U = DEM.U';    end, end
-try, if size(DEM.C,2) < N, DEM.C = DEM.C';    end, end
-
 
 % ensure model and input dimensions check
 % -------------------------------------------------------------------------

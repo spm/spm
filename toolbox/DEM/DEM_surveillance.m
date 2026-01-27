@@ -444,12 +444,12 @@ end
 %     'landmark-far',...        13
 %     'distance',...            14
 %--------------------------------------------------------------------------
-C{1}  = [2 -1 2 -1 2 -1 0 0 0 0 0 0 0 0];
+C{1}  = spm_softmax([2 -1 2 -1 2 -1 0 0 0 0 0 0 0 0]');
 
 % and uninformative preferences over peripheral vision
 %--------------------------------------------------------------------------
 for i = 2:numel(A)
-    C{i}  = zeros(1,size(A{i},1));
+    C{i} = ones(size(A{i},1),1);
 end
 
 % This concludes the ABC of the model; namely, the likelihood mapping,
@@ -485,7 +485,7 @@ U     = [ ...
 % MDP Structure, specifying 64 epochs (i.e., 16 seconds of active vision)
 %==========================================================================
 mdp.T = 64;                       % numer of moves
-mdp.U = U;                        % actions
+mdp.V = U;                        % actions
 mdp.A = A;                        % likelihood probabilities
 mdp.B = B;                        % transition probabilities
 mdp.C = C;                        % prior preferences

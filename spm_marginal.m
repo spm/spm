@@ -14,10 +14,14 @@ function [Y] = spm_marginal(X)
 
 % evaluate marginals
 %--------------------------------------------------------------------------
-n     = ndims(X);
-Y     = cell(n,1);
-for i = 1:n
-    j    = 1:n;
-    j(i) = [];
-    Y{i} = reshape(spm_sum(X,j),[],1);
+if isvector(X)
+    Y = {X(:)};
+else
+    n     = ndims(X);
+    Y     = cell(n,1);
+    for i = 1:n
+        j    = 1:n;
+        j(i) = [];
+        Y{i} = reshape(spm_sum(X,j),[],1);
+    end
 end

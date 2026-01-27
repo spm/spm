@@ -158,8 +158,8 @@ if size(MDP,2) > 1
     GRAPH        = OPTIONS.plot;
     OPTIONS.plot = 0;
     
-    for i = 1:size(MDP,2)                  % number of MDPs
-        for m = 1:size(MDP,1)              % number of trials
+    for i = 1:size(MDP,2)                  % number of trials
+        for m = 1:size(MDP,1)              % number of MDPs
             if i > 1                       % if previous inversions
                 
                 % update concentration parameters
@@ -182,7 +182,7 @@ if size(MDP,2) > 1
             end
         end
         
-        % solve this trial (for all models synchronously)
+        % solve this trial (for all MDPs synchronously)
         %------------------------------------------------------------------
         OUT(:,i) = spm_MDP_VB_X(MDP(:,i),OPTIONS);
         
@@ -1463,13 +1463,13 @@ function L = spm_MDP_VB_VOX(MDP,L,t)
 % returns likelihoods from voice recognition (and articulates responses)
 % MDP - structure array
 % L   - predictive prior over outcomes
-% t   - current trial
+% t   - current word
 %
 % L   - likelihood of lexical and prosody outcomes
 %
-% this subroutine determines who is currently generating auditory output
+% This subroutine determines who is currently generating auditory output
 % and produces synthetic speech - or uses the current audio recorder object
-% to evaluate the likelihood of the next word
+% to evaluate the likelihood of a word
 %__________________________________________________________________________
 
 
@@ -1477,9 +1477,14 @@ function L = spm_MDP_VB_VOX(MDP,L,t)
 %--------------------------------------------------------------------------
 global VOX
 global TRAIN
+global PlayerObj
+
 if ~isstruct(VOX), load VOX; VOX.RAND = 0; end
 if isempty(TRAIN), TRAIN = 0;              end
-if t == 1,         pause(1);               end
+
+% pause at the beginning of an exchange; i.e., first word
+%--------------------------------------------------------------------------
+if t == 1, pause(1);  end
 
 
 if ~isfield(VOX,'msg')
@@ -1487,7 +1492,7 @@ if ~isfield(VOX,'msg')
     % prepare useful fields in (global) VOX structure
     %----------------------------------------------------------------------
     Data    = imread('recording','png');
-    VOX.msg = msgbox('Recording','','custom',Data);
+    VOX.msg = msgbox('','Recording','custom',Data);
     set(VOX.msg,'Visible','off'), drawnow
     
     % indices of words in lexicon and inferred prosody states
@@ -1503,6 +1508,8 @@ if ~isfield(VOX,'msg')
     
 end
 
+% articulate (generate) if MDP.VOX < 2 and sentence is complete
+%==========================================================================
 if MDP.VOX == 0 || MDP.VOX == 1
     
     % Agent: computer
@@ -1547,8 +1554,9 @@ if MDP.VOX == 0 || MDP.VOX == 1
                 [SEG,W,prosody] = spm_voice_read(VOX.audio,P);
             end
             clc, disp('Thank you')
+            pause(2)
             
-            % prompt for prosody
+            % prosody likelihood
             %--------------------------------------------------------------
             for i = 1:numel(VOX.ip)
                 for j = 1:size(P,2)
@@ -1556,31 +1564,41 @@ if MDP.VOX == 0 || MDP.VOX == 1
                 end
             end
             
-            % uniform priors for spce  (' ')
+            % uniform priors for space  (' ')
             %--------------------------------------------------------------
             L{i + 1,t} = ones(8,1)/8;
             
         end
-        
-        
+
     end
 
     
 elseif MDP.VOX == 2
     
-    % user
+    % user generates words
+    %======================================================================
+
+    % get upto 8 seconds of audio recording if this is the first word
     %----------------------------------------------------------------------
     if t == 1
+
+        % stop audio and reset time index
+        %------------------------------------------------------------------
         VOX.IT = 1;
         stop(VOX.audio)
+       
+        % wait for silence (i.e., audioplayer to stop playing)
+        %------------------------------------------------------------------
+        while isplaying(PlayerObj)
+            pause(1/4);
+        end
+        set(VOX.msg,'Visible','on')          % prompt for input
         record(VOX.audio,8);
-        set(VOX.msg,'Visible','on')
-        pause(1);
-        set(VOX.msg,'Visible','off')
+        pause(2);                            % pause to listen (record)
         
         % toggle to see spectral envelope
-        %----------------------------------------------------------------------
-        VOX.onsets = 0;
+        %------------------------------------------------------------------
+        VOX.onsets = 1;
         
     end
     
@@ -1626,7 +1644,7 @@ elseif MDP.VOX == 2
     
     % get likelihood of discernible words
     %----------------------------------------------------------------------
-    P      = P > 1/128;
+    P  = P > 1/256;
     if any(P(:,1))
         
         % log likelihoods
@@ -1650,7 +1668,7 @@ elseif MDP.VOX == 2
             
             % prosody likelihoods
             %--------------------------------------------------------------
-            for g = 2:numel(L)
+            for g = 2:numel(L(:,t))
                 L{g,t} = spm_softmax(spm_zeros(L{g,t}));
             end
             
@@ -1669,7 +1687,7 @@ elseif MDP.VOX == 2
                         
             % prosody likelihoods
             %--------------------------------------------------------------
-            for g = 2:numel(L)
+            for g = 2:numel(L(:,t))
                 L{g,t} = spm_softmax(O{2}(:,ip(g - 1)));
             end
 
@@ -1681,8 +1699,9 @@ elseif MDP.VOX == 2
     %----------------------------------------------------------------------
     [d,w]  = max(L{1,t});
     fprintf('%i: %s\n',MDP.VOX, MDP.label.outcome{1}{w});
-        
-
+    set(VOX.msg,'Visible','off')
+    
 end
 
+return
 

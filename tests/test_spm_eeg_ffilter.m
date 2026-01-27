@@ -1,11 +1,12 @@
-function tests = test_spm_eeg_ffilter
+classdef test_spm_eeg_ffilter < matlab.unittest.TestCase
 % Unit Tests for spm_eeg_ffilter
 %__________________________________________________________________________
 
 % Copyright (C) 2023 Wellcome Centre for Human Neuroimaging
 
 
-tests = functiontests(localfunctions);
+
+methods (Test)
 
 
 function test_spm_eeg_ffilter_1(testCase)
@@ -36,3 +37,7 @@ res = mean(std(fD(:,900:1000,1),[],2));
 dB = 20*log10(mean(Y./res));
 
 testCase.verifyTrue(dB>100);
+end
+end % methods (Test)
+
+end % classdef

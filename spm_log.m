@@ -6,5 +6,8 @@ function A = spm_log(A)
 % Karl Friston
 % Copyright (C) 2022 Wellcome Centre for Human Neuroimaging
 
-A          = log(A);
-A(A < -32) = -32;
+if islogical(A)
+    A = -32*(~A);
+else
+    A = max(log(A),-32);
+end
