@@ -150,7 +150,15 @@ function [sts,result] = run_julia_cmd(s,str)
         f = [s.cmd ' -e '' ' str ' '' '];
     end
     disp(['julia -e ' str])
+
+    if isunix
+        paths = getenv('LD_LIBRARY_PATH');
+        setenv('LD_LIBRARY_PATH');
+    end
     [sts,result] = system(f);
+    if isunix
+        setenv('LD_LIBRARY_PATH', paths);
+    end
 end
 
 function mkdir_rec(dr)
