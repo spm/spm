@@ -10,10 +10,14 @@ function varargout = spm_julia(opt, varargin)
 % Install Julia within SPM - irrespective of whether it seems to be
 % there or not.
 %
-% FORMAT sts = spm_julia('add-package',package1, package2, ...)
+% FORMAT sts = spm_julia('add-package', package1, package2, ...)
 % Add Julia packages, where package1, package2, etc are names of registered
-% packages.  Unregistered packages can be installed by giving their url. e.g.
-% sts = spm_julia('add-package', 'https://github.com/spm/PushPull.jl')
+% packages.  Unregistered packages can be installed by giving their url
+% within a structure. Note that fields 'rev' and 'version' can also be
+% included in the structure, where 'version' could be e.g. 'v0.2.1'
+% (v"0.2.1" in Julia) or '0.2' ("0.2" in Julia).  For example:
+%     pkg_spec = struct('url','https://github.com/spm/PushPull.jl');
+%     sts      = spm_julia('add-package', pkg_spec)
 %
 % FORMAT [sts,result] = spm_julia('run', cmd)
 % Execute a command with julia -e
@@ -21,7 +25,6 @@ function varargout = spm_julia(opt, varargin)
 % FORMAT [sts,result] = spm_julia('run', cmd, package1, package2, ...)
 % Checks for presence of packages, and installs them if necessary.
 % Prepends use of packages before cmd.
-% Package names can be urls of unregistered packages.
 %
 % For more information about the Julia language, see https://julialang.org/
 %__________________________________________________________________________
@@ -33,7 +36,7 @@ function varargout = spm_julia(opt, varargin)
     setenv('JULIA_DEPOT_PATH',s.julia_depot_path)
     switch lower(opt)
         case 'add-package'
-            varargout{1} = add_packages(s, varargin);
+            varargout{1} = add_pkgs(s, varargin);
         case 'install'
             varargout{1} = install(s, varargin{:});
         case 'run'
@@ -49,14 +52,14 @@ function varargout = spm_julia(opt, varargin)
     end
 end
 
-function [sts, result] = run(s, fun, packages)
+function [sts, result] = run(s, fun, pkgs)
     install(s);
     if nargin>=3
-        add_packages(s, to_install(s,packages));
+        add_pkgs(s, to_install(s,pkgs));
         expr = '';
-        for i=1:length(packages)
-            package = package_name(packages{i});
-            expr    = [expr 'using ' package '; '];
+        for i=1:length(pkgs)
+            pkg  = pkg_name(pkgs{i});
+            expr = [expr 'using ' pkg '; '];
         end
         expr = [expr fun];
     else
@@ -69,6 +72,9 @@ function sts = install(s,varargin)
     sts = 0;
     if ~exist(s.cmd,'file') || (nargin>=2 && any(strcmp(varargin,'force')))
         json_file = websave(tempname,'https://julialang-s3.julialang.org/bin/versions.json');
+        if isempty(json_file)
+            error('Can not obtain the versions.json file from the web.')
+        end
         json = spm_jsonread(json_file);
         delete(json_file);
 
@@ -88,7 +94,7 @@ function sts = install(s,varargin)
                 % Unsure
                 opt = findfile('aarch64-linux-gnu', files);
             otherwise
-               error('Not ready.')
+               error(['Something went wrong! Computer is ' s.comp '.'])
         end
 
         if ~isempty(opt)
@@ -104,42 +110,33 @@ function sts = install(s,varargin)
                 case 'zip'
                     unzip(compr_file,s.appdir)
                 otherwise
-                    error('...Sorry!\n');
+                    error(['Something went wrong! Extension is ' opt.extension '.']);
             end
             delete(compr_file);
             fprintf(' ...Done\n')
         else
-            %sts = 1;
-            error('Something went wrong!');
+            error(['Something went wrong! Nothing suitable for ' s.comp '.']);
         end
     end
 end
 
-function sts = add_packages(s,pkg_list)
+function sts = add_pkgs(s, pkg_list)
     sts = 0;
     if ~isempty(pkg_list)
         fprintf('\n---- Installing Julia packages ----\n')
         for i=1:length(pkg_list)
-            sts = sts | add_package(s,pkg_list{i});
+            sts = sts | add_pkg(s,pkg_list{i});
         end
         fprintf('-----------------------------------\n')
     end
 end
 
-function sts = add_package(s,pkg)
-    if ~any(pkg == '"')
-        pkg = ['"' pkg '"'];
-    end
-    if regexp(pkg,'https')
-        pkg = ['url=' pkg];
-    elseif any(pkg=='/')
-        fprintf('\n###### Not sure what to do with %s! ######\n\n', pkg)
-    end
-    [sts,result] = run_julia_cmd(s, ['import Pkg; Pkg.add(' pkg ');']);
+function sts = add_pkg(s, pkg)
+    [sts,result] = run_julia_cmd(s, ['import Pkg; Pkg.add(' addstr(pkg) ');']);
     if sts~=0
-        fprintf('\n\n###### Installation of %s failed! ######\n\n', pkg)
+        fprintf('\n\n###### Installation of %s failed! ######\n\n', pkg_name(pkg))
         disp(result)
-        fprintf(  '\n###### Installation of %s failed! ###### (see errors above)\n\n', pkg)
+        fprintf(  '\n###### Installation of %s failed! ###### (see errors above)\n\n', pkg_name(pkg))
     end
 end
 
@@ -201,27 +198,66 @@ end
 function not_installed = to_install(s,list)
     not_installed = {};
     for i = 1:length(list)
-        package = list{i};
-        if ~package_exists(s,package)
-            not_installed = [not_installed, package];
+        pkg = list{i};
+        if ~pkg_exists(s,pkg)
+            not_installed = [not_installed, pkg];
         end
     end
 end
 
-function pkg = package_name(package)
-    if any(package=='/')
-        [~,pkg,~] = fileparts(package);
+
+function pkg = pkg_name(pkg)
+    if isa(pkg,'struct')
+        if isfield(pkg,'name')
+            [~,pkg,~] = fileparts(pkg.name);
+        elseif isfield(pkg,'url')
+            [~,pkg,~] = fileparts(pkg.url);
+        elseif isfield(pkg,'path')
+            [~,pkg,~] = fileparts(pkg.path);
+        else
+            pkg = '';
+        end
     else
-        pkg = package;
+        [~,pkg,~] = fileparts(pkg);
     end
 end
 
-function answer = package_exists(s, package)
-    dname = fullfile(s.julia_depot_path,'packages', package_name(package));
+
+function answer = pkg_exists(s, pkg)
+    dname = fullfile(s.julia_depot_path,'packages', pkg_name(pkg));
     if exist(dname,'dir')
         answer = true;
     else
         answer = false;
+    end
+end
+
+
+function str = addstr(pkg)
+    if isa(pkg,'struct')
+        if isfield(pkg,'name')
+            str = ['name="' pkg.name '"'];
+        elseif isfield(pkg,'url')
+            str = ['url="' pkg.url '"'];
+        elseif isfield(pkg,'path')
+            str = ['path="' pkg.path '"'];
+        end
+        if isfield(pkg,'version')
+            str = [str verstr(pkg.version)];
+        end
+        if isfield(pkg,'rev')
+            str = [str ', rev="' pkg.rev '"'];
+        end
+    else
+        str = ['"' pkg '"'];
+    end
+end
+
+function str = verstr(version)
+    if length(version)>1 && version(1)=='v'
+        str = [', version=v"' version(2:end) '"'];
+    else
+        str = [', version="' version '"'];
     end
 end
 
