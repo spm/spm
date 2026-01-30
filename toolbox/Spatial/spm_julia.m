@@ -65,7 +65,11 @@ function [sts, result] = run(s, fun, pkgs)
     else
         expr = fun;
     end
-    [sts,result] = run_julia_cmd(s,expr);
+    if nargout<2
+        sts = run_julia_cmd(s,expr);
+    else
+        [sts,result] = run_julia_cmd(s,expr);
+    end
 end
 
 function sts = install(s,varargin)
@@ -117,8 +121,14 @@ function sts = install(s,varargin)
         else
             error(['Something went wrong! Nothing suitable for ' s.comp '.']);
         end
+        spm_registry = 'https://github.com/spm/SPM-registry.jl';
+        [sts,result] = run_julia_cmd(s,['using Pkg; pkg"registry add General"; pkg"registry add ' spm_registry '"']);
+        if sts~=0
+            error('Failed to add SPM-registry!')
+        end
     end
 end
+
 
 function sts = add_pkgs(s, pkg_list)
     sts = 0;
@@ -130,6 +140,7 @@ function sts = add_pkgs(s, pkg_list)
         fprintf('-----------------------------------\n')
     end
 end
+
 
 function sts = add_pkg(s, pkg)
     [sts,result] = run_julia_cmd(s, ['import Pkg; Pkg.add(' addstr(pkg) ');']);
@@ -152,7 +163,11 @@ function [sts,result] = run_julia_cmd(s,str)
         paths = getenv('LD_LIBRARY_PATH');
         setenv('LD_LIBRARY_PATH');
     end
-    [sts,result] = system(f);
+    if nargout<2
+        sts = system(f);
+    else
+        [sts,result] = system(f);
+    end
     if isunix
         setenv('LD_LIBRARY_PATH', paths);
     end
