@@ -63,7 +63,6 @@ vol2 = alignment_stuff(vol2);
 %-Estimate noise level
 %--------------------------------------------------------------------------
 sd   = spm_noise_estimate(strvcat(vol1, vol2)); % Rice mixture model to estimate image noise
-sig2 = sum(sd.^2);                              % Variance of difference is sum of variances
 
 %-Load volumes (mess about with extra stuff to deal with 4D files)
 %--------------------------------------------------------------------------
@@ -73,6 +72,15 @@ Nii  = nifti(strvcat(nam1,nam2));
 f1_0 = single(Nii(1).dat(ind1{:}));
 f2_0 = single(Nii(2).dat(ind2{:}));
 vx   = sqrt(sum(Nii(1).mat(1:3,1:3).^2)); % Voxel sizes
+
+% Rescale images so they all have the same sum
+rescale1 = mean(f1_0(:));
+rescale2 = mean(f2_0(:));
+f1_0 = f1_0/rescale1;
+f2_0 = f2_0/rescale2;
+sd   = [sd(1)/rescale1 sd(2)/rescale2];  % Rescale the standard deviations
+sig2 = sum(sd.^2);                       % Variance of difference is sum of variances
+
 
 ord  = [0 rinterp 0  0 0 0];
 spm_field('bound',1);                     % Set boundary conditions for spm_field
