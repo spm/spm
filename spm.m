@@ -275,6 +275,18 @@ function varargout=spm(varargin)
 %_______________________________________________________________________
 
 
+
+%=======================================================================
+%-macOS Quarantine Self-Repair
+%=======================================================================
+if ismac && ~isdeployed
+    persistent hasCheckedQuarantine
+    if isempty(hasCheckedQuarantine)
+        hasCheckedQuarantine = true;
+        spm_mac_permissions();
+    end
+end
+
 %-Parameters
 %-----------------------------------------------------------------------
 Modalities = {'PET','FMRI','EEG'};
