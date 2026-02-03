@@ -38,7 +38,7 @@ Deconvolve the B-spline basis functions from the image volume
     d - the spline degree
     splinc0, splinc1, splinc2   - functions for 1D deconvolutions
 */
-static int vol_coeffs(MAPTYPE *vol, double c[], int d[], void (*splinc[])())
+static int vol_coeffs(MAPTYPE *vol, double c[], int d[], void (*splinc[])(IMAGE_DTYPE c[], int m, double p[], int np))
 {
     double  p[4];
     double *cp;
@@ -131,9 +131,9 @@ static int vol_coeffs(MAPTYPE *vol, double c[], int d[], void (*splinc[])())
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
     int k, d[3], sts;
-    MAPTYPE *vol, *get_maps();
+    MAPTYPE *vol;
     double *c;
-    void (*splinc[3])();
+    void (*splinc[3])(IMAGE_DTYPE c[], int m, double p[], int np);
 
     if (nrhs < 2 || nlhs > 1)
         mexErrMsgTxt("Incorrect usage.");

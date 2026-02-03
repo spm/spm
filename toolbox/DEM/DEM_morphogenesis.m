@@ -1,5 +1,5 @@
 function DEM = DEM_morphogenesis
-% This routine illustrates self-assembly or more for genesis under active
+% This routine illustrates self-assembly or morphogenesis under active
 % inference (free energy minimisation).  It exploits the fact that one can
 % express a systems (marginal) Lyapunov function in terms of a variational
 % free energy.  This means that one can prescribe an attracting set in
@@ -379,7 +379,7 @@ end
 %--------------------------------------------------------------------------
 function g = Gg(x,v,a,P)
 global t
-if isempty(t);
+if isempty(t)
     s = 0;
 else
     s = (1 - exp(-t*2));
@@ -395,7 +395,7 @@ g.c      = s*morphogenesis(a.x,a.s);     % extrinsic signal
 %--------------------------------------------------------------------------
 function g = Mg(x,v,P)
 global t
-if isempty(t);
+if isempty(t)
     s = 0;
 else
     s = (1 - exp(-t*2));

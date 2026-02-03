@@ -38,4 +38,4 @@ function dep = vout(varargin)
 dep(1)            = cfg_dep;
 dep(1).sname      = 'De-faced images';
 dep(1).src_output = substruct('()',{':'});
-dep(1).tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});
+dep(1).tgt_spec   = cfg_findspec({{'filter','nifti','strtype','e'}});

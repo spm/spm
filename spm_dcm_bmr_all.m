@@ -460,8 +460,9 @@ if isstruct(DCM.Ep)
     end
     Pp    = spm_unvec(Pp,DCM.Ep);
     Ep    = spm_unvec(Ep,DCM.Ep);
-end
+    rE    = spm_unvec(rE,DCM.Ep);
 
+end
 DCM.M.pE  = rE;        % reduced prior expectation
 DCM.M.pC  = rC;        % reduced prior covariance
 DCM.Ep    = Ep;        % Bayesian model averages

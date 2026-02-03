@@ -98,8 +98,8 @@ end
 
 %-Estimate noise level
 %--------------------------------------------------------------------------
-sd   = spm_noise_estimate(strvcat(vol1_mean, vol2_mean)); % Rice mixture model to estimate image noise
-sig2 = sum(sd.^2);                              % Variance of difference is sum of variances
+sd   = spm_noise_estimate(strvcat(vol1, vol2)); % Rice mixture model to estimate image noise
+
 
 %-Load volumes (mess about with extra stuff to deal with 4D files)
 %--------------------------------------------------------------------------
@@ -109,6 +109,15 @@ Nii  = nifti(strvcat(nam1,nam2));
 f1_0 = single(Nii(1).dat(ind1{:}));
 f2_0 = single(Nii(2).dat(ind2{:}));
 vx   = sqrt(sum(Nii(1).mat(1:3,1:3).^2)); % Voxel sizes
+
+% Rescale images so they all have the same sum
+rescale1 = mean(f1_0(:));
+rescale2 = mean(f2_0(:));
+f1_0 = f1_0/rescale1;
+f2_0 = f2_0/rescale2;
+sd   = [sd(1)/rescale1 sd(2)/rescale2];  % Rescale the standard deviations
+sig2 = sum(sd.^2);                       % Variance of difference is sum of variances
+
 
 ord  = [0 rinterp 0  0 0 0];
 spm_field('bound',1);                     % Set boundary conditions for spm_field
@@ -147,6 +156,11 @@ for fwhm = FWHM % Loop over spatial scales
     end
 end
 
+if jac==1
+    descrip = sprintf('SCOPE: preserve integrals %.3g,%.3g,%.3g',reg);
+else
+    descrip = sprintf('SCOPE: preserve intensity %.3g,%.3g,%.3g',reg);
+end
 
 %-Save distortion-corrected blip reversed images and vdm
 %==========================================================================
@@ -160,6 +174,7 @@ Nio      = nifti;
 Nio.dat  = file_array(oname,d,'float32');
 Nio.mat  = Nii(1).mat;
 Nio.mat0 = Nii(1).mat;
+Nio.descrip = [descrip ' Same'];
 create(Nio);
 Nio.dat(:,:,:) = wf1;
 
@@ -172,6 +187,7 @@ Nio      = nifti;
 Nio.dat  = file_array(oname,d,'float32');
 Nio.mat  = Nii(2).mat;
 Nio.mat0 = Nii(2).mat0;
+Nio.descrip = [descrip ' Opposite'];
 create(Nio);
 Nio.dat(:,:,:) = wf2;
 
@@ -183,6 +199,7 @@ oname          = fullfile(outdir,oname);
 Nio            = nifti;
 Nio.dat        = file_array(oname,size(u),'float32');
 Nio.mat        = Nii(1).mat;
+Nio.descrip    = descrip;
 create(Nio);
 Nio.dat(:,:,:) = u;
 

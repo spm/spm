@@ -34,7 +34,7 @@ function spm_plot_ci(E,C,x,j,s)
 ax   = gca;
 col  = get(ax,'ColorOrder');
 coli = get(ax,'ColorOrderIndex');
-coll = col(coli,:);
+coll = col(1 + rem(coli - 1,7),:);
 colf = erf(coll + 1);
 
 % confidence region (CR) plotting
@@ -127,7 +127,7 @@ end
 
 % plot elliptical confidence region
 %--------------------------------------------------------------------------
-if CR
+if CR  && ~strcmpi(s,'plot')
     [x,y] = ellipsoid(E(1),E(2),1,c(1),c(2),0,32);
     fill(x(16,:)',y(16,:)',[1 1 1]*gr,'EdgeColor',[1 1 1]*.5,'Parent',ax);
     hold(ax,'on');
@@ -139,29 +139,38 @@ end
 
 % plot line or bar chart
 %--------------------------------------------------------------------------
-if N >= 8
+alpha = 0.8;
+if N >= 8 || strcmpi(s,'plot')
     
     % time-series plot
     %======================================================================
     x  = x(:)';
     if strcmpi(s,'exp')
         fill([x fliplr(x)],exp([full(E + c) fliplr(full(E - c))]),...
-            colf,'EdgeColor','none','Parent',ax,'FaceAlpha', 0.4);
+            colf,'EdgeColor','none','Parent',ax,'FaceAlpha',alpha);
         hold(ax,'on');
         plot(x,exp(E),'Color',coll);
         set(ax,'ColorOrderIndex',coli + 1);
-        
+
     elseif strcmpi(s,'log')
         fill([x fliplr(x)],log(abs([full(E + c) fliplr(full(E - c))])),...
-            colf,'EdgeColor','none','Parent',ax,'FaceAlpha', 0.4);
+            colf,'EdgeColor','none','Parent',ax,'FaceAlpha',alpha);
         hold(ax,'on');
         plot(x,log(abs(E)),'Color',coll);
         set(ax,'ColorOrderIndex',coli + 1);
-        
-        
+
+
+    elseif strcmpi(s,'plot')
+
+        fill([x fliplr(x)],[full(E + c) fliplr(full(E - c))],...
+            colf,'EdgeColor','none','Parent',ax,'FaceAlpha',alpha);
+        hold(ax,'on');
+        plot(ax,x,E,'Color',coll);
+        set(ax,'ColorOrderIndex',coli + 1);
+
     else
         fill([x fliplr(x)],[full(E + c) fliplr(full(E - c))],...
-            colf,'EdgeColor','none','Parent',ax,'FaceAlpha', 0.4);
+            colf,'EdgeColor','none','Parent',ax,'FaceAlpha',alpha);
         hold(ax,'on');
         plot(ax,x,E,s,'Color',coll);
         set(ax,'ColorOrderIndex',coli + 1);

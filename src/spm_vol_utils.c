@@ -309,7 +309,8 @@
 #include "spm_make_lookup.h"
 #include "spm_getdata.h"
 
-static void (*make_lookup)() = make_lookup_poly, (*make_lookup_grad)() = make_lookup_poly_grad;
+static void (*make_lookup)(double coord, int q, int dim, int *d1, double *table, double **ptpend) = make_lookup_poly;
+static void (*make_lookup_grad)(double coord, int q, int dim, int *d1, double *table, double *dtable, double **ptpend) = make_lookup_poly_grad;
 
 /* Zero order hold resampling - nearest neighbour */
 void RESAMPLE_0(m,vol,out,x,y,z,xdim,ydim,zdim,background, scale,offset)

@@ -15,7 +15,7 @@ sts = true;
 if nargin > 0
     d1 = cellstr(varargin{1});
     for i=1:numel(d1)
-        if ~exist(spm_select('cpath',d1{i}),'dir')
+        if ~exist(spm_file(d1{i},'cpath'),'dir')
             status = mkdir(d1{i});
             sts = sts & status;
         end

@@ -64,7 +64,7 @@ for k = 1:Nu
             %--------------------------------------------------------------
             dx = x - (x(i) + ds(1));
             ii = find(dx > 0,1);
-            if ii == 1,
+            if ii == 1
                 px = sparse(1,1,1,Nx,1);
             elseif isempty(ii)
                 px = sparse(Nx,1,1,Nx,1);
@@ -78,7 +78,7 @@ for k = 1:Nu
             %--------------------------------------------------------------
             dv = v - (v(j) + ds(2));
             ii = find(dv > 0,1);
-            if ii == 1,
+            if ii == 1
                 pv = sparse(1,1,1,Nx,1);
             elseif isempty(ii)
                 pv = sparse(Nx,1,1,Nx,1);
@@ -117,8 +117,8 @@ end
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Figure 1');clf
  
-[d i] = min(abs(x - X(2)));
-[d j] = min(abs(v - V(2)));
+[d,i] = min(abs(x - X(2)));
+[d,j] = min(abs(v - V(2)));
 j     = (j - 1)*Nx + i;
 s     = sparse(j,1,1,Ns,1);
 k     = [0 4 8];
@@ -139,8 +139,8 @@ spm_figure('GetWin','Figure 2');clf
  
 % first state (s)
 %--------------------------------------------------------------------------
-[d i] = min(abs(x - X(1)));
-[d j] = min(abs(v - V(1)));
+[d,i] = min(abs(x - X(1)));
+[d,j] = min(abs(v - V(1)));
 X(1)  = x(i);
 V(1)  = v(j);
 S     = sparse(i,j,1,Nx,Nx);
@@ -148,8 +148,8 @@ S     = sparse(i,j,1,Nx,Nx);
  
 % final state (c)
 %--------------------------------------------------------------------------
-[d i] = min(abs(x - X(T)));
-[d j] = min(abs(v - V(T)));
+[d,i] = min(abs(x - X(T)));
+[d,j] = min(abs(v - V(T)));
 X(T)  = x(i);
 V(T)  = v(j);
 C     = sparse(i,j,1,Nx,Nx);
@@ -175,7 +175,7 @@ MDP.plot   = 1;
 % set up state space graphically
 %--------------------------------------------------------------------------
 subplot(2,1,1)
-for i = 1:length(x);
+for i = 1:length(x)
     plot(x(i),v,'k','color',[1 1 1]/2), hold on
     axis([-2 2 -2 2])
 end
@@ -206,7 +206,7 @@ for k = 1:(T - 1)
     
     % current position
     %----------------------------------------------------------------------
-    [i j]     = find(reshape(S(:,k + 1),Nx,Nx));
+    [i,j]     = find(reshape(S(:,k + 1),Nx,Nx));
     Sx(k + 1) = x(i);
     Sv(k + 1) = v(j);
     

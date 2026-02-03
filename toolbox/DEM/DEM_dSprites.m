@@ -47,31 +47,31 @@ rng(1)
 %--------------------------------------------------------------------------
 dSprite{1} = [ ...
     0 0 0 0 0 0 0 0;
-    0 1 1 1 1 1 1 0;
-    0 1 1 1 1 1 1 0;
-    0 1 1 1 1 1 1 0;
-    0 1 1 1 1 1 1 0;
-    0 1 1 1 1 1 1 0;
-    0 1 1 1 1 1 1 0;
+    0 0 0 0 0 0 0 0;
+    0 0 1 1 1 1 0 0;
+    0 0 1 1 1 1 0 0;
+    0 0 1 1 1 1 0 0;
+    0 0 1 1 1 1 0 0;
+    0 0 0 0 0 0 0 0;
     0 0 0 0 0 0 0 0];
 
 dSprite{2} = [ ...
     0 0 0 0 0 0 0 0;
-    0 0 1 1 0 1 1 0;
-    0 1 1 1 1 1 1 1;
-    0 1 1 1 1 1 1 1;
-    0 0 1 1 1 1 1 0;
-    0 0 0 1 1 1 0 0;
-    0 0 0 0 1 0 0 0;
+    0 0 1 0 0 1 0 0;
+    0 1 1 1 1 1 1 0;
+    0 1 1 0 0 1 1 0;
+    0 0 1 1 1 1 0 0;
+    0 0 0 1 1 0 0 0;
+    0 0 0 0 0 0 0 0;
     0 0 0 0 0 0 0 0];
 
 dSprite{3} = [ ...
     0 0 0 0 0 0 0 0;
     0 0 1 1 1 1 0 0;
-    0 1 1 1 1 1 1 0;
-    1 1 1 1 1 1 1 1;
-    1 1 1 1 1 1 1 1;
-    0 1 1 1 1 1 1 0;
+    0 1 1 0 0 1 1 0;
+    1 1 1 0 0 1 1 1;
+    1 1 0 0 0 0 1 1;
+    0 1 1 0 0 1 1 0;
     0 0 1 1 1 1 0 0;
     0 0 0 0 0 0 0 0];
 
@@ -88,7 +88,7 @@ dSprite{3} = [ ...
 %--------------------------------------------------------------------------
 label.factor  = {'x','y','kind'};
 
-Nx    = 8;                          % number of pixels
+Nx    = 9;                          % number of pixels
 Nk    = numel(dSprite);             % number of dSprite kinds
 
 for i = 1:Nx, label.name{1}{i} = sprintf('x%i',i); end
@@ -161,10 +161,10 @@ end
 
 %  spatial targets for different kinds  of objects
 %--------------------------------------------------------------------------
-target{1} = [3,1]*Nx/4;
-target{2} = [3,3]*Nx/4;
-target{3} = [1,2]*Nx/4;
-precision = eye(2,2)/(Nx/4)^2;
+target{1} = 1 + [3,1]*(Nx - 1)/4;
+target{2} = 1 + [3,3]*(Nx - 1)/4;
+target{3} = 1 + [1,2]*(Nx - 1)/4;
+precision = eye(2,2)/((Nx - 1)/4)^2;
 
 % for every combination  of latent states, specify an outcome
 %--------------------------------------------------------------------------
@@ -204,7 +204,6 @@ for x = 1:Nf(1)
 end
 
 
-
 %% priors: (cost) C
 %--------------------------------------------------------------------------
 % Finally, specify the prior preferences in terms of log probabilities over
@@ -213,12 +212,10 @@ end
 % uninformative preferences over vision
 %--------------------------------------------------------------------------
 for g = 1:numel(A)
-    C{g} = zeros(1,size(A{g},1));
+    C{g} = ones(size(A{g},1),1);
 end
+C{end}   = spm_softmax([4; 0]); %%%%
 
-% with a preference for rewarding outcomes
-%--------------------------------------------------------------------------
-C{end}   = [128,0];
 
 % This concludes the ABC of the model; namely, the likelihood mapping,
 % prior transitions and preferences. Now, specify (uninformative) prior
@@ -235,26 +232,26 @@ U     = [1 1 0];                  % controlable factors
 
 % MDP Structure, specifying 64 epochs (i.e., 16 seconds of active vision)
 %==========================================================================
-mdp.T = 16;                       % numer of moves
-mdp.U = U;                        % controllable factors
-mdp.A = A;                        % likelihood probabilities
-mdp.B = B;                        % transition probabilities
-mdp.C = C;                        % prior preferences
-mdp.D = D;                        % prior over initial states
-mdp.E = E;                        % prior over initial paths
+MDP.T = 16;                       % numer of moves
+MDP.U = U;                        % controllable factors
+MDP.A = A;                        % likelihood probabilities
+MDP.B = B;                        % transition probabilities
+MDP.C = C;                        % prior preferences
+MDP.D = D;                        % prior over initial states
+MDP.E = E;                        % prior over initial paths
 
-mdp.label = label;
+MDP.label = label;
 
 % Solve an example with known (veridical) structure and parameters to
 % establish – and illustrate – optimal performance
 %==========================================================================
 disp('inverting generative model (c.f., active inference)'), disp(' ')
 
-% specify a trial, with initial conditions, s
+% specify a trial, with initial conditions (s)
 %--------------------------------------------------------------------------
 OPTIONS.N = 1;                    % simulate neuronal responses
-MDP   = mdp;
-MDP.s = [1,1,2];
+c     = (Nx - 1)/2;
+MDP.s = [c,c,2];
 MDP   = spm_MDP_VB_XXX(MDP,OPTIONS);
 
 
@@ -273,17 +270,37 @@ spm_MDP_VB_LFP(MDP(1),[],3);
 spm_figure('GetWin','optimal behaviour'); clf
 spm_report(MDP)
 
+% add dSprites to figure
+%--------------------------------------------------------------------------
+for i = 1:numel(dSprite)
+    subplot(6,numel(dSprite),9 + i)
+    imagesc(1 - dSprite{i}), title(sprintf('dSprite %i',i))
+    axis square
+end
 
 % Illustrate structure learning via assimilation of epochs of observations
 %==========================================================================
-mdp = spm_MDP_structure_learning(mdp);
 
+% Generate training sequence
+%--------------------------------------------------------------------------
+O     = spm_MDP_structure_teaching(MDP);
 
-% Illustrate mmotor babbling (motor learning)
+% Structure learning
+%--------------------------------------------------------------------------
+mdp     = spm_MDP_structure_learning([],O);
+
+% Illustrate motor learning
 %==========================================================================
-mdp = spm_MDP_motor_learning(mdp);
+mdp     = rmfield(mdp,'b');                % assume B has been learned
+mdp.A   = A;
+mdp.B   = B;
+mdp.C   = C;
 
-% active learning
+mdp.GU = U;
+mdp     = spm_MDP_motor_learning(mdp);
+mdp.U  = U; %%%
+
+% active learning (c.f., motor babbling)
 %==========================================================================
 % So far, only a small number of likelihood parameters have been learned.
 % We can now call upon the active learning aspect of active inference
@@ -298,26 +315,34 @@ spm_figure('GetWin','learning'); clf
 disp('inverting generative model (c.f., active inference)'), disp(' ')
 
 OPTIONS.A = 0;                             % suppress explicit action
+OPTIONS.B = 0;                             % suppress explicit action
 OPTIONS.N = 0;                             % suppress neuronal responses
 OPTIONS.G = 1;                             % suppress graphics
 
+% default priors
+%--------------------------------------------------------------------------
+[Nf,Ns,Nu] = spm_MDP_size(mdp);
 MDP   = mdp;
+for f = 1:Nf
+    MDP.D{f} = ones(Ns(f),1);              % initial state
+    MDP.E{f} = ones(Nu(f),1);              % initial control
+end
 MDP.T = 512;
 MDP.N = 0;
 for d = 1:numel(dSprite)
 
     % initial conditions for this object
     %----------------------------------------------------------------------
-    MDP.s = [1,1,d];
+    MDP.s    = [1,1,d];                    % initial state
 
     % active inference and learning
     %----------------------------------------------------------------------
     PDP   = spm_MDP_VB_XXX(MDP,OPTIONS);   % invert
-    MDP.a = PDP.a;                         % update likelihood parameters
+    MDP   = spm_MDP_VB_update(MDP,PDP,OPTIONS);  % update parameters
 
 
     % report graphically
-    %==================================================================
+    %======================================================================
     if OPTIONS.G
 
         spm_figure('GetWin','inference'); clf
@@ -327,17 +352,17 @@ for d = 1:numel(dSprite)
         spm_report(PDP)
 
         % illustrate learning over trials
-        %----------------------------------------------------------------------
+        %------------------------------------------------------------------
         spm_figure('GetWin','learning');
 
         subplot(4,1,1), plot(PDP.F)             % free energy (states)
         xlabel('trials'), ylabel('nats')
-        title('Variational free energy (ELBO: states)','FontSize',14)
+        title('Negative variational free energy (ELBO: states)','FontSize',14)
         set(gca,'XLim',[1 (MDP.T - 16)]), hold on
 
         subplot(4,1,2), plot(PDP.v)             % expected free energy
         xlabel('trials'), ylabel('nats')
-        title('Expected free energy','FontSize',14)
+        title('Negative expected free energy (expected information gain)','FontSize',14)
         set(gca,'XLim',[1 (MDP.T - 16)]), hold on
 
         subplot(4,1,3), plot(PDP.w)             % precision over policies
@@ -347,7 +372,7 @@ for d = 1:numel(dSprite)
 
 
         % reward outcomes
-        %----------------------------------------------------------------------
+        %------------------------------------------------------------------
         subplot(4,1,4), plot(conv(PDP.o(end,:) == 1, ones(32,1)/32,'same'))
         xlabel('trials'), ylabel('number')
         title('Performance (rewards)','FontSize',14)
@@ -426,7 +451,7 @@ end
 subplot(3,2,2)
 set(gca,'Userdata',{vision,16})
 set(gca,'ButtonDownFcn','spm_DEM_ButtonDownFcn')
-title('Percept','FontSize',14)
+title('Final percept','FontSize',14)
 
 % show likelihood mapping to reward
 %--------------------------------------------------------------------------
@@ -446,13 +471,13 @@ end
 %--------------------------------------------------------------------------
 for f = 1:Nf(3)
     if isfield(MDP,'a')
-        R = sum(MDP.a{end}(:,:,:,f),1);
+        R = sum(MDP.a{1}(:,:,:,f),1);
     else
-        R = sum(MDP.A{end}(:,:,:,f),1);
+        R = sum(MDP.A{1}(:,:,:,f),1);
     end
     R = squeeze(R(1,:,:));
     subplot(6,3,f + 3*3)
-    image(64*R/(MDP.T/prod(Nf(1:2))))
+    image(32*R/(MDP.T/prod(Nf(1:2))))
     axis image, title(sprintf('Dirichlet counts (%i)',f))
 end
 
@@ -497,15 +522,6 @@ for i = 1:256
 end
 L = spm_cat(L');
 K = spm_cat(K');
-
-
-%% routines that call XXX
-%--------------------------------------------------------------------------
-DEMO_MDP_maze_X
-DEM_surveillance
-DEM_dSprites
-DEM_syntax
-
 
 
 

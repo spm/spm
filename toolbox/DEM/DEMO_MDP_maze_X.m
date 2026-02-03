@@ -28,7 +28,7 @@ function MDP = DEMO_MDP_maze_X
 
 % set up and preliminaries: first level
 %--------------------------------------------------------------------------
-rng('default')
+rng(1)
 
 % generative model at the sensory level (DEM): continuous states
 %==========================================================================
@@ -104,11 +104,14 @@ U     = (1:nu)';
 % priors: (negative cost) C: does not like what shocks and wants to be near
 % the target location
 %--------------------------------------------------------------------------
-C{1}  = [2,-2];
+C{1}  = [1;-1]*2;
 [X,Y] = ind2sub(size(MAZE),END);
 for i = 1:No(2)
-    [x,y]   = ind2sub(size(MAZE),i);
-    C{2}(i) = -sqrt((x - X)^2 + (y -Y)^2);
+    [x,y]     = ind2sub(size(MAZE),i);
+    C{2}(i,1) = -sqrt((x - X)^2 + (y -Y)^2);
+end
+for g = 1:numel(C)
+    C{g} = spm_softmax(C{g}(:));
 end
 
 % basic MDP structure
@@ -122,7 +125,7 @@ mdp.C = C;                      % preferred outcomes
 mdp.D = D;                      % prior over initial states
 
 mdp.label = label;
-mdp       = spm_MDP_check(mdp);
+mdp       = spm_MDP_checkX(mdp);
 
 
 % illustrate shortest path to target with suitable policy depth
@@ -157,27 +160,14 @@ end
 spm_figure('GetWin','Figure 5'); clf
 spm_MDP_VB_LFP(MDP); subplot(3,2,5); delete(gca)
 
-%% evidence accumulation under task set: 
-% removing knowledge about safe locations
-%==========================================================================
-clear MDP
-mdp.a{1}   = ones(size(mdp.A{1}));
-mdp.a{2}   = mdp.A{2}*128;
-[MDP(1:5)] = deal(mdp);
-MDP = spm_MDP_VB_XXX(MDP);
-
-spm_figure('GetWin','Figure 6'); clf
-spm_maze_plot(MDP,END)
-
 
 %% pure exploration
-% removing preferences about proximity to target location
+% removing preferences about proximity to target location (and shocks)
 %==========================================================================
-rng(1)
 clear MDP
 mdp.a{1}  = ones(size(mdp.A{1}));
-mdp.a{2}  = mdp.A{2}*128;
-mdp.C{2}  = spm_zeros(C{2});
+mdp.a{2}  = mdp.A{2}*512;
+mdp.C     = spm_zeros(C);
 mdp.s     = START;
 mdp.D     = D;
 mdp.T     = 128;
@@ -189,7 +179,7 @@ MDP       = spm_MDP_VB_XXX(mdp);
 
 % show results - behavioural
 %--------------------------------------------------------------------------
-spm_figure('GetWin','Figure 7'); clf
+spm_figure('GetWin','Figure 6'); clf
 spm_maze_plot(MDP)
 
 return

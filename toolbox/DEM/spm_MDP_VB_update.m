@@ -6,10 +6,9 @@ function [MDP] = spm_MDP_VB_update(MDP,PDP,OPTIONS)
 % PDP  - MDP structure (after exposure)
 %
 % OPTIONS.d   - update of initial states of hidden factors d [default: []]
-% OPTIONS.eta - forgetting rate [default: 1]
 % OPTIONS.BMR - Bayesian model reduction options:
 %
-% BMR.g - Bayesian model reduction of modality g [default: 1]
+% BMR.g - Bayesian model reduction of modality g [default: all]
 % BMR.f - hidden factors to contract over [default: 0]
 % BMR.o - outcomes - that induce REM [default: {}]
 % BMR.T - Occams threshold [default: 2]
@@ -44,8 +43,7 @@ function [MDP] = spm_MDP_VB_update(MDP,PDP,OPTIONS)
 
 % defaults
 %--------------------------------------------------------------------------
-try, OPTIONS.d;   catch, OPTIONS.d   = []; end
-try, OPTIONS.eta; catch, OPTIONS.eta = 1;  end
+try OPTIONS.d; catch, OPTIONS.d = []; end
 
 % deal with multiple agents
 %==========================================================================
@@ -56,7 +54,7 @@ if numel(MDP) > 1
     return
 end
 
-% update initial states (post-diction)
+% update initial states (Bayesian belief updating)
 %==========================================================================
 for f = OPTIONS.d
     MDP.D{f} = PDP.X{f}(:,end);
@@ -69,19 +67,27 @@ if isfield(OPTIONS,'BMR')
     % BMR options
     %----------------------------------------------------------------------
     BMR = OPTIONS.BMR;
-    try, BMR.g; catch, BMR.g = 1;  end       % outcome modality
-    try, BMR.f; catch, BMR.f = 0;  end       % factors to contract over
-    try, BMR.o; catch, BMR.o = {}; end       % outcomes for empirical BMS
-    try, BMR.T; catch, BMR.T = 2;  end       % outcomes for empirical BMS
+    try BMR.g; catch, BMR.g = 0;  end       % outcome modality
+    try BMR.f; catch, BMR.f = 0;  end       % factors to contract over
+    try BMR.o; catch, BMR.o = {}; end       % outcomes for empirical BMS
+    try BMR.T; catch, BMR.T = 0;  end       % outcomes for empirical BMS
+
+    % default: all modalities
+    %----------------------------------------------------------------------
+    if ~BMR.g, BMR.g = 1:numel(MDP.a); end
 
     % Baysian model reduction - likelihood parameters
     %----------------------------------------------------------------------
     for g = BMR.g
         
-        % structue learning with BMR
+        % structure learning with BMR
         %==================================================================
-        [qa,pa] = spm_MDP_VB_prune(PDP.a{g},MDP.a{g},BMR.f,BMR.T,MDP.C{g});
-                
+        try
+            [qa,pa] = spm_MDP_VB_prune(PDP.a{g},MDP.a{g},BMR.f,BMR.T,MDP.C{g});
+        catch
+            [qa,pa] = spm_MDP_VB_prune(PDP.a{g},MDP.a{g},BMR.f,BMR.T);
+        end
+
         % Dirichlet accumulation under reduced model and outcomes
         % (c.f., consolidation during rapid eye movement sleep)
         %==================================================================
@@ -91,9 +97,9 @@ if isfield(OPTIONS,'BMR')
             % remove previous experience
             %--------------------------------------------------------------
             REM      = MDP;
-            try, REM = rmfield(REM,'s'); end
-            try, REM = rmfield(REM,'o'); end
-            try, REM = rmfield(REM,'u'); end
+            try REM = rmfield(REM,'s'); end
+            try REM = rmfield(REM,'o'); end
+            try REM = rmfield(REM,'u'); end
             
             % and install a generative process and reset priors
             %--------------------------------------------------------------
@@ -106,7 +112,7 @@ if isfield(OPTIONS,'BMR')
             
             % Bayesian belief updating: posteriors and priors
             %--------------------------------------------------------------
-            REM       = spm_MDP_VB_XX(REM);
+            REM       = spm_MDP_VB_XXX(REM);
             PDP.a     = REM(N).a;
             
         else
@@ -122,45 +128,25 @@ end
 % update Dirichlet parameters: move Dirichlet parameters from PDP to MDP
 %==========================================================================
 
-% forgetting parameter – eta
-%--------------------------------------------------------------------------
-eta = OPTIONS.eta;
-
 % likelihood Dirichlet parameters
 %--------------------------------------------------------------------------
 if isfield(MDP,'a')
-    for g = 1:numel(MDP.a)
-        N = sum(MDP.a{g}(:));
-        MDP.a{g} = PDP.a{g}*(N + eta*MDP.T)/(N + MDP.T);
-    end
+    MDP.a  = PDP.a;
 end
 
 % check for remaining concentration parameters at this level
 %--------------------------------------------------------------------------
-try,  MDP.b = PDP.b; end
-try,  MDP.c = PDP.c; end
-try,  MDP.d = PDP.d; end
-try,  MDP.e = PDP.e; end
+try  MDP.b = PDP.b; end
+try  MDP.c = PDP.c; end
+try  MDP.d = PDP.d; end
+try  MDP.e = PDP.e; end
 
 % check for concentration parameters at nested levels
 %--------------------------------------------------------------------------
-try,  MDP.MDP(1).a = PDP.mdp(end).a; end
-try,  MDP.MDP(1).b = PDP.mdp(end).b; end
-try,  MDP.MDP(1).c = PDP.mdp(end).c; end
-try,  MDP.MDP(1).d = PDP.mdp(end).d; end
-try,  MDP.MDP(1).e = PDP.mdp(end).e; end
+try  MDP.MDP(1).a = PDP.mdp(end).a; end
+try  MDP.MDP(1).b = PDP.mdp(end).b; end
+try  MDP.MDP(1).c = PDP.mdp(end).c; end
+try  MDP.MDP(1).d = PDP.mdp(end).d; end
+try  MDP.MDP(1).e = PDP.mdp(end).e; end
 
 return
-
-
-function A  = spm_log(A)
-% log of numeric array plus a small constant
-%--------------------------------------------------------------------------
-A           = log(A);
-A(isinf(A)) = -32;
-
-function A  = spm_norm(A)
-% normalisation of a probability transition matrix (columns)
-%--------------------------------------------------------------------------
-A           = bsxfun(@rdivide,A,sum(A,1));
-A(isnan(A)) = 1/size(A,1);

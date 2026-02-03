@@ -179,7 +179,7 @@ switch method
  
             % get high-order derivatives
             %--------------------------------------------------------------
-            [Dv D] = spm_diff('spm_DEM_eval_diff',x,v,qp,M,2);
+            [Dv,D] = spm_diff('spm_DEM_eval_diff',x,v,qp,M,2);
             
             for i = 1:nv, Dv{i} = spm_unvec(Dv{i},D); end
             D.x   = x;
@@ -272,8 +272,8 @@ switch method
  
             % get high-order derivatives
             %--------------------------------------------------------------
-            [Dx D] = spm_diff('spm_DEM_eval_diff',x,v,qp,M,1,'q');
-            [Dv D] = spm_diff('spm_DEM_eval_diff',x,v,qp,M,2,'q');
+            [Dx,D] = spm_diff('spm_DEM_eval_diff',x,v,qp,M,1,'q');
+            [Dv,D] = spm_diff('spm_DEM_eval_diff',x,v,qp,M,2,'q');
             
             for i = 1:nx, Dx{i} = spm_unvec(Dx{i},D); end
             for i = 1:nv, Dv{i} = spm_unvec(Dv{i},D); end
@@ -449,7 +449,7 @@ switch method
         
     otherwise
         disp('Unknown method')
- 
+        
 end
  
 

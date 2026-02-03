@@ -385,10 +385,10 @@ for k = 1:M.Nmax
         end
     end
     
-    % convergence failure
+    % convergence failure: try IS(Ep,M,U)
     %----------------------------------------------------------------------
     if revert
-        error('SPM:spm_nlsi_GN','Convergence failure.');
+        error('SPM:spm_nlsi_GN','Convergence failure');
     end
     
     
@@ -495,7 +495,7 @@ for k = 1:M.Nmax
     
     % objective function: F(p) = log evidence - divergence
     %----------------------------------------------------------------------
-    L(1) = spm_logdet(iS, true)*nq/2  - real(e'*iS*e)/2 - ny*log(8*atan(1))/2;
+    L(1) = spm_logdet(iS)*nq/2  - real(e'*iS*e)/2 - ny*log(8*atan(1))/2;
     L(2) = spm_logdet(ipC*Cp)/2 - p'*ipC*p/2;
     L(3) = spm_logdet(ihC*Ch)/2 - d'*ihC*d/2;
     F    = sum(L);
@@ -587,24 +587,24 @@ for k = 1:M.Nmax
         tstr = sprintf('%s: %i','prediction and response: E-Step',k);
         if isreal(spm_vec(y))
             
-            subplot(2,1,1)
-            plot(x,real(f)), hold on
+            subplot(2,1,1), set(gca,'ColorOrderIndex',1)
+            plot(x,real(f)), hold on, set(gca,'ColorOrderIndex',1)
             plot(x,real(f + e),':'), hold off
             xlabel(xLab)
             title(tstr,'FontSize',16)
             grid on
             
         else
-            subplot(2,2,1)
-            plot(x,real(f)), hold on
+            subplot(2,2,1), set(gca,'ColorOrderIndex',1)
+            plot(x,real(f)), hold on, set(gca,'ColorOrderIndex',1)
             plot(x,real(f + e),':'), hold off
             xlabel(xLab)
             ylabel('real')
             title(tstr,'FontSize',16)
             grid on
             
-            subplot(2,2,2)
-            plot(x,imag(f)), hold on
+            subplot(2,2,2), set(gca,'ColorOrderIndex',1)
+            plot(x,imag(f)), hold on, set(gca,'ColorOrderIndex',1)
             plot(x,imag(f + e),':'), hold off
             xlabel(xLab)
             ylabel('imaginary')

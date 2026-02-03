@@ -1,0 +1,359 @@
+function [MDP,hid,cid,con,RGB,nP] = spm_MDP_pong(Nr,Nc,Nd,Na,Np)
+% Creates an MDP structure for a simple game of Pong
+% FORMAT [MDP,hid,cid,con,RGB,nP] = spm_MDP_pong(Nr,Nc,Nd,Na,Np)
+%--------------------------------------------------------------------------
+% Nr    - number of rows
+% Nc    - number of columns
+% Nd    - number of initial states [default: 1]
+% Na    - returns rewards, costs and action
+% Np    - number of distractor pixels
+%
+% hid   - Hidden states corresponding to hits
+% cid   - Hidden states corresponding to misses
+% con   - output modalities reporting control
+% RGB   - display structure
+%
+% outcomes(1) - ball
+% outcomes(2) - bat (right)
+% outcomes(3) - bat (centre)
+% outcomes(4) - bat (left)
+% outcomes(5) - background
+%__________________________________________________________________________
+
+% Karl Friston
+% Copyright (C) 2022-2023 Wellcome Centre for Human Neuroimaging
+
+% defaults
+%--------------------------------------------------------------------------
+if nargin < 3, Nd = 1; end
+if nargin < 4, Na = 0; end
+if nargin < 5, Np = 0; end
+
+% hid   - Hidden states corresponding to hits
+%--------------------------------------------------------------------------
+Ng    = Nr*Nc;                           % number of locations
+Ns    = 4098;                            % maximum number of hidden states
+for g = 1:Ng                             % default likelihood mapping
+    A{g}        = false(5,Ns,Nc);
+    A{g}(5,:,:) = true;                  % background (5)
+end
+B{1}  = false(Ns,Ns);                    % transition matrices
+
+% Likelihood and transition tensors
+%--------------------------------------------------------------------------
+S     = zeros(Ng,4);
+i     = 2;                               % Initial location (horizontal)
+j     = 2;                               % Initial location (vertical)
+p     = 1;                               % Momentum (horizontal)
+q     = 1;                               % Momentum (vertical)
+for s = 1:Ns
+
+    % Check whether this state has been previously visited
+    %----------------------------------------------------------------------
+    r      = [i,j,p,q];
+    k      = ismember(S,r,'rows');
+    if any(k)
+        r  = find(k);
+        s  = s - 1;
+
+        B{1}(s + 1,s,1) = false;
+        B{1}(r,s,1)     = true;
+        B{1}(r,s,1)     = true;
+        B{1}  = B{1}(1:s,1:s);
+        for g = 1:Ng
+            A{g} = A{g}(:,1:s,:);
+        end
+        break
+    else
+        S(s,:) = r;
+    end
+
+    % Index of latent state
+    %----------------------------------------------------------------------
+    n  = sub2ind([Nr,Nc],i,j);
+
+    A{n}(:,s,:)      = false;
+    A{n}(1,s,:)      = true;                    % Ball (1)
+    B{1}(s + 1,s,1)  = true;
+
+    % uncomment to show orbit
+    %----------------------------------------------------------------------
+    % subplot(2,1,1)
+    % plot(j,i,'o'), hold on
+    % axis([1 Nc 1 Nr])
+    % axis image, drawnow
+
+    % Boundary conditions (switch momentum)
+    %----------------------------------------------------------------------
+    if ismember(i,[1,Nr]), p = -p; end
+    if ismember(j,[1,Nc]), q = -q; end
+    i  = i + p;
+    j  = j + q;
+
+end
+Ns    = size(B{1},2);
+B{1}  = B{1}(1:Ns,1:Ns);
+for g = 1:Ng
+    A{g} = A{g}(:,1:Ns,:);
+end
+
+% paddle (three actions)
+%--------------------------------------------------------------------------
+Nu    = 3;
+B{2}  = false(Nc,Nc,Nu);
+for u = 1:Nu
+    B{2}(:,:,u) = logical(spm_speye(Nc,Nc,u - 2,2));
+end
+
+% Add paddle to likelihood mapping (observations)
+%--------------------------------------------------------------------------
+for s = 1:Nc
+
+    % paddle right (2)
+    %----------------------------------------------------------------------
+    if s > 1
+        n = sub2ind([Nr,Nc],1,s - 1);
+        A{n}(:,:,s) = false;
+        A{n}(2,:,s) = true;
+    end
+
+    % paddle centre (3)
+    %----------------------------------------------------------------------
+    n = sub2ind([Nr,Nc],1,s);
+    A{n}(:,:,s)     = false;
+    A{n}(3,:,s)     = true;
+
+    % paddle left (4)
+    %----------------------------------------------------------------------
+    if s < Nc
+        n = sub2ind([Nr,Nc],1,s + 1);
+        A{n}(:,:,s) = false;
+        A{n}(4,:,s) = true;
+    end
+end
+
+% control modalities (first row)
+%--------------------------------------------------------------------------
+for s = 1:Nc
+    con(s) = sub2ind([Nr,Nc],1,s);
+end
+
+% latent states corresponding to hits and misses
+%--------------------------------------------------------------------------
+hid    = [];
+cid    = [];
+for s1 = 1:size(B{1},1)
+    for s2 = 1:size(B{2},1)
+
+        % misses
+        %------------------------------------------------------------------
+        if S(s1,1) == 1 && s2 ~= S(s1,2)
+            cid(:,end + 1) = [s1;s2];
+        end
+
+        % And record latent states corresponding to hits
+        %------------------------------------------------------------------
+        if S(s1,1) == 1 && s2 == S(s1,2)
+            hid(:,end + 1) = [s1;s2];
+        end
+
+    end
+end
+
+
+% expose rewards, cost and action to outcomes
+%==========================================================================
+for g = 1:numel(A)
+    id.A{g} = [1,2];                       % states of ball and bat
+end
+if Na
+    
+    % hits
+    %----------------------------------------------------------------------
+    a        = false(2,size(B{1},1),size(B{2},1));
+    a(1,:,:) = true;
+    for s = 1:size(hid,2)
+        a(1,hid(1,s),hid(2,s)) = false;
+        a(2,hid(1,s),hid(2,s)) = true;
+    end
+    A{end + 1}    = a;
+    id.A{end + 1} = [1,2];
+    id.reward     = numel(A);
+
+    % and misses
+    %----------------------------------------------------------------------
+    a        = false(2,size(B{1},1),size(B{2},1));
+    a(1,:,:) = true;
+    for s = 1:size(cid,2)
+        a(1,cid(1,s),cid(2,s)) = false;
+        a(2,cid(1,s),cid(2,s)) = true;
+    end
+    A{end + 1}    = a;
+    id.A{end + 1} = [1,2];
+    id.contraint  = numel(A);
+
+    % and proprioception
+    %----------------------------------------------------------------------
+    if true
+
+        A{end + 1}    = eye(Nc,Nc);
+        id.A{end + 1} = 2;
+        id.control    = numel(A);
+
+    else
+
+        % and proprioception with action (velocity)
+        %------------------------------------------------------------------
+        b = zeros(Nu,Nu,Nu);
+        for u = 1:Nu
+            b(u,:,u)  = 1;
+            Bu(:,:,u) = kron(B{2}(:,:,u),b(:,:,u));
+        end
+        B{2} = Bu;
+
+        % augment likelihoods
+        %------------------------------------------------------------------
+        for g = 1:numel(A)
+            d = size(A{g},[1 2 3]);
+            a = false(d(1),d(2),d(3)*Nu);
+            for d = 1:d(2)
+                a(:,d,:) = kron(squeeze(A{g}(:,d,:)),ones(1,Nu));
+            end
+            A{g} = logical(a);
+        end
+
+        % just velocity
+        %--------------------------------------------------------------
+        a = kron(ones(1,Nc),eye(Nu,Nu));
+
+        % position and velocity
+        %--------------------------------------------------------------
+        % a = eye(Nc*Nu,Nc*Nu);
+
+        % position
+        %--------------------------------------------------------------
+        % a = kron(eye(Nc,Nc),ones(1,Nu));
+
+        A{end + 1}    = logical(a);
+        id.A{end + 1} = 2;
+        id.control    = numel(A);
+    end
+
+end
+
+% Add random pixels
+%--------------------------------------------------------------------------
+for i = 1:Np
+    j     = ceil(rand*(Nc*Nr));
+    while ismember(j,con)
+        j = ceil(rand*(Nc*Nr));
+    end
+    A{j}       = logical(full(spm_speye(5,3)));
+    B{end + 1} = full(spm_speye(3,3,-1,1) + 1);
+    id.A{j}    = numel(B);
+    nP(i)      = j;
+end
+B     = spm_dir_norm(B);
+
+
+% Enumerate the states and paths of the ensuing generative model
+%--------------------------------------------------------------------------
+Nf    = numel(B);                         % number of hidden factors
+Ng    = numel(A);                         % number of outcome modalities
+for f = 1:Nf
+    Ns(f) = size(B{f},1);
+    Nu(f) = size(B{f},3);
+end
+for g = 1:Ng
+    No(g) = size(A{g},1);
+end
+
+% priors: (cost) C
+%--------------------------------------------------------------------------
+for g = 1:Ng
+    C{g} = spm_softmax(ones(No(g),1));
+end
+
+% This concludes the ABC of the model; namely, the likelihood mapping,
+% prior transitions and preferences. Now, specify prior beliefs about
+% initial states (D) and paths through those states (E)
+%--------------------------------------------------------------------------
+for f = 1:Nf
+    d    = min(Ns(f),Nd);
+    D{f} = sparse(1:d,1,1,Ns(f),1)/d;     % Initial states
+    E{f} = sparse(1,  1,1,Nu(f),1);       % First path
+    H{f} = [];                            % No intentions at this stage
+end
+
+
+
+% specify controllable factors; here, the second factor
+%--------------------------------------------------------------------------
+U     = zeros(1,numel(B));
+U(2)  = true;
+
+% Assemble MDP structure, with generative process
+%==========================================================================
+MDP.T = 8;                            % numer of moves
+MDP.U = U;                            % controllable factors
+MDP.A = A;                            % likelihood probabilities
+MDP.B = B;                            % transition probabilities
+MDP.C = C;                            % prior preferences
+MDP.D = D;                            % prior over initial states
+MDP.H = H;                            % prior over final states
+MDP.E = E;                            % prior over initial paths
+MDP.N = 0;                            % planning depth
+
+MDP.id = id;                          % edges
+
+% RGB structure
+%==========================================================================
+% outcomes(1) - ball
+% outcomes(2) - bat (right)
+% outcomes(3) - bat (centre)
+% outcomes(4) - bat (left)
+% outcomes(5) - background
+
+%--------------------------------------------------------------------------
+n     = 8;
+RGB.N = [3 Nr*n Nc*n];                % image size
+
+ball  = imread('baseball.png');
+batt  = imread('bat.png');
+back  = zeros(size(ball));
+batl  = batt(1:32,1:32,:);
+batc  = batt(1:32,(1:2) + 32,:);
+batr  = batt(1:32,(1:32) + 32,:);
+
+img   = {ball,batl,batc,batr,back};
+for i = 1:numel(img)
+    img{i} = imresize(img{i},[n,n]);
+    V(:,i) = spm_vec(permute(img{i},[3,1,2]));
+end
+
+I      = cell(Nr,Nc);
+[I{:}] = deal(zeros([n n]));
+for i  = 1:Nr
+    for j = 1:Nc
+
+       % find indices of RGB image patches
+       %-------------------------------------------------------------------
+       k      = I;
+       k{i,j} = k{i,j} + 1;
+       k      = spm_cat(k);
+       k      = spm_cross(k,ones(1,3));
+       k      = permute(k,[3 1 2]);
+       k      = find(k(:));
+
+       RGB.G{i,j} = k(:);              % cell array of indices
+       RGB.V{i,j} = V;                 % basis functions
+       
+    end
+end
+
+return
+
+% check scheme
+%==========================================================================
+% imshow(spm_O2rgb(O,RGB))
+
