@@ -27,12 +27,6 @@ function vdm_pha = spm_est_vdm_from_phase(vol1, vol1_mean, vol1_pha, total_reado
 % Copyright (C) 2025 Department of Imaging Neuroscience, UCL
 %==========================================================================
 
-mritools_dir = fullfile(spm('Dir'),'external', 'mritools');
-romeo_bin = fullfile(mritools_dir,'bin', 'romeo') ;
-if ~exist(romeo_bin, 'file')
-    download_mritools(mritools_dir, '4.7.1')
-end
-
 if numel(vol1(:,1))~=numel(vol1_pha(:,1))
     error('You need the same nr of same PE direction phase volumes as magnitude volumes')
 end
@@ -75,12 +69,10 @@ Nio.dat(:,:,:,:) = Nii_pha;
 
 pha_file = oname;
 
-% fix for unix library conflict for ROMEO phase unwrapping
-if isunix; paths = getenv('LD_LIBRARY_PATH'); setenv('LD_LIBRARY_PATH'); end
 % calling ROMEO phase unwrapping
-system(sprintf('%s -p %s -m %s -o %s -t epi -v -i -g -k nomask', romeo_bin,pha_file,mag_file, outdir));
-% returning to default MATLAB library environment:
-if isunix; setenv('LD_LIBRARY_PATH', paths); end
+ROMEO_command = sprintf('unwrapping_main(["-p", "%s", "-m", "%s", "-o", "%s", "-t", "epi", "-v", "-i", "-g", "-k", "nomask"])', pha_file, mag_file, outdir);
+spm_julia('run', ROMEO_command, 'ROMEO','ArgParse', 'MriResearchTools')
+
 
 pha_unwr = nifti(fullfile(outdir, 'unwrapped.nii')).dat(:,:,:,:) ;
 pha_unwr = mean(pha_unwr,4) ;
@@ -93,98 +85,4 @@ vdm_pha = pha_unwr*total_readout_time/(2*pi*TE)*PE_dir ;
 vdm_pha = spm_smooth_extrap(vdm_pha, mask) ;
 
 
-end
-
-%% ===========================================================================
-function download_mritools(outdir, version_tag)
-% download_mritools  Download the correct OS-specific mritools binary
-% from the GitHub release of CompileMRI.jl.
-%
-% Usage:
-%       download_mritools('/my/download/path', '1.2.3')
-% Inputs:
-%   outdir      - target directory where to download and extract the files
-%   version_tag - version tag of CompileMRI.jl release (e.g. '1.2.3')
-%
-% Note: this function requires an internet connection.
-%==========================================================================
-
-% Generate pop-up warning stating that mritools are being downloaded
-% and allowing the user to cancel the download if desired.
-choice = questdlg([ ...
-    'The mritools (ROMEO) binary required for phase unwrapping was not found on your system.' newline newline ...
-    'On first use, the required binary will be automatically downloaded from the official CompileMRI.jl GitHub releases:' newline ...
-    'https://github.com/korbinian90/CompileMRI.jl/releases' newline newline ...
-    'An active internet connection is required.' newline newline ...
-    'Do you want to proceed with the download?' ], ...
-    'Download mritools (ROMEO)?', ...
-    'Yes', 'No', 'No');
- 
-if strcmp(choice, 'No')
-    error('mritools (ROMEO) download cancelled by the user');
-end
-
-if ~exist(outdir, 'dir'); mkdir(outdir); end
-
-%% ============================================
-%  Detect OS and derive release-year identifier
-% ============================================
-if ispc
-    % Windows Server year detection — approximate using build number
-    v = System.Environment.OSVersion.Version.Build ;
-    WinYr = 2019 + (v >= 19041) * 3 + (v >= 22000) * 3;
-    WinYr = min(WinYr, 2025);   % cap at latest supported
-    assetKey = sprintf('mritools_windows-%d', WinYr);
-
-elseif ismac
-    % macOS version: e.g. 14.4 → major=14
-    [~, verStr] = system('sw_vers -productVersion');
-    parts = regexp(verStr, '(\d+)\.(\d+)', 'tokens', 'once');
-    major = str2double(parts{1});
-    major = max(major, 13) ; %assets only for 13+
-    assetKey = sprintf('mritools_macOS-%d', major);
-
-elseif isunix
-    [~, distro] = system('lsb_release -d');
-    tok = regexp(distro, 'Ubuntu\s+(\d+)', 'tokens', 'once');
-
-    if isempty(tok)
-        warning('Non-Ubuntu Linux detected; only Ubuntu assets exist hence these taken.');
-        uYr = 22 ;
-    else
-        uYr = str2double(tok{1});
-        uYr = 24 - 2 * (uYr < 24);   % map <24 → 22, else 24
-    end
-    assetKey = sprintf('mritools_ubuntu-%d.04', uYr);
-
-else
-    error('Unknown or unsupported operating system.');
-end
-
-fprintf('mritools (ROMEO) asset key: %s\n', assetKey);
-
-%% ============================================
-% Retrieve release page HTML
-% ============================================
-if ispc
-    extension = 'zip' ;
-else
-    extension = 'tar.gz' ;
-end
-
-URL = sprintf('https://github.com/korbinian90/CompileMRI.jl/releases/download/v%s/%s_%s.%s',version_tag, assetKey, version_tag, extension);
-fprintf('Downloading ROMEO binary from %s \n',URL)
-file_compressed = websave(sprintf('%s.%s',outdir, extension), URL);
-if ispc
-    unzip(file_compressed,outdir);
-else
-    file_tar = char(gunzip(file_compressed));
-    untar(file_tar,outdir);
-    movefile(fullfile(outdir,sprintf('%s_%s',assetKey, version_tag),'*'), outdir)
-    rmdir(fullfile(outdir,sprintf('%s_%s',assetKey, version_tag)))
-    delete(file_tar)
-end
-delete(file_compressed)
-
-fprintf('mritools download complete.\n');
 end
