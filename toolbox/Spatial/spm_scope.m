@@ -98,7 +98,7 @@ end
 
 %-Estimate noise level
 %--------------------------------------------------------------------------
-sd   = spm_noise_estimate(strvcat(vol1, vol2)); % Rice mixture model to estimate image noise
+sd   = spm_noise_estimate(strvcat(vol1_mean, vol2_mean)); % Rice mixture model to estimate image noise
 
 
 %-Load volumes (mess about with extra stuff to deal with 4D files)
@@ -116,7 +116,7 @@ rescale2 = mean(f2_0(:));
 f1_0 = f1_0/rescale1;
 f2_0 = f2_0/rescale2;
 sd   = [sd(1)/rescale1 sd(2)/rescale2];  % Rescale the standard deviations
-sig2 = sum(sd.^2);                       % Variance of difference is sum of variances
+sig2 = double(sum(sd.^2));               % Variance of difference is sum of variances
 
 
 ord  = [0 rinterp 0  0 0 0];
