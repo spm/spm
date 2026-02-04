@@ -273,10 +273,13 @@ function out = spm_run_scope(cmd, job)
 
 switch lower(cmd)
     case 'run'        
-        if isfield(job.vdm_prior_select, 'VDMprior')
+        if isfield(job.vdm_prior_select, 'no_vdm_prior')
+            vdm               = spm_scope(job.vol1,job.vol2, job.fwhm,job.reg, ...
+                                      job.rinterp,job.jac,job.prefix,job.outdir{1});
+        elseif isfield(job.vdm_prior_select, 'VDMprior')
             vdm               = spm_scope(job.vol1,job.vol2, job.fwhm,job.reg, ...
                                       job.rinterp,job.jac,job.prefix,job.outdir{1}, job.vdm_prior_select.VDMprior);
-        elseif isfield(job.vdm_prior_select.pha_branch, 'vol1_pha')
+        elseif isfield(job.vdm_prior_select, 'pha_branch')
             vdm               = spm_scope(job.vol1,job.vol2, job.fwhm,job.reg, ...
                                       job.rinterp,job.jac,job.prefix,job.outdir{1}, [],job.vdm_prior_select.pha_branch.vol1_pha, job.vdm_prior_select.pha_branch.t_readout, job.vdm_prior_select.pha_branch.TE, job.vdm_prior_select.pha_branch.PE_dir);
         end
