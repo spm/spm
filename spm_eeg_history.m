@@ -184,6 +184,8 @@ for i=1:numel(h)
                 hh{i} = ['Baseline correction ' mat2str(h(i).args.time(:)') ' ms'];
             elseif isfield(h(i).args, 'timewin')
                 hh{i} = ['Baseline correction ' mat2str(h(i).args.timewin(:)') ' ms'];
+            else
+                hh{i} = 'Baseline correction (default)';
             end
         case 'spm_eeg_copy'   
             hh{i} = 'Copy dataset';
