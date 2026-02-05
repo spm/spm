@@ -366,13 +366,13 @@ for it = 1:nit
     % the Hessian is only an approximation, but it is positive definite.
     At = spdiags(double(gf1(:).*(1+Gu(:))+gf2(:).*(1-Gu(:))),0,numel(u),numel(u)) ...
          - double(wf1(:)+wf2(:))'.*G;         % A'
-    g   = full(At*double(b(:)))/sig2 + Lu(:); % A'*b + L*u
+    g   = double(full(At*double(b(:)))/sig2 + Lu(:)); % A'*b + L*u
 
     % H(i,i) (the diagonal) matches the true Hessian
     % H(i,i+1) & H(i,i-1) do not match
     % H(i,i+2) & H(i,i-2) match the true Hessian
     % H(i,(i+3):end) &  H(i,1:(i-3)) match and are all zero
-    H   = (At*At')/sig2;
+    H   = (At*At')/double(sig2);
     H   = H + L;          % A'*A + L
 
     do_display(wf1,wf2,u,Gu,g,FG,fwhm,it);
