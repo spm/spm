@@ -123,7 +123,7 @@ defaults.unwarp.estimate.noi      = 5;
 defaults.unwarp.estimate.expround = 'Average';
 
 % Unwarp mostly uses defaults.realign.write defaults for writing.
-defaults.unwarp.write.jm          = 1;
+defaults.unwarp.write.jm          = 0;
 
 % Coregistration defaults
 %==========================================================================
