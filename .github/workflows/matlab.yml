@@ -8,12 +8,34 @@ on:
     - cron: '15 3 * * *'
     - cron: '40 16 * * 3'
 jobs:
+  configure:
+    name: Configure test matrix (PR uses limited MATLAB versions)
+    runs-on: ubuntu-latest
+    outputs:
+      versions: ${{ steps.config.outputs.versions }}
+      is-pr: ${{ steps.config.outputs.is-pr }}
+    steps:
+      - name: Determine test configuration
+        id: config
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            echo "is-pr=true" >> $GITHUB_OUTPUT
+            echo 'versions=["R2020a","latest"]' >> $GITHUB_OUTPUT
+          else
+            echo "is-pr=false" >> $GITHUB_OUTPUT
+            echo 'versions=["R2020a","R2020b","R2021a","R2021b","R2022a","R2022b","R2023a","R2023b","R2024a","R2024b","R2025a", "latest"]' >> $GITHUB_OUTPUT
+          fi
+
   matlab-tests:
     name: Run MATLAB Tests
+    needs: configure
     strategy:
       fail-fast: false
       matrix:
-        version: ["R2020a", "R2020b", "R2021a", "R2021b", "R2022a", "R2022b", "R2023a", "R2023b", "R2024a", "R2024b", "R2025a"]
+        version: ${{ fromJson(needs.configure.outputs.versions) }}
         os: ["ubuntu-latest", "macos-15-intel", "macos-latest", "windows-latest"] # macos-15-intel has Intel architecture, macos-latest has Apple Silicon
         exclude:
           - os: windows-latest
@@ -41,14 +63,13 @@ jobs:
     runs-on: ${{matrix.os}}
     env:
       cache-key: tests-data2
-      HAS_TOKEN: ${{ secrets.TESTS_DATA_REPO_TOKEN != '' && 'true' || 'false' }}
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
-      
+
       - name: Get latest commit for tests data  # shallow fetch to get revision
         id: checkout-tests-data
-        if: ${{ env.HAS_TOKEN == 'true' }}
+        if: ${{ needs.configure.outputs.is-pr == 'false' }}
         uses: actions/checkout@v4
         with:
           repository: spm/spm-tests-data
@@ -57,10 +78,10 @@ jobs:
           fetch-depth: 1
           lfs: false
       - name: Remove shallow-checked-out repo
-        if: ${{ env.HAS_TOKEN == 'true' }}
+        if: ${{ needs.configure.outputs.is-pr == 'false' }}
         shell: bash
         run: rm -rf tests/data
-      - name: Try to retrieve commit from cache 
+      - name: Try to retrieve commit from cache
         id: cache-restore
         uses: actions/cache/restore@v4
         with:
@@ -70,7 +91,7 @@ jobs:
           enableCrossOsArchive: true
       - name: If cache missed, pull latest commit...
         id: checkout-tests-data-lfs
-        if: ${{ env.HAS_TOKEN == 'true' && steps.cache-restore.outputs.cache-hit != 'true' }}
+        if: ${{ needs.configure.outputs.is-pr == 'false' && steps.cache-restore.outputs.cache-hit != 'true' }}
         uses: actions/checkout@v4
         with:
           repository: spm/spm-tests-data
@@ -78,7 +99,7 @@ jobs:
           path: tests/data
           lfs: true
       - name: ... and cache latest commit
-        if: ${{ env.HAS_TOKEN == 'true' && steps.cache-restore.outputs.cache-hit != 'true' }}
+        if: ${{ needs.configure.outputs.is-pr == 'false' && steps.cache-restore.outputs.cache-hit != 'true' }}
         uses: actions/cache/save@v4
         with:
           path: tests/data
@@ -102,7 +123,7 @@ jobs:
         uses: matlab-actions/setup-matlab@v2
         with:
           release: ${{matrix.version}}
-       
+
       - name: Run regression tests with existing MEX files (legacy)
         if: ${{github.event.schedule == '40 16 * * 3' && (matrix.version == 'R2020a' || matrix.version == 'R2020b' || matrix.version == 'R2022a' || matrix.version == 'R2022b')}}
         uses: matlab-actions/run-command@v1
@@ -144,5 +165,3 @@ jobs:
           name: spm-${{env.MEXEXT}}-${{runner.os}}-${{matrix.version}}
           path: ./**/*.${{env.MEXEXT}}
           retention-days: 1
-          
-  
