@@ -28,7 +28,24 @@ function varargout = scope_cfg
 persistent cfg
 if ~isempty(cfg), varargout = {cfg}; return; end
 
-%==========================================================================
+%--------------------------------------------------------------------------
+% Opposite blip direction volume(s)
+%--------------------------------------------------------------------------
+vol_oppo         = cfg_files;
+vol_oppo.tag     = 'vol2';
+vol_oppo.name    = 'Opposite PE direction image(s)';
+vol_oppo.filter  = 'image';
+vol_oppo.ufilter = '.*';
+vol_oppo.num     = [1 inf];
+vol_oppo.help    = {...
+['Select an image, or set of images, where the acquisition traversed the phase-encode ',...
+ 'direction of K-space in the *opposite* way to the fMRI data to be corrected. ',...
+ 'Note that if multiple images are specified, then they will be motion corrected and ',...
+ 'their average used for registering the phase-encoding direction reversed images .',...
+ 'If these images were acquired before the same PE images, then it is advised to select the ',...
+ 'final volume before the others, otherwise simply select them in the usual chronological order.']}; 
+vol_oppo.preview = @(f) spm_image('Display',char(f));
+
 %--------------------------------------------------------------------------
 % Same blip direction volume(s)
 %--------------------------------------------------------------------------
@@ -49,22 +66,108 @@ vol_same.help    = {...
 vol_same.preview = @(f) spm_image('Display',char(f));
 
 %--------------------------------------------------------------------------
-% Opposite blip direction volume(s)
+% Same blip direction phase volume(s)
 %--------------------------------------------------------------------------
-vol_oppo         = cfg_files;
-vol_oppo.tag     = 'vol2';
-vol_oppo.name    = 'Opposite PE direction image(s)';
-vol_oppo.filter  = 'image';
-vol_oppo.ufilter = '.*';
-vol_oppo.num     = [1 inf];
-vol_oppo.help    = {...
-['Select an image, or set of images, where the acquisition traversed the phase-encode ',...
- 'direction of K-space in the *opposite* way to the fMRI data to be corrected. ',...
- 'Note that if multiple images are specified, then they will be motion corrected and ',...
- 'their average used for registering the phase-encoding direction reversed images .',...
- 'If these images were acquired before the same PE images, then it is advised to select the ',...
- 'final volume before the others, otherwise simply select them in the usual chronological order.']}; 
-vol_oppo.preview = @(f) spm_image('Display',char(f));
+vol_same_pha         = cfg_files;
+vol_same_pha.tag     = 'vol1_pha';
+vol_same_pha.name    = 'Same PE direction phase image(s)';
+vol_same_pha.val{1}  = {};
+vol_same_pha.filter  = 'image';
+vol_same_pha.ufilter = '.*';
+vol_same_pha.num     = [0 inf];
+vol_same_pha.help    = {...
+['Select a phase image, or set of images, where the acquisition traversed the phase-encode '...,
+ 'direction of K-space in the *same* way as the fMRI data to be corrected ',...
+ 'If these images were acquired before the opposite PE images, then it is advised to select the ',...
+ 'final volume before the others, otherwise simply select them in the usual chronological order.']};
+
+%--------------------------------------------------------------------------
+% Total readout time in seconds
+%--------------------------------------------------------------------------
+t_readout         = cfg_entry;
+t_readout.tag     = 't_readout';
+t_readout.name    = 'Total readout time';
+t_readout.val     = {0};
+t_readout.strtype = 'e';
+t_readout.num     = [0 1];
+t_readout.help    = {...
+['Specify EPI total readout time in seconds, which is defined as '...
+'total_readout_time = matrix_size_in_PE_direction x nominal_echo_spacing(i.e.2xramp_time+1xflat_top_time of a trapezoid EPI readout) / inplane_acceleration / inplane_segments']};
+
+%--------------------------------------------------------------------------
+% Echo time in seconds
+%--------------------------------------------------------------------------
+echo_time         = cfg_entry;
+echo_time.tag     = 'TE';
+echo_time.name    = 'Echo time';
+echo_time.val     = {0};
+echo_time.strtype = 'e';
+echo_time.num     = [0 1];
+echo_time.help    = {'Specify EPI echo time in seconds'};
+
+%--------------------------------------------------------------------------
+% Phase encoding direction
+%--------------------------------------------------------------------------
+PE_dir         = cfg_menu;
+PE_dir.tag     = 'PE_dir';
+PE_dir.name    = 'fMRI phase polarity';
+PE_dir.val     = {1};
+PE_dir.labels  = {
+              '-1'
+              '1'
+                }';
+PE_dir.values     = {-1 1};
+PE_dir.help = {
+    'Depending on the scanner vendor, image reconstruction algorithm, and phase-encoding direction,'
+    'the phase image may need to be multiplied by −1 to ensure correct distortion correction.'
+    'Using the wrong sign will exacerbate distortions rather than correct them.'
+    } ;
+
+%--------------------------------------------------------------------------
+% Phase-based initial VDM estimate calculation branch
+%--------------------------------------------------------------------------
+
+pha_branch = cfg_branch;
+pha_branch.tag = 'pha_branch';
+pha_branch.name = 'Calculate initial estimate';
+pha_branch.val = {vol_same_pha, t_readout, echo_time, PE_dir};
+pha_branch.help =  {'Optional: Provide the phase images and sequence parameters required to compute the initial phase-based VDM estimate.'};
+pha_branch.preview = @(f) spm_image('Display',char(f));
+
+%--------------------------------------------------------------------------
+% Voxel Displacement Map prior, i.e. starting estimate
+%--------------------------------------------------------------------------
+vdm_prior         = cfg_files;
+vdm_prior.tag     = 'VDMprior';
+vdm_prior.name    = 'Load initial estimate';
+vdm_prior.val     = {''};
+vdm_prior.filter  = 'image';
+vdm_prior.ufilter = '.*';
+vdm_prior.num     = [0 1];
+vdm_prior.help    = {'Select an image containing the initial estimate of the voxel displacement map. '}; 
+vdm_prior.preview = @(f) spm_image('Display',char(f));
+
+%--------------------------------------------------------------------------
+% No Voxel Displacement Map prior, i.e. no starting estimate
+%--------------------------------------------------------------------------
+no_vdm_prior         = cfg_const;
+no_vdm_prior.tag     = 'no_vdm_prior';
+no_vdm_prior.name    = 'No initial estimate';
+no_vdm_prior.val     = {[]};
+
+%--------------------------------------------------------------------------
+% Voxel Displacement Map prior, i.e. starting estimate
+%--------------------------------------------------------------------------
+vdm_prior_select    = cfg_choice;
+vdm_prior_select.tag    = 'vdm_prior_select';
+vdm_prior_select.name   = 'VDM - initial estimate';
+vdm_prior_select.values = {no_vdm_prior, pha_branch, vdm_prior} ;
+vdm_prior_select.val    ={no_vdm_prior} ;
+vdm_prior_select.help = {
+    'Optional: Compute or provide initial Voxel Displacement Map (VDM) estimate.'
+    'Calculating initial VDM estimate can improve distortion correction accuracy especially in highly-distorted scans.'
+    'WARNING: On first use, "Calculate initial estimate" feature will automatically download julia and add MriResearchTools julia source code'
+    } ;
 
 %--------------------------------------------------------------------------
 % fwhm values
@@ -123,7 +226,7 @@ rinterp.val    = {2};
 jac         = cfg_menu;
 jac.tag     = 'jac';
 jac.name    = 'Jacobian scaling';
-jac.val     = {1};
+jac.val     = {0};
 jac.help    = {
     'Option to include Jacobian scaling in the registration model.'
     ['It includes in the process the changes of intensities due to' ...
@@ -144,7 +247,7 @@ prefix.name    = 'vdm Filename Prefix';
 prefix.help    = {'Specify the string to be prepended to the voxel displacement map (vdm) file. Default prefix is ``vdm5_``.'};
 prefix.strtype = 's';
 prefix.num     = [1 Inf];
-prefix.val     = {'vdm5'};
+prefix.val     = {'vdm5_'};
 
 
 %--------------------------------------------------------------------------
@@ -162,15 +265,24 @@ outdir.help    = {[...
 'in the specified directory. The voxel displacement map is saved to disk as ',...
 'a vdm file (``vdm5_*.nii``)']};
 
-[cfg,varargout{1}] = deal({vol_same,vol_oppo,fwhm,reg,rinterp,jac,prefix,outdir});
+[cfg,varargout{1}] = deal({vol_oppo, vol_same, vdm_prior_select, fwhm, reg, rinterp, jac, prefix, outdir});
 
 %==========================================================================
+
 function out = spm_run_scope(cmd, job)
 
 switch lower(cmd)
-    case 'run'
-        vdm               = spm_scope(job.vol1,job.vol2,job.fwhm,job.reg, ...
+    case 'run'        
+        if isfield(job.vdm_prior_select, 'no_vdm_prior')
+            vdm               = spm_scope(job.vol1,job.vol2, job.fwhm,job.reg, ...
                                       job.rinterp,job.jac,job.prefix,job.outdir{1});
+        elseif isfield(job.vdm_prior_select, 'VDMprior')
+            vdm               = spm_scope(job.vol1,job.vol2, job.fwhm,job.reg, ...
+                                      job.rinterp,job.jac,job.prefix,job.outdir{1}, job.vdm_prior_select.VDMprior);
+        elseif isfield(job.vdm_prior_select, 'pha_branch')
+            vdm               = spm_scope(job.vol1,job.vol2, job.fwhm,job.reg, ...
+                                      job.rinterp,job.jac,job.prefix,job.outdir{1}, [],job.vdm_prior_select.pha_branch.vol1_pha, job.vdm_prior_select.pha_branch.t_readout, job.vdm_prior_select.pha_branch.TE, job.vdm_prior_select.pha_branch.PE_dir);
+        end
         out.vdmfile       = {vdm.dat.fname};
 
     case 'vout'

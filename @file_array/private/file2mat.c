@@ -287,8 +287,8 @@ static void swap64(long long n, unsigned char d[])
 
 typedef struct dtype {
     int code;
-    void (*func)();
-    void (*swap)();
+    void (*func)(mwSize ndim, mwSize idim[], unsigned long long *iptr[], unsigned int idat[], mwSize odim[], unsigned int odat[]);
+    void (*swap)(long long n, unsigned char d[]);
     int clss;
     int bytes;
     int channels;
@@ -649,7 +649,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     else if (map.dtype->channels == 2)
     {
         plhs[0] = mxCreateNumericArray(ndim,odim,map.dtype->clss,mxCOMPLEX);
-        (map.dtype->func)(ndim-1, idim, iptr, idat, odim, mxGetData(plhs[0]),mxGetImagData(plhs[0]));
+        (map.dtype->func)(ndim-1, idim, iptr, idat, odim, mxGetData(plhs[0]));
         if (map.swap)
         {
             map.dtype->swap(ocumprod[ndim],mxGetData(plhs[0]));

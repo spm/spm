@@ -31,7 +31,7 @@ function [strout,R2] = spm_str_manip(strin,options)
 %   'v'              - delete non valid filename characters
 %                      Valid are '.a..zA..Z01..9_-: ' & filesep
 %   'x'              - escape TeX special characters
-%   'p'              - canonicalise pathname (see spm_select('CPath',...))
+%   'p'              - canonicalise pathname (see spm_file(...,'CPath'))
 %   'c'              - remove leading components common to all strings
 %                      returns leading component as a second output argument
 %   'C'              - returns single string compressed version of a
@@ -202,7 +202,7 @@ while ~isempty(options)
         case 'p'
         %-Canonicalise pathname
         %------------------------------------------------------------------
-            str = spm_select('CPath',str);
+            str = spm_file(str,'CPath');
 
         case {'c','C','d'}
         %-Allow these options (implemented below)

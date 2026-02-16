@@ -573,11 +573,11 @@ for L = 1:NL
     title('Variational free energy','FontSize',16), spm_axis tight
     hold on, plot([0,t],[3,3],':r'), plot([0,t],[5,5],'-.r'), hold off
 
-    subplot(6,1,5), plot(U',LineWidth = 2), legend(PDP{L}.label.modality(C))
+    subplot(6,1,5), plot(U','LineWidth',2), legend(PDP{L}.label.modality(C))
     title('Cost'), ylabel('Nats'), xlabel('time'), spm_axis tight
     hold on, plot([0,t],[3,3],':r'), plot([0,t],[5,5],'-.r'), hold off
 
-    subplot(6,1,6), plot(sum(U),'r',LineWidth = 2)
+    subplot(6,1,6), plot(sum(U),'r','LineWidth', 2)
     title('Cost (total)'), ylabel('Nats'), xlabel('time'), spm_axis tight
     hold on, plot([0,t],[3,3],':r'), plot([0,t],[5,5],'-.r'), hold off
 

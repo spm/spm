@@ -30,7 +30,7 @@ function test_spm_opm_create_fif_2(testCase)
  
     S = [];
     S.data = data;
-    D = spm_opm_create_G(S);
+    D = spm_opm_create(S);
     
     testCase.verifyTrue(~isfield(D, 'sensors'));
 end

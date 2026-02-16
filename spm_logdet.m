@@ -14,14 +14,6 @@ function H = spm_logdet(C)
 % Note that whether sparse or full, rank deficient cases are handled in the
 % same way as in spm_logdet revision 4068, using svd on a full version of C
 
-
-% deal with scalar inputs
-%--------------------------------------------------------------------------
-if isscalar(C)
-    H  = log(C);
-    return
-end
-
 % remove null variances
 %--------------------------------------------------------------------------
 i       = find(diag(C));

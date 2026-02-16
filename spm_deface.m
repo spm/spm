@@ -14,7 +14,7 @@ function names = spm_deface(job)
 
 
 if ~nargin
-    [P, sts] = spm_select(Inf,'image','Select images to strip the face from');
+    [P, sts] = spm_select(Inf,'nifti','Select images to strip the face from');
     if ~sts, return; end
 elseif isstruct(job)
     P = job.images;
@@ -30,7 +30,7 @@ end
 
 function fname = deface(P,tpm)
 nul     = [0 -1.1 0.98 100];
-M       = spm_maff8(P,4,20,tpm,[],'mni');
+M       = spm_maff8([P,',1'],4,20,tpm,[],'mni');
 Nii     = nifti(P);
 d       = [size(Nii.dat) 1];
 [i,j,k] = ndgrid(1:d(1),1:d(2),1:d(3));
@@ -60,7 +60,7 @@ for k=1:size(Noo.dat,6)
         for i=1:size(Noo.dat,4)
             F       = Nii.dat(:,:,:,i,j,k);
             F(msk)  = NaN;
-            Noo.dat(:,:,:) = F;
+            Noo.dat(:,:,:,i,j,k) = F;
         end
     end
 end
