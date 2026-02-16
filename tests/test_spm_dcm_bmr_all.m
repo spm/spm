@@ -5,6 +5,16 @@ classdef test_spm_dcm_bmr_all < matlab.unittest.TestCase
 % Copyright (C) 2016-2022 Wellcome Centre for Human Neuroimaging
 
 
+methods (TestClassSetup)
+    function setupSPM(testCase)
+        % Initialize SPM
+        spm('defaults','fmri');
+        spm_jobman('initcfg');
+        spm_get_defaults('cmdline',true);
+        spm_get_defaults('dcm.verbose',false);
+    end
+end
+
 methods (Test)
 
 % -------------------------------------------------------------------------
