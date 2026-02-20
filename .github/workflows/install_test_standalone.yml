@@ -255,16 +255,15 @@ jobs:
         run: |
           INSTALLER=$(ls runtime_installer/*.install | head -n 1)
           echo "Installing MATLAB Runtime from $INSTALLER"
-          
-          # Extract MATLAB version from installer filename
-          MATLAB_VER=$(basename "$INSTALLER" | sed -n 's/Runtime_\(R[0-9]\{4\}[ab]\)_for_spm_standalone\.install/\1/p')
-          echo "Detected MATLAB version: $MATLAB_VER"
-          echo "MATLAB_VERSION=$MATLAB_VER" >> $GITHUB_ENV
-          
-          # Install to /usr/local/MATLAB/MATLAB_Runtime
+
           chmod +x "$INSTALLER"
           sudo "$INSTALLER" -agreeToLicense yes -destinationFolder /usr/local/MATLAB/MATLAB_Runtime
-          
+
+          # Detect installed version from directory name (robust against filename changes)
+          MATLAB_VER=$(ls /usr/local/MATLAB/MATLAB_Runtime | grep "^R" | head -n 1)
+          echo "Detected MATLAB version: $MATLAB_VER"
+          echo "MATLAB_VERSION=$MATLAB_VER" >> $GITHUB_ENV
+
           # Set environment variables
           echo "LD_LIBRARY_PATH=/usr/local/MATLAB/MATLAB_Runtime/${MATLAB_VER}/runtime/glnxa64:/usr/local/MATLAB/MATLAB_Runtime/${MATLAB_VER}/bin/glnxa64:/usr/local/MATLAB/MATLAB_Runtime/${MATLAB_VER}/sys/os/glnxa64:/usr/local/MATLAB/MATLAB_Runtime/${MATLAB_VER}/sys/opengl/lib/glnxa64:/usr/local/MATLAB/MATLAB_Runtime/${MATLAB_VER}/extern/bin/glnxa64" >> $GITHUB_ENV
           echo "MCR_INHIBIT_CTF_LOCK=1" >> $GITHUB_ENV
@@ -301,20 +300,19 @@ jobs:
         run: |
           INSTALLER=$(ls runtime_installer/*.exe | head -n 1)
           echo "Installing MATLAB Runtime from $INSTALLER"
-          
-          # Extract MATLAB version from installer filename
-          MATLAB_VER=$(basename "$INSTALLER" .exe | sed -n 's/Runtime_\(R[0-9]\{4\}[ab]\)_for_spm_standalone/\1/p')
-          echo "Detected MATLAB version: $MATLAB_VER"
-          echo "MATLAB_VERSION=$MATLAB_VER" >> $GITHUB_ENV
-          
-          # Run installer
+
           "$INSTALLER" -agreeToLicense yes -destinationFolder "C:\\MATLAB_Runtime"
           echo "Installation command completed"
-          
+
+          # Detect installed version from directory name (robust against filename changes)
+          MATLAB_VER=$(ls "C:/MATLAB_Runtime" | grep "^R" | head -n 1)
+          echo "Detected MATLAB version: $MATLAB_VER"
+          echo "MATLAB_VERSION=$MATLAB_VER" >> $GITHUB_ENV
+
           # Add runtime to PATH and set environment variable
           echo "C:\\MATLAB_Runtime\\${MATLAB_VER}\\runtime\\win64" >> $GITHUB_PATH
           echo "MATLAB_RUNTIME_PATH=C:\\MATLAB_Runtime" >> $GITHUB_ENV
-          echo "✓ MATLAB Runtime installed successfully at C:\\MATLAB_Runtime"
+          echo "✓ MATLAB Runtime installed successfully at C:\\MATLAB_Runtime\\${MATLAB_VER}"
 
       # Download test data artifact (shared across all OS)
       - name: Download test data artifact
@@ -339,7 +337,8 @@ jobs:
         shell: bash
         run: |
           # Detect SPM version
-          SPM_VERSION=$(ls spm_standalone/spm* 2>/dev/null | grep -E 'spm[0-9]+$' | head -n 1 | xargs basename | sed 's/spm//')
+          SPM_EXEC=$(ls spm_standalone/spm[0-9]* 2>/dev/null | head -n 1)
+          SPM_VERSION=$(basename "$SPM_EXEC" | sed 's/spm//')
           echo "Detected SPM version: $SPM_VERSION"
           echo "SPM_VERSION=$SPM_VERSION" >> $GITHUB_ENV
           

@@ -52,10 +52,11 @@ jobs:
         run: |
           if echo "${{ github.ref_name }}" | grep -q '^[0-9][0-9]\.[0-9][0-9]\.[A-Za-z]'; then
             echo "PRERELEASE=true" >> $GITHUB_ENV
+            echo "PRERELEASE=true"
           else
             echo "PRERELEASE=false" >> $GITHUB_ENV
+            echo "PRERELEASE=false"
           fi
-          echo PRERELEASE=${{ env.PRERELEASE }}
 
       - name: Set up MATLAB
         id: setup_matlab
@@ -273,7 +274,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           prerelease: ${{ env.PRERELEASE }}
-          files: ../spm*.zip
+          files: ../spm_${{ env.BUILD_TAG }}.zip
 
       # Trigger Container Build in spm-docker
       - name: Parse tag into SPM_RELEASE and SPM_REVISION
