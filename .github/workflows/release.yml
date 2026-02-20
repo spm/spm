@@ -231,6 +231,7 @@ jobs:
 
       - name: Compress to ZIP (Windows/Linux)
         if: runner.os != 'macOS'
+        shell: bash
         run: |
           cd ..
           mv standalone spm_standalone
