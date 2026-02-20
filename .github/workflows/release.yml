@@ -202,11 +202,9 @@ jobs:
              echo "Warning: No icon source found."
           fi
 
-          # 5. Copy Instructions & Update Placeholder
+          # 5. Copy Instructions
           if [ -f "config/README_macOS_standalone.txt" ]; then
              cp "config/README_macOS_standalone.txt" "$ROOT_DIR/README_macOS_standalone.txt"
-             # Replace placeholder with actual folder name
-             sed -i '' "s/SPM_FOLDER_PLACEHOLDER/$APP_FOLDER_NAME/g" "$ROOT_DIR/README_macOS_standalone.txt"
           else
              echo "Warning: config/README_macOS_standalone.txt not found."
              echo "Please run: sudo xattr -cr ." > "$ROOT_DIR/README_macOS_standalone.txt"
