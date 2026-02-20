@@ -230,12 +230,23 @@ jobs:
           path: .
 
       # Extract standalone
-      - name: Extract standalone
+      - name: Extract standalone (Linux/Windows)
+        if: runner.os != 'macOS'
         shell: bash
         run: |
           unzip -q spm_standalone_${{ matrix.os_name }}.zip
           ls -la spm_standalone
           ls -la runtime_installer
+
+      - name: Extract standalone (macOS)
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          unzip -q spm_standalone_${{ matrix.os_name }}.zip
+          APP_VERSION_DIR=$(find SPM_MacOS_Release -maxdepth 1 -mindepth 1 -type d | head -n 1)
+          echo "Release folder: $APP_VERSION_DIR"
+          ls -la "$APP_VERSION_DIR"
+          echo "SPM_APP=$APP_VERSION_DIR/SPM.app" >> $GITHUB_ENV
 
       # Install MATLAB Runtime from runtime_installer
       - name: Install MATLAB Runtime (Linux)
@@ -264,26 +275,25 @@ jobs:
         if: runner.os == 'macOS'
         shell: bash
         run: |
-          INSTALLER=$(ls -d runtime_installer/*.app | head -n 1)
+          INSTALLER="$(dirname "$SPM_APP")/Runtime_Installer.app"
           echo "Installing MATLAB Runtime from $INSTALLER"
-          
-          # Extract MATLAB version from installer filename
-          MATLAB_VER=$(basename "$INSTALLER" .app | sed -n 's/Runtime_\(R[0-9]\{4\}[ab]\)_for_spm_standalone/\1/p')
-          echo "Detected MATLAB version: $MATLAB_VER"
-          echo "MATLAB_VERSION=$MATLAB_VER" >> $GITHUB_ENV
-          
+
           # Run installer
           sudo "$INSTALLER/Contents/MacOS/setup" -agreeToLicense yes -destinationFolder "$HOME/MATLAB_Runtime" 2>&1 | tee install.log
-          
+
           # Wait for installation to finish
           sleep 2
-          
+
           # Fix permissions (installer runs as sudo, files are owned by root)
           sudo chown -R $USER "$HOME/MATLAB_Runtime"
           sudo chown -R $USER "$HOME/.matlab" 2>/dev/null || true
-          
-          echo "MATLAB_RUNTIME_PATH=$HOME/MATLAB_Runtime/${MATLAB_VER}" >> $GITHUB_ENV
-          echo "✓ MATLAB Runtime installed at $HOME/MATLAB_Runtime/${MATLAB_VER}"
+
+          # Detect installed version from directory name (version no longer in installer filename)
+          MATLAB_VER=$(ls "$HOME/MATLAB_Runtime" | grep "^R" | head -n 1)
+          echo "Detected MATLAB version: $MATLAB_VER"
+          echo "MATLAB_VERSION=$MATLAB_VER" >> $GITHUB_ENV
+          echo "MATLAB_RUNTIME_PATH=$HOME/MATLAB_Runtime/$MATLAB_VER" >> $GITHUB_ENV
+          echo "✓ MATLAB Runtime installed at $HOME/MATLAB_Runtime/$MATLAB_VER"
 
       - name: Install MATLAB Runtime (Windows)
         if: runner.os == 'Windows'
@@ -344,19 +354,17 @@ jobs:
         if: runner.os == 'macOS'
         shell: bash
         run: |
-          # Detect SPM version
-          RUN_SCRIPT=$(ls spm_standalone/run_spm*.sh 2>/dev/null | head -n 1)
+          # Detect SPM version from run script inside app bundle
+          RUN_SCRIPT=$(ls "$SPM_APP/Contents/MacOS/run_spm"*.sh 2>/dev/null | head -n 1)
           SPM_VERSION=$(basename "$RUN_SCRIPT" .sh | sed 's/run_spm//')
           echo "Detected SPM version: $SPM_VERSION"
           echo "SPM_VERSION=$SPM_VERSION" >> $GITHUB_ENV
-          
+
           # Make script executable and extract CTF archive
-          chmod +x "spm_standalone/run_spm${SPM_VERSION}.sh"
+          chmod +x "$SPM_APP/Contents/MacOS/run_spm${SPM_VERSION}.sh"
           echo "Extracting CTF archive..."
-          cd spm_standalone
-          ./run_spm${SPM_VERSION}.sh "$MATLAB_RUNTIME_PATH" function exit || true
-          cd ..
-          
+          "$SPM_APP/Contents/MacOS/run_spm${SPM_VERSION}.sh" "$MATLAB_RUNTIME_PATH" function exit || true
+
           echo "SPM standalone setup complete"
       
       - name: Setup SPM standalone (Windows)
@@ -391,7 +399,7 @@ jobs:
         if: runner.os == 'macOS'
         shell: bash
         run: |
-          TEST_DIR="spm_standalone/spm${SPM_VERSION}.app/Contents/Resources/spm${SPM_VERSION}_mcr/spm${SPM_VERSION}/tests"
+          TEST_DIR="$SPM_APP/Contents/Resources/spm${SPM_VERSION}_mcr/spm${SPM_VERSION}/tests"
           mkdir -p "$TEST_DIR"
           cp -r tests/data "$TEST_DIR/"
           chmod -R u+w "$TEST_DIR/data"
@@ -420,8 +428,7 @@ jobs:
         timeout-minutes: 15
         shell: bash
         run: |
-          cd spm_standalone
-          ./run_spm${SPM_VERSION}.sh $MATLAB_RUNTIME_PATH test
+          "$SPM_APP/Contents/MacOS/run_spm${SPM_VERSION}.sh" "$MATLAB_RUNTIME_PATH" test
 
       - name: Test standalone (Windows)
         if: runner.os == 'Windows'
