@@ -17,15 +17,21 @@ jobs:
       matrix:
         # This actions compiles by default with the newest available matlab version
         version: ["latest"] # ["R2021a", "R2021b", "R2022a", "R2022b", "R2023a", "R2023b", "R2024a", "R2024b"]
-        os: ["macos-latest"]
+        os: ["ubuntu-latest", "macos-15-intel", "macos-latest", "windows-latest"] # macos-15-intel has Intel architecture, macos-latest has Apple Silicon
         include: # These includes are just giving the OSs additional names
+          - os: ubuntu-latest
+            os_name: Linux
+          - os: macos-15-intel
+            os_name: macOS_Intel
           - os: macos-latest
             os_name: macOS_Apple_Silicon
+          - os: windows-latest
+            os_name: Windows
         exclude: # To exclude not working versions in case all Matlab targets are compiled
-          - os: macos-latest
-            version: "R2021a" # Apple Silicon version not available
-          - os: macos-latest
-            version: "R2021b" # Apple Silicon version not available
+          - os: windows-latest
+            version: "R2021a" # Compiler not available
+          - os: windows-latest
+            version: "R2021b" # Compiler not available
           - os: macos-latest
             version: "R2021a" # Apple Silicon version not available
           - os: macos-latest
@@ -114,7 +120,7 @@ jobs:
             spm_make_standalone
             mkdir('runtime_installer');
             if ~isMATLABReleaseOlderThan("R2024b")
-              compiler.runtime.customInstaller('Runtime_${{ env.MATLAB_VERSION }}_for_spm_standalone_${{ github.ref_name }}', '../standalone/requiredMCRProducts.txt', OutputDir='../runtime_installer');
+              compiler.runtime.customInstaller('Runtime_${{ env.MATLAB_VERSION }}_for_spm_standalone_${{ env.BUILD_TAG }}', '../standalone/requiredMCRProducts.txt', OutputDir='../runtime_installer');
             end
 
       - name: Copy Raw Compilation for Upload
