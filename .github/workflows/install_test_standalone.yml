@@ -353,16 +353,32 @@ jobs:
         if: runner.os == 'macOS'
         shell: bash
         run: |
-          # Detect SPM version from run script inside app bundle
-          RUN_SCRIPT=$(ls "$SPM_APP/Contents/MacOS/run_spm"*.sh 2>/dev/null | head -n 1)
-          SPM_VERSION=$(basename "$RUN_SCRIPT" .sh | sed 's/run_spm//')
+          # Detect SPM binary (MATLAB R2024b+ no longer generates run_spm*.sh on macOS)
+          SPM_BINARY=$(find "$SPM_APP/Contents/MacOS" -maxdepth 1 -name "spm[0-9]*" -type f | head -n 1)
+          if [ -z "$SPM_BINARY" ]; then
+            echo "Error: Could not find spm binary in $SPM_APP/Contents/MacOS"
+            ls -la "$SPM_APP/Contents/MacOS/"
+            exit 1
+          fi
+          SPM_VERSION=$(basename "$SPM_BINARY" | sed 's/spm//')
+          echo "Detected SPM binary: $SPM_BINARY"
           echo "Detected SPM version: $SPM_VERSION"
           echo "SPM_VERSION=$SPM_VERSION" >> $GITHUB_ENV
 
-          # Make script executable and extract CTF archive
-          chmod +x "$SPM_APP/Contents/MacOS/run_spm${SPM_VERSION}.sh"
+          # Set up MATLAB Runtime library paths (replaces run_spm*.sh functionality)
+          if [ -d "${MATLAB_RUNTIME_PATH}/runtime/maca64" ]; then
+            ARCH="maca64"
+          else
+            ARCH="maci64"
+          fi
+          DYLD_FALLBACK_LIBRARY_PATH="${MATLAB_RUNTIME_PATH}/runtime/${ARCH}:${MATLAB_RUNTIME_PATH}/bin/${ARCH}:${MATLAB_RUNTIME_PATH}/sys/os/${ARCH}:/usr/lib"
+          echo "DYLD_FALLBACK_LIBRARY_PATH=${DYLD_FALLBACK_LIBRARY_PATH}" >> $GITHUB_ENV
+          echo "Runtime arch: ${ARCH}"
+
+          # Make binary executable and extract CTF archive
+          chmod +x "$SPM_BINARY"
           echo "Extracting CTF archive..."
-          "$SPM_APP/Contents/MacOS/run_spm${SPM_VERSION}.sh" "$MATLAB_RUNTIME_PATH" function exit || true
+          "$SPM_BINARY" function exit || true
 
           echo "SPM standalone setup complete"
       
@@ -427,7 +443,7 @@ jobs:
         timeout-minutes: 15
         shell: bash
         run: |
-          "$SPM_APP/Contents/MacOS/run_spm${SPM_VERSION}.sh" "$MATLAB_RUNTIME_PATH" test
+          "$SPM_APP/Contents/MacOS/spm${SPM_VERSION}" test
 
       - name: Test standalone (Windows)
         if: runner.os == 'Windows'
