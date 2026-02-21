@@ -292,6 +292,7 @@ jobs:
           echo "Detected MATLAB version: $MATLAB_VER"
           echo "MATLAB_VERSION=$MATLAB_VER" >> $GITHUB_ENV
           echo "MATLAB_RUNTIME_PATH=$HOME/MATLAB_Runtime/$MATLAB_VER" >> $GITHUB_ENV
+          echo "MATLAB_RUNTIME=$HOME/MATLAB_Runtime/$MATLAB_VER" >> $GITHUB_ENV
           echo "✓ MATLAB Runtime installed at $HOME/MATLAB_Runtime/$MATLAB_VER"
 
       - name: Install MATLAB Runtime (Windows)
@@ -372,6 +373,7 @@ jobs:
             ARCH="maci64"
           fi
           DYLD_FALLBACK_LIBRARY_PATH="${MATLAB_RUNTIME_PATH}/runtime/${ARCH}:${MATLAB_RUNTIME_PATH}/bin/${ARCH}:${MATLAB_RUNTIME_PATH}/sys/os/${ARCH}:/usr/lib"
+          export DYLD_FALLBACK_LIBRARY_PATH  # must be exported in current shell for spm26 below
           echo "DYLD_FALLBACK_LIBRARY_PATH=${DYLD_FALLBACK_LIBRARY_PATH}" >> $GITHUB_ENV
           echo "Runtime arch: ${ARCH}"
 
