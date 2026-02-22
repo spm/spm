@@ -374,8 +374,17 @@ jobs:
           echo "DYLD_FALLBACK_LIBRARY_PATH=${DYLD_FALLBACK_LIBRARY_PATH}" >> $GITHUB_ENV
           echo "Runtime arch: ${ARCH}"
 
-          # Make binary executable and extract CTF archive
+          # Make binary executable
           chmod +x "$SPM_BINARY"
+
+          # Remove code signature so macOS does not strip DYLD_* env vars.
+          # Hardened Runtime (applied at compile time) causes dyld to silently drop
+          # DYLD_FALLBACK_LIBRARY_PATH before the process starts, making the MATLAB
+          # Runtime unfindable.  Removing the signature lifts that restriction.
+          # The quarantine attribute was already cleared in the extract step.
+          codesign --remove-signature "$SPM_BINARY" 2>/dev/null || true
+
+          # Extract CTF archive
           echo "Extracting CTF archive..."
           "$SPM_BINARY" function exit || true
 
