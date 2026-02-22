@@ -247,6 +247,8 @@ jobs:
           echo "Release folder: $APP_VERSION_DIR"
           ls -la "$APP_VERSION_DIR"
           echo "SPM_APP=$APP_VERSION_DIR/SPM.app" >> $GITHUB_ENV
+          # Remove quarantine flag so macOS allows the app to access its own internal files
+          sudo xattr -cr "$APP_VERSION_DIR"
 
       # Install MATLAB Runtime from runtime_installer
       - name: Install MATLAB Runtime (Linux)
@@ -277,23 +279,18 @@ jobs:
           INSTALLER="$(dirname "$SPM_APP")/Runtime_Installer.app"
           echo "Installing MATLAB Runtime from $INSTALLER"
 
-          # Run installer
-          sudo "$INSTALLER/Contents/MacOS/setup" -agreeToLicense yes -destinationFolder "$HOME/MATLAB_Runtime" 2>&1 | tee install.log
+          # Install to the standard system path so the binary's embedded @rpath can find
+          # the runtime without needing DYLD_* env vars (which macOS Hardened Runtime strips)
+          MCR_DEST="/Applications/MATLAB/MATLAB_Runtime"
+          sudo "$INSTALLER/Contents/MacOS/setup" -agreeToLicense yes -destinationFolder "$MCR_DEST" 2>&1 | tee install.log
 
-          # Wait for installation to finish
-          sleep 2
-
-          # Fix permissions (installer runs as sudo, files are owned by root)
-          sudo chown -R $USER "$HOME/MATLAB_Runtime"
-          sudo chown -R $USER "$HOME/.matlab" 2>/dev/null || true
-
-          # Detect installed version from directory name (version no longer in installer filename)
-          MATLAB_VER=$(ls "$HOME/MATLAB_Runtime" | grep "^R" | head -n 1)
+          # Detect installed version from directory name
+          MATLAB_VER=$(ls "$MCR_DEST" | grep "^R" | head -n 1)
           echo "Detected MATLAB version: $MATLAB_VER"
           echo "MATLAB_VERSION=$MATLAB_VER" >> $GITHUB_ENV
-          echo "MATLAB_RUNTIME_PATH=$HOME/MATLAB_Runtime/$MATLAB_VER" >> $GITHUB_ENV
-          echo "MATLAB_RUNTIME=$HOME/MATLAB_Runtime/$MATLAB_VER" >> $GITHUB_ENV
-          echo "✓ MATLAB Runtime installed at $HOME/MATLAB_Runtime/$MATLAB_VER"
+          echo "MATLAB_RUNTIME_PATH=$MCR_DEST/$MATLAB_VER" >> $GITHUB_ENV
+          echo "MATLAB_RUNTIME=$MCR_DEST/$MATLAB_VER" >> $GITHUB_ENV
+          echo "✓ MATLAB Runtime installed at $MCR_DEST/$MATLAB_VER"
 
       - name: Install MATLAB Runtime (Windows)
         if: runner.os == 'Windows'
