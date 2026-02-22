@@ -377,12 +377,23 @@ jobs:
           # Make binary executable
           chmod +x "$SPM_BINARY"
 
-          # Remove code signature so macOS does not strip DYLD_* env vars.
-          # Hardened Runtime (applied at compile time) causes dyld to silently drop
-          # DYLD_FALLBACK_LIBRARY_PATH before the process starts, making the MATLAB
-          # Runtime unfindable.  Removing the signature lifts that restriction.
-          # The quarantine attribute was already cleared in the extract step.
+          # The MATLAB-compiled binary has the Hardened Runtime entitlement which causes
+          # dyld to strip DYLD_* env vars before the process starts.
+          # Fix: embed the runtime paths as LC_RPATH entries directly in the binary
+          # (these are part of the binary itself and are never stripped), then re-sign
+          # with an ad-hoc signature (no Hardened Runtime entitlement).
+          # Ad-hoc signing is required on Apple Silicon (cannot run unsigned binaries),
+          # and it also allows DYLD_* vars to work as a fallback on Intel.
           codesign --remove-signature "$SPM_BINARY" 2>/dev/null || true
+          for RPATH_DIR in \
+            "${MATLAB_RUNTIME_PATH}/runtime/${ARCH}" \
+            "${MATLAB_RUNTIME_PATH}/bin/${ARCH}" \
+            "${MATLAB_RUNTIME_PATH}/sys/os/${ARCH}"; do
+            install_name_tool -add_rpath "$RPATH_DIR" "$SPM_BINARY" 2>/dev/null || true
+          done
+          codesign --sign - --force "$SPM_BINARY" && \
+            echo "✓ Binary re-signed (ad-hoc, no Hardened Runtime)" || \
+            echo "Warning: Ad-hoc re-signing failed"
 
           # Extract CTF archive
           echo "Extracting CTF archive..."
