@@ -390,9 +390,14 @@ jobs:
 
           # spm26 / spmXX has flags=0x0(none) - NO Hardened Runtime (confirmed by codesign -d).
           # This means DYLD_LIBRARY_PATH is NOT stripped by dyld before the process starts.
-          # We must set it so dyld can find libmwlaunchermain.dylib (and its dependencies)
-          # from the installed MATLAB Runtime.  The binary's @rpath entries only point inside
-          # the app bundle, which does NOT contain the runtime libraries.
+          # DYLD_LIBRARY_PATH is searched BEFORE @rpath expansions, so spm26 will find
+          # libmwlaunchermain.dylib here before its @rpath entries (which point inside the
+          # app bundle where the runtime libraries don't exist).
+          #
+          # IMPORTANT: Do NOT use the prelaunch/applauncher binaries to run spm26.
+          # These launchers overwrite DYLD_LIBRARY_PATH with their own (incorrectly computed)
+          # version, resulting in paths like /runtime/maci64 (missing the base directory)
+          # instead of /Applications/MATLAB/MATLAB_Runtime/R2025b/runtime/maci64.
           DYLD_LIBRARY_PATH="${MATLAB_RUNTIME}/runtime/${ARCH}:${MATLAB_RUNTIME}/bin/${ARCH}:${MATLAB_RUNTIME}/sys/os/${ARCH}"
           export DYLD_LIBRARY_PATH
           echo "DYLD_LIBRARY_PATH=${DYLD_LIBRARY_PATH}" >> $GITHUB_ENV
@@ -413,23 +418,16 @@ jobs:
           otool -l "$SPM_BINARY" 2>/dev/null | grep -A 2 LC_RPATH | grep "path " | head -10 || true
           echo "-- Code signing flags --"
           codesign -d --verbose "$SPM_BINARY" 2>&1 | grep -E "(flags=|Identifier)" || true
-          if [ -n "$SPM_LAUNCHER" ]; then
-            echo "-- Launcher signature --"
-            codesign -d --verbose "$SPM_LAUNCHER" 2>&1 | grep -E "(flags=|Identifier)" || true
-          fi
           echo "=========================="
 
-          # Make executables
+          # Make binary executable
           chmod +x "$SPM_BINARY" 2>/dev/null || true
-          [ -n "$SPM_LAUNCHER" ] && chmod +x "$SPM_LAUNCHER" 2>/dev/null || true
 
-          # Warm-up run: prefer the launcher, fall back to spm binary with DYLD set
-          echo "Running warm-up..."
-          if [ -n "$SPM_LAUNCHER" ]; then
-            "$SPM_LAUNCHER" function exit || true
-          else
-            "$SPM_BINARY" function exit || true
-          fi
+          # Warm-up: call spm26 directly (NOT through prelaunch/applauncher which would
+          # overwrite DYLD_LIBRARY_PATH). The _mcr/ directory is pre-populated by mcc,
+          # so no CTF extraction is needed; this just verifies the runtime loads.
+          echo "Running warm-up (spm26 directly with DYLD_LIBRARY_PATH set)..."
+          "$SPM_BINARY" function exit || true
 
           echo "SPM standalone setup complete"
       
@@ -494,20 +492,10 @@ jobs:
         timeout-minutes: 15
         shell: bash
         run: |
-          # Find launcher (MATLAB R2025b: prelaunch; R2024b: SPM_Launcher)
-          SPM_LAUNCHER=""
-          for LNAME in prelaunch applauncher SPM_Launcher; do
-            if [ -f "$SPM_APP/Contents/MacOS/$LNAME" ]; then
-              SPM_LAUNCHER="$SPM_APP/Contents/MacOS/$LNAME"
-              break
-            fi
-          done
-
-          if [ -n "$SPM_LAUNCHER" ]; then
-            "$SPM_LAUNCHER" test
-          else
-            "$SPM_APP/Contents/MacOS/spm${SPM_VERSION}" test
-          fi
+          # Call spm26 DIRECTLY (not prelaunch/applauncher which overwrite DYLD_LIBRARY_PATH
+          # with wrong paths like /runtime/maci64 instead of the full correct path).
+          # DYLD_LIBRARY_PATH is already set correctly from the Setup step via $GITHUB_ENV.
+          "$SPM_APP/Contents/MacOS/spm${SPM_VERSION}" test
 
       - name: Test standalone (Windows)
         if: runner.os == 'Windows'
