@@ -279,8 +279,8 @@ jobs:
           INSTALLER="$(dirname "$SPM_APP")/Runtime_Installer.app"
           echo "Installing MATLAB Runtime from $INSTALLER"
 
-          # Install to the standard system path so the binary's embedded @rpath can find
-          # the runtime without needing DYLD_* env vars (which macOS Hardened Runtime strips)
+          # Install to the standard system path. SPM_Launcher (the .app bundle entry point
+          # in MATLAB R2024b+) discovers the runtime at this standard location automatically.
           MCR_DEST="/Applications/MATLAB/MATLAB_Runtime"
           sudo "$INSTALLER/Contents/MacOS/setup" -agreeToLicense yes -destinationFolder "$MCR_DEST" 2>&1 | tee install.log
 
@@ -290,6 +290,8 @@ jobs:
           echo "MATLAB_VERSION=$MATLAB_VER" >> $GITHUB_ENV
           echo "MATLAB_RUNTIME_PATH=$MCR_DEST/$MATLAB_VER" >> $GITHUB_ENV
           echo "MATLAB_RUNTIME=$MCR_DEST/$MATLAB_VER" >> $GITHUB_ENV
+          echo "MCR_INHIBIT_CTF_LOCK=1" >> $GITHUB_ENV
+          echo "SPM_HTML_BROWSER=0" >> $GITHUB_ENV
           echo "✓ MATLAB Runtime installed at $MCR_DEST/$MATLAB_VER"
 
       - name: Install MATLAB Runtime (Windows)
@@ -351,70 +353,64 @@ jobs:
         if: runner.os == 'macOS'
         shell: bash
         run: |
-          # Detect SPM binary (MATLAB R2024b+ no longer generates run_spm*.sh on macOS)
-          SPM_BINARY=$(find "$SPM_APP/Contents/MacOS" -maxdepth 1 -name "spm[0-9]*" -type f | head -n 1)
+          # Detect the compiled MATLAB binary for version number extraction
+          SPM_BINARY=$(find "$SPM_APP/Contents/MacOS" -maxdepth 1 -name "spm[0-9a-z]*" \
+            -not -name "SPM_Launcher" -type f | head -n 1)
           if [ -z "$SPM_BINARY" ]; then
             echo "Error: Could not find spm binary in $SPM_APP/Contents/MacOS"
             ls -la "$SPM_APP/Contents/MacOS/"
             exit 1
           fi
-          SPM_VERSION=$(basename "$SPM_BINARY" | sed 's/spm//')
-          echo "Detected SPM binary: $SPM_BINARY"
-          echo "Detected SPM version: $SPM_VERSION"
+          SPM_VERSION=$(basename "$SPM_BINARY" | sed 's/^spm//')
+          echo "Detected SPM binary: $SPM_BINARY (version: $SPM_VERSION)"
           echo "SPM_VERSION=$SPM_VERSION" >> $GITHUB_ENV
 
-          # Set up MATLAB Runtime library paths (replaces run_spm*.sh functionality)
-          if [ -d "${MATLAB_RUNTIME_PATH}/runtime/maca64" ]; then
-            ARCH="maca64"
+          # In MATLAB R2024b+, the .app bundle's main executable is SPM_Launcher.
+          # SPM_Launcher handles MATLAB Runtime discovery via:
+          #   1. The MATLAB_RUNTIME environment variable (already set)
+          #   2. Standard locations: /Applications/MATLAB/MATLAB_Runtime/ (where we install)
+          # This avoids DYLD_LIBRARY_PATH manipulation (which is stripped by Hardened Runtime).
+          SPM_LAUNCHER="$SPM_APP/Contents/MacOS/SPM_Launcher"
+
+          echo "=== App bundle Contents/MacOS ==="
+          ls -la "$SPM_APP/Contents/MacOS/"
+
+          echo "=== MATLAB Runtime ==="
+          echo "MATLAB_RUNTIME: ${MATLAB_RUNTIME}"
+          if ls "${MATLAB_RUNTIME}"/runtime/mac*/libmwmclmcrrt*.dylib 2>/dev/null | head -3; then
+            echo "✓ MCR library found"
           else
-            ARCH="maci64"
+            echo "Warning: libmwmclmcrrt*.dylib not found under ${MATLAB_RUNTIME}/runtime/"
           fi
-          DYLD_FALLBACK_LIBRARY_PATH="${MATLAB_RUNTIME_PATH}/runtime/${ARCH}:${MATLAB_RUNTIME_PATH}/bin/${ARCH}:${MATLAB_RUNTIME_PATH}/sys/os/${ARCH}:/usr/lib"
-          export DYLD_FALLBACK_LIBRARY_PATH  # must be exported in current shell for spm26 below
-          echo "DYLD_FALLBACK_LIBRARY_PATH=${DYLD_FALLBACK_LIBRARY_PATH}" >> $GITHUB_ENV
-          echo "Runtime arch: ${ARCH}"
 
-          # Diagnose runtime installation
-          echo "=== Runtime diagnostic ==="
-          echo "MATLAB_RUNTIME_PATH: ${MATLAB_RUNTIME_PATH}"
-          echo "ARCH: ${ARCH}"
-          find "${MATLAB_RUNTIME_PATH}/runtime/${ARCH}" -name "libmwmclmcrrt*.dylib" 2>/dev/null \
-            | head -3 && echo "✓ MCR library found" \
-            || echo "Warning: libmwmclmcrrt*.dylib not found in runtime/${ARCH}"
-          echo "==========================="
+          echo "=== Binary info ==="
+          echo "-- Library dependencies --"
+          otool -L "$SPM_BINARY" 2>/dev/null | head -20 || echo "(otool not available)"
+          echo "-- RPaths --"
+          otool -l "$SPM_BINARY" 2>/dev/null | grep -A 3 LC_RPATH | head -30 || true
+          echo "-- spm binary signature --"
+          codesign -d --verbose "$SPM_BINARY" 2>&1 | grep -E "(flags=|Signature|Identifier)" || true
+          if [ -f "$SPM_LAUNCHER" ]; then
+            echo "✓ SPM_Launcher found"
+            echo "-- SPM_Launcher signature --"
+            codesign -d --verbose "$SPM_LAUNCHER" 2>&1 | grep -E "(flags=|Signature|Identifier)" || true
+          else
+            echo "Warning: SPM_Launcher not found at $SPM_LAUNCHER"
+          fi
+          echo "=========================="
 
-          # Make binary executable
-          chmod +x "$SPM_BINARY"
+          # Make executables
+          chmod +x "$SPM_BINARY" 2>/dev/null || true
+          [ -f "$SPM_LAUNCHER" ] && chmod +x "$SPM_LAUNCHER" 2>/dev/null || true
 
-          # The MATLAB-compiled binary has the Hardened Runtime entitlement, which causes
-          # dyld to silently strip DYLD_* env vars before the process starts.
-          # Fix: re-sign with an ad-hoc signature that grants the
-          # com.apple.security.cs.allow-dyld-environment-variables entitlement, which is
-          # the documented macOS mechanism for allowing DYLD_* vars under Hardened Runtime.
-          # Also disable library validation so the MATLAB Runtime (which the binary didn't
-          # ship with) can be loaded.
-          # Ad-hoc signing (--sign -) is accepted by Apple Silicon without a developer cert.
-          cat > /tmp/spm_entitlements.plist << 'PLIST'
-          <?xml version="1.0" encoding="UTF-8"?>
-          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-          <plist version="1.0">
-          <dict>
-              <key>com.apple.security.cs.allow-dyld-environment-variables</key>
-              <true/>
-              <key>com.apple.security.cs.disable-library-validation</key>
-              <true/>
-          </dict>
-          </plist>
-          PLIST
-
-          codesign --remove-signature "$SPM_BINARY" 2>/dev/null || true
-          codesign --sign - --force --entitlements /tmp/spm_entitlements.plist "$SPM_BINARY" \
-            && echo "✓ Binary re-signed (ad-hoc + DYLD env var entitlement)" \
-            || echo "Warning: Re-signing failed"
-
-          # Extract CTF archive
-          echo "Extracting CTF archive..."
-          "$SPM_BINARY" function exit || true
+          # Warm-up run using the proper launcher (SPM_Launcher handles runtime discovery)
+          echo "Running warm-up via SPM_Launcher..."
+          if [ -f "$SPM_LAUNCHER" ]; then
+            "$SPM_LAUNCHER" function exit || true
+          else
+            echo "Warning: SPM_Launcher not found, trying spm binary directly"
+            "$SPM_BINARY" function exit || true
+          fi
 
           echo "SPM standalone setup complete"
       
@@ -479,7 +475,13 @@ jobs:
         timeout-minutes: 15
         shell: bash
         run: |
-          "$SPM_APP/Contents/MacOS/spm${SPM_VERSION}" test
+          SPM_LAUNCHER="$SPM_APP/Contents/MacOS/SPM_Launcher"
+          if [ -f "$SPM_LAUNCHER" ]; then
+            "$SPM_LAUNCHER" test
+          else
+            echo "Warning: SPM_Launcher not found, using spm binary directly"
+            "$SPM_APP/Contents/MacOS/spm${SPM_VERSION}" test
+          fi
 
       - name: Test standalone (Windows)
         if: runner.os == 'Windows'
