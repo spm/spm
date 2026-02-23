@@ -374,26 +374,43 @@ jobs:
           echo "DYLD_FALLBACK_LIBRARY_PATH=${DYLD_FALLBACK_LIBRARY_PATH}" >> $GITHUB_ENV
           echo "Runtime arch: ${ARCH}"
 
+          # Diagnose runtime installation
+          echo "=== Runtime diagnostic ==="
+          echo "MATLAB_RUNTIME_PATH: ${MATLAB_RUNTIME_PATH}"
+          echo "ARCH: ${ARCH}"
+          find "${MATLAB_RUNTIME_PATH}/runtime/${ARCH}" -name "libmwmclmcrrt*.dylib" 2>/dev/null \
+            | head -3 && echo "✓ MCR library found" \
+            || echo "Warning: libmwmclmcrrt*.dylib not found in runtime/${ARCH}"
+          echo "==========================="
+
           # Make binary executable
           chmod +x "$SPM_BINARY"
 
-          # The MATLAB-compiled binary has the Hardened Runtime entitlement which causes
-          # dyld to strip DYLD_* env vars before the process starts.
-          # Fix: embed the runtime paths as LC_RPATH entries directly in the binary
-          # (these are part of the binary itself and are never stripped), then re-sign
-          # with an ad-hoc signature (no Hardened Runtime entitlement).
-          # Ad-hoc signing is required on Apple Silicon (cannot run unsigned binaries),
-          # and it also allows DYLD_* vars to work as a fallback on Intel.
+          # The MATLAB-compiled binary has the Hardened Runtime entitlement, which causes
+          # dyld to silently strip DYLD_* env vars before the process starts.
+          # Fix: re-sign with an ad-hoc signature that grants the
+          # com.apple.security.cs.allow-dyld-environment-variables entitlement, which is
+          # the documented macOS mechanism for allowing DYLD_* vars under Hardened Runtime.
+          # Also disable library validation so the MATLAB Runtime (which the binary didn't
+          # ship with) can be loaded.
+          # Ad-hoc signing (--sign -) is accepted by Apple Silicon without a developer cert.
+          cat > /tmp/spm_entitlements.plist << 'PLIST'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+              <key>com.apple.security.cs.allow-dyld-environment-variables</key>
+              <true/>
+              <key>com.apple.security.cs.disable-library-validation</key>
+              <true/>
+          </dict>
+          </plist>
+          PLIST
+
           codesign --remove-signature "$SPM_BINARY" 2>/dev/null || true
-          for RPATH_DIR in \
-            "${MATLAB_RUNTIME_PATH}/runtime/${ARCH}" \
-            "${MATLAB_RUNTIME_PATH}/bin/${ARCH}" \
-            "${MATLAB_RUNTIME_PATH}/sys/os/${ARCH}"; do
-            install_name_tool -add_rpath "$RPATH_DIR" "$SPM_BINARY" 2>/dev/null || true
-          done
-          codesign --sign - --force "$SPM_BINARY" && \
-            echo "✓ Binary re-signed (ad-hoc, no Hardened Runtime)" || \
-            echo "Warning: Ad-hoc re-signing failed"
+          codesign --sign - --force --entitlements /tmp/spm_entitlements.plist "$SPM_BINARY" \
+            && echo "✓ Binary re-signed (ad-hoc + DYLD env var entitlement)" \
+            || echo "Warning: Re-signing failed"
 
           # Extract CTF archive
           echo "Extracting CTF archive..."
