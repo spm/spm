@@ -353,9 +353,18 @@ jobs:
         if: runner.os == 'macOS'
         shell: bash
         run: |
+          # Detect architecture
+          if [ "$(uname -m)" = "arm64" ]; then
+            ARCH="maca64"
+          else
+            ARCH="maci64"
+          fi
+          echo "Architecture: ${ARCH}"
+
           # Detect the compiled MATLAB binary for version number extraction
-          SPM_BINARY=$(find "$SPM_APP/Contents/MacOS" -maxdepth 1 -name "spm[0-9a-z]*" \
-            -not -name "SPM_Launcher" -type f | head -n 1)
+          # Exclude known launcher/helper binaries (names vary by MATLAB version)
+          SPM_BINARY=$(find "$SPM_APP/Contents/MacOS" -maxdepth 1 -type f \
+            \( -name "spm[0-9]*" -o -name "spm[a-z][a-z]*" \) | head -n 1)
           if [ -z "$SPM_BINARY" ]; then
             echo "Error: Could not find spm binary in $SPM_APP/Contents/MacOS"
             ls -la "$SPM_APP/Contents/MacOS/"
@@ -365,50 +374,60 @@ jobs:
           echo "Detected SPM binary: $SPM_BINARY (version: $SPM_VERSION)"
           echo "SPM_VERSION=$SPM_VERSION" >> $GITHUB_ENV
 
-          # In MATLAB R2024b+, the .app bundle's main executable is SPM_Launcher.
-          # SPM_Launcher handles MATLAB Runtime discovery via:
-          #   1. The MATLAB_RUNTIME environment variable (already set)
-          #   2. Standard locations: /Applications/MATLAB/MATLAB_Runtime/ (where we install)
-          # This avoids DYLD_LIBRARY_PATH manipulation (which is stripped by Hardened Runtime).
-          SPM_LAUNCHER="$SPM_APP/Contents/MacOS/SPM_Launcher"
+          # Find the app launcher (CFBundleExecutable from Info.plist).
+          # MATLAB R2025b: CFBundleExecutable = prelaunch  (applauncher is a helper)
+          # MATLAB R2024b: CFBundleExecutable = SPM_Launcher
+          SPM_LAUNCHER=""
+          for LNAME in prelaunch applauncher SPM_Launcher; do
+            CANDIDATE="$SPM_APP/Contents/MacOS/$LNAME"
+            if [ -f "$CANDIDATE" ]; then
+              SPM_LAUNCHER="$CANDIDATE"
+              echo "✓ Launcher found: $LNAME at $CANDIDATE"
+              break
+            fi
+          done
+          [ -z "$SPM_LAUNCHER" ] && echo "Warning: no launcher binary found"
+
+          # spm26 / spmXX has flags=0x0(none) - NO Hardened Runtime (confirmed by codesign -d).
+          # This means DYLD_LIBRARY_PATH is NOT stripped by dyld before the process starts.
+          # We must set it so dyld can find libmwlaunchermain.dylib (and its dependencies)
+          # from the installed MATLAB Runtime.  The binary's @rpath entries only point inside
+          # the app bundle, which does NOT contain the runtime libraries.
+          DYLD_LIBRARY_PATH="${MATLAB_RUNTIME}/runtime/${ARCH}:${MATLAB_RUNTIME}/bin/${ARCH}:${MATLAB_RUNTIME}/sys/os/${ARCH}"
+          export DYLD_LIBRARY_PATH
+          echo "DYLD_LIBRARY_PATH=${DYLD_LIBRARY_PATH}" >> $GITHUB_ENV
 
           echo "=== App bundle Contents/MacOS ==="
           ls -la "$SPM_APP/Contents/MacOS/"
 
           echo "=== MATLAB Runtime ==="
           echo "MATLAB_RUNTIME: ${MATLAB_RUNTIME}"
-          if ls "${MATLAB_RUNTIME}"/runtime/mac*/libmwmclmcrrt*.dylib 2>/dev/null | head -3; then
-            echo "✓ MCR library found"
-          else
-            echo "Warning: libmwmclmcrrt*.dylib not found under ${MATLAB_RUNTIME}/runtime/"
-          fi
+          ls "${MATLAB_RUNTIME}/runtime/${ARCH}/libmwmclmcrrt"*.dylib 2>/dev/null \
+            && echo "✓ MCR library found" \
+            || echo "Warning: libmwmclmcrrt*.dylib not found in runtime/${ARCH}"
 
           echo "=== Binary info ==="
-          echo "-- Library dependencies --"
-          otool -L "$SPM_BINARY" 2>/dev/null | head -20 || echo "(otool not available)"
-          echo "-- RPaths --"
-          otool -l "$SPM_BINARY" 2>/dev/null | grep -A 3 LC_RPATH | head -30 || true
-          echo "-- spm binary signature --"
-          codesign -d --verbose "$SPM_BINARY" 2>&1 | grep -E "(flags=|Signature|Identifier)" || true
-          if [ -f "$SPM_LAUNCHER" ]; then
-            echo "✓ SPM_Launcher found"
-            echo "-- SPM_Launcher signature --"
-            codesign -d --verbose "$SPM_LAUNCHER" 2>&1 | grep -E "(flags=|Signature|Identifier)" || true
-          else
-            echo "Warning: SPM_Launcher not found at $SPM_LAUNCHER"
+          echo "-- Library dependencies (spm binary) --"
+          otool -L "$SPM_BINARY" 2>/dev/null | head -20 || true
+          echo "-- RPaths (spm binary) --"
+          otool -l "$SPM_BINARY" 2>/dev/null | grep -A 2 LC_RPATH | grep "path " | head -10 || true
+          echo "-- Code signing flags --"
+          codesign -d --verbose "$SPM_BINARY" 2>&1 | grep -E "(flags=|Identifier)" || true
+          if [ -n "$SPM_LAUNCHER" ]; then
+            echo "-- Launcher signature --"
+            codesign -d --verbose "$SPM_LAUNCHER" 2>&1 | grep -E "(flags=|Identifier)" || true
           fi
           echo "=========================="
 
           # Make executables
           chmod +x "$SPM_BINARY" 2>/dev/null || true
-          [ -f "$SPM_LAUNCHER" ] && chmod +x "$SPM_LAUNCHER" 2>/dev/null || true
+          [ -n "$SPM_LAUNCHER" ] && chmod +x "$SPM_LAUNCHER" 2>/dev/null || true
 
-          # Warm-up run using the proper launcher (SPM_Launcher handles runtime discovery)
-          echo "Running warm-up via SPM_Launcher..."
-          if [ -f "$SPM_LAUNCHER" ]; then
+          # Warm-up run: prefer the launcher, fall back to spm binary with DYLD set
+          echo "Running warm-up..."
+          if [ -n "$SPM_LAUNCHER" ]; then
             "$SPM_LAUNCHER" function exit || true
           else
-            echo "Warning: SPM_Launcher not found, trying spm binary directly"
             "$SPM_BINARY" function exit || true
           fi
 
@@ -475,11 +494,18 @@ jobs:
         timeout-minutes: 15
         shell: bash
         run: |
-          SPM_LAUNCHER="$SPM_APP/Contents/MacOS/SPM_Launcher"
-          if [ -f "$SPM_LAUNCHER" ]; then
+          # Find launcher (MATLAB R2025b: prelaunch; R2024b: SPM_Launcher)
+          SPM_LAUNCHER=""
+          for LNAME in prelaunch applauncher SPM_Launcher; do
+            if [ -f "$SPM_APP/Contents/MacOS/$LNAME" ]; then
+              SPM_LAUNCHER="$SPM_APP/Contents/MacOS/$LNAME"
+              break
+            fi
+          done
+
+          if [ -n "$SPM_LAUNCHER" ]; then
             "$SPM_LAUNCHER" test
           else
-            echo "Warning: SPM_Launcher not found, using spm binary directly"
             "$SPM_APP/Contents/MacOS/spm${SPM_VERSION}" test
           fi
 
