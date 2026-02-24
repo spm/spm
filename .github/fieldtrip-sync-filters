@@ -1,0 +1,77 @@
+# fieldtrip-sync-filters
+# ─────────────────────────────────────────────────────────────────────────────
+# rsync filter rules controlling what gets synced from FieldTrip's release
+# branch into external/fieldtrip/. Rules are processed top-to-bottom and the
+# first matching rule wins.  Syntax: "- pattern" to exclude, "+ pattern" to
+# include.  After editing, trigger the workflow manually to apply changes:
+# GitHub → Actions → Sync FieldTrip → Run workflow.
+#
+# rsync filter rule reference:
+# https://download.samba.org/pub/rsync/rsync.html#FILTER_RULES
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+# ── FieldTrip CI / tooling metadata (not needed in SPM) ─────────────────────
+- .git/
+- .github/
+- .travis.yml
+- .codespellrc
+- .codespellignorelines
+- .editorconfig
+
+
+# ── Directories not synced in SPM ──────────────────────────────────────
+- template/
+- test/
+- contrib/
+- qsub/
+- realtime/
+
+
+# ── compat/: MATLAB version fallbacks ────────────────────────────────────────
+# Exclude very old versions that pre-date SPM's minimum MATLAB requirement
+# and the obsolete/ folder.  All other compat folders are synced
+- compat/matlablt2010a/
+- compat/matlablt2010b/
+- compat/obsolete/
+
+
+# ── Legacy MEX platform extensions ───────────────────────────────────────────
+# Synced:   mexa64     Linux 64-bit
+#           mexmaca64  macOS Apple Silicon (arm64)
+#           mexmaci64  macOS Intel 64-bit
+#           mexw64     Windows 64-bit
+#
+# Excluded: mexw32     Windows 32-bit (end-of-life)
+#           mexglx     Linux 32-bit (end-of-life)
+#           mexlx      Linux legacy (end-of-life)
+#           mexsol     Solaris (end-of-life)
+#           mexmac     macOS pre-Intel (end-of-life)
+#           mexmaci    macOS Intel 32-bit (end-of-life; note: mexmaci64 is kept)
+#           *.mex      bare suffix, local build artifact with no platform tag
+- *.mexw32
+- *.mexglx
+- *.mexlx
+- *.mexsol
+- *.mexmac
+- *.mexmaci
+- *.mex
+
+
+# ── external/: only sync packages already present in SPM ────────────────────────
+# FieldTrip ships many third-party packages in external/; SPM uses only four.
+# Process: explicitly include the wanted packages, then block everything else.
+# To add a new package insert two lines before "- external/*":
+#   + external/<name>/
+#   + external/<name>/**
+#
++ external/
++ external/fileexchange/
++ external/fileexchange/**
++ external/images/
++ external/images/**
++ external/signal/
++ external/signal/**
++ external/stats/
++ external/stats/**
+- external/*

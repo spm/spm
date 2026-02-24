@@ -6,7 +6,7 @@ on:
     # so by 06:00 a successful release will have landed on the release branch.
     - cron: '0 6 * * *'
   workflow_dispatch:
-    # Allow manual trigger for testing or out-of-band syncs.
+    # Allow manual trigger for testing or retriggering after changes to .github/fieldtrip-sync-filters.
 
 permissions:
   contents: write      # needed to push the sync branch
@@ -76,14 +76,7 @@ jobs:
             echo "skip=false" >> "$GITHUB_OUTPUT"
           fi
 
-      # Comments on the rsync options:
-      # --delete: remove files deleted upstream in FieldTrip
-      #
-      # sync MEX binaries (*.mexa64, *.mexmaci64, *.mexmaca64, *.mexw64, etc.)
-      # Only *.mex (bare, no platform extension) are excluded
-      #
-      # Trailing slash on source path is critical in rsync: copies the
-      # *contents* of /tmp/fieldtrip-release/ not a nested subdirectory.
+      # What to include/exclude is controlled by .github/fieldtrip-sync-filters.
       - name: Rsync FieldTrip into external/fieldtrip
         if: steps.check-update.outputs.skip == 'false'
         shell: bash
@@ -92,15 +85,7 @@ jobs:
             --recursive \
             --links \
             --delete \
-            --exclude='.git/' \
-            --exclude='.github/' \
-            --exclude='.travis.yml' \
-            --exclude='.codespellrc' \
-            --exclude='.codespellignorelines' \
-            --exclude='.editorconfig' \
-            --exclude='template/' \
-            --exclude='test/' \
-            --exclude='*.mex' \
+            --filter='merge .github/fieldtrip-sync-filters' \
             /tmp/fieldtrip-release/ \
             external/fieldtrip/
 
@@ -117,7 +102,7 @@ jobs:
         if: steps.check-update.outputs.skip == 'false'
         shell: bash
         run: |
-          git add external/fieldtrip/
+          git -c core.safecrlf=false add external/fieldtrip/
           if git diff --cached --quiet; then
             echo "Rsync produced no changes to tracked files. No PR needed."
             echo "has_changes=false" >> "$GITHUB_OUTPUT"
@@ -131,9 +116,12 @@ jobs:
         if: >
           steps.check-update.outputs.skip == 'false' &&
           steps.diff-check.outputs.has_changes == 'true'
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@22a9089034f40e5a961c8808d113e2c98fb63676 # v7 (hash for safety, since we use a PAT_TOKEN)
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          # PAT_FIELDTRIP_SYNC needs "Contents: Read and write + Pull requests: Read and write".
+          # Using a PAT (not GITHUB_TOKEN) is required so that the created PR triggers the testing workflow.
+          # Falls back to GITHUB_TOKEN if PAT is not configured
+          token: ${{ secrets.PAT_FIELDTRIP_SYNC || secrets.GITHUB_TOKEN }}
           branch: sync/fieldtrip
           delete-branch: true
           base: main
