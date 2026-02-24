@@ -279,8 +279,6 @@ jobs:
           INSTALLER="$(dirname "$SPM_APP")/Runtime_Installer.app"
           echo "Installing MATLAB Runtime from $INSTALLER"
 
-          # Install to the standard system path. SPM_Launcher (the .app bundle entry point
-          # in MATLAB R2024b+) discovers the runtime at this standard location automatically.
           MCR_DEST="/Applications/MATLAB/MATLAB_Runtime"
           sudo "$INSTALLER/Contents/MacOS/setup" -agreeToLicense yes -destinationFolder "$MCR_DEST" 2>&1 | tee install.log
 
@@ -353,83 +351,21 @@ jobs:
         if: runner.os == 'macOS'
         shell: bash
         run: |
-          # Detect architecture
-          if [ "$(uname -m)" = "arm64" ]; then
-            ARCH="maca64"
-          else
-            ARCH="maci64"
-          fi
-          echo "Architecture: ${ARCH}"
+          if [ "$(uname -m)" = "arm64" ]; then ARCH="maca64"; else ARCH="maci64"; fi
 
-          # Detect the compiled MATLAB binary for version number extraction
-          # Exclude known launcher/helper binaries (names vary by MATLAB version)
-          SPM_BINARY=$(find "$SPM_APP/Contents/MacOS" -maxdepth 1 -type f \
-            \( -name "spm[0-9]*" -o -name "spm[a-z][a-z]*" \) | head -n 1)
-          if [ -z "$SPM_BINARY" ]; then
-            echo "Error: Could not find spm binary in $SPM_APP/Contents/MacOS"
-            ls -la "$SPM_APP/Contents/MacOS/"
-            exit 1
-          fi
+          SPM_BINARY=$(find "$SPM_APP/Contents/MacOS" -maxdepth 1 -type f -name "spm[0-9]*" | head -n 1)
           SPM_VERSION=$(basename "$SPM_BINARY" | sed 's/^spm//')
-          echo "Detected SPM binary: $SPM_BINARY (version: $SPM_VERSION)"
           echo "SPM_VERSION=$SPM_VERSION" >> $GITHUB_ENV
 
-          # Find the app launcher (CFBundleExecutable from Info.plist).
-          # MATLAB R2025b: CFBundleExecutable = prelaunch  (applauncher is a helper)
-          # MATLAB R2024b: CFBundleExecutable = SPM_Launcher
-          SPM_LAUNCHER=""
-          for LNAME in prelaunch applauncher SPM_Launcher; do
-            CANDIDATE="$SPM_APP/Contents/MacOS/$LNAME"
-            if [ -f "$CANDIDATE" ]; then
-              SPM_LAUNCHER="$CANDIDATE"
-              echo "✓ Launcher found: $LNAME at $CANDIDATE"
-              break
-            fi
-          done
-          [ -z "$SPM_LAUNCHER" ] && echo "Warning: no launcher binary found"
-
-          # spm26 / spmXX has flags=0x0(none) - NO Hardened Runtime (confirmed by codesign -d).
-          # This means DYLD_LIBRARY_PATH is NOT stripped by dyld before the process starts.
-          # DYLD_LIBRARY_PATH is searched BEFORE @rpath expansions, so spm26 will find
-          # libmwlaunchermain.dylib here before its @rpath entries (which point inside the
-          # app bundle where the runtime libraries don't exist).
-          #
-          # IMPORTANT: Do NOT use the prelaunch/applauncher binaries to run spm26.
-          # These launchers overwrite DYLD_LIBRARY_PATH with their own (incorrectly computed)
-          # version, resulting in paths like /runtime/maci64 (missing the base directory)
-          # instead of /Applications/MATLAB/MATLAB_Runtime/R2025b/runtime/maci64.
+          # spmXX has no Hardened Runtime (flags=0x0), so DYLD_LIBRARY_PATH is not stripped.
+          # Call spmXX directly — do NOT use prelaunch/applauncher, which overwrite
+          # DYLD_LIBRARY_PATH with incorrectly computed paths (missing the runtime base dir).
           DYLD_LIBRARY_PATH="${MATLAB_RUNTIME}/runtime/${ARCH}:${MATLAB_RUNTIME}/bin/${ARCH}:${MATLAB_RUNTIME}/sys/os/${ARCH}"
           export DYLD_LIBRARY_PATH
           echo "DYLD_LIBRARY_PATH=${DYLD_LIBRARY_PATH}" >> $GITHUB_ENV
 
-          echo "=== App bundle Contents/MacOS ==="
-          ls -la "$SPM_APP/Contents/MacOS/"
-
-          echo "=== MATLAB Runtime ==="
-          echo "MATLAB_RUNTIME: ${MATLAB_RUNTIME}"
-          ls "${MATLAB_RUNTIME}/runtime/${ARCH}/libmwmclmcrrt"*.dylib 2>/dev/null \
-            && echo "✓ MCR library found" \
-            || echo "Warning: libmwmclmcrrt*.dylib not found in runtime/${ARCH}"
-
-          echo "=== Binary info ==="
-          echo "-- Library dependencies (spm binary) --"
-          otool -L "$SPM_BINARY" 2>/dev/null | head -20 || true
-          echo "-- RPaths (spm binary) --"
-          otool -l "$SPM_BINARY" 2>/dev/null | grep -A 2 LC_RPATH | grep "path " | head -10 || true
-          echo "-- Code signing flags --"
-          codesign -d --verbose "$SPM_BINARY" 2>&1 | grep -E "(flags=|Identifier)" || true
-          echo "=========================="
-
-          # Make binary executable
           chmod +x "$SPM_BINARY" 2>/dev/null || true
-
-          # Warm-up: call spm26 directly (NOT through prelaunch/applauncher which would
-          # overwrite DYLD_LIBRARY_PATH). The _mcr/ directory is pre-populated by mcc,
-          # so no CTF extraction is needed; this just verifies the runtime loads.
-          echo "Running warm-up (spm26 directly with DYLD_LIBRARY_PATH set)..."
           "$SPM_BINARY" function exit || true
-
-          echo "SPM standalone setup complete"
       
       - name: Setup SPM standalone (Windows)
         if: runner.os == 'Windows'
@@ -492,9 +428,6 @@ jobs:
         timeout-minutes: 15
         shell: bash
         run: |
-          # Call spm26 DIRECTLY (not prelaunch/applauncher which overwrite DYLD_LIBRARY_PATH
-          # with wrong paths like /runtime/maci64 instead of the full correct path).
-          # DYLD_LIBRARY_PATH is already set correctly from the Setup step via $GITHUB_ENV.
           "$SPM_APP/Contents/MacOS/spm${SPM_VERSION}" test
 
       - name: Test standalone (Windows)
