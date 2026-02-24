@@ -1,0 +1,183 @@
+name: Sync FieldTrip
+
+on:
+  schedule:
+    # Run at 06:00 UTC daily. FieldTrip's nightly release runs ~midnight UTC,
+    # so by 06:00 a successful release will have landed on the release branch.
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+    # Allow manual trigger for testing or out-of-band syncs.
+
+permissions:
+  contents: write      # needed to push the sync branch
+  pull-requests: write # needed to create/update the PR
+
+jobs:
+  sync:
+    name: Sync FieldTrip release branch into external/fieldtrip
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out SPM repository
+        uses: actions/checkout@v4
+        with:
+          # fetch-depth: 0 (full history) is required by
+          # peter-evans/create-pull-request to correctly find the common
+          # ancestor when pushing to the sync/fieldtrip branch.
+          fetch-depth: 0
+
+      - name: Read last synced FieldTrip commit hash
+        id: last-synced
+        shell: bash
+        run: |
+          VERSION_FILE="external/fieldtrip/.fieldtrip-version"
+          if [ -f "$VERSION_FILE" ]; then
+            LAST_HASH=$(cat "$VERSION_FILE" | tr -d '[:space:]')
+            echo "Last synced hash: ${LAST_HASH}"
+          else
+            LAST_HASH=""
+            echo "No .fieldtrip-version file found; will create on first sync"
+          fi
+          echo "last_hash=${LAST_HASH}" >> "$GITHUB_OUTPUT"
+
+      - name: Clone FieldTrip release branch to tmp (only release branch, no history)
+        shell: bash
+        run: |
+          git clone \
+            --depth=1 \
+            --branch release \
+            --single-branch \
+            https://github.com/fieldtrip/fieldtrip.git \
+            /tmp/fieldtrip-release
+
+      - name: Get FieldTrip release commit hash
+        id: ft-commit
+        shell: bash
+        run: |
+          NEW_HASH=$(git -C /tmp/fieldtrip-release rev-parse HEAD)
+          SHORT_HASH=$(git -C /tmp/fieldtrip-release rev-parse --short=9 HEAD)
+          COMMIT_DATE=$(git -C /tmp/fieldtrip-release log -1 --format='%ci')
+          echo "new_hash=${NEW_HASH}" >> "$GITHUB_OUTPUT"
+          echo "short_hash=${SHORT_HASH}" >> "$GITHUB_OUTPUT"
+          echo "commit_date=${COMMIT_DATE}" >> "$GITHUB_OUTPUT"
+          echo "FieldTrip HEAD on release branch: ${NEW_HASH} (${COMMIT_DATE})"
+
+      - name: Check if FieldTrip has been updated since last sync (early exit)
+        id: check-update
+        shell: bash
+        run: |
+          LAST="${{ steps.last-synced.outputs.last_hash }}"
+          NEW="${{ steps.ft-commit.outputs.new_hash }}"
+          if [ "$LAST" = "$NEW" ]; then
+            echo "FieldTrip release branch has not moved since last sync (${NEW}). Skipping."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "New FieldTrip commit detected: ${NEW} (was: ${LAST:-<not set>})"
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      # Comments on the rsync options:
+      # --delete: remove files deleted upstream in FieldTrip
+      #
+      # sync MEX binaries (*.mexa64, *.mexmaci64, *.mexmaca64, *.mexw64, etc.)
+      # Only *.mex (bare, no platform extension) are excluded
+      #
+      # Trailing slash on source path is critical in rsync: copies the
+      # *contents* of /tmp/fieldtrip-release/ not a nested subdirectory.
+      - name: Rsync FieldTrip into external/fieldtrip
+        if: steps.check-update.outputs.skip == 'false'
+        shell: bash
+        run: |
+          rsync \
+            --recursive \
+            --links \
+            --delete \
+            --exclude='.git/' \
+            --exclude='.github/' \
+            --exclude='.travis.yml' \
+            --exclude='.codespellrc' \
+            --exclude='.codespellignorelines' \
+            --exclude='.editorconfig' \
+            --exclude='template/' \
+            --exclude='test/' \
+            --exclude='*.mex' \
+            /tmp/fieldtrip-release/ \
+            external/fieldtrip/
+
+      - name: Update .fieldtrip-version tracking file
+        if: steps.check-update.outputs.skip == 'false'
+        shell: bash
+        run: |
+          printf '%s\n' "${{ steps.ft-commit.outputs.new_hash }}" \
+            > external/fieldtrip/.fieldtrip-version
+          echo "Wrote ${{ steps.ft-commit.outputs.new_hash }} to external/fieldtrip/.fieldtrip-version"
+
+      - name: Check whether synced files differ from HEAD (avoid creating empty PRs)
+        id: diff-check
+        if: steps.check-update.outputs.skip == 'false'
+        shell: bash
+        run: |
+          git add external/fieldtrip/
+          if git diff --cached --quiet; then
+            echo "Rsync produced no changes to tracked files. No PR needed."
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+          else
+            CHANGED=$(git diff --cached --stat | tail -1)
+            echo "Changes detected: ${CHANGED}"
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create or update FieldTrip sync pull request
+        if: >
+          steps.check-update.outputs.skip == 'false' &&
+          steps.diff-check.outputs.has_changes == 'true'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: sync/fieldtrip
+          delete-branch: true
+          base: main
+
+          commit-message: |
+            Update external/fieldtrip to ${{ steps.ft-commit.outputs.short_hash }}
+
+            FieldTrip release branch commit: ${{ steps.ft-commit.outputs.new_hash }}
+            Committed: ${{ steps.ft-commit.outputs.commit_date }}
+
+            Synced via GitHub Actions (sync-fieldtrip workflow).
+
+          title: >-
+            Update external/fieldtrip to FieldTrip ${{ steps.ft-commit.outputs.short_hash }}
+
+          body: |
+            ## FieldTrip Sync
+
+            This PR was automatically generated by the `sync-fieldtrip` workflow.
+
+            | Field | Value |
+            |---|---|
+            | FieldTrip branch | `release` |
+            | New commit | [`${{ steps.ft-commit.outputs.new_hash }}`](https://github.com/fieldtrip/fieldtrip/commit/${{ steps.ft-commit.outputs.new_hash }}) |
+            | Commit date | `${{ steps.ft-commit.outputs.commit_date }}` |
+            | Previous commit | `${{ steps.last-synced.outputs.last_hash != '' && steps.last-synced.outputs.last_hash || 'N/A (first sync)' }}` |
+            | Compare | [View diff on FieldTrip](https://github.com/fieldtrip/fieldtrip/compare/${{ steps.last-synced.outputs.last_hash }}...${{ steps.ft-commit.outputs.new_hash }}) |
+
+            ### What was synced
+
+            All files from FieldTrip's `release` branch **except**:
+            - `.git/`, `.github/`, `.travis.yml`, `.codespellrc`, `.codespellignorelines`, `.editorconfig` — CI/tooling metadata
+            - `template/` — large data files not needed in SPM
+            - `test/` — FieldTrip test scripts
+            - `*.mex` (bare, no platform extension) — local build artifacts that FieldTrip itself ignores
+
+            Pre-compiled MEX binaries (`*.mexa64`, `*.mexmaci64`, `*.mexmaca64`, `*.mexw64`) **are included** — they are tested by FieldTrip's CI before landing on `release`.
+
+            ### Review checklist
+
+            - [ ] Confirm SPM tests still succeed
+            - [ ] Manually read the diff and FieldTrip compare link for breaking API changes or any unexpected file deletions
+
+          labels: |
+            fieldtrip
+            automated sync
+          draft: false
