@@ -7,7 +7,12 @@ spm('defaults','eeg');
 
 % Set results folder
 %resultsdir='D:\matlab\jimmymatfiles\'; %% user specified.
-resultsdir = fullfile(cd, 'results');  % standard within current folder, but user should adapt
+distortdir='D:\spm_distort'
+addpath(distortdir)
+ar=load('righthemind.mat');
+al=load('lefthemind.mat');
+
+resultsdir = fullfile(distortdir, 'sim_results');  % standard within current folder, but user should adapt
 
 
 % Flexibly create results folder if missing
@@ -442,30 +447,33 @@ for invind=1:numel(invmethods),
     C=zeros(size(M0.vertices,1),1);
     C(useind)=1;
 
+    
     %% PLOTS DISTORTED ANATOMY
+    leftsliceind=al.orderedsliceind;
+    rightsliceind=ar.orderedsliceind;
+    allind=[leftsliceind ;rightsliceind];
+
     for fs=1:length(usesurfind),
         f=usesurfind(fs);
         [Norm_vert] = spm_mesh_normals(Mmesh{f});
         simpos=Mmesh{f}.vertices(meshsourceind,:);
         simori=Norm_vert(meshsourceind,:);
-        MS = spm_mesh_split(Mmesh{f}, C);
-
-        h=trisurf(MS.faces,MS.vertices(:,1),MS.vertices(:,2),MS.vertices(:,3));
-        view(viewind)
-        set(h,'EdgeColor',col_dist_str(fs))
-        %set(h,'FaceColor',col_dist_str(fs))
-        set(h,'FaceColor','none')
+        %pos=al.pos;
+        pos=Mmesh{f}.vertices;
+        h=plot(pos(allind,1),pos(allind,3),col_dist_str(fs));
+        set(h,'Linewidth',3)
+ 
         hold on;
         qscale=6;
-        h1=quiver3(simpos(:,1),simpos(:,2),simpos(:,3),...
-            simori(:,1),simori(:,2),simori(:,3),qscale);
+        if fs==1,
+        h1=quiver(simpos(:,1),simpos(:,3),...
+            simori(:,1),simori(:,3),qscale);
         set(h1,'Color',colstr(invind))
         set(h1,'Linewidth',4)
-        if fs>1,
-            set(h1,'Linestyle',':')
         end;
 
     end; % for fs
+    set(gca,'xdir','reverse'); %% consisent with paper
 
     %% PLOTS DISTORTED ANATOMY WITH CURRENT MAG
 
@@ -475,33 +483,25 @@ for invind=1:numel(invmethods),
         nv=spm_mesh_normals(Mmesh{f});
         nvslice=nv(find(C),:);
         MS = spm_mesh_split(Mmesh{f}, C);
-        %MS=spm_mesh_inflate(gifti(MS));
+
         plotJslice=abs(allplotJ(fs,find(C)));
         plotJslice=plotJslice./max(plotJslice)
         highind=find(plotJslice>0.5);
+        h=plot(pos(allind,1),pos(allind,3),col_dist_str(fs));
+        set(h,'Linewidth',3)
 
-        h=trisurf(MS.faces,MS.vertices(:,1),MS.vertices(:,2),MS.vertices(:,3),plotJslice)
-        xlabel('x');zlabel('z')
-        view(viewind)
-        set(h,'EdgeColor',col_dist_str(fs))
-        set(h,'FaceColor','none')
-%         set(h,'FaceColor','Interp')
-% 
-%         set(h,'FaceVertexAlphaData',plotJslice')
-%         
-%         set(h,'FaceAlpha','flat')
-%         
         
         for g=1:length(highind),
             Jscale=10*plotJslice(highind(g));
             arrowscale=0.6;
-            hq=quiver3(MS.vertices(highind(g),1),MS.vertices(highind(g),2),MS.vertices(highind(g),3),...
-                nvslice(highind(g),1)*Jscale,nvslice(highind(g),2)*Jscale,nvslice(highind(g),3)*Jscale,arrowscale);
+            hq=quiver(MS.vertices(highind(g),1),MS.vertices(highind(g),3),...
+                nvslice(highind(g),1)*Jscale,nvslice(highind(g),3)*Jscale,arrowscale);
             set(hq,'Linewidth',3);
             set(hq,'color',colstr(invind))
             
-            axis([-70 0 -inf inf 10 80])
-
+            axis([-70 -2 10 78])
+            set(gca,'xdir','reverse')
+            set(gca,'visible','off')
         end;
     end; % for f
 end; % for invind
