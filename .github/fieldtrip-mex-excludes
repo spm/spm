@@ -1,0 +1,26 @@
+# fieldtrip-mex-excludes
+# ─────────────────────────────────────────────────────────────────────────────
+# Shared rsync exclusion rules for legacy and unsupported MEX platform
+# extensions. Referenced by both the main FieldTrip sync (.github/fieldtrip-
+# sync-filters) and the per-package external syncs in the workflow.
+#
+# Synced:   mexa64     Linux 64-bit
+#           mexmaca64  macOS Apple Silicon (arm64)
+#           mexmaci64  macOS Intel 64-bit
+#           mexw64     Windows 64-bit
+#
+# Excluded: mexw32     Windows 32-bit (end-of-life)
+#           mexglx     Linux 32-bit (end-of-life)
+#           mexlx      Linux legacy (end-of-life)
+#           mexsol     Solaris (end-of-life)
+#           mexmac     macOS pre-Intel (end-of-life)
+#           mexmaci    macOS Intel 32-bit (end-of-life; mexmaci64 is kept)
+#           *.mex      bare suffix — local build artifact with no platform tag
+# ─────────────────────────────────────────────────────────────────────────────
+- *.mexw32
+- *.mexglx
+- *.mexlx
+- *.mexsol
+- *.mexmac
+- *.mexmaci
+- *.mex

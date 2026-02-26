@@ -36,30 +36,13 @@
 - compat/obsolete/
 
 
-# ── Legacy MEX platform extensions ───────────────────────────────────────────
-# Synced:   mexa64     Linux 64-bit
-#           mexmaca64  macOS Apple Silicon (arm64)
-#           mexmaci64  macOS Intel 64-bit
-#           mexw64     Windows 64-bit
-#
-# Excluded: mexw32     Windows 32-bit (end-of-life)
-#           mexglx     Linux 32-bit (end-of-life)
-#           mexlx      Linux legacy (end-of-life)
-#           mexsol     Solaris (end-of-life)
-#           mexmac     macOS pre-Intel (end-of-life)
-#           mexmaci    macOS Intel 32-bit (end-of-life; note: mexmaci64 is kept)
-#           *.mex      bare suffix, local build artifact with no platform tag
-- *.mexw32
-- *.mexglx
-- *.mexlx
-- *.mexsol
-- *.mexmac
-- *.mexmaci
-- *.mex
+# ── Avoid legacy MEX platform extensions ───────────────────────────────────────────
+merge .github/fieldtrip-mex-excludes
 
 
 # ── external/: only sync packages already present in SPM ────────────────────────
-# FieldTrip ships many third-party packages in external/; SPM uses only four.
+# FieldTrip ships many third-party packages in external/; The following are synced to fieldtrip/external.
+# Some are synced directly to SPM's external/ (See sync_fieldtrip.yml)
 # Process: explicitly include the wanted packages, then block everything else.
 # To add a new package insert two lines before "- external/*":
 #   + external/<name>/

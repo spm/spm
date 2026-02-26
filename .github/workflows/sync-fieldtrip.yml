@@ -16,6 +16,15 @@ jobs:
   sync:
     name: Sync FieldTrip release branch into external/fieldtrip
     runs-on: ubuntu-latest
+    env:
+      # Packages that are synced from FieldTrip to spm/external
+      FT_EXTERNAL_PACKAGES: >-
+        bemcp
+        ctf
+        eeprobe
+        mne
+        ricoh_meg_reader
+        yokogawa_meg_reader
 
     steps:
       - name: Check out SPM repository
@@ -89,6 +98,22 @@ jobs:
             /tmp/fieldtrip-release/ \
             external/fieldtrip/
 
+      # Sync packages from fieldtrip/external/<name>/ to spm/external/<name>/
+      - name: Sync shared external packages from fieldtrip/external
+        if: steps.check-update.outputs.skip == 'false'
+        shell: bash
+        run: |
+          for pkg in $FT_EXTERNAL_PACKAGES; do
+            echo "Syncing fieldtrip/external/$pkg -> external/$pkg"
+            rsync \
+              --recursive \
+              --links \
+              --delete \
+              --filter='merge .github/fieldtrip-mex-excludes' \
+              /tmp/fieldtrip-release/external/$pkg/ \
+              external/$pkg/
+          done
+
       - name: Update .fieldtrip-version tracking file
         if: steps.check-update.outputs.skip == 'false'
         shell: bash
@@ -102,7 +127,7 @@ jobs:
         if: steps.check-update.outputs.skip == 'false'
         shell: bash
         run: |
-          git -c core.safecrlf=false add external/fieldtrip/
+          git -c core.safecrlf=false add external/
           if git diff --cached --quiet; then
             echo "Rsync produced no changes to tracked files. No PR needed."
             echo "has_changes=false" >> "$GITHUB_OUTPUT"
@@ -152,13 +177,11 @@ jobs:
 
             ### What was synced
 
-            All files from FieldTrip's `release` branch **except**:
-            - `.git/`, `.github/`, `.travis.yml`, `.codespellrc`, `.codespellignorelines`, `.editorconfig` — CI/tooling metadata
-            - `template/` — large data files not needed in SPM
-            - `test/` — FieldTrip test scripts
-            - `*.mex` (bare, no platform extension) — local build artifacts that FieldTrip itself ignores
+            **`external/fieldtrip/`** — files from FieldTrip's `release` branch that are relevant to SPM, see `.github/fieldtrip-sync-filters` for the full rules.
 
-            Pre-compiled MEX binaries (`*.mexa64`, `*.mexmaci64`, `*.mexmaca64`, `*.mexw64`) **are included** — they are tested by FieldTrip's CI before landing on `release`.
+            **`external/{bemcp,ctf,eeprobe,mne,ricoh_meg_reader,yokogawa_meg_reader}/`** — packages present in both SPM and `fieldtrip/external/`. See `FT_EXTERNAL_PACKAGES` in the workflow to add or remove packages.
+
+            Pre-compiled MEX binaries (`*.mexa64`, `*.mexmaci64`, `*.mexmaca64`, `*.mexw64`) **are included** in both syncs.
 
             ### Review checklist
 
