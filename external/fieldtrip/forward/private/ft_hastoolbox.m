@@ -126,6 +126,7 @@ url = {
   'FORWARD'                               'see http://www.fieldtriptoolbox.org'
   'FREESURFER'                            'see http://surfer.nmr.mgh.harvard.edu/fswiki'
   'GCMI'                                  'see https://github.com/robince/gcmi'
+  'GEDAI'                                 'see https://github.com/neurotuning/GEDAI-master'
   'GIFTI'                                 'see http://www.artefact.tk/software/matlab/gifti'
   'GTEC'                                  'see http://www.gtec.at'
   'HOMER3'                                'see https://github.com/BUNPC/Homer3 and https://github.com/fNIRS/snirf_homer3'
@@ -436,6 +437,8 @@ switch toolbox
     dependency = {'ezc3dRead', 'ezc3dWrite'};
   case 'GCMI'
     dependency = {'copnorm' 'mi_gg'};
+  case 'GEDAI'
+    dependency = {'GEDAI'};
   case 'XSENS'
     dependency = {'load_mvnx'};
   case 'MAYO_MEF' % MED 1.0, MEF 2.1 and MEF 3.0
@@ -508,13 +511,13 @@ if ~status && autoadd>0
 
   % for core FieldTrip modules
   prefix = fileparts(which('ft_defaults'));
-  if ~status
+  if ~status && is_folder(prefix)
     status = myaddpath(fullfile(prefix, lower(toolbox)), silent);
   end
 
   % for external FieldTrip modules
   prefix = fullfile(fileparts(which('ft_defaults')), 'external');
-  if ~status
+  if ~status && is_folder(prefix)
     status = myaddpath(fullfile(prefix, lower(toolbox)), silent);
     licensefile = [lower(toolbox) '_license'];
     if status && exist(licensefile, 'file')
@@ -526,7 +529,7 @@ if ~status && autoadd>0
 
   % for contributed FieldTrip extensions
   prefix = fullfile(fileparts(which('ft_defaults')), 'contrib');
-  if ~status
+  if ~status && is_folder(prefix)
     status = myaddpath(fullfile(prefix, lower(toolbox)), silent);
     licensefile = [lower(toolbox) '_license'];
     if status && exist(licensefile, 'file')
@@ -694,11 +697,15 @@ end
 % helper function
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function status = is_subdir_in_fieldtrip_path(toolbox_name)
-fttrunkpath = unixpath(fileparts(which('ft_defaults')));
-fttoolboxpath = fullfile(fttrunkpath, lower(toolbox_name));
-needle   = [pathsep fttoolboxpath pathsep];
-haystack = [pathsep path() pathsep];
-status   = contains(haystack, needle);
+ftpath = unixpath(fileparts(which('ft_defaults')));
+if is_folder(ftpath)
+  fttoolboxpath = fullfile(ftpath, lower(toolbox_name));
+  needle   = [pathsep fttoolboxpath pathsep];
+  haystack = [pathsep path() pathsep];
+  status   = contains(haystack, needle);
+else
+  status = false;
+end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % helper function

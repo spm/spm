@@ -1,8 +1,4 @@
 /*
- * Copyright (C) 1999-2022 Christophe Phillips
- */
-
-/*
   Direct potential for a COG approach
 
   Input : XYZv, ind_tr, XYZd, weight

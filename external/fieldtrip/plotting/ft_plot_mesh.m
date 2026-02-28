@@ -86,8 +86,9 @@ end
 % the input is a structure, but might also be a struct-array
 if numel(mesh)>1
   % plot each of the boundaries
+  hs = [];
   for i=1:numel(mesh)
-    ft_plot_mesh(mesh(i), varargin{:})
+    hs(i) = ft_plot_mesh(mesh(i), varargin{:});
   end
   return
 end
@@ -575,7 +576,7 @@ if istrue(axes_)
   ft_plot_axes(mesh);
 end
 
-if isfield(mesh, 'coordsys')
+if isfield(mesh, 'coordsys') && ~isempty(mesh.coordsys) && ~strcmp(mesh.coordsys, 'unknown')
   % add a context sensitive menu to change the 3d viewpoint to top|bottom|left|right|front|back
   menu_viewpoint(gca, mesh.coordsys)
 end

@@ -37,7 +37,10 @@ function [rej] = read_eep_rej(fn);
 % along with this program; if not, write to the Free Software
 % Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-% $Log: not supported by cvs2svn $
+% $Log: read_eep_rej.m,v $
+% Revision 1.2  2005/06/08 08:16:37  mvelde
+% converted files to unix format
+%
 % Revision 1.1  2004/11/26 13:17:02  jwiskerke
 % Added m-files without binary code in maple distribution.
 %
@@ -49,7 +52,7 @@ function [rej] = read_eep_rej(fn);
 %
 % Revision 1.1.1.1  2003/03/11 15:24:51  roberto
 % updated help and copyrights
-% ANT Software BV, The Netherlands, www.ant-neuro.com / info@ant-neuro.com
+% ANT Software BV, The Netherlands, www.ant-software.nl / info@ant-software.nl
 %
 
 rej = [];

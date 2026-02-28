@@ -1,3 +1,4 @@
+
 function bemcp_example
 % Simple function to test/demonstrate how the Boundary element functions are
 % used in combination with Fildtrip/Forwinv routines.
@@ -19,10 +20,11 @@ function bemcp_example
 % Be aware that this way of programming is generally NOT advisable!
 % I used it only to ensure a quick & dirty check of the BEM module...
 
-% Copyright (C) 1999-2022 Christophe Phillips
+% Christophe Phillips
+% $Id$
 
 % create volume conductor starting from unit sphere
-[pnt, tri] = icosahedron162;
+[pnt, tri] = mesh_sphere(162);
 
 vol = [];
 vol.cond = [1 1/80 1];
@@ -67,13 +69,13 @@ return
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Subfunctions from FieldTrip
-function [pnt, dhk] = icosahedron162
+function [pnt, tri] = mesh_sphere(162)
 
 % ICOSAHEDRON162 creates a 2-fold refined icosahedron
 
 % Copyright (C) 2003, Robert Oostenveld
 %
-% $Log: icosahedron162.m,v $
+% $Log: mesh_sphere(162).m,v $
 % Revision 1.3  2003/11/28 09:40:12  roberto
 % added a single help line
 %
@@ -81,9 +83,9 @@ function [pnt, dhk] = icosahedron162
 % added CVS log entry and synchronized all copyright labels
 %
 
-[pnt, dhk] = icosahedron;
-[pnt, dhk] = refine(pnt, dhk);
-[pnt, dhk] = refine(pnt, dhk);
+[pnt, tri] = icosahedron;
+[pnt, tri] = refine(pnt, tri);
+[pnt, tri] = refine(pnt, tri);
 
 pnt = pnt ./ repmat(sqrt(sum(pnt.^2,2)), 1,3);
 
@@ -91,11 +93,11 @@ return
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function [pnt, dhk] = icosahedron
+function [pnt, tri] = icosahedron
 
 % ICOSAHEDRON creates an icosahedron
 %
-% [pnt, dhk] = icosahedron
+% [pnt, tri] = icosahedron
 % creates an icosahedron with 12 vertices and 20 triangles
 % 
 % See also OCTAHEDRON, ICOSAHEDRON42, ICOSAHEDRON162, ICOSAHEDRON642, ICOSAHEDRON2562
@@ -113,7 +115,7 @@ function [pnt, dhk] = icosahedron
 % added CVS log entry and synchronized all copyright labels
 %
 
-dhk = [
+tri = [
    1   2   3
    1   3   4
    1   4   5
@@ -141,7 +143,7 @@ pnt = zeros(12, 3);
 rho=0.4*sqrt(5);
 phi=2*pi*(0:4)/5;
 
-pnt( 1, :) = [0 0  1];          % top point
+pnt( 1, :) = [0 0  1];			% top point
 
 pnt(2:6, 1) = rho*cos(phi)';
 pnt(2:6, 2) = rho*sin(phi)';
@@ -151,13 +153,13 @@ pnt(7:11, 1) = rho*cos(phi - pi/5)';
 pnt(7:11, 2) = rho*sin(phi - pi/5)';
 pnt(7:11, 3) = -rho/2;
 
-pnt(12, :) = [0 0 -1];          % bottom point
+pnt(12, :) = [0 0 -1];			% bottom point
 
 return
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function [pntr, dhkr] = refine(pnt, dhk, method, varargin)
+function [pntr, tri] = refine(pnt, tri, method, varargin)
 
 % REFINE a 3D surface that is described by a triangulation
 %
@@ -196,51 +198,51 @@ end
 switch lower(method)
 case 'banks'
   npnt   = size(pnt,1);
-  ndhk   = size(dhk,1);
-  insert = spalloc(3*npnt,3*npnt,3*ndhk);
+  ntri   = size(tri,1);
+  insert = spalloc(3*npnt,3*npnt,3*ntri);
 
-  dhkr  = zeros(4*ndhk,3);      % allocate memory for the new triangles
-  pntr  = zeros(npnt+3*ndhk,3);     % allocate memory for the maximum number of new vertices
-  pntr(1:npnt,:) = pnt;         % insert the original vertices
+  tri  = zeros(4*ntri,3);		% allocate memory for the new triangles
+  pntr  = zeros(npnt+3*ntri,3);		% allocate memory for the maximum number of new vertices
+  pntr(1:npnt,:) = pnt;			% insert the original vertices
   current = npnt;
 
-  for i=1:ndhk
+  for i=1:ntri
 
-    if ~insert(dhk(i,1),dhk(i,2))
+    if ~insert(tri(i,1),tri(i,2))
       current = current + 1;
-      pntr(current,:) = (pnt(dhk(i,1),:) + pnt(dhk(i,2),:))/2;
-      insert(dhk(i,1),dhk(i,2)) = current;
-      insert(dhk(i,2),dhk(i,1)) = current;
+      pntr(current,:) = (pnt(tri(i,1),:) + pnt(tri(i,2),:))/2;
+      insert(tri(i,1),tri(i,2)) = current;
+      insert(tri(i,2),tri(i,1)) = current;
       v12 = current;
     else
-      v12 = insert(dhk(i,1),dhk(i,2));
+      v12 = insert(tri(i,1),tri(i,2));
     end
 
-    if ~insert(dhk(i,2),dhk(i,3))
+    if ~insert(tri(i,2),tri(i,3))
       current = current + 1;
-      pntr(current,:) = (pnt(dhk(i,2),:) + pnt(dhk(i,3),:))/2;
-      insert(dhk(i,2),dhk(i,3)) = current;
-      insert(dhk(i,3),dhk(i,2)) = current;
+      pntr(current,:) = (pnt(tri(i,2),:) + pnt(tri(i,3),:))/2;
+      insert(tri(i,2),tri(i,3)) = current;
+      insert(tri(i,3),tri(i,2)) = current;
       v23 = current;
     else
-      v23 = insert(dhk(i,2),dhk(i,3));
+      v23 = insert(tri(i,2),tri(i,3));
     end
 
-    if ~insert(dhk(i,3),dhk(i,1))
+    if ~insert(tri(i,3),tri(i,1))
       current = current + 1;
-      pntr(current,:) = (pnt(dhk(i,3),:) + pnt(dhk(i,1),:))/2;
-      insert(dhk(i,3),dhk(i,1)) = current;
-      insert(dhk(i,1),dhk(i,3)) = current;
+      pntr(current,:) = (pnt(tri(i,3),:) + pnt(tri(i,1),:))/2;
+      insert(tri(i,3),tri(i,1)) = current;
+      insert(tri(i,1),tri(i,3)) = current;
       v31 = current;
     else
-      v31 = insert(dhk(i,3),dhk(i,1));
+      v31 = insert(tri(i,3),tri(i,1));
     end
 
     % add the 4 new triangles with the correct indices
-    dhkr(4*(i-1)+1, :) = [dhk(i,1) v12 v31];
-    dhkr(4*(i-1)+2, :) = [dhk(i,2) v23 v12];
-    dhkr(4*(i-1)+3, :) = [dhk(i,3) v31 v23];
-    dhkr(4*(i-1)+4, :) = [v12 v23 v31];
+    tri(4*(i-1)+1, :) = [tri(i,1) v12 v31];
+    tri(4*(i-1)+2, :) = [tri(i,2) v23 v12];
+    tri(4*(i-1)+3, :) = [tri(i,3) v31 v23];
+    tri(4*(i-1)+4, :) = [v12 v23 v31];
 
   end
 
@@ -248,14 +250,14 @@ case 'banks'
   pntr = pntr(1:current, :);
 
 case 'updown'
-  ndhk = size(dhk,1);
-  while ndhk<varargin{1}
+  ntri = size(tri,1);
+  while ntri<varargin{1}
     % increase the number of triangles by a factor of 4
-    [pnt, dhk] = refine(pnt, dhk, 'banks');
-    ndhk = size(dhk,1);
+    [pnt, tri] = refine(pnt, tri, 'banks');
+    ntri = size(tri,1);
   end
   % reduce number of triangles using Matlab function
-  [dhkr, pntr] = reducepatch(dhk, pnt, varargin{1});
+  [tri, pntr] = reducepatch(tri, pnt, varargin{1});
 
 otherwise
   error(['unsupported method: ' method]);
@@ -394,9 +396,9 @@ if strcmp(mode, 'contour') || strcmp(mode, 'contour_bw') || strcmp(mode, 'contou
       v(1) = triangle_val(tri_indx,1);
       v(2) = triangle_val(tri_indx,2);
       v(3) = triangle_val(tri_indx,3);
-      la(1) = (cnt-v(1)) / (v(2)-v(1)); % abcissa between vertex 1 and 2
-      la(2) = (cnt-v(2)) / (v(3)-v(2)); % abcissa between vertex 2 and 3
-      la(3) = (cnt-v(3)) / (v(1)-v(3)); % abcissa between vertex 1 and 2
+      la(1) = (cnt-v(1)) / (v(2)-v(1));	% abcissa between vertex 1 and 2
+      la(2) = (cnt-v(2)) / (v(3)-v(2));	% abcissa between vertex 2 and 3
+      la(3) = (cnt-v(3)) / (v(1)-v(3));	% abcissa between vertex 1 and 2
       abc(1,:) = pos(1,:) + la(1) * (pos(2,:) - pos(1,:));
       abc(2,:) = pos(2,:) + la(2) * (pos(3,:) - pos(2,:));
       abc(3,:) = pos(3,:) + la(3) * (pos(1,:) - pos(3,:));
@@ -606,7 +608,7 @@ switch lower(mode)
       hc = [hc; h1];
     end
 
-end % switch
+end	% switch
 
 axis off
 axis vis3d
@@ -630,11 +632,11 @@ function [proj] = elproj(pos, method);
 %  [proj] = elproj([x, y, z], 'method');
 %
 % Method should be one of these:
-%     'gnomic'
-%     'stereographic'
-%     'ortographic'
-%     'inverse'
-%     'polar'
+%	  'gnomic'
+%	  'stereographic'
+%	  'ortographic'
+%	  'inverse'
+%	  'polar'
 %
 % Imagine a plane being placed against (tangent to) a globe. If
 % a light source inside the globe projects the graticule onto
