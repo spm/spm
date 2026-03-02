@@ -75,6 +75,21 @@ end
 function sts = install(s,varargin)
     sts = 0;
     if ~exist(s.cmd,'file') || (nargin>=2 && any(strcmp(varargin,'force')))
+
+        % Check that the user is happy to have Julia installed
+        str = { 'This functionality needs the Julia language',...
+                '(https://julialang.org/), which will be',...
+                'installed automatically from the internet.',...
+                '',...
+                'Are you happy for Julia to be installed?'};
+        if spm_input(str,1,'bd','Yes|No',[0,1],1,mfilename)
+            % User not happy, so crash out
+            fprintf('%-40s: %30s\n\n',...
+                'Abort...   (User does not want Julia)',spm('time'));
+            sts = 1;
+            return
+        end
+
         json_file = websave(tempname,'https://julialang-s3.julialang.org/bin/versions.json');
         if isempty(json_file)
             error('Can not obtain the versions.json file from the web.')
