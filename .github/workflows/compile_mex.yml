@@ -13,24 +13,41 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-15-intel, macos-latest, windows-latest]
         include:
-          - os: ubuntu-latest
+          # On Linux, the OS version should be as old as possible for mex compatibility.
+          - os: ubuntu-22.04
             os_name: Linux
             mex_ext: mexa64
+            matlab_release: R2020a
+            matlab_legacy: true
+          # On Mac and Windows, only the Matlab version matters for mex compatibility, so the OS can be the latest.  
           - os: macos-15-intel
             os_name: macOS_Intel
             mex_ext: mexmaci64
+            matlab_release: R2020a
+            matlab_legacy: true
           - os: macos-latest
             os_name: macOS_Apple_Silicon
             mex_ext: mexmaca64
+            matlab_release: R2023b
+            matlab_legacy: false
           - os: windows-latest
             os_name: Windows
             mex_ext: mexw64
+            matlab_release: R2022a
+            matlab_legacy: true
 
     steps:
+      - name: Set up MATLAB (legacy)
+        if: ${{ matrix.matlab_legacy }}
+        uses: matlab-actions/setup-matlab@v1
+        with:
+          release: ${{ matrix.matlab_release }}
       - name: Set up MATLAB
+        if: ${{ !matrix.matlab_legacy }}
         uses: matlab-actions/setup-matlab@v2
+        with:
+          release: ${{ matrix.matlab_release }}
       - name: Checkout SPM
         uses: actions/checkout@v4
 
