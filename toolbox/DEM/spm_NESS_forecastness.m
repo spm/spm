@@ -1,6 +1,6 @@
-function [Ey,Cy,Vy] = spm_NESS_forecast(DEM)
+function [Ey,Cy,Vy] = spm_NESS_forecastness(DEM)
 % Analytic predictive density under the Laplace assumption
-% FORMAT [Ey,Cy,Vy] = spm_NESS_forecast(DEM)
+% FORMAT [Ey,Cy,Vy] = spm_NESS_forecastness(DEM)
 %--------------------------------------------------------------------------
 % DEM - inverted DEM structure
 %
@@ -31,77 +31,89 @@ nT    = size(DEM.U,2);               % number of future time points
 %--------------------------------------------------------------------------
 P     = DEM.M(1).pE;                 % flow parameters (order K)
 g     = DEM.M(1).g;                  % observer g
+gy    = DEM.M(1).gy;                 % inverse g
+W     = DEM.M(1).W;                  % precision
 f     = DEM.M(1).f;                  % flow 
-x     = DEM.M(1).x;                  % current state
-u     = DEM.M(2).v;                  % current cause
-[n,m] = size(P.scale);               % number of states and responses
+u     = DEM.U(:,end);                % current cause 
+x     = gy(DEM.Y(:,end)',u',P);      % current state
+[n,m] = size(P.scale);               % number of states and responses      
+
+% parameters of equilibrium density (Ep: Laplace approximation)
+%==========================================================================
+
+% surprisal coefficients for (Gaussian) NESS 
+%--------------------------------------------------------------------------
+E     = f(x,u,pE,[],'E');            % expectation (NESS)
+H     = f(E,u,pE,[],'H');            % Hessian (NESS) at expectation
+C     = inv(H + eye(n,n)/4);         % upper bound covariance (2 s.d.)
+Ep.Sp = spm_ness_cond_inv(E(:),C);   % Laplace approximation
+
+% solenoidal coefficients (for a K = 3 basis set)
+%--------------------------------------------------------------------------
+nb    = numel(Ep.Sp);
+Ep.Qp = [];
+for i = 1:n
+    for j = i:n
+        for k = 1:nb
+            Ep.Qp(end + 1) = 0;
+        end
+    end
+end
 
 % amplitude of random fluctuations
 %--------------------------------------------------------------------------
-G     = f(x,u,P,[],'G');
+Ep.G  = inv(W)/2;
 
-% moments of initial (Gaussian) density
+% Suprisal coeffcients of initial (Gaussian) density
 %==========================================================================
 x     = x(:);
-C     = G;
+Sp    = spm_ness_cond_inv(x,Ep.G);
 
 % Run system forwards in time to nonequilibrium steady-state density
 %--------------------------------------------------------------------------
-Ey    = zeros(m,1);                  % expectation of density
-Vy    = ones(m,1);                   % variance of density
-Cy    = {eye(n,n)};                  % covariance of density
-dt    = 4;                           % integration steps
+U     = DEM.B;
+Ey    = zeros(m,nT);                 % expectation of density
+Vy    = ones(m,nT);                  % variance of density
+Cy    = cell(1,nT);                  % covariance of density
+dt    = 1;
 for t = 1:nT
 
     % momments of Laplace approximation
     %----------------------------------------------------------------------
-    u       = DEM.U(:,t);            % causes 
-    Ey(:,t) = g(x,u,P);              % prediction: expectation
-    Cy{t}   = P.scale'*C*P.scale;    % prediction: covariance
-    Vy(:,t) = diag(Cy{t});           % prediction: variance
+    [~,C]   = spm_ness_cond(n,3,Sp);
+    Sp      = spm_ness_cond_inv(x,C);
+    [m,C]   = spm_ness_cond(n,3,Sp);
 
-    % density dynamics
+    Ey(:,t) = g(m,u,P);
+    Cy{t}   = P.scale'*C*P.scale;
+    Vy(:,t) = diag(Cy{t});
+
+    % update surprisal coefficients of current density
     %----------------------------------------------------------------------
-    dfdxx = spm_diff(f,x,u,P,[1,1]);
-    for i = 1:dt
+    [dfds,fs] = spm_diff(@spm_NESS_ds,Sp,P,U,1);
+    fS        = U.b\fs;
+    dfdS      = U.b\dfds;
+    dS        = spm_dx(dfdS,fS,dt);
+    Sp        = Sp + dS;
 
-        % mean
-        %------------------------------------------------------------------
+    % update path of least action
+    %----------------------------------------------------------------------
+    for i = 1:8
         [dfdx,fx] = spm_diff(f,x,u,P,1);
-        for j = 1:numel(x)
-            fx(j) = fx(j) + trace(C*dfdxx{j})/2;
-        end
-        dx = spm_dx(dfdx,fx,1/dt);
-        x  = x + dx;
-
-        % check for numerical divergence
-        %------------------------------------------------------------------
-        if any(isnan(x)), break, end
-
-        % covariance
-        %------------------------------------------------------------------
-        dC = dfdx*C + C*dfdx' + G + G';
-        C  = C + dC/dt;
-        C  = sqrtm(C*C);
-
-    end
-
-    % check for numerical divergence
-    %----------------------------------------------------------------------
-    if any(isnan(x)) || any(abs(x) > 16)
-        nT = t; break
+        dx        = spm_dx(dfdx,fx,dt/8);
+        x         = x + dx;
     end
 
 end
 
+
 % plot the past and forecast
 %==========================================================================
-if isfield(DEM,'nograph'), return, end
 
 % time points
 %--------------------------------------------------------------------------
-s     = (1:nT) + T - nT;
-t     = (1:nT) + T - 1;
+s     = (1:T);
+t     = (1:nT) + T - 1;              % future time points
 
 % Density dynamics
 %--------------------------------------------------------------------------
@@ -109,7 +121,7 @@ for i = 1:n
     subplot(6,2,i),  hold on, set(gca,'ColorOrderIndex',i)
     spm_plot_ci(Ey(i,:),Vy(i,:),t,[],'plot')
     hold on, set(gca,'ColorOrderIndex',i),
-    plot(s,DEM.Y(i,s),'LineWidth',2), plot(get(gca,'XLim'),[0,0],':k')
+    plot(s,DEM.Y(i,:),'LineWidth',2), plot(get(gca,'XLim'),[0,0],':k')
     title('predictive density','FontSize',14)
 end
 
