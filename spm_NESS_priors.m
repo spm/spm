@@ -6,9 +6,9 @@ function [pE,pC] = spm_NESS_priors(n,L,V,W,J,R,C)
 % L   - order (+1) of polynomial expansion
 % V   - prior covariance over parameters
 % W   - precisions of random fluctuations
-% J   - contraints on Jacobian [ones(n,n)]
-% R   - coupling to mean (first order) [zeros(n,n)]
-% C   - covaraince of NESS [eye(n,n)]
+% J   - contraints on solenoidal parameters [ones(n,n)]
+% R   - contraints on surprisal parameters [zeros(n,n)]
+% C   - covariance of NESS [eye(n,n)]
 %
 % pE  - prior expectation
 % pC  - prior covariances (matrix)
@@ -67,53 +67,69 @@ nb    = size(o,2);
 pE.Qp = zeros(nb,n,n);    % polynomial coefficients for solenoidal operator
 pE.Rp = zeros(nb,n);      % polynomial coefficients for surprisal mean
 pE.Sp = zeros(nb,n,n);    % polynomial coefficients for surprisal kernel
+pE.Gp = zeros(n,n);       % polynomial coefficients for surprisal kernel
 pE.W  = W;                % precision of random fluctuations
 
 pC.Qp = pE.Qp;
 pC.Rp = pE.Rp;
 pC.Sp = pE.Sp;
+pC.Gp = pE.Gp;
 pC.W  = W*0;
 
 % constraints on solenoidal operator (G is modelled by M.W)
 %--------------------------------------------------------------------------
+J     = J + J';           % ensure symmetric solenoidal contraints
 for i = 1:n
     for j = 1:n
         if J(i,j)
-            d     = ~J(i,:);
-            for k = 1:nb
 
-                % if j influences i and upper diagonal part of Q
-                %----------------------------------------------------------
-                if j > i && ~any(o(d,k))
-                    pC.Qp(k,i,j) = V.Qp;
-                end
+            % constraints
+            %--------------------------------------------------------------
+            d = ~J(i,:);
+            k = ~any(o(d,:),1);
 
+            % if j influences i and upper diagonal part of Q
+            %----------------------------------------------------------
+            if j > i
+                pC.Qp(k,i,j) = V.Qp;
             end
+
         end
     end
 end
+
+%  potential (surprisal)
+%--------------------------------------------------------------------------
+Sp    = sqrtm(inv(C));
+for i = 1:n
+    for j = 1:n
+
+        % precision of NESS
+        %------------------------------------------------------------------
+        pE.Sp(1,i,j) = Sp(i,j);
+        pC.Sp(1,i,j) = V.Sp;
+
+         if J(i,j)
+
+            % constraints
+            %--------------------------------------------------------------
+            d = ~J(i,:); d(i) = 1;
+            k = ~any(o(d,:),1);
+            pC.Sp(k,i,j) = V.Sp;
+
+         end
+    end
+end
+
 
 % constraints on potential (surprisal)
 %--------------------------------------------------------------------------
 for i = 1:n
     for j = 1:n
-        if J(i,j)
-
-            % disallowed influences
-            %--------------------------------------------------------------
-            d     = ~J(i,:);
-            for k = 1:nb
-
-                % if j influences i 
-                %----------------------------------------------------------
-                if i == j
-                    pE.Sp(1,i,j) = sqrt(1/C(i,j));      % precision of NESS
-                end
-                if j == i && ~any(o(d,k))   % j >= i for nonorthogonal NESS
-                    pC.Sp(k,i,j) = V.Sp;
-                end
-
-            end
+        if i == j
+            d = ~R(i,:);
+            k = (sum(o) == 1) & ~any(o(d,:),1);
+            pC.Sp(k,i,j) = V.Sp;
         end
     end
 end
@@ -123,18 +139,18 @@ end
 for i = 1:n
     for j = 1:n
         if R(i,j)
-            for k = 1:nb
 
-                % if this basis is first order in j
-                %----------------------------------------------------------
-                if sum(o(:,k)) == 1 && o(j,k)
-                    pC.Rp(k,i) = V.Rp;
-                end
-            end
+            % if this basis is first order in j
+            %--------------------------------------------------------------
+            k = (sum(o) == 1) & o(j,:);
+            pC.Rp(k,i) = V.Rp;
+
         end
     end
 end
 
+% concatenate Qp
+%--------------------------------------------------------------------------
 qE    = [];
 qC    = [];
 for i = 1:n

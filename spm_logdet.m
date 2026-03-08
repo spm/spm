@@ -15,13 +15,6 @@ function H = spm_logdet(C)
 % same way as in spm_logdet revision 4068, using svd on a full version of C
 
 
-% deal with scalar inputs
-%--------------------------------------------------------------------------
-if isscalar(C)
-    H  = log(C);
-    return
-end
-
 % remove null variances
 %--------------------------------------------------------------------------
 i       = find(diag(C));
@@ -49,7 +42,7 @@ if any(i ~= j)
             
             % Note p is unused but requesting it can make L sparser
             %--------------------------------------------------------------
-            [L,nondef] = chol(C, 'lower', 'vector');
+            [L,nondef,p] = chol(C, 'lower', 'vector');
             if ~nondef
                 
                 % pos. def. with Cholesky decomp L, and det(C) = det(L)^2
