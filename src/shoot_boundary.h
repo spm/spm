@@ -8,7 +8,7 @@
 #define BOUND_DIRICHLET 2 
 #define BOUND_SLIDING   3
 
-extern mwSignedIndex (*bound)();
+extern mwSignedIndex (*bound)(mwSignedIndex i, mwSize m);
 extern void set_bound(int t);
 extern int  get_bound();
 

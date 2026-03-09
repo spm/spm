@@ -358,7 +358,7 @@ else %%% CURRENT DENSITY ON SURFACE SIMULATION
     fullsignal=zeros(Ndip,Dnew.nsamples); %% simulation padded with zeros
     fullsignal(1:Ndip,f1ind)=simsignal;
 
-    tmp     = sparse(zeros(Nchans,Dnew.nsamples));                     % simulated data
+    tmp     = sparse(zeros(Nchans,Dnew.nsamples));                     % tmp is simulated data
     X=zeros(size(full(Qp{1}.q)));
     for j=1:Ndip
         Lq=L*Qp{j}.q; %% lead field * prior source distribution
@@ -425,8 +425,8 @@ title('Difference');
 
 
 %% Plot and save
-[dum,tmpind]=sort(allchanstd);
-dnewind=chanind(tmpind);
+[dum,tmpind]=sort(allchanstd); %% tmpind ranks channels in ascending order of std
+
 
 if isempty(ormni)
     hold on
@@ -450,10 +450,10 @@ figure
 
 addednoise=std(randn(size(Dnew(:,:,1)))'.*whitenoise);
 
-aux = tmp(tmpind(end),:);
-[dum,maxind]=max(tmp(tmpind(end),:));
+aux = tmp(tmpind(end),:); %% aux is largest simulated channel
+[dum,maxind]=max(tmp(tmpind(end),:)); %% largest amplitude sample in largest channel
 subplot(2,1,1);
-plot(Dnew.time,Dnew(dnewind(end),:,trialind(1)),Dnew.time,aux,'r');
+plot(Dnew.time,Dnew(tmpind(end),:,trialind(1)),Dnew.time,aux,'r');
 
 snr_dB=full(20*log10(abs(tmp(tmpind(end),maxind))/whitenoise));
 title(sprintf('Measured activity over max sensor (SNR=%3.2f dB)',snr_dB));
@@ -461,10 +461,11 @@ legend('Noisy','Noiseless');
 
 ylabel(sensorunits{chanind(1)});
 subplot(2,1,2);
-aux = tmp(tmpind(floor(length(tmpind)/2)),:);
+medianchanind=tmpind(floor(length(tmpind)/2));
+aux = tmp(medianchanind,:);
 
 snr_dB=full(20*log10(abs(tmp(tmpind(floor(length(tmpind)/2)),maxind))/whitenoise));
-plot(Dnew.time,Dnew(dnewind(tmpind(floor(length(tmpind)/2))),:,trialind(1)),Dnew.time,aux,'r');
+plot(Dnew.time,Dnew(medianchanind,:,trialind(1)),Dnew.time,aux,'r');
 
 title(sprintf('Measured activity over median sensor (SNR=%3.2f dB)',snr_dB));
 legend('Noisy','Noiseless');

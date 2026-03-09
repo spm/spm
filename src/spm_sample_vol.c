@@ -14,7 +14,7 @@ mxArray *plhs[];
 const mxArray *prhs[];
 */
 {
-    MAPTYPE *map, *get_maps();
+    MAPTYPE *map;
     int m,n, k, hold;
     double background=0.0;
 

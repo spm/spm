@@ -19,7 +19,7 @@ static mwSignedIndex circulant_boundary(mwSignedIndex i, mwSize m)
     return((i>=0) ? i%((signed)m) : (((signed)m)+i%((signed)m))%(signed)m);
 }
 
-mwSignedIndex (*bound)() = circulant_boundary;
+mwSignedIndex (*bound)(mwSignedIndex i, mwSize m) = circulant_boundary;
 static int bound_type = BOUND_CIRCULANT;
 
 void set_bound(int t)

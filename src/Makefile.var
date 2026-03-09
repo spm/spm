@@ -101,7 +101,7 @@ endif
 ifeq (octave,$(PLATFORM))
   MEXEXT     = mex
   MEXBIN    ?= mkoctfile
-  MEXOPTS    = --mex -DOCTAVE_MEX_FILE
+  MEXOPTS    = --mex -DOCTAVE_MEX_FILE -Wno-incompatible-pointer-types -Wno-old-style-definition
   #MEXOPTS   += $(WARNFLAG)
   override PLATFORM = $(shell $(UNAME))
   ifeq (MINGW64,$(word 1,$(subst _, ,$(PLATFORM))))

@@ -1,0 +1,60 @@
+# fieldtrip-sync-filters
+# ─────────────────────────────────────────────────────────────────────────────
+# rsync filter rules controlling what gets synced from FieldTrip's release
+# branch into external/fieldtrip/. Rules are processed top-to-bottom and the
+# first matching rule wins.  Syntax: "- pattern" to exclude, "+ pattern" to
+# include.  After editing, trigger the workflow manually to apply changes:
+# GitHub → Actions → Sync FieldTrip → Run workflow.
+#
+# rsync filter rule reference:
+# https://download.samba.org/pub/rsync/rsync.html#FILTER_RULES
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+# ── FieldTrip CI / tooling metadata (not needed in SPM) ─────────────────────
+- .git/
+- .github/
+- .travis.yml
+- .codespellrc
+- .codespellignorelines
+- .editorconfig
+
+
+# ── Directories not synced in SPM ──────────────────────────────────────
+- template/
+- test/
+- contrib/
+- qsub/
+- realtime/
+
+
+# ── compat/: MATLAB version fallbacks ────────────────────────────────────────
+# Exclude very old versions that pre-date SPM's minimum MATLAB requirement
+# and the obsolete/ folder.  All other compat folders are synced
+- compat/matlablt2010a/
+- compat/matlablt2010b/
+- compat/obsolete/
+
+
+# ── Avoid legacy MEX platform extensions ───────────────────────────────────────────
+merge .github/fieldtrip-mex-excludes
+
+
+# ── external/: only sync packages already present in SPM ────────────────────────
+# FieldTrip ships many third-party packages in external/; The following are synced to fieldtrip/external.
+# Some are synced directly to SPM's external/ (See sync_fieldtrip.yml)
+# Process: explicitly include the wanted packages, then block everything else.
+# To add a new package insert two lines before "- external/*":
+#   + external/<name>/
+#   + external/<name>/**
+#
++ external/
++ external/fileexchange/
++ external/fileexchange/**
++ external/images/
++ external/images/**
++ external/signal/
++ external/signal/**
++ external/stats/
++ external/stats/**
+- external/*

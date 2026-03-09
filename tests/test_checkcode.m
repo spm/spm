@@ -23,6 +23,7 @@ for i=1:numel(s)
     for j=1:numel(s{i})
         if isequal(s{i}(j).id,'SYNER') % Syntax error
             checked(i) = true;
+            fprintf('%s (line %d): %s\n', f{i}, s{i}(j).line, s{i}(j).message)
         end
     end
 end

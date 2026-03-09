@@ -77,7 +77,7 @@ static void resel_fun(int *curr, int *prev, /* current and previous planes */
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-    MAPTYPE *map, *get_maps();
+    MAPTYPE *map;
     mwSize m,n,k;
     mwIndex i;
     int nn, E[3], F[3], P, C;
