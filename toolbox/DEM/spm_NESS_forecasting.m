@@ -20,10 +20,6 @@ function [Ey,Cy,Vy,pY] = spm_NESS_forecasting(DEM)
 %__________________________________________________________________________
 
 
-% current time (weeks)
-%--------------------------------------------------------------------------
-if isfield(DEM,'T'), T = DEM.T;  else, T = size(DEM.Y,2);  end
-
 % number of states and samples
 %--------------------------------------------------------------------------
 V     = 0;                         % calibration
@@ -31,9 +27,9 @@ N     = 32;                        % number of paths
 nx    = spm_length(DEM.M(1).x);    % number of states
 np    = spm_length(DEM.M(1).pE);   % number of parameters
 nY    = size(DEM.Y,1);             % number of outcomes
-r     = size(DEM.Y,2);             % number of past time points 
+T     = size(DEM.Y,2);             % number of past time points 
 nT    = size(DEM.U,2);             % number of future time points          
-r     = (1:r)  + T - r;            % past time points
+r     = (1:T);                     % past time points
 t     = (1:nT) + T - 1;            % future time points
 
 
@@ -63,17 +59,12 @@ else
     Ex    = DEM.M(1).x;             % inital states
     Cx    = 0;                      % covariances of inital states
 
-    % scale responses Y to obtain latent states X
-    %----------------------------------------------------------------------
-    scale = diag(DEM.M(1).pE.scale);
-    X     = DEM.Y'/scale;
-
     subplot(2,2,1),       set(gca,'ColorOrderIndex',1)
     plot(r,DEM.Y','.'),   set(gca,'ColorOrderIndex',1), hold on
     title('Response variables','FontSize',14), axis square 
 
     subplot(2,2,2),       set(gca,'ColorOrderIndex',1)
-    plot(r,X'),           set(gca,'ColorOrderIndex',1), hold on
+    plot(r,DEM.X'),           set(gca,'ColorOrderIndex',1), hold on
     title('Latent states','FontSize',14), axis square 
 
 end

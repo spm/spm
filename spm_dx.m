@@ -1,11 +1,12 @@
-function [dx] = spm_dx(dfdx,f,t,~)
+function [dx] = spm_dx(dfdx,f,t,OPT)
 % Returns dx(t) = (expm(dfdx*t) - I)*inv(dfdx)*f
-% FORMAT [dx] = spm_dx(dfdx,f,[t])
+% FORMAT [dx] = spm_dx(dfdx,f,[t],[OPT])
 % dfdx   = df/dx
 % f      = dx/dt
 % t      = integration time: (default t = Inf);
 %          if t is a cell (i.e., {t}) then t is set to:
 %          exp(t - log(diag(-dfdx))
+% OPT    = 'Safe' or 'Solenoidal'
 %
 % dx     = x(t) - x(0)
 %--------------------------------------------------------------------------
@@ -76,18 +77,37 @@ warning(sw);
 % solenoidal mixing (disabled)
 %--------------------------------------------------------------------------
 if nargin > 3
-    
-    % solenoidal flow
-    %----------------------------------------------------------------------
-    L    = tril(dfdx);
-    Q    = full(L - L');
-    Q    = Q/norm(Q,2)/8;
 
-    % augment flow and Jacobian
-    %----------------------------------------------------------------------
-    f    = f    - Q*f;
-    dfdx = dfdx - Q*dfdx;
-    
+    if strcmpi(OPT,'Solenoidal')
+
+        % solenoidal flow
+        %----------------------------------------------------------------------
+        L    = tril(dfdx);
+        Q    = full(L - L');
+        Q    = Q/norm(Q,2)/8;
+
+        % augment flow and Jacobian
+        %----------------------------------------------------------------------
+        f    = f    - Q*f;
+        dfdx = dfdx - Q*dfdx;
+    end
+
+    if strcmpi(OPT,'Safe')
+
+        % remove unstable modes
+        %----------------------------------------------------------------------
+        [u,d] = eig(full(dfdx),'nobalance');
+        d     = diag(d);
+        rd    = real(d);
+        id    = imag(d);
+        rd    = rd.*(rd < 0);
+        d     = diag(rd + 1i*id);
+        dfdx  = real(u*d/u);
+
+    end
+
+
+
 end
 
 % use a [pseudo]inverse if all t > TOL

@@ -5,7 +5,7 @@ function spm_plot_ci(E,C,x,j,s)
 % C - variance or covariance (structure or array)
 % x - domain
 % j - rows of E to plot
-% s - string to specify plot type:e.g. '--r' or 'exp', 'log' etc
+% s - string to specify plot type:e.g. '--r' or 'exp', 'log', 'plot', etc
 %
 % -------------------------------------------------------------------------
 % The style of plot depends on the dimensions of the arguments provided:
