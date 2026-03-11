@@ -188,7 +188,12 @@ Q{2,2} = ones(m,m);
 Q{2,1} = ones(m,n);
 Q{1,2} = zeros(n,m);
 Q      = full(spm_cat(Q));
-Q      = Q - diag(diag(Q)); %%%
+
+% preclude states enslaving themselves for long term forecasting
+%--------------------------------------------------------------------------
+if ~nargin
+    Q = Q - diag(diag(Q));
+end
 
 % get priors 
 %--------------------------------------------------------------------------
@@ -291,7 +296,7 @@ spm_figure('GetWin','Jacobian'); clf;
 
 % numerical Jacobian
 %--------------------------------------------------------------------------
-spm_J = @(x,u,P) full(spm_diff(@spm_ness_f,x,u,P,[],1));
+spm_J = @(x,u,P) full(spm_diff(@spm_fx_NESS,x,u,P,[],1));
 J     = spm_J(x0,u0,Ep);
 
 fprintf('\nJacobian at initial conditions\n')
@@ -301,27 +306,28 @@ imagesc(J), title('Jacobian (causal coupling)','FontSize',14)
 xlabel('latent states'),ylabel('latent states')
 axis square
 
-% nLyapunov exponents
+% Lyapunov exponents
 %--------------------------------------------------------------------------
 [e,v] = eig(J);
 v     = diag(v);
 [~,i] = sort(real(v),'descend');
 v     = v(i);
 e     = e(:,i);
-V0    = min(real(v));
 
+% plot
+%--------------------------------------------------------------------------
 str   = {};
 for i = 1:n, str = [str, 'Ind']; end
 str   = [str, EFT];
 
-subplot(3,2,2), plot(v,'o')
+subplot(3,2,2), plot(v,'.k','MarkerSize',16)
 hold on, plot([0,0],get(gca,'YLim'),':k'), hold off
 hold on, plot(get(gca,'XLim'),[0 0],':k'), hold off
 title('Lyapunov exponents','FontSize',14)
 xlabel('real part'),ylabel('imaginary part')
 axis square
-subplot(3,2,3), bar(-1./real(v))
-hold on, plot(get(gca,'XLim'),[4 4],'--k'), hold off
+subplot(3,2,3), bar(-1./real(v),'m')
+hold on, plot([1,numel(v)],[4 4],'--k'), hold off
 title('Time constants','FontSize',14)
 xlabel('eigenmode'),ylabel('weeks')
 axis square
@@ -332,6 +338,29 @@ axis square
 subplot(3,1,3), bar(abs(e'))
 title('Eigenmodes','FontSize',14)
 xlabel('eigenmode'),ylabel('abolute value'), legend(str)
+
+% Lyapunov exponent and Hausdorff dimension (Kaplan-Yorke conjecture)
+%--------------------------------------------------------------------------
+ni    = 64;
+nx    = n + m;
+E     = zeros(nx,ni);
+F     = zeros(nx,ni);
+Z     = zeros(nx,ni);
+J     = zeros(nx,nx,ni);
+for i = 1:ni
+    F(:,i)   = spm_fx_NESS(X(i,:),U(i,:),Ep);
+    J(:,:,i) = spm_J(X(i,:),U(i,:),Ep);
+    Z(:,i)   = eig(J(:,:,i));
+    E(:,i)   = sort(Z(:,i),'descend','ComparisonMethod','real');
+end
+
+% Lyapunov exponent and Hausdorff dimension (Kaplan-Yorke conjecture)
+%--------------------------------------------------------------------------
+LE    = mean(real(E),2);
+j     = sum(LE >= 0);
+HD    = j + sum(LE(1:j))/abs(LE(j + 1));
+V0    = min(LE);
+fprintf('Hausdorff Dimension: %.2f\n',HD)
 
 
 % serial correlations
@@ -441,7 +470,7 @@ DEM.M(1).E.v      = V0;        % lyapunov exponent
 
 % model
 %--------------------------------------------------------------------------
-DEM.M(1).f  = @spm_ness_f;     % flow
+DEM.M(1).f  = @spm_fx_NESS;     % flow
 DEM.M(1).g  = gx;              % observer function
 DEM.M(1).gy = gy;              % observer function
 DEM.M(1).x  = x0;              % intial state
@@ -596,6 +625,8 @@ Tab = spm_portfolio(L,I,U,DEM,T,dT)
 if nargin, return, end
 
 
+
+
 % free energy and Market cycles
 %==========================================================================
 spm_figure('GetWin','Financial free energy'); clf
@@ -607,7 +638,7 @@ d     = 52*3;
 for t = (T - d):(T + Nf - 1)
     u    = U(t,:);
     x    = gy([I(t,:) L(t,:)],u,Ep);
-    F(t) = DEM.M(1).f(x,u,Ep,[],'S');
+    F(t) = spm_fx_NESS(x,u,Ep,[],'S');
 end
 
 % surprisal forecasts
@@ -618,7 +649,7 @@ for i = 1:Np
     for t = 1:Nf
         u              = U(T + t,:);
         x              = gy(Py(:,t,i)',u,Ep);
-        f(T + t - 1,i) = DEM.M(1).f(x,u,Ep,[],'S');
+        f(T + t - 1,i) = spm_fx_NESS(x,u,Ep,[],'S');
     end
 end
 
@@ -653,7 +684,7 @@ xlabel('time derivative'), ylabel('surprisal (nats)');
 
 %% Is the Market chaotic?
 %==========================================================================
-spm_figure('GetWin','Jacobian'); clf
+spm_figure('GetWin','Flow'); clf
 
 % state space for evaluation
 %--------------------------------------------------------------------------
@@ -664,7 +695,7 @@ F     = zeros(nx,ni);
 Z     = zeros(nx,ni);
 J     = zeros(nx,nx,ni);
 for i = 1:ni
-    F(:,i)   = DEM.M(1).f(X(i,:),U(i,:),Ep);
+    F(:,i)   = spm_fx_NESS(X(i,:),U(i,:),Ep);
     J(:,:,i) = spm_J(X(i,:),U(i,:),Ep);
     Z(:,i)   = eig(J(:,:,i));
     E(:,i)   = sort(real(Z(:,i)),'descend');
@@ -674,48 +705,55 @@ subplot(2,2,1)
 imagesc(mean(J,3)), title('Jacobian (causal coupling)','FontSize',14)
 xlabel('latent states'),ylabel('latent states'), axis square
 
-subplot(2,2,2), plot(Z,'o')
+subplot(2,2,2), plot(Z,'b.','MarkerSize',8)
 hold on, plot([0,0],get(gca,'YLim'),':k'), hold off
 hold on, plot(get(gca,'XLim'),[0 0],':k'), hold off
 title('Lyapunov exponents','FontSize',14)
 xlabel('real part'),ylabel('imaginary part')
 axis square
 
-% Lyapunov exponent and Hausdorff dimension (Kaplan-Yorke conjecture)
-%--------------------------------------------------------------------------
-LE    = mean(E,2);
-j     = sum(LE >= 0);
-CD    = j + sum(LE(1:j))/abs(LE(j + 1))
 
-subplot(2,2,3)
+% generate path of least action from initial conditions
+%-------------------------------------------------------------------------
+G      = DEM.M;         % generative model
+G(1).E.nD = 4;          % number of integrations per dt
+
+ni     = 128;
+t      = (T - ni):T;
+G(1).x = x0;
+G(1).V = exp(16);
+G(1).W = exp(16);
+G      = spm_DEM_generate(G,U(t,:)');
+
+x = G.pU.x{1};
+X = x';
+E = zeros(nx,ni);
+F = zeros(nx,ni);
+Z = zeros(nx,ni);
+J = zeros(nx,nx,ni);
+for i = 1:ni
+    F(:,i)   = spm_fx_NESS(X(i,:),U(i,:),Ep);
+    J(:,:,i) = spm_J(X(i,:),U(i,:),Ep);
+    Z(:,i)   = eig(J(:,:,i));
+    E(:,i)   = sort(real(Z(:,i)),'descend');
+end
+
+subplot(2,1,2), hold off
 i     = 1:ni;
-x     = X';
-quiver3(x(1,i),x(2,i),x(3,i),F(1,i),F(2,i),F(3,i)), hold on
-plot3(x(1,i),x(2,i),x(3,i),'.b')
+quiver3(x(1,i),x(2,i),x(3,i),F(1,i),F(2,i),F(3,i),'b'), hold on
+plot3(x(1,i),x(2,i),x(3,i),'.b','MarkerSize',8)
+plot3(x(1,i),x(2,i),x(3,i),':b')
 i     = (E(1,:) > 0) & (E(2,:) > 0);
-plot3(x(1,i),x(2,i),x(3,i),'or'), hold on
+plot3(x(1,i),x(2,i),x(3,i),'.r','MarkerSize',16), hold on
+quiver3(x(7,i),x(8,i),x(9,i),F(7,i),F(8,i),F(9,i),'m'), hold on
+plot3(x(7,i),x(8,i),x(9,i),'.m','MarkerSize',8)
+plot3(x(7,i),x(8,i),x(9,i),':m')
+i     = (E(1,:) > 0) & (E(2,:) > 0);
+plot3(x(7,i),x(8,i),x(9,i),'.r','MarkerSize',16), hold on
+plot3(0,0,0,'.g','MarkerSize',32), hold on
 xlabel('1st state'), ylabel('2nd state'), zlabel('3rd state')
-title('Flow','Fontsize',16), axis square
+title('Paths of least action','Fontsize',16), axis square
 
-
-% generate trajectory from initial conditions
-%--------------------------------------------------------------------------
-G       = DEM.M;
-t       = (T - d):T;
-G(1).x  = x0*2;
-G(1).V  = exp(16);
-G(1).W  = exp(16);
-G       = spm_DEM_generate(G,U(t,:)');
-x       = G.pU.x{1};
-
-% hidden states
-%--------------------------------------------------------------------------
-subplot(2,2,4), hold off
-plot3(x(1,:),x(2,:),x(3,:),'r'), hold on
-plot3(x(3,:),x(4,:),x(5,:),'b'), hold on
-plot3(0,0,0,'og','MarkerSize',16), hold on
-xlabel('1st state'), ylabel('2nd state'), zlabel('3rd state')
-title('Path of least action','Fontsize',16), axis square, grid on
 
 return
 
@@ -724,33 +762,25 @@ return
 %% subroutines
 %==========================================================================
 
-function F = spm_ness_F(P,M,U,OPT)
+function f = spm_ness_F(P,M,U,OPT)
 % equations of motion for flow modelling
 % P - model parameters
 % M - gmodel structure
 % U - design or basis functions
 %__________________________________________________________________________
 if nargin > 3
-    F = spm_NESS_gen_lap(P,M,U,OPT);
+    f = spm_NESS_gen_lap(P,M,U,OPT);
 else
-    F = spm_NESS_gen_lap(P,M,U);
+    f = spm_NESS_gen_lap(P,M,U);
 end
 
-function f = spm_ness_f(x,u,P,M,OPT)
+% function f = spm_fx_NESS(x,u,P,M,OPT)
 % equations of motion for DEM (filtering)
 % x - latent state
 % u - exogenous input
 % P - model parameters
 % M - model structure
 %__________________________________________________________________________
-if nargin > 4
-    f = spm_fx_NESS(x,u,P,M,OPT);
-    return
-elseif nargin > 3
-    f = spm_fx_NESS(x,u,P,M);
-else
-    f = spm_fx_NESS(x,u,P);
-end
 
 
 return

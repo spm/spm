@@ -17,7 +17,7 @@ for i = 1:n
         % durations
         %------------------------------------------------------------------
         SIM.N  = fix((i - 1)*365/7);   % end point (weeks) [1]
-        SIM.D  = (6 + 2)*32;           % depth of training data (weeks) [8]
+        SIM.D  = (6 + 2)*32;           % depth of training data (weeks) [256]
         SIM.nT = 52;                   % duration of simulation (in weeks)
         SIM.dT = 4;                    % time between rebalancing (in weeks)
 
@@ -34,7 +34,7 @@ for i = 1:n
     end
 end
 
-save DEMFIN
+save DEMFIN_all
 
 
 % bar chart results 
@@ -47,7 +47,7 @@ RowNames = {'hold','ex post EV','ex post KL','ex ante EV','ex ante KL'};
 
 for j = 1:m
 
-    str = sprintf('Annual performance - %i',j)
+    str   = sprintf('Annual performance - %i',j)
     spm_figure('GetWin',str); clf
     L     = full(spm_cat(F(:,j)));
 
@@ -86,16 +86,25 @@ for j = 1:m
     title('Principal time constant')
 
     % Tabular results
-    %--------------------------------------------------------------------------
+    %----------------------------------------------------------------------
+    avg = max(tab(:,:,:,j),[],3);
+    Avg = array2table(avg);
+    Avg.Properties.Description = '10 year maximum';
+    Avg.Properties.VariableNames = VariableNames;
+    Avg.Properties.RowNames      = RowNames
+    
+    avg = min(tab(:,:,:,j),[],3);
+    Avg = array2table(avg);
+    Avg.Properties.Description = '10 year minimum';
+    Avg.Properties.VariableNames = VariableNames;
+    Avg.Properties.RowNames      = RowNames
+    
     avg = mean(tab(:,:,:,j),3);
     Avg = array2table(avg);
+    Avg.Properties.Description = '10 year average';
     Avg.Properties.VariableNames = VariableNames;
     Avg.Properties.RowNames      = RowNames
 
-    avg = mean(tab(:,:,1:5,j),3);
-    Avg = array2table(avg);
-    Avg.Properties.VariableNames = VariableNames;
-    Avg.Properties.RowNames      = RowNames
 end
 
 return

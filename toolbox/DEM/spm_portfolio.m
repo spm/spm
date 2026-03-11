@@ -33,27 +33,23 @@ m     = size(L,2);              % number of (aggregated) assets
 
 % prior preferences
 %--------------------------------------------------------------------------
-RoR   = (2.^(4:9))/Ann;         % prior RoR percent
+RoR   = 256/Ann;                % prior RoR percent
 DrD   = 16/Ann;                 % minimum drawdown
 Rat   = -spm_invNcdf(.01,0,1);  % Sharpe ratio
-ni    = numel(RoR);             % number of prior preferences
-nj    = numel(Rat);             % number of prior preferences
+ni    = numel(RoR);             % number of prior preferences (RoR)
+nj    = numel(Rat);             % number of prior preferences (Ratio)
 m_p   = zeros(ni,nj);
 c_p   = zeros(ni,nj);
-p_p   = zeros(ni,nj);
 for i = 1:ni
     for j = 1:nj
         m_p(i,j) = RoR(i) - DrD;
         c_p(i,j) = (RoR(i)/Rat(j))^2;
-        p_p(i,j) = -log(RoR(i));
-
     end
 end
-p_p   = p_p - min(p_p(:));
 
 % Expected free energy: risk
 %--------------------------------------------------------------------------
-EFE = @(m_q,c_q,m_p,c_p,p_p) spm_kl_normal(m_q,c_q,m_p,c_p) + p_p;
+EFE = @(m_q,c_q,m_p,c_p) spm_kl_normal(m_q,c_q,m_p,c_p);
 
 % Expected cost
 %--------------------------------------------------------------------------
@@ -227,7 +223,7 @@ for t = Ti:Tf
             %--------------------------------------------------------------
             for i = 1:ni
                 for j = 1:nj
-                    kl       = EFE(m_q,c_q,m_p(i,j),c_p(i,j),p_p(i,j));
+                    kl       = EFE(m_q,c_q,m_p(i,j),c_p(i,j));
                     G(i,j,k) = G(i,j,k) + kl;
                 end
             end
@@ -313,7 +309,7 @@ for t = Ti:Tf
                 %----------------------------------------------------------
                 for i = 1:ni
                     for j = 1:nj
-                        kl       = EFE(m_q,c_q,m_p(i,j),c_p(i,j),p_p(i,j));
+                        kl       = EFE(m_q,c_q,m_p(i,j),c_p(i,j));
                         G(i,j,k) = G(i,j,k) + kl;
                     end
                 end
@@ -346,7 +342,7 @@ for t = Ti:Tf
 
         % predictive posterior over RoR under Risk-sensitive policy
         %==================================================================
-        subplot(6,2,12), hold off
+        subplot(3,2,6), hold off
 
         % prior preferences (j)
         %------------------------------------------------------------------
@@ -354,6 +350,7 @@ for t = Ti:Tf
             f = spm_Npdf(r,m_p(i,j)*Ann,Ann*c_p(i,j)*Ann);
             plot(r,f,'r'), hold on
             plot([0,0],get(gca,'YLim'),'--r')
+            axis square
         end
 
         W_k   = W(:,5,u);
@@ -379,18 +376,6 @@ for t = Ti:Tf
             %--------------------------------------------------------------
             Er(t + s,u) = m_q;
             Cr(t + s,u) = c_q;
-        end
-
-        % preferences
-        %------------------------------------------------------------------
-        if ~isfield(DEM,'nograph')
-            subplot(6,4,21)
-            bar(-p_p)
-            xlabel('Sharpe'), ylabel('RoR'), title('Prior preferences')
-
-            subplot(6,4,22)
-            bar(-sum(G,3)/np)
-            xlabel('Sharpe'), ylabel('RoR'), title('Expected G')
         end
 
         % expected free energy
