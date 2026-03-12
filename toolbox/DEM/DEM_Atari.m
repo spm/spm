@@ -129,7 +129,7 @@ for n = 1:(NT*32)
 
 end
 
-% illustrate intial outcomes
+% illustrate initial outcomes
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Gameplay'); clf
 for t = 1:4

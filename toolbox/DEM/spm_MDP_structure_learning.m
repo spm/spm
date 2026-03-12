@@ -178,7 +178,7 @@ for t = 1:size(O,2)                            % cycle over epochs
     if Ns(Nf) > 1 && mdp.T > 1 && Nu(Nf) < NU(Nf)
         hdp{end + 1} = spm_expand(mdp,0,0,1,OPTIONS);
 
-        % priors over intial states
+        % priors over initial states
         %------------------------------------------------------------------
         hdp{end}.D{Nf} = hdp{1}.D{Nf};
         hdp{end}     = spm_evaluate(hdp{end},OPTIONS);

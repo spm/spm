@@ -473,14 +473,14 @@ DEM.M(1).E.v      = V0;        % lyapunov exponent
 DEM.M(1).f  = @spm_fx_NESS;     % flow
 DEM.M(1).g  = gx;              % observer function
 DEM.M(1).gy = gy;              % observer function
-DEM.M(1).x  = x0;              % intial state
+DEM.M(1).x  = x0;              % initial state
 DEM.M(1).pE = Ep;              % posterior esimates from VL
 DEM.M(1).pC = Cp;              % posterior esimates from VL
 DEM.M(1).V  = exp(16);
 DEM.M(1).W  = W;
 
 DEM.M(2).x  = [];
-DEM.M(2).v  = u0;              % intial cause
+DEM.M(2).v  = u0;              % initial cause
 DEM.M(2).V  = exp(16);         % prior precicion
 
 
@@ -523,8 +523,8 @@ t   = (1:Nf) + T;              % future
 DEM.U      = U(t,:)';          % future causes
 DEM.X      = X';               % past consquences
 DEM.Y      = Y';               % past consquences
-DEM.M(1).x = X(end,:)';        % intial state
-DEM.M(2).v = u(end,:)';        % intial cause
+DEM.M(1).x = X(end,:)';        % initial state
+DEM.M(2).v = u(end,:)';        % initial cause
 
 [Ez,Cz,Vz] = spm_NESS_forecast(DEM);
 

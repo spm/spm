@@ -127,7 +127,7 @@ end
 
 for n = 2:Nm
 
-    % parents of stream S intial states
+    % parents of stream S initial states
     %----------------------------------------------------------------------
     pf = MDP{n - 1}.id.D{MDP{n - 1}.sB == S};
 

@@ -135,7 +135,7 @@ DCM.M.hE = hE;
 DCM.M.hC = hC;
 DCM.M.m  = Ns;
 
-% specify M.u - endogenous input (fluctuations) and intial states
+% specify M.u - endogenous input (fluctuations) and initial states
 %--------------------------------------------------------------------------
 DCM.M.u  = sparse(Ns,1);
 

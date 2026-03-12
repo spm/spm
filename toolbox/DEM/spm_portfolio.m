@@ -6,7 +6,7 @@ function Tab = spm_portfolio(L,I,U,DEM,T,dT)
 % I   - indicator variables
 % U   - exogenous variables
 % DEM - generative model
-% T   - time of inital investment
+% T   - time of initial investment
 % dT  - time between rebalancing
 %__________________________________________________________________________
 
@@ -27,7 +27,7 @@ policies = {'Buy and hold', ...
 % get sizes and times
 %--------------------------------------------------------------------------
 Ann   = 100*365/7;              % scaling for annualised % RoR
-Ti    = T;                      % time of inital investment
+Ti    = T;                      % time of initial investment
 Tf    = size(L,1);              % time of final investment
 m     = size(L,2);              % number of (aggregated) assets
 
@@ -116,10 +116,10 @@ for i = 1:size(p,1)
     P{i}  = Pij;
 end
 
-% inital (flat) weights (i.e., ealth allocation)
+% initial (flat) weights (i.e., ealth allocation)
 %--------------------------------------------------------------------------
 Np       = 5;                       % number of policies to simulate
-W        = ones(6,Np,dT)/m;         % inital (flat) weights
+W        = ones(6,Np,dT)/m;         % initial (flat) weights
 W(1,:,:) = 0.1;  % 'VEA': 0.1
 W(2,:,:) = 0.05; % 'BIL': 0.05
 W(3,:,:) = 0.35; % 'AGG': 0.35
@@ -533,8 +533,8 @@ u    = U(T,:);
 t          = T:(T + dT);
 DEM.U      = U(t,:)';                  % future causes
 DEM.Y      = [I(1:T,:),L(1:T,:)]';     % past data
-DEM.M(1).x = x(:);                     % intial state
-DEM.M(2).v = u(:);                     % intial cause
+DEM.M(1).x = x(:);                     % initial state
+DEM.M(2).v = u(:);                     % initial cause
 [Ey,Cy]    = spm_NESS_forecast(DEM);
 
 return

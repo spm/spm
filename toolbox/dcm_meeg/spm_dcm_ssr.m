@@ -70,7 +70,7 @@ end
 %--------------------------------------------------------------------------
 [pE,pC]  = spm_ssr_priors(pE,pC);
 
-% intial states and equations of motion
+% initial states and equations of motion
 %--------------------------------------------------------------------------
 [x,f]    = spm_dcm_x_neural(pE,model);
 

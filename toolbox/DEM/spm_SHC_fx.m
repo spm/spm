@@ -20,7 +20,7 @@ function [f] = spm_SHC_fx(x,v,P,varargin)
 
 
 
-% intialise
+% initialise
 %==========================================================================
 
 % SHC states 

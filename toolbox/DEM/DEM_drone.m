@@ -366,8 +366,8 @@ title('Search and rescue')
 % inductive inference, specified in state space.
 %--------------------------------------------------------------------------
 MDP         = mdp;
-MDP.D{1}    = full(sparse(2,     1,1,Nx,1));   % inital state
-MDP.D{2}    = full(sparse(Ny - 1,1,1,Ny,1));   % inital state
+MDP.D{1}    = full(sparse(2,     1,1,Nx,1));   % initial state
+MDP.D{2}    = full(sparse(Ny - 1,1,1,Ny,1));   % initial state
 MDP.id.hid  = [Nx - 1;2];                      % final  state
 MDP         = spm_MDP_VB_XXX(MDP);
 
@@ -393,8 +393,8 @@ MDP.D(1 + Nu:end) = DS;
 
 % Specify final hidden states (hid) and accompanying constraints (cid)
 %--------------------------------------------------------------------------
-MDP.D{1}    = full(sparse(2,     1,1,Nx,1));   % inital state
-MDP.D{2}    = full(sparse(Ny - 1,1,1,Ny,1));   % inital state
+MDP.D{1}    = full(sparse(2,     1,1,Nx,1));   % initial state
+MDP.D{2}    = full(sparse(Ny - 1,1,1,Ny,1));   % initial state
 MDP.id.hid  = [Nx - 1;2];                      % final  state
 MDP.id.cid  = cid;                             % constraints
 MDP         = spm_MDP_VB_XXX(MDP);
@@ -420,8 +420,8 @@ for f = 1:Nu
      MDP.E{f}        = ones(size(MDP.B{f},3),1);
 end
 
-MDP.D{1}    = full(sparse(2,     1,1,Nx,1));   % inital state
-MDP.D{2}    = full(sparse(Ny - 1,1,1,Ny,1));   % inital state
+MDP.D{1}    = full(sparse(2,     1,1,Nx,1));   % initial state
+MDP.D{2}    = full(sparse(Ny - 1,1,1,Ny,1));   % initial state
 MDP.id.hid  = [Nx - 1;2];                      % final  state
 MDP         = spm_MDP_VB_XXX(MDP);
 
@@ -443,9 +443,9 @@ MDP         = mdp;
 
 % imprecise priors over location
 %--------------------------------------------------------------------------
-MDP.D{1}    = full(sparse(1:Nx,1,1,Nx,1));   % inital state
-MDP.D{2}    = full(sparse(1:Ny,1,1,Ny,1));   % inital state
-MDP.D{3}    = full(sparse(1:Nr,1,1,Nr,1));   % inital state
+MDP.D{1}    = full(sparse(1:Nx,1,1,Nx,1));   % initial state
+MDP.D{2}    = full(sparse(1:Ny,1,1,Ny,1));   % initial state
+MDP.D{3}    = full(sparse(1:Nr,1,1,Nr,1));   % initial state
 
 % supply precise priors over latent states
 %--------------------------------------------------------------------------

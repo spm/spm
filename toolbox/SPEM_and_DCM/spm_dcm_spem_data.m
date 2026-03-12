@@ -11,7 +11,7 @@ function xY = spm_dcm_spem_data(xY)
 %   xY.y{i} - normalised (decimated) lag (data - target)
 %   xY.u{i} - normalised (decimated) target
 %   xY.R(i) - decimation
-%   xY.x(i) - intial states
+%   xY.x(i) - initial states
 %   xY.dt   - mean normalised (decimated) timing
 %
 %  This auxiliary routine  decimates and normalises eye movement data to a

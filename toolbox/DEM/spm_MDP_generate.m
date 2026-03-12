@@ -143,7 +143,7 @@ for m = 1:Nm
 
 end % end model (m)
 
-% inital policy and transitions
+% initial policy and transitions
 %--------------------------------------------------------------------------
 try
     tau = max(MDP(m).tau,1);

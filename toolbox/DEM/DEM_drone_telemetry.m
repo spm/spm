@@ -334,7 +334,7 @@ mdp.GU = U;                       % controllable actions
 
 mdp.ID = ID;                      % process domains
 mdp.id = id;                      % model domains
-mdp.s  = s;                       % inital states
+mdp.s  = s;                       % initial states
 
 % Solve - an example of surveillance
 %==========================================================================
