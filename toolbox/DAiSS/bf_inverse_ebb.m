@@ -134,7 +134,7 @@ if S.onlycorr
     S.corr = true;
 end
 
-% Inital setup
+% initial setup
 %----------------------------------------------------------------
 
 C       = BF.features.(S.modality).C;

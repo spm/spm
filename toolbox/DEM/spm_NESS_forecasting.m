@@ -42,8 +42,8 @@ if isfield(DEM,'qP')
     pE    = DEM.M(1).pE;            % prior     expectation of parameters
     Ep    = DEM.qP.P(1);            % posterior expectation of parameters
     Cp    = DEM.qP.C;               % posterior covariances of parameters
-    Ex    = DEM.qU.x{1}(:,end);     % expectation of inital states
-    Cx    = DEM.qU.S{end};          % covariances of inital states
+    Ex    = DEM.qU.x{1}(:,end);     % expectation of initial states
+    Cx    = DEM.qU.S{end};          % covariances of initial states
 
     spm_DEM_qU(DEM.qU)
     subplot(2,2,1),        set(gca,'ColorOrderIndex',1), hold on
@@ -56,8 +56,8 @@ else
     pE    = DEM.M(1).pE;            % expectation of parameters
     Ep    = DEM.M(1).pE;            % expectation of parameters
     Cp    = DEM.M(1).pC;            % covariances of parameters
-    Ex    = DEM.M(1).x;             % inital states
-    Cx    = 0;                      % covariances of inital states
+    Ex    = DEM.M(1).x;             % initial states
+    Cx    = 0;                      % covariances of initial states
 
     subplot(2,2,1),       set(gca,'ColorOrderIndex',1)
     plot(r,DEM.Y','.'),   set(gca,'ColorOrderIndex',1), hold on

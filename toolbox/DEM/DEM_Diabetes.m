@@ -598,7 +598,7 @@ end
 Q      = spm_vecfun(P,@exp);                 % ensure all Q > 0
 Q      = spm_vecfun(Q,@erf);                 % ensure all Q < 1
 
-% inital steady state distribution
+% initial steady state distribution
 %--------------------------------------------------------------------------
 [T,Ns] = spm_diabetes_T(P);
 [e,s]  = eig(T,'nobalance');

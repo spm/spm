@@ -255,7 +255,7 @@ end
 mdp.a    = a;
 mdp.b{1} = b;
 
-% add probabilities over inital states and paths
+% add probabilities over initial states and paths
 %==========================================================================
 Ns    = size(b,2);
 Nu    = size(b,3);

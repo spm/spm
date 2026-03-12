@@ -21,7 +21,7 @@ switch lower(model)
     %======================================================================
     case{'erp'}
 
-        % inital states and equations of motion
+        % initial states and equations of motion
         %------------------------------------------------------------------
         x  =  spm_x_erp(P);
         f  = 'spm_fx_erp';
@@ -31,7 +31,7 @@ switch lower(model)
     %======================================================================
     case{'sep'}
 
-        % inital states
+        % initial states
         %------------------------------------------------------------------
         x  =  spm_x_erp(P);
         f  = 'spm_fx_erp';
@@ -40,7 +40,7 @@ switch lower(model)
     %======================================================================
     case{'lfp'}
 
-        % inital states
+        % initial states
         %------------------------------------------------------------------
         x  =  spm_x_lfp(P);
         f  = 'spm_fx_lfp';
@@ -50,7 +50,7 @@ switch lower(model)
     %======================================================================
     case{'nmm'}
 
-        % inital states and model
+        % initial states and model
         %------------------------------------------------------------------
         x  = spm_x_nmm_NMDA(P);
         f  = 'spm_fx_mfm_NMDA';
@@ -60,7 +60,7 @@ switch lower(model)
     %======================================================================
     case{'mfm'}
 
-        % inital states and model
+        % initial states and model
         %------------------------------------------------------------------
         x  = spm_x_mfm_NMDA(P);
         f  = 'spm_fx_mfm_NMDA';

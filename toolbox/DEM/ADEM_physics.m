@@ -136,7 +136,7 @@ px    = spm_zeros(x);
 pv    = spm_zeros(v);
 for i = 1:No
 
-    % object-specific states: initalise near centre of scene
+    % object-specific states: initialise near centre of scene
     %----------------------------------------------------------------------
     px(i).x = randn(1,2)/32;             
 
@@ -180,7 +180,7 @@ M(1).W  = exp(4);                            % error precision (state)
 
 % level 2: what
 %--------------------------------------------------------------------------
-M(2).v  = pv;                                % inital causes
+M(2).v  = pv;                                % initial causes
 M(2).V  = exp(0);                            % with imprecise priors
  
 % generate and invert - inference (D-Step)
@@ -226,7 +226,7 @@ pv  = spm_unvec(pv,v);
 M(1).E.dt = 1/2;                             % time bin
 M(1).E.nE = 8;                               % number of E-steps
 
-M(1).x  = px;                                % intial states
+M(1).x  = px;                                % initial states
 M(1).pE = pE;                                % prior expectation 
 M(1).pC = pC;                                % and covariance (parameters)
 M(1).gE = 0;                                 % prior (log-precision)
@@ -235,7 +235,7 @@ M(1).W  = exp(0);                            % error precision (state)
 
 % level 2: what
 %--------------------------------------------------------------------------
-M(2).v  = pv;                                % inital causes
+M(2).v  = pv;                                % initial causes
 M(2).V  = exp(8);                            % with precise priors
  
 % Place process, model, and priors over latent causes in DEM structure

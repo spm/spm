@@ -68,7 +68,7 @@ if isempty(I)
     
 elseif I < 1
     
-    % deal with negative I (inital index)
+    % deal with negative I (initial index)
     %----------------------------------------------------------------------
     i    = 1:FS/32;
     Y(i) = 0;
