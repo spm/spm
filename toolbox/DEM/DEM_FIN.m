@@ -56,6 +56,8 @@ if nargin
     D    = SIM.D;               % depth of training data (weeks)
     nT   = SIM.nT;              % duration of simulation (in weeks)
     dT   = SIM.dT;              % time between rebalancing (in weeks)
+    Sr   = SIM.Sr;              % prior Sharpe ratio
+
 
     % specify number of indicator states and assets
     %----------------------------------------------------------------------
@@ -71,6 +73,7 @@ else
     D    = 8*32;                % depth of training data (weeks)
     nT   = 52;                  % duration of simulation (in weeks)
     dT   = 4;                   % time between rebalancing (in weeks)
+    Sr   = -spm_invNcdf(.01);   % prior Sharpe ratio
 
     % specify number of indicator states and assets
     %----------------------------------------------------------------------
@@ -143,31 +146,32 @@ xlabel('time (weeks)'), spm_axis tight
 
 % detrend and normalise
 %--------------------------------------------------------------------------
-gx  = @(x,u,P) P.scale'*x + P.trend'*u;
-gy  = @(y,u,P) (y - u*P.trend)/P.scale;
+gx = @(x,u,P) P.scale'*x + P.trend'*u;
+gy = @(y,u,P) (y - u*P.trend)/P.scale;
 
-u   = [U(t,:)];                 % exogenous inputs 
-Y   = [I(t,:) L(t,:)];          % response variables
+Z  = [U(t,:)];                  % exogenous inputs 
+Y  = [I(t,:) L(t,:)];           % response variables
 
-P.trend = u\Y;
-P.scale = sqrtm(cov(Y - u*P.trend));
+P.trend = Z\Y;
+P.scale = sqrtm(cov(Y - Z*P.trend));
 
 % latent states
 %--------------------------------------------------------------------------
-X   = gy(Y,u,P);
+X  = gy(Y,Z,P);
 
 % prior over precision of states and random fluctuations
 %--------------------------------------------------------------------------
-C   = cov(X);
-W   = cov(gradient(X')');
-W   = diag(W);
-W   = W/4;
-W   = inv(diag(W));
+C  = cov(X);
+W  = cov(gradient(X')');
+W  = diag(W);
+W  = W/4;
+W  = inv(diag(W));
 
 % get priors over model parameters (polynomial coeficients)
 %--------------------------------------------------------------------------
+Pp    = 16;                     % prior precision (parameters)
 K     = 2;                      % order of polynomial expansion plus one
-P.Qp  = 1/32;                   % variance of parameters (solenoidal)
+P.Qp  = 1/Pp;                   % variance of parameters (solenoidal)
 P.Sp  = 0;                      % variance of parameters (surprisal)
 P.Rp  = 1;                      % variance of parameters (expectation)
 
@@ -189,28 +193,24 @@ Q{2,1} = ones(m,n);
 Q{1,2} = zeros(n,m);
 Q      = full(spm_cat(Q));
 
-% preclude states enslaving themselves for long term forecasting
+% peclude self-enslaving for long tmer forecasts
 %--------------------------------------------------------------------------
 if ~nargin
-    Q = Q - diag(diag(Q));
+    Q  = Q - diag(diag(Q));
 end
 
 % get priors 
 %--------------------------------------------------------------------------
 [pE,pC] = spm_NESS_priors(size(J,1),K,P,W,J,Q,C);
 
-% mean
+% surprisal (via expectation)
 %--------------------------------------------------------------------------
 pE.Rp(1,:) = 0;
-pC.Rp(1,:) = 0;
-
-% precision
-%--------------------------------------------------------------------------
-pC.Sp(1,:,:) = 0;
+pC.Rp(1,:) = 1/Pp;
 
 % state-dependent fluctuations
 %--------------------------------------------------------------------------
-pC.Gp = Q/32;
+pC.Gp = Q/Pp;
 
 % scaling
 %--------------------------------------------------------------------------
@@ -226,7 +226,7 @@ pC.scale = P.scale*0;
 % get domain of phase-space and polynomial basis set
 %--------------------------------------------------------------------------
 x0  = X(1,:)';                 % initial state
-u0  = u(1,:)';                 % initial cause
+u0  = Z(1,:)';                 % initial cause
 M.x = x0;                      % expansion point
 M.W = W;                       % precision of random fluctuations
 M.K = K;                       % order of polynomial expansion
@@ -262,9 +262,9 @@ f      = gradient(X')';        % target flow
 % DCM.Cp = Cp;
 % DCM    = spm_dcm_bmr_all(DCM,'All','BMS');
 % 
-% M.pE   = DCM.M.pE;            % reduced prior expectations (parameters)
-% M.pC   = DCM.M.pC;            % reduced prior covariances  (parameters)
-% M.P    = DCM.Ep;              % reduced prior covariances  (parameters)
+% M.pE   = DCM.M.pE;           % reduced prior expectations (parameters)
+% M.pC   = DCM.M.pC;           % reduced prior covariances  (parameters)
+% M.P    = DCM.Ep;             % reduced prior covariances  (parameters)
 % [Ep,Cp,Eh,F] = spm_nlsi_GN(M,B,f);
 %--------------------------------------------------------------------------
 % or iterate if necessary
@@ -275,19 +275,46 @@ f      = gradient(X')';        % target flow
 %--------------------------------------------------------------------------
 
 
+%% Bayesian model comparison
+%==========================================================================
+
+% get reduced priors: an effect on surprisal
+%--------------------------------------------------------------------------
+rC       = pC;
+rC.Rp(:) = 0;                  % suppress enslaving of surprisal
+rC.Gp(:) = 0;                  % suppress enslaving of fluctuations
+F1       = spm_log_evidence_reduce(Ep,Cp,pE,pC,pE,rC);
+fprintf('\nLog-evidence for a slaving effect: %.2f\n',-F1)
+
+% re-invert under reduced priors
+%--------------------------------------------------------------------------
+% if F1 > 0
+%     pC   = rC;
+%     M.pC = rC;
+%     [Ep,Cp,Eh,F] = spm_nlsi_GN(M,B,f);
+% end
+
+% get reduced priors: an effect on fluctuations
+%--------------------------------------------------------------------------
+rC       = pC;
+rC.Gp(:) = 0;
+F2       = spm_log_evidence_reduce(Ep,Cp,pE,pC,pE,rC);
+fprintf('\nLog-evidence for an effect on fluctuations: %.2f\n',-F2)
+
 % posterior precision of random fluctuations
 %--------------------------------------------------------------------------
-F0     = F;                    % ELBO     
-W      = diag(exp(Eh));        % posterior volatility
-Ep.W   = W;                    % posterior volatility
-M.W    = W;                    % update for flow model
+F0    = F;                     % ELBO     
+W     = diag(exp(Eh));         % posterior volatility
+Ep.W  = W;                     % posterior volatility
+M.W   = W;                     % update for flow model
 
 % Bayesian belief updating
 %--------------------------------------------------------------------------
-M.pE   = Ep;                   % and parameters of flow
-M.pC   = Cp;                   % and covariance of parameters
-M.hE   = Eh;                   % and parameters of flow
-M.hC   = 1/64;                 % and covariance of parameters
+M.pE  = Ep;                    % and parameters of flow
+M.pC  = Cp;                    % and covariance of parameters
+M.hE  = Eh;                    % and parameters of flow
+M.hC  = 1/64;                  % and covariance of parameters
+
 
 
 %% evaluate Jacobian at initial state
@@ -341,17 +368,15 @@ xlabel('eigenmode'),ylabel('abolute value'), legend(str)
 
 % Lyapunov exponent and Hausdorff dimension (Kaplan-Yorke conjecture)
 %--------------------------------------------------------------------------
-ni    = 64;
+ni    = D;
 nx    = n + m;
 E     = zeros(nx,ni);
 F     = zeros(nx,ni);
-Z     = zeros(nx,ni);
 J     = zeros(nx,nx,ni);
 for i = 1:ni
-    F(:,i)   = spm_fx_NESS(X(i,:),U(i,:),Ep);
-    J(:,:,i) = spm_J(X(i,:),U(i,:),Ep);
-    Z(:,i)   = eig(J(:,:,i));
-    E(:,i)   = sort(Z(:,i),'descend','ComparisonMethod','real');
+    F(:,i)   = spm_fx_NESS(X(i,:),Z(i,:),Ep);
+    J(:,:,i) = spm_J(X(i,:),Z(i,:),Ep);
+    E(:,i)   = sort(eig(J(:,:,i)),'descend','ComparisonMethod','real');
 end
 
 % Lyapunov exponent and Hausdorff dimension (Kaplan-Yorke conjecture)
@@ -369,7 +394,7 @@ if nargin
 
     % smoothness
     %----------------------------------------------------------------------
-    s = 1/2;
+    s = 0.8;
 
 else
     
@@ -410,47 +435,6 @@ else
 end
 
 
-%% Bayesian model comparison
-%==========================================================================
-
-% get reduced priors: no enlaving
-%--------------------------------------------------------------------------
-J        = cell(3,3);
-J{1,1}   = ones(n,n);
-J{2,2}   = ones(m,m);
-J        = spm_cat(J);
-
-% get priors 
-%--------------------------------------------------------------------------
-[rE,rC]  = spm_NESS_priors(size(J,1),K,P,W,J);
-rE.scale = pE.scale;
-rC.scale = pC.scale;
-rE.trend = pE.trend;
-rC.trend = pC.trend;
-
-F1       = spm_log_evidence_reduce(Ep,Cp,pE,pC,rE,rC);
-fprintf('\nLog-evidence for enslaving: %.2f\n',F1)
-
-% get reduced priors: predicability of indicator variables
-%--------------------------------------------------------------------------
-J        = cell(3,3);
-J{1,1}   = eye(n,n);   %%% remove coupling
-J{2,2}   = eye(m,m);   %%% remove coupling
-J        = spm_cat(J);
-
-% get priors 
-%--------------------------------------------------------------------------
-[rE,rC]  = spm_NESS_priors(size(J,1),K,P,W,J);
-rE.trend = pE.trend;
-rC.trend = pC.trend;
-rE.scale = pE.scale;
-rC.scale = pC.scale;
-
-F2       = spm_log_evidence_reduce(Ep,Cp,pE,pC,rE,rC);
-fprintf('\nLog-evidence for solenoidal coupling: %.2f\n',F2)
-
-
-
 %% model inversion with generlized filtering
 %==========================================================================
 DEM.EFT = M.EFT;
@@ -487,7 +471,7 @@ DEM.M(2).V  = exp(16);         % prior precicion
 % Invert using generalised filtering: in generalised coordinates of motion 
 %--------------------------------------------------------------------------
 DEM.Y = Y';
-DEM.U = u';
+DEM.U = Z';
 
 % DEM   = spm_LAP(DEM);
 % 
@@ -523,8 +507,8 @@ t   = (1:Nf) + T;              % future
 DEM.U      = U(t,:)';          % future causes
 DEM.X      = X';               % past consquences
 DEM.Y      = Y';               % past consquences
-DEM.M(1).x = X(end,:)';        % initial state
-DEM.M(2).v = u(end,:)';        % initial cause
+DEM.M(1).x = X(end,:)';        % intial state
+DEM.M(2).v = Z(end,:)';        % intial cause
 
 [Ez,Cz,Vz] = spm_NESS_forecast(DEM);
 
@@ -620,11 +604,9 @@ if nargin, DEM.nograph = 1; end
 
 % simulate portfolio management
 %--------------------------------------------------------------------------
-Tab = spm_portfolio(L,I,U,DEM,T,dT)
+Tab = spm_portfolio(L,I,U,DEM,T,dT,Sr)
 
 if nargin, return, end
-
-
 
 
 % free energy and Market cycles
@@ -636,9 +618,8 @@ spm_figure('GetWin','Financial free energy'); clf
 F     = [];
 d     = 52*3;
 for t = (T - d):(T + Nf - 1)
-    u    = U(t,:);
-    x    = gy([I(t,:) L(t,:)],u,Ep);
-    F(t) = spm_fx_NESS(x,u,Ep,[],'S');
+    x    = gy([I(t,:) L(t,:)],U(t,:),Ep);
+    F(t) = spm_fx_NESS(x,U(t,:),Ep,[],'S');
 end
 
 % surprisal forecasts
@@ -647,9 +628,8 @@ Np    = size(Py,3);
 f     = zeros(T + Nf - 1,Np);
 for i = 1:Np
     for t = 1:Nf
-        u              = U(T + t,:);
-        x              = gy(Py(:,t,i)',u,Ep);
-        f(T + t - 1,i) = spm_fx_NESS(x,u,Ep,[],'S');
+        x              = gy(Py(:,t,i)',U(T + t,:),Ep);
+        f(T + t - 1,i) = spm_fx_NESS(x,U(T + t,:),Ep,[],'S');
     end
 end
 
@@ -688,24 +668,24 @@ spm_figure('GetWin','Flow'); clf
 
 % state space for evaluation
 %--------------------------------------------------------------------------
-ni    = 64;
-nx    = n + m;
-E     = zeros(nx,ni);
-F     = zeros(nx,ni);
-Z     = zeros(nx,ni);
-J     = zeros(nx,nx,ni);
+ni = 64;
+nx = n + m;
+D  = zeros(nx,ni);
+E  = zeros(nx,ni);
+F  = zeros(nx,ni);
+J  = zeros(nx,nx,ni);
 for i = 1:ni
-    F(:,i)   = spm_fx_NESS(X(i,:),U(i,:),Ep);
-    J(:,:,i) = spm_J(X(i,:),U(i,:),Ep);
-    Z(:,i)   = eig(J(:,:,i));
-    E(:,i)   = sort(real(Z(:,i)),'descend');
+    F(:,i)   = spm_fx_NESS(X(i,:),Z(i,:),Ep);
+    J(:,:,i) = spm_J(X(i,:),Z(i,:),Ep);
+    D(:,i)   = eig(J(:,:,i));
+    E(:,i)   = sort(real(D(:,i)),'descend');
 end
 
 subplot(2,2,1)
 imagesc(mean(J,3)), title('Jacobian (causal coupling)','FontSize',14)
 xlabel('latent states'),ylabel('latent states'), axis square
 
-subplot(2,2,2), plot(Z,'b.','MarkerSize',8)
+subplot(2,2,2), plot(D,'b.','MarkerSize',8)
 hold on, plot([0,0],get(gca,'YLim'),':k'), hold off
 hold on, plot(get(gca,'XLim'),[0 0],':k'), hold off
 title('Lyapunov exponents','FontSize',14)
@@ -727,15 +707,15 @@ G      = spm_DEM_generate(G,U(t,:)');
 
 x = G.pU.x{1};
 X = x';
+D = zeros(nx,ni);
 E = zeros(nx,ni);
 F = zeros(nx,ni);
-Z = zeros(nx,ni);
 J = zeros(nx,nx,ni);
 for i = 1:ni
-    F(:,i)   = spm_fx_NESS(X(i,:),U(i,:),Ep);
-    J(:,:,i) = spm_J(X(i,:),U(i,:),Ep);
-    Z(:,i)   = eig(J(:,:,i));
-    E(:,i)   = sort(real(Z(:,i)),'descend');
+    F(:,i)   = spm_fx_NESS(X(i,:),Z(i,:),Ep);
+    J(:,:,i) = spm_J(X(i,:),Z(i,:),Ep);
+    D(:,i)   = eig(J(:,:,i));
+    E(:,i)   = sort(real(D(:,i)),'descend');
 end
 
 subplot(2,1,2), hold off

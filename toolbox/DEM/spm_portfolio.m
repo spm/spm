@@ -1,4 +1,4 @@
-function Tab = spm_portfolio(L,I,U,DEM,T,dT)
+function Tab = spm_portfolio(L,I,U,DEM,T,dT,Sr)
 % FORMAT spm_portfolio(L,DEM)
 % simulate portfolio managment
 %--------------------------------------------------------------------------
@@ -6,14 +6,19 @@ function Tab = spm_portfolio(L,I,U,DEM,T,dT)
 % I   - indicator variables
 % U   - exogenous variables
 % DEM - generative model
-% T   - time of initial investment
+% T   - time of inital investment
 % dT  - time between rebalancing
+% Sr  - Shaarpe ratio
 %__________________________________________________________________________
 
 
 % constraints on Bayesian belief updating
 %--------------------------------------------------------------------------
 DEM.G.pC = DEM.G.pC/16;
+
+% default Sharpe ratio
+%--------------------------------------------------------------------------
+if nargin < 7, Sr = 3; end
 
 % policies
 %--------------------------------------------------------------------------
@@ -26,26 +31,38 @@ policies = {'Buy and hold', ...
 
 % get sizes and times
 %--------------------------------------------------------------------------
-Ann   = 100*365/7;              % scaling for annualised % RoR
-Ti    = T;                      % time of initial investment
-Tf    = size(L,1);              % time of final investment
-m     = size(L,2);              % number of (aggregated) assets
+Ann   = 100*365/7;                % scaling for annualised % RoR
+Ti    = T;                        % time of inital investment
+Tf    = size(L,1);                % time of final investment
+m     = size(L,2);                % number of (aggregated) assets
+n     = size(I,2);                % number of indicator variables
+
+% inital (flat) weights (i.e., ealth allocation)
+%--------------------------------------------------------------------------
+Np       = 5;                     % number of policies to simulate
+W        = ones(6,Np,dT)/m;       % inital (flat) weights
+% W(1,:,:) = 0.1;  % 'VEA': 0.1
+% W(2,:,:) = 0.05; % 'BIL': 0.05
+% W(3,:,:) = 0.35; % 'AGG': 0.35
+% W(4,:,:) = 0.05; % 'DBC': 0.05
+% W(5,:,:) = 0.10; % 'VNQ': 0.10
+% W(6,:,:) = 0.35; % 'SPY': 0.35
+W        = W(1:m,:,:);
 
 % prior preferences
 %--------------------------------------------------------------------------
-RoR   = 256/Ann;                % prior RoR percent
-DrD   = 16/Ann;                 % minimum drawdown
-Rat   = -spm_invNcdf(.01,0,1);  % Sharpe ratio
-ni    = numel(RoR);             % number of prior preferences (RoR)
-nj    = numel(Rat);             % number of prior preferences (Ratio)
+Rr    = 256/Ann;                  % prior RoR percent
+ni    = numel(Rr);                % prior preferences (Rate of return)
+nj    = numel(Sr);                % prior preferences (Sharpe ratio)
 m_p   = zeros(ni,nj);
 c_p   = zeros(ni,nj);
 for i = 1:ni
     for j = 1:nj
-        m_p(i,j) = RoR(i) - DrD;
-        c_p(i,j) = (RoR(i)/Rat(j))^2;
+        m_p(i,j) = Rr(i);
+        c_p(i,j) = (Rr(i)/Sr(j))^2;
     end
 end
+
 
 % Expected free energy: risk
 %--------------------------------------------------------------------------
@@ -57,7 +74,7 @@ EC  = @(m_q) -m_q;
 
 % prior preferences
 %--------------------------------------------------------------------------
-r   = -256:256;                  % domain of RoR (%) for plotting
+r   = -256:256;                   % domain of RoR (%) for plotting
 % for i = 1:numel(m_p)
 %     f = spm_Npdf(r,m_p(i)*Ann,Ann*c_p(i)*Ann);
 %     plot(r,f,'b'), hold on
@@ -76,9 +93,9 @@ end
 
 % set up policies: moving funds from one assets to another nP times
 %--------------------------------------------------------------------------
-dP    = .5;                     % proportional transaction
-cP    = .001;                   % proportional cost of transaction
-nP    = 3;                      % number of transactions
+dP    = .5;                       % proportional transaction
+cP    = .001;                     % proportional cost of transaction
+nP    = 3;                        % number of transactions
 p     = spm_combinations([m,m]);
 np    = size(p,1);
 Pk    = cell(1,np);
@@ -87,7 +104,7 @@ for k = 1:np
     j    = p(k,2);
     Pij  = eye(m,m);
 
-    % transaction (from asset j to i)
+    % transfer (from asset j to i)
     %----------------------------------------------------------------------
     Pij(i,j) = Pij(i,j) + dP;
     Pij(j,j) = Pij(j,j) - dP;
@@ -116,24 +133,9 @@ for i = 1:size(p,1)
     P{i}  = Pij;
 end
 
-% initial (flat) weights (i.e., ealth allocation)
-%--------------------------------------------------------------------------
-Np       = 5;                       % number of policies to simulate
-W        = ones(6,Np,dT)/m;         % initial (flat) weights
-W(1,:,:) = 0.1;  % 'VEA': 0.1
-W(2,:,:) = 0.05; % 'BIL': 0.05
-W(3,:,:) = 0.35; % 'AGG': 0.35
-W(4,:,:) = 0.05; % 'DBC': 0.05
-W(5,:,:) = 0.10; % 'VNQ': 0.10
-W(6,:,:) = 0.35; % 'SPY': 0.35
-W      = W(1:m,:,:);
-
-% amplitude of random fluctuations
-%--------------------------------------------------------------------------
-l     = (1:m) + size(I,2);        % indices of RoR
-
 % simulate allocations and ensuing resturns
 %==========================================================================
+l     = (1:m) + n;                % indices of RoR
 R     = zeros(Tf,Np,dT);          % cumulative RoR
 S     = zeros(Tf,1);              % Surprise (Free energy)
 D     = zeros(Tf,Np,dT);          % RoR per dt
@@ -151,7 +153,7 @@ for t = Ti:Tf
         % plot outcomes
         %------------------------------------------------------------------
         if ~isfield(DEM,'nograph')
-            subplot(6,2,12), hold on
+            subplot(3,2,6), hold on
             plot([1,1]*D(t,5,u)*Ann,get(gca,'YLim'),'g')
             plot([1,1]*R(t,5,u)*100,get(gca,'YLim'),'m')
             drawnow
@@ -175,7 +177,7 @@ for t = Ti:Tf
     %======================================================================
     w     = rem(t,dT) + 1;
 
-    % if surpisal is large rebalance all streams
+    % if surpisal is large, rebalance all streams (or not)
     %----------------------------------------------------------------------
     if S(t) > 16
         %%% w = 1:dT;
@@ -237,9 +239,9 @@ for t = Ti:Tf
 
         % risk sensitive
         %------------------------------------------------------------------
-        [~,j]   = min(G,[],'all');
-        [~,~,k] = ind2sub([ni,nj,np],j);
-        W(:,3,u)  = P{k}*W(:,3,u);
+        [~,j]    = min(G,[],'all');
+        [~,~,k]  = ind2sub([ni,nj,np],j);
+        W(:,3,u) = P{k}*W(:,3,u);
 
 
         % prospective
@@ -478,7 +480,7 @@ for i = 1:size(D,2)
 
     % Annual return
     %----------------------------------------------------------------------
-    tab(i,1) = mean(m);
+    tab(i,1) = mean(D(:,i))*Ann;
 
     % Volatility
     %----------------------------------------------------------------------
@@ -533,8 +535,8 @@ u    = U(T,:);
 t          = T:(T + dT);
 DEM.U      = U(t,:)';                  % future causes
 DEM.Y      = [I(1:T,:),L(1:T,:)]';     % past data
-DEM.M(1).x = x(:);                     % initial state
-DEM.M(2).v = u(:);                     % initial cause
+DEM.M(1).x = x(:);                     % intial state
+DEM.M(2).v = u(:);                     % intial cause
 [Ey,Cy]    = spm_NESS_forecast(DEM);
 
 return

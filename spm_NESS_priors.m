@@ -11,25 +11,31 @@ function [pE,pC] = spm_NESS_priors(n,L,V,W,J,R,C)
 % C   - covariance of NESS [eye(n,n)]
 %
 % pE  - prior expectation
-% pC  - prior covariances (matrix)
-% sC  - prior covariances (structure)
+% pC  - prior covariances
 %
+% pE.Qp(nb,n,n)       % polynomial coefficients for solenoidal flow {J}
+% pE.Rp(nb,n)         % polynomial coefficients for surprisal {R}
+% pE.Sp(nb,n,n)       % polynomial coefficients for kernel {C}
+% pE.Gp(n,n)          % polynomial coefficients for fluctuations
+% pE.W(n,n)           % precision of random fluctuations 
+% 
 % This routine returns the prior expectations and covariances of the
 % parameters (i.e., polynomial coefficients) of a nonequilibrium
 % steady-state model. This model is based upon the Helmholtz-Hodge
 % decomposition of the solution to density dynamics of any system that
 % possesses a pullback attractor. The requisite flow operators Q and
-% surprisal S are parameterised to 2nd and fourth order, respectively. The
-% surprisal is parameterised with even terms to 4th order by creating a
+% surprisal S are parameterised to 1st and 2nd order, respectively. The
+% surprisal can be parameterised with a
 % surprisal kernel K and then taking the outer product H = K’*K, where the
 % kernel K is parameterised to first-order. The solenoidal
-% (non-dissipative) parts of the flow operator are parameterised to 2nd
-% order in the states.
+% (non-dissipative) parts of the flow operator are parameterised to 1st
+% order in the states. Alternatively the suprisal can be paramterised with
+% pE.Rp via a state dependant mean.
 %
-% It is assumed that the dissipative part of the flow (i.e., the amplitude
-% of random fluctuations G) is spherical and constant. This corresponds to
-% the inverse precision of the random fluctuations that can also be
-% specified as M.W in the accompanying model M.
+% If pE.Gp = 0, it is assumed that the dissipative part of the flow (i.e.,
+% the amplitude of random fluctuations G) is spherical and constant. This
+% corresponds to the inverse precision of the random fluctuations that can
+% also be specified as M.W in the accompanying model M.
 %__________________________________________________________________________
 
 % Karl Friston
@@ -64,10 +70,10 @@ nb    = size(o,2);
 
 % get parameters
 %--------------------------------------------------------------------------
-pE.Qp = zeros(nb,n,n);    % polynomial coefficients for solenoidal operator
-pE.Rp = zeros(nb,n);      % polynomial coefficients for surprisal mean
-pE.Sp = zeros(nb,n,n);    % polynomial coefficients for surprisal kernel
-pE.Gp = zeros(n,n);       % polynomial coefficients for surprisal kernel
+pE.Qp = zeros(nb,n,n);    % polynomial coefficients for solenoidal flow
+pE.Rp = zeros(nb,n);      % polynomial coefficients for surprisal
+pE.Sp = zeros(nb,n,n);    % polynomial coefficients for kernel
+pE.Gp = zeros(n,n);       % polynomial coefficients for fluctuations
 pE.W  = W;                % precision of random fluctuations
 
 pC.Qp = pE.Qp;
@@ -98,7 +104,7 @@ for i = 1:n
     end
 end
 
-%  potential (surprisal)
+% constraints on potential (surprisal): kernel
 %--------------------------------------------------------------------------
 Sp    = sqrtm(inv(C));
 for i = 1:n
@@ -109,32 +115,11 @@ for i = 1:n
         pE.Sp(1,i,j) = Sp(i,j);
         pC.Sp(1,i,j) = V.Sp;
 
-         if J(i,j)
-
-            % constraints
-            %--------------------------------------------------------------
-            d = ~J(i,:); d(i) = 1;
-            k = ~any(o(d,:),1);
-            pC.Sp(k,i,j) = V.Sp;
-
-         end
     end
 end
 
 
-% constraints on potential (surprisal)
-%--------------------------------------------------------------------------
-for i = 1:n
-    for j = 1:n
-        if i == j
-            d = ~R(i,:);
-            k = (sum(o) == 1) & ~any(o(d,:),1);
-            pC.Sp(k,i,j) = V.Sp;
-        end
-    end
-end
-
-% constraints on mean (coupling to enslaved states)
+% constraints on potential (surprisal): via mean
 %--------------------------------------------------------------------------
 for i = 1:n
     for j = 1:n
