@@ -184,6 +184,11 @@ end
 
 %-Check FieldTrip MEX files (warn rather than error, as FieldTrip is optional)
 %--------------------------------------------------------------------------
+ftdir = fullfile(d,'external','fieldtrip');
+ftTempPath = ~exist('ft_getopt','file') && exist(ftdir,'dir');
+if ftTempPath
+    addpath(ftdir);
+end
 try
     ft_getopt(struct(),'dummy_field',[]);
 catch ME
@@ -206,6 +211,9 @@ catch ME
             '   %s\n'],...
             ME.message);
     end
+end
+if ftTempPath
+    rmpath(ftdir);
 end
 
 %==========================================================================
