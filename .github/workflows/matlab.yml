@@ -64,6 +64,10 @@ jobs:
     env:
       cache-key: tests-data2
     steps:
+      - name: Install Visual C++ 2010 Redistributable (required by FieldTrip MEX files)
+        if: runner.os == 'Windows'
+        run: choco install vcredist2010 -y
+
       - name: Check out repository
         uses: actions/checkout@v4
 
