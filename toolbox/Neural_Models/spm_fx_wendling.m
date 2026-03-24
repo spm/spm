@@ -53,6 +53,8 @@ function [f,J] = spm_fx_wendling(x,u,P,M)
 %   vP   = y1 - y2 - y3   (pyramidal membrane potential = output)
 %   vFSI = C5*y0 - C6*y4  (FSI membrane potential)
 %
+%   S(v) = 2*e0 / (1 + exp(r*(v0 - v)))
+%
 %__________________________________________________________________________
 %
 % Wendling F, Bartolomei F, Bellanger JJ, Chauvel P (2002) Epileptic fast
@@ -118,12 +120,11 @@ for k = 1:7
     Ci(:,k) = C0(k)*exp(P.H(:,k));
 end
 
-% sigmoid parameters
+% sigmoid parameters: [slope r, threshold v0, half-rate e0]
 %--------------------------------------------------------------------------
-Rp = R0.*exp(P.R);
-r  = Rp(1);
-v0 = Rp(2);
-S0 = 2*e0/(1 + exp(r*v0));    % offset so S(0) = 0
+r  = R0(1)*exp(P.R(1));
+v0 = R0(2)*exp(P.R(2));
+e0 = e0*exp(P.R(3));
 
 % transpose states for column-vector operations
 %--------------------------------------------------------------------------
@@ -143,19 +144,20 @@ vSDI = Ci(:,3)' .* x(1,:);
 % FSI interneuron input: C5*y0 - C6*y4
 vFSI = Ci(:,5)' .* x(1,:) - Ci(:,6)' .* x(5,:);
 
-% pre-synaptic firing rates: S(v) = 2*e0/(1+exp(r*(v0-v))) - S0
+% pre-synaptic firing rates: S(v) = 2*e0/(1+exp(r*(v0-v)))
+% (Wendling 2002, no S0 offset)
 %--------------------------------------------------------------------------
-SP   = 2*e0./(1 + exp(r*(v0 - vP)))   - S0;
-SE   = 2*e0./(1 + exp(r*(v0 - vE)))   - S0;
-SSDI = 2*e0./(1 + exp(r*(v0 - vSDI))) - S0;
-SFSI = 2*e0./(1 + exp(r*(v0 - vFSI))) - S0;
+SP   = 2*e0./(1 + exp(r*(v0 - vP)));
+SE   = 2*e0./(1 + exp(r*(v0 - vE)));
+SSDI = 2*e0./(1 + exp(r*(v0 - vSDI)));
+SFSI = 2*e0./(1 + exp(r*(v0 - vFSI)));
 
-% sigmoid derivatives: dS/dv = r*s*(1 - s/(2*e0)) where s = S + S0
+% sigmoid derivatives: dS/dv = r*S*(1 - S/(2*e0))
 %--------------------------------------------------------------------------
-dSP   = r*(SP   + S0).*(1 - (SP   + S0)/(2*e0));
-dSE   = r*(SE   + S0).*(1 - (SE   + S0)/(2*e0));
-dSSDI = r*(SSDI + S0).*(1 - (SSDI + S0)/(2*e0));
-dSFSI = r*(SFSI + S0).*(1 - (SFSI + S0)/(2*e0));
+dSP   = r*SP  .*(1 - SP  /(2*e0));
+dSE   = r*SE  .*(1 - SE  /(2*e0));
+dSSDI = r*SSDI.*(1 - SSDI/(2*e0));
+dSFSI = r*SFSI.*(1 - SFSI/(2*e0));
 
 % input
 %==========================================================================

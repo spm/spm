@@ -13,7 +13,7 @@ function [E,V] = spm_wendling_priors(A,B,C)
 %    pE.F - fast somatic inhibitory gain (FSI, scales G = 10 mV)
 %    pE.T - synaptic time constants [excitatory, slow inh, fast inh]
 %    pE.H - intrinsic connectivity C1-C7
-%    pE.R - activation function parameters [slope, threshold]
+%    pE.R - activation function parameters [slope r, threshold v0, half-rate e0]
 %
 % connectivity parameters
 %--------------------------------------------------------------------------
@@ -56,7 +56,7 @@ warning('off','MATLAB:log:logOfZero');
 
 % sigmoid parameters
 %--------------------------------------------------------------------------
-E.R = [0 0];               V.R = [1 1]/8;
+E.R = [0 0 0];             V.R = [1 1 1]/8;  % [slope r, threshold v0, half-rate e0]
 
 % synaptic gains (log-deviations from default)
 %--------------------------------------------------------------------------
