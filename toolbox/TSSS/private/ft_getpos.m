@@ -14,15 +14,13 @@ function [R,EX,EY,EZ] = ft_getpos(grad, fid, channels)
 % in connection with its use and distribution of any and all parts of the Software under this license.
 % 
 
-fid =  ft_convert_units(fid, 'm');
 grad = ft_datatype_sens(grad, 'amplitude', 'T', 'distance', 'm');
      
 M = headcoordinates_mne(fid.fid.pnt(1, :), fid.fid.pnt(2, :), fid.fid.pnt(3, :));
 
-fid  = ft_transform_headshape(M, fid);
-grad = ft_transform_sens(M, grad);
+grad = ft_transform_geometry(M, grad);
 
-[dum, meg_chan] = spm_match_str(channels, grad.label);
+[~, meg_chan] = spm_match_str(channels, grad.label);
 
 pos = [];
 for i = 1:length(meg_chan)

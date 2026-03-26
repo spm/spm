@@ -145,7 +145,7 @@ for m = 1:numel(modalities)
         end
         
         if ischar(BF.data.(modalities{m}).vol)
-            BF.data.(modalities{m}).vol = ft_read_vol(BF.data.(modalities{m}).vol);
+            BF.data.(modalities{m}).vol = ft_read_headmodel(BF.data.(modalities{m}).vol);
         end
         
         chanunits = units(BF.data.D, chanind);
