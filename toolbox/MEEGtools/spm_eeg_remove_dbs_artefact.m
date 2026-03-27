@@ -12,8 +12,8 @@ function D = spm_eeg_remove_dbs_artefact(S)
 %
 % D        - MEEG object (also saved on disk if requested)
 %__________________________________________________________________________
-% Based on Peeters et al. 
-% Electrophysiologic Evidence That Directional Deep Brain Stimulation Activates 
+% Based on Peeters et al.
+% Electrophysiologic Evidence That Directional Deep Brain Stimulation Activates
 % Distinct Neural Circuits in Patients With Parkinson Disease
 % https://doi.org/10.1016/j.neurom.2021.11.002
 %__________________________________________________________________________
@@ -22,7 +22,7 @@ function D = spm_eeg_remove_dbs_artefact(S)
 % Copyright (C) 2026 Department of Imaging Neuroscience
 
 if ~isfield(S, 'timewin')
-    S.timewin = [0.7 6.2];
+    S.timewin = [0.7 3.5];
 end
 
 
@@ -104,37 +104,8 @@ D          = spm_eeg_copy(S1);
 
 template = Da(Da.indchannel(S.artchan), t(1):t(2), Da.indtrial(S.artcond));
 
-% (LLM) The cleanest approach that guarantees C1 continuity (matching both value and slope at the join)
-% and reaches exactly zero with zero slope is a cubic Hermite extension. It requires no toolboxes:
 
-% --- Parameters ---
-extend_s = 0.005;          % length of the appended tail in seconds
-n_slope  = 100;             % samples used to estimate the terminal slope
-fs       = D.fsample;
-% --- Estimate endpoint value and slope ---
-y_end   = template(end);
-slope   = (template(end) - template(end - n_slope)) / (n_slope / fs);   % derivative at join
-
-% --- Build the extension via cubic Hermite ---
-% Boundary conditions:
-%   t=0 : value = y_end,  derivative = slope
-%   t=T : value = 0,      derivative = 0
-n_ext = round(extend_s * fs);
-t_ext = (1:n_ext).' / fs;          % time from the join point
-T     = extend_s;
-
-% Hermite basis functions (normalized interval u in [0,1])
-u  = t_ext / T;
-h00 =  2*u.^3 - 3*u.^2 + 1;       % value  at u=0
-h10 =    u.^3 - 2*u.^2 + u;       % slope  at u=0 (scaled by T)
-h01 = -2*u.^3 + 3*u.^2;           % value  at u=1
-h11 =    u.^3 -   u.^2;           % slope  at u=1 (scaled by T, set to 0)
-
-tail = h00 * y_end + h10 * (slope * T);   % h01*0 + h11*0 vanish
-
-% --- Append to template ---
-template_extended = [template tail'];
-% end LLM
+template_extended = append_forced_zero_tail(template, D.fsample, 0.15, 0.03)';
 
 t_end = t(1)+length(template_extended)-1;
 
@@ -147,9 +118,9 @@ for k = 1:D.ntrials
     for c = 1:length(indchannels)
         ep = D(indchannels(c), t(1):t(2), k);
         scale   = ep/template;
-        D(indchannels(c), t(1):t_end, k) =  D(indchannels(c), t(1):t_end, k)-scale*template_extended;
+        D(indchannels(c), t(1):t_end, k) = D(indchannels(c), t(1):t_end, k)-scale*template_extended;                       
     end
-    
+
     if ismember(k, Ibar), spm_progress_bar('Set', k); end
 end
 
@@ -159,8 +130,70 @@ spm_progress_bar('Clear');
 %--------------------------------------------------------------------------
 D = D.history(mfilename, S);
 
+
+
+
 save(D);
 
 %-Cleanup
 %--------------------------------------------------------------------------
 spm('FigName','M/EEG artefact interpolation: done'); spm('Pointer','Arrow');
+
+end
+
+function [signal_ext, tail, info] = append_forced_zero_tail(signal, fs, extend_s, decayFracAtQuarter)
+% Fast decay tail that is guaranteed to be zero at the end.
+%
+% Inputs:
+%   signal             - Nx1 or 1xN waveform
+%   fs                 - sampling rate (Hz)
+%   extend_s           - extension length in seconds (e.g., 0.05 to 0.15)
+%   decayFracAtQuarter - target remaining fraction at 25% of tail
+%                        (e.g., 0.05 means 95% decayed by quarter-tail)
+%
+% Output:
+%   signal_ext         - original + appended tail
+%   tail               - appended segment
+%   info               - parameters used
+
+signal = signal(:);
+N = numel(signal);
+
+if nargin < 3 || isempty(extend_s)
+    extend_s = 0.08; % 80 ms default
+end
+if nargin < 4 || isempty(decayFracAtQuarter)
+    decayFracAtQuarter = 0.05; % aggressive/faster decay
+end
+
+nTail = max(2, round(extend_s * fs));
+T = nTail / fs;
+t = (1:nTail).' / fs;
+
+% Start from actual endpoint (handles slight overshoot, positive or negative)
+y0 = signal(end);
+
+% Choose tau so raw exponential reaches decayFracAtQuarter at T/4
+p = 0.25;
+tau = -(p * T) / log(max(decayFracAtQuarter, 1e-6));
+
+% Truncated/renormalized exponential:
+% g(0)=1 and g(T)=0 exactly
+e = exp(-t / tau);
+eT = exp(-T / tau);
+g = (e - eT) / (1 - eT);
+
+tail = y0 * g;
+
+% Guarantee exact zero at end sample
+tail(end) = 0;
+
+signal_ext = [signal; tail];
+
+info = struct( ...
+    'y0', y0, ...
+    'extend_ms', 1000*T, ...
+    'tau_ms', 1000*tau, ...
+    'decayFracAtQuarter', decayFracAtQuarter, ...
+    'nTail', nTail);
+end
