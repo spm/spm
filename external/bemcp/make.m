@@ -1,6 +1,7 @@
 % Script to compile C code for EEG-BEM
 
-% Copyright (C) 1999-2022  Christophe Phillips
+% Christophe Phillips
+% $Id$
 
 mex -O bem_Cii_cog.c
 mex -O bem_Cii_cst.c
