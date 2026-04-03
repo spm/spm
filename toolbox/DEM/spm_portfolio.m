@@ -123,7 +123,7 @@ end
 % compound policies; i.e., compositions of unitary transactions
 %--------------------------------------------------------------------------
 p     = spm_combinations(ones(1,nP)*np);
-np    = size(p,1);
+np    = size(p,1);                % number of policies
 P     = cell(1,np);
 for i = 1:size(p,1)
     Pij   = 1;
@@ -132,6 +132,7 @@ for i = 1:size(p,1)
     end
     P{i}  = Pij;
 end
+fprintf('number of policies: %i\n',np)
 
 % simulate allocations and ensuing resturns
 %==========================================================================

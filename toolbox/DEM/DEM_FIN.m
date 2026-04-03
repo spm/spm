@@ -382,7 +382,8 @@ end
 % Lyapunov exponent and Hausdorff dimension (Kaplan-Yorke conjecture)
 %--------------------------------------------------------------------------
 LE    = mean(real(E),2);
-j     = sum(LE >= 0);
+SE    = cumsum(LE);
+j     = find(SE >= 0,1,'last');
 HD    = j + sum(LE(1:j))/abs(LE(j + 1));
 V0    = min(LE);
 fprintf('Hausdorff Dimension: %.2f\n',HD)

@@ -6,8 +6,8 @@ function FIN_TEST
 %% Iterated simulations
 %==========================================================================
 spm_clear
-n     = 32;
-m     = 16;
+n     = 10;
+m     = 1;
 tab   = zeros(5,4,n,m);
 DEM   = cell(n,m);
 F     = cell(n,m);
@@ -17,8 +17,7 @@ for i = 1:n
         % durations
         %------------------------------------------------------------------
         SIM.N  = fix((i - 1)*365/7);   % end point (weeks) [1]
-        SIM.N  = fix((i - 1)*16);      % end point (weeks) [1]
-        SIM.D  = (j + 16)*8;           % depth of training data (weeks) [256]
+        SIM.D  = 256;                  % depth of training data (weeks) [256]
         SIM.nT = 52;                   % duration of simulation (in weeks)
         SIM.dT = 4;                    % time between rebalancing (in weeks)
         SIM.Sr = -spm_invNcdf(.01);    % prior Sharpe ratio
@@ -35,11 +34,8 @@ for i = 1:n
         DEM{i,j}     = d;              % generative model
         F{i,j}       = f               % ELBOs
 
-        save DEMFIN_FG
     end
 end
-
-
 
 
 % bar chart results 
@@ -115,10 +111,9 @@ end
 return
 
 
-% % log evidence
-% %--------------------------------------------------------------------------
-% n     = 8;
-% m     = 8;
+% log evidence
+%==========================================================================
+load DEMFIN_FG.mat
 L     = zeros(n,4,m);
 for j = 1:m
     L(:,:,j) = full(spm_cat(F(1:n,j)));
@@ -134,32 +129,45 @@ P    = squeeze(L(:,2,:));
 T    = squeeze(L(:,4,:));
 
 i    = find(abs(P(:)) > std(P(:))*6);
-%%P(i) = 0;
+P(i) = 0;
 
 x = ((1:m) + 16)*8;
 y = 1:n;
+
+D     = gradient(E);
+S     = zeros(n,m + n*2);
+for i = 1:n
+    S(i,(1:m) + i*2) = D(i,:);
+end
+
+d0 = datenum('08-Nov-25','dd-mmm-yy');
+dx = (16 + (1:(m + n*2)))*8;
+dd = d0 - 7*dx;
+plot(dd,sum(S))
+datetick('x','mmm-yy','keeplimits')
 
 subplot(4,3,1)
 imagesc(x,y,E), ylabel('year'), xlabel('depth (weeks)')
 title('Log evidence'), axis square
 
 subplot(4,3,2)
-bar((1:m) + 2,mean(E)/32),   ylabel('nats/week'), xlabel('depth (32 weeks)')
-title('Mean log evidence'), axis square
+imagesc(x,y,D), ylabel('year'), xlabel('depth (weeks)')
+title('differential ELBO'), axis square
 
-D = diff(mean(E)/32);
-D = D - mean(D);
 subplot(4,3,3)
-bar((2:m) + 2,D), ylabel('nats/week'), xlabel('depth (32 weeks)')
-title('Log marginal likelihood'), axis square
+imagesc(S), ylabel('nats/week'), xlabel('depth (8 weeks)')
+title('differential ELBO'), axis square
 
 subplot(4,1,2)
-bar(E), ylabel('Nats'), xlabel('year')
-title('ELBO')
+imagesc(flip(S,2)), ylabel('nats/week'), xlabel('depth (8 weeks)')
+title('differential ELBO')
 
 subplot(4,1,3)
-bar(-P), ylabel('Nats'), xlabel('year')
-title('log evidence for enslavement')
+d0 = datenum('08-Nov-25','dd-mmm-yy');
+dx = 7*(16 + (1:(m + n*2))*8);
+dd = d0 - dx;
+plot(dd,sum(S)), title('Sum ELBO')
+datetick('x','mmm-yy')
 
 subplot(4,2,7), hold off
 bar(x,mean(R)), ylabel('RoR'), xlabel('Depth')
@@ -172,13 +180,12 @@ title('enslavement')
 
 
 % bar chart results
-%--------------------------------------------------------------------------
+%==========================================================================
 spm_figure('GetWin','log evidence'); clf
 
 % log evidence
 %--------------------------------------------------------------------------
-% n     = 10;
-% m     = 10;
+load DEMFIN_all.mat
 L     = zeros(n,4,m);
 for j = 1:m
     L(:,:,j) = full(spm_cat(F(1:n,j)));
@@ -189,7 +196,6 @@ R    = squeeze(tab(5,1,1:n,1:m));
 E    = squeeze(L(:,1,:));
 P    = squeeze(L(:,2,:));
 T    = squeeze(L(:,4,:));
-
 
 i    = find(abs(P(:)) > std(P(:))*6);
 P(i) = 0;
