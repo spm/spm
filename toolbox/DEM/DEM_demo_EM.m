@@ -35,7 +35,7 @@ M(2).V  = exp(16);                            % very precise causes
 % and generate data
 %==========================================================================
 N       = 32;                                 % length of data sequence
-U       = exp(-([1:N] - 12).^2/(2.^2));       % this is the Gaussian cause
+U       = exp(-((1:N) - 12).^2/(2.^2));       % this is the Gaussian cause
 DEM     = spm_DEM_generate(M,U,{P},{8,32},{32});
 
 
@@ -80,7 +80,7 @@ GY.Q  = {kron(speye(G.l,G.l),Q)};
  
 % EM with a Gauss-Newton-like optimization of free energy
 %==========================================================================
-[Ep,Cp,Eh,F] = spm_nlsi_GN(G,GU,GY);
+[Ep,Cp] = spm_nlsi_GN(G,GU,GY);
  
 % parameters
 %--------------------------------------------------------------------------

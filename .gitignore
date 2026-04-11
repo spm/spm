@@ -5,3 +5,5 @@ src/*.mex*
 tests/data
 toolbox/mb/data
 external/mritools
+toolbox/DEM/DEM_demo.fig
+toolbox/DEM/DEM_demo.m

@@ -30,7 +30,7 @@ if isstruct(S{1})
     else
         % save avi file
         %------------------------------------------------------------------
-        [filename, pathname] = uiputfile('*.avi','movie file');
+        [filename, pathname] = uiputfile('*.avi','Uncompressed AVI');
         if isequal(filename,0) || isequal(pathname,0), return; end
         fname = fullfile(pathname,filename);
         OBJ   = VideoWriter(fname);

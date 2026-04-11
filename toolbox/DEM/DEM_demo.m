@@ -22,7 +22,7 @@ function varargout = DEM_demo(varargin)
 
 % Edit the above text to modify the response to help DEM_demo
 
-% Last Modified by GUIDE v2.5 21-Mar-2026 20:14:04
+% Last Modified by GUIDE v2.5 08-Apr-2026 17:28:01
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -934,3 +934,8 @@ run_demo_Callback(hObject, handles, 'DEM_metric_BMR')
 function pushbutton308_Callback(hObject, eventdata, handles)
 handles.web = 'Generalised Filtering';
 run_demo_Callback(hObject, handles, 'DEM_FIN')
+
+% --- Executes on button press in pushbutton309.
+function pushbutton309_Callback(hObject, eventdata, handles)
+handles.web = 'Active inference, eye movements and oculomotor delays';
+run_demo_Callback(hObject, handles, 'ADEM_intercept')

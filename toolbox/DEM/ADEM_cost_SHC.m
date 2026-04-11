@@ -23,7 +23,7 @@ function ADEM_cost_SHC
  
 % switch for demo
 %--------------------------------------------------------------------------
-DEMO = 1;
+DEMO = 0;
  
 % location and radius of attractors (A)
 %--------------------------------------------------------------------------
@@ -85,8 +85,8 @@ M(1).E.nE = 1;
 M(1).E.n  = 4;
  
 N      = 128;
-DEM.U  = sparse(N,1);
-DEM.C  = sparse(N,1);
+DEM.U  = sparse(1,N);
+DEM.C  = sparse(1,N);
 DEM.G  = G;
 DEM.M  = M;
  

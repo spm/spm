@@ -4,9 +4,9 @@
 % density) can be specified directly in terms of the desired density. This
 % means the divergence-free and diffusion parameters can then be learned to
 % accommodate environmental constraints on flow. The constraints on value
-% are that is has to have maximum at and only at) the desired location.
+% are that is has to have maximum at, and only at, the desired location.
 %
-% This scheme was not pursued to closure
+% This scheme was not pursued to closure: see DEM_FIN for an example
  
 %__________________________________________________________________________
  
@@ -58,7 +58,7 @@ spm_figure('GetWin','Figure 1'); clf
 nx      = 32;
 x{1}    = linspace(-2,2,nx);
 x{2}    = linspace(-2,2,nx);
-[X x]   = spm_ndgrid(x);
+[~,x]   = spm_ndgrid(x);
  
 subplot(2,2,1)
 FG   = spm_fp_display_density(G,x);
@@ -126,6 +126,7 @@ else
     % load
     %----------------------------------------------------------------------
     load DEM_Q
+
 end
  
  
@@ -138,7 +139,7 @@ spm_figure('GetWin','Figure 3');clf
 nx      = 64;
 x{1}    = linspace(-2,2,nx);
 x{2}    = linspace(-2,2,nx);
-[X x]   = spm_ndgrid(x);
+[X,x]   = spm_ndgrid(x);
  
 DEM.M(1).pE = DEM.qP.P{1};
 DEM.M(1).pC = [];

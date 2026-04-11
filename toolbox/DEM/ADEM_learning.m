@@ -24,7 +24,7 @@ function ADEM_learning
 % generative model
 %==========================================================================
 rng('default')
-DEMO     = 0;                           % switch for demo
+DEMO     = 1;                           % switch for demo
 
 G(1).E.s = 1/2;                         % smoothness
 G(1).E.n = 4;                           % smoothness
@@ -219,7 +219,7 @@ U       = sparse(1,N);
 C       = spm_conv(randn(1,N),8)/4;      % pertubations
 DEM.G   = G;
 DEM.M   = M;
-DEM.C   = U;
+DEM.C   = C;
 DEM.U   = U;
 DEM     = spm_ADEM(DEM);
  
