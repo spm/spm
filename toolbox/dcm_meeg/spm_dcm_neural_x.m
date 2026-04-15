@@ -16,7 +16,7 @@ switch lower(char(M.f))
     
     % conductance based models
     %----------------------------------------------------------------------
-    case lower({'spm_fx_cmm'})
+    case lower({'spm_fx_cmm', 'spm_fx_cmm_NMDA', 'spm_fx_nmda'})
         
         % solve for fixed point
         %------------------------------------------------------------------

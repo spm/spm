@@ -273,7 +273,7 @@ if nargout < 2, return, end
 
 % Jacobian
 %==========================================================================
-J = spm_cat(spm_diff('spm_fx_mfm',xin,u,P,M,1));
+J = spm_cat(spm_diff('spm_fx_nmda',xin,u,P,M,1));
 
 if nargout < 3, return, end
 
