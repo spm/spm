@@ -14,6 +14,10 @@ function results = spm_preproc(varargin)
 %  opts.fudge    - a fudge factor
 %  opts.msk      - unused
 %__________________________________________________________________________
+% This code should be treated as obsolete and removed, but other code
+% (e.g. Fieldtrip) still calls it. It was migrated to toolbox/OldSeg
+% in the hope of eventually removing it, but it has found its way back to
+% the main SPM folder.
 
 % John Ashburner
 % Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
