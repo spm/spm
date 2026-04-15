@@ -1153,7 +1153,7 @@ dartel         = cfg_choice;
 dartel.tag     = 'dartel';
 dartel.name    = 'Dartel Tools';
 dartel.help    = {
-                  'This toolbox is based around the "A Fast Diffeomorphic Registration Algorithm" paper/* \cite{ashburner07}*/. The idea is to register images by computing a "flow field", which can then be exponentiated to generate both forward and backward deformations.'
+                  'This toolbox is based around the "A Fast Diffeomorphic Registration Algorithm" paper/* \cite{ashburner07}*/. The idea is to register images by computing a "flow field", which can then be exponentiated to generate both forward and backward deformations.','Note that people should really be switching to the Shoot toolbox (or using multiBrain), rather than still using Dartel.'
 }';
 dartel.values  = {warp warp1 nrm crt_warped jacdet crt_iwarped popnorm kernfun };
 %dartel.num     = [0 Inf];
