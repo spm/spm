@@ -154,7 +154,7 @@ for sub = sub_list
                     directory = fullfile(directory, ['ses-', ses{1}]);
                 end
 
-                if ~folder_only
+                if ~folder_only && ~S.derivative
                     directory = fullfile(directory, S.category);
                 end
 
