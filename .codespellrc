@@ -1,5 +1,5 @@
 [codespell]
-skip = external/*,src/external,*.bib,help
+skip = external,src/external,*.bib,help
 count =
 quiet-level = 3
 ignore-words = .github/codespell_ignore_words.txt
