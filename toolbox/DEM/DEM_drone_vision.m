@@ -156,7 +156,7 @@ u     = [-1,0,1];
 Nu    = numel(u);
 for i = 1:Nu
 
-    % perimeter contraints on x
+    % perimeter constraints on x
     %----------------------------------------------------------------------
     BX(:,:,i) = full(spm_speye(Nx,Nx,u(i),1));
     for j = 1:Nx
@@ -170,7 +170,7 @@ for i = 1:Nu
         end
     end
 
-    % perimeter contraints on y
+    % perimeter constraints on y
     %----------------------------------------------------------------------
     BY(:,:,i) = full(spm_speye(Ny,Ny,u(i),2));
     for j = 1:Ny

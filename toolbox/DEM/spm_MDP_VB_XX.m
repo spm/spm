@@ -1108,7 +1108,7 @@ if OPTIONS.plot
 end
 
 
-% auxillary functions
+% auxiliary functions
 %==========================================================================
 function [G,P,F] = spm_forwards(O,P,A,B,C,E,H,W,t,T,N)
 % deep tree search over policies or paths

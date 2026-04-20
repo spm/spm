@@ -1273,7 +1273,7 @@ if OPTIONS.plot
 end
 
 
-% auxillary functions
+% auxiliary functions
 %==========================================================================
 
 function A  = spm_log(A)

@@ -848,7 +848,7 @@ switch dataformat
     % construct a time axis that matches the data, it starts at 0 seconds
     time = ((1:hdr.nSamples*hdr.nTrials)-1)/hdr.Fs;
     
-    % divide data in nirs channels, stimulus channels and auxillary channels
+    % divide data in nirs channels, stimulus channels and auxiliary channels
     seldat  = startsWith(hdr.chantype, 'nirs');
     selstim = strcmp(hdr.chantype, 'stimulus');
     selaux  = ~seldat & ~selstim;

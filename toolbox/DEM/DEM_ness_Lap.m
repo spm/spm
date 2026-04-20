@@ -48,7 +48,7 @@ T    = 128;                   % number of past samples
 %--------------------------------------------------------------------------
 i      = (1:ns) + nm;
 j      = 1:nm;
-J      = ones(n,n);           % contraints on Jacobian
+J      = ones(n,n);           % constraints on Jacobian
 J(j,i) = 0;                   % i.e., causal coupling
 J(i,j) = 0;                   % i.e., causal coupling
 

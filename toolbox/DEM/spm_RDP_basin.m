@@ -86,7 +86,7 @@ j   = R;
 R   = speye(Ns,Ns);
 MDP = spm_RDP_compress(MDP,R(:,j),'first');
 
-% update contraints
+% update constraints
 %--------------------------------------------------------------------------
 MDP = spm_set_goals(MDP,S,chi);
 

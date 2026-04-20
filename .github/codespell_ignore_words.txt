@@ -1,6 +1,7 @@
 adn
 alll
 ans
+assignin
 bu
 dout
 dum
@@ -42,8 +43,7 @@ unser
 vor
 whos
 
-assignin
-contraints
+
 numer
 contrained
 paramters
@@ -70,7 +70,7 @@ homogenous
 countR
 ordinates
 ordinate
-auxillary
+auxillaryassignin
 accomodate
 propogation
 Mapp
@@ -318,7 +318,6 @@ individial
 incase
 imputs
 implentation
-hierachy
 hierachical
 hieght
 hasnt
@@ -332,8 +331,6 @@ funciton
 FROMAT
 FORNAT
 finction
-fequency
-fequencies
 feild
 extention
 explicity
@@ -422,7 +419,7 @@ basline
 backgound
 avearge
 auxilliary
-Auxillary
+auxiliary
 Autmatically
 assmptions
 Assingn
@@ -447,4 +444,4 @@ co-ordinates
 co-ordinate
 re-use
 re-used
-isnt'
+

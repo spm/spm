@@ -1,5 +1,5 @@
 function vdm = FieldMap_Run(job)
-% Auxillary file for running FieldMap jobs
+% auxiliary file for running FieldMap jobs
 % FORMAT vdm = FieldMap_Run(job)
 %
 % job - FieldMap job structure containing various elements:

@@ -53,7 +53,7 @@ rng('default')
 % spm_parents.
 %--------------------------------------------------------------------------
   
-% latent causes: likelihoods A and contraints C
+% latent causes: likelihoods A and constraints C
 %==========================================================================
 n = 8;                                % number of temperature levels
 m = 5;                                % number of HVAC levels
@@ -181,7 +181,7 @@ level(1).outcomes(6).C     = [];
 level(1).outcomes(6).iC    = {};
 
 
-% latent states: prior transitions B and contraints H
+% latent states: prior transitions B and constraints H
 %==========================================================================
 
 % Clock time
@@ -438,7 +438,7 @@ for n = 1:Nm
         [~,j] = ismember(state,{level(n).states.name});
         MDP.id.A{g} = j;
 
-        % parents of contraints
+        % parents of constraints
         %------------------------------------------------------------------
         state = level(n).outcomes(g).iC;
         [~,j] = ismember(state,{level(n).states.name});

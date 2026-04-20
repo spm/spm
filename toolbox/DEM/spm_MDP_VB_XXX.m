@@ -1744,7 +1744,7 @@ if OPTIONS.P
 end
 
 
-% auxillary functions
+% auxiliary functions
 %==========================================================================
 function [G,P,F,id,Pa] = spm_forwards(O,P,A,B,C,H,K,W,I,t,T,N,m,id,pA,qa)
 % deep tree search over policies or paths
@@ -2410,7 +2410,7 @@ if isfield(id,'cid')
 
     elseif isempty(id.cid)
 
-        % no contraints
+        % no constraints
         %------------------------------------------------------------------
         D = true;
 

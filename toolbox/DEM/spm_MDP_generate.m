@@ -344,7 +344,7 @@ end % end loop over models (m)
 return
 
 
-% auxillary functions
+% auxiliary functions
 %==========================================================================
 
 function i  = spm_sample(P)
