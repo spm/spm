@@ -40,7 +40,7 @@ function [PEB,P]   = spm_dcm_peb_full(P,M,field)
 %     PEB.Ce   -   expected covariance of second level random effects
 %     PEB.F    -   free energy of second level model
 %
-% DCM    - 1st level (reduced) DCM structures with emprical priors
+% DCM    - 1st level (reduced) DCM structures with empirical priors
 %
 %          If DCM is an an (N x M} array, hierarchicial inversion will be
 %          applied to each model (i.e., each row) - and PEB will be a 

@@ -839,7 +839,7 @@ for t = 1:T
                                 %------------------------------------------
                                 qx  = spm_log(sx);
                                 
-                                % emprical priors (forward messages)
+                                % empirical priors (forward messages)
                                 %------------------------------------------
                                 if j < 2
                                     px = spm_log(D{m,f});
@@ -849,7 +849,7 @@ for t = 1:T
                                     v  = v + px + qL - qx;
                                 end
                                 
-                                % emprical priors (backward messages)
+                                % empirical priors (backward messages)
                                 %------------------------------------------
                                 if j < R
                                     px = spm_log(rB{m,f}(:,:,V{m}(j    ,k,f))*x{m,f}(:,j + 1,k));

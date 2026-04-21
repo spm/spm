@@ -851,7 +851,7 @@ for t = 1:T
         %==================================================================
         if t < T
             
-            % record emprical prior over policies (R) and sample a policy (K)
+            % record empirical prior over policies (R) and sample a policy (K)
             %--------------------------------------------------------------
             R{m}(:,t)      = u{m,t};
             Ru             = spm_softmax(alpha*log(u{m,t}));
