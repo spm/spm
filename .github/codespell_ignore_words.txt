@@ -45,14 +45,12 @@ whos
 
 
 numer
-contrained
 coeficients
 maxmium
 feilds
 contraint
 ttest
 alph
-emprical
 seach
 intrisic
 indicies

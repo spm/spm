@@ -413,12 +413,12 @@ end
 % Deal with constraints
 %--------------------------------------------------------------------------
 if isfield(id,'cid')
-    cid   = id.cid;                           % contrained factors
+    cid   = id.cid;                           % constrained factors
     nid   = cid;                              % conditioning factors
     hif   = find(all(cid,2))';                % in hif factors
     nid(hif,:) = 0;
 
-    % size of contrained factors
+    % size of constrained factors
     %----------------------------------------------------------------------
     for f = hif
         Ns(f) = size(B{f},1);

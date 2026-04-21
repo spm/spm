@@ -2418,12 +2418,12 @@ if isfield(id,'cid')
 
         % assume cid is consistent with hid
         %------------------------------------------------------------------
-        cid   = id.cid;                           % contrained factors
+        cid   = id.cid;                           % constrained factors
         nid   = cid;                              % conditioning factors
         hif   = find(all(cid,2))';                % in hif factors
         nid(hif,:) = 0;
 
-        % size of contrained factors
+        % size of constrained factors
         %------------------------------------------------------------------
         Ns    = ones(1,numel(hif) + 1);
         for f = hif
