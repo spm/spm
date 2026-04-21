@@ -3,15 +3,12 @@
 The data module is imports the necessary data from an SPM MEEG object to set up a DAiSS BF structure. This allows a single SPM dataset to have simulatanously SPM inversions and DAiSS source imaging without the two interfering with each other.
 
 #### List of available top-level commands
-- [Data Module Command List](#data-module-command-list)
-            - [List of available top-level commands](#list-of-available-top-level-commands)
-    - [Commands](#commands)
-            - [dir](#dir)
-            - [D](#d)
-            - [val](#val)
-            - [gradsource](#gradsource)
-            - [space](#space)
-            - [overwrite](#overwrite)
+- [dir](#dir)
+- [D](#D)
+- [val](#val)
+- [gradsource](#gradsource)
+- [space](#space)
+- [overwrite](#overwrite)
 
 ## Commands
 
