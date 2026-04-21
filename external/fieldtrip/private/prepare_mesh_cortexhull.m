@@ -310,7 +310,7 @@ for n = 1:heavytest+1,
   % This includes the elaborate comments. Thanks to Adam A!
   
   % z-direction:
-  % intialization of results and correction list
+  % initialization of results and correction list
   [in,cl] = VOXELISEinternal(testp(:,1),testp(:,2),testp(:,3),meshXYZ);
   
   % x-direction:

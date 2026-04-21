@@ -506,7 +506,7 @@ for L = 1:NL
         title(PDP{L}.label.modality{g})
     end
 
-    % cost analyis
+    % cost analysis
     %======================================================================
     spm_figure('GetWin',sprintf('Cost %i',L)); clf
 

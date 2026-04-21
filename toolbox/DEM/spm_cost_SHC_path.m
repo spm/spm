@@ -2,7 +2,7 @@ function spm_cost_SHC_path(qU,A)
 % plots path for cost_SHC demo's
 % FORMAT spm_cost_SHC_path(qU,A)
 %
-% qU  - DEM condotioal esimates of states
+% qU  - DEM condotioal estimates of states
 % A.x - locations of attrcuor
 % A.d - radius
 %__________________________________________________________________________

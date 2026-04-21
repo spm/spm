@@ -331,7 +331,7 @@ switch lower(action)
         %                      M B  :  R E S U L T S
         %==================================================================
         
-        %-Get MB and ananlysis
+        %-Get MB and analysis
         %------------------------------------------------------------------
         MB       = varargin{1};
         analysis = varargin{2};

@@ -3,12 +3,15 @@
 The data module is imports the necessary data from an SPM MEEG object to set up a DAiSS BF structure. This allows a single SPM dataset to have simulatanously SPM inversions and DAiSS source imaging without the two interfering with each other.
 
 #### List of available top-level commands
-- [dir](#dir)
-- [D](#D)
-- [val](#val)
-- [gradsource](#gradsource)
-- [space](#space)
-- [overwrite](#overwrite)
+- [Data Module Command List](#data-module-command-list)
+            - [List of available top-level commands](#list-of-available-top-level-commands)
+    - [Commands](#commands)
+            - [dir](#dir)
+            - [D](#d)
+            - [val](#val)
+            - [gradsource](#gradsource)
+            - [space](#space)
+            - [overwrite](#overwrite)
 
 ## Commands
 
@@ -82,7 +85,7 @@ Specifies in which space we want want to operate in.
 
 Options: 
  - 'MNI-Aligned' (RECOMMENDED) does everything in MNI space (good for group analyses)
- - 'Native' uses the space of the anatomical image associated with the data (fine for individial images)
+ - 'Native' uses the space of the anatomical image associated with the data (fine for individual images)
  - 'Head' uses the coordinate system of the MEG/EEG system.
 
 

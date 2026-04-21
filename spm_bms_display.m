@@ -18,7 +18,7 @@ function varargout = spm_bms_display(BMS,action)
 % =========================================================================
 switch action
     
-    % Inititalise - action: 'Init'
+    % Initialise - action: 'Init'
     % =====================================================================
     case 'Init'
 

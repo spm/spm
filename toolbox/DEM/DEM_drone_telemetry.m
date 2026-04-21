@@ -156,7 +156,7 @@ for s = 1:prod(Ns)
     c   = spm_index(Ns,s);
     ind = num2cell(c);                     % states at increasing depth
     if any(c > 1)
-        local(1,ind{:}) = 1;               % somthing present
+        local(1,ind{:}) = 1;               % something present
     else
         local(2,ind{:}) = 1;               % nothing present
     end

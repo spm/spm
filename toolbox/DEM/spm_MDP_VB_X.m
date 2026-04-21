@@ -282,7 +282,7 @@ for m = 1:size(MDP,1)
             A{m,g}  = spm_norm(MDP(m).A{g});
         end
         
-        % prior concentration paramters for complexity (and novelty)
+        % prior concentration parameters for complexity (and novelty)
         %------------------------------------------------------------------
         if isfield(MDP,'a')
             pA{m,g} = MDP(m).a{g};
@@ -312,7 +312,7 @@ for m = 1:size(MDP,1)
             
         end
         
-        % prior concentration paramters for complexity
+        % prior concentration parameters for complexity
         %------------------------------------------------------------------
         if isfield(MDP,'b')
             pB{m,f} = MDP(m).b{f};
@@ -333,7 +333,7 @@ for m = 1:size(MDP,1)
             MDP(m).D{f} = D{m,f};
         end
         
-        % prior concentration paramters for complexity
+        % prior concentration parameters for complexity
         %------------------------------------------------------------------
         if isfield(MDP,'d')
             pD{m,f} = MDP(m).d{f};
@@ -352,7 +352,7 @@ for m = 1:size(MDP,1)
     end
     qE{m}    = spm_log(E{m});
     
-    % prior concentration paramters for complexity
+    % prior concentration parameters for complexity
     %----------------------------------------------------------------------
     if isfield(MDP,'e')
         pE{m} = MDP(m).e;

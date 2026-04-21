@@ -44,7 +44,7 @@ DEM.X  = Y.X0(T,1)';
 %==========================================================================
 DEM    = spm_DEM(DEM);
 
-% states and parameter esimates
+% states and parameter estimates
 %--------------------------------------------------------------------------
 subplot(2,2,4)
 qP    = DEM.qP.P{1}(7:end);

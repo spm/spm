@@ -144,7 +144,7 @@ for  i = 1:length(feilds)
             if any(pM - pF)
                 pF = pM - pM + pF;
                 pE = setfield(pE,feilds{i},pF);
-                fprintf('paramters %s optimised\n',feilds{i})
+                fprintf('parameters %s optimised\n',feilds{i})
             end
         end
     end
