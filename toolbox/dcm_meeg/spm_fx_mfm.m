@@ -124,7 +124,7 @@ CV   = exp(P.CV)*8/1000;                     % membrane capacitance
 GL   = 1;                                    % leak conductance
 fxx  = sparse([2 3 1 1],[1 1 2 3],-1/CV);    % curvature: df(V)/dxx
  
-% mean-field effects: the paramters of the sigmoid activation function
+% mean-field effects: the parameters of the sigmoid activation function
 %==========================================================================
 if mfm
     

@@ -25,7 +25,7 @@
 % Two parameters in code that can be adjusted are:
 % eps1 = Default is 1e-8 For numerical stability while inverting model covariance matrix.
 % eps1z = Default is 1e-8 For numerical stability while calculating
-%         voxel variance and auxilliary variable z 
+%         voxel variance and auxiliary variable z 
 
 
 function [gamma,x,w,sigu,like]=champagne(y,f,sigu,nem,nd,vcs,nupd,gamma0,retx, fig);

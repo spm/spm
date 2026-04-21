@@ -109,7 +109,7 @@ end
 %--------------------------------------------------------------------------
 MDP   = spm_MB_structure_learning(O(:,j),L,1);
 
-% Add class contraints (i.e., number priors) as a final level
+% Add class constraints (i.e., number priors) as a final level
 %--------------------------------------------------------------------------
 No    = size(MDP{end}.B{1},1);             % Number of compressed images 
 A     = zeros(No,Ns);

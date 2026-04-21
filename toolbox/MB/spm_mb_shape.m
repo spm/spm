@@ -1009,7 +1009,7 @@ datn       = set_def(datn,sett.ms.Mmu,psi1);
 function [mu,te] = zoom_mean(mu,sett,oMmu)
 ms    = sett.ms;
 y     = affine(ms.d, oMmu\ms.Mmu);
-spm_diffeo('boundary',1);  % Neumann bounday for template
+spm_diffeo('boundary',1);  % Neumann boundary for template
 mu    = spm_diffeo('pullc', mu, y);
 if nargout>=2
     te = template_energy(mu, ms.mu_settings);
