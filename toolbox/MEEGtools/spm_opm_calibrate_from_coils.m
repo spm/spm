@@ -749,6 +749,9 @@ positions.Px = positions.Px * 1000;
 positions.Py = positions.Py * 1000;
 positions.Pz = positions.Pz * 1000;
 
+% Gain is inverse
+positions.gain = 1 ./ positions.gain;
+
 if ~isempty(S.output_filename)
     if ~iscell(S.output_filename)
         disp(['Writing positions table to: ',S.output_filename])
@@ -984,6 +987,7 @@ function [calibration] = estimate_mag_transform(S)
 %   fast              - boolean, skip permutations if starting conditions
 %                           present
 %   use_idx_per_axis  - (optional) internal use
+%   iter_lim          - (optional) internal use
 %   axes_labs         - n x 1 axes labels
 %   estimation: structure with fields:
 %       permutations:  number of permutations to run
@@ -1043,6 +1047,7 @@ parallel = S.estimation.parallel;
 axis_plotting_colours = S.axis_plotting_colours;
 axes_labs = S.axes_labs;
 
+
 % Starting parameters (optional)
 num_axes = length(phase_relation(:,1));
 default_starting_pos  = mean([lb_position; ub_position]);
@@ -1068,6 +1073,11 @@ if isfield(S.estimation, 'starting_gain') && ~isempty(S.estimation.starting_gain
     start_provided = true;
 else
     starting_gain = default_starting_gain;
+end
+if isfield(S, 'iter_lim') && ~isempty(S.iter_lim)
+	iter_lim = S.iter_lim;
+else
+	iter_lim = [0, 5];
 end
 
 % Add amplitude filter
@@ -1383,50 +1393,59 @@ end
 % Concatenate all rows into one table
 calibration = vertcat(rows{:});
 
-% Check for amplitude threshold changes due to change in gain
-new_use_idx_per_axis = use_idx_per_axis;
-new_gains = starting_gain;
-count = 0;
-for axis_idx = 1:length(new_gains)
-    if axis_use_idx(axis_idx)
-        count = count + 1;
-        new_gains(axis_idx) = gains(count);
-    end
-    new_amplitude_range = amplitude_range * new_gains(axis_idx);
-    new_use_idx_per_axis(axis_idx,:) = (abs(observed_amplitudes(axis_idx,:)) >= new_amplitude_range(1)) & ...
-               (abs(observed_amplitudes(axis_idx,:)) <= new_amplitude_range(2)) & ...
-               ~isnan(phase_relation(axis_idx,:));
-end
-update_amplitude_threshold = ~isequal(new_use_idx_per_axis, use_idx_per_axis);
-if update_amplitude_threshold
-    disp('Gain change of amplitude theshold. Increasing search space.')
-    new_gain_bounds = gain_bounds .* [1/exp_param_scalar, exp_param_scalar];
+% Try improving estimation
+if iter_lim(1) < iter_lim(2)
+	iter_lim(1) = iter_lim(1) + 1;
+
+	% Check for amplitude threshold changes due to change in gain
+	new_use_idx_per_axis = use_idx_per_axis;
+	new_gains = starting_gain;
+	count = 0;
+	for axis_idx = 1:length(new_gains)
+    	if axis_use_idx(axis_idx)
+        	count = count + 1;
+        	new_gains(axis_idx) = gains(count);
+    	end
+    	new_amplitude_range = amplitude_range * new_gains(axis_idx);
+    	new_use_idx_per_axis(axis_idx,:) = (abs(observed_amplitudes(axis_idx,:)) >= new_amplitude_range(1)) & ...
+               	(abs(observed_amplitudes(axis_idx,:)) <= new_amplitude_range(2)) & ...
+               	~isnan(phase_relation(axis_idx,:));
+	end
+	update_amplitude_threshold = ~isequal(new_use_idx_per_axis, use_idx_per_axis);
+	if update_amplitude_threshold
+    	disp('Gain change of amplitude theshold. Increasing search space.')
+    	new_gain_bounds = gain_bounds .* [1/exp_param_scalar, exp_param_scalar];
+	else
+    	new_gain_bounds = gain_bounds;
+	end
+	
+	% Also check for positions on the boundary
+	pos_on_boundary = any([ismember(Px, [lb_position(1), ub_position(1)]), ...
+    	ismember(Py, [lb_position(2), ub_position(2)]), ...
+    	ismember(Pz, [lb_position(3), ub_position(3)])]);
+	if pos_on_boundary
+    	disp('Sensor on boundary. Increasing search space.')
+    	new_pos_bounds = pos_bounds .* exp_param_scalar;
+	else
+    	new_pos_bounds = pos_bounds;
+	end
+	
+	% Rerun with updated estimation parameters if necessary
+	if pos_on_boundary || update_amplitude_threshold
+    	disp('Running new estimation')
+    	S_new = S;
+    	S_new.use_idx_per_axis = new_use_idx_per_axis;
+    	S_new.estimation.starting_gain = new_gains;
+    	S_new.estimation.gain_bounds = new_gain_bounds;
+    	S_new.estimation.pos_bounds = new_pos_bounds;
+    	S_new.plot_output = false;
+		S_new.iter_lim = iter_lim;
+    	[calibration] = estimate_mag_transform(S_new);
+	end
 else
-    new_gain_bounds = gain_bounds;
+	disp('Improvement iteration limit exceeded.')
 end
 
-% Also check for positions on the boundary
-pos_on_boundary = any([ismember(Px, [lb_position(1), ub_position(1)]), ...
-    ismember(Py, [lb_position(2), ub_position(2)]), ...
-    ismember(Pz, [lb_position(3), ub_position(3)])]);
-if pos_on_boundary
-    disp('Sensor on boundary. Increasing search space.')
-    new_pos_bounds = pos_bounds .* exp_param_scalar;
-else
-    new_pos_bounds = pos_bounds;
-end
-
-% Rerun with updated estimation parameters if necessary
-if pos_on_boundary || update_amplitude_threshold
-    disp('Running new estimation')
-    S_new = S;
-    S_new.use_idx_per_axis = new_use_idx_per_axis;
-    S_new.estimation.starting_gain = new_gains;
-    S_new.estimation.gain_bounds = new_gain_bounds;
-    S_new.estimation.pos_bounds = new_pos_bounds;
-    S_new.plot_output = false;
-    [calibration] = estimate_mag_transform(S_new);
-end
 
 % Plot
 if S.plot_output
