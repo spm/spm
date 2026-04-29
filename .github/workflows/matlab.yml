@@ -60,6 +60,8 @@ jobs:
             version: "R2022b" # Apple Silicon version not available
           - os: macos-latest
             version: "R2023a" # Apple Silicon version not available
+          - os: macos-15-intel
+            version: "latest" # MATLAB dropped Intel Mac support starting with R2026a
     runs-on: ${{matrix.os}}
     env:
       cache-key: tests-data2
