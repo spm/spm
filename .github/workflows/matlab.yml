@@ -201,6 +201,45 @@ jobs:
           pattern: junit-*
           merge-multiple: false
 
+      - name: Tag JUnit suites with OS / MATLAB version and write matrix summary
+        shell: python {0}
+        run: |
+          import os, pathlib, xml.etree.ElementTree as ET
+          root = pathlib.Path("junit-artifacts")
+          summary_rows = []
+          for d in sorted(root.iterdir()):
+              if not d.is_dir() or not d.name.startswith("junit-"):
+                  continue
+              # junit-<os>-<version> — e.g. junit-windows-latest-R2024a,
+              # junit-macos-15-intel-R2020a. The version is the last
+              # hyphen-separated token; os keeps any internal hyphens.
+              rest = d.name[len("junit-"):]
+              os_name, _, version = rest.rpartition("-")
+              label = f"{os_name}/{version}"
+              totals = {"tests": 0, "failures": 0, "errors": 0, "skipped": 0}
+              for xml in d.glob("*.xml"):
+                  tree = ET.parse(xml)
+                  for ts in tree.iter("testsuite"):
+                      name = ts.get("name", "")
+                      if not name.startswith(label + "/"):
+                          ts.set("name", f"{label}/{name}")
+                      for k in totals:
+                          totals[k] += int(ts.get(k, "0") or 0)
+                  tree.write(xml, encoding="utf-8", xml_declaration=True)
+              summary_rows.append((os_name, version, totals))
+
+          lines = ["## Test matrix summary", "",
+                   "| OS | MATLAB | Tests | Failures | Errors | Skipped |",
+                   "|---|---|---:|---:|---:|---:|"]
+          for os_name, version, t in sorted(summary_rows):
+              marker = " :x:" if (t["failures"] or t["errors"]) else ""
+              lines.append(
+                  f"| {os_name} | {version} | {t['tests']} | "
+                  f"{t['failures']}{marker} | {t['errors']} | {t['skipped']} |"
+              )
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as f:
+              f.write("\n".join(lines) + "\n")
+
       - name: Publish aggregated test results
         uses: EnricoMi/publish-unit-test-result-action@v2
         with:
@@ -213,3 +252,7 @@ jobs:
           # status. This job's purpose is purely reporting.
           fail_on: nothing
           action_fail: false
+          # List each matrix run separately when a test fails on a subset of
+          # the matrix, so OS/version attribution is visible in drill-in.
+          report_individual_runs: true
+          check_run_annotations: all tests
