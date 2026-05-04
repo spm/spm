@@ -134,22 +134,31 @@ jobs:
         if: ${{github.event.schedule == '40 16 * * 3' && (matrix.version == 'R2020a' || matrix.version == 'R2020b' || matrix.version == 'R2022a' || matrix.version == 'R2022b')}}
         uses: matlab-actions/run-command@v1
         with:
-          command: addpath(pwd); results = spm_tests('class','regression','display',true); assert(all(~[results.Failed]));
+          command: addpath(pwd); results = spm_tests('class','regression','display',true,'junitxml',true); assert(all(~[results.Failed]));
       - name: Run unit tests with existing MEX files (legacy)
         if: ${{github.event.schedule != '40 16 * * 3' && (matrix.version == 'R2020a' || matrix.version == 'R2020b' || matrix.version == 'R2022a' || matrix.version == 'R2022b')}}
         uses: matlab-actions/run-command@v1
         with:
-          command: addpath(pwd); results = spm_tests('class','unit','display',true); assert(all(~[results.Failed]));
+          command: addpath(pwd); results = spm_tests('class','unit','display',true,'junitxml',true); assert(all(~[results.Failed]));
       - name: Run regression tests with existing MEX files
         if: ${{github.event.schedule == '40 16 * * 3' && matrix.version != 'R2020a' && matrix.version != 'R2020b' && matrix.version != 'R2022a' && matrix.version != 'R2022b'}}
         uses: matlab-actions/run-command@v2
         with:
-          command: addpath(pwd); results = spm_tests('class','regression','display',true); assert(all(~[results.Failed]));
+          command: addpath(pwd); results = spm_tests('class','regression','display',true,'junitxml',true); assert(all(~[results.Failed]));
       - name: Run unit tests with existing MEX files
         if: ${{github.event.schedule != '40 16 * * 3' && matrix.version != 'R2020a' && matrix.version != 'R2020b' && matrix.version != 'R2022a' && matrix.version != 'R2022b'}}
         uses: matlab-actions/run-command@v2
         with:
-          command: addpath(pwd); results = spm_tests('class','unit','display',true); assert(all(~[results.Failed]));
+          command: addpath(pwd); results = spm_tests('class','unit','display',true,'junitxml',true); assert(all(~[results.Failed]));
+
+      - name: Upload JUnit XML test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: junit-${{ matrix.os }}-${{ matrix.version }}
+          path: spm_tests_junit.xml
+          if-no-files-found: warn
+          retention-days: 7
 
       - name: Compile MEX files
         run: |
@@ -171,3 +180,36 @@ jobs:
           name: spm-${{env.MEXEXT}}-${{runner.os}}-${{matrix.version}}
           path: ./**/*.${{env.MEXEXT}}
           retention-days: 1
+
+  publish-test-results:
+    name: Publish test results
+    needs: matlab-tests
+    runs-on: ubuntu-latest
+    # Run even if (some) test jobs failed, so we still publish a per-test breakdown.
+    # Skip only if the workflow was cancelled.
+    if: always() && !cancelled()
+    permissions:
+      checks: write
+      pull-requests: write
+      contents: read
+      issues: read
+    steps:
+      - name: Download all JUnit XML artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: junit-artifacts
+          pattern: junit-*
+          merge-multiple: false
+
+      - name: Publish aggregated test results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        with:
+          # One file per matrix job; filenames are unique because of the
+          # artifact name (matrix os + MATLAB version) used as the directory.
+          files: junit-artifacts/**/*.xml
+          check_name: "Test Results (per test)"
+          comment_mode: always
+          # Don't fail this job — the matrix jobs already encode pass/fail
+          # status. This job's purpose is purely reporting.
+          fail_on: nothing
+          action_fail: false
