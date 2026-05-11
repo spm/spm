@@ -58,7 +58,7 @@ end
 
 D.inv{val}.mesh = spm_eeg_inv_mesh([], 2);
 
-% Load in fiducial file, then prepare intial registration
+% Load in fiducial file, then prepare initial registration
 %----------------------------------------------------------
 
 opti.pnt = csvread(S.fidfile,1,1);
@@ -161,7 +161,7 @@ end
 D = D.history(mfilename, S);
 
 if S.forward
-    % Intialise forward gui
+    % initialise forward gui
     D = spm_eeg_inv_forward_ui(D,val);
 end
 

@@ -22,7 +22,7 @@ if nargin < 5, d  = 0; end
 
 % get dimensions
 %--------------------------------------------------------------------------
-[q N]  = size(Y);
+[q,N]  = size(Y);
 y      = cell(n,1);
 [y{:}] = deal(sparse(q,1));
 

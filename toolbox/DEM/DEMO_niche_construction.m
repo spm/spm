@@ -191,7 +191,7 @@ Acp(2).closed = [0;16];
 ntime  = 16;                 % number of moves per path
 ntrial = 32;                 % number of paths
 
-% Inital concentration parameters
+% initial concentration parameters
 %--------------------------------------------------------------------------
 na    = size(acp,2);
 nenv  = size(Acp,2);
@@ -320,7 +320,7 @@ function MDP = spm_maze_active(mdp,N,START,END)
 % FORMAT MDP = spm_maze_search(mdp,N,START,END,alpha,beta,z)
 % mdp   - MDP structure
 % N     - number of moves (i.e., default 8)
-% START - index of intial state (default 1)
+% START - index of initial state (default 1)
 % END   - index of target state (default 1)
 % MDP   - MDP structure array
 

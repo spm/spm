@@ -1,3 +1,4 @@
+function ADEM_cost
 % This demo re-visits the mountain car problem to show that adaptive
 % (desired) behaviour can be prescribed in terms of loss-functions (i.e.
 % reward functions of state-space).
@@ -14,7 +15,6 @@
 % generative process (mountain car terrain)
 %==========================================================================
 
- 
 % parameters of generative process
 %--------------------------------------------------------------------------
 P       = struct;
@@ -80,7 +80,7 @@ M       = spm_DEM_M_set(M);
 % learn gradients with a flat loss-functions (priors on divergence)
 %==========================================================================
 N       = 72;
-U       = sparse(N,M(1).m);
+U       = sparse(M(1).m,N);
 DEM.U   = U;
 DEM.C   = U;
 DEM.G   = G;

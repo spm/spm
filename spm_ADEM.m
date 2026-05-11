@@ -274,9 +274,11 @@ catch
     aP = exp(-2);
 end
 
-% fixed priors on states (u)
+% fixed priors on states (u = x,v)
 %--------------------------------------------------------------------------
 xP    = spm_cat(spm_diag({M.xP}));
+vP    = spm_cat(spm_diag({M(2:end).V}));
+vP    = spm_inv(vP);
 Px    = kron(iV(1:n,1:n),speye(nx,nx)*exp(-8) + xP);
 Pv    = kron(iV(1:d,1:d),speye(nv,nv)*exp(-8));
 Pa    = spm_speye(na,na)*aP;
@@ -381,7 +383,14 @@ dWduu = sparse(nu,nu);
 % preclude unnecessary iterations
 %--------------------------------------------------------------------------
 if ~np && ~nh, nE = 1; end
- 
+
+% test for time-invariant causes
+%--------------------------------------------------------------------------
+if nE == 1 && nl == 2 && nY > 4 && ~any(std(U,1,2)) && d == 1
+    dd = 4/nY;
+else
+    dd = false;
+end
  
 % create innovations (and add causes)
 %--------------------------------------------------------------------------
@@ -522,7 +531,7 @@ for iE = 1:nE
         dgda  = kron(spm_speye(n,1,0),dg.da);
         dgdx  = kron(spm_speye(n,n,0),dg.dx);
         
-        % change in error w.r.t. action
+        % change in error w.r.t. actionxP
         %------------------------------------------------------------------
         Dfdx  = 0;
         for i = 1:n
@@ -537,7 +546,12 @@ for iE = 1:nE
         
         % first-order derivatives
         %------------------------------------------------------------------
-        dVdu  = -dE.du'*iS*E - Pu*spm_vec({qu.x{1:n} qu.v{1:d}}) - dWdu/2;
+        if nl < 3
+            up = spm_vec(qu.v{1:d}) - spm_vec(qu.u{1:d});
+        else
+            up = spm_vec(qu.v{1:d});
+        end
+        dVdu  = -dE.du'*iS*E - Pu*spm_vec({qu.x{1:n} up}) - dWdu/2;
         dVda  = -dE.da'*iG*E - Pa*spm_vec( qu.a{1:1});
         
         
@@ -621,14 +635,31 @@ for iE = 1:nE
             EE  = E*E'+ EE;
             ECE = ECE + ECEu + ECEp;
         end
-        
+
+        % evaluate objective function (F)
+        %==================================================================
         if nE == 1
-            
-            % evaluate objective function (F)
-            %======================================================================
+
             J(iY) = - trace(E'*iS*E)/2  ...            % states (u)
-                    + spm_logdet(qu.c)  ...            % entropy q(u)
-                    + spm_logdet(iS)/2;                % entropy - error
+                + spm_logdet(qu.c)  ...            % entropy q(u)
+                + spm_logdet(iS)/2;                % entropy - error
+        end
+
+        % Bayesian belief-updating for time-invariant causes
+        %==================================================================
+        if dd
+
+            % update prior expectation
+            %--------------------------------------------------------------
+            U(:,iY + 1) = qu.v{1};
+
+            % update prior covariance
+            %--------------------------------------------------------------
+            i     = (1:nv) + nx*n;
+            dv    = kron(iV(1:d,1:d),spm_inv(qu.c(i,i)));
+            Pv    = Pv*(1 - dd) + dv*dd;
+            Pu    = spm_cat(spm_diag({Px Pv}));
+
         end
         
     end % sequence (nY)

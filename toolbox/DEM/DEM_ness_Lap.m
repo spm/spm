@@ -103,7 +103,7 @@ spm_axis tight, box off
 %--------------------------------------------------------------------------
 DEM.M(1).f  = @spm_fx_NESS;    % dynamics
 DEM.M(1).g  = @(x,u,P) x;      % observer function
-DEM.M(1).x  = x0;              % inital state
+DEM.M(1).x  = x0;              % initial state
 DEM.M(1).pE = P;               % parameters
 DEM.M(1).V  = exp(8);          % precision of data
 DEM.M(1).W  = W;               % precision of dynamics
@@ -178,7 +178,7 @@ DEM.M(1).E.linear = 1;         % differentiation scheme
 %--------------------------------------------------------------------------
 DEM.M(1).f  = @spm_fx_NESS;    % dynamics
 DEM.M(1).g  = @(x,u,P) x;      % observer function
-DEM.M(1).x  = x0;              % intial state
+DEM.M(1).x  = x0;              % initial state
 DEM.M(1).pE = Ep;              % posterior esimates from VL
 DEM.M(1).pC = Cp;              % posterior esimates from VL
 DEM.M(1).V  = exp(16);

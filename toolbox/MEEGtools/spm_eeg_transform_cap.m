@@ -62,7 +62,7 @@ S1.template = 1;
 
 M1 = spm_eeg_inv_datareg(S1);
 
-elec = ft_transform_sens(M1, S.standard);
+elec = ft_transform_geometry(M1, S.standard);
 
 %-Change SPM fiducial labels if present to prevent recognition as template.
 %--------------------------------------------------------------------------

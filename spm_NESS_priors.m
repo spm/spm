@@ -6,30 +6,36 @@ function [pE,pC] = spm_NESS_priors(n,L,V,W,J,R,C)
 % L   - order (+1) of polynomial expansion
 % V   - prior covariance over parameters
 % W   - precisions of random fluctuations
-% J   - contraints on Jacobian [ones(n,n)]
-% R   - coupling to mean (first order) [zeros(n,n)]
-% C   - covaraince of NESS [eye(n,n)]
+% J   - contraints on solenoidal parameters [ones(n,n)]
+% R   - contraints on surprisal parameters [zeros(n,n)]
+% C   - covariance of NESS [eye(n,n)]
 %
 % pE  - prior expectation
-% pC  - prior covariances (matrix)
-% sC  - prior covariances (structure)
+% pC  - prior covariances
 %
+% pE.Qp(nb,n,n)       % polynomial coefficients for solenoidal flow {J}
+% pE.Rp(nb,n)         % polynomial coefficients for surprisal {R}
+% pE.Sp(nb,n,n)       % polynomial coefficients for kernel {C}
+% pE.Gp(n,n)          % polynomial coefficients for fluctuations
+% pE.W(n,n)           % precision of random fluctuations 
+% 
 % This routine returns the prior expectations and covariances of the
 % parameters (i.e., polynomial coefficients) of a nonequilibrium
 % steady-state model. This model is based upon the Helmholtz-Hodge
 % decomposition of the solution to density dynamics of any system that
 % possesses a pullback attractor. The requisite flow operators Q and
-% surprisal S are parameterised to 2nd and fourth order, respectively. The
-% surprisal is parameterised with even terms to 4th order by creating a
+% surprisal S are parameterised to 1st and 2nd order, respectively. The
+% surprisal can be parameterised with a
 % surprisal kernel K and then taking the outer product H = K’*K, where the
 % kernel K is parameterised to first-order. The solenoidal
-% (non-dissipative) parts of the flow operator are parameterised to 2nd
-% order in the states.
+% (non-dissipative) parts of the flow operator are parameterised to 1st
+% order in the states. Alternatively the suprisal can be paramterised with
+% pE.Rp via a state dependant mean.
 %
-% It is assumed that the dissipative part of the flow (i.e., the amplitude
-% of random fluctuations G) is spherical and constant. This corresponds to
-% the inverse precision of the random fluctuations that can also be
-% specified as M.W in the accompanying model M.
+% If pE.Gp = 0, it is assumed that the dissipative part of the flow (i.e.,
+% the amplitude of random fluctuations G) is spherical and constant. This
+% corresponds to the inverse precision of the random fluctuations that can
+% also be specified as M.W in the accompanying model M.
 %__________________________________________________________________________
 
 % Karl Friston
@@ -64,77 +70,72 @@ nb    = size(o,2);
 
 % get parameters
 %--------------------------------------------------------------------------
-pE.Qp = zeros(nb,n,n);    % polynomial coefficients for solenoidal operator
-pE.Rp = zeros(nb,n);      % polynomial coefficients for surprisal mean
-pE.Sp = zeros(nb,n,n);    % polynomial coefficients for surprisal kernel
+pE.Qp = zeros(nb,n,n);    % polynomial coefficients for solenoidal flow
+pE.Rp = zeros(nb,n);      % polynomial coefficients for surprisal
+pE.Sp = zeros(nb,n,n);    % polynomial coefficients for kernel
+pE.Gp = zeros(n,n);       % polynomial coefficients for fluctuations
 pE.W  = W;                % precision of random fluctuations
 
 pC.Qp = pE.Qp;
 pC.Rp = pE.Rp;
 pC.Sp = pE.Sp;
+pC.Gp = pE.Gp;
 pC.W  = W*0;
 
 % constraints on solenoidal operator (G is modelled by M.W)
 %--------------------------------------------------------------------------
-for i = 1:n
-    for j = 1:n
-        if J(i,j)
-            d     = ~J(i,:);
-            for k = 1:nb
-
-                % if j influences i and upper diagonal part of Q
-                %----------------------------------------------------------
-                if j > i && ~any(o(d,k))
-                    pC.Qp(k,i,j) = V.Qp;
-                end
-
-            end
-        end
-    end
-end
-
-% constraints on potential (surprisal)
-%--------------------------------------------------------------------------
+J     = J + J';           % ensure symmetric solenoidal contraints
 for i = 1:n
     for j = 1:n
         if J(i,j)
 
-            % disallowed influences
+            % constraints
             %--------------------------------------------------------------
-            d     = ~J(i,:);
-            for k = 1:nb
+            d = ~J(i,:);
+            k = ~any(o(d,:),1);
 
-                % if j influences i 
-                %----------------------------------------------------------
-                if i == j
-                    pE.Sp(1,i,j) = sqrt(1/C(i,j));      % precision of NESS
-                end
-                if j == i && ~any(o(d,k))   % j >= i for nonorthogonal NESS
-                    pC.Sp(k,i,j) = V.Sp;
-                end
-
+            % if j influences i and upper diagonal part of Q
+            %----------------------------------------------------------
+            if j > i
+                pC.Qp(k,i,j) = V.Qp;
             end
+
         end
     end
 end
 
-% constraints on mean (coupling to enslaved states)
+% constraints on potential (surprisal): kernel
+%--------------------------------------------------------------------------
+Sp    = sqrtm(inv(C));
+for i = 1:n
+    for j = 1:n
+
+        % precision of NESS
+        %------------------------------------------------------------------
+        pE.Sp(1,i,j) = Sp(i,j);
+        pC.Sp(1,i,j) = V.Sp;
+
+    end
+end
+
+
+% constraints on potential (surprisal): via mean
 %--------------------------------------------------------------------------
 for i = 1:n
     for j = 1:n
         if R(i,j)
-            for k = 1:nb
 
-                % if this basis is first order in j
-                %----------------------------------------------------------
-                if sum(o(:,k)) == 1 && o(j,k)
-                    pC.Rp(k,i) = V.Rp;
-                end
-            end
+            % if this basis is first order in j
+            %--------------------------------------------------------------
+            k = (sum(o) == 1) & o(j,:);
+            pC.Rp(k,i) = V.Rp;
+
         end
     end
 end
 
+% concatenate Qp
+%--------------------------------------------------------------------------
 qE    = [];
 qC    = [];
 for i = 1:n

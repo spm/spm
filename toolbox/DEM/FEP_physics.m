@@ -429,7 +429,7 @@ mi    = find(logical(jj));           % internal particles
 nt    = 28;                          % number of evaluations
 wt    = 32;                          % interval between evaluations
 lt    = 256;                         % trajectory length
-n0    = 32;                          % intial evaluation
+n0    = 32;                          % initial evaluation
 
 % Ion mobility Coefficient of Air: 0.0002
 %-------------------------------------------------------------------------

@@ -70,8 +70,8 @@ for n = 1:8
     MDP{n}.a    = {};                     % likelihoods
     MDP{n}.b    = {};                     % transition priors
     MDP{n}.id.A = {};                     % parents of outcomes
-    MDP{n}.id.D = {};                     % parents of intial states
-    MDP{n}.id.E = {};                     % parents of intial paths
+    MDP{n}.id.D = {};                     % parents of initial states
+    MDP{n}.id.E = {};                     % parents of initial paths
 
     % coupling among streams
     %----------------------------------------------------------------------
@@ -174,7 +174,7 @@ for n = 1:8
                     Nj = size(MDP{n - 1}.b{fj},2);
                     Nu = size(MDP{n - 1}.b{fj},3);
 
-                    % prediction of inital states (D)
+                    % prediction of initial states (D)
                     %------------------------------------------------------
                     gi = numel(MDP{n}.a) + 1;
                     gj = MDP{n - 1}.id.D{fj}(1);
@@ -418,7 +418,7 @@ end
 mdp.a    = a;
 mdp.b{1} = b;
 
-% add probabilities over inital states and paths
+% add probabilities over initial states and paths
 %==========================================================================
 Nu    = size(b,3);
 X     = false(Ns,1);

@@ -310,7 +310,7 @@ mdp.GU = U;                       % controllable actions
 
 mdp.ID = ID;                      % process domains
 mdp.id = id;                      % model domains
-mdp.s  = s;                       % inital states
+mdp.s  = s;                       % initial states
 
 % Solve - an example of surveillance
 %==========================================================================
@@ -369,16 +369,16 @@ MDP   = mdp;
 MDP.T = 32;
 MDP.D((1:Nf) + Nu) = MAP;
 
-% Specify intial (home) and final hidden (goal) states (hid)
+% Specify initial (home) and final hidden (goal) states (hid)
 %--------------------------------------------------------------------------
-s0         = [8, 20, 3];                     % inital state
+s0         = [8, 20, 3];                     % initial state
 sT         = [28,12, 3];                     % final  state
 
 MDP.s(1:4) = [s0(:); 1];
-MDP.D{1}   = full(sparse(s0(1),1,1,Nx,1));   % inital state
-MDP.D{2}   = full(sparse(s0(2),1,1,Ny,1));   % inital state
-MDP.D{3}   = full(sparse(s0(3),1,1,Nz,1));   % inital state
-MDP.D{4}   = full(sparse(    1,1,1,Na,1));   % inital state
+MDP.D{1}   = full(sparse(s0(1),1,1,Nx,1));   % initial state
+MDP.D{2}   = full(sparse(s0(2),1,1,Ny,1));   % initial state
+MDP.D{3}   = full(sparse(s0(3),1,1,Nz,1));   % initial state
+MDP.D{4}   = full(sparse(    1,1,1,Na,1));   % initial state
 
 MDP.id.hid = sT(:);                          % final  state
 MDP        = spm_MDP_VB_XXX(MDP);

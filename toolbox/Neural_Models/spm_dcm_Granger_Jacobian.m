@@ -59,7 +59,7 @@ M.l   = Nc;
 M.Hz  = Hz;
 M.Rft = 4;
 
-% specify M.u - endogenous input (fluctuations) and intial states
+% specify M.u - endogenous input (fluctuations) and initial states
 %--------------------------------------------------------------------------
 M.u   = sparse(Ns,1);
 M.x   = spm_dcm_neural_x(pE,M);

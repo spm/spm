@@ -401,13 +401,13 @@ for n = 1:Nm
         %------------------------------------------------------------------
         if n < Nm
             
-            % inital states
+            % initial states
             %--------------------------------------------------------------
             state = level(n).states(f).iD;
             [~,j] = ismember(state,{level(n + 1).outcomes.name});
             MDP.id.D{f} = j;
 
-            % inital paths
+            % initial paths
             %--------------------------------------------------------------
             paths = level(n).states(f).iE;
             [~,j] = ismember(paths,{level(n + 1).outcomes.name});

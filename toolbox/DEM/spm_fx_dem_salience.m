@@ -16,7 +16,7 @@ function [f]= spm_fx_dem_salience(x,v,P)
 % Karl Friston
 % Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
-% intialise flow (to ensure fields are aligned)
+% initialise flow (to ensure fields are aligned)
 %--------------------------------------------------------------------------
 f    = x;
  

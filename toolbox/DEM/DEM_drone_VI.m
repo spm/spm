@@ -351,7 +351,7 @@ mdp.GA = GA;                      % likelihood probabilities
 mdp.GB = GB;                      % transition probabilities
 mdp.GU = GU;                      % controllable actions
 mdp.ID = ID;                      % process domains
-mdp.s  = s;                       % inital states
+mdp.s  = s;                       % initial states
 
 % true (training) states
 %--------------------------------------------------------------------------
@@ -366,7 +366,7 @@ GDP.A  = GA;                      % likelihood probabilities
 GDP.B  = GB;                      % transition probabilities
 GDP.U  = GU*0;                    % controllable actions
 GDP.id = ID;                      % process domains
-GDP.s  = s;                       % inital states
+GDP.s  = s;                       % initial states
 
 % generate a dynamic scene
 %--------------------------------------------------------------------------
@@ -477,7 +477,7 @@ spm_behaviour(QDP)
 pdp        = mdp;
 pdp.D((1:Np) + Nu) = MAP;
 
-% Specify intial (home) and final hidden (goal) states (hid)
+% Specify initial (home) and final hidden (goal) states (hid)
 %--------------------------------------------------------------------------
 sT         = [28,12, 3];                     % final  state
 pdp.id.hid = sT(:);                          % final  state

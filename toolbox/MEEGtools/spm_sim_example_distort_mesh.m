@@ -7,7 +7,13 @@ spm('defaults','eeg');
 
 % Set results folder
 %resultsdir='D:\matlab\jimmymatfiles\'; %% user specified.
-resultsdir = fullfile(cd, 'results');  % standard within current folder, but user should adapt
+distortdir='D:\spm_distort'
+addpath(distortdir)
+ar=load('righthemind.mat');
+al=load('lefthemind.mat');
+
+resultsdir = fullfile(distortdir, 'sim_results');  % standard within current folder, but user should adapt
+
 
 % Flexibly create results folder if missing
 if not(isfolder(resultsdir))
@@ -15,7 +21,7 @@ if not(isfolder(resultsdir))
 end
 
 % Main parameter
-REDOCALC=0; %% should =1 first time code is run or if want to simulate again (Or calc new meshes etc)
+REDOCALC=1; %% should =1 first time code is run or if want to simulate again (Or calc new meshes etc)
 
 %% After that = 0 just loads in results.
 
@@ -441,30 +447,33 @@ for invind=1:numel(invmethods),
     C=zeros(size(M0.vertices,1),1);
     C(useind)=1;
 
+    
     %% PLOTS DISTORTED ANATOMY
+    leftsliceind=al.orderedsliceind;
+    rightsliceind=ar.orderedsliceind;
+    allind=[leftsliceind ;rightsliceind];
+
     for fs=1:length(usesurfind),
         f=usesurfind(fs);
         [Norm_vert] = spm_mesh_normals(Mmesh{f});
         simpos=Mmesh{f}.vertices(meshsourceind,:);
         simori=Norm_vert(meshsourceind,:);
-        MS = spm_mesh_split(Mmesh{f}, C);
-
-        h=trisurf(MS.faces,MS.vertices(:,1),MS.vertices(:,2),MS.vertices(:,3));
-        view(viewind)
-        set(h,'EdgeColor',col_dist_str(fs))
-        %set(h,'FaceColor',col_dist_str(fs))
-        set(h,'FaceColor','none')
+        %pos=al.pos;
+        pos=Mmesh{f}.vertices;
+        h=plot(pos(allind,1),pos(allind,3),col_dist_str(fs));
+        set(h,'Linewidth',3)
+ 
         hold on;
         qscale=6;
-        h1=quiver3(simpos(:,1),simpos(:,2),simpos(:,3),...
-            simori(:,1),simori(:,2),simori(:,3),qscale);
+        if fs==1,
+        h1=quiver(simpos(:,1),simpos(:,3),...
+            simori(:,1),simori(:,3),qscale);
         set(h1,'Color',colstr(invind))
         set(h1,'Linewidth',4)
-        if fs>1,
-            set(h1,'Linestyle',':')
         end;
 
     end; % for fs
+    set(gca,'xdir','reverse'); %% consisent with paper
 
     %% PLOTS DISTORTED ANATOMY WITH CURRENT MAG
 
@@ -474,33 +483,25 @@ for invind=1:numel(invmethods),
         nv=spm_mesh_normals(Mmesh{f});
         nvslice=nv(find(C),:);
         MS = spm_mesh_split(Mmesh{f}, C);
-        %MS=spm_mesh_inflate(gifti(MS));
+
         plotJslice=abs(allplotJ(fs,find(C)));
         plotJslice=plotJslice./max(plotJslice)
         highind=find(plotJslice>0.5);
+        h=plot(pos(allind,1),pos(allind,3),col_dist_str(fs));
+        set(h,'Linewidth',3)
 
-        h=trisurf(MS.faces,MS.vertices(:,1),MS.vertices(:,2),MS.vertices(:,3),plotJslice)
-        xlabel('x');zlabel('z')
-        view(viewind)
-        set(h,'EdgeColor',col_dist_str(fs))
-        set(h,'FaceColor','none')
-%         set(h,'FaceColor','Interp')
-% 
-%         set(h,'FaceVertexAlphaData',plotJslice')
-%         
-%         set(h,'FaceAlpha','flat')
-%         
         
         for g=1:length(highind),
             Jscale=10*plotJslice(highind(g));
             arrowscale=0.6;
-            hq=quiver3(MS.vertices(highind(g),1),MS.vertices(highind(g),2),MS.vertices(highind(g),3),...
-                nvslice(highind(g),1)*Jscale,nvslice(highind(g),2)*Jscale,nvslice(highind(g),3)*Jscale,arrowscale);
+            hq=quiver(MS.vertices(highind(g),1),MS.vertices(highind(g),3),...
+                nvslice(highind(g),1)*Jscale,nvslice(highind(g),3)*Jscale,arrowscale);
             set(hq,'Linewidth',3);
             set(hq,'color',colstr(invind))
             
-            axis([-70 0 -inf inf 10 80])
-
+            axis([-70 -2 10 78])
+            set(gca,'xdir','reverse')
+            set(gca,'visible','off')
         end;
     end; % for f
 end; % for invind
@@ -512,8 +513,6 @@ for f=1:length(plotinv),
 
     [sFvals(:,f),sdist]=simplify_dist_metric(tmpFvals(:,f)',disterr)
 end;
-warning('Boosting IID by 8000 so it appears on plot')
-%   sFvals(:,2)=sFvals(:,2)+8000;
 hold on;
 
 for f=1:length(plotinv)
@@ -531,15 +530,12 @@ for f=1:length(plotinv)
     set(h2,'MarkerSize',15)
     legstr{end+1}=['Peak ' invmethods{plotinv(f)}];
 end;
-%set(gca,'Xtick',1:Npoints+1);
-%set(gca,'Xticklabel',round(sdist*10)/10)
 set(gca,'FontSize',18)
 ylabel('Free Energy')
 xlabel('Distortion (mm)')
 legend(legstr)
 
 
-%end; % if justoneseed
 
 
 medists=[];
@@ -557,8 +553,6 @@ for i1d=1:length(plotinv),
     [tF_vals,sdist]=simplify_dist_metric(squeeze(F_vals(:,i1,:))',disterr);
     h=plot(sdist,squeeze(tF_vals),colstr(i1d));
     set(h,'Linewidth',1)
-    % set(h1,'Linewidth',4)
-    %set(h0,'Linewidth',4)
     [maxval,maxinds]=max(squeeze(tF_vals)');
 
     h01=plot(sdist(maxinds(1)),maxval(1),[colstr(i1d) mstr(i1d)])
@@ -569,8 +563,6 @@ for i1d=1:length(plotinv),
     set(h0,'Markersize',20)
 
     axis([0 max(sdist) -Inf Inf]);
-%     set(gca,'Xtick',1:length(sdist));
-%     set(gca,'Xticklabel',round(sdist*10)/10)
     xlabel('Distortion (mm)')
     set(h(1),'Linewidth',2)
     ylabel('Free Energy')
@@ -599,11 +591,9 @@ set(gca,'Fontsize',18)
 
 figure;
 
-%plot(1:length(plotinv),dist2sim,'*')
 se2dsim=std(Meandist(1,plotinv,:),[],3)./sqrt(Nseed-1);
 hold on;
 
-%  h=errorbar(1:length(plotinv),dist2sim,se2dsim,'o');
 for f=1:length(plotinv)
     h1=plot(f,dist2sim(f),['*' colstr(f)]);
     set(h1,'Markersize',20)

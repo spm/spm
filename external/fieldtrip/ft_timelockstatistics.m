@@ -120,6 +120,22 @@ if strcmp(cfg.correctm, 'cluster') && length(varargin{1}.label)>1
   cfg.neighbours = ft_prepare_neighbours(tmpcfg);
 end
 
+if iscell(cfg.design)
+  % this functionality is only allowed when cfg.method = 'mvpa'
+  if isequal(cfg.method, 'mvpa')
+    % all good
+    docrossmvpa = true;
+  else
+    ft_error('cross-decoding is only allowed with cfg.method=''mvpa''');
+  end
+else
+  docrossmvpa = false;
+end
+
+if isequal(cfg.method,'mvpa')
+  cfg.time = varargin{1}.time;
+end
+
 dimord = getdimord(varargin{1}, cfg.parameter);
 dimtok = tokenize(dimord, '_');
 dimsiz = getdimsiz(varargin{1}, cfg.parameter, numel(dimtok));
@@ -150,8 +166,19 @@ else
     end
     dat{i} = reshape(tmp, size(tmp,1), []);
   end
-  dat = cat(1, dat{:});   % repetitions along 1st dimension
-  dat = dat';             % repetitions along 2nd dimension
+  if ~docrossmvpa
+    % a second design matrix has been supplied, 
+    dat = cat(1, dat{:});   % repetitions along 1st dimension
+    dat = dat';             % repetitions along 2nd dimension
+  else
+    % ensure that the data has been correctly oriented
+    dat{1} = dat{1}.';
+    dat{2} = dat{2}.';
+
+    % the validity check needs to be performed here
+    assert(numel(cfg.design{1})==size(dat{1},2), 'mismatch between data and design');
+    assert(numel(cfg.design{2})==size(dat{2},2), 'mismatch between data and design');
+  end
 end
 
 if size(cfg.design,2)~=size(dat,2)
@@ -183,7 +210,11 @@ end
 
 % perform the statistical test
 if num>1
-  [stat, cfg] = statmethod(cfg, dat, design);
+  if ~docrossmvpa
+    [stat, cfg] = statmethod(cfg, dat, design);
+  else
+    [stat, cfg] = statmethod(cfg, dat{1}, design{1}, dat{2}, design{2}); % ft_statistics_mvpa, crossdecoding
+  end
   cfg         = rollback_provenance(cfg); % ensure that changes to the cfg are passed back to the right level
 else
   [stat] = statmethod(cfg, dat, design);
@@ -193,7 +224,6 @@ if ~isstruct(stat)
   % only the probability was returned as a single matrix, reformat into a structure
   stat = struct('prob', stat);
 end
-
 
 % overrule the 'datsiz' if stat has a (possibly updated) dim field
 if isfield(stat, 'dim')
@@ -206,13 +236,9 @@ if ~isfield(stat, 'dimord')
   stat.dimord = cfg.dimord;
 end
 
-% the statistical output contains multiple elements, e.g. F-value, beta-weights and probability
-fn = fieldnames(stat);
-
 % JM HACK:
 if ~isequal(datsiz, cfg.dim)
-  % the cfg.dim has been updated by the low-level function, let this one
-  % take precedence
+  % the cfg.dim has been updated by the low-level function, let this one take precedence
   datsiz = cfg.dim;
 end
 if ~isequal(varargin{1}.label, cfg.channel)
@@ -221,6 +247,8 @@ if ~isequal(varargin{1}.label, cfg.channel)
   varargin{1}.label = cfg.channel;
 end
 
+% the statistical output contains multiple elements, e.g. F-value, beta-weights and probability
+fn = fieldnames(stat);
 for i=1:length(fn)
   if numel(stat.(fn{i}))==prod(datsiz)
     % reformat into the same dimensions as the input data
@@ -237,7 +265,7 @@ if isfield(stat, 'label'), fieldstobecopied = fieldstobecopied(~ismember(fieldst
 stat = copyfields(varargin{1}, stat, fieldstobecopied);
 
 % these were only present to inform the low-level functions
-cfg = removefields(cfg, {'dim', 'dimord'});
+cfg = removefields(cfg, {'dim', 'dimord' 'time'});
 
 % do the general cleanup and bookkeeping at the end of the function
 ft_postamble debug

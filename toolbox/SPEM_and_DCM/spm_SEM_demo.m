@@ -112,7 +112,7 @@ M.ns    = length(DCM.xY.y{1});
 M.C     = DCM.xY.u{1};
 M.occ   = DCM.xY.occ;
  
-% intial states
+% initial states
 %--------------------------------------------------------------------------
 M.x     = DCM.xY.x(1);
  

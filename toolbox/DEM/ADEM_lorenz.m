@@ -119,7 +119,7 @@ M(1).pC = 32;
 % teach naive model by exposing it to a controlled environment (G)
 %--------------------------------------------------------------------------
 n     = 256;
-C     = sparse(n,1);
+C     = sparse(1,n);
 
 DEM.M = M;
 DEM.G = G;

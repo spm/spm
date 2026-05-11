@@ -93,6 +93,12 @@ for i = 1:numel(U.dbQdp)
     bQ = bQ + U.dbQdp{i}*P.Qp(i);
 end
 
+% state-dependent random fluctuations
+%--------------------------------------------------------------------------
+if ~isfield(P,'Gp')
+    P.Gp = zeros(n,n);
+end
+
 % correction term for solenoidal flow (L) and Kroneckor form of Q (Qp)
 %--------------------------------------------------------------------------
 Q     = cell(n,n);
@@ -101,7 +107,12 @@ F     = zeros(nX,n,'like',U.b(1));
 for i = 1:n
     for j = 1:n
         bQij   = squeeze(bQ(i,j,:));
-        Q{i,j} = spd(U.b*bQij + U.G(i,j));
+        if i == j
+            Q{i,j} = spd(U.b*bQij + U.G(i,j)*exp(U.X*P.Gp(:,j)));
+        else
+            Q{i,j} = spd(U.b*bQij + U.G(i,j));
+
+        end
         L(:,i) = L(:,i) - U.D{j}*bQij;
     end
 end
@@ -111,12 +122,10 @@ end
 K     = zeros(n,n,nX);
 DK    = zeros(n,n,n,nX);
 for i = 1:n
-    for j = i:n
+    for j = 1:n
         K(i,j,:) = U.b*P.Sp(:,i,j);
-        K(j,i,:) = K(i,j,:);
         for k = 1:n
             DK(i,j,k,:) = U.D{k}*P.Sp(:,i,j);
-            DK(j,i,k,:) = DK(i,j,k,:);
         end
     end
 end

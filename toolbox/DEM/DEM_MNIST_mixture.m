@@ -237,7 +237,7 @@ for j = 1:size(O,2)
     title('ELBO'), axis square
     drawnow
 
-    % disable graphics after intial training iterations
+    % disable graphics after initial training iterations
     %----------------------------------------------------------------------
     if j > (2*size(mdp.B{1},1))
         OPTIONS.G = 0;

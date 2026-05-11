@@ -7028,7 +7028,7 @@ static double dt1(double *p,double *q,double *df)
 **********************************************************************
 
      double dt1(double *p,double *q,double *df)
-     Double precision Initalize Approximation to
+     Double precision initialize Approximation to
            INVerse of the cumulative T distribution
 
 

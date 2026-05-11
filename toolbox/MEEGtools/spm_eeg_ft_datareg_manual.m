@@ -120,7 +120,7 @@ if numel(meeglbl)>=3
             M1 = inv(M) * M1;
         case 'align2'
             M1 = spm_eeg_inv_rigidreg(newmrifid.fid.pnt', meegfid.fid.pnt');
-            tempfid = ft_transform_headshape(M1, meegfid);
+            tempfid = ft_transform_geometry(M1, meegfid);
             tempfid.fid.pnt(:, 2) = tempfid.fid.pnt(:, 2)- tempfid.fid.pnt(1, 2)+ newmrifid.fid.pnt(1, 2);
             tempfid.fid.pnt(:, 3) = tempfid.fid.pnt(:, 3)- mean(tempfid.fid.pnt(2:3, 3))+ mean(newmrifid.fid.pnt(2:3, 3));
             M1 = spm_eeg_inv_rigidreg(tempfid.fid.pnt', meegfid.fid.pnt');
@@ -134,7 +134,7 @@ if numel(meeglbl)>=3
             S.useheadshape = ~isempty(S.sourcefid.pnt);
             M1 = spm_eeg_inv_datareg(S);
     end    
-    meegfid = ft_transform_headshape(M1, meegfid);
+    meegfid = ft_transform_geometry(M1, meegfid);
 end
 %%
 cfg = [];
@@ -142,7 +142,7 @@ cfg.individual.headshape = meegfid;
 cfg.template.headshape = newmrifid;
 cfg = ft_interactiverealign(cfg);
 
-meegfid = ft_transform_headshape(cfg.m, meegfid);
+meegfid = ft_transform_geometry(cfg.m, meegfid);
 
 M1 = cfg.m * M1;
 
@@ -159,8 +159,8 @@ ind = 1;
 D.inv{val}.datareg = struct([]);
 
 if ~isempty(D.sensors('EEG'))
-    D.inv{val}.datareg(ind).sensors = ft_transform_sens(M1, D.sensors('EEG'));
-    D.inv{val}.datareg(ind).fid_eeg = ft_transform_headshape(M1, D.fiducials);
+    D.inv{val}.datareg(ind).sensors = ft_transform_geometry(M1, D.sensors('EEG'));
+    D.inv{val}.datareg(ind).fid_eeg = ft_transform_geometry(M1, D.fiducials);
     D.inv{val}.datareg(ind).fid_mri = newmrifid;
     D.inv{val}.datareg(ind).toMNI = D.inv{val}.mesh.Affine;
     D.inv{val}.datareg(ind).fromMNI = inv(D.inv{val}.datareg(ind).toMNI);
@@ -170,8 +170,8 @@ end
 
 if ~isempty(D.sensors('MEG'))
     D.inv{val}.datareg(ind).sensors = D.sensors('MEG');
-    D.inv{val}.datareg(ind).fid_eeg = ft_transform_headshape(inv(M1), meegfid);
-    D.inv{val}.datareg(ind).fid_mri = ft_transform_headshape(inv(M1), newmrifid);
+    D.inv{val}.datareg(ind).fid_eeg = ft_transform_geometry(inv(M1), meegfid);
+    D.inv{val}.datareg(ind).fid_mri = ft_transform_geometry(inv(M1), newmrifid);
     D.inv{val}.datareg(ind).toMNI = D.inv{val}.mesh.Affine*M1;
     D.inv{val}.datareg(ind).fromMNI = inv(D.inv{val}.datareg(ind).toMNI);
     D.inv{val}.datareg(ind).modality = 'MEG';

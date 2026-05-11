@@ -235,11 +235,15 @@ end
 
 % precision components Q
 %--------------------------------------------------------------------------
-try
+if isfield(Y,'Q')
     Q = Y.Q;
-    if isnumeric(Q), Q = {Q}; end
-catch
+elseif isfield(M,'Q')
+    Q = M.Q;
+else
     Q = spm_Ce(ns*ones(1,nr));
+end
+if isnumeric(Q)
+    Q = {Q};
 end
 nh    = length(Q);                  % number of precision components
 nq    = ny/length(Q{1});            % for compact Kronecker form of M-step
@@ -405,17 +409,15 @@ for k = 1:M.Nmax
         % precision and conditional covariance
         %------------------------------------------------------------------
         iS    = sparse(0);
-
         for i = 1:nh
             iS = iS + Q{i}*(exp(-32) + exp(h(i)));
         end
-        
-        if nh > 1 
-            % Invert only if more than one ReML component
-            % -------------------------------------------------------------
+
+        % Invert only if more than one ReML component
+        % -------------------------------------------------------------
+        if nh > 1
             S     = spm_inv(iS);
         end
-        
         iS    = kron(speye(nq),iS);
         Pp    = real(J'*iS*J);
         Cp    = spm_inv(Pp + ipC);

@@ -302,7 +302,7 @@ BSD.M.hC = hC;
 BSD.M.m  = Ns;
 BSD.M.P  = P;
 
-% specify M.u - endogenous input (fluctuations) and intial states
+% specify M.u - endogenous input (fluctuations) and initial states
 %--------------------------------------------------------------------------
 BSD.M.u  = sparse(Ns,1);
 

@@ -901,7 +901,7 @@ for t = 1:T
             if Np(m) > 1
                 for k = p{m}
                     
-                    % Bayesian surprise about inital conditions
+                    % Bayesian surprise about initial conditions
                     %------------------------------------------------------
                     if isfield(MDP,'d')
                         for f = 1:Nf(m)

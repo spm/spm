@@ -26,7 +26,7 @@ jobs:
             echo 'versions=["R2020a","latest"]' >> $GITHUB_OUTPUT
           else
             echo "is-pr=false" >> $GITHUB_OUTPUT
-            echo 'versions=["R2020a","R2020b","R2021a","R2021b","R2022a","R2022b","R2023a","R2023b","R2024a","R2024b","R2025a", "latest"]' >> $GITHUB_OUTPUT
+            echo 'versions=["R2020a","R2020b","R2021a","R2021b","R2022a","R2022b","R2023a","R2023b","R2024a","R2024b","R2025a","R2025b", "latest"]' >> $GITHUB_OUTPUT
           fi
 
   matlab-tests:
@@ -60,10 +60,16 @@ jobs:
             version: "R2022b" # Apple Silicon version not available
           - os: macos-latest
             version: "R2023a" # Apple Silicon version not available
+          - os: macos-15-intel
+            version: "latest" # MATLAB dropped Intel Mac support starting with R2026a
     runs-on: ${{matrix.os}}
     env:
       cache-key: tests-data2
     steps:
+      - name: Install Visual C++ 2010 Redistributable (required by FieldTrip MEX files)
+        if: runner.os == 'Windows'
+        run: choco install vcredist2010 -y
+
       - name: Check out repository
         uses: actions/checkout@v4
 

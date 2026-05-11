@@ -48,7 +48,7 @@ G(2).v  = 0;                                % inputs
 G(2).V  = exp(16);
 G       = spm_ADEM_M_set(G);
  
- 
+
 % % plot flow fields and equilibrium densities
 % %==========================================================================
 % spm_figure('GetWin','Figure 1');
@@ -87,7 +87,7 @@ M       = spm_DEM_M_set(M);
 % length of realization
 %--------------------------------------------------------------------------
 n     = 256;
-U     = sparse(n,1);
+U     = sparse(1,n);
  
 DEM.M = M;
 DEM.G = G;
@@ -102,7 +102,7 @@ for i = 1:32
         
         % random perturbations
         %------------------------------------------------------------------
-        DEM.C       = spm_conv(randn(n,1)*8,8);
+        DEM.C       = spm_conv(randn(1,n)*8,8);
         
         % integrate and update priors
         %------------------------------------------------------------------

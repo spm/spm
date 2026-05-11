@@ -5,6 +5,7 @@ function D = spm_eeg_interpolate_artefact(S)
 % S        - optional input struct
 % (optional) fields of S:
 %   S.D    - MEEG object or filename of M/EEG mat-file with epoched data
+%   S.method - 'linear' or 'spline' (default)
 %   S.time - 2-element vector with start and end of baseline period [ms]
 %
 % D        - MEEG object (also saved on disk if requested)
@@ -16,6 +17,9 @@ function D = spm_eeg_interpolate_artefact(S)
 % Stefan Kiebel
 % Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
 
+if ~isfield(S, 'method')
+    S.method = 'spline';
+end
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -60,6 +64,8 @@ time = time/1000;
 t(1) = D.indsample(time(1));
 t(2) = D.indsample(time(2));
 
+lerp = @(x1, y1, x2, y2, x) y1 + (y2 - y1) .* (x - x1) ./ (x2 - x1);
+
 if t(1)<2 || t(2)>=D.nsamples
     error('There should be at least one sample before and after the artefact');
 end
@@ -84,7 +90,12 @@ else Ibar = 1:D.ntrials; end
 for k = 1: D.ntrials
     for c = 1:length(indchannels)
         tmp = D(indchannels(c), [t(1)-1 t(1) t(2) t(2)+1], k);
-        D(indchannels(c), t(1):t(2), k) = spline([t(1)-1 t(1) t(2) t(2)+1], tmp, t(1):t(2));
+        switch S.method
+            case 'spline'
+                D(indchannels(c), t(1):t(2), k) = spline([t(1)-1 t(1) t(2) t(2)+1], tmp, t(1):t(2));
+            case 'linear'
+                D(indchannels(c), t(1):t(2), k) = lerp(t(1), tmp(2), t(2), tmp(3),  t(1):t(2));
+        end
     end
     
     if ismember(k, Ibar), spm_progress_bar('Set', k); end

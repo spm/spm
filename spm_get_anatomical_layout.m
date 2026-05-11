@@ -1,4 +1,4 @@
-function [lay] = spm_get_anatomical_layout(sensor_positions, sensor_labels, head_positions, fiducials, plot_output)
+function [lay] = spm_get_anatomical_layout(sensor_positions, sensor_labels, head_positions, fiducials, varargin)
 % Produce anatomically valid 2D representation of 3D sensor positions
 % FORMAT [lay] = spm_get_anatomical_layout(sensor_positions, sensor_labels, head_positions, fiducials, plot_output)
 %
@@ -15,13 +15,16 @@ function [lay] = spm_get_anatomical_layout(sensor_positions, sensor_labels, head
 %         fiducials.INI = [1 x 3] - Optional
 %                       Note, if fiducials.INI is not specified it will be
 %                       estimated.
-%     plot_output:      A logical value indicating whether to generate a
+%     plot_output:      (optional) A logical value indicating whether to generate a
 %                       plot of measurements taken in 3D, as well as the
 %                       output layout.
+%     unit:             (optional) A string, e.g. 'mm', will be estimated otherwise.
+%     sensor_orientations:  (optional) An nx3 matrix of orientation vectors of n
+%                           sensors
 %
 % Output:
 %     lay: A structure representing the anatomical sensor layout in the
-%          FieldTrip style. It contains the following fields:
+%         FieldTrip style. It contains the following fields:
 %         lay.pos:      A nx2 matrix representing the 2D coordinates of the
 %                       sensors in the layout. Each column contains the
 %                       [x, y] coordinates of a sensor relative to the
@@ -30,12 +33,15 @@ function [lay] = spm_get_anatomical_layout(sensor_positions, sensor_labels, head
 %         lay.outline:  A cell array of matrices representing the 2D
 %                       coordinates of the head surface outline, ears and
 %                       nose.
-%          lay.mask:    A cell array containing a matrix of positions which
+%         lay.mask:     A cell array containing a matrix of positions which
 %                       draw a convex hull around lay.pos to mask grid
 %                       positions which would otherwise be extrapolated to
 %                       when plotting.
 %                       To allow extrapolation to a full circle, try:
 %                       lay.mask{1} = lay.outline{1}.
+%         lay.ori:      If sensor_orientations are provided then equivalent
+%                       2D orientations are calculated. 
+%
 %__________________________________________________________________________
 %
 % Further help:
@@ -44,8 +50,8 @@ function [lay] = spm_get_anatomical_layout(sensor_positions, sensor_labels, head
 % according to the approximate polar grid used to place electrodes in the
 % 10-20 system. The method then measures the position of on-scalp sensors
 % in relation to this polar grid (angle and eccentricity) and applies this
-% to a standard 2D polar grid. For full details see Alexander et al (in
-% preparation).
+% to a standard 2D polar grid. For full details, or to cite this method see
+% Alexander et al (2025) available here: https://doi.org/10.1111/ejn.70060.
 %
 % The function performs the following steps:
 %
@@ -76,6 +82,14 @@ function [lay] = spm_get_anatomical_layout(sensor_positions, sensor_labels, head
 %     the position of each sensor is reproduced on a 2D polar grid. This is
 %     then formatted as a FieldTrip style layout structure with a nose,
 %     ears, outline and mask.
+%
+%   (optional) Represent Sensor Orientations in 2D:
+%     A tangential basis is defined in both 3D and 2D as an line (across the
+%     scalp) from RPA to LPA, passing through the sensor position. The
+%     local direction of the arc at the sensor position defined the primary
+%     tangential axis. Radial is defined as a vector towards the origin.
+%     Secondary primary axis as the cross product of primary and radial
+%     axes. In 2D, magnitude is scaled by radial similarity. 
 %_________________________________________________________________________
 
 % Nicholas Alexander
@@ -112,6 +126,57 @@ if (length(head_distances(:, 1)) - length(head_positions(:, 1))) > 0
     disp('If you are having issues, try plotting the head positions along with the sensors.');
 end
 
+% Unpack varargin
+if numel(varargin) >= 1
+    plot_output = logical(varargin{1});
+else
+    plot_output = false;
+end
+if numel(varargin) >= 2
+    unit = varargin{2};
+else
+    unit = [];
+end
+if numel(varargin) >= 3
+    sensor_orientations = varargin{3};
+else
+    sensor_orientations = [];
+end
+
+% Estimate units
+if isempty(unit)
+    largest_dim = 2 * max(sensor_distances);
+    if largest_dim > 200
+        unit = 'mm';
+        unit_dec_adjust = 3;
+    elseif largest_dim > 20
+        unit = 'cm';
+        unit_dec_adjust = 2;
+    elseif largest_dim > 0.2
+        unit = 'm';
+        unit_dec_adjust = 0;
+    else
+        unit = 'm';
+        unit_dec_adjust = 0;
+        warning('Unit estimation uncertain. Defaulting to metres.')
+    end
+else
+    switch unit
+        case 'mm'
+            unit_dec_adjust = 3;
+        case 'cm'
+            unit_dec_adjust = 2;
+        case 'm'
+            unit_dec_adjust = 0;
+        otherwise
+            disp('Incorrect unit specified.')
+    end
+end
+dec_point = 6 - unit_dec_adjust;
+
+% No 2D position should be outside -1:1
+max_image_size = 2;
+
 %-ESTIMATE the position of the inion if not provided
 %--------------------------------------------------------------------------
 if ~isfield(fiducials, 'INI')
@@ -146,7 +211,7 @@ if ~isfield(fiducials, 'INI')
 
     % Find where a_vec intersects with the mesh. This also adds in the INI to
     % the headPositions.
-    [fiducials.INI, head_positions, ~] = find_line_triangle_intersection(p_vec, origin, head_positions, tri);
+    [fiducials.INI, head_positions, ~] = find_line_triangle_intersection(p_vec, origin, head_positions, tri, dec_point);
 else
     % Otherwise, just update the head_positions to include fiducials.
     head_positions = [head_positions; fiducials.NAS; fiducials.INI; fiducials.LPA; fiducials.RPA];
@@ -180,23 +245,23 @@ unused_head_positions = head_positions;
 unused_head_positions(used_head_position_idx, :) = [];
 if ismember(fiducials.LPA, unused_head_positions, 'rows')
     tmpPos = fiducials.LPA;
-    [fiducials.LPA, head_positions, tri] = find_line_triangle_intersection(l_vec, origin, head_positions, tri);
-    warning(['LPA not on boundary of convex head surface. Adjusted by ' num2str(pdist([tmpPos;fiducials.LPA])) 'mm']);
+    [fiducials.LPA, head_positions, tri] = find_line_triangle_intersection(l_vec, origin, head_positions, tri, dec_point);
+    disp(['LPA not on boundary of convex head surface. Adjusted by ', num2str(pdist([tmpPos;fiducials.LPA])), unit])
 end
 if ismember(fiducials.RPA, unused_head_positions, 'rows')
     tmpPos = fiducials.RPA;
-    [fiducials.RPA, head_positions, tri] = find_line_triangle_intersection(r_vec, origin, head_positions, tri);
-    warning(['RPA not on boundary of convex head surface. Adjusted by ' num2str(pdist([tmpPos;fiducials.RPA])) 'mm']);
+    [fiducials.RPA, head_positions, tri] = find_line_triangle_intersection(r_vec, origin, head_positions, tri, dec_point);
+    disp(['RPA not on boundary of convex head surface. Adjusted by ', num2str(pdist([tmpPos;fiducials.RPA])), unit])
 end
 if ismember(fiducials.INI, unused_head_positions, 'rows')
     tmpPos = fiducials.INI;
-    [fiducials.INI, head_positions, tri] = find_line_triangle_intersection(p_vec, origin, head_positions, tri);
-    warning(['INI not on boundary of convex head surface. Adjusted by ' num2str(pdist([tmpPos;fiducials.INI])) 'mm']);
+    [fiducials.INI, head_positions, tri] = find_line_triangle_intersection(p_vec, origin, head_positions, tri, dec_point);
+    disp(['INI not on boundary of convex head surface. Adjusted by ', num2str(pdist([tmpPos;fiducials.INI])), unit])
 end
 if ismember(fiducials.NAS, unused_head_positions, 'rows')
     tmpPos = fiducials.NAS;
-    [fiducials.NAS, head_positions, tri] = find_line_triangle_intersection(a_vec, origin, head_positions, tri);
-    warning(['NAS not on boundary of convex head surface. Adjusted by ' num2str(pdist([tmpPos;fiducials.NAS])) 'mm']);
+    [fiducials.NAS, head_positions, tri] = find_line_triangle_intersection(a_vec, origin, head_positions, tri, dec_point);
+    disp(['NAS not on boundary of convex head surface. Adjusted by ', num2str(pdist([tmpPos;fiducials.NAS])), unit])
 end
 
 % Update origin and vectors as they may have changed. Probably pointless?
@@ -217,21 +282,18 @@ s_vec = mean(s_vec, 1) / norm(mean(s_vec, 1));
 
 % Refine estimate of superior point by trying to make left and right sides
 % equal length and posterior and anterior equal length
-sup_error_threshold = 0.01; % bit arbitrary... would be better to adjust with unit
-rl_adjustment_mod = 1/sup_error_threshold;
-pa_adjustment_mod = 1/sup_error_threshold;
+sup_error_threshold = 0.001 * 10^unit_dec_adjust;
+rl_adjustment_mod = sup_error_threshold * 10;
+pa_adjustment_mod = sup_error_threshold * 10;
 
 % Set an upper limit on iterations
 iteration = 0;
 iteration_limit = 500;
-while rl_adjustment_mod > sup_error_threshold || pa_adjustment_mod > sup_error_threshold || iteration > iteration_limit
+while rl_adjustment_mod > sup_error_threshold || pa_adjustment_mod > sup_error_threshold && iteration < iteration_limit
     iteration = iteration + 1;
-    if iteration > iteration_limit
-        warning('Iteration limit for superior vector estimation reached.')
-    end
 
     % Add the current estimate of the superior position
-    [fiducials.SUP, tmp_head_pos, tmp_tri] = find_line_triangle_intersection(s_vec, origin, head_positions, tri);
+    [fiducials.SUP, tmp_head_pos, tmp_tri] = find_line_triangle_intersection(s_vec, origin, head_positions, tri, dec_point);
     s_vec = (fiducials.SUP - origin) / norm(fiducials.SUP - origin);
     % Redefine tri as edges
     [tmp_edges] = tris_to_edges(tmp_tri);
@@ -239,31 +301,31 @@ while rl_adjustment_mod > sup_error_threshold || pa_adjustment_mod > sup_error_t
     % Take measurements across the scalp from Cz, emulating 10-20 setup
     % left
     l_intersect_points = get_surface_points_about_plane(cross(l_vec, s_vec), origin, ...
-                        cross(l_vec, p_vec), origin, tmp_head_pos, tmp_edges, fiducials.LPA, false);
-    tmp_start = find_fraction_along_line(l_intersect_points, fiducials.LPA);
-    tmp_end = find_fraction_along_line(l_intersect_points, fiducials.SUP);
-    l_intersect_points = cut_line_ends(l_intersect_points, [tmp_start, tmp_end]);
+                        cross(l_vec, p_vec), origin, tmp_head_pos, tmp_edges, fiducials.LPA, false, dec_point);
+    tmp_start = find_fraction_along_line(l_intersect_points, fiducials.LPA, dec_point);
+    tmp_end = find_fraction_along_line(l_intersect_points, fiducials.SUP, dec_point);
+    l_intersect_points = cut_line_ends(l_intersect_points, [tmp_start, tmp_end], dec_point);
 
     % right
     r_intersect_points = get_surface_points_about_plane(cross(r_vec, s_vec), origin, ...
-                        cross(r_vec, a_vec), origin, tmp_head_pos, tmp_edges, fiducials.RPA, false);
-    tmp_start = find_fraction_along_line(r_intersect_points, fiducials.RPA);
-    tmp_end = find_fraction_along_line(r_intersect_points, fiducials.SUP);
-    r_intersect_points = cut_line_ends(r_intersect_points, [tmp_start, tmp_end]);
+                        cross(r_vec, a_vec), origin, tmp_head_pos, tmp_edges, fiducials.RPA, false, dec_point);
+    tmp_start = find_fraction_along_line(r_intersect_points, fiducials.RPA, dec_point);
+    tmp_end = find_fraction_along_line(r_intersect_points, fiducials.SUP, dec_point);
+    r_intersect_points = cut_line_ends(r_intersect_points, [tmp_start, tmp_end], dec_point);
 
     % anterior
     a_intersect_points = get_surface_points_about_plane(-cross(a_vec, s_vec), origin, ...
-                        cross(a_vec, l_vec), origin, tmp_head_pos, tmp_edges, fiducials.NAS, false);
-    tmp_start = find_fraction_along_line(a_intersect_points, fiducials.NAS);
-    tmp_end = find_fraction_along_line(a_intersect_points, fiducials.SUP);
-    a_intersect_points = cut_line_ends(a_intersect_points, [tmp_start, tmp_end]);
+                        cross(a_vec, l_vec), origin, tmp_head_pos, tmp_edges, fiducials.NAS, false, dec_point);
+    tmp_start = find_fraction_along_line(a_intersect_points, fiducials.NAS, dec_point);
+    tmp_end = find_fraction_along_line(a_intersect_points, fiducials.SUP, dec_point);
+    a_intersect_points = cut_line_ends(a_intersect_points, [tmp_start, tmp_end], dec_point);
 
     % posterior
     p_intersect_points = get_surface_points_about_plane(-cross(p_vec, s_vec), origin, ...
-                        cross(p_vec, r_vec), origin, tmp_head_pos, tmp_edges, fiducials.INI, false);
-    tmp_start = find_fraction_along_line(p_intersect_points, fiducials.INI);
-    tmp_end = find_fraction_along_line(p_intersect_points, fiducials.SUP);
-    p_intersect_points = cut_line_ends(p_intersect_points, [tmp_start, tmp_end]);
+                        cross(p_vec, r_vec), origin, tmp_head_pos, tmp_edges, fiducials.INI, false, dec_point);
+    tmp_start = find_fraction_along_line(p_intersect_points, fiducials.INI, dec_point);
+    tmp_end = find_fraction_along_line(p_intersect_points, fiducials.SUP, dec_point);
+    p_intersect_points = cut_line_ends(p_intersect_points, [tmp_start, tmp_end], dec_point);
 
     % Check lengths
     lLength = length_of_lines(l_intersect_points);
@@ -303,6 +365,10 @@ while rl_adjustment_mod > sup_error_threshold || pa_adjustment_mod > sup_error_t
     s_vec = (fiducials.SUP - origin) / norm(fiducials.SUP - origin);
 end
 
+if iteration >= iteration_limit
+    warning('Iteration limit for superior vector estimation reached.')
+end
+
 % Plot progress if requested.
 if plot_output
     figure; hold on; axis equal;
@@ -325,17 +391,17 @@ end
 %-GET 10-20 electrode positions for the circumference
 %--------------------------------------------------------------------------
 % Move up by 10% either side of the pa and lr intersects
-l_intersect_points = cut_line_ends(l_intersect_points, [0.2, 1]);
-r_intersect_points = cut_line_ends(r_intersect_points, [0.2, 1]);
-a_intersect_points = cut_line_ends(a_intersect_points, [0.2, 1]);
-p_intersect_points = cut_line_ends(p_intersect_points, [0.2, 1]);
+l_intersect_points = cut_line_ends(l_intersect_points, [0.2, 1], dec_point);
+r_intersect_points = cut_line_ends(r_intersect_points, [0.2, 1], dec_point);
+a_intersect_points = cut_line_ends(a_intersect_points, [0.2, 1], dec_point);
+p_intersect_points = cut_line_ends(p_intersect_points, [0.2, 1], dec_point);
 
 % Now get the points around the circumference
 elec.Oz = p_intersect_points(1, :);
 elec.FPz = a_intersect_points(1, :);
 elec.T3 = l_intersect_points(1, :);
 elec.T4 = r_intersect_points(1, :);
-elec.Cz = round(fiducials.SUP, 6, 'decimals');
+elec.Cz = round(fiducials.SUP, dec_point, 'decimals');
 
 % Add these to the plot, if there is one
 if plot_output    
@@ -415,34 +481,34 @@ edges = [edges; baseEdges];
 % left to anterior
 la_vec = mean([l_vec; a_vec]);
 la_intersect_points = get_surface_points_about_plane(cross(a_vec, l_vec), ...
-                    origin_elec, la_vec, origin_elec, head_positions, edges, elec.Oz, false);
-tmp_start = find_fraction_along_line(la_intersect_points, elec.T3);
-tmp_end = find_fraction_along_line(la_intersect_points, elec.FPz);
-la_intersect_points = cut_line_ends(la_intersect_points, [tmp_start, tmp_end]);
+                    origin_elec, la_vec, origin_elec, head_positions, edges, elec.Oz, false, dec_point);
+tmp_start = find_fraction_along_line(la_intersect_points, elec.T3, dec_point);
+tmp_end = find_fraction_along_line(la_intersect_points, elec.FPz, dec_point);
+la_intersect_points = cut_line_ends(la_intersect_points, [tmp_start, tmp_end], dec_point);
 
 % anterior to right
 ar_vec = mean([a_vec; r_vec]);
 ar_intersect_points = get_surface_points_about_plane(cross(r_vec, a_vec), ...
-                    origin_elec, ar_vec, origin_elec, head_positions, edges, elec.T3, false);
-tmp_start = find_fraction_along_line(ar_intersect_points, elec.FPz);
-tmp_end = find_fraction_along_line(ar_intersect_points, elec.T4);
-ar_intersect_points = cut_line_ends(ar_intersect_points, [tmp_start, tmp_end]);
+                    origin_elec, ar_vec, origin_elec, head_positions, edges, elec.T3, false, dec_point);
+tmp_start = find_fraction_along_line(ar_intersect_points, elec.FPz, dec_point);
+tmp_end = find_fraction_along_line(ar_intersect_points, elec.T4, dec_point);
+ar_intersect_points = cut_line_ends(ar_intersect_points, [tmp_start, tmp_end], dec_point);
 
 % right to posterior
 rp_vec = mean([r_vec; p_vec]);
 rp_intersect_points = get_surface_points_about_plane(cross(p_vec, l_vec), ...
-                    origin_elec, rp_vec, origin_elec, head_positions, edges, elec.FPz, false);
-tmp_start = find_fraction_along_line(rp_intersect_points, elec.T4);
-tmp_end = find_fraction_along_line(rp_intersect_points, elec.Oz);
-rp_intersect_points = cut_line_ends(rp_intersect_points, [tmp_start, tmp_end]);
+                    origin_elec, rp_vec, origin_elec, head_positions, edges, elec.FPz, false, dec_point);
+tmp_start = find_fraction_along_line(rp_intersect_points, elec.T4, dec_point);
+tmp_end = find_fraction_along_line(rp_intersect_points, elec.Oz, dec_point);
+rp_intersect_points = cut_line_ends(rp_intersect_points, [tmp_start, tmp_end], dec_point);
 
 % posterior to left
 pl_vec = mean([p_vec; l_vec]);
 pl_intersect_points = get_surface_points_about_plane(cross(l_vec, p_vec), ...
-                    origin_elec, pl_vec, origin_elec, head_positions, edges, elec.T4, false);
-tmp_start = find_fraction_along_line(pl_intersect_points, elec.Oz);
-tmp_end = find_fraction_along_line(pl_intersect_points, elec.T3);
-pl_intersect_points = cut_line_ends(pl_intersect_points, [tmp_start, tmp_end]);
+                    origin_elec, pl_vec, origin_elec, head_positions, edges, elec.T4, false, dec_point);
+tmp_start = find_fraction_along_line(pl_intersect_points, elec.Oz, dec_point);
+tmp_end = find_fraction_along_line(pl_intersect_points, elec.T3, dec_point);
+pl_intersect_points = cut_line_ends(pl_intersect_points, [tmp_start, tmp_end], dec_point);
 
 % Add the circumference to the plot
 if plot_output
@@ -462,14 +528,15 @@ head_positions = [head_positions; la_intersect_points; ar_intersect_points; ...
 
 % Prepare output
 lay = [];
-
+num_sens = length(sensor_positions(:, 1));
+basis_frame = nan(num_sens,9);
 % Loop through each sensor position
-for sens_idx = 1:length(sensor_positions(:, 1))
+for sens_idx = 1:num_sens
     % Make a vector from the origin to the sensor
     sens_vec = (sensor_positions(sens_idx, :) - origin_elec) / norm(sensor_positions(sens_idx, :) - origin_elec);
 
     % Get the point sens_vec crosses the scalp
-    [sens_pos, tmp_head_pos, tmp_tri] = find_line_triangle_intersection(sens_vec, origin_elec, head_positions, tri);
+    [sens_pos, tmp_head_pos, tmp_tri] = find_line_triangle_intersection(sens_vec, origin_elec, head_positions, tri, dec_point);
 
     % Redefine tri as edges
     [tmp_edges] = tris_to_edges(tmp_tri);
@@ -484,11 +551,11 @@ for sens_idx = 1:length(sensor_positions(:, 1))
     % Make a slice from Cz to the sensor
     sens_sup_vec = mean([sens_vec;s_vec]) / norm(mean([sens_vec;s_vec]));
     tmpVec = cross(sens_vec, s_vec) / norm(cross(sens_vec, s_vec));
-    [sens_intersect_points] = get_surface_points_about_plane(tmpVec, origin_elec, sens_sup_vec, origin_elec, tmp_head_pos, tmp_edges, elec.Cz, false);
-    [tmp_start, ~] = find_fraction_along_line(sens_intersect_points, elec.Cz);
-    [tmp_end, ~] = find_fraction_along_line(sens_intersect_points, sens_pos);
+    [sens_intersect_points] = get_surface_points_about_plane(tmpVec, origin_elec, sens_sup_vec, origin_elec, tmp_head_pos, tmp_edges, elec.Cz, false, dec_point);
+    [tmp_start, ~] = find_fraction_along_line(sens_intersect_points, elec.Cz, dec_point);
+    [tmp_end, ~] = find_fraction_along_line(sens_intersect_points, sens_pos, dec_point);
     sens_intersect_points_orig = sens_intersect_points;
-    sens_intersect_points = cut_line_ends(sens_intersect_points, [tmp_start, tmp_end]);
+    sens_intersect_points = cut_line_ends(sens_intersect_points, [tmp_start, tmp_end], dec_point);
 
     % Add the sensor intersection to the plot
     if plot_output
@@ -498,66 +565,74 @@ for sens_idx = 1:length(sensor_positions(:, 1))
     % Find where the sens intersect crosses the circumference
     % la
     tmp_length = length(la_intersect_points);
-    la_cross_point = get_plane_surface_intersect([(1:tmp_length-1)', (2:tmp_length)'], la_intersect_points, cross(sens_vec, s_vec), origin_elec);
+    la_cross_point = get_plane_surface_intersect([(1:tmp_length-1)', (2:tmp_length)'], la_intersect_points, cross(sens_vec, s_vec), origin_elec, dec_point);
     la_cross_point = remove_points_below_plane(la_cross_point, sens_sup_vec, origin_elec);
 
     % ar
     tmp_length = length(ar_intersect_points);
-    ar_cross_point = get_plane_surface_intersect([(1:tmp_length-1)', (2:tmp_length)'], ar_intersect_points, cross(sens_vec, s_vec), origin_elec);
+    ar_cross_point = get_plane_surface_intersect([(1:tmp_length-1)', (2:tmp_length)'], ar_intersect_points, cross(sens_vec, s_vec), origin_elec, dec_point);
     ar_cross_point = remove_points_below_plane(ar_cross_point, sens_sup_vec, origin_elec);
 
     % rp
     tmp_length = length(rp_intersect_points);
-    rp_cross_point = get_plane_surface_intersect([(1:tmp_length-1)', (2:tmp_length)'], rp_intersect_points, cross(sens_vec, s_vec), origin_elec);
+    rp_cross_point = get_plane_surface_intersect([(1:tmp_length-1)', (2:tmp_length)'], rp_intersect_points, cross(sens_vec, s_vec), origin_elec, dec_point);
     rp_cross_point = remove_points_below_plane(rp_cross_point, sens_sup_vec, origin_elec);
 
     % pl
     tmp_length = length(pl_intersect_points);
-    pl_cross_point = get_plane_surface_intersect([(1:tmp_length-1)', (2:tmp_length)'], pl_intersect_points, cross(sens_vec, s_vec), origin_elec);
+    pl_cross_point = get_plane_surface_intersect([(1:tmp_length-1)', (2:tmp_length)'], pl_intersect_points, cross(sens_vec, s_vec), origin_elec, dec_point);
     pl_cross_point = remove_points_below_plane(pl_cross_point , sens_sup_vec, origin_elec);
+    
 
     if sum(~cellfun('isempty', {la_cross_point, ar_cross_point, rp_cross_point, pl_cross_point})) ~= 1
         % Decide which way to go
         dir_vec = (sens_pos - elec.Cz) / norm((sens_pos - elec.Cz));
 
         % List of fiducial names
-        fiducial_names = {'RPA', 'NAS', 'LPA', 'INI'};
-
+        elec_names = {'T4', 'FPz', 'T4', 'Oz'};
+        
         % Calculate cosine similarities for each direction
-        cos_similarities = zeros(1, numel(fiducial_names));
-        for i = 1:numel(fiducial_names)
-            fiducial = fiducials.(fiducial_names{i});
+        cos_similarities = zeros(1, numel(elec_names));
+        for i = 1:numel(elec_names)
+            fiducial = elec.(elec_names{i});
 
             magnitude_fiducial = sqrt(sum(fiducial.^2, 2));
             dot_product = sum(fiducial .* dir_vec, 2);
-			magnitude_dir_vec = sqrt(sum(dir_vec.^2, 2));
 
+            magnitude_dir_vec = sqrt(sum(dir_vec.^2, 2));
             cos_similarities(i) = dot_product ./ (magnitude_fiducial .* magnitude_dir_vec);
+        end
+        
+        % Very rarely the plane can slice exactly at an intersection
+        if sum(~cellfun('isempty', {la_cross_point, ar_cross_point, rp_cross_point, pl_cross_point})) == 0
+            la_cross_point = elec.T4;
+            ar_cross_point = elec.FPz;
+            rp_cross_point = elec.T3;
+            pl_cross_point = elec.Oz;
+            
         end
 
         if cos_similarities(4) > cos_similarities(2) % posterior > anterior
-            if cos_similarities(1) > cos_similarities(3) % left > right
+            ar_cross_point = [];
+            la_cross_point = [];
+            if cos_similarities(1) > cos_similarities(3) ||...
+                (~isempty(rp_cross_point) && isempty(pl_cross_point)) % left > right
                 % rp
-                la_cross_point = [];
-                ar_cross_point = [];
                 pl_cross_point = [];
             else
                 % pl
-                la_cross_point = [];
-                ar_cross_point = [];
                 rp_cross_point = [];
             end
         else
-            if cos_similarities(1) > cos_similarities(3)
+            pl_cross_point = [];
+            rp_cross_point = [];
+            if cos_similarities(1) > cos_similarities(3) ||...
+                (~isempty(rp_cross_point) && isempty(la_cross_point))
                 % ar
                 la_cross_point = [];
-                rp_cross_point = [];
-                pl_cross_point = [];
             else
                 % la
-                ar_cross_point = [];
                 rp_cross_point = [];
-                pl_cross_point = [];
             end
         end
     end
@@ -585,13 +660,13 @@ for sens_idx = 1:length(sensor_positions(:, 1))
     end
 
     % Find the fraction along the circumference the sensor vector crossed
-    circ_frac = find_fraction_along_line(c_intersect_points, cross_point);
+    circ_frac = find_fraction_along_line(c_intersect_points, cross_point, dec_point);
     circ_frac = (circ_frac / 4) + circ_mod;
 
     % And the distance form the centre as a fraction of distance to circ.
-    [tmp_start, sens_intersect_points_orig] = find_fraction_along_line(sens_intersect_points_orig, elec.Cz);
-    [tmp_end, sens_intersect_points_orig] = find_fraction_along_line(sens_intersect_points_orig, cross_point);
-    c_intersect_points = cut_line_ends(sens_intersect_points_orig, [tmp_start, tmp_end]);
+    [tmp_start, sens_intersect_points_orig] = find_fraction_along_line(sens_intersect_points_orig, elec.Cz, dec_point);
+    [tmp_end, sens_intersect_points_orig] = find_fraction_along_line(sens_intersect_points_orig, cross_point, dec_point);
+    c_intersect_points = cut_line_ends(sens_intersect_points_orig, [tmp_start, tmp_end], dec_point);
     
     c_cist_cumsum = cumsum(sqrt(sum(diff(c_intersect_points, [], 1).^2, 2)));
     c_dist = c_cist_cumsum(end);
@@ -603,18 +678,53 @@ for sens_idx = 1:length(sensor_positions(:, 1))
     cent_frac = sens_dist / c_dist;
 
     % Find point on circle
-    theta = 2 * pi * circ_frac; % angle corresponding to fraction of circumference
+    theta = 2 * pi * circ_frac;
     x = -0.5 * cos(theta);
     y = 0.5 * sin(theta);
 
     % Plot point on line at distFrac from center
-    x_dist = cent_frac * x;
-    y_dist = cent_frac * y;
+    x_dist = cent_frac * x / max_image_size;
+    y_dist = cent_frac * y / max_image_size;
 
     lay.pos(sens_idx, 1:2) = [x_dist, y_dist];
     lay.label{sens_idx, 1} = sensor_labels{sens_idx};
-    lay.width(sens_idx, 1) = 0.076;
-    lay.height(sens_idx, 1) = 0.064;
+    lay.width(sens_idx, 1) = 0.076/ max_image_size;
+    lay.height(sens_idx, 1) = 0.064/ max_image_size;
+
+    if ~isempty(sensor_orientations)
+        % 2D orientations based on tangential basis set
+        % Primary tan slice
+        lr_vec = (fiducials.LPA - fiducials.RPA) / norm(fiducials.LPA - fiducials.RPA);
+        sens_vec_lr = (sens_pos - origin) / norm(sens_pos - origin);
+        sens_vec_lr_perp_to_lr = sens_vec_lr * dot(lr_vec, lr_vec) - lr_vec * dot(lr_vec, sens_vec_lr);
+        l_intersect_points = get_surface_points_about_plane(cross(lr_vec, sens_vec_lr), origin, ...
+                            sens_vec_lr_perp_to_lr, origin, tmp_head_pos, tmp_edges, fiducials.LPA, false, dec_point);
+        [tmp_start, ~] = find_fraction_along_line(l_intersect_points, fiducials.LPA, dec_point);
+        [tmp_end, ~] = find_fraction_along_line(l_intersect_points, fiducials.RPA, dec_point);
+        if tmp_start > tmp_end
+            l_intersect_points = flipud(l_intersect_points);
+        end
+    
+        % Find tan axis as line segment
+        [~,cur_sens_idx] = ismember(sens_pos, l_intersect_points, 'rows');
+    
+        tmp = (l_intersect_points(cur_sens_idx-1,:) - l_intersect_points(cur_sens_idx,:)) / norm((l_intersect_points(cur_sens_idx-1,:) - l_intersect_points(cur_sens_idx,:)));
+        tmp2 = (l_intersect_points(cur_sens_idx,:) - l_intersect_points(cur_sens_idx+1,:)) / norm((l_intersect_points(cur_sens_idx,:) - l_intersect_points(cur_sens_idx+1,:)));
+        
+        initial_primary_tan_vec = mean([tmp;tmp2]) / norm(mean([tmp;tmp2]));
+    
+        % Radial vector
+        sens_vec = (sens_pos - origin_elec) / norm(sens_pos - origin_elec);
+        radial_vec = -sens_vec;
+        radial_vec = radial_vec / norm(radial_vec);
+    
+        % Orthonormal frame
+        primary_tan_vec = initial_primary_tan_vec - dot(initial_primary_tan_vec, radial_vec) * radial_vec;
+        primary_tan_vec = primary_tan_vec / norm(primary_tan_vec);  % Now orthogonal and unit length
+        secondary_tan_vec = cross(radial_vec, primary_tan_vec);
+    
+        basis_frame(sens_idx,1:9) = [radial_vec(:)' primary_tan_vec(:)' secondary_tan_vec(:)'];
+    end
 end
 
 %-STRUCTURE the output layout
@@ -622,7 +732,8 @@ end
 % Add an outline 10% out for 10:20 compatibility
 samples = 128;
 theta = linspace(0, 2 * pi, samples);
-rad2 = 0.5 * 1.25;
+outer_r = 1.25;
+rad2 = 0.5 * outer_r / max_image_size;
 x2 =  rad2 * cos(theta);
 y2 =  rad2 * sin(theta);
 lay.outline{1, 1} = [x2', y2'];
@@ -631,18 +742,17 @@ lay.outline{1, 1} = [x2', y2'];
 mask_idx = convhull(lay.pos(:, 1), lay.pos(:, 2));
 lay.mask{1} = [lay.pos(mask_idx, :);lay.pos(mask_idx(1), :)];
 
-% Note - this can be done much much better... copy the standard one
 % Add a nose to the outline
 nose_scale = rad2 * 1.1;
-nose_half_width = 0.07;
-[~, index] = min(abs(theta - nose_half_width)); % Index for theta closest to 0.1 radians
-lay.outline{1, 2}(1, 1:2) = lay.outline{1}((samples/4) - (index - 1), :); % left nostril
+nose_half_width = 0.07 / max_image_size;
+[~, index] = min(abs(theta - nose_half_width));
+lay.outline{1, 2}(1, 1:2) = lay.outline{1}((samples/4) - (index - 1), :);
 lay.outline{1, 2}(2, 1:2) = [0, nose_scale];
-lay.outline{1, 2}(3, 1:2) = lay.outline{1, 2}(1, 1:2) .* [-1 1]; % right nostril
+lay.outline{1, 2}(3, 1:2) = lay.outline{1, 2}(1, 1:2) .* [-1 1];
 
 % Add left ear
-ear_half_width = 0.16;
-[~, index] = min(abs(theta-ear_half_width)); % Index for theta closest to 0.1 radians
+ear_half_width = 0.16 / max_image_size;
+[~, index] = min(abs(theta-ear_half_width));
 lay.outline{1, 3}(1, 1:2) = lay.outline{1}((samples / 2) - (index - 1), :); % top start
 lay.outline{1, 3}(2, 1:2) = [-rad2 * 1.037, rad2 * 0.235];
 lay.outline{1, 3}(3, 1:2) = [-rad2 * 1.07, rad2 * 0.2];
@@ -658,13 +768,48 @@ lay.outline{1, 3}(8, 1:2) = lay.outline{1, 3}(1, 1:2) .* [1 -1]; % bottom end
 % Add right ear
 lay.outline{1, 4} = lay.outline{1, 3} .* [-1 1];
 
+% Build equivalent 2D tangential basis for each position
+if ~isempty(sensor_orientations)
+    LPA_2D = [0.5 * outer_r / max_image_size, 0];
+    
+    R_2D_basis = zeros(length(lay.pos(:,1)), 3, 2);
+    for sens_idx = 1:length(lay.pos(:,1))
+        sens_pos_2D = lay.pos(sens_idx,1:2);
+        [R_2D_basis(sens_idx,2,1:2), R_2D_basis(sens_idx,3,1:2), ~] = get_scalp_vectors(sens_pos_2D, LPA_2D, -LPA_2D);
+    end
+	
+	% Fit real orientation to basis
+	R_2D = zeros(num_sens, 2);
+	for sens_idx = 1:num_sens    
+    	cur_basis_frame = reshape(basis_frame(sens_idx,:),[3,3]);
+    	cur_primary_tangential_basis_2D = squeeze(R_2D_basis(sens_idx,2,:));
+    	cur_secondary_tangential_basis_2D = squeeze(R_2D_basis(sens_idx,3,:));
+    	
+    	% real 3D orientation vector
+    	sens_ori = sensor_orientations(sens_idx,1:3)';
+	
+    	similarity_coeffs = cur_basis_frame.' * sens_ori;
+    	c_radial  = similarity_coeffs(1);
+    	c_primary_tan = similarity_coeffs(2);
+    	c_secondary_tan = similarity_coeffs(3);
+	
+    	sens_ori_2D = c_primary_tan * cur_primary_tangential_basis_2D + c_secondary_tan * cur_secondary_tangential_basis_2D;
+    	radial_weight = 1 - abs(c_radial) / norm(sens_ori);
+    	radial_weight = max(radial_weight, 0);
+    	
+    	R_2D(sens_idx,1:2) = radial_weight * sens_ori_2D;
+	end
+	lay.ori = R_2D;
+end
+    
+
 end
 
 
 %==========================================================================
 % - G E T   S U R F A C E   P O I N T S   A B O U T   P L A N E
 %==========================================================================
-function [intersect_points] = get_surface_points_about_plane(slice_vector, slice_origin, base_vector, base_origin, surface_points, edges, start_pos, plot)
+function [intersect_points] = get_surface_points_about_plane(slice_vector, slice_origin, base_vector, base_origin, surface_points, edges, start_pos, plot, dec_point)
 % Extract intersection points of two planes with a 3D surface and orders them
 % to form lines across the surface.
 %
@@ -700,10 +845,10 @@ base_vector = base_vector / norm(base_vector);
 
 % Add points where the base plane intersect with the surface to it.
 % Find the intersect points
-base_intersect_points = get_plane_surface_intersect(edges, surface_points, base_vector, base_origin);
+base_intersect_points = get_plane_surface_intersect(edges, surface_points, base_vector, base_origin, dec_point);
 
 % Order the intersect points
-base_intersect_points = order_points_on_plane(base_intersect_points);
+base_intersect_points = order_points_on_plane(base_intersect_points, dec_point);
 
 % Create new edges for the base intersect
 start_edge_idx = 1 + length(surface_points(:, 1));
@@ -718,18 +863,17 @@ edges = [edges; base_edges];
 
 % Get the slice interceptPoints, above the base
 % Find the intersect points
-slice_intersect_points = get_plane_surface_intersect(edges, surface_points, slice_vector, slice_origin);
+slice_intersect_points = get_plane_surface_intersect(edges, surface_points, slice_vector, slice_origin, dec_point);
 
 % Order the slice intersect
-slice_intersect_points = order_points_on_plane(slice_intersect_points);
+slice_intersect_points = order_points_on_plane(slice_intersect_points, dec_point);
 
 % Get the two points that crossed the base plane
 slice_edges = [(1:length(slice_intersect_points) - 1)', (2:length(slice_intersect_points))'; length(slice_intersect_points), 1];
-slice_end_points = get_plane_surface_intersect(slice_edges, slice_intersect_points, base_vector, base_origin);
+slice_end_points = get_plane_surface_intersect(slice_edges, slice_intersect_points, base_vector, base_origin, dec_point);
 
 % Sometimes there are two points which are very close. 
 if length(slice_end_points(:, 1)) > 2
-    dec_point = 6;
     while length(slice_end_points(:, 1)) > 2
         dec_point = dec_point - 1;
         slice_end_points = unique(round(slice_end_points, dec_point, 'decimals'), 'rows', 'stable');
@@ -759,7 +903,7 @@ else
 end
 
 % Order the slice points to make lines
-slice_intersect_points = order_points_on_plane(slice_intersect_points);
+slice_intersect_points = order_points_on_plane(slice_intersect_points, dec_point);
 [slice_intersect_points] = reindex_line_ends(slice_intersect_points, slice_end_points);
 
 intersect_points = slice_intersect_points;
@@ -775,7 +919,7 @@ end
 %==========================================================================
 % - G E T   P L A N E   S U R F A C E   I N T E R S E C T 
 %==========================================================================
-function [intersect_pos] = get_plane_surface_intersect(edges, pos, plane_vec, plane_pos)
+function [intersect_pos] = get_plane_surface_intersect(edges, pos, plane_vec, plane_pos, dec_point)
 % Calculate the intersection points between a plane and a set of line segments.
 %
 % Syntax:
@@ -829,7 +973,7 @@ for i = 1:length(edges(:, 1))
         p = p1 + t * v;
 
         % Check if the intersection point lies on the line segment
-        t = round(dot(p - p1, v) / dot(v, v), 6, 'decimal');
+        t = round(dot(p - p1, v) / dot(v, v), dec_point, 'decimal');
 
         if t >= 0 && t <= 1
             % Store that point
@@ -840,14 +984,14 @@ for i = 1:length(edges(:, 1))
 
 end
 
-intersect_pos = unique(round(intersect_pos, 6, 'decimals'), 'rows', 'stable');
+intersect_pos = unique(round(intersect_pos, dec_point, 'decimals'), 'rows', 'stable');
 end
 
 
 %==========================================================================
 % - F I N D   L I N E   T R I A N G L E   I N T E R S E C T I O N
 %==========================================================================
-function [intersection_point, vertices, tris] = find_line_triangle_intersection(direction, origin, vertices, tris)
+function [intersection_point, vertices, tris] = find_line_triangle_intersection(direction, origin, vertices, tris, dec_point)
 % Finds the intersection point between a line and a set of triangles in 3D space.
 %
 % Syntax:
@@ -905,7 +1049,7 @@ for i = 1:num_triangles
     end
 end
 
-intersection_point = round(intersection_point, 6, 'decimals');
+intersection_point = round(intersection_point, dec_point, 'decimals');
 
 % If there is an intersection point, add it into the convhull
 if ~isempty(intersection_point)
@@ -926,19 +1070,18 @@ end
 %==========================================================================
 % - O R D E R   P O I N T S   O N   A   P L A N E
 %==========================================================================
-function ordered_points = order_points_on_plane(points)
+function ordered_points = order_points_on_plane(points, dec_point)
     % Inputs:
     %   - points: nx3 matrix representing the coordinates of the points
     % Output:
     %   - ordered_points: nx3 matrix with the points sorted in a circular
     %        order around the origin, corrected for plane orientation
-    points = unique(round(points, 6, 'decimals'), 'rows', 'stable');
+    points = unique(round(points, dec_point, 'decimals'), 'rows', 'stable');
+    
     % If origin and normal are not provided, calculate them from the points
-    if nargin < 2
-        origin = mean(points, 1);
-        [~, ~, V] = svd(points - origin);
-        normal = V(:, end)';
-    end
+    origin = mean(points, 1);
+    [~, ~, V] = svd(points - origin);
+    normal = V(:, end)';
 
     % Calculate the vector from the origin to each point
     vectors = points - origin;
@@ -993,7 +1136,7 @@ end
 %==========================================================================
 % - C U T   L I N E   E N D S 
 %==========================================================================
-function [shorter_lines] = cut_line_ends(lines, range)
+function [shorter_lines] = cut_line_ends(lines, range, dec_point)
 % Syntax:
 %   [shorter_lines] = cut_line_ends(lines, range)
 %
@@ -1036,7 +1179,7 @@ cumd = [0; cumsum(d)];
 
 % Normalise the cumulative distance
 fracd = cumd / total_length;
-fracd = round(fracd, 6, 'decimals');
+fracd = round(fracd, dec_point, 'decimals');
 % Find the new endpoints
 idx = zeros(1, length(range));
 end_points = zeros(length(range), 3);
@@ -1057,7 +1200,7 @@ for i = 1:length(range)
     end
 end
 
-end_points = round(end_points, 6, 'decimals');
+end_points = round(end_points, dec_point, 'decimals');
 
 % Trim
 lines(idx(2):end, :) = [];
@@ -1075,7 +1218,7 @@ end
 % - F I N D   F R A C T I O N   A L O N G   L I N E 
 %==========================================================================
 
-function [frac, lines] = find_fraction_along_line(lines, point)
+function [frac, lines] = find_fraction_along_line(lines, point, dec_point)
 % Calculates the fraction of the total length of a 3D line chain where a
 % specified point lies.
 %
@@ -1096,15 +1239,15 @@ function [frac, lines] = find_fraction_along_line(lines, point)
 %   Note: The function assumes that 'lines' forms a continuous chain of lines in
 %   3D space and that 'point' is a 3D point in the same space.
 
-lines = round(lines, 6, 'decimals');
+lines = round(lines, dec_point, 'decimals');
 end_points = [lines(1, :); lines(end, :)];
-point = round(point, 6, 'decimals');
+point = round(point, dec_point, 'decimals');
 
 % Reorder the line, including this new point
 if ~any(ismember(lines, point, 'rows'))
     lines(end + 1, :) = point;
     lines = unique(lines, 'rows', 'stable');
-    lines = order_points_on_plane(lines);
+    lines = order_points_on_plane(lines, dec_point);
     lines = reindex_line_ends(lines, end_points);
 end
 
@@ -1122,12 +1265,12 @@ point_idx = find(ismember(lines, point, 'rows'), 1, 'first');
 
 % If the point is no longer there, a rounding issue has occured.
 if isempty(point_idx)
-	% Find the closest point (it should be clear).
-	[~, closestIdx] = min(vecnorm(lines - point,2,2));
-	point = lines(closestIdx,:);
+    % Find the closest point (it should be clear).
+    [~, closestIdx] = min(vecnorm(lines - point,2,2));
+    point = lines(closestIdx,:);
 
-	% Find this replacement point in the new lines array
-	point_idx = find(ismember(lines, point, 'rows'), 1, 'first');
+    % Find this replacement point in the new lines array
+    point_idx = find(ismember(lines, point, 'rows'), 1, 'first');
 end
 
 dist = cumd(point_idx);
@@ -1263,4 +1406,91 @@ cumd = [0; cumsum(d)];
 % Compute the total length of the line
 total_length = cumd(end);
 
+end
+
+%==========================================================================
+% - G E T   S C A L P   V E C T O R S
+%==========================================================================
+function [primary_tangent, secondary_tangent, arc_points] = get_scalp_vectors(sensor_position_2D, LPA, RPA)
+% Makes orthogonal scalp vectors using tangential basis
+A = LPA;
+B = sensor_position_2D;
+C = RPA;
+
+% Check if colinear
+area2 = abs(det([B - A; C - A]));
+scale = norm(B - A) * norm(C - A);
+tol   = 1e-6;
+
+if area2 / scale < tol
+    % Correct for left/right/middle
+    base_dir = C - A;
+    base_dir = base_dir / norm(base_dir);
+
+    if dot(B - A, base_dir) < 0
+        primary_tangent = -base_dir;
+        secondary_tangent = [primary_tangent(2), -primary_tangent(1)];
+    elseif dot(B - C, base_dir) > 0
+        primary_tangent = -base_dir;
+        secondary_tangent = [primary_tangent(2), -primary_tangent(1)];
+    else
+        primary_tangent = base_dir;
+        secondary_tangent = [primary_tangent(2), -primary_tangent(1)];
+    end
+
+    arc_points = [linspace(A(1), C(1), 2)', ...
+                  linspace(A(2), C(2), 2)'];
+    return
+end
+
+% Circle through points
+mid_AB = (A + B) / 2;
+mid_BC = (B + C) / 2;
+
+dir_AB = B - A;
+dir_BC = C - B;
+
+perp_AB = [-dir_AB(2), dir_AB(1)];
+perp_BC = [-dir_BC(2), dir_BC(1)];
+
+M = [perp_AB(:), -perp_BC(:)];
+rhs = (mid_BC - mid_AB)';
+params = M \ rhs;
+
+centre = mid_AB + params(1) * perp_AB;
+r = norm(A - centre);
+
+% Find it on the arc
+theta_A = atan2(A(2) - centre(2), A(1) - centre(1));
+theta_B = atan2(B(2) - centre(2), B(1) - centre(1));
+theta_C = atan2(C(2) - centre(2), C(1) - centre(1));
+
+theta_A = mod(theta_A, 2*pi);
+theta_B = mod(theta_B, 2*pi);
+theta_C = mod(theta_C, 2*pi);
+
+% Arc direction
+ccw_AC = mod(theta_C - theta_A, 2*pi);
+ccw_AB = mod(theta_B - theta_A, 2*pi);
+
+if ccw_AB <= ccw_AC
+    theta = linspace(theta_A, theta_A + ccw_AC, 200);
+else
+    theta = linspace(theta_A, theta_A - (2*pi - ccw_AC), 200);
+end
+  
+arc_points = [centre(1) + r * cos(theta(:)), centre(2) + r * sin(theta(:))];
+
+% Tangents
+[~, idx] = min(vecnorm(arc_points - sensor_position_2D, 2, 2));
+
+if idx > 1 && idx < size(arc_points, 1)
+    primary_tangent = arc_points(idx + 1, :) - arc_points(idx - 1, :);
+else
+    primary_tangent = arc_points(min(idx + 1, end), :) ...
+            - arc_points(max(idx - 1, 1), :);
+end
+
+primary_tangent = primary_tangent / norm(primary_tangent);
+secondary_tangent = [primary_tangent(2), -primary_tangent(1)];
 end

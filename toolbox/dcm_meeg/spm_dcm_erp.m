@@ -217,7 +217,7 @@ else
      IS = 'spm_gen_erp';
 end
 
-% intial states and equations of motion
+% initial states and equations of motion
 %--------------------------------------------------------------------------
 [x,f,h] = spm_dcm_x_neural(pE,model);
 
@@ -239,7 +239,7 @@ M.l    = Nc;
 M.ns   = Ns;
 M.Nmax = Nmax;
 
-% re-intialise states
+% re-initialise states
 %--------------------------------------------------------------------------
 M.x    = spm_dcm_neural_x(pE,M);
     

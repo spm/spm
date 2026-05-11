@@ -81,8 +81,8 @@ M       = spm_DEM_M_set(M);
  
 % learn gradients with a flat loss-functions (priors on divergence)
 %==========================================================================
-DEM.U   = sparse(128,1);
-DEM.C   = sparse(128,1);
+DEM.U   = sparse(1,128);
+DEM.C   = sparse(1,128);
 DEM.G   = G;
 DEM.M   = M;
  

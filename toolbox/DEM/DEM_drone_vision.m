@@ -207,7 +207,7 @@ for f = 1:numel(n)
     B{f}        = spm_dir_norm(B{f});
 end
 
-% intial states
+% initial states
 %--------------------------------------------------------------------------
 c = round(Nx/2);
 D = [full(sparse(1,1,1,Na,1)); D];           % drone angles
@@ -433,7 +433,7 @@ MDP   = mdp;
 MDP.T = Nx + 8;
 MDP.D(1 + Nu:end) = MAP;
 
-% Specify intial (home) and final hidden (goal) states (hid)
+% Specify initial (home) and final hidden (goal) states (hid)
 %--------------------------------------------------------------------------
 % location of hidden factors in rectangular coordinates
 %--------------------------------------------------------------------------
@@ -446,10 +446,10 @@ s          = XYZ(W == 1,:);
 s1         = s(1,:);
 s2         = s(c,:);
 
-MDP.D{1}   = full(sparse(s1(1),1,1,Nx,1));   % inital state
-MDP.D{2}   = full(sparse(s1(2),1,1,Ny,1));   % inital state
-MDP.D{3}   = full(sparse(s1(3),1,1,Nz,1));   % inital state
-MDP.D{4}   = full(sparse(    1,1,1,Na,1));   % inital state
+MDP.D{1}   = full(sparse(s1(1),1,1,Nx,1));   % initial state
+MDP.D{2}   = full(sparse(s1(2),1,1,Ny,1));   % initial state
+MDP.D{3}   = full(sparse(s1(3),1,1,Nz,1));   % initial state
+MDP.D{4}   = full(sparse(    1,1,1,Na,1));   % initial state
 
 MDP.id.hid = s2(:);                          % final  state
 MDP        = spm_MDP_VB_XXX(MDP);

@@ -295,7 +295,7 @@ if  length(trlind)>1 && ~all(all(isnan(dat)))
         % optimize its position further to include more trials if possible.
         
         % The density is compute in PCA space of at most 3 dimensions
-        [coeff, score, eigv] = princomp(dat');
+        [coeff, score, eigv] = pca(dat');
         %%
         boundL=min(score);
         boundU=max(score);
@@ -399,7 +399,7 @@ if S.correctsens && ((length(hlc_chan_ind) == 9) || numel(D)>1) && ~isempty(trli
     
     grad = sensors(D{1}, 'MEG');
     
-    newgrad = ft_transform_sens(M*inv(M1), grad);
+    newgrad = ft_transform_geometry(M*inv(M1), grad);
     
     if S.toplot
         figure(pntfig);
@@ -426,7 +426,7 @@ if S.correctsens && ((length(hlc_chan_ind) == 9) || numel(D)>1) && ~isempty(trli
         axis equal off
     end
     
-    newfid = ft_transform_headshape(M*inv(M1), fiducials(D{1}));
+    newfid = ft_transform_geometry(M*inv(M1), fiducials(D{1}));
     
     for f = 1:numel(D)
         D{f} = sensors(D{f}, 'MEG', newgrad);

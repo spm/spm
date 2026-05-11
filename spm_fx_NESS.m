@@ -10,7 +10,7 @@ function F = spm_fx_NESS(x,u,P,M,OPT)
 % P.W     - precision of random fluctuations
 %
 % f       - polynomial approximation to flow
-% S       - negative potential (log NESS density)
+% S       - surprisal or negative (log NESS density)
 % Q       - flow operator (R + G) with solenoidal and symmetric parts
 % L       - correction term for derivatives of solenoidal flow
 % H       - Hessian
@@ -23,9 +23,10 @@ function F = spm_fx_NESS(x,u,P,M,OPT)
 %
 % flow  (Jacobian J = df/dx)
 %--------------------------------------------------------------------------
-%   S     = ln(p(x))       =  X*H*X'/2;
-%   f     = (R + G)*dS/dx  =  Q*dS/dx
-%   df/dx = J = -(R + G)*H = -Q*H
+%   S     = -ln(p(x)) = x*H*x'/2;
+%   dS/dx = H*x
+%   f     = -(R + G)*dS/dx  = -Q*dS/dx = -Q*H*x
+%   df/dx = -(R + G)*H      = -Q*H = J 
 %   H     = K'*K
 %   G     = inv(W)/2;
 %
@@ -84,6 +85,12 @@ else
     G = inv(P.W)/2;
 end
 
+% state-dependent random fluctuations
+%--------------------------------------------------------------------------
+if ~isfield(P,'Gp')
+    P.Gp = zeros(n,n);
+end
+
 % correction term for solenoidal flow (L) and Kroneckor form of Q (Qp)
 %--------------------------------------------------------------------------
 Q     = zeros(n,n);
@@ -91,7 +98,12 @@ L     = zeros(n,1,'like',U.b(1));
 for i = 1:n
     for j = 1:n
         bQij   = squeeze(bQ(i,j,:));
-        Q(i,j) = U.b*bQij + G(i,j);
+        if i == j
+            Q(i,j) = U.b*bQij + G(i,j)*exp(U.X*P.Gp(:,j));
+        else
+            Q(i,j) = U.b*bQij + G(i,j);
+
+        end
         L(i)   = L(i) - U.D{j}*bQij;
     end
 end
@@ -101,12 +113,10 @@ end
 K   = zeros(n,n);
 DK  = zeros(n,n,n);
 for i = 1:n
-    for j = i:n
+    for j = 1:n
         K(i,j) = U.b*P.Sp(:,i,j);
-        K(j,i) = K(i,j);
         for k = 1:n
             DK(i,j,k) = U.D{k}*P.Sp(:,i,j);
-            DK(j,i,k) = DK(i,j,k);
         end
     end
 end
@@ -145,7 +155,7 @@ DS = DS + DX'*H*X;
 
 % predicted flow: F = -Q*D*S - L
 %--------------------------------------------------------------------------
-F  = -Q*DS - L;
+F  = -Q*DS;
 
 % required output
 %--------------------------------------------------------------------------

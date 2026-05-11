@@ -326,7 +326,7 @@ spm_figure('GetWin','Figure 3'); clf;
 N     = 64;                                    % number of trials
 for k = 1:64                                   % for K agents
 
-    % initalise MDP for this schemes
+    % initialise MDP for this schemes
     %----------------------------------------------------------------------
     MDP      = mdp;
     MDP.a{1} = A{1}*512;

@@ -40,7 +40,7 @@ F   = 0;                              % ELBO
 % belief propagation with marginals of exact posterior
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% Intial update of domain factors Q{ff} with children
+% initial update of domain factors Q{ff} with children
 %==========================================================================
 if isfield(id,'ff')
     for p = 1:numel(ig)               % for each partition of modalities

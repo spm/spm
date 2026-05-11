@@ -329,7 +329,7 @@ function MDP = spm_maze_search(mdp,N,START,END,alpha,beta)
 % FORMAT MDP = spm_maze_search(mdp,N,START,END,alpha,beta)
 % mdp   - MDP structure
 % N     - number of trials (i.e., policies: default 8)
-% START - index of intial state (default 1)
+% START - index of initial state (default 1)
 % END   - index of target state (default 1)
 % alpha - prior concentration parameter for likelihood (default 128)
 % beta  - precision of prior preference (default 0)
