@@ -23,6 +23,8 @@ a1
 
 b1
 
+c1
+
 D.inv{val}.mesh.tess_iskull=[newpath filesep b1 c1];
 
 [a1,b1,c1]=spm_fileparts(D.inv{val}.mesh.tess_oskull);
