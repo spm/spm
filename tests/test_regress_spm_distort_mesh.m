@@ -13,7 +13,9 @@ D     = spm_eeg_load(fname);
 fprintf('\n output for debugging:')
 val=1;
 D.inv{val}.mesh.tess_ctx
-D = spm_setmeshpaths(D,fullfile(spm('Dir'),'canonical')); %% set to local paths
+fprintf('\n trying to assign path')
+newpath=fullfile(spm('Dir'),'canonical')
+D = spm_setmeshpaths(D,newpath); %% set to local paths
 fprintf('\n output for debugging after path change:')
 D.inv{val}.mesh.tess_ctx
 D.inv{1}.mesh
