@@ -44,12 +44,12 @@ x{1}(:,:,1) = -70;
 %--------------------------------------------------------------------------
 M.g   = {};
 M.f   = 'spm_fx_nmda';
-M.x   = x;
+M.x   = x{1};
 M.pE  = P;
-M.n   = length(spm_vec(x));
+M.n   = length(spm_vec(x{1}));
 M.u   = sparse(ns,1);
 
 
 % solve for fixed point 
 %--------------------------------------------------------------------------
-x     = spm_dcm_neural_x(P,M);
+x     = {spm_dcm_neural_x(P,M)};
