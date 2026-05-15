@@ -149,9 +149,16 @@ for i = 1:size(S.woi, 1)
 end
 
 nsamples = unique(cellfun(@length, samples));
-
 if length(nsamples)~=1
-    error('all windows must be of equal length');
+	warning('adjusting windows to be of equal length')
+	[~,longest] = max(cellfun(@length, samples));
+	diff_samp = max(nsamples) - min(nsamples);
+	S.woi(longest,2) = D.time(D.indsample(S.woi(longest,2)) - diff_samp);
+	samples = {};
+	for i = 1:size(S.woi, 1)
+		samples{i} = D.indsample(S.woi(i, 1)):D.indsample(S.woi(i, 2));
+	end
+	nsamples = unique(cellfun(@length, samples));
 end
 
 windowduration  = nsamples/D.fsample;
