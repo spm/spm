@@ -8,6 +8,7 @@ function results = spm_tests(varargin)
 %     cobertura: save code coverage results in the Cobertura XML format [default: false]
 %     tag:       test tag selector [default: '', ie all tests]
 %     tap:       save a Test Anything Protocol (TAP) file [default: false]
+%     junitxml:  save test results in JUnit-style XML [default: false]
 %     test:      name of function to test [default: '', ie all tests]
 %     class:     class of test 'regression' or 'unit'. [deault: 'unit']
 % results     - TestResult array containing information describing the
@@ -27,8 +28,8 @@ spm('FnBanner',mfilename);
 %-Input parameters
 %--------------------------------------------------------------------------
 options = struct('verbose',2, 'display',false, 'coverage',false, ...
-                 'cobertura',false, 'tag', '', 'tap',false, 'test','',...
-                 'class','unit');
+                 'cobertura',false, 'tag', '', 'tap',false, 'junitxml',false, ...
+                 'test','', 'class','unit');
 if nargin
     if isstruct(varargin{1})
         fn = fieldnames(varargin{1});
@@ -121,6 +122,18 @@ if options.tap
     if isempty(d), d = spm('Dir'); end
     tapFile = fullfile(d,'spm_tests.tap');
     plugin = TAPPlugin.producingVersion13(ToFile(tapFile));
+    runner.addPlugin(plugin);
+end
+
+if options.junitxml
+    d = getenv('WORKSPACE');
+    if isempty(d), d = spm('Dir'); end
+    if ischar(options.junitxml) || (isstring(options.junitxml) && isscalar(options.junitxml))
+        junitFile = char(options.junitxml);
+    else
+        junitFile = fullfile(d,'spm_tests_junit.xml');
+    end
+    plugin = XMLPlugin.producingJUnitFormat(junitFile);
     runner.addPlugin(plugin);
 end
 

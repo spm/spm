@@ -134,22 +134,31 @@ jobs:
         if: ${{github.event.schedule == '40 16 * * 3' && (matrix.version == 'R2020a' || matrix.version == 'R2020b' || matrix.version == 'R2022a' || matrix.version == 'R2022b')}}
         uses: matlab-actions/run-command@v1
         with:
-          command: addpath(pwd); results = spm_tests('class','regression','display',true); assert(all(~[results.Failed]));
+          command: addpath(pwd); results = spm_tests('class','regression','display',true,'junitxml',true); assert(all(~[results.Failed]));
       - name: Run unit tests with existing MEX files (legacy)
         if: ${{github.event.schedule != '40 16 * * 3' && (matrix.version == 'R2020a' || matrix.version == 'R2020b' || matrix.version == 'R2022a' || matrix.version == 'R2022b')}}
         uses: matlab-actions/run-command@v1
         with:
-          command: addpath(pwd); results = spm_tests('class','unit','display',true); assert(all(~[results.Failed]));
+          command: addpath(pwd); results = spm_tests('class','unit','display',true,'junitxml',true); assert(all(~[results.Failed]));
       - name: Run regression tests with existing MEX files
         if: ${{github.event.schedule == '40 16 * * 3' && matrix.version != 'R2020a' && matrix.version != 'R2020b' && matrix.version != 'R2022a' && matrix.version != 'R2022b'}}
         uses: matlab-actions/run-command@v2
         with:
-          command: addpath(pwd); results = spm_tests('class','regression','display',true); assert(all(~[results.Failed]));
+          command: addpath(pwd); results = spm_tests('class','regression','display',true,'junitxml',true); assert(all(~[results.Failed]));
       - name: Run unit tests with existing MEX files
         if: ${{github.event.schedule != '40 16 * * 3' && matrix.version != 'R2020a' && matrix.version != 'R2020b' && matrix.version != 'R2022a' && matrix.version != 'R2022b'}}
         uses: matlab-actions/run-command@v2
         with:
-          command: addpath(pwd); results = spm_tests('class','unit','display',true); assert(all(~[results.Failed]));
+          command: addpath(pwd); results = spm_tests('class','unit','display',true,'junitxml',true); assert(all(~[results.Failed]));
+
+      - name: Upload JUnit XML test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: junit-${{ matrix.os }}-${{ matrix.version }}
+          path: spm_tests_junit.xml
+          if-no-files-found: warn
+          retention-days: 7
 
       - name: Compile MEX files
         run: |
@@ -171,3 +180,79 @@ jobs:
           name: spm-${{env.MEXEXT}}-${{runner.os}}-${{matrix.version}}
           path: ./**/*.${{env.MEXEXT}}
           retention-days: 1
+
+  publish-test-results:
+    name: Publish test results
+    needs: matlab-tests
+    runs-on: ubuntu-latest
+    # Run even if (some) test jobs failed, so we still publish a per-test breakdown.
+    # Skip only if the workflow was cancelled.
+    if: always() && !cancelled()
+    permissions:
+      checks: write
+      pull-requests: write
+      contents: read
+      issues: read
+    steps:
+      - name: Download all JUnit XML artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: junit-artifacts
+          pattern: junit-*
+          merge-multiple: false
+
+      - name: Tag JUnit suites with OS / MATLAB version and write matrix summary
+        shell: python {0}
+        run: |
+          import os, pathlib, xml.etree.ElementTree as ET
+          root = pathlib.Path("junit-artifacts")
+          summary_rows = []
+          for d in sorted(root.iterdir()):
+              if not d.is_dir() or not d.name.startswith("junit-"):
+                  continue
+              # junit-<os>-<version> — e.g. junit-windows-latest-R2024a,
+              # junit-macos-15-intel-R2020a. The version is the last
+              # hyphen-separated token; os keeps any internal hyphens.
+              rest = d.name[len("junit-"):]
+              os_name, _, version = rest.rpartition("-")
+              label = f"{os_name}/{version}"
+              totals = {"tests": 0, "failures": 0, "errors": 0, "skipped": 0}
+              for xml in d.glob("*.xml"):
+                  tree = ET.parse(xml)
+                  for ts in tree.iter("testsuite"):
+                      name = ts.get("name", "")
+                      if not name.startswith(label + "/"):
+                          ts.set("name", f"{label}/{name}")
+                      for k in totals:
+                          totals[k] += int(ts.get(k, "0") or 0)
+                  tree.write(xml, encoding="utf-8", xml_declaration=True)
+              summary_rows.append((os_name, version, totals))
+
+          lines = ["## Test matrix summary", "",
+                   "| OS | MATLAB | Tests | Failures | Errors | Skipped |",
+                   "|---|---|---:|---:|---:|---:|"]
+          for os_name, version, t in sorted(summary_rows):
+              marker = " :x:" if (t["failures"] or t["errors"]) else ""
+              lines.append(
+                  f"| {os_name} | {version} | {t['tests']} | "
+                  f"{t['failures']}{marker} | {t['errors']} | {t['skipped']} |"
+              )
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as f:
+              f.write("\n".join(lines) + "\n")
+
+      - name: Publish aggregated test results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        with:
+          # One file per matrix job; filenames are unique because of the
+          # artifact name (matrix os + MATLAB version) used as the directory.
+          files: junit-artifacts/**/*.xml
+          check_name: "Test Results (per test)"
+          comment_mode: always
+          # Don't fail this job — the matrix jobs already encode pass/fail
+          # status. This job's purpose is purely reporting.
+          fail_on: nothing
+          action_fail: false
+          # List each matrix run separately when a test fails on a subset of
+          # the matrix, so OS/version attribution is visible in drill-in.
+          report_individual_runs: true
+          check_run_annotations: all tests
