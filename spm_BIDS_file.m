@@ -130,7 +130,7 @@ end
 %-ITERATE over combinations of inputs
 %=========================================================================
 % Prepare for iteration
-if ~isfield(S.BIDS, 'ses') && ~isempty(S.BIDS.ses)
+if ~isfield(S.BIDS, 'ses') || ~isempty(S.BIDS.ses)
     S.BIDS.ses = {''};
 end
 out_idx = 1;
