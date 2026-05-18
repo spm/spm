@@ -84,6 +84,16 @@ invfunc.values = {'Current','Classic'};
 invfunc.val = {'Classic'};
 
 
+Lshuffle=cfg_entry;
+Lshuffle.tag='Lshuffle'
+Lshuffle.strtype = 'r';
+Lshuffle.name = 'Shuffle lead fields';
+Lshuffle.help = {'Can disconnect lead fields from sensors, either enter single random seed or vector of new sensor allocations (default 0, normal operation)'};
+Lshuffle.num=[1 Inf];
+Lshuffle.val = {[0]};
+
+
+
 invtype = cfg_menu;
 invtype.tag = 'invtype';
 invtype.name = 'Inversion type';
@@ -270,7 +280,7 @@ custom = cfg_branch;
 custom.tag = 'custom';
 custom.name = 'Custom';
 custom.help = {'Define custom settings for the inversion'};
-custom.val  = {invfunc,invtype, woi, foi, hanning,isfixedpatch,patchfwhm,mselect,nsmodes,umodes,ntmodes, priors, restrict,outinv};
+custom.val  = {invfunc,invtype, woi, foi, hanning,isfixedpatch,patchfwhm,mselect,nsmodes,umodes,ntmodes, priors, restrict,outinv,Lshuffle};
 
 isstandard = cfg_choice;
 isstandard.tag = 'isstandard';
@@ -330,6 +340,15 @@ if numel(job.D)>1,
     error('iterative routine only meant for single subjects');
 end;
 
+
+
+if ~isfield(job.isstandard.custom,'Lshuffle')
+    ShuffleLeads=[];
+else
+    ShuffleLeads=job.isstandard.custom.Lshuffle;
+end;
+
+
 savecopyinv=0; %% by default update dataset
 if isfield(job.isstandard, 'custom')
     funccall=job.isstandard.custom.invfunc;
@@ -339,17 +358,15 @@ if isfield(job.isstandard, 'custom')
     inverse.lpf  =  fix(min(job.isstandard.custom.foi)); %% hpf and lpf are the wrong way round at the moment but leave for now
     inverse.hpf  =  fix(max(job.isstandard.custom.foi));
     inverse.mergeflag=job.isstandard.custom.mselect;
-    
+
     savecopyinv = ~isempty(job.isstandard.custom.outinv);
-    
+
     if ~isfield(job.isstandard.custom.isfixedpatch,'fixedpatch'), % fixed or random patch
         inverse.Np =  fix(max(job.isstandard.custom.isfixedpatch.randpatch.npatches));
         Npatchiter =  fix(max(job.isstandard.custom.isfixedpatch.randpatch.niter));
         allIp=[];
     else
-        
-        %% load in patch file
-        
+
         dum=load(char(job.isstandard.custom.isfixedpatch.fixedpatch.fixedfile));
         if ~isfield(dum,'Ip'),
             error('Need to have patch indices in structure Ip');
@@ -357,7 +374,7 @@ if isfield(job.isstandard, 'custom')
         allIp=dum.Ip;
         lastrow=min(job.isstandard.custom.isfixedpatch.fixedpatch.fixedrows(2),size(allIp,1));
         rowind=[job.isstandard.custom.isfixedpatch.fixedpatch.fixedrows(1):lastrow];
-        
+
         allIp=allIp(rowind,:);
         inverse.Np =  size(allIp,2);
         Npatchiter =  size(allIp,1);
@@ -368,7 +385,7 @@ if isfield(job.isstandard, 'custom')
         inverse.Nm=[];
         disp('Auto selecting number of spatial modes');
     end;
-    
+
     inverse.Nt =  fix(max(job.isstandard.custom.ntmodes));
     if inverse.Nt==0,
         inverse.Nt=[];
@@ -380,9 +397,9 @@ if isfield(job.isstandard, 'custom')
     a=[];
     if ~isempty(job.isstandard.custom.umodes),
         disp('Loading spatial modes from file');
-        
+
         a=load(cell2mat(job.isstandard.custom.umodes));
-        
+
         if isfield(a,'testchans'), %% see if some of channels have been turned off
             testchans=a.testchans;
             if numel(a.U)~=size(testchans,1),
@@ -396,18 +413,18 @@ if isfield(job.isstandard, 'custom')
     else %% if isempty U mode file
         A=[];
     end;
-    
-    
-    
-    
-    
+
+
+
+
+
     if inverse.Nt==0,
         disp('Getting number of temporal modes from data');
         inverse.Nt=[];
     end;
-    
-    
-    
+
+
+
     P = char(job.isstandard.custom.priors.priorsmask);
     if ~isempty(P)
         [p,f,e] = fileparts(P);
@@ -431,13 +448,30 @@ if isfield(job.isstandard, 'custom')
                 inverse.pQ = pQ;
             otherwise
                 error('Unknown file type.');
-        end
-    end
-    
+        end % lower (e)
+    end % if isempty(P)
+
     if ~isempty(job.isstandard.custom.restrict.locs)
         inverse.xyz = job.isstandard.custom.restrict.locs;
         inverse.rad = job.isstandard.custom.restrict.radius;
     end
+
+    if isempty(ShuffleLeads),
+        ShuffleLeads=0;
+    end;
+
+    if ShuffleLeads, % non zero or a vector
+        Nchans=D.nchannels;
+        if length(ShuffleLeads)==1, %% non zero value supplied
+            fprintf('\n Re-setting random seed to %d and generating shuffled leads',ShuffleLeads);
+            rng(ShuffleLeads,'twister');
+            shuffvect=randperm(Nchans);
+        else
+            fprintf('\n Using supplied shuffling vector to determine lead allocation');
+            shuffvect=ShuffleLeads;
+        end;
+        inverse.Lshuffle=shuffvect;
+    end;
 else %% standard inversion option, empty fields so they will become defaults
     funccall='Current';
     inverse.Np = [];
@@ -445,6 +479,11 @@ else %% standard inversion option, empty fields so they will become defaults
     inverse.Niter=[];
     inverse.Ns=[];
     Npatchiter = 1;
+    %% load in patch file
+    if ShuffleLeads,
+        error('Sorry no shuffle leads available in this path (need to use custom)');
+    end;
+
 end
 
 [mod, list] = modality(D, 1, 1);
@@ -464,11 +503,11 @@ D = {};
 
 for i = 1:numel(job.D)
     D{i} = spm_eeg_load(job.D{i});
-    
+
     D{i}.val = job.val;
-    
+
     D{i}.con = 1;
-    
+
     if ~isfield(D{i}, 'inv')
         error('Forward model is missing for subject %d.', i);
     elseif  numel(D{i}.inv)<D{i}.val || ~isfield(D{i}.inv{D{i}.val}, 'forward')
@@ -481,24 +520,24 @@ for i = 1:numel(job.D)
     end
     val=D{i}.val;
     D{i}.inv{val}.inverse = inverse;
-    
+
     D{i}.inv{val}.inverse.allF=zeros(1,Npatchiter);
-    
-    
+
+
     %% commented out section will add an inversion at new indices
-    
+
     %     for iterval=1:Npatchiter-1,
     %         D{i}.inv{iterval+val}=D{i}.inv{val}; %% copy inverse to all iterations which will be stored in the same file in higher vals
     %     end;
     D{i}.inv{D{i}.val}.inverse.PostMax=zeros(  length(D{i}.inv{D{i}.val}.forward.mesh.vert),1);
-    
-    
+
+
     M1.vertices  = D{i}.inv{val}.mesh.tess_mni.vert;
     M1.faces  = D{i}.inv{val}.mesh.tess_mni.face;
-    
-    
-    
-    
+
+
+
+
 end
 
 
@@ -530,14 +569,13 @@ if isfield(a,'testchans'),
     end;
 else,
     fprintf('Making random test channels \n')
-    rng('default');rng(0); %% always use same random seed here- so that cross vals (and Fs) between models can be compared
-    
+    %rng('default');rng(0); %% always use same random seed here- so that cross vals (and Fs) between models can be compared
+    warning('\n Not reseting random number seed')
     for b=1:Nblocks,
         dum=randperm(length(megind));
         testchans(b,:)=dum(1:Ntestchans); %% channels which will be used for testing (Set to bad during training)
-        %useind(b,:)=setdiff(1:length(megind),testchans(b,:)); %% training channels used here to get the spatial modes
     end;
-    
+
 end;
 
 
@@ -547,7 +585,7 @@ end;
 %% load in lead field matrix (with all good chans and make a copy)
 
 [Lfull D{1}]=spm_eeg_lgainmat(D{1});
- gainname = D{1}.inv{1}.gainmat
+gainname = D{1}.inv{1}.gainmat
 % load(fullfile(D{1}.path, fname),'G','label');
 % fullgainname=fullfile(D{1}.path, ['Full_' fname]);
 % save(fullgainname,'G','label');
@@ -560,57 +598,57 @@ allfract=zeros(Nblocks,Ntestchans);
 crossF=zeros(Nblocks,1);
 xvalchans=testchans.*0;
 for b=1:Nblocks,
-    
-    
+
+
     badmegind=testchans(b,:);
     xvalchans(b,:)=megind(badmegind);
     D{1} = badchannels(D{1}, 1:Nchans, 0); %% set all chans to good
     D{1} = badchannels(D{1}, [megind(badmegind) origbadind], 1); %% set original + test chans as bad
-    
-    
-    
+
+
+
     D{1}.inv{val}.inverse.A=crossU{b};;
-    
+
     [Dout,allmodels,allF] = spm_eeg_invertiter(D,Npatchiter,funccall,allIp);
-    
+
     Dout{1} = badchannels(Dout{1}, 1:Nchans, 0); %% set all channels as good
     Dout{1} = badchannels(Dout{1}, origbadind, 1); %% set original bad channels back to bad
     inverse=Dout{1}.inv{val}.inverse;
-    
-    
-    
+
+
+
     L=inverse.L; %% lead fields used
     U=inverse.U{:}; %% lead field projection
     T=inverse.T; %% temporal projector
-    
+
     Ic=inverse.Ic{1}; % trials
     It=inverse.It; %% time points
     Ik=inverse.Ik; %% trials
-    
+
     M=inverse.M; %% MAP operator
-    
-    
+
+
     crossF(b)=inverse.F; %% ok now trained for this model
-    
+
     %% use hanning window if used in inversion
     if inverse.Han,
         W  = repmat(spm_hanning(length(It))',length(Ic),1); %% use hanning unless specified
     else
         W=ones(length(Ic),length(It));
     end;
-    
-    
+
+
     if Ntestchans>0, %% if there are any channels to predict..
         fprintf('\n Cross val iteration %d of %d, first two chans:%d, %d..\n',b,Nblocks,testchans(b,1),testchans(b,2));
         errpred=0;
         rmstot=0;
         fracterr=0;
-        
+
         fprintf('Running cross val..');
-        
+
         for t=1:length(Ik),
             traindata=squeeze((D{1}(Ic,It,Ik(t))));
-            
+
             traindata=traindata.*W; %% hanning window
             allUYtrain=U*(traindata)*T; %
             Jtrain=M*allUYtrain; %% source estimate based on training data
@@ -623,24 +661,24 @@ for b=1:Nblocks,
             rmsdiff=sqrt(mean(diff2,2)); %% root of the mean (over temporal modes) of (error^2/ signal.^2) per chan
             rmserr=sqrt(mean(err2,2));%% root of the mean (over temporal modes) of error^2 per chan
             rmssig=sqrt(mean(sig2,2)); %root of the mean (over temporal modes) of signal^2 per chan
-            
-           
-            
-            
+
+
+
+
             errpred=errpred+rmserr;
             rmstot=rmstot+rmssig;
-            
+
             fracterr=fracterr+rmsdiff;
-           
-            
+
+
         end; % for trials
-        
+
         crosserr(b,:)=errpred./length(Ik); %per test channel temporal mode per trial
         allrms(b,:)=rmstot./length(Ik); %per test channel temporal mode per trial
         allfract(b,:)=fracterr./length(Ik); %per test channel temporal mode per trial
     end; %if pctest>0
-    
-    
+
+
 end; % for b
 
 
@@ -665,7 +703,7 @@ for i = 1:numel(D)
     if savecopyinv, %% actually going to save the dataset anyway- badchannels need to be set right
         outinvname=[D{i}.path filesep job.isstandard.custom.outinv '_' D{i}.fname];
         fprintf('\n Original dataset is being updated and a copy of inversion results written to %s\n',outinvname);
-        
+
         inv=D{i}.inv{val};
         spmfilename=D{i}.fname;
         save(outinvname,'-v7.3','inv','spmfilename');
