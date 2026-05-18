@@ -102,7 +102,7 @@ x.d.v = [0; 0];                               % velocity (drone)
 x.g.x = 0;                                    % angle    (gimble)
 x.g.v = 0;                                    % velocity (gimble)
 
-% inital velocity (missile)
+% initial velocity (missile)
 %--------------------------------------------------------------------------
 dx    = [0; 0] - x.m.x;
 x.m.v = P.m.s*dx/sqrt(dx'*dx);
@@ -227,7 +227,7 @@ spm_DEM_qU(DEM.qU,DEM.pU)
 subplot(2,2,1), title({'Sensor signals', 'prediction and error'},'FontSize',16)
 subplot(2,2,2), title({'State estimation', 'hidden states'},'FontSize',16)
 
-% create movie of radar tracking and intial approach
+% create movie of radar tracking and initial approach
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Figure 1'); clf
 spm_graphics_intercept(DEM)

@@ -78,7 +78,7 @@ hold on
 plot(Y(:,2),Y(:,1),'.r','MarkerSize',16)     % sample locations
 plot(Te(2), Te(1), '.g','MarkerSize',16)     % true position
 
-% Bayesian model reduction (Dirichlet paramterisation)
+% Bayesian model reduction (Dirichlet parameterisation)
 %--------------------------------------------------------------------------
 S     = 1:2;                                 % levels of dispersion
 F     = zeros(size(X,1),size(S,2));          % free energy
@@ -89,7 +89,7 @@ for i = 1:size(X,1)                          % for every centre
         Rp     = eye(2,2)/(S(j)^2);
         for k = 1:size(Y,1)
 
-            % Dirichlet paramterization of posteriors and reduced priors
+            % Dirichlet parametrization of posteriors and reduced priors
             %--------------------------------------------------------------
             e = Y(k,:) - Re;
             R = -(e*Rp*e')/2;

@@ -369,7 +369,7 @@ switch xG.def
         bf    = SPM.xBF.bf;
         pst   = ([1:size(bf,1)] - 1)*dt;
 
-        % orthogonalised expansion of parameteric variable
+        % orthogonalised expansion of parametric variable
         %------------------------------------------------------------------
         P     = SPM.Sess(s).U(u).P(p).P;
         q     = [];

@@ -6,8 +6,8 @@ function [pE,pC] = spm_NESS_priors(n,L,V,W,J,R,C)
 % L   - order (+1) of polynomial expansion
 % V   - prior covariance over parameters
 % W   - precisions of random fluctuations
-% J   - contraints on solenoidal parameters [ones(n,n)]
-% R   - contraints on surprisal parameters [zeros(n,n)]
+% J   - constraints on solenoidal parameters [ones(n,n)]
+% R   - constraints on surprisal parameters [zeros(n,n)]
 % C   - covariance of NESS [eye(n,n)]
 %
 % pE  - prior expectation
@@ -84,7 +84,7 @@ pC.W  = W*0;
 
 % constraints on solenoidal operator (G is modelled by M.W)
 %--------------------------------------------------------------------------
-J     = J + J';           % ensure symmetric solenoidal contraints
+J     = J + J';           % ensure symmetric solenoidal constraints
 for i = 1:n
     for j = 1:n
         if J(i,j)

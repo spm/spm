@@ -14,7 +14,7 @@ function [x,f,h] = spm_dcm_x_neural(P,model)
 % Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
 
 
-% paramteric state equation
+% parametric state equation
 %--------------------------------------------------------------------------
 h  = [];
 
