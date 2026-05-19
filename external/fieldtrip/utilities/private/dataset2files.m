@@ -137,6 +137,15 @@ switch format
     [path, file, ext] = fileparts(filename);
     headerfile = fullfile(path, [file '.vhdr']);
     datafile   = fullfile(path, [file '.dat']);
+  case 'brainvision_bvrh'
+    % this pertains to the newer brainvision fileformat
+    [path, file, ext] = fileparts(filename);
+    headerfile = fullfile(path, [file '.bvrh']);
+    datafile   = fullfile(path, [file '.bnrd']);
+  case 'brainvision_bvrd'
+    [path, file, ext] = fileparts(filename);
+    headerfile = fullfile(path, [file '.bvrh']);
+    datafile   = fullfile(path, [file '.bvrd']);
   case 'itab_raw'
     [path, file, ext] = fileparts(filename);
     headerfile = fullfile(path, [file '.raw.mhd']);
