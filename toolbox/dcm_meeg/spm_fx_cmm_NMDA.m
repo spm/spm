@@ -84,7 +84,7 @@ G    = full(P.H);
 if any(P.G)
     G(2,2,:) = squeeze(G(2,2,:)) + P.G;
 end
-  G    = exp(G);
+G    = exp(G);
 
 
 
