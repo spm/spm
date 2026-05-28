@@ -139,7 +139,11 @@ Nm    = size(M.U,2);
 
 % EM: inversion
 %==========================================================================
-[Qp,Qg,Cp,Cg,Ce,F] = spm_nlsi_N(M,xU,xY);
+[Qp,Qg,Cp,Cg,Ce,F,~,converged,Fhist] = spm_nlsi_N(M,xU,xY);
+
+DCM.convergence.converged = converged;
+DCM.convergence.F         = Fhist.F;
+DCM.convergence.L         = Fhist.L;
 
 % Data ID
 %==========================================================================
