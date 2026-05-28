@@ -50,8 +50,9 @@ fprintf('Checking leadfields');
 
 
 if isempty(patchind)
-    disp('Reseting random number seed ! and then generating random patch centres ');
-    rand('state',0);
+    %fprintf('\nNot reseting random number seed !');
+    %rand('state',0);
+    % rng(0,'twister')
     
     %% make random patch centers, except on the first iteration when we keep to a fixed stepsize
     for f=1:Npatchiter

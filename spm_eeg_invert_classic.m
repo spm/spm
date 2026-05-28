@@ -59,6 +59,8 @@ function [D] = spm_eeg_invert_classic(D,val)
 %     inverse.VE     - variance explained in spatial/temporal subspaces (%)
 %     inverse.R2     - variance in subspaces accounted for by model (%)
 %     inverse.scale  - scaling of data for each of j modalities
+%     inverse.SHUFFLELEADS- zero for normal operation (default). Otherwise
+%                           a vector of indices to change channel mapping
 %__________________________________________________________________________
 
 % Jose David Lopez, Gareth Barnes, Vladimir Litvak
@@ -121,7 +123,7 @@ try, Ip   = inverse.Ip;     catch, Ip   = [];       end
 try, QE    = inverse.QE;     catch,  QE=1;          end         %  empty room noise measurement
 try, Qe0   = inverse.Qe0;     catch, Qe0   = exp(-5);       end  %% set noise floor at 1/100th signal power i.e. assume amplitude SNR of 10
 try, inverse.A;     catch, inverse.A   = [];       end %% orthogonal channel modes
-try, SHUFFLELEADS=inverse.SHUFFLELEADS;catch, SHUFFLELEADS=0;end; %% ONLY FOR TESTING - destroyes correspondence between geometry and data
+try, Lshuffle=inverse.Lshuffle;catch, Lshuffle=0;end; %%   a vector of indices mapping sensors to leads, destroyes correspondence between geometry and data
 
 
 % defaults
@@ -149,18 +151,18 @@ else
     Ip=ceil([1:Np]*Nd/Np);
 end
 
-persistent permind;
 
 
-rand(2)
-if SHUFFLELEADS
-    rng('shuffle')
-    if isempty(permind)
-        permind=randperm(size(L,1));
-    end
+
+if Lshuffle~=0 %% then should be a vector
+    if length(Lshuffle)<size(L,1),
+        error('Vector Shuffle leads is not long enough to remap all channels ')
+    else,
+        [dum,permind]=sort(Lshuffle(1:size(L,1))); %% the sorting means that numbers in Lshuffle are relative, not actual channel indices (i.e. always get indiced spanning 1:size(L,1) )
+    end;
+    warning('Shuffling lead fields, first few indices:')
+    permind(1:5)
     L=L(permind,:);
-    warning('PERMUTING LEAD FIELDS !');
-    permind(1:3)
 end
 
 % Check gain or lead-field matrices
@@ -755,9 +757,7 @@ Ne    = length(Qe);         % Sensor noise prior
 Q     = [{Q0} LQPL]; %% sensor corvariance prior:  Qe is identity with unit trace, LQPL is in the units of data
 
 if rank(AYYA)~=size(A,1),
-    rank(AYYA)
-    size(AYYA,1)
-    warning('AYYA IS RANK DEFICIENT');
+    fprintf('\nFor AYYA, size=%d ,rank =%d',size(AYYA,1),rank(AYYA));
 end;
 
 

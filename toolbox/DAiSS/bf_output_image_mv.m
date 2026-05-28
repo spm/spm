@@ -34,11 +34,6 @@ if nargin == 0
     whatconditions.values = {all, conditions};
     whatconditions.val = {all};
     
-    %     design = cfg_const;
-    %     design.tag = 'design';
-    %     design.name = 'design';
-    %     design.help = {'Use default settings for the inversion'};
-    %     design.val  = {1};
     
     design = cfg_files;
     design.tag = 'design';
@@ -73,14 +68,6 @@ if nargin == 0
     datafeatures.help = {'Data features of interest'};
     datafeatures.val =datafeatures.values(end);
     
-%     contrast = cfg_entry;
-%     contrast.tag = 'contrast';
-%     contrast.name = 'contrast';
-%     contrast.strtype = 'i';
-%     contrast.num = [Inf Inf];
-%     contrast.val = {[0.7 0;0 1]};
-%     contrast.help={'Typically specify an identity NxN where N is number of conditions to be compared'};
-%     
     result         = cfg_menu;
     result.tag     = 'result';
     result.name    = 'What to output';
@@ -147,11 +134,11 @@ end
 
 
 
-D = BF.data.D;
+D = BF.data.D; %% 
 
-
+contrast=[];
 if isfield(S.isdesign,'custom'),
-    %% gui specified conditions and contrast
+    %% gui specified conditions 
     
     
     woitmp = S.isdesign.custom.woi;
@@ -168,22 +155,7 @@ if isfield(S.isdesign,'custom'),
     if numel(duration)>1,
         error('both windows need to be the same length');
     end;
-    
-    % DP - this can result in a tiny bit of residual, presumably due to
-    % numerical imprecision. Not sure. Doesn't seem necessary anyway since
-    % the number of samples is equal.
-    %     duration=unique(woi(:,2)-woi(:,1));
-    %     if numel(duration)>1,
-    %         error('both windows need to be the same length');
-    %     end;
-    %     woi = S.isdesign.custom.woi;
-    %     woiind=D.indsample(woi/1000);
-    %     woi=D.time(woiind); %% in seconds
-    
-    %     duration=unique(woiind(:,2)-woiind(:,1))./D.fsample; %% in sec
-    %     if numel(duration)>1,
-    %         error('both windows need to be the same length');
-    %     end;
+   
     
     duration=unique(woi(:,2)-woi(:,1));
     if numel(duration)>1,
@@ -210,8 +182,7 @@ if isfield(S.isdesign,'custom'),
         for i = 1:numel(whatconditions.condlabel)
             if isempty(D.indtrial(whatconditions.condlabel{i}, 'GOOD'))
                 error('No trials matched the selection.');
-            end
-            
+            end         
             clabel{i}=whatconditions.condlabel{i};
             
             if S.sametrials
@@ -247,7 +218,7 @@ if isfield(S.isdesign,'custom'),
     for j=1:size(woi, 1),
         for i=1:numel(trials)
             col=col+1;
-            %nt=numel(trials{i}); % ANNA look above for the warning
+            
             Xtmp=[zeros(size(X,1),1); ones(nt,1)];
             if col>1,
                 X=[X;zeros(nt,size(X,2))]; %1)]; ANNA
@@ -302,10 +273,7 @@ else %%  conditions and contrast  specified in a file
         contrast=[];
     end;
 
-    if isempty(contrast),
-        fprintf('\n setting up identity contrast')
-        contrast=eye(size(X,2));
-    end;
+    
     ntrials=size(X,1);
     if (size(a.design.Xstartlatencies,1)~=ntrials)||(size(a.design.Xtrials,1)~=ntrials)
         error('start latencies and Xtrials and X should have a value per row of the design');
@@ -329,6 +297,12 @@ end;
 if size(Xtrials,1)~=size(X,1)
     error('X must have same number of rows as trials and start latencies');
 end;
+
+if isempty(contrast), %% GRB mod 12/5 /26
+        fprintf('\n setting up identity contrast')
+        contrast=eye(size(X,2));
+    end;
+
 if size(contrast,1)~=size(X,2),
     error('contrast needs to match number of columns in design');
 end;

@@ -37,52 +37,54 @@ if ~isfield(S, 'balance') || isempty(S.balance)
     S.balance = false;
 end
 
-% Check if there is existing position information
-grad = S.D.sensors('MEG');
-positions_cal = S.positions;
-
-% Attempt to align calibrated positions to existing space
-if ~isempty(grad)
-    % Positions format
-    positions_original = table(grad.label(:), ...
-        grad.chanpos(:,1), grad.chanpos(:,2), grad.chanpos(:,3), ...
-        grad.chanori(:,1), grad.chanori(:,2), grad.chanori(:,3), ...
-        'VariableNames', {'name','Px','Py','Pz','Ox','Oy','Oz'} ...
-    );
-    
-    diff_tol = 25;
-    positions_cal_aligned = align_positions(positions_cal, positions_original, diff_tol, true);
-
-    if isempty(positions_cal_aligned)
-        warning(['Failed to align to existing positions with tolerance of ', num2str(diff_tol)])
-    else
-        positions_cal = positions_cal_aligned;
-    end
-end
-
-% Apply gains (adapted from spm_opm_hfc)
-pos = [positions_cal.Px, positions_cal.Py, positions_cal.Pz];
-ori = [positions_cal.Ox, positions_cal.Oy, positions_cal.Oz];
-cl = positions_cal.name;
-channels = S.D.chanlabels;
-[~, sel2] = match_str(cl,channels);
-
 fprintf('Creating output dataset\n'); 
 outname = fullfile(path(S.D),[S.prefix fname(S.D)]);
 cal_D = clone(S.D,outname);
 cal_D.save();
 
-grad = [];
-grad.label = cl;
-grad.coilpos = pos;
-grad.coilori = ori;
-grad.tra = eye(numel(grad.label));
-grad.chanunit = repmat({'T'}, numel(grad.label), 1);
-grad.chantype = repmat({'MEGMAG'}, numel(grad.label), 1);
-grad = ft_datatype_sens(grad, 'amplitude', 'T', 'distance', 'mm');
-cal_D = sensors(cal_D, 'MEG', grad);
-save(cal_D);
+% Check if there is existing position information
+grad = S.D.sensors('MEG');
+positions_cal = S.positions;
+cl = positions_cal.name;
+% Attempt to align calibrated positions to existing space
+if isfield(positions_cal,'Px')
+	if ~isempty(grad)
+    	% Positions format
+    	positions_original = table(grad.label(:), ...
+        	grad.chanpos(:,1), grad.chanpos(:,2), grad.chanpos(:,3), ...
+        	grad.chanori(:,1), grad.chanori(:,2), grad.chanori(:,3), ...
+        	'VariableNames', {'name','Px','Py','Pz','Ox','Oy','Oz'} ...
+    	);
+    	
+    	diff_tol = 25;
+    	positions_cal_aligned = align_positions(positions_cal, positions_original, diff_tol, true);
+	
+    	if isempty(positions_cal_aligned)
+        	warning(['Failed to align to existing positions with tolerance of ', num2str(diff_tol)])
+    	else
+        	positions_cal = positions_cal_aligned;
+    	end
+	end
+	pos = [positions_cal.Px, positions_cal.Py, positions_cal.Pz];
+	ori = [positions_cal.Ox, positions_cal.Oy, positions_cal.Oz];
+	
+	
+	grad = [];
+	grad.label = cl;
+	grad.coilpos = pos;
+	grad.coilori = ori;
+	grad.tra = eye(numel(grad.label));
+	grad.chanunit = repmat({'T'}, numel(grad.label), 1);
+	grad.chantype = repmat({'MEGMAG'}, numel(grad.label), 1);
+	grad = ft_datatype_sens(grad, 'amplitude', 'T', 'distance', 'mm');
+	cal_D = sensors(cal_D, 'MEG', grad);
+	save(cal_D);
+end
 
+% Apply gains (adapted from spm_opm_hfc)
+channels = S.D.chanlabels;
+[~, sel2] = match_str(cl,channels);
+		
 gains = positions_cal.gain;
 diag_gains = eye(length(gains)) .* gains;
 Yinds = indchannel(S.D,channels(sel2));
