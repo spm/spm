@@ -625,7 +625,7 @@ waitfor(dne);
 drawnow;
 if ishandle(sel)
     t  = get(sel,'String');
-    if ~iscell(t); t = cellstr(t); end  % R2025a compatibility fix
+    if ~iscell(t); t = cellstr(t); end  % R2025a compatibility fix
     if isempty(t)
         t = {''};
     elseif any(strcmp({sfilt.tfilt.typ},'dir'))
