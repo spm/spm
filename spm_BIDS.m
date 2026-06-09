@@ -178,7 +178,7 @@ if exist(pth,'dir')
     if isempty(f), f = {}; else f = cellstr(f); end
     for i=1:numel(f)
         
-        p = parse_filename(f{i}, {'sub','ses','task','acq','rec','fa','echo','inv','run','recording', 'meta'});
+        p = parse_filename(f{i}, {'sub','ses','task','acq','rec','dir','fa','echo','inv','run','recording', 'meta'});
         subject.func = [subject.func p];
         subject.func(end).meta = struct([]); % ?
         
@@ -192,7 +192,7 @@ if exist(pth,'dir')
     if isempty(f), f = {}; else f = cellstr(f); end
     for i=1:numel(f)
         
-        p = parse_filename(f{i}, {'sub','ses','task','acq','rec','fa','echo','inv','run','recording', 'meta'});
+        p = parse_filename(f{i}, {'sub','ses','task','acq','rec','dir','fa','echo','inv','run','recording', 'meta'});
         subject.func = [subject.func p];
         subject.func(end).meta = spm_load(fullfile(pth,f{i})); % ?
 
@@ -207,7 +207,7 @@ if exist(pth,'dir')
     if isempty(f), f = {}; else f = cellstr(f); end
     for i=1:numel(f)
         
-        p = parse_filename(f{i}, {'sub','ses','task','acq','rec','fa','echo','inv','run','recording', 'meta'});
+        p = parse_filename(f{i}, {'sub','ses','task','acq','rec','dir','fa','echo','inv','run','recording', 'meta'});
         subject.func = [subject.func p];
         subject.func(end).meta = struct([]); % ?
          
