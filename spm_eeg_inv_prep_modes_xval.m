@@ -7,7 +7,7 @@ function [spatialmodename,Nmodes,newpctest,testchans]=spm_eeg_inv_prep_modes_xva
 % it also makes sure that the same channels groups are preserved to allow comparable cross validation and free energy metrics
 % input a list of the M/EEG dataset names: filenames
 % Nmodes - number of required spatial modes (if empty uses all available
-% channels)
+% channels). If zero uses svd to compute a compact U.
 % spatialmodename- name of output file
 % Nblocks- number of cross validation runs (optional and
 % default 1)
@@ -22,7 +22,7 @@ function [spatialmodename,Nmodes,newpctest,testchans]=spm_eeg_inv_prep_modes_xva
 % megind- good meg channel indices
 % testchans - indices to megind of channels to be turned off during training phase (and tested later)
 % U{} - a different spatial modes matrix for each set of training channels or megind without indexed testchans or megind(setdiff(1:length(megind),testchans(b,:)))
-% newpctest- the percentage of MEG channels actually used (need integer number of channels) 
+% newpctest- the percentage of MEG channels actually used (need integer number of channels)
 % testchans- which channels used for testing
 % _________________________________________________________________________
 
@@ -90,14 +90,16 @@ end
 
 Ntest=round(newpctest*length(megind)/100); %% number of test channels per block
 
-testchans=zeros(Nblocks,Ntest);
+
 Ntrain=length(megind)-Ntest;
 
 if isempty(Nmodes)
     Nmodes=length(megind)-Ntest;
     fprintf('\nUsing maximum of %d spatial modes\n',Nmodes);
 else
-    fprintf('\nUsing %d spatial modes\n',Nmodes);
+    if Nmodes>0, %% if Nmodes is specified use this value, if 0 select value with svd
+        fprintf('\nUsing specified %d spatial modes\n',Nmodes);
+    end;
 end
 
 
@@ -146,7 +148,13 @@ U={};
 for b=1:Nblocks
     fprintf('\nPreparing modes file %d block %d of %d for %d training and %d test chans\n',f, b,Nblocks,Ntrain,Ntest);
     if Nmodes<Ntrain
-        [U1,S,V]=spm_svd(allL(useind(b,:),:)*allL(useind(b,:),:)',1e-12); %% get general spatial modes matrix
+        if Nmodes>0, %% Nmodes is specified
+            [U1,S,V]=spm_svd(allL(useind(b,:),:)*allL(useind(b,:),:)',1e-12); %% get general spatial modes matrix
+        else %% Nmodes set to zero, so get compact spatial modes matrix
+            [U1,S,V]=spm_svd(allL*allL',1e-12); 
+            Nmodes=size(U1,2);
+            fprintf('\n Optimized for %d spatial modes',Nmodes)
+        end;
         U{b}=U1(:,1:Nmodes)';
     else
         U{b}=eye(Ntrain);
