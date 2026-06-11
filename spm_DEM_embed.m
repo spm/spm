@@ -1,5 +1,5 @@
 function [y] = spm_DEM_embed(Y,n,t,dt,d)
-% Temporal embedding into derivatives
+% Temporal embedding into generalised coordinates of motion
 % FORMAT [y] = spm_DEM_embed(Y,n,t,dt,d)
 %__________________________________________________________________________
 % Y    - (v x N) matrix of v time-series of length N
@@ -32,11 +32,12 @@ if ~q, return, end
 
 % loop over channels
 %--------------------------------------------------------------------------
+m     = n;
 for p = 1:length(d)
 
     % boundary conditions
     %----------------------------------------------------------------------
-    s      = (t - d(p))/dt;
+    s      = (t - d(p));
     k      = (1:n)  + fix(s - (n + 1)/2);
     x      = s - min(k) + 1;
     i      = k < 1;
@@ -44,10 +45,10 @@ for p = 1:length(d)
     i      = k > N;
     k      = k.*~i + i*N;
 
-
     % Inverse embedding operator (T): cf, Taylor expansion Y(t) <- T*y[:]
     %----------------------------------------------------------------------
-    for i = 1:n
+    T     = zeros(m,n);
+    for i = 1:m
         for j = 1:n
             T(i,j) = ((i - x)*dt)^(j - 1)/prod(1:(j - 1));
         end
@@ -55,7 +56,7 @@ for p = 1:length(d)
 
     % embedding operator: y[:] <- E*Y(t)
     %----------------------------------------------------------------------
-    E     = inv(T);
+    E     = pinv(T);
 
     % embed
     %----------------------------------------------------------------------

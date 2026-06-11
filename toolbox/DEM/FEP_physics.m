@@ -17,7 +17,7 @@ function FEP_physics
 
 % default settings (GRAPHICS sets movies)
 %--------------------------------------------------------------------------
-rng('default')
+rng(0)
 
 % Demo of synchronization manifold using coupled Lorenz attractors
 %==========================================================================
@@ -68,7 +68,7 @@ L     = sparse(double(any(A(:,:,t),3)))';
 B     = double((L + L' + L*L'));
 B     = B - diag(diag(B));
 v     = spm_svd(B*B',1);
-[v,j] = sort(abs(v(:,1)),'descend');
+[~,j] = sort(abs(v(:,1)),'descend');
 
 % get Markov blanket and divide into sensory and active states
 %--------------------------------------------------------------------------
@@ -79,8 +79,8 @@ ee    = 1 - bb - jj;                              % external states
 b     = find(bb);
 e     = find(ee);
 m     = find(jj);
-s     = b(find( any(L(b,e),2)));
-a     = b(find(~any(L(b,e),2)));
+s     = b( any(L(b,e),2));
+a     = b(~any(L(b,e),2));
 
 % adjacency matrix - with partition underneath (LL)
 %--------------------------------------------------------------------------
@@ -223,28 +223,26 @@ t     = (1:T)*dt;
 q     = squeeze(Q(1,s(2),:));
 q     = spm_detrend(q);
 b     = max(abs(q));
-b     = linspace(-b,b,64);
-[n,b] = hist(q,b(:));
+b     = linspace(-b,b,64 + 1);
+[n,b] = histcounts(q,b(:));
+b(1)  = [];
 db    = b(2) - b(1);
 n     = n(:)/sum(n)/db;
 
 % approximate NESS potential (with a polynomial)
 %--------------------------------------------------------------------------
 Vx    = -log(n + eps);
-PP    = [b.^0 b.^1 b.^2 b.^3 b.^4 b.^5 b.^6];
+PP    = [b.^0 b.^1 b.^2 b.^3 b.^4];
 W     = diag(spm_softmax(-Vx));
 B     = (pinv(W*PP)*W*Vx);
-Vx    = @(B,b)[b.^0 b.^1 b.^2 b.^3 b.^4 b.^5 b.^6]*B;
-dV    = @(B,b)[b.^0 2*b.^1 3*b.^2 4*b.^3 5*b.^4 6*b.^5]*B(2:end);
-ddV   = @(B,b)[2*b.^0 6*b.^1 12*b.^2 20*b.^3 30*b.^4]*B(3:end);
+Vx    = @(B,b)[b.^0 b.^1 b.^2 b.^3 b.^4]*B;
+dV    = @(B,b)[b.^0 2*b.^1 3*b.^2 4*b.^3]*B(2:end);
+ddV   = @(B,b)[2*b.^0 6*b.^1 12*b.^2]*B(3:end);
 p     = exp(-Vx(B,b));
 p     = p(:)/sum(p)/db;
 
 % wave function in terms of symmetric and antisymmetric parts
 %--------------------------------------------------------------------------
-% ps    = (p + flipud(p))/2;
-% pa    = (p - flipud(p))/2;
-% psi   = sqrt(ps - ps/2) + sqrt(-1)*sqrt(ps/2 + pa);
 ps    = exp(-b.^2/(2*(b(1)/4)^2));
 ps    = ps*p(32);
 pa    = p - ps;
@@ -275,8 +273,7 @@ subplot(3,1,1)
 plot(t,q,t,dqdt,':')
 xlabel('Time (secs)', 'FontSize',12)
 ylabel('State and flow (m ans m/s)','FontSize',12)
-title(str,'FontSize',16), spm_axis tight
-
+title(str,'FontSize',16)
 
 % position functions
 %--------------------------------------------------------------------------
@@ -284,26 +281,25 @@ subplot(3,3,4)
 plot(b,Vx(B,b),b,dV(B,b)/db,'-.',b,ddV(B,b)/db/db,':')
 xlabel('State space (m)', 'FontSize',12)
 ylabel('Nats (a.u, /m and /m/m)','FontSize',12)
-title('NESS potential','FontSize',16), spm_axis tight
+title('NESS potential','FontSize',16)
 
 subplot(3,3,5)
 plot(b,real(psi),b,imag(psi),':')
 xlabel('State space (m)', 'FontSize',12)
 ylabel('Amplitude (m/m)','FontSize',12)
-title('Wave function','FontSize',16), spm_axis tight
+title('Wave function','FontSize',16)
 
 subplot(3,3,6)
 plot(b,n,':',b,psi.*conj(psi))
 xlabel('State space (m)', 'FontSize',12)
 ylabel('Probability density (a.u)','FontSize',12)
-title('Ensemble density','FontSize',16), spm_axis tight
-
+title('Ensemble density','FontSize',16)
 
 % equivalent formulations for momentum (h*k)
 %--------------------------------------------------------------------------
 PSI    = fft(psi)/sqrt(h)/2;
 k      = h*b/db/b(end);                             % kg*m/s
-[nk,k] = hist(m*dqdt,k);
+[nk,k] = histcounts(m*dqdt,k);
 dk     = k(2) - k(1);
 nk     = nk(:)/sum(nk)/dk;
 
@@ -313,19 +309,19 @@ subplot(3,3,7)
 plot(b,VS)
 xlabel('State space (m)', 'FontSize',12)
 ylabel('Potential (kg.m.m/s/s (Joules)','FontSize',12)
-title('Schrödinger potential','FontSize',16), spm_axis tight
+title('Schrödinger potential','FontSize',16)
 
 subplot(3,3,8)
 plot(k,real(fftshift(PSI)),k,imag(fftshift(PSI)),':')
 xlabel('Momentum (kg.m/s)', 'FontSize',12)
 ylabel('Amplitude (a.u)','FontSize',12)
-title('Wave function','FontSize',16), spm_axis tight
+title('Wave function','FontSize',16)
 
 subplot(3,3,9)
-plot(k,nk,':',k,fftshift(PSI.*conj(PSI)))
+plot(k,[0;nk],':',k,fftshift(PSI.*conj(PSI)))
 xlabel('Momentum (kg.m/s)', 'FontSize',12)
 ylabel('Probability density (a.u)','FontSize',12)
-title('Ensemble density','FontSize',16), spm_axis tight
+title('Ensemble density','FontSize',16)
 
 
 
@@ -342,79 +338,63 @@ spm_figure('GetWin','stochastic mechanics'); clf
 % One can then evaluate the thermodynamic potential that best explains the
 % flow of states. Given this expected or predicted flow one can then
 % evaluate the variance or amplitude of random fluctuations and, equipped
-% with a mobility coefficient (here, we used a mobility of 0.2), one can
-% then evaluate the temperature at any point in time. Note that this is
-% possible because we are associating the distribution over the states of
-% the ensemble with the equivalent statistics and would have been observed
-% over time. Given the temperature and thermodynamic potential, one can
-% then evaluate the free energy using the KL divergence between the
-% associated thermodynamic and ensemble densities. As the states approach
-% their random dynamic attractor (i.e., nonequilibrium steady-state) these
-% density functions converge and the ensemble density ceases to change. At
-% this point, it becomes the NESS density. The implicit changes in the
-% ensemble density over time can be characterised in terms of entropy
-% production, which can be partitioned in a number of ways (see main text).
-% In the example here, we have focused on the entropy dissipated by
+% with a mobility coefficient (here, we used a mobility of 0.1), one can
+% then evaluate the temperature at any point in time. Given the temperature
+% and thermodynamic potential, one can then evaluate the free energy. As
+% the states approach their random dynamic attractor (i.e., nonequilibrium
+% steady-state) these density functions converge and the ensemble density
+% ceases to change. At this point, it becomes the NESS density. The
+% implicit changes in the ensemble density over time can be characterised
+% in terms of entropy production, which can be partitioned in a number of
+% ways. In the example here, we have focused on the entropy dissipated by
 % probability currents that, when multiplied by temperature, corresponds to
 % heat dissipation. In this somewhat heuristic illustration, we have (for
 % simplicity) focused on the position in one dimension of the internal
-% states surrounded by the principal Markov blanket. This is the small
-% virus like particle in Figure 4. To estimate the thermodynamic and
-% ensemble potentials, we used a fourth order polynomial expansion of
-% position (and appropriate least squares estimators). The thermodynamic
-% potential is that which best predicts the stochastic flow of states;
-% where the ensemble density best predicts the sample density. To obtain
-% more efficient estimators, we also averaged over 256 time beans at 28
-% consecutive intervals during the evolution of the system. We started at
-% the 32nd time then to illustrate the thermodynamic, correlates of
-% self-organisation during which the principal Markov blanket was formed.
-% For interest, we repeated the analysis for the internal states, the
-% blanket states and external states. The upper row of images shows the
-% evolution of temperature shown using a (hot) colour scale with a dot at
-% the position of the particles (in two dimensions). The second panel shows
-% the corresponding evolution of temperature in the three ensembles as a
-% function of time. The interesting thing here is that the internal (blue)
-% and blanket (red) states start off at about the same temperature.
-% However, during the course of self organisation, the internal states
-% slowly increase their temperature to become hotter than the external
-% states (cyan). In this example, the temperature of the internal states
-% ended up being about twice the temperature of the blanket states. The
-% third panel shows the corresponding free energy for each of the
-% ensembles. The most notable thing here is that free energy decreases with
-% time as the thermodynamic and ensemble potentials approach each other.
-% This is most marked for the external and blanket states that could be
-% thought of as spending their free energy to organise the internal states.
-% After about five seconds, there is relatively little free energy left
-% within the system. This is reflected in the bottom panel that shows the
-% corresponding heat dissipation, which is most marked for the external
-% states, as might be guessed from the changes in the thermodynamic free
-% energy. Although heat dissipation can fall to low levels - as
-% nonequilibrium steady-state is approached - the temperature of our
-% synthetic virus remains relatively high (here, the temperature reached
-% about 300° Kelvin, which is roughly body temperature). This follows from
-% the fact that random fluctuations are still in play - arising from
-% intrinsic fluctuations of the internal states of each internal particle
-% (at the underlying hierarchical level). These fluctuations disperse
-% states over the thermodynamic potential, while flow down potential energy
-% gradients reconstitutes the ensemble density. Effectively, this flow
-% (times distance) produces heat that is endowed by the intrinsic
-% fluctuations. At nonequilibrium steady-state these two processes are in
-% balance and heat dissipation is eliminated; because probability currents
-% are zero at all points in state space. The lower panel shows the
-% corresponding entropy as a function of time. The external states increase
-% their entropy initially and then entropy falls as the system finds its
-% random dynamical attractor. Note that the entropy of states (that are
-% destined to become densely coupled internal states) progressively falls;
-% thereby, violating the second law. This is what we would expect in this
-% far from equilibrium scenario. Clearly, this is an idealised description
-% of stochastic dynamics under the ensemble assumption. In reality, the
-% dynamics are much more complicated and our treatment here can be
-% construed as a mean field approximation, where all the interactions
-% within and between the three ensembles are summarised with a common
-% thermodynamic potential and ensemble density. Despite this approximation,
-% this sort of analysis provides an intuitive characterisation of
-% stochastic dynamics in terms of constructs that underpin the first and
-% second laws of thermodynamics.
+% states surrounded by the principal Markov blanket.
+%    To estimate the thermodynamic and ensemble potentials, we used a
+% sixth-order polynomial expansion of position (and appropriate least
+% squares estimators). The thermodynamic potential is that which best
+% predicts the stochastic flow of states; whereas the ensemble density best
+% predicts the sample density. To obtain more efficient estimators, we also
+% averaged over 256 time bins at 32 consecutive intervals during the
+% evolution of the system. We started at the 32nd time bin to illustrate
+% the thermodynamic correlates of self-organisation during which the
+% principal Markov blanket was formed. For interest, we repeated the
+% analysis for the internal states, the blanket states and external states.
+% The upper row of images shows the evolution of temperature shown using a
+% (hot) colour scale with a dot at the position of the particles (in two
+% dimensions). The second panel shows the corresponding evolution of
+% temperature in the three ensembles as a function of time. The interesting
+% thing here is that the internal (blue) and blanket (red) states start off
+% at about the same temperature. However, during the course of self
+% organisation, the internal states slowly increase their temperature to
+% become hotter than the external states (cyan). The third panel shows the
+% corresponding free energy for each of the ensembles. This is most marked
+% for the external and blanket states that could be thought of as spending
+% their free energy to organise the internal states. This is reflected in
+% the bottom panel that shows the corresponding heat dissipation, which is
+% most marked for the external states, as might be guessed from the changes
+% in the thermodynamic free energy. Although heat dissipation can fall to
+% low levels - as nonequilibrium steady-state is approached - the
+% temperature of our synthetic virus remains relatively high (here, the
+% temperature reached about 300° Kelvin, which is roughly body
+% temperature). This follows from the fact that random fluctuations are
+% still in play - arising from intrinsic fluctuations of the internal
+% states of each internal particle (at the underlying hierarchical level).
+% These fluctuations disperse states over the thermodynamic potential,
+% while flow down potential energy gradients reconstitutes the ensemble
+% density. Effectively, this flow (times distance) produces heat that is
+% endowed by the intrinsic fluctuations. At nonequilibrium steady-state
+% these two processes are in balance and heat dissipation is eliminated;
+% because probability currents are zero at all points in state space. The
+% lower panel shows the corresponding entropy as a function of time. The
+% external states increase their entropy initially and then entropy falls
+% as the system finds its random dynamical attractor. Note that the entropy
+% of states (that are destined to become densely coupled internal states)
+% progressively falls; thereby, violating the second law. This is what we
+% would expect in this far from equilibrium scenario. This sort of analysis
+% provides an intuitive characterisation of stochastic dynamics in terms of
+% constructs that underpin the first and second laws of thermodynamics.
 %--------------------------------------------------------------------------
 
 % get positions and velocities of all states
@@ -423,24 +403,22 @@ bi    = find(logical(bb));           % blanket  particles
 ei    = find(logical(ee));           % external particles
 mi    = find(logical(jj));           % internal particles
 
-
 % evaluate surprise (NESS potential) with distribution over states and time
 %--------------------------------------------------------------------------
-nt    = 28;                          % number of evaluations
+nt    = 32;                          % number of evaluations
 wt    = 32;                          % interval between evaluations
-lt    = 256;                         % trajectory length
+lt    = 512;                         % trajectory length
 n0    = 32;                          % initial evaluation
 
 % Ion mobility Coefficient of Air: 0.0002
 %-------------------------------------------------------------------------
 kB    = 1.38064852e-2;               % Boltzmann constant J/K = g.nm.nm/s/s/K
-mu    = .2;                          % diffusion constant s/g
-mu    = mu*kB;
-
-J0    = (linspace(-1,1,64).^32)'*8;
+mu    = .1;                          % diffusion constant s/g
         
 % Stochastic dynamics of partitions
 %--------------------------------------------------------------------------
+nb    = 128;
+J0    = (linspace(-1,1,nb).^32)';
 ii    = {mi, bi, ei};
 col   = {'b','r','c'};
 for j = 1:numel(ii)
@@ -452,66 +430,64 @@ for j = 1:numel(ii)
         % get trajectories (and stochastic flow)
         %------------------------------------------------------------------
         t     = (i - 1)*wt + (1:lt) + n0;
-        q     = squeeze(X(2,ii{j},t));
-        p     = gradient(q,dt);
+        q     = squeeze(X(2,ii{j},t));           % position
+        p     = gradient(q,dt);                  % motion (c.f., momentum)
         
         % stochastic density
         %------------------------------------------------------------------
-        b     = linspace(min(q(:)),max(q(:)),64);      
+        b     = max(abs(q(:)));
+        b     = linspace(-b,b,nb);      
         [n,b] = hist(q(:),b(:));
-        n     = n + spm_hanning(64)'*sum(n)*exp(-8);
         n     = n(:)/sum(n);
         db    = b(2) - b(1);
         
-        
         % estimate potential and amplitude of fluctuations
         %------------------------------------------------------------------
-        In    = -log(n);
-        Wj    = diag(spm_softmax(-In));
-        Wv    = 1;
+        In    = -log(n + 1/512);                 % sample surprisal
         
-        Vx    = @(b)[b.^0 b.^1 b.^2 b.^3 b.^4];% b.^5 b.^6 b.^7 b.^8];
-        dVdx  = @(b)[0*b b.^0 2*b.^1 3*b.^2 4*b.^3];% 5*b.^4 6*b.^5 7*b.^6 8*b.^7];
+        Vx    = @(b)[b.^0 b.^1 b.^2 b.^3 b.^4 b.^5 b.^6];
+        dVdx  = @(b)[0*b b.^0 2*b.^1 3*b.^2 4*b.^3 5*b.^4 6*b.^5];
         XJ    = Vx(b);
         XV    = -mu*dVdx(q(:));
-        BJ    = pinv(Wj*XJ)*Wj*In;    % polynomial coefficients - surprise
-        BV    = pinv(Wv*XV)*Wv*p(:);  % polynomial coefficients - potential
+        BJ    = pinv(XJ)*In;           % polynomial coefficients: surprisal
+        BV    = pinv(XV)*p(:);         % polynomial coefficients: potential
         
         
         % evaluate gamma (temperature) by predicting flow
         %------------------------------------------------------------------
-        G     = var(p(:) - XV*BV)/2;  % amplitude of fluctuations m.m/s
-        Ts    = G/mu;                 % temperature K
-        
-        % BV  = G*BJ/mu;              % NESS solution
+        G     = var(p(:) - XV*BV)/2;   % amplitude of fluctuations m.m/s
+        Ts    = G/(mu*kB);             % temperature K
+        kT    = kB*Ts;                 % kB*Ts 
 
         % evaluate free energy and entropies
         %------------------------------------------------------------------
-        Jj    = Vx(b)*BJ    + J0;
-        Jv    = Vx(b)*BV/Ts + J0;
+        Jj    = Vx(b)*BJ + J0;                 % ensemble potential
+        U     = Vx(b)*BV + J0*kT;              % thermodynamic potential
+        Jv    = U/kT;                          % scaled potential
+        Z     = sum(exp(-Jv));                 % parition function
         Jj    = -log(spm_softmax(-Jj));        % ensemble potential
         Jv    = -log(spm_softmax(-Jv));        % thermodynamic potential
-        Pj    = spm_softmax(-Jj)/db;           % ensemble density over b
-        Pv    = spm_softmax(-Jv)/db;           % potential density over b
-        f     = -G*gradient(Jv,db);            % predicted flow
-        Fs    = f/mu;                          % thermodynamic force
-        
-        
+        Pj    = spm_softmax(-Jj);              % ensemble density over b
+        Pv    = spm_softmax(-Jv);              % potential density over b
+        Fs    = -gradient(U,db);               % thermodynamic force
+        Fv    = -kT*log(Z);                    % steady state free energy
+        f     = mu*Fs;                         % predicted flow
+
         % evaluate entropy and heat production
         %------------------------------------------------------------------
-        dJdx  = gradient(Jj,db);               % gradient of surpise
+        dJdx  = gradient(Jj,db);               % gradient of surprisal
         dPdx  = -dJdx.*Pj;                     % gradient of ensemble density
         jp    = f.*Pj - G*dPdx;                % probability current
         
-        Fz(i)    = Pj'*(log(Pj) - log(Pv))*db; % thermodynamic free energy
-        S(i)     = Pj'*(-log(Pj))*db;
-        Sflow(i) = f'*dPdx*db;                 % entropy - flow
-        Sfluc(i) = G*dPdx'*(dPdx./Pj)*db;      % entropy - fluctuations
-        Stota(i) = jp'*(jp./Pj)/G*db;          % entropy - total
-        Sdiss(i) = jp'*Fs/Ts*db;               % entropy - dissipative
-        Qt(i)    = jp'*Fs*db;                  % heat dissipation
+        S(i)     = Pj'*(-log(Pj))*kB;          % entropy - kB*H
+        Sflow(i) = f'*dPdx;                    % entropy - flow
+        Sfluc(i) = G*dPdx'*(dPdx./Pj);         % entropy - fluctuations
+        Stota(i) = jp'*(jp./Pj)/G;             % entropy - total
+        Sdiss(i) = jp'*Fs/Ts;                  % entropy - dissipative
+        Qt(i)    = jp'*Fs;                     % heat dissipation
         TS(i)    = Ts;                         % temperature
-        
+        Fz(i)    = Pj'*U - Ts*S(i);            % thermodynamic free energy
+        Fz(i)    = kT*Pj'*(Jv - Jj) + Fv;      % thermodynamic free energy
         
         % heat maps
         %------------------------------------------------------------------
@@ -534,28 +510,29 @@ for j = 1:numel(ii)
     title('Thermodynamic Free energy','FontSize',16), spm_axis tight
     
     subplot(5,1,4), hold on
-    plot(tt,Qt,col{j},tt,Sflow.*TS,':','Color',col{j}),ylabel('Joules/s')
+    plot(tt,Qt,col{j}), ylabel('Joules/s')
     title('Heat dissipation','FontSize',16), spm_axis tight
     
     subplot(5,1,5), hold on
     plot(tt,S,'Color',col{j})
-    xlabel('Time (seconds)'), ylabel('Joules/K')
+    xlabel('time (seconds)'), ylabel('Joules/K')
     title('Entropy','FontSize',16), spm_axis tight
     
 end
 
+legend({'internal','blanket','external'})
+
 % heat maps (temperature)
 %--------------------------------------------------------------------------
-rgb   = colormap(hot);
+rgb   = colormap('hot');
 kk    = fix(linspace(1,nt,4));
-hm    = Hm; 
-% hm(:) = hm(:) - min(hm(:)) + 1;
-hm(:) = ceil(64*hm/max(hm(:)));
 for k = 1:4
     subplot(5,4,k)
-    i = kk(k);
+    i     = kk(k);
+    hm    = Hm(:,i);
+    hm    = fix(64*hm/max(hm));
     for j = 1:size(Hm,1)
-        plot(xi{j,i},xj{j,i},'.','MarkerSize',8,'Color',rgb(hm(j,i),:))
+        plot(xi{j,i},xj{j,i},'.','MarkerSize',8,'Color',rgb(hm(j),:))
         hold on, axis square
         axis([-1 1 -1 1]*8)
     end
@@ -574,35 +551,31 @@ end
 % self-information that characterises the ensemble density. The second
 % (shown in blue) is a homologous potential energy function, whose
 % gradients predict the flow at each point in phase space. At
-% nonequilibrium steady-state, these two functions are the same. In other
-% words, the thermodynamic potential becomes self-information. This means
-% that the distance or, more strictly speaking, divergence from
-% steady-state can be quantified in terms of the KL divergence between the
-% associated probability density functions (shown on the left). When these
-% densities converge, the ensemble density stops changing and becomes NESS
-% density. The middle panel shows estimates of the ensemble and
-% thermodynamic potentials. The ensemble potential (i.e., surprise) was
-% estimated using a polynomial approximation to the (log) sample
-% distribution over an ensemble of states. The corresponding density
-% functions are shown in the left panel, where the sample distribution is
-% shown as a dotted line. The right panel shows the gradients of the
-% thermodynamic potential (blue line) that predicts the flow sampled by the
-% simulation (dots).
+% nonequilibrium steady-state, these two functions converge. In other
+% words, the thermodynamic potential becomes self-information (to within an
+% additive constant = thermodynmaic free energy). The middle panel shows
+% estimates of the ensemble and thermodynamic potentials. The ensemble
+% potential (i.e., surprise) was estimated using a polynomial approximation
+% to the (log) sample distribution over an ensemble of states. The
+% corresponding density functions are shown in the left panel, where the
+% sample distribution is shown as a dotted line. The right panel shows the
+% gradients of the thermodynamic potential (blue line) that predicts the
+% flow sampled by the simulation (dots).
 %--------------------------------------------------------------------------
 spm_figure('GetWin','stochastic graphs'); clf
 subplot(4,3,1)
-plot(b,n/db,'r:',b,Pj,'r',b,Pv,'b')
+plot(b,n,'k:',b,Pj,'k--',b,Pv,'k')
 xlabel('State (nm)'), ylabel('(a.u)')
 title('Ensemble density','FontSize',16), spm_axis tight
 
 subplot(4,3,2)
-plot(b,Jj,'r',b,Jv,'b')
+plot(b,kT*Jj,'k--',b,U,'k')
 xlabel('State (nm)'), ylabel('Joules')
 title('Potentials','FontSize',16), spm_axis tight
 
 j = 1:32:spm_length(q);
 subplot(4,3,3)
-plot(b,f,'b',q(j),p(j),'b.','MarkerSize',1)
+plot(b,f,'k',q(j),p(j),'k.','MarkerSize',1)
 xlabel('State (nm)'), ylabel('nm/s')
 title('Flow','FontSize',16), spm_axis tight
 

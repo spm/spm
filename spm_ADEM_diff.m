@@ -23,10 +23,6 @@ function [u,dg,df] = spm_ADEM_diff(M,u)
 %--------------------------------------------------------------------------
 nl    = size(M,2);                        % number of levels
  
-% order parameters (n = 1 for static models)
-%==========================================================================
-n     = M(1).E.n + 1;                     % order of embedding
- 
 % initialise arrays for hierarchical form
 %--------------------------------------------------------------------------
 dfdvi = cell(nl,nl);
@@ -91,7 +87,11 @@ dg.dx = spm_cat(dgdxi);
 df.da = spm_cat(dfdai);
 df.dv = spm_cat(dfdvi);
 df.dx = spm_cat(dfdxi);
- 
+
+% order parameters (n = 1 for static models)
+%==========================================================================
+n     = M(1).E.n + 1;                     % order of embedding
+
 % update generalised coordinates
 %--------------------------------------------------------------------------
 u.v{1}  = spm_vec(vi);

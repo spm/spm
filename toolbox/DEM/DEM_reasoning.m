@@ -513,13 +513,15 @@ return
 
 % NOTES for paper graphics
 %__________________________________________________________________________
-
+% "C:\Users\Karl\Dropbox\Papers\Structure learning\Artificial reasoning\MatLab files'
+%__________________________________________________________________________
+%
 % get results of various solutions
 %--------------------------------------------------------------------------
 cd('C:\Users\Karl\Dropbox\matlab')
 load Reasoning0        % EIG states, parameters
-W0 = WP;
-T0 = KT;
+W0 = WP;                    % performance
+T0 = KT;                    % discovery time
 load Reasoning1        % EIG states, parameters and models
 W1 = WP;
 T1 = KT;
@@ -533,46 +535,101 @@ load Reasoning4        % no EIG
 W4 = WP;
 T4 = KT;
 
-disp('EIG over parameter and states')
+disp('EIG over model, parameter and states')
 disp('Mean time to discovery:'),disp(mean(T1))
 disp('Mean correct-incorrect:'),disp(mean(W1))
+
+disp('EIG over parameter and states')
+disp('Mean time to discovery:'),disp(mean(T0))
+disp('Mean correct-incorrect:'),disp(mean(W0))
 
 disp('EIG over states')
 disp('Mean time to discovery:'),disp(mean(T2))
 disp('Mean correct-incorrect:'),disp(mean(W2))
 
+disp('No EIG')
+disp('Mean time to discovery:'),disp(mean(T4))
+disp('Mean correct-incorrect:'),disp(mean(W4))
+
 disp('No BMS')
 disp('Mean time to discovery:'),disp(mean(T3))
 disp('Mean correct-incorrect:'),disp(mean(W3))
 
-disp('No EIG')
-disp('Mean time to discovery:'),disp(mean(T4))
-disp('Mean correct-incorrect:'),disp(mean(W4))
 
 % summary
 %==========================================================================
 spm_figure('GetWin','Figure 4'); clf;
 
-% compare solutions with and without EIG over parameters
+
+% compare solutions with and without EIG over models: 1 vs 0
 %--------------------------------------------------------------------------
+% The effect of removing expected information gain over models
+
 axw = [-64,256];
 axt = [1,64];
-subplot(3,2,1), plot(T1,T2,'ok',axt,axt,'r'), axis([axt,axt]), axis square
-xlabel('trials'), ylabel('trials: no AR'), title('Discovery time','Fontsize',16)
-subplot(3,2,2), plot(W1,W2,'ok',axw,axw,'r'), axis([axw,axw]), axis square
-xlabel('score'),  ylabel('score: no AR'),  title('Performance','Fontsize',16)
 
-% compare solutions with and without EIG over parameters and states
-%--------------------------------------------------------------------------
-subplot(3,2,3), plot(T1,T4,'ok',axt,axt,'r'), axis([axt,axt]), axis square
-xlabel('trials'), ylabel('trials: no EIG'), title('Discovery time','Fontsize',16)
-subplot(3,2,4), plot(W1,W4,'ok',axw,axw,'r'), axis([axw,axw]), axis square
-xlabel('score'),  ylabel('score: no EIG'),  title('Performance','Fontsize',16)
+subplot(3,2,1), hold off
+plot(T1,T0,'.m','MarkerSize',16), hold on
+plot(axt,axt,':k')
+plot(T1(T1 <= T0),T0(T1 <= T0),'.g','MarkerSize',16), hold on
+plot(T1(T0 == 64),T0(T0 == 64),'.r','MarkerSize',32), hold off
+axis([axt,axt]), axis square
+xlabel('Discovery time: trials'), ylabel('No EIG over models')
+title('Discovery time','Fontsize',16)
+subplot(3,2,2), hold off
+plot(W1,W0,'.m','MarkerSize',16), hold on
+plot(W1(W1 >= W0),W0(W1 >= W0),'.g','MarkerSize',16), hold on
+plot(axw,axw,':k'), hold off
+axis([axw,axw]), axis square
+xlabel('Performance: score'), ylabel('No EIG over models')
+title('Performance','Fontsize',16)
 
-% compare solutions with and without EIG over parameters and states
+
+% compare solutions with and without EIG over models and parameters: 1 vs 2
 %--------------------------------------------------------------------------
-subplot(3,1,3), plot(W1,W3,'ok',axw,axw,'r'), axis([axw,axw]), axis square
-xlabel('score'),  ylabel('score: no BMS'),  title('Performance','Fontsize',16)
+% The effect of removing expected information gain over models and parameters
+
+subplot(3,2,3), hold off
+plot(T1,T2,'.m','MarkerSize',16), hold on
+plot(axt,axt,':k')
+plot(T1(T1 <= T2),T2(T1 <= T2),'.g','MarkerSize',16), hold on
+plot(T1(T2 == 64),T2(T2 == 64),'.r','MarkerSize',32), hold off
+axis([axt,axt]), axis square
+xlabel('Discovery time: trials'), ylabel('No EIG over models or parameters')
+title('Discovery time','Fontsize',16)
+subplot(3,2,4), hold off
+plot(W1,W2,'.m','MarkerSize',16), hold on
+plot(W1(W1 >= W2),W2(W1 >= W2),'.g','MarkerSize',16), hold on
+plot(axw,axw,':k'), hold off
+axis([axw,axw]), axis square
+xlabel('Performance: score'), ylabel('No EIG over models or parameters')
+title('Performance','Fontsize',16)
+
+
+% compare solutions with and without EIG over models, parameters and states 1 vs 4
+%--------------------------------------------------------------------------
+% The effect of removing expected information gain over models, parameters and states
+
+subplot(3,2,5), hold off
+plot(T1,T4,'.c','MarkerSize',16), hold on
+plot(axt,axt,':k')
+plot(T1(T1 <= T4),T4(T1 <= T4),'.g','MarkerSize',16), hold on
+plot(T1(T4 == 64),T4(T4 == 64),'.r','MarkerSize',32), hold off
+axis([axt,axt]), axis square
+xlabel('Discovery time: trials'), ylabel('No EIG over models, parameters or states')
+title('Discovery time','Fontsize',16)
+subplot(3,2,6), hold off
+plot(W1,W4,'.m','MarkerSize',16), hold on
+plot(W1(W1 >= W4),W4(W1 >= W4),'.g','MarkerSize',16), hold on
+plot(axw,axw,':k'), hold off
+axis([axw,axw]), axis square
+xlabel('Performance: score'), ylabel('No EIG over models, parameters or states')
+title('Performance','Fontsize',16)
+
+% compare solutions with and without BMS
+%--------------------------------------------------------------------------
+% subplot(3,1,3), plot(W1,W3,'ok',axw,axw,'r'), axis([axw,axw]), axis square
+% xlabel('score'),  ylabel('score: no BMS'),  title('Performance','Fontsize',16)
 
 
 

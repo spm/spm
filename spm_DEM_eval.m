@@ -489,8 +489,7 @@ end
 % error
 %--------------------------------------------------------------------------
 E     = spm_vec({Ev,Ex});
- 
- 
+
 % Kronecker forms of derivatives for generalised motion
 %==========================================================================
 if nargout < 2, return, end

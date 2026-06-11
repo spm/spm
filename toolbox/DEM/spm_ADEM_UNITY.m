@@ -1,6 +1,6 @@
-function DEM = spm_ADEM(DEM)
+function DEM = spm_ADEM_UNITY(DEM)
 % Dynamic expectation maximisation: Active inversion
-% FORMAT DEM = spm_ADEM(DEM)
+% FORMAT DEM = spm_ADEM_UNITY(DEM)
 %
 % DEM.G  - generative process
 % DEM.M  - recognition  model
@@ -8,15 +8,28 @@ function DEM = spm_ADEM(DEM)
 % DEM.U  - prior expectation of causes
 %__________________________________________________________________________
 %
-% This implementation of DEM is the same as spm_DEM but integrates both the
-% generative process and model inversion in parallel. Its functionality is
-% exactly the same apart from the fact that confounds are not accommodated
-% explicitly.  The generative process is specified by DEM.G and the
-% veridical causes by DEM.C; these may or may not be used as priors on the
-% causes for the inversion model DEM.M (i.e., DEM.U = DEM.C).  Clearly,
-% DEM.G does not require any priors or precision components: it will use
-% the values of the parameters specified in the prior expectation fields.
+% This routine is a refactored version of spm_ADEM. It separates the
+% integration used to simulate the world (i.e., generative process), from
+% the Bayesian belief-updating under the generative model. And separates
+% belief updating from action selection as a minimizer of generalised
+% errors; namely, generalised prediction errors in the space of
+% observations. Note that the action or actuator evaluates the error
+% gradients under the generative process, as opposed to the model. Note
+% further, that this implementation passes action to the world, and the
+% world returns data or observations. Crucially, these observations are
+% returned as a short path or sequence of (each time step of the
+% simulation). This path enables the generalised observations to be
+% evaluated using temporal embedding.
 %
+% This implementation illustrates how one can simulate exchange of real
+% variables across the (sensory and active) sectors of the Markov blanket,
+% without having to exchange their generalised motion.  The generative
+% process is specified by DEM.G and the veridical causes by DEM.C; these
+% may or may not be used as priors on the causes for the inversion model
+% DEM.M (i.e., DEM.U = DEM.C).  Clearly, DEM.G does not require any priors
+% or precision components: it will use the values of the parameters
+% specified in the prior expectation fields.
+% 
 % This routine is not used for model inversion per se but to simulate the
 % dynamical inversion of models.  Crucially, it includes action variables
 % (a) that couple the model back to the generative process This enables
@@ -156,18 +169,17 @@ if db
     Fdem = spm_figure('GetWin','DEM');
 end
  
+
 % ensure embedding dimensions are compatible
 %--------------------------------------------------------------------------
 G(1).E.n = M(1).E.n;
-G(1).E.d = M(1).E.n;
- 
+G(1).E.d = M(1).E.d;
 
 % order parameters (d = n = 1 for static models) and checks
 %==========================================================================
 d    = M(1).E.d + 1;                      % embedding order of q(v)
 n    = M(1).E.n + 1;                      % embedding order of q(x)
 s    = M(1).E.s;                          % smoothness - s.d. (bins)
-
 
 % number of states and parameters - generative model
 %--------------------------------------------------------------------------
@@ -197,8 +209,6 @@ try dd = M(1).E.dd; catch, dd = 0;  end
 % initialise regularisation parameters
 %--------------------------------------------------------------------------
 te = 4;                                   % log integration time for E-Step
-global t
-
 
 % precision (roughness) of generalised fluctuations
 %--------------------------------------------------------------------------
@@ -221,7 +231,7 @@ end
 %==========================================================================
 Q     = {};
 for i = 1:nl
-    q0{i,i} = sparse(M(i).l,M(i).l); %#ok<AGROW>
+    q0{i,i} = sparse(M(i).l,M(i).l);
     r0{i,i} = sparse(M(i).n,M(i).n);
 end
 Q0    = kron(iV,spm_cat(q0));
@@ -256,29 +266,17 @@ Q0    = kron(iG,spm_cat(q0));
 R0    = kron(iG,spm_cat(r0));
 iG    = blkdiag(Q0,R0);
 
-% restriction or rate matrices - in terms of dE/da
-%--------------------------------------------------------------------------
-try
-    R         = sparse(sum(spm_vec(G.l)),na);
-    R(1:ny,:) = G(1).R;
-    R         = kron(spm_speye(n,1,0),R);
-catch
-    R = 1;
-end
-
 % fixed priors on action (a)
 %--------------------------------------------------------------------------
 try
     aP = G(1).aP;
 catch
-    aP = exp(-2);
+    aP = exp(0);
 end
 
 % fixed priors on states (u = x,v)
 %--------------------------------------------------------------------------
 xP    = spm_cat(spm_diag({M.xP}));
-vP    = spm_cat(spm_diag({M(2:end).V}));
-vP    = spm_inv(vP);
 Px    = kron(iV(1:n,1:n),speye(nx,nx)*exp(-8) + xP);
 Pv    = kron(iV(1:d,1:d),speye(nv,nv)*exp(-8));
 Pa    = spm_speye(na,na)*aP;
@@ -336,7 +334,10 @@ pu.v      = cell(n,1);
 pu.x      = cell(n,1);
 pu.z      = cell(n,1);
 pu.w      = cell(n,1);
- 
+pu.a      = cell(n,1);
+pu.y      = cell(n,1);
+
+
 [qu.x{:}] = deal(sparse(nx,1));
 [qu.v{:}] = deal(sparse(nv,1));
 [qu.a{:}] = deal(sparse(na,1));
@@ -346,6 +347,9 @@ pu.w      = cell(n,1);
 [pu.x{:}] = deal(sparse(gx,1));
 [pu.z{:}] = deal(sparse(gr,1));
 [pu.w{:}] = deal(sparse(gx,1));
+[pu.a{:}] = deal(sparse(na,1));
+[pu.y{:}] = deal(sparse(ny,1));
+
  
 % initialise cell arrays for hierarchical structure of x[0] and v[0]
 %--------------------------------------------------------------------------
@@ -363,8 +367,9 @@ Dv    = kron(spm_speye(d,d,1),spm_speye(nv,nv,0));
 Dc    = kron(spm_speye(d,d,1),spm_speye(nc,nc,0));
 Da    = kron(spm_speye(1,1,1),sparse(na,na));
 Du    = spm_cat(spm_diag({Dx,Dv}));
-Dq    = spm_cat(spm_diag({Dx,Dv,Dc,Da}));
- 
+Dq    = spm_cat(spm_diag({Dx,Dv,Dc}));
+Da    = spm_cat(spm_diag({Da}));
+
 Dx    = kron(spm_speye(n,n,1),spm_speye(gx,gx,0));
 Dv    = kron(spm_speye(n,n,1),spm_speye(gr,gr,0));
 Dp    = spm_cat(spm_diag({Dv,Dx,Dv,Dx}));
@@ -390,13 +395,6 @@ if nE ~= 1 || nl ~= 2 || any(std(U,1,2)) || d ~= 1
     dd = false;
 end
  
-% create innovations (and add causes)
-%--------------------------------------------------------------------------
-[z,w]  = spm_DEM_z(G,nY);
-z{end} = C + z{end};
-Z      = spm_cat(z(:));
-W      = spm_cat(w(:));
- 
 % Iterate DEM
 %==========================================================================
 F      = -Inf;
@@ -405,7 +403,14 @@ for iE = 1:nE
     % get time and clear persistent variables in evaluation routines
     %----------------------------------------------------------------------
     tic; clear spm_DEM_eval
- 
+
+    % create innovations (and add causes)
+    %======================================================================
+    [z,w]  = spm_DEM_z(G,nY);
+    z{end} = z{end} + C;
+    Z      = spm_cat(z(:));
+    W      = spm_cat(w(:));
+
     % E-Step: (with embedded D-Step)
     %======================================================================
  
@@ -418,7 +423,6 @@ for iE = 1:nE
     EiSE  = sparse(0);
     qp.ic = sparse(0);
     Hqu.c = sparse(0);
- 
  
     % [re-]set precisions using [hyper]parameter estimates
     %----------------------------------------------------------------------
@@ -441,71 +445,192 @@ for iE = 1:nE
     % D-Step: (nY samples)
     %======================================================================
     for iY = 1:nY
- 
-        % time (GLOBAL variable for non-automomous systems)
-        %------------------------------------------------------------------
-        t      = iY/nY;
         
-        % pass action to pu.a (external states)
+        % Generative process (world or UNITY)
         %==================================================================
-        if iY > 1
-            A = spm_cat({qU.a qu.a});
-        else
-            A = spm_vec({G.a});
-        end
-        
-        % derivatives of responses and random fluctuations
+
+        % pass action to pu.a (i.e., world)
+        %xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+        pu.a(1) = qu.a(1);
+
+        % random fluctuations
         %------------------------------------------------------------------
-        pu.z = spm_DEM_embed(Z,n,iY);
-        pu.w = spm_DEM_embed(W,n,iY);
-        pu.a = spm_DEM_embed(A,n,iY);
-        qu.u = spm_DEM_embed(U,n,iY);
-        
-        
-        % evaluate generative process
+        t     = iY;
+        pu.z  = spm_DEM_embed(Z,n,t,dt);
+        pu.w  = spm_DEM_embed(W,n,t,dt);
+
+        % generative process in terms of state dependent gradients
         %------------------------------------------------------------------
         [pu,dg,df] = spm_ADEM_diff(G,pu);
- 
         
-        % and pass response to qu.y
-        %==================================================================
-        for i = 1:n
-            y       = spm_unvec(pu.v{i},{G.v});
-            qu.y{i} = y{1};
+        % and Jacobian
+        %------------------------------------------------------------------
+        Dgdv  = kron(spm_speye(n,n,1),dg.dv);
+        Dgdx  = kron(spm_speye(n,n,1),dg.dx);
+        dfdv  = kron(spm_speye(n,n,0),df.dv);
+        dfdx  = kron(spm_speye(n,n,0),df.dx);
+        dFduu = spm_cat(...
+            {Dgdv Dgdx  Dv   []  ;
+            dfdv  dfdx  []   dfdw;
+            []    []    Dv   []  ;
+            []    []    []   Dx});
+
+
+        % generate a short path Y (in dt/n intervals)
+        %------------------------------------------------------------------
+        Y     = zeros(ny,n);
+        for t = 1:n
+
+            % states and fluctuations
+            %--------------------------------------------------------------
+            u     = {pu.v{1:n} pu.x{1:n} pu.z{1:n} pu.w{1:n}};
+
+            % gradient
+            %--------------------------------------------------------------
+            dFdu  = Dp*spm_vec(u);
+
+            % update
+            %--------------------------------------------------------------
+            du    = spm_dx(dFduu,dFdu,dt/n);
+            u     = spm_unvec(spm_vec(u) + du,u);
+
+            % save process for plotting
+            %--------------------------------------------------------------
+            pu.v(1:n) = u((1:n));
+            pu.x(1:n) = u((1:n) + n);
+            pu.z(1:n) = u((1:n) + n + n);
+            pu.w(1:n) = u((1:n) + n + n + n);
+
+            % and recover observables
+            %--------------------------------------------------------------
+            for i = 1:n
+                y       = spm_unvec(pu.v{i},{G.v});
+                pu.y{i} = y{1};
+            end
+
+            % accumuate paths of obervations
+            %--------------------------------------------------------------
+            Y(:,t) = pu.y{1};
+
         end
+
+        % recover generalised obervation from path Y
+        %xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+        pu.y = spm_DEM_embed_path(Y,n,n,dt/n);
+
+
+        % Generative model (e.g., DRONE)
+        %==================================================================
+        
+        % pass generalised response to qu.y
+        %------------------------------------------------------------------
+        qu.y = pu.y;
         
         % sensory delays
         %------------------------------------------------------------------
-        try, qu.y = spm_unvec(Ty*spm_vec(qu.y),qu.y); end
-        
-        
+        try qu.y = spm_unvec(Ty*spm_vec(qu.y),qu.y); end
+
         % evaluate generative model
-        %------------------------------------------------------------------       
-        [E,dE] = spm_DEM_eval(M,qu,qp);
- 
-        
-        % conditional covariance [of states {u}]
         %------------------------------------------------------------------
+        qu.u   = spm_DEM_embed(U,n,iY,dt);
+        [E,dE] = spm_DEM_eval(M,qu,qp);
+
+        % states and conditional modes
+        %------------------------------------------------------------------
+        u     = {qu.x{1:n} qu.v{1:d} qu.u{1:d}};
+
+        % gradient
+        %------------------------------------------------------------------
+        if nl < 3
+            up = spm_vec(qu.v{1:d}) - spm_vec(qu.u{1:d});
+        else
+            up = spm_vec(qu.v{1:d});
+        end
+        dVdu  = -dE.du'*iS*E - Pu*spm_vec({qu.x{1:n} up}) - dWdu/2;
+        dFdu  = spm_vec({dVdu; dVdc}) + Dq*spm_vec(u);
+ 
+        % Jacobian
+        %------------------------------------------------------------------
+        dVduu = -dE.du'*iS*dE.du - Pu - dWduu/2 ;
+        dVduc = -dE.du'*iS*dE.dc;
+        dFduu = spm_cat(...
+                {Du+dVduu dVduc;
+                 []       Dc });
+ 
+        % update
+        %------------------------------------------------------------------
+        du    = spm_dx(dFduu,dFdu,dt);
+        u     = spm_unvec(spm_vec(u) + du,u);
+ 
+        % and save posterior expectations
+        %------------------------------------------------------------------
+        qu.x(1:n) = u((1:n));
+        qu.v(1:d) = u((1:d) + n);
+
+        
+        % Action (e.g., ACTUATOR)
+        %==================================================================
+
+        % action
+        %------------------------------------------------------------------
+        u     = {qu.a{1:1}};
+
+        % change in error w.r.t. action
+        %------------------------------------------------------------------
+        Dfdx  = 0;
+        for i = 1:n
+            Dfdx = Dfdx + kron(spm_speye(n,n,-i),df.dx^(i - 1));
+        end
+
+        % gradient dE/da
+        %------------------------------------------------------------------
+        dfda  = kron(spm_speye(n,1,0),df.da);
+        dgda  = kron(spm_speye(n,1,0),dg.da);
+        dgdx  = kron(spm_speye(n,n,0),dg.dx);
+
+        dE.dv = dE.dy*dydv;
+        dE.da = dE.dv*(dgda + dgdx*Dfdx*dfda);
+        
+        dVda  = -dE.da'*iG*E - Pa*spm_vec( qu.a{1:1});
+        dFdu  = spm_vec(dVda) + Da*spm_vec(u);
+ 
+        % Jacobian
+        %------------------------------------------------------------------
+        dVdaa = -dE.da'*iG*dE.da - Pa;
+        dFduu = spm_cat({dVdaa});
+ 
+        % update action
+        %------------------------------------------------------------------
+        du    = spm_dx(dFduu,dFdu,dt);
+        u     = spm_unvec(spm_vec(u) + du,u);
+ 
+        % and save action
+        %------------------------------------------------------------------
+        qu.a(1:1) = u(1:1);
+
+
+
+        % conditional covariance of states {u}
+        %==================================================================
         qu.c   = spm_inv(dE.du'*iS*dE.du + Pu);
         pu.c   = spm_inv(dE.du'*iP*dE.du + Pu);
         Hqu.c  = Hqu.c + spm_logdet(qu.c);
-        
-        % save at qu(t)
-        %------------------------------------------------------------------
-        qE{iY} = E;
-        qC{iY} = qu.c;
-        pC{iY} = pu.c;
-        qU(iY) = qu;
-        pU(iY) = pu;
- 
+
         % and conditional precision
         %------------------------------------------------------------------
         if nh
             ECEu  = dE.du*qu.c*dE.du';
             ECEp  = dE.dp*qp.c*dE.dp';
         end
+
+        % save at qu(t)
+        %==================================================================
+        qE{iY} = E;
+        qC{iY} = qu.c;
+        pC{iY} = pu.c;
+        qU(iY) = qu;
+        pU(iY) = pu;
  
-        
         % uncertainty about parameters dWdv, ... ; W = ln(|qp.c|)
         %==================================================================
         if np
@@ -517,95 +642,6 @@ for iE = 1:nE
             dWduu = CJp'*dEdpu;
         end
         
-        % tensor products for Jacobian (generative process)
-        %------------------------------------------------------------------
-        Dgda  = kron(spm_speye(n,1,1),dg.da);
-        Dgdv  = kron(spm_speye(n,n,1),dg.dv);
-        Dgdx  = kron(spm_speye(n,n,1),dg.dx);
-        dfda  = kron(spm_speye(n,1,0),df.da);
-        dfdv  = kron(spm_speye(n,n,0),df.dv);
-        dfdx  = kron(spm_speye(n,n,0),df.dx);
-        
-        dgda  = kron(spm_speye(n,1,0),dg.da);
-        dgdx  = kron(spm_speye(n,n,0),dg.dx);
-        
-        % change in error w.r.t. actionxP
-        %------------------------------------------------------------------
-        Dfdx  = 0;
-        for i = 1:n
-            Dfdx = Dfdx + kron(spm_speye(n,n,-i),df.dx^(i - 1));
-        end
-        
-        % dE/da with restriction (R)
-        %------------------------------------------------------------------
-        dE.dv = dE.dy*dydv;
-        dE.da = dE.dv*((dgda + dgdx*Dfdx*dfda).*R);
-
-        
-        % first-order derivatives
-        %------------------------------------------------------------------
-        if nl < 3
-            up = spm_vec(qu.v{1:d}) - spm_vec(qu.u{1:d});
-        else
-            up = spm_vec(qu.v{1:d});
-        end
-        dVdu  = -dE.du'*iS*E - Pu*spm_vec({qu.x{1:n} up}) - dWdu/2;
-        dVda  = -dE.da'*iG*E - Pa*spm_vec( qu.a{1:1});
-        
-        
-        % and second-order derivatives
-        %------------------------------------------------------------------
-        dVduu = -dE.du'*iS*dE.du - Pu - dWduu/2 ;
-        dVdaa = -dE.da'*iG*dE.da - Pa;
-        dVduv = -dE.du'*iS*dE.dv;
-        dVduc = -dE.du'*iS*dE.dc;
-        dVdua = -dE.du'*iS*dE.da;
-        dVdav = -dE.da'*iG*dE.dv;
-        dVdau = -dE.da'*iG*dE.du;
-        dVdac = -dE.da'*iG*dE.dc;
- 
-         
-        % D-step update: of causes v{i}, and hidden states x(i)
-        %==================================================================
- 
-        % states and conditional modes
-        %------------------------------------------------------------------
-        p     = {pu.v{1:n} pu.x{1:n} pu.z{1:n} pu.w{1:n}};
-        q     = {qu.x{1:n} qu.v{1:d} qu.u{1:d} qu.a{1:1}};
-        u     = [p q];  
-        
-        % gradient
-        %------------------------------------------------------------------
-        dFdu  = [                              Dp*spm_vec(p); 
-                 spm_vec({dVdu; dVdc; dVda}) + Dq*spm_vec(q)];
- 
- 
-        % Jacobian (variational flow)
-        %------------------------------------------------------------------
-        dFduu = spm_cat(...
-                {Dgdv  Dgdx Dv   []   []       []    Dgda;
-                 dfdv  dfdx []   dfdw []       []    dfda;
-                 []    []   Dv   []   []       []    [];
-                 []    []   []   Dx   []       []    [];
-                 dVduv []   []   []   Du+dVduu dVduc dVdua;
-                 []    []   []   []   []       Dc    []
-                 dVdav []   []   []   dVdau    dVdac dVdaa});
- 
- 
-        % update states q = {x,v,z,w} and conditional modes
-        %==================================================================
-        du    = spm_dx(dFduu,dFdu,dt);
-        u     = spm_unvec(spm_vec(u) + du,u);
- 
-        % and save them
-        %------------------------------------------------------------------
-        pu.v(1:n) = u((1:n));
-        pu.x(1:n) = u((1:n) + n);
-        qu.x(1:n) = u((1:n) + n + n + n + n);
-        qu.v(1:d) = u((1:d) + n + n + n + n + n);
-        qu.a(1:1) = u((1:1) + n + n + n + n + n + d + d);
-        
-
         % Gradients and curvatures for E-Step: W = tr(C*J'*iS*J)
         %==================================================================
         if np && iY > d
@@ -637,8 +673,7 @@ for iE = 1:nE
         % evaluate objective function (F)
         %==================================================================
         if nE == 1
-
-            J(iY) = - trace(E'*iS*E)/2  ...            % states (u)
+            J(iY) = - trace(E'*iS*E)/2  ...        % states (u)
                 + spm_logdet(qu.c)  ...            % entropy q(u)
                 + spm_logdet(iS)/2;                % entropy - error
         end

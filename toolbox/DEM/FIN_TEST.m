@@ -38,22 +38,30 @@ for i = 1:n
 end
 
 
-% bar chart results 
-%--------------------------------------------------------------------------
+%% bar chart results 
+%==========================================================================
 VariableNames{1} = 'Annual RoR (%)';
 VariableNames{2} = 'Volatility (%)';
 VariableNames{3} = 'Sharpe ratio';
 VariableNames{4} = 'Drawdown (%)';
 RowNames = {'hold','ex post EV','ex post KL','ex ante EV','ex ante KL'};
 
+
+% select years
+%--------------------------------------------------------------------------
+DEM = DEM(1:n,1:m);
+tab = tab(:,:,1:n,1:m);
+F   = F(1:n,1:m);
+
+
 for j = 1:m
 
-    str   = sprintf('Annual performance - %i',j)
+    str   = sprintf('Annual performance - %i',j);
     spm_figure('GetWin',str); clf
-    L     = full(spm_cat(F(:,j)));
+    L     = full(spm_cat(F(1:n,j)));
 
     Dates = zeros(1,n);
-    for i = 1:n
+    for i = 1:numel(DEM)
         Dates(i) = DEM{i}.G.date(end);
     end
 
@@ -67,11 +75,13 @@ for j = 1:m
     subplot(4,1,2)
     p = squeeze(tab(:,3,:,j));
     bar(p'), xlabel('year'), ylabel('ratio')
+    title(VariableNames{3})
 
     subplot(4,2,5)
     p = squeeze(tab(:,1,:,j));
     p = minus(p,p(1,:));
     plot(p'), xlabel('year'), ylabel('percent difference')
+    title('RoR relative to baseline')
 
     subplot(4,2,8)
     bar(-L(:,2)), xlabel('year'), ylabel('nats')
@@ -111,7 +121,7 @@ end
 return
 
 
-% log evidence
+%% log evidence
 %==========================================================================
 load DEMFIN_FG.mat
 L     = zeros(n,4,m);

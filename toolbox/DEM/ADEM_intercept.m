@@ -110,7 +110,7 @@ x.m.v = P.m.s*dx/sqrt(dx'*dx);
 % precisions of observation noise (assumed by model)
 %--------------------------------------------------------------------------
 V(1)  = exp(8);                               % bearing (radar)
-V(2)  = exp(16);                              % range   (radar)
+V(2)  = exp(12);                              % range   (radar)
 V(3)  = exp(8);                               % velocity x (IMU)
 V(4)  = exp(8);                               % velocity y (IMU)
 V(5)  = 0;                                    % bearing of missile (IR gimble)
@@ -134,25 +134,34 @@ W.g.v = exp(16);                              % velocity (gimble)
 
 % order of generalised motion (and smoothness)
 %--------------------------------------------------------------------------
-M(1).E.s  = 1;                                % smoothness
-M(1).E.n  = 8;                                % order of
+dt        = 1;
+M(1).E.s  = 1/2;                              % smoothness
+M(1).E.n  = 6;                                % order of
 M(1).E.d  = 0;                                % generalised motion
-M(1).E.dt = 1;                                % time step
+M(1).E.dt = dt;                               % time step
 
 % level 1: dynamics of hidden states
 %--------------------------------------------------------------------------
 M(1).f  = @fx_M;                              % fx (model)
 M(1).g  = @gx_M;                              % gx (model)
 M(1).x  = x;                                  % hidden states
-M(1).V  = spm_vec(V);                         % error precision
-M(1).W  = spm_vec(W);                         % error precision
+M(1).V  = spm_vec(V);                         % error precision (signal)
+M(1).W  = spm_vec(W);                         % error precision (dynamics)
 M(1).pE = P;                                  % parameters
 
 
-% level 2: hidden cause (rendezvous point)
+% level 2: hidden cause (rendezvous point - x, y = 0)
 %--------------------------------------------------------------------------
-M(2).v  = [0; 0];                             % hidden causes
-M(2).V  = [exp(-4); exp(16)];                 % [s.d.: about 8 km in x]
+M(2).f  = @(x,u,P) 0;                         % fx (model)
+M(2).g  = @(x,u,P) x;                         % gx (model)
+M(2).x  = 0;                                  % hidden states
+M(2).v  = 0;                                  % hidden causes
+M(2).V  = exp(16);                            % error precision
+M(2).W  = exp(32);                            % error precision
+
+% level 3: hidden cause (rendezvous point)
+%--------------------------------------------------------------------------
+M(3).v  = 0;                                  % hidden causes
 
 % generative process
 %==========================================================================
@@ -161,13 +170,13 @@ M(2).V  = [exp(-4); exp(16)];                 % [s.d.: about 8 km in x]
 %--------------------------------------------------------------------------
 U(1)  = 0;                                    % bearing of missile (radar)
 U(2)  = 0;                                    % range   of missile (radar)
-U(3)  = exp(8);                               % velocity x (IMU)
-U(4)  = exp(8);                               % velocity y (IMU)
+U(3)  = exp(2);                               % velocity x (IMU)
+U(4)  = exp(2);                               % velocity y (IMU)
 U(5)  = 0;                                    % bearing of missile (IR gimble)
-U(6)  = exp(8);                               % angle of gimble (IMU)
-U(7)  = exp(8);                               % velocity gimble (IMU)
-U(8)  = exp(8);                               % position x (IMU)
-U(9)  = exp(8);                               % position y (IMU)
+U(6)  = exp(0);                               % angle of gimble (IMU)
+U(7)  = exp(0);                               % velocity gimble (IMU)
+U(8)  = 0;                                    % position x (IMU)
+U(9)  = 0;                                    % position y (IMU)
 
 % precision of random fluctuations on sensor signals
 %--------------------------------------------------------------------------
@@ -183,12 +192,12 @@ V(9)  = (1/1000/10)^(-2);          % position y (IMU)  [sd: 1/10 m]
 
 % precision of random fluctuations on latent states
 %--------------------------------------------------------------------------
-W.m.x = exp([28; 28]);                        % position (missile)
-W.m.v = exp([16; 16]);                        % velocity (missile)
-W.d.x = exp([28; 28]);                        % position (drone)
-W.d.v = exp([16; 16]);                        % velocity (drone)
-W.g.x = exp(28);                              % angle    (gimble)
-W.g.v = exp(16);                              % velocity (gimble)
+W.m.x = exp([32; 32]);                        % position (missile)
+W.m.v = exp([28; 28]);                        % velocity (missile)
+W.d.x = exp([32; 32]);                        % position (drone)
+W.d.v = exp([28; 28]);                        % velocity (drone)
+W.g.x = exp(32);                              % angle    (gimble)
+W.g.v = exp(28);                              % velocity (gimble)
 
 % first level
 %--------------------------------------------------------------------------
@@ -202,30 +211,29 @@ G(1).pE = P;                                  % parameters
 
 % second level
 %--------------------------------------------------------------------------
-G(2).v  = [-2; 0];                            % hidden cause
+G(2).v  = -2;                                 % hidden cause
 G(2).a  = [0; 0; 0];                          % action
-G(2).V  = exp(32);
+G(2).V  = exp(64);
 
 
 % Assemble DEM structure
 %==========================================================================
-N       = 200;                                % length of time series (s)
+N       = 240/dt;                             % length of time series (s)
 DEM.G   = G;                                  % generative process
 DEM.M   = M;                                  % generative model
-DEM.C   = zeros(2,N);                         % latent causes
-DEM.U   = zeros(2,N);                         % priors over latent causes
-DEM.C(1,:) = -2;                              % target at x = -2, y = 0 Km
+DEM.C   = zeros(1,N) - 2;                     % latent causes
+DEM.U   = zeros(1,N);                         % priors over latent causes
 
 % Solve or integrate
 %--------------------------------------------------------------------------
-DEM     = spm_ADEM(DEM);
+DEM     = spm_ADEM_UNITY(DEM);
 
 % show results of Bayesian filtering
 %--------------------------------------------------------------------------
 spm_figure('GetWin','ADEM'); clf
-spm_DEM_qU(DEM.qU,DEM.pU)
-subplot(2,2,1), title({'Sensor signals', 'prediction and error'},'FontSize',16)
-subplot(2,2,2), title({'State estimation', 'hidden states'},'FontSize',16)
+spm_DEM_qU(DEM.qU)
+subplot(3,2,1), title({'Sensor signals', 'prediction and error'},'FontSize',16)
+subplot(3,2,2), title({'State estimation', 'hidden states'},'FontSize',16)
 
 % create movie of radar tracking and intial approach
 %--------------------------------------------------------------------------
@@ -233,33 +241,39 @@ spm_figure('GetWin','Figure 1'); clf
 spm_graphics_intercept(DEM)
 
 
-% continue simulation at half the update speed (i.e., 500ms updates)
+% continue simulation at half the update speed (i.e., 250ms updates)
 %==========================================================================
-DEM.M(1).E.dt = 1/2;                            % time step
 
 % update hidden and latent states
 %--------------------------------------------------------------------------
 DEM.M(1).x = spm_unvec(DEM.qU.x{1}(:,end),DEM.M(1).x);
+DEM.M(1).v = spm_unvec(DEM.qU.v{1}(:,end),DEM.M(1).v);
+DEM.M(2).x = spm_unvec(DEM.qU.x{2}(:,end),DEM.M(2).x);
+DEM.M(2).v = spm_unvec(DEM.qU.v{2}(:,end),DEM.M(2).v);
 DEM.G(1).x = spm_unvec(DEM.pU.x{1}(:,end),DEM.G(1).x);
-DEM.M(2).v = DEM.qU.v{2}(:,end);
 
-% increase precision of IR signals and priors over hidden cause
+% increase precision of IR signals
 %--------------------------------------------------------------------------
-DEM.M(1).V(5,5) = exp(2);
-DEM.M(2).V(1)   = exp(4);
-DEM.U(1,:)      = DEM.qU.v{2}(1,end);
+dt    = 1/2;
+DEM.M(1).E.dt = dt;                           % time step
+DEM.M(1).V(5,5) = exp(0);                     % precision of IR
+
+N     = 30/dt;                                % length of time series (s)
+DEM.C = zeros(1,N);                           % latent causes
+DEM.U = zeros(1,N);                           % priors over latent causes
+DEM.C(1,:) = -2;                              % target at x = -2, y = 0 Km
 
 % solve
 %--------------------------------------------------------------------------
-DEM  = spm_ADEM(DEM);
+DEM  = spm_ADEM_UNITY(DEM);
 
 % create movie of radar tracking and final approach
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Figure 1');
 spm_graphics_intercept(DEM,1)
 
-return
 
+return
 
 function f = fx_G(x,v,a,P)
 % FORMAT f = fx_G(x,v,a,P)
@@ -272,38 +286,34 @@ function f = fx_G(x,v,a,P)
 %  x.g.x    - angle    (gimble)
 %  x.g.v    - velocity (gimble)
 %--------------------------------------------------------------------------
-f      = x;
+f     = x;
+v     = [v; 0];
 
 %  f.m.x    - changes in position (missile)
 %--------------------------------------------------------------------------
-f.m.x  = x.m.v;
+f.m.x = x.m.v;
 
 %  f.m.v    - changes in velocity (missile)
 %--------------------------------------------------------------------------
-dx     = v - x.m.x;
-r      = sqrt(dx'*dx);
-dv     = dx/r;
-if dx(2) < 0
-    f.m.v = P.m.s*dv - x.m.v;
-else
-    f.m.v = x.m.v - x.m.v;
-end
+dx    = v - x.m.x;
+dv    = dx/sqrt(dx'*dx);
+f.m.v = (dx(2) < 0) * (P.m.s*dv - x.m.v);
 
 %  f.d.x    - changes in position (drone)
 %--------------------------------------------------------------------------
-f.d.x  = x.d.v;
+f.d.x = x.d.v;
 
 %  f.d.v    - changes in velocity (drone)
 %--------------------------------------------------------------------------
-f.d.v  = a(1:2);
+f.d.v = a(1:2);
 
 %  f.g.x    - changes in angle    (gimble)
 %--------------------------------------------------------------------------
-f.g.x  = a(3);
+f.g.x = a(3);
 
 %  f.g.v    - changes in velocity (gimble)
 %--------------------------------------------------------------------------
-f.g.v  = 0;
+f.g.v = 0;
 
 return
 
@@ -320,6 +330,7 @@ function f = fx_M(x,v,P)
 %  x.g.v    - velocity (gimble)
 %--------------------------------------------------------------------------
 f     = x;
+v     = [v; 0];
 
 %  f.m.x    - changes in position (missile)
 %--------------------------------------------------------------------------
@@ -330,7 +341,7 @@ f.m.x = P.m.s*dv;
 
 %  f.m.v    - changes in velocity (missile)
 %--------------------------------------------------------------------------
-f.m.v = x.m.v - x.m.v;
+f.m.v = [0; 0];
 
 %  f.d.x    - changes in position (drone)
 %--------------------------------------------------------------------------
@@ -356,7 +367,7 @@ f.g.v = 0;
 return
 
 
-function g = gx_G(x,v,a,P)
+function g = gx_G(x,v,~,P)
 % FORMAT g = gx_G(x,v,a,P)
 % observation function (process)
 %--------------------------------------------------------------------------
@@ -368,43 +379,13 @@ function g = gx_G(x,v,a,P)
 %   g(6) - angle of gimble (IMU)
 %   g(7) - velocity gimble (IMU)
 %--------------------------------------------------------------------------
-g      = zeros(9,1);
 
-%   g(1) - bearing of missile (radar)
-%--------------------------------------------------------------------------
-dx     = x.m.x - P.r.x;
-g(1)   = atan(dx(1)/dx(2));
-
-%   g(2) - range of missile (radar)
-%--------------------------------------------------------------------------
-r      = sqrt(dx'*dx);
-g(2)   = log(r);
-
-%   g(3) - velocity (IMU)
-%--------------------------------------------------------------------------
-g(3:4) = x.d.v;
-
-%   g(5) - bearing of missile (IR gimble)
-%--------------------------------------------------------------------------
-dx     = x.m.x - x.d.x;
-g(5)   = atan(dx(1)/dx(2)) - x.g.x;
-
-%   g(6) - angle of gimble (IMU)
-%--------------------------------------------------------------------------
-g(6)   = x.g.x;
-
-%   g(7) - velocity gimble (IMU)
-%--------------------------------------------------------------------------
-g(7)   = x.g.v;
-
-%   g(8:9) - (IMU)
-%--------------------------------------------------------------------------
-g(8:9) = x.d.x;
-
+g = gx_M(x,v,P);
 
 return
 
-function g = gx_M(x,v,P)
+
+function g = gx_M(x,~,P)
 % FORMAT g = gx_M(x,v,P)
 % observation function (model)
 %--------------------------------------------------------------------------
@@ -480,7 +461,7 @@ if nargin < 2
         plot(x.m.x(1),x.m.x(2),'.k','MarkerSize',32)
         plot(x.d.x(1),x.d.x(2),'*k','MarkerSize',16)
         plot(x.d.x(1),x.d.x(2),'ok','MarkerSize',8)
-        plot(v(1),v(2),'+k','MarkerSize',24)
+        plot(v(1),0,'+k','MarkerSize',24)
 
         x = spm_unvec(qx(:,t),DEM.M(1).x);
         v = spm_unvec(qv(:,t),DEM.M(2).v);
@@ -490,13 +471,13 @@ if nargin < 2
         %------------------------------------------------------------------
         c     = diag(DEM.qU.C{t}) + exp(-4);
         c     = sqrt(c)*3;
-        [i,j] = ellipsoid(v(1),v(2),1,c(1),c(2),0,32);
+        [i,j] = ellipsoid(v(1),0,1,c(1),c(2),0,32);
 
         fill(i(16,:)',j(16,:)',[1 1 1],'LineStyle',':','FaceColor','none','EdgeColor',[1 1 1]/8);
         plot(x.m.x(1),x.m.x(2),'.r','MarkerSize',16)
         plot(x.d.x(1),x.d.x(2),'*r','MarkerSize',8)
         plot(x.d.x(1),x.d.x(2),'or','MarkerSize',4)
-        plot(v(1),v(2),'+r','MarkerSize',12)
+        plot(v(1),0,'+r','MarkerSize',12)
 
         % plot gimble
         %------------------------------------------------------------------
@@ -547,7 +528,7 @@ else
         m(:,t) = x.m.x;
         d(:,t) = x.d.x;
 
-        hold off, plot(v(1),v(2),'+k','MarkerSize',24), hold on
+        hold off, plot(v(1),0,'+k','MarkerSize',24), hold on
         plot(x.m.x(1),x.m.x(2),'.k','MarkerSize',64)
         plot(x.d.x(1),x.d.x(2),'*k','MarkerSize',32)
         plot(x.d.x(1),x.d.x(2),'ok','MarkerSize',16)
@@ -561,7 +542,7 @@ else
         plot(x.m.x(1),x.m.x(2),'.r','MarkerSize',16)
         plot(x.d.x(1),x.d.x(2),'*r','MarkerSize',8)
         plot(x.d.x(1),x.d.x(2),'or','MarkerSize',4)
-        plot(v(1),v(2),'+r','MarkerSize',12)
+        plot(v(1),0,'+r','MarkerSize',12)
 
         % plot gimble
         %------------------------------------------------------------------
@@ -572,7 +553,7 @@ else
         plot(u,v,'m')
 
         v = DEM.G(2).v;
-        axis([-1 1 -1 1]/10 + [v(1) v(1) v(2) v(2)]), axis square
+        axis([-1 1 -1 1]/10 + [v(1) v(1) 0 0]), axis square
         xlabel('latitude (km)'), ylabel('longitude (km)'), title('Interception')
 
         % save frame
@@ -593,7 +574,7 @@ else
     subplot(3,2,5), hold off
     plot(m(1,:),m(2,:)), hold on
     plot(d(1,:),d(2,:)), hold on
-    axis([-1 1 -1 1]/100 + [v(1) v(1) v(2) v(2)]), axis square
+    axis([-1 1 -1 1]/100 + [v(1) v(1) 0 0]), axis square
     xlabel('latitude (km)'), ylabel('longitude (km)'), title('Trajectories (m)')
 
     % plot distances (after interpolation)

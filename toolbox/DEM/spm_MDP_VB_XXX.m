@@ -1496,7 +1496,7 @@ for m = 1:size(MDP,1)
             if beta
                 Fa(1,1) = spm_MI(pa{m,g},C{m,g},H(m,:));
                 Fa(2,1) = spm_MI(qa{m,g},C{m,g},H(m,:));
-                Pa          = spm_softmax(beta*Fa);
+                Pa      = spm_softmax(beta*Fa);
             else
                 Pa      = [0,1];
             end
@@ -1518,7 +1518,7 @@ for m = 1:size(MDP,1)
             if beta
                 Fa(1,1) = spm_MI(pb{m,f},H{m,f});
                 Fa(2,1) = spm_MI(qb{m,f},H{m,f});
-                Pa          = spm_softmax(beta*Fa);
+                Pa      = spm_softmax(beta*Fa);
             else
                 Pa      = [0,1];
             end
