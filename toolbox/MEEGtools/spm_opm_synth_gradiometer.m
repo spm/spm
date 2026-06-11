@@ -13,7 +13,7 @@ function D = spm_opm_synth_gradiometer(S)
 %                      (applied to confounds only)                               
 %   S.hp            -  n x 1 vector with highpass cutoff    - Default: no filter
 %                      (applied to confounds only)
-%   S.Y             - m x 1 cell array containing           - Deafualt: 'MEG' 
+%   S.Y             - m x 1 cell array containing           - Default: 'MEG' 
 %                     channel types
 % Output:
 %   D               - denoised MEEG object (also written to disk)

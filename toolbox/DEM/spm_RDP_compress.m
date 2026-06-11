@@ -59,7 +59,7 @@ end
 
 if nargin > 2, return, end
 
-% propogate down hierachy
+% propogate down hierarchy
 %--------------------------------------------------------------------------
 for n = flip(2:numel(MDP))
 

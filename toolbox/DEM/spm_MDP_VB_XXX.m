@@ -1744,7 +1744,7 @@ if OPTIONS.P
 end
 
 
-% auxillary functions
+% auxiliary functions
 %==========================================================================
 function [G,P,F,id,Pa] = spm_forwards(O,P,A,B,C,H,K,W,I,t,T,N,m,id,pA,qa)
 % deep tree search over policies or paths
@@ -2410,7 +2410,7 @@ if isfield(id,'cid')
 
     elseif isempty(id.cid)
 
-        % no contraints
+        % no constraints
         %------------------------------------------------------------------
         D = true;
 
@@ -2418,12 +2418,12 @@ if isfield(id,'cid')
 
         % assume cid is consistent with hid
         %------------------------------------------------------------------
-        cid   = id.cid;                           % contrained factors
+        cid   = id.cid;                           % constrained factors
         nid   = cid;                              % conditioning factors
         hif   = find(all(cid,2))';                % in hif factors
         nid(hif,:) = 0;
 
-        % size of contrained factors
+        % size of constrained factors
         %------------------------------------------------------------------
         Ns    = ones(1,numel(hif) + 1);
         for f = hif
