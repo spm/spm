@@ -84,7 +84,7 @@ function [elec] = ft_electrodeplacement(cfg, varargin)
 %   cfg.feedback       = string, can be 'yes' or 'no' for detailed feedback (default = 'yes')
 %
 % The following additional options apply to the 'equidistant' method
-%   cfg.numelec        = scalar, how many electrodes to place
+%   cfg.numelec        = scalar, how many electrodes to place (default = 64)
 %   cfg.nummidline     = scalar, how many electrodes along the midline over the vertex
 %   cfg.numsideline    = scalar, how many electrodes along the midline over the sideline above the ear
 %   cfg.maxiter        = scalar, maximum number of iterations at which to stop
