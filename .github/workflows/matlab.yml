@@ -171,3 +171,14 @@ jobs:
           name: spm-${{env.MEXEXT}}-${{runner.os}}-${{matrix.version}}
           path: ./**/*.${{env.MEXEXT}}
           retention-days: 1
+
+  tests-passed:
+    name: Tests passed
+    needs: matlab-tests
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail if any test job did not succeed
+        if: needs.matlab-tests.result != 'success'
+        run: exit 1
+      - run: echo "All required test jobs passed."
