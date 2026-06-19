@@ -36,6 +36,11 @@ testCase.verifyThat(C, IsEqualTo(spm_Ce(N,[])));
 
 C = spm_Ce('ar',N,0.4);
 testCase.verifyThat(C, IsEqualTo(spm_Ce(N,0.4)));
+
+% TEMP: Windows-only forced failure to exercise CI test reporting (revert before merge)
+if ispc
+    testCase.verifyTrue(false, 'Intentional Windows-only CI test-reporting failure');
+end
 end
 
 function test_spm_Ce_3(testCase)
