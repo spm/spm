@@ -7,11 +7,15 @@ on:
       - '**/*.h'
       - '**/*.cpp'
       - '**/*.hpp'
+      # Vendored toolboxes (fieldtrip, bemcp, ctf, ...) ship precompiled MEX and
+      # are not built by `make -C src`, so their changes must not trigger this.
+      - '!external/**'
 
 jobs:
   compile_mex:
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         include:
           # On Linux, the OS version should be as old as possible for mex compatibility.
