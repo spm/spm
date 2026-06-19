@@ -138,6 +138,7 @@ jobs:
           fi
 
       - name: Create or update FieldTrip sync pull request
+        id: create-pr
         if: >
           steps.check-update.outputs.skip == 'false' &&
           steps.diff-check.outputs.has_changes == 'true'
@@ -192,3 +193,26 @@ jobs:
             fieldtrip
             automated sync
           draft: false
+
+      - name: Enable auto-merge (squash) on the FieldTrip sync PR
+        # Only attempt auto-merge when a PR was just created or updated.
+        # peter-evans/create-pull-request reports the operation in
+        # steps.create-pr.outputs.pull-request-operation: "created" | "updated" | "closed" | "none".
+        if: >
+          steps.create-pr.outputs.pull-request-number != '' &&
+          (steps.create-pr.outputs.pull-request-operation == 'created' ||
+           steps.create-pr.outputs.pull-request-operation == 'updated')
+        env:
+          # PAT_FIELDTRIP_SYNC is required so that the auto-merge is performed
+          # by a real user account; using GITHUB_TOKEN here would not satisfy
+          # branch protection rules that require an approving reviewer/PR
+          # author other than the bot.
+          GH_TOKEN: ${{ secrets.PAT_FIELDTRIP_SYNC || secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ steps.create-pr.outputs.pull-request-number }}
+        run: |
+          # Auto-merge is best-effort: it requires "Allow auto-merge" in repo
+          # settings and at least one branch protection rule (e.g., required
+          # status checks) on `main`. If those conditions aren't met, the
+          # command will fail — log it but don't fail the sync workflow.
+          gh pr merge --auto --squash "$PR_NUMBER" || \
+            echo "::warning::Could not enable auto-merge on PR #$PR_NUMBER. Check that auto-merge is enabled in repo settings and that branch protection is configured on main."
