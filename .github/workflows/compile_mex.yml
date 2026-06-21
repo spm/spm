@@ -44,16 +44,16 @@ jobs:
     steps:
       - name: Set up MATLAB (legacy)
         if: ${{ matrix.matlab_legacy }}
-        uses: matlab-actions/setup-matlab@v1
+        uses: matlab-actions/setup-matlab@aa8bbc7b76daa63c5d456d1430cbd6cb5b626ab4
         with:
           release: ${{ matrix.matlab_release }}
       - name: Set up MATLAB
         if: ${{ !matrix.matlab_legacy }}
-        uses: matlab-actions/setup-matlab@v2
+        uses: matlab-actions/setup-matlab@aa8bbc7b76daa63c5d456d1430cbd6cb5b626ab4
         with:
           release: ${{ matrix.matlab_release }}
       - name: Checkout SPM
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
 
       - name: Delete old MEX files on Ubuntu and Mac
         if: matrix.os != 'windows-latest'
@@ -73,7 +73,7 @@ jobs:
           # make -C src external-install
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: spm-mex-${{ matrix.os_name }}
           path: ./**/*.${{ matrix.mex_ext }}
@@ -84,13 +84,13 @@ jobs:
     needs: compile_mex
     steps:
       - name: Download all MEX artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
         with:
           pattern: spm-mex-*
           merge-multiple: true
 
       - name: Upload all mex files as Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: spm-mex-all
           path: .
