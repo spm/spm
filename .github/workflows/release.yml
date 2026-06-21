@@ -60,7 +60,7 @@ jobs:
 
       - name: Set up MATLAB
         id: setup_matlab
-        uses: matlab-actions/setup-matlab@v2
+        uses: matlab-actions/setup-matlab@aa8bbc7b76daa63c5d456d1430cbd6cb5b626ab4
         with:
           release: ${{matrix.version}}
           products: |
@@ -68,7 +68,7 @@ jobs:
             Signal_Processing_Toolbox
 
       - name: Extract MATLAB version to file
-        uses: matlab-actions/run-command@v2
+        uses: matlab-actions/run-command@37b454c384483087929a3d652be474ba585a9659
         with:
           command: |
             fileID = fopen('matlab_release.txt', 'w')
@@ -85,7 +85,7 @@ jobs:
           echo "MATLAB_VERSION=$matlab_release" >> $GITHUB_ENV
 
       - name: Checkout SPM
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
 
       - name: Delete hidden files and folders
         shell: bash
@@ -113,7 +113,7 @@ jobs:
 
       # 1) Add SPM with subfolders to the path 2) Run spm_make_standalone in matlab 3) Create runtime_installer
       - name: Build MATLAB standalone
-        uses: matlab-actions/run-command@v2
+        uses: matlab-actions/run-command@37b454c384483087929a3d652be474ba585a9659
         with:
           command: |
             addpath(genpath('.'));
@@ -130,7 +130,7 @@ jobs:
 
       - name: Upload Raw Compilation Artifact
         if: github.event_name == 'workflow_dispatch' && runner.os == 'macOS'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: raw_compilation_${{ matrix.os_name }}
           path: raw_compilation_debug/
@@ -243,7 +243,7 @@ jobs:
           fi
 
       - name: Release standalone
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65
         with:
           tag_name: ${{ env.BUILD_TAG }} # Required for dispatch events (refs/heads/main -> dev)
           prerelease: ${{ env.PRERELEASE }}
@@ -255,7 +255,7 @@ jobs:
 
       - name: Upload Artifact (Dev/Test)
         if: github.event_name == 'workflow_dispatch'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: spm_standalone_${{ env.BUILD_TAG }}_${{ matrix.os_name }}_${{ matrix.version }}
           # Path must be within workspace, ../ is not allowed
@@ -271,7 +271,7 @@ jobs:
 
       - name: Release SPM
         if: runner.os == 'Linux' && matrix.version == 'latest' && github.event_name != 'workflow_dispatch'
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65
         with:
           prerelease: ${{ env.PRERELEASE }}
           files: ../spm_${{ env.BUILD_TAG }}.zip
@@ -286,7 +286,7 @@ jobs:
 
       - name: Trigger workflow in spm-docker
         if: env.PRERELEASE == 'false' && runner.os == 'Linux' && matrix.version == 'latest' && github.event_name != 'workflow_dispatch'
-        uses: peter-evans/repository-dispatch@v3
+        uses: peter-evans/repository-dispatch@ff45666b9427631e3450c54a1bcbee4d9ff4d7c0
         with:
           token: ${{ secrets.PAT_TOKEN_SPM_DOCKER }}
           repository: spm/spm-docker
