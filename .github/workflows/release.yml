@@ -284,11 +284,21 @@ jobs:
           echo "SPM_RELEASE=${tag:0:5}" >> $GITHUB_ENV
           echo "SPM_REVISION=${tag:6}" >> $GITHUB_ENV
 
+      - uses: actions/create-github-app-token@v3
+        id: app-token
+        with:
+          app-id: ${{ vars.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: |
+            spm-docker
+          permission-actions: write
+          permission-contents: write
       - name: Trigger workflow in spm-docker
         if: env.PRERELEASE == 'false' && runner.os == 'Linux' && matrix.version == 'latest' && github.event_name != 'workflow_dispatch'
         uses: peter-evans/repository-dispatch@v3
         with:
-          token: ${{ secrets.PAT_TOKEN_SPM_DOCKER }}
+          token: ${{ steps.app-token.outputs.token }}
           repository: spm/spm-docker
           event-type: trigger-container-build
           client-payload: |-
