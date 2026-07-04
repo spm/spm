@@ -394,6 +394,12 @@ if ~np && ~nh, nE = 1; end
 if nE ~= 1 || nl ~= 2 || any(std(U,1,2)) || d ~= 1
     dd = false;
 end
+
+% test for breask
+%--------------------------------------------------------------------------
+if ~isfield(DEM,'break')
+    DEM.break = @() false;
+end
  
 % Iterate DEM
 %==========================================================================
@@ -694,6 +700,11 @@ for iE = 1:nE
             Pu    = spm_cat(spm_diag({Px Pv}));
 
         end
+
+        % break
+        %------------------------------------------------------------------
+        if eval(DEM.break), break; end
+       
         
     end % sequence (nY)
  

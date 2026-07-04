@@ -76,9 +76,9 @@ function DEM = spm_LAP(DEM)
 % M(1).E.method.x = 0,1  switch for precision (hidden states)
 %__________________________________________________________________________
 %
-% spm_LAP implements a variational scheme under the Laplace
-% approximation to the conditional joint density q on states u, parameters 
-% p and hyperparameters (h,g) of an analytic nonlinear hierarchical dynamic
+% spm_LAP implements a variational scheme under the Laplace approximation
+% to the conditional joint density q on states u, parameters p and
+% hyperparameters (h,g) of an analytic nonlinear hierarchical dynamic
 % model, with additive Gaussian innovations.
 %
 %            q(u,p,h,g) = max <L(t)>q

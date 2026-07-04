@@ -76,7 +76,7 @@ M(g).n = 0;
 % default fields for static models (hidden states)
 %--------------------------------------------------------------------------
 if ~isfield(M,'f')
-    [M.f] = deal(inline('sparse(0,1)','x','v','P'));
+    [M.f] = deal(@(x,v,P) sparse(0,1));
     [M.x] = deal(sparse(0,1));
     [M.n] = deal(0);
 end
@@ -84,7 +84,7 @@ for i  = 1:g
     try
         fcnchk(M(i).f);
     catch
-        M(i).f = inline('sparse(0,1)','x','v','P');
+        M(i).f = @(x,v,P) sparse(0,1);
         M(i).x = sparse(0,1);
         M(i).n = 0;
     end
@@ -191,44 +191,31 @@ for i = (g - 1):-1:1
     % check f(x,v,P)
     %----------------------------------------------------------------------
     try
-        M(i).f  = fcnchk(M(i).f,'x','v','P');
-    end
-    try
-        f       = feval(M(i).f,x,v,M(i).pE);
+        f  = feval(M(i).f,x,v,M(i).pE);
         if length(spm_vec(x)) ~= length(spm_vec(f))
             error('please check: M(%i).f(x,v,P)',i)
         end
- 
     catch
         sprintf('??? evaluation failure: M(%i).f(x,v,P)',i)
         error(lasterror)
     end
-    try M(i).fx = fcnchk(M(i).fx,'x','v','P'); end
-    try M(i).fv = fcnchk(M(i).fv,'x','v','P'); end
-    try M(i).fp = fcnchk(M(i).fp,'x','v','P'); end
+
 
  
     % check g(x,v,P)
     %----------------------------------------------------------------------
     try
-        M(i).g = fcnchk(M(i).g,'x','v','P');
-    end
-    try
         M(i).m = length(spm_vec(v));
         v      = feval(M(i).g,x,v,M(i).pE);
         M(i).l = length(spm_vec(v));
         M(i).n = length(spm_vec(x));
- 
         M(i).v = v;
         M(i).x = x;
- 
     catch
         sprintf('??? evaluation failure: M(%i).g(x,v,P)',i)
         error(lasterror)
     end
-    try M(i).gx = fcnchk(M(i).gx,'x','v','P'); end
-    try M(i).gv = fcnchk(M(i).gv,'x','v','P'); end
-    try M(i).gp = fcnchk(M(i).gp,'x','v','P'); end
+
     
 end
     

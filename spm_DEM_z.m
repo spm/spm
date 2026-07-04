@@ -47,7 +47,7 @@ for i = 1:length(M)
     elseif norm(P,1) > exp(32)
         z{i}  = sparse(M(i).l,N);
     else
-        z{i}  = spm_sqrtm(inv(P))*randn(M(i).l,N)*K;
+        z{i}  = spm_sqrtm(spm_inv(P))*randn(M(i).l,N)*K;
     end
     
     % precision of states
@@ -70,7 +70,7 @@ for i = 1:length(M)
         elseif norm(P,1) > exp(32)
             w{i} = sparse(M(i).n,N);
         else
-            w{i} = spm_sqrtm(inv(P))*randn(M(i).n,N)*K*dt;
+            w{i} = spm_sqrtm(spm_inv(P))*randn(M(i).n,N)*K*dt;
         end
     else
         w{i} = sparse(0,0);
