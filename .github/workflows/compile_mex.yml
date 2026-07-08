@@ -42,6 +42,13 @@ jobs:
             matlab_legacy: true
 
     steps:
+    
+      - name: Configure MinGW
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: |
+          echo "MW_MINGW64_LOC=C:\mingw64" >> $env:GITHUB_ENV
+    
       - name: Set up MATLAB (legacy)
         if: ${{ matrix.matlab_legacy }}
         uses: matlab-actions/setup-matlab@v1
@@ -83,6 +90,13 @@ jobs:
           command: |
               disp('MATLAB version:')
               version        
+              disp('MW_MINGW64_LOC:')
+              disp(getenv('MW_MINGW64_LOC'))
+              if exist(fullfile(getenv('MW_MINGW64_LOC'),'bin','gcc.exe'),'file')
+                  disp('gcc found')
+              else
+                  disp('gcc NOT found')
+              end              
               disp('MEX setup C:')
               mex -setup -v C        
               disp('Compiler configurations:')
