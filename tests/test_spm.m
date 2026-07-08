@@ -41,6 +41,10 @@ testCase.verifyThat(mem_total, IsOfClass('double'));
 
 end
 
+function test_mex(testCase)
+    mex -setup
+end
+
 end % methods (Test)
 
 end % classdef
