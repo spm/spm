@@ -86,11 +86,11 @@ W.d.x = exp([16; 16]);                        % position (drone)
 
 % precisions of observation noise
 %--------------------------------------------------------------------------
-n      = size(P.r.x,2);                        % number of radar
-V.rad  = zeros(2,n) + exp(16);                 % range & bearing (radar)
-V.imu  = zeros(2,1) + exp(2);                  % position (IMU)
-V.b    = 0;                                    % bearing (IR)
-V.dbdt = 0;                                    % velocity (IR)
+n      = size(P.r.x,2);                       % number of radar
+V.rad  = zeros(2,n) + exp(16);                % range & bearing (radar)
+V.imu  = zeros(2,1) + exp(2);                 % position (IMU)
+V.b    = 0;                                   % bearing (IR)
+V.dbdt = 0;                                   % velocity (IR)
 
 
 % precisions (for action): restricted to IMU signals
