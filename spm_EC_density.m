@@ -22,7 +22,7 @@ function [EC] = spm_EC_density(STAT,t,df,D)
 % cumulative density for the statistic in question).
 %
 % The current implementation is based upon an optimised functional form in
-% Appendix A of Worsley et al (2004). The (polynomial) summations are
+% Appendix B of Worsley et al (2004). The (polynomial) summations are
 % grouped in a way to maximise efficiency. The gamma functions are
 % evaluated in log space. This enables evaluation with very high degrees of
 % freedom (with an enforced upper bound of 256).
