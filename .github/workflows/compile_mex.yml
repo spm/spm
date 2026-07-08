@@ -63,6 +63,29 @@ jobs:
         if: matrix.os == 'windows-latest'
         run: Get-ChildItem -Path .\ -Recurse -Include *.mex* | Remove-Item -Force
 
+      - name: Debug compiler        
+        shell: pwsh
+        if: matrix.os == 'windows-latest'
+        run: |
+            Write-Host "=== cl ==="
+            where.exe cl       
+            Write-Host "=== gcc ==="
+            where.exe gcc        
+            Write-Host "=== g++ ==="
+            where.exe g++        
+            Write-Host "=== PATH ==="
+            $env:PATH
+          
+      - name: MATLAB diagnostics
+        if: matrix.os == 'windows-latest'
+        uses: matlab-actions/run-command@v2
+        with:
+          command: |
+              mex -setup -v C
+              mex -setup -v C++
+              mex.getCompilerConfigurations('C')
+              mex.getCompilerConfigurations('C++')          
+
       - name: Compile MEX files
         run: |
           make -C src distclean
