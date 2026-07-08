@@ -69,6 +69,14 @@ jobs:
       - name: Install Visual C++ 2010 Redistributable (required by FieldTrip MEX files)
         if: runner.os == 'Windows'
         run: choco install vcredist2010 -y
+        
+      - name: Configure MinGW
+        # GitHub Actions provides MinGW in C:\mingw64 but MATLAB on Windows
+        # does not automatically detect it. Explicitly set MW_MINGW64_LOC.      
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: |
+          echo "MW_MINGW64_LOC=C:\mingw64" >> $env:GITHUB_ENV
 
       - name: Check out repository
         uses: actions/checkout@v4
