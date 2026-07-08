@@ -97,14 +97,14 @@ Q     = zeros(n,n);
 L     = zeros(n,1,'like',U.b(1));
 for i = 1:n
     for j = 1:n
-        bQij   = squeeze(bQ(i,j,:));
+        bQij = squeeze(bQ(i,j,:));
         if i == j
             Q(i,j) = U.b*bQij + G(i,j)*exp(U.X*P.Gp(:,j));
         else
             Q(i,j) = U.b*bQij + G(i,j);
 
         end
-        L(i)   = L(i) - U.D{j}*bQij;
+        L(i) = L(i) - U.D{j}*bQij;
     end
 end
 
@@ -155,7 +155,7 @@ DS = DS + DX'*H*X;
 
 % predicted flow: F = -Q*D*S - L
 %--------------------------------------------------------------------------
-F  = -Q*DS;
+F  = -Q*DS - L;
 
 % required output
 %--------------------------------------------------------------------------

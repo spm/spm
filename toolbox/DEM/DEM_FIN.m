@@ -1,7 +1,7 @@
 function [Tab,F,DEM] = DEM_FIN(SIM,OPT)
 % FORMAT [Tab,F,DEM] = DEM_FIN(SIM)
 %
-% Demonstration of COVID-19 modelling using variational Laplace (4 groups)
+% Demonstration of financial modelling using variational Laplace
 %__________________________________________________________________________
 % This demonstration routine illustrates the complex system modelling of
 % financial markets using a generic (Helmholtz Hodge) generative model of
@@ -455,7 +455,7 @@ DEM.M(1).E.v      = V0;        % lyapunov exponent
 
 % model
 %--------------------------------------------------------------------------
-DEM.M(1).f  = @spm_fx_NESS;     % flow
+DEM.M(1).f  = @spm_fx_NESS;    % flow
 DEM.M(1).g  = gx;              % observer function
 DEM.M(1).gy = gy;              % observer function
 DEM.M(1).x  = x0;              % initial state
@@ -880,21 +880,24 @@ M.W  = W;
 M.K  = K;
 M.L  = K;
 x    = ones(n + m,1);
-full(spm_diff(@spm_fx_NESS,x,[],Ep,[],1))
-
+disp('Jacobian')
+disp(full(spm_diff(@spm_fx_NESS,x,[],Ep,[],1)))
 
 % ensure numerical consistency of flow
 %--------------------------------------------------------------------------
-spm_NESS_gen_lap(Ep,M,x)'
-spm_fx_NESS(x,[],Ep)
+disp('Flow')
+disp(spm_NESS_gen_lap(Ep,M,x)')
+disp(spm_fx_NESS(x,[],Ep))
 
 % ensure numerical equivalence and consistency of surprisal gradients
 %--------------------------------------------------------------------------
-spm_fx_NESS(x,[],Ep,[],'DS')
-cell2mat(spm_NESS_gen_lap(Ep,M,x,'DS'))
+disp('Surprisal gradients (analytic)')
+disp(spm_fx_NESS(x,[],Ep,[],'DS'))
+disp(cell2mat(spm_NESS_gen_lap(Ep,M,x,'DS')))
 
-full(spm_diff(@spm_fx_NESS,x,[],Ep,[],'S',1)')
-full(spm_diff(@spm_NESS_gen_lap,Ep,M,x,'S',3)')
+disp('Surprisal gradients (numerical)')
+disp(full(spm_diff(@spm_fx_NESS,x,[],Ep,[],'S',1)'))
+disp(full(spm_diff(@spm_NESS_gen_lap,Ep,M,x,'S',3)'))
 
 % effect of parameters on Jacobian
 %--------------------------------------------------------------------------
