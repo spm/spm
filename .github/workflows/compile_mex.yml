@@ -44,6 +44,8 @@ jobs:
     steps:
     
       - name: Configure MinGW
+        # GitHub Actions provides MinGW in C:\mingw64 but MATLAB on Windows
+        # does not automatically detect it. Explicitly set MW_MINGW64_LOC.      
         if: matrix.os == 'windows-latest'
         shell: pwsh
         run: |
@@ -69,48 +71,6 @@ jobs:
       - name: Delete old MEX files on Windows
         if: matrix.os == 'windows-latest'
         run: Get-ChildItem -Path .\ -Recurse -Include *.mex* | Remove-Item -Force
-
-      - name: Debug compiler        
-        shell: pwsh
-        if: matrix.os == 'windows-latest'
-        run: |
-            Write-Host "=== cl ==="
-            where.exe cl       
-            Write-Host "=== gcc ==="
-            where.exe gcc        
-            Write-Host "=== g++ ==="
-            where.exe g++        
-            Write-Host "=== PATH ==="
-            $env:PATH
-          
-      - name: MATLAB diagnostics
-        if: matrix.os == 'windows-latest'
-        uses: matlab-actions/run-command@v1
-        with:
-          command: |
-              disp('MATLAB version:')
-              version        
-              disp('MW_MINGW64_LOC:')
-              disp(getenv('MW_MINGW64_LOC'))
-              if exist(fullfile(getenv('MW_MINGW64_LOC'),'bin','gcc.exe'),'file')
-                  disp('gcc found')
-              else
-                  disp('gcc NOT found')
-              end              
-              disp('MEX setup C:')
-              mex -setup -v C        
-              disp('Compiler configurations:')
-              cc = mex.getCompilerConfigurations('C');
-              disp(cc)    
-
-      - name: MATLAB environment
-        if: matrix.os == 'windows-latest'
-        uses: matlab-actions/run-command@v1
-        with:
-          command: |
-            disp(getenv('MW_MINGW64_LOC'))
-            system('where gcc')
-            system('gcc --version')
 
       - name: Compile MEX files
         run: |
