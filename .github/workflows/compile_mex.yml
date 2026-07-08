@@ -81,10 +81,22 @@ jobs:
         uses: matlab-actions/run-command@v2
         with:
           command: |
-              mex -setup -v C
-              mex -setup -v C++
-              mex.getCompilerConfigurations('C')
-              mex.getCompilerConfigurations('C++')          
+              disp('MATLAB version:')
+              version        
+              disp('MEX setup C:')
+              mex -setup -v C        
+              disp('Compiler configurations:')
+              cc = mex.getCompilerConfigurations('C');
+              disp(cc)    
+
+      - name: MATLAB environment
+        if: matrix.os == 'windows-latest'
+        uses: matlab-actions/run-command@v2
+        with:
+          command: |
+            disp(getenv('MW_MINGW64_LOC'))
+            system('where gcc')
+            system('gcc --version')
 
       - name: Compile MEX files
         run: |
