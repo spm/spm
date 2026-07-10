@@ -239,6 +239,16 @@ switch lower(model)
         [pE,pC] = spm_null_priors(A,B,C);
         
         
+
+        % Wendling neural mass model (hippocampal CA1)
+        %======================================================================
+    case{'wendling'}
+
+        % prior moments on parameters
+        %------------------------------------------------------------------
+        [pE,pC] = spm_wendling_priors(A,B,C);
+
+
     otherwise
         warndlg('Unknown model')
 end
