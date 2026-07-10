@@ -79,12 +79,12 @@ jobs:
           echo "MW_MINGW64_LOC=C:\mingw64" >> $env:GITHUB_ENV
 
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
 
       - name: Get latest commit for tests data  # shallow fetch to get revision
         id: checkout-tests-data
         if: ${{ needs.configure.outputs.is-pr == 'false' }}
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
           repository: spm/spm-tests-data
           token: ${{ secrets.TESTS_DATA_REPO_TOKEN }}
@@ -97,7 +97,7 @@ jobs:
         run: rm -rf tests/data
       - name: Try to retrieve commit from cache
         id: cache-restore
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830
         with:
           path: tests/data
           key: ${{ env.cache-key }}-${{ steps.checkout-tests-data.outputs.commit }}
@@ -106,7 +106,7 @@ jobs:
       - name: If cache missed, pull latest commit...
         id: checkout-tests-data-lfs
         if: ${{ needs.configure.outputs.is-pr == 'false' && steps.cache-restore.outputs.cache-hit != 'true' }}
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
           repository: spm/spm-tests-data
           token: ${{ secrets.TESTS_DATA_REPO_TOKEN }}
@@ -114,7 +114,7 @@ jobs:
           lfs: true
       - name: ... and cache latest commit
         if: ${{ needs.configure.outputs.is-pr == 'false' && steps.cache-restore.outputs.cache-hit != 'true' }}
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830
         with:
           path: tests/data
           key: ${{ env.cache-key }}-${{ steps.checkout-tests-data.outputs.commit }}
@@ -129,33 +129,33 @@ jobs:
 
       - name: Set up MATLAB (legacy)
         if: ${{matrix.version == 'R2020a' || matrix.version == 'R2020b' || matrix.version == 'R2022a' || matrix.version == 'R2022b'}}
-        uses: matlab-actions/setup-matlab@v1
+        uses: matlab-actions/setup-matlab@aa8bbc7b76daa63c5d456d1430cbd6cb5b626ab4
         with:
           release: ${{matrix.version}}
       - name: Set up MATLAB
         if: ${{matrix.version != 'R2020a' && matrix.version != 'R2020b' && matrix.version != 'R2022a' && matrix.version != 'R2022b'}}
-        uses: matlab-actions/setup-matlab@v2
+        uses: matlab-actions/setup-matlab@aa8bbc7b76daa63c5d456d1430cbd6cb5b626ab4
         with:
           release: ${{matrix.version}}
 
       - name: Run regression tests with existing MEX files (legacy)
         if: ${{github.event.schedule == '40 16 * * 3' && (matrix.version == 'R2020a' || matrix.version == 'R2020b' || matrix.version == 'R2022a' || matrix.version == 'R2022b')}}
-        uses: matlab-actions/run-command@v1
+        uses: matlab-actions/run-command@37b454c384483087929a3d652be474ba585a9659
         with:
           command: addpath(pwd); results = spm_tests('class','regression','display',true); assert(all(~[results.Failed]));
       - name: Run unit tests with existing MEX files (legacy)
         if: ${{github.event.schedule != '40 16 * * 3' && (matrix.version == 'R2020a' || matrix.version == 'R2020b' || matrix.version == 'R2022a' || matrix.version == 'R2022b')}}
-        uses: matlab-actions/run-command@v1
+        uses: matlab-actions/run-command@37b454c384483087929a3d652be474ba585a9659
         with:
           command: addpath(pwd); results = spm_tests('class','unit','display',true); assert(all(~[results.Failed]));
       - name: Run regression tests with existing MEX files
         if: ${{github.event.schedule == '40 16 * * 3' && matrix.version != 'R2020a' && matrix.version != 'R2020b' && matrix.version != 'R2022a' && matrix.version != 'R2022b'}}
-        uses: matlab-actions/run-command@v2
+        uses: matlab-actions/run-command@37b454c384483087929a3d652be474ba585a9659
         with:
           command: addpath(pwd); results = spm_tests('class','regression','display',true); assert(all(~[results.Failed]));
       - name: Run unit tests with existing MEX files
         if: ${{github.event.schedule != '40 16 * * 3' && matrix.version != 'R2020a' && matrix.version != 'R2020b' && matrix.version != 'R2022a' && matrix.version != 'R2022b'}}
-        uses: matlab-actions/run-command@v2
+        uses: matlab-actions/run-command@37b454c384483087929a3d652be474ba585a9659
         with:
           command: addpath(pwd); results = spm_tests('class','unit','display',true); assert(all(~[results.Failed]));
 
@@ -174,7 +174,7 @@ jobs:
         if: runner.os == 'Windows'
         run: echo "MEXEXT=$(mexext.bat)" >> $env:GITHUB_ENV
       - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: spm-${{env.MEXEXT}}-${{runner.os}}-${{matrix.version}}
           path: ./**/*.${{env.MEXEXT}}
