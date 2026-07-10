@@ -243,7 +243,11 @@ DCM.Y.X0 = sparse(size(DCM.Y.Q,1),0);
 %==========================================================================
 Y            = DCM.Y;
 Y.y          = DCM.Y.csd;
-[Ep,Cp,Eh,F] = spm_nlsi_GN(DCM.M,DCM.U,Y);
+[Ep,Cp,Eh,F,~,~,~,converged,Fhist] = spm_nlsi_GN(DCM.M,DCM.U,Y);
+
+DCM.convergence.converged = converged;
+DCM.convergence.F         = Fhist.F;
+DCM.convergence.L         = Fhist.L;
 
 
 % Bayesian inference {threshold = prior}
