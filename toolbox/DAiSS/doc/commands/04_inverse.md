@@ -138,7 +138,7 @@ Empirical Bayesian Beamformer. Uses beamformer-like assumptions of source varian
 
 **WARNING 1:** the version of EBB here will not give numerically identical results to the version of the EBB routine in [spm_eeg_invert](https://github.com/spm/spm/blob/main/spm_eeg_invert.m) owing to some differences in preprocessing. 
 
-**WARNING 2:** use the [tdcov](03_features.md#tdcov) features method in conjuntion of this for the most useful model evidence results.
+**WARNING 2:** use the [tdcov](03_features.md#tdcov) features method in conjunction of this for the most useful model evidence results.
 
 EBB has a lot of options. Most should default to a simple behaviour in both matlabbatch and with DAiSS-Wizard.
 

@@ -127,7 +127,7 @@ S.conditions = {'condtion_01','condition_02');
 ```
 
 #### sametrials
-Take the same trials as used for filter computation. This is useful for bootstraping.
+Take the same trials as used for filter computation. This is useful for bootstrapping.
 ```matlab
 
 % matlabbatch

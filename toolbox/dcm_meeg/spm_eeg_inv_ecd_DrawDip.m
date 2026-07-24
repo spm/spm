@@ -472,7 +472,7 @@ end
 if isfield(st.vols{1},'sdip')
         sdip = st.vols{1}.sdip;
     else
-        return; % I don't do anything, as I can't find sdip strucure
+        return; % I don't do anything, as I can't find sdip structure
 end
 
 if isfield(sdip,'ax')

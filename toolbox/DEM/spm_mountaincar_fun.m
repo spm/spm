@@ -27,7 +27,7 @@ function [f] = spm_mountaincar_fun(P,G)
 % Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
  
  
-% place paramters in model
+% place parameters in model
 %--------------------------------------------------------------------------
 G(1).pE = P;
  

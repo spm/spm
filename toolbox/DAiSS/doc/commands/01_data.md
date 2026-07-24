@@ -82,7 +82,7 @@ Specifies in which space we want want to operate in.
 
 Options: 
  - 'MNI-Aligned' (RECOMMENDED) does everything in MNI space (good for group analyses)
- - 'Native' uses the space of the anatomical image associated with the data (fine for individial images)
+ - 'Native' uses the space of the anatomical image associated with the data (fine for individual images)
  - 'Head' uses the coordinate system of the MEG/EEG system.
 
 

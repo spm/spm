@@ -160,7 +160,7 @@ S.cross_terms = 'megeeg'; % for just EEG sensors
 ```
 
 #### bootstrap
-Generate the matrix using a bootstap selection of trials. e.g. instead of trials `[1 2 3 4 5 6 7 8 9]` you would make a matrix out of a random subset of the trials, but keeping the total number of trials the same, such as `[1 1 1 4 5 6 7 7 9]`. 
+Generate the matrix using a bootstrap selection of trials. e.g. instead of trials `[1 2 3 4 5 6 7 8 9]` you would make a matrix out of a random subset of the trials, but keeping the total number of trials the same, such as `[1 1 1 4 5 6 7 7 9]`. 
 
 ```matlab
 
@@ -251,7 +251,7 @@ S.cov.taper = 'hanning';
 ***
 
 ### cov_bysamples
-Similar to the Robust Covariance ([contcov](#contcov)) module, but a binary mask is used to speficy which time windows are used. (Useful if you have states allocated from e.g. a HMM where the windows of activation are all different lengths). There are two ways to call this, either by using the **samples** command or by having a channel called 'Class' in your meeg object which can have multiple states encoded within in (assumes mutual exclusivity).
+Similar to the Robust Covariance ([contcov](#contcov)) module, but a binary mask is used to specify which time windows are used. (Useful if you have states allocated from e.g. a HMM where the windows of activation are all different lengths). There are two ways to call this, either by using the **samples** command or by having a channel called 'Class' in your meeg object which can have multiple states encoded within in (assumes mutual exclusivity).
 
 #### samples
 A $1 \times n_{samples per trial} \times n_{trials}$ binary array to select which time windows.
@@ -441,7 +441,7 @@ S.tdcov.taper = 'hanning';
 ***
 
 ### vbfa
-Variational Bayes Factorial Analysis. Used in conjuction with the Champagne source inversion to estimate the noise covariance. See [Wipf et al. (2010)](https://doi.org/10.1016/j.neuroimage.2009.06.083) for more information.
+Variational Bayes Factorial Analysis. Used in conjunction with the Champagne source inversion to estimate the noise covariance. See [Wipf et al. (2010)](https://doi.org/10.1016/j.neuroimage.2009.06.083) for more information.
 
 #### nl
 Factor dimensionality
