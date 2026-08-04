@@ -30,7 +30,7 @@ on:
   workflow_dispatch:
     inputs:
       test:
-        description: 'Single test file to run, e.g. test_spm_plot_ci (empty = whole suite)'
+        description: 'Test file(s) to run, comma separated, e.g. test_spm_plot_ci (empty = whole suite)'
         required: false
         type: string
       timeout_per_test:
@@ -125,7 +125,7 @@ jobs:
     name: Test in Container
     needs: build_standalone
     runs-on: ubuntu-latest
-    timeout-minutes: 150
+    timeout-minutes: 210
     steps:
       # Deliberately no checkout of SPM here. The tests that run are the ones
       # compiled into the standalone, not the ones in the source tree, and
