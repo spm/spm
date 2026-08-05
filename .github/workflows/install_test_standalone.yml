@@ -158,11 +158,18 @@ jobs:
           echo "MATLAB_VERSION=$matlab_release" >> $GITHUB_ENV
 
       # Build the standalone
+      # FieldTrip ships compatibility shims for old MATLAB releases (datetime,
+      # contains, isfile, ...) which shadow modern built-ins. genpath puts all
+      # 31 of them on the path, where savepath fails outright on newer MATLAB
+      # and mcc can bundle the shims into the standalone. Remove them again
+      # before either runs.
       - name: Build MATLAB standalone
         uses: matlab-actions/run-command@v2
         with:
           command: |
             addpath(genpath('.'));
+            compat = genpath(fullfile('external','fieldtrip','compat'));
+            if ~isempty(compat), rmpath(compat); end
             savepath;
             spm_make_standalone
             mkdir('runtime_installer');

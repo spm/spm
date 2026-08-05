@@ -30,7 +30,7 @@ on:
   workflow_dispatch:
     inputs:
       test:
-        description: 'Single test file to run, e.g. test_spm_plot_ci (empty = whole suite)'
+        description: 'Test file(s) to run, comma separated, e.g. test_spm_plot_ci (empty = whole suite)'
         required: false
         type: string
       timeout_per_test:
@@ -85,11 +85,18 @@ jobs:
         shell: bash
         run: echo "MATLAB_VERSION=$(cat matlab_release.txt)" >> $GITHUB_ENV
 
+      # FieldTrip ships compatibility shims for old MATLAB releases (datetime,
+      # contains, isfile, ...) which shadow modern built-ins. genpath puts all
+      # 31 of them on the path, where savepath fails outright on newer MATLAB
+      # and mcc can bundle the shims into the standalone. Remove them again
+      # before either runs.
       - name: Build MATLAB standalone
         uses: matlab-actions/run-command@v2
         with:
           command: |
             addpath(genpath('.'));
+            compat = genpath(fullfile('external','fieldtrip','compat'));
+            if ~isempty(compat), rmpath(compat); end
             savepath;
             spm_make_standalone
             mkdir('runtime_installer');
@@ -118,7 +125,7 @@ jobs:
     name: Test in Container
     needs: build_standalone
     runs-on: ubuntu-latest
-    timeout-minutes: 150
+    timeout-minutes: 210
     steps:
       # Deliberately no checkout of SPM here. The tests that run are the ones
       # compiled into the standalone, not the ones in the source tree, and
