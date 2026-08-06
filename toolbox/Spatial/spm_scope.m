@@ -290,7 +290,7 @@ for it = 1:nit
     [wf2,~,gf2,~] = spm_diffeo('bsplins',f2,phi,ord);
 
     % Regularisation term is \tfrac{1}{2} u^T L u. Compute L u.
-    Lu  = spm_field('vel2mom', u-u0, [vx reg]);
+    Lu  = spm_field('vel2mom', u-u0, [vx reg], vx(2)^2);
 
     % Compute cost function. Note the slightly ad hoc treatment of
     % missing data (where one of the phis points outside the FOV).
@@ -317,7 +317,7 @@ for it = 1:nit
 
     % Gauss-Newton update
     % u \gets u - (diag(h) + L)\(g + L u)
-    u   = u - spm_field(h, g, [vx reg 3 3]);
+    u   = u - spm_field(h, g, [vx reg 3 3], vx(2)^2);
 
     % Check convergence
     if abs(E - Eprev) < tol                 % Stopping criterion
@@ -357,6 +357,7 @@ if nargin<7  || isempty(ord),  ord  = [1 1 1  0 0 0]; end
 if nargin<6  || isempty(reg),  reg  = [0 10 100]; end
 if nargin<5  || isempty(vx),   vx   = [1 1 1]; end
 
+reg = reg*vx(2)^2; % Adjust to account for phase encode direction voxel size
 d   = size(f1);
 L   = regop(d, vx, reg);
 G   = vx(2)*kron(kron(idop(d(3)),diffop(d(2),vx(2))),idop(d(1))); % Difference operator
