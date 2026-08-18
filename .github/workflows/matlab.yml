@@ -21,16 +21,26 @@ jobs:
         shell: bash
         env:
           EVENT_NAME: ${{ github.event_name }}
+          EVENT_SCHEDULE: ${{ github.event.schedule }}
         run: |
-          # extra-os adds macos-26 (Apple Silicon) coverage for the releases that
-          # build there. Empty on PRs so they keep the reduced matrix.
+          # The reduced sweep is oldest-supported plus newest, which catches almost
+          # every regression within a day; the full sweep runs on the weekly cron,
+          # on releases and on manual dispatch. extra-os adds macos-26 (Apple
+          # Silicon) coverage for the releases that build there, and is empty on
+          # PRs so they keep the reduced matrix.
+          FULL='["R2020a","R2020b","R2021a","R2021b","R2022a","R2022b","R2023a","R2023b","R2024a","R2024b","R2025a","R2025b", "latest"]'
+          REDUCED='["R2020a","latest"]'
           if [ "$EVENT_NAME" = "pull_request" ]; then
             echo "is-pr=true" >> $GITHUB_OUTPUT
-            echo 'versions=["R2020a","latest"]' >> $GITHUB_OUTPUT
+            echo "versions=$REDUCED" >> $GITHUB_OUTPUT
             echo 'extra-os=[]' >> $GITHUB_OUTPUT
+          elif [ "$EVENT_SCHEDULE" = "15 3 * * *" ]; then
+            echo "is-pr=false" >> $GITHUB_OUTPUT
+            echo "versions=$REDUCED" >> $GITHUB_OUTPUT
+            echo 'extra-os=[{"os":"macos-latest","version":"latest"}]' >> $GITHUB_OUTPUT
           else
             echo "is-pr=false" >> $GITHUB_OUTPUT
-            echo 'versions=["R2020a","R2020b","R2021a","R2021b","R2022a","R2022b","R2023a","R2023b","R2024a","R2024b","R2025a","R2025b", "latest"]' >> $GITHUB_OUTPUT
+            echo "versions=$FULL" >> $GITHUB_OUTPUT
             echo 'extra-os=[{"os":"macos-latest","version":"R2025b"},{"os":"macos-latest","version":"latest"}]' >> $GITHUB_OUTPUT
           fi
 
@@ -148,26 +158,37 @@ jobs:
         with:
           release: ${{matrix.version}}
 
-      - name: Run regression tests with existing MEX files (legacy)
-        if: ${{github.event.schedule == '40 16 * * 3' && (matrix.version == 'R2020a' || matrix.version == 'R2020b' || matrix.version == 'R2022a' || matrix.version == 'R2022b')}}
+      - name: Select test classes
+        id: classes
+        shell: bash
+        env:
+          IS_PR: ${{ needs.configure.outputs.is-pr }}
+          JOB: ${{ matrix.os }}-${{ matrix.version }}
+        run: |
+          # Unit tests run on every job. Regression tests drive whole batch
+          # pipelines and are the only end-to-end coverage, so they run on every
+          # scheduled job; on PRs they run on one job only, to keep contributor
+          # feedback short. Both classes share a MATLAB session, so the fixed
+          # setup cost (checkout, test data, MATLAB install) is paid once, and
+          # both result sets are reported before the assert.
+          UNIT="u = spm_tests('class','unit','display',true);"
+          REGR="r = spm_tests('class','regression','display',true);"
+          if [ "$IS_PR" = "true" ] && [ "$JOB" != "ubuntu-latest-latest" ]; then
+            echo "command=addpath(pwd); $UNIT assert(all(~[u.Failed]));" >> $GITHUB_OUTPUT
+          else
+            echo "command=addpath(pwd); $UNIT $REGR assert(all(~[u.Failed]) && all(~[r.Failed]));" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run tests with existing MEX files (legacy)
+        if: ${{matrix.version == 'R2020a' || matrix.version == 'R2020b' || matrix.version == 'R2022a' || matrix.version == 'R2022b'}}
         uses: matlab-actions/run-command@v1
         with:
-          command: addpath(pwd); results = spm_tests('class','regression','display',true); assert(all(~[results.Failed]));
-      - name: Run unit tests with existing MEX files (legacy)
-        if: ${{github.event.schedule != '40 16 * * 3' && (matrix.version == 'R2020a' || matrix.version == 'R2020b' || matrix.version == 'R2022a' || matrix.version == 'R2022b')}}
-        uses: matlab-actions/run-command@v1
-        with:
-          command: addpath(pwd); results = spm_tests('class','unit','display',true); assert(all(~[results.Failed]));
-      - name: Run regression tests with existing MEX files
-        if: ${{github.event.schedule == '40 16 * * 3' && matrix.version != 'R2020a' && matrix.version != 'R2020b' && matrix.version != 'R2022a' && matrix.version != 'R2022b'}}
+          command: ${{ steps.classes.outputs.command }}
+      - name: Run tests with existing MEX files
+        if: ${{matrix.version != 'R2020a' && matrix.version != 'R2020b' && matrix.version != 'R2022a' && matrix.version != 'R2022b'}}
         uses: matlab-actions/run-command@v2
         with:
-          command: addpath(pwd); results = spm_tests('class','regression','display',true); assert(all(~[results.Failed]));
-      - name: Run unit tests with existing MEX files
-        if: ${{github.event.schedule != '40 16 * * 3' && matrix.version != 'R2020a' && matrix.version != 'R2020b' && matrix.version != 'R2022a' && matrix.version != 'R2022b'}}
-        uses: matlab-actions/run-command@v2
-        with:
-          command: addpath(pwd); results = spm_tests('class','unit','display',true); assert(all(~[results.Failed]));
+          command: ${{ steps.classes.outputs.command }}
 
       - name: Compile MEX files
         run: |
