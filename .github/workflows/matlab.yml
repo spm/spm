@@ -14,6 +14,7 @@ jobs:
     outputs:
       versions: ${{ steps.config.outputs.versions }}
       is-pr: ${{ steps.config.outputs.is-pr }}
+      extra-os: ${{ steps.config.outputs.extra-os }}
     steps:
       - name: Determine test configuration
         id: config
@@ -21,12 +22,16 @@ jobs:
         env:
           EVENT_NAME: ${{ github.event_name }}
         run: |
+          # extra-os adds macos-26 (Apple Silicon) coverage for the releases that
+          # build there. Empty on PRs so they keep the reduced matrix.
           if [ "$EVENT_NAME" = "pull_request" ]; then
             echo "is-pr=true" >> $GITHUB_OUTPUT
             echo 'versions=["R2020a","latest"]' >> $GITHUB_OUTPUT
+            echo 'extra-os=[]' >> $GITHUB_OUTPUT
           else
             echo "is-pr=false" >> $GITHUB_OUTPUT
             echo 'versions=["R2020a","R2020b","R2021a","R2021b","R2022a","R2022b","R2023a","R2023b","R2024a","R2024b","R2025a","R2025b", "latest"]' >> $GITHUB_OUTPUT
+            echo 'extra-os=[{"os":"macos-latest","version":"R2025b"},{"os":"macos-latest","version":"latest"}]' >> $GITHUB_OUTPUT
           fi
 
   matlab-tests:
@@ -36,7 +41,9 @@ jobs:
       fail-fast: false
       matrix:
         version: ${{ fromJson(needs.configure.outputs.versions) }}
-        os: ["ubuntu-latest", "macos-15-intel", "macos-latest", "windows-latest"] # macos-15-intel has Intel architecture, macos-latest has Apple Silicon
+        # macos-15-intel is Intel, macos-15 is Apple Silicon. Not macos-latest:
+        # its Xcode 26 linker breaks C++ MEX linking for MATLAB R2023b-R2025a.
+        os: ["ubuntu-latest", "macos-15-intel", "macos-15", "windows-latest"]
         exclude:
           - os: windows-latest
             version: "R2020a" # MATLAB not available
@@ -46,23 +53,26 @@ jobs:
             version: "R2021a" # Compiler not available
           - os: windows-latest
             version: "R2021b" # Compiler not available
-          - os: macos-latest
+          - os: macos-15
             version: "R2020a" # Apple Silicon version not available
-          - os: macos-latest
+          - os: macos-15
             version: "R2020b" # Apple Silicon version not available
-          - os: macos-latest
+          - os: macos-15
             version: "R2021a" # Apple Silicon version not available
-          - os: macos-latest
+          - os: macos-15
             version: "R2021b" # Apple Silicon version not available
-          - os: macos-latest
+          - os: macos-15
             version: "R2022a" # Apple Silicon version not available
-          - os: macos-latest
+          - os: macos-15
             version: "R2022b" # Apple Silicon version not available
-          - os: macos-latest
+          - os: macos-15
             version: "R2023a" # Apple Silicon version not available
           - os: macos-15-intel
             version: "latest" # MATLAB dropped Intel Mac support starting with R2026a
+        include: ${{ fromJson(needs.configure.outputs.extra-os) }}
     runs-on: ${{matrix.os}}
+    # A hung setup-matlab otherwise burns the 6h limit and cancels sibling jobs
+    timeout-minutes: 120
     env:
       cache-key: tests-data2
     steps:
