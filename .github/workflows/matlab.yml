@@ -24,17 +24,13 @@ jobs:
           EVENT_NAME: ${{ github.event_name }}
           EVENT_SCHEDULE: ${{ github.event.schedule }}
         run: |
-          # Two tiers. Quick runs on pull requests and the daily cron: oldest
-          # supported plus newest release, which catches almost every regression
-          # within a day. Full runs on the weekly cron, on releases and on manual
-          # dispatch. extra-os adds macos-26 (Apple Silicon) coverage for the
-          # releases that build there.
+          # The quick tier is oldest supported plus newest release, the full tier is all of them.
+          # extra-os adds macos-26 (Apple Silicon) coverage for the releases that build there.
           FULL='["R2020a","R2020b","R2021a","R2021b","R2022a","R2022b","R2023a","R2023b","R2024a","R2024b","R2025a","R2025b", "latest"]'
           REDUCED='["R2020a","latest"]'
 
-          # is-pr gates the test data checkout only: spm-tests-data is private and
-          # its token is not available to pull requests from forks. It does not
-          # affect which tests run.
+          # is-pr gates the test data checkout, not which tests run: spm-tests-data is
+          # private and its token is unavailable to pull requests from forks.
           if [ "$EVENT_NAME" = "pull_request" ]; then
             echo "is-pr=true" >> $GITHUB_OUTPUT
           else
@@ -58,8 +54,8 @@ jobs:
       fail-fast: false
       matrix:
         version: ${{ fromJson(needs.configure.outputs.versions) }}
-        # macos-15-intel is Intel, macos-15 is Apple Silicon. Not macos-latest:
-        # its Xcode 26 linker breaks C++ MEX linking for MATLAB R2023b-R2025a.
+        # macos-15-intel is Intel, macos-15 is Apple Silicon. macos-latest is avoided
+        # because its Xcode 26 linker cannot link C++ MEX files for R2023b-R2025a.
         os: ["ubuntu-latest", "macos-15-intel", "macos-15", "windows-latest"]
         exclude:
           - os: windows-latest
@@ -88,7 +84,7 @@ jobs:
             version: "latest" # MATLAB dropped Intel Mac support starting with R2026a
         include: ${{ fromJson(needs.configure.outputs.extra-os) }}
     runs-on: ${{matrix.os}}
-    # A hung setup-matlab otherwise burns the 6h limit and cancels sibling jobs
+    # Stops a hung job exhausting the 6h workflow limit and cancelling its siblings.
     timeout-minutes: 120
     env:
       cache-key: tests-data2
@@ -172,14 +168,7 @@ jobs:
           TIER: ${{ needs.configure.outputs.tier }}
           OS: ${{ matrix.os }}
         run: |
-          # Unit tests run on every job. Regression tests drive whole batch
-          # pipelines, and every regression failure seen so far reproduces
-          # identically on all platforms, so in the quick tier they run on
-          # ubuntu only. macOS is the long pole, so excluding it there is what
-          # keeps pull request feedback near 22 minutes instead of 39. The full
-          # tier still runs them everywhere. Both classes share one MATLAB
-          # session, so the fixed setup cost is paid once and both result sets
-          # are reported before the assert.
+          # Regression tests are much slower than unit tests, so the quick tier runs them on ubuntu only.
           UNIT="u = spm_tests('class','unit','display',true);"
           REGR="r = spm_tests('class','regression','display',true);"
           if [ "$TIER" = "full" ] || [ "$OS" = "ubuntu-latest" ]; then

@@ -24,8 +24,8 @@ jobs:
             mex_ext: mexa64
             matlab_release: R2020a
             matlab_legacy: true
-          # On Mac and Windows, mostly the Matlab version matters for mex compatibility,
-          # but macos-latest is out: Xcode 26 breaks C++ MEX linking for R2023b.
+          # On Mac and Windows the Matlab version drives mex compatibility, but macos-latest
+          # is avoided because its Xcode 26 linker cannot link C++ MEX files for R2023b.
           - os: macos-15-intel
             os_name: macOS_Intel
             mex_ext: mexmaci64
