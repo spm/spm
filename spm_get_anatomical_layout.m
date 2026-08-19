@@ -179,7 +179,7 @@ max_image_size = 2;
 
 %-ESTIMATE the position of the inion if not provided
 %--------------------------------------------------------------------------
-if ~isfield(fiducials, 'INI')
+if ~isfield(fiducials, 'INI') || isempty(fiducials.INI)
     % Start with the anterior vector (i.e. origin to NAS)
     a_vec = (fiducials.NAS - origin) / norm((fiducials.NAS - origin));
 

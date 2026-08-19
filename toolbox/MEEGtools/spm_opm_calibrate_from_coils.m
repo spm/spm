@@ -21,7 +21,7 @@ function [cal_D, positions] = spm_opm_calibrate_from_coils(S)
 %               outer_r:       default, 10.94/1000 (m)
 %               layers:        default, 6
 %               layer_turns:   default, 45
-%           - t_delay:         timing offset for phase correction (s), 
+%           - t_delay:         timing offset for phase correction (ms), 
 %                              default: 'auto')
 %           - phase_tol:       tolerance for phase filter applied (rads), 
 %                              default: 'auto')
@@ -124,9 +124,9 @@ fs = S.D.fsample;
 
 % Ideally these would come from the data/inputs
 num_phase_bins = 1000;
-min_valid_for_similar = 10;
+min_valid_for_similar = S.estimation.min_ops;
 good_similarity_threshold = 0.7;
-corr_threshold = 0.9;
+corr_threshold = 0.95;
 axis_plotting_colours = [252, 141, 98; 102, 194, 165; 141, 160, 203] ./ 255;
 flat_freq_range = [60, 80];
 
@@ -301,7 +301,7 @@ if S.plot_output
     title('Coil timing')
     for op_idx = 1:num_ops
         x_pos = mean([op_start(op_idx), op_end(op_idx)]) ./ fs;
-        y_pos = mean(trig_dat(op_start:op_end)) * 0.8;
+        y_pos = mean(trig_dat(op_start(op_idx):op_end(op_idx))) * 0.8;
         text(x_pos, y_pos, num2str(S.coil_trigger.event_design(op_idx)), ...
             'HorizontalAlignment','center', 'VerticalAlignment','bottom', ...
             'FontWeight','bold', 'FontSize',5, 'Color','k');
@@ -455,7 +455,7 @@ if ischar(t_delay) && strcmp(t_delay, 'auto')
     % Phase tolerance
     if ischar(phase_tol) && strcmp(phase_tol, 'auto')
         bin_width = edges(2) - edges(1);
-        phase_tol = max(peak_w * bin_width);
+        phase_tol = max(peak_w * bin_width)/2;
         fprintf('Setting phase tolerance to: %.2f rads\n', phase_tol);
     end
 end
@@ -496,76 +496,6 @@ for sens_idx = 1:num_sens
     end
 end
 
-% Amplitude correlation check
-[~,~,position_group] = unique(op_coil_positions,'rows');
-num_unique_pos = max(position_group);
-grouped_amplitude_corr = nan(num_sens,num_axis);
-for sens_idx = 1:num_sens
-    for pos_idx = 1:num_unique_pos
-        op_idx = find(position_group == pos_idx);
-        for axis_idx = 1:num_axis
-            cur_observed_amplitudes = squeeze(observed_amplitudes(sens_idx,axis_idx, op_idx));
-            cur_coil_amplitudes = op_coil_moments(op_idx);
-            current_amplitude_corr = corr(cur_observed_amplitudes,cur_coil_amplitudes);
-
-            % Check enough repeats
-            valid_ops = ~(isnan(cur_observed_amplitudes) | isnan(cur_coil_amplitudes));
-            cur_observed_amplitudes = cur_observed_amplitudes(valid_ops);
-            cur_coil_amplitudes = cur_coil_amplitudes(valid_ops);
-            test_op_idx = op_idx(valid_ops);
-
-            if numel(cur_observed_amplitudes) < 3
-                continue
-            end
-
-            % Try to remove outliers
-            improved = true;
-            while current_amplitude_corr < corr_threshold && improved && numel(cur_observed_amplitudes) > 2
-                improved = false;
-                best_corr = current_amplitude_corr;
-                best_remove_idx = [];
-
-                for sel_op_idx = 1:numel(cur_observed_amplitudes)
-                    test_observed_amplitudes = cur_observed_amplitudes;
-                    test_coil_amplitudes = cur_coil_amplitudes;
-
-                    test_observed_amplitudes(sel_op_idx) = [];
-                    test_coil_amplitudes(sel_op_idx) = [];
-
-                    test_corr = corr(test_observed_amplitudes, test_coil_amplitudes);
-
-                    if test_corr > best_corr
-                        best_corr = test_corr;
-                        best_remove_idx = sel_op_idx;
-                    end
-                end
-
-                if ~isempty(best_remove_idx)
-                    cur_observed_amplitudes(best_remove_idx) = [];
-                    cur_coil_amplitudes(best_remove_idx) = [];
-                    test_op_idx(best_remove_idx) = [];
-
-                    current_amplitude_corr = best_corr;
-                    improved = true;
-                end
-            end
-            grouped_amplitude_corr(sens_idx,axis_idx) = current_amplitude_corr;
-
-            % Remove bad operations
-            if current_amplitude_corr < corr_threshold
-                phase_relation(sens_idx, axis_idx, :) = NaN;
-            else
-                removed_ops = setdiff(op_idx, test_op_idx);
-                if any(removed_ops)
-                    if any(~isnan(phase_relation(sens_idx, axis_idx, removed_ops)))
-                        phase_relation(sens_idx, axis_idx, removed_ops) = NaN;
-                    end
-                end
-            end
-        end
-    end
-end
-    
 % Check coil-wise phase consistency
 event_design = S.coil_trigger.event_design;
 all_coils = unique(event_design);
@@ -582,6 +512,47 @@ for sens_idx = 1:num_sens
             % Check agreement
             if numel(unique(cur_valid_phase_relation)) > 1
                 phase_relation(sens_idx, axis_idx, op_idx) = NaN;
+                observed_amplitudes(sens_idx, axis_idx, op_idx) = NaN;
+            end
+        end
+    end
+end
+
+% Amplitude correlation check
+[~,~,position_group] = unique(op_coil_positions,'rows');
+num_unique_pos = max(position_group);
+grouped_amplitude_corr = nan(num_sens,num_axis,num_unique_pos);
+for sens_idx = 1:num_sens
+    for pos_idx = 1:num_unique_pos
+        op_idx = find(position_group == pos_idx);
+        for axis_idx = 1:num_axis
+            cur_observed_amplitudes = squeeze(observed_amplitudes(sens_idx,axis_idx, op_idx));
+            cur_coil_amplitudes = op_coil_moments(op_idx);
+
+            valid_ops = ~(isnan(cur_observed_amplitudes) | isnan(cur_coil_amplitudes));
+            cur_observed_amplitudes = cur_observed_amplitudes(valid_ops);
+            cur_coil_amplitudes = cur_coil_amplitudes(valid_ops);
+            test_op_idx = op_idx(valid_ops);
+
+            if numel(cur_observed_amplitudes) < 2
+                observed_amplitudes(sens_idx,axis_idx, op_idx) = NaN;
+                grouped_amplitude_corr(sens_idx,axis_idx,pos_idx) = NaN;
+                continue
+            end
+
+            [keep_mask, current_amplitude_corr] = check_gain_consistency(cur_observed_amplitudes, ...
+                cur_coil_amplitudes, 1 - corr_threshold);
+            grouped_amplitude_corr(sens_idx,axis_idx,pos_idx) = current_amplitude_corr;
+
+            if isempty(test_op_idx(keep_mask))
+                phase_relation(sens_idx, axis_idx, op_idx) = NaN;
+                observed_amplitudes(sens_idx, axis_idx, op_idx) = NaN;
+            else
+                removed_ops = test_op_idx(~keep_mask);
+                if any(removed_ops)
+                    phase_relation(sens_idx, axis_idx, removed_ops) = NaN;
+                    observed_amplitudes(sens_idx, axis_idx, removed_ops) = NaN;
+                end
             end
         end
     end
@@ -1194,8 +1165,6 @@ function [calibration] = estimate_mag_transform(S)
 %       values higher than ~0.1 should be present, but no threshold is set 
 %       in this function.
 %
-% Author: Nicholas Alexander (n.alexander@ucl.ac.uk)
-% Copyright: Department of Imaging Neuroscience, UCL, 2025
 
 % Inputs
 min_ops = S.estimation.min_ops;
@@ -1211,7 +1180,6 @@ coil_amplitudes = S.coil_amplitudes;
 coil_orientations = S.coil_orientations;
 phase_relation = S.phase_relation;
 observed_amplitudes = S.observed_amplitudes;
-parallel = S.estimation.parallel;
 axis_plotting_colours = S.axis_plotting_colours;
 axes_labs = S.axes_labs;
 
@@ -1252,7 +1220,7 @@ end
 if isfield(S, 'iter_lim') && ~isempty(S.iter_lim)
     iter_lim = S.iter_lim;
 else
-    iter_lim = [0, 5];
+    iter_lim = [0, 10];
 end
 if isfield(S.estimation, 'bootstrap') && ~isempty(S.estimation.bootstrap)
     bootstrap = S.estimation.bootstrap;
@@ -1280,147 +1248,68 @@ end
 gain_plot_scalar = 0.01;
 exp_param_scalar = 1.5;
 
-% Bad axis parameters
-improvement_threshold = 3;
-relative_difference_threshold = 3;
 
 if ~start_provided || ~fast
     % Global optimisation (permutations)
     ga_options = optimoptions('ga', ...
         'Display', 'none', ...
-        'UseParallel', parallel, ...
+        'UseParallel', false, ...
         'PopulationSize', 256, ...
         'MaxGenerations', 256, ...
         'FunctionTolerance', 1e-2);
-    separate_ga_options = ga_options;
     
-    bad_axis = ~axis_use_idx;
-    first_run = true;
-    previous_min_error = inf;
-    perm_axis_errors = nan(length(axis_use_idx),permutations);
-    while first_run || any(bad_axis)
-        if ~first_run
-            disp('Bad axis detected. Rerunning without that axis.')
-            perm_axis_errors(:,bad_axis) = NaN;
-        end
-        
-        axis_use_idx(bad_axis) = 0;
-        num_use_axis = sum(axis_use_idx);
-    
-        % Setup optimisation
-        lb_vector = repmat([-pi/2, 0], 1, num_use_axis);
-        ub_vector = repmat([pi/2, pi], 1, num_use_axis);
-        lb = [lb_position, lb_vector];
-        ub = [ub_position, ub_vector];
-        starting_vec = starting_angles(:,axis_use_idx);
-        starting_param = [starting_pos(:)', starting_vec(:)'];
-        n_params = length(starting_param);
-
-        ga_options.InitialPopulationMatrix = starting_param;
-        
-        % Subselection for permutation
-        sub_sel_idx_per_axis_all = cell(permutations,1);
-        global_errors = zeros(permutations,1);
-        if first_run
-            perm_axis_errors = nan(permutations,length(axis_use_idx));
-        end
-        global_best_all = zeros(permutations,n_params);
-        for perm_idx = 1:permutations
-            sub_sel_idx_per_axis = false(size(use_idx_per_axis));
-            rng(perm_idx,'twister');
-        
-            for axis_idx = 1:length(axis_use_idx)
-                if axis_use_idx(axis_idx)
-                    valid_ops = find(use_idx_per_axis(axis_idx,:));
-                    num_valid = numel(valid_ops);
-                    if num_valid <= sub_sel_num
-                        sub_sel = valid_ops;
-                    else
-                        sub_sel = randsample(valid_ops, sub_sel_num);
-                    end
-                    sub_sel_idx_per_axis(axis_idx, sub_sel) = true;
-                end
-            end
-            sub_sel_idx_per_axis_all{perm_idx} = sub_sel_idx_per_axis;
-        
-            obj_fun_perm = @(params) objective(params, ...
-                coil_positions, coil_amplitudes, coil_orientations, ...
-                observed_amplitudes(axis_use_idx,:), ...
-                sub_sel_idx_per_axis(axis_use_idx,:), phase_relation(axis_use_idx,:));
-        
-
-            % Global for sub selection
-            [best_params, best_cost] = ga(obj_fun_perm, n_params, [], [], [], [], lb, ub, [], ga_options);
-            global_best_all(perm_idx,:) = best_params;
-            global_errors(perm_idx) = best_cost;
-
-            if first_run
-                % Per axis error
-                for axis_idx = 1:num_axes
-                    if ~bad_axis(axis_idx)
-                        separate_num_use_axis = 1;
-                        separate_axis_idx = false(1,num_axes);
-                        separate_axis_idx(axis_idx) = true;
-            
-                        % Setup optimisation
-                        separate_axis_lb_vector = repmat([-pi/2, -pi], 1, separate_num_use_axis);
-                        separate_axis_ub_vector = repmat([pi/2, pi], 1, separate_num_use_axis);
-
-                        separate_axis_lb = [lb_position, separate_axis_lb_vector];
-                        separate_axis_ub = [ub_position, separate_axis_ub_vector];
-                    
-                        separate_axis_starting_vec = starting_angles(:,separate_axis_idx);
-                        separate_axis_starting_param = [starting_pos(:)', separate_axis_starting_vec(:)'];
-                        separate_axis_n_params = length(separate_axis_starting_param);
-                        separate_ga_options.InitialPopulationMatrix = separate_axis_starting_param;
-                        
-                        % Full selection for local
-                        obj_fun_perm = @(params) objective(params, ...
-                                    coil_positions, coil_amplitudes, coil_orientations, ...
-                                    observed_amplitudes(separate_axis_idx,:), ...
-                                    use_idx_per_axis(separate_axis_idx,:), phase_relation(separate_axis_idx,:));
-                        [~, perm_axis_errors(perm_idx,axis_idx)] = ga(obj_fun_perm, separate_axis_n_params, [], [], [], [], separate_axis_lb, separate_axis_ub, [], separate_ga_options);
-                    end
-                end
-            end
-        end
-        first_run = false;
-
-        % Check improvement
-        [current_min_error, best_perm_idx] = min(global_errors);
-        global_best = global_best_all(best_perm_idx,:);
-        if ~isinf(previous_min_error)
-            improvement = previous_min_error / current_min_error;
-            if improvement < improvement_threshold
-                disp('No improvement after removing that axis. Reverting back.');
-                axis_use_idx = previous_axis_use_idx;
-                global_best = previous_optimal_params;
-                break
-            else
-                if sum(~bad_axis) == 1
-                    break
-                end
-            end
-        end
-        previous_min_error = current_min_error;
-        previous_axis_use_idx = axis_use_idx;
-        previous_optimal_params = global_best;
-
-        % Check for bad axes
-        best_cost_axis = min(perm_axis_errors);
-        [max_axis_val, max_axis_idx] = max(best_cost_axis);
-        others = best_cost_axis(best_cost_axis ~= max_axis_val);
-        if all(max_axis_val > relative_difference_threshold * others(~isnan(others)))
-            bad_axis(max_axis_idx) = true;
-        end
-    end
-
     num_use_axis = sum(axis_use_idx);
-    lb_vector = repmat([-pi/2, -pi], 1, num_use_axis);
+
+    % Setup optimisation
+    lb_vector = repmat([-pi/2, 0], 1, num_use_axis);
     ub_vector = repmat([pi/2, pi], 1, num_use_axis);
-        
     lb = [lb_position, lb_vector];
     ub = [ub_position, ub_vector];
+    starting_vec = starting_angles(:,axis_use_idx);
+    starting_param = [starting_pos(:)', starting_vec(:)'];
+    n_params = length(starting_param);
+
+    ga_options.InitialPopulationMatrix = starting_param;
+    
+    % Subselection for permutation
+    sub_sel_idx_per_axis_all = cell(permutations,1);
+    global_errors = zeros(permutations,1);
+    
+    global_best_all = zeros(permutations,n_params);
+    for perm_idx = 1:permutations
+        sub_sel_idx_per_axis = false(size(use_idx_per_axis));
+        rng(perm_idx,'twister');
+    
+        for axis_idx = 1:length(axis_use_idx)
+            if axis_use_idx(axis_idx)
+                valid_ops = find(use_idx_per_axis(axis_idx,:));
+                num_valid = numel(valid_ops);
+                if num_valid <= sub_sel_num
+                    sub_sel = valid_ops;
+                else
+                    sub_sel = randsample(valid_ops, sub_sel_num);
+                end
+                sub_sel_idx_per_axis(axis_idx, sub_sel) = true;
+            end
+        end
+        sub_sel_idx_per_axis_all{perm_idx} = sub_sel_idx_per_axis;
+    
+        obj_fun_perm = @(params) objective(params, ...
+            coil_positions, coil_amplitudes, coil_orientations, ...
+            observed_amplitudes(axis_use_idx,:), ...
+            sub_sel_idx_per_axis(axis_use_idx,:), phase_relation(axis_use_idx,:));
+    
+
+        % Global for sub selection
+        [best_params, best_cost] = ga(obj_fun_perm, n_params, [], [], [], [], lb, ub, [], ga_options);
+        global_best_all(perm_idx,:) = best_params;
+        global_errors(perm_idx) = best_cost;
+    end
+
+    % Check improvement
+    [~, best_perm_idx] = min(global_errors);
+    global_best = global_best_all(best_perm_idx,:);
+   
     
     % Local
     options = optimoptions('fmincon', 'Algorithm', 'sqp', 'Display', 'none', 'MaxFunctionEvaluations', 1e8, ...
@@ -1433,92 +1322,28 @@ if ~start_provided || ~fast
                 use_idx_per_axis(axis_use_idx,:), phase_relation(axis_use_idx,:));
     [optimal_params] = fmincon(obj_fun, global_best, [], [], [], [], lb, ub, [], options);
 else
-    bad_axis = ~axis_use_idx;
-    first_run = true;
-    previous_min_error = inf;
-    previous_optimal_params = [];
-    while first_run || any(bad_axis)
-        if ~first_run
-            disp('Bad axis detected. Rerunning without that axis.')
-        end
-        first_run = false;
+    num_use_axis = sum(axis_use_idx);
     
-        axis_use_idx(bad_axis) = 0;
-        num_use_axis = sum(axis_use_idx);
-        
-        % Setup optimisation
-        lb_vector = repmat([-pi/2, -pi], 1, num_use_axis);
-        ub_vector = repmat([pi/2, pi], 1, num_use_axis);
-        
-        lb = [lb_position, lb_vector];
-        ub = [ub_position, ub_vector];
-        
-        starting_vec = starting_angles(:,axis_use_idx);
-        starting_param = [starting_pos(:)', starting_vec(:)'];
-
-        options = optimoptions('fmincon', 'Algorithm', 'sqp', 'Display', 'none', 'MaxFunctionEvaluations', 1e8, ...
-                    'MaxIterations', 1e8, 'OptimalityTolerance', 1e-12, 'StepTolerance', 1e-12);
-        
-        % Full selection for local
-        obj_fun = @(params) objective(params, ...
-                    coil_positions, coil_amplitudes, coil_orientations, ...
-                    observed_amplitudes(axis_use_idx,:), ...
-                    use_idx_per_axis(axis_use_idx,:), phase_relation(axis_use_idx,:));
-        [optimal_params, best_cost] = fmincon(obj_fun, starting_param, [], [], [], [], lb, ub, [], options);
-
-        best_cost_axis = nan(num_axes,1);
-        for axis_idx = 1:num_axes
-            if ~bad_axis(axis_idx)
-                separate_num_use_axis = 1;
-                separate_axis_idx = false(1,num_axes);
-                separate_axis_idx(axis_idx) = true;
+    % Setup optimisation
+    lb_vector = repmat([-pi/2, -pi], 1, num_use_axis);
+    ub_vector = repmat([pi/2, pi], 1, num_use_axis);
     
-                % Setup optimisation
-                lb_vector = repmat([-pi/2, -pi], 1, separate_num_use_axis);
-                ub_vector = repmat([pi/2, pi], 1, separate_num_use_axis);
-                lb = [lb_position, lb_vector];
-                ub = [ub_position, ub_vector];
-
-                starting_vec = starting_angles(:,separate_axis_idx);
-                starting_param = [starting_pos(:)', starting_vec(:)'];
+    lb = [lb_position, lb_vector];
+    ub = [ub_position, ub_vector];
     
-                options = optimoptions('fmincon', 'Algorithm', 'sqp', 'Display', 'none', 'MaxFunctionEvaluations', 1e8, ...
-                            'MaxIterations', 1e8, 'OptimalityTolerance', 1e-12, 'StepTolerance', 1e-12);
-                
-                % Full selection for local
-                obj_fun = @(params) objective(params, ...
-                            coil_positions, coil_amplitudes, coil_orientations, ...
-                            observed_amplitudes(separate_axis_idx,:), ...
-                            use_idx_per_axis(separate_axis_idx,:), phase_relation(separate_axis_idx,:));
-                [~, best_cost_axis(axis_idx)] = fmincon(obj_fun, starting_param, [], [], [], [], lb, ub, [], options);
-            end
-        end
-
-        % Check improvement
-        current_min_error = best_cost;
-        if ~isinf(previous_min_error)
-            improvement = previous_min_error / current_min_error;
-            if improvement < improvement_threshold
-                disp('No improvement after removing that axis. Reverting back.');
-                axis_use_idx = previous_axis_use_idx;
-                optimal_params = previous_optimal_params;
-                break
-            end
-        end
-        if sum(~bad_axis) == 1
-            break
-        end
-        previous_min_error = current_min_error;
-        previous_axis_use_idx = axis_use_idx;
-        previous_optimal_params = optimal_params;
-        
-        % Check for bad axes
-        [max_axis_val, max_axis_idx] = max(best_cost_axis);
-        others = best_cost_axis(best_cost_axis ~= max_axis_val);
-        if all(max_axis_val > relative_difference_threshold * others(~isnan(others)))
-            bad_axis(max_axis_idx) = true;
-        end
-    end
+    starting_vec = starting_angles(:,axis_use_idx);
+    starting_param = [starting_pos(:)', starting_vec(:)'];
+    
+    
+    options = optimoptions('fmincon', 'Algorithm', 'sqp', 'Display', 'none', 'MaxFunctionEvaluations', 1e8, ...
+                'MaxIterations', 1e8, 'OptimalityTolerance', 1e-12, 'StepTolerance', 1e-12);
+    
+    % Full selection for local
+    obj_fun = @(params) objective(params, ...
+                coil_positions, coil_amplitudes, coil_orientations, ...
+                observed_amplitudes(axis_use_idx,:), ...
+                use_idx_per_axis(axis_use_idx,:), phase_relation(axis_use_idx,:));
+    [optimal_params] = fmincon(obj_fun, starting_param, [], [], [], [], lb, ub, [], options);
 end
 
 % Per axis error calc
@@ -1526,6 +1351,7 @@ end
             coil_positions, coil_amplitudes, coil_orientations, ...
             observed_amplitudes(axis_use_idx,:), ...
             use_idx_per_axis(axis_use_idx,:), phase_relation(axis_use_idx,:));
+
 
 % Unpack
 position = optimal_params(1:3);
@@ -1617,6 +1443,10 @@ if iter_lim(1) < iter_lim(2)
         S_new.estimation.bootstrap = 0;
         S_new.iter_lim = iter_lim;
         [calibration] = estimate_mag_transform(S_new);
+        
+        if isempty(calibration)
+            return
+        end
     end
 end
 
@@ -1702,7 +1532,7 @@ end
 % - O B J E C T I V E
 %==========================================================================
 function [error, axis_errors] = objective(params, coil_positions, coil_amplitudes, ...
-	coil_orientations, observed_amplitudes, use_idx_per_axis, phase_relation)
+    coil_orientations, observed_amplitudes, use_idx_per_axis, phase_relation)
 
 mag_position = params(1:3);
 param_vectors = params(4:end);
@@ -1750,6 +1580,7 @@ if nargout > 1
 end
 end
 
+
 %==========================================================================
 % - D I P O L E   F I E L D   P R O J E C T I O N
 %==========================================================================
@@ -1766,11 +1597,12 @@ term2 = m_oriented ./ delta.^3;
 S = coeff * sum((term1 - term2) .* ori, 2);
 end
 
+
 %==========================================================================
 % - S O L V E   G A I N S
 %==========================================================================
 function [gains] = solve_gains(params, coil_positions, coil_amplitudes, ...
-	coil_orientations, observed_amplitudes, use_idx_per_axis, phase_relation)
+    coil_orientations, observed_amplitudes, use_idx_per_axis, phase_relation)
 
 mag_position = params(1:3);
 param_vectors = params(4:end);
@@ -1814,8 +1646,8 @@ end
 % - B O O T S T R A P   O B J E C T I V E
 %==========================================================================
 function results = bootstrap_objective(optimal_params, coil_positions, ...
-	coil_amplitudes, coil_orientations, observed_amplitudes, use_idx_per_axis, ...
-	phase_relation, n_bootstrap, lb_position, ub_position)
+    coil_amplitudes, coil_orientations, observed_amplitudes, use_idx_per_axis, ...
+    phase_relation, n_bootstrap, lb_position, ub_position)
 
 [num_use_axis, ~] = size(use_idx_per_axis);
 lb_vector = repmat([-pi/2, -pi], 1, num_use_axis);
@@ -1902,4 +1734,39 @@ gain_std = std(gain_bootstrap);
 var_names = {'std_pos', 'std_ori', 'std_gain'};
 data = [repmat(pos_dist_std, num_use_axis, 1), angle_std(:), gain_std(:)];
 results = table(data(:,1), data(:,2), data(:,3), 'VariableNames', var_names);
+end
+
+function [keep, metric] = check_gain_consistency(obs, coil, rel_tol)
+gains = obs(:) ./ coil(:);
+n = numel(gains);
+keep = true(n,1);
+
+if n < 2
+    metric = NaN;
+    keep(:) = false;
+    return
+end
+
+while sum(keep) > 2
+    active = find(keep);
+    g = gains(active);
+    med_g = median(g);
+    dev = abs(g - med_g) ./ abs(med_g);
+
+    if all(dev <= rel_tol)
+        break
+    end
+    [~, worst_local] = max(dev);
+    keep(active(worst_local)) = false;
+end
+
+active = keep;
+g = gains(active);
+med_g = median(g);
+max_dev = max(abs(g - med_g) ./ abs(med_g));
+metric = 1 - max_dev;
+
+if max_dev > rel_tol
+    keep(:) = false;
+end
 end
