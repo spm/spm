@@ -22,8 +22,7 @@ jobs:
         env:
           EVENT_NAME: ${{ github.event_name }}
         run: |
-          # extra-os adds macos-26 (Apple Silicon) coverage for the releases that
-          # build there. Empty on PRs so they keep the reduced matrix.
+          # extra-os adds macos-26 (Apple Silicon) coverage for the releases that build there.
           if [ "$EVENT_NAME" = "pull_request" ]; then
             echo "is-pr=true" >> $GITHUB_OUTPUT
             echo 'versions=["R2020a","latest"]' >> $GITHUB_OUTPUT
@@ -41,8 +40,8 @@ jobs:
       fail-fast: false
       matrix:
         version: ${{ fromJson(needs.configure.outputs.versions) }}
-        # macos-15-intel is Intel, macos-15 is Apple Silicon. Not macos-latest:
-        # its Xcode 26 linker breaks C++ MEX linking for MATLAB R2023b-R2025a.
+        # macos-15-intel is Intel, macos-15 is Apple Silicon. macos-latest is avoided
+        # because its Xcode 26 linker cannot link C++ MEX files for R2023b-R2025a.
         os: ["ubuntu-latest", "macos-15-intel", "macos-15", "windows-latest"]
         exclude:
           - os: windows-latest
@@ -71,7 +70,7 @@ jobs:
             version: "latest" # MATLAB dropped Intel Mac support starting with R2026a
         include: ${{ fromJson(needs.configure.outputs.extra-os) }}
     runs-on: ${{matrix.os}}
-    # A hung setup-matlab otherwise burns the 6h limit and cancels sibling jobs
+    # Stops a hung job exhausting the 6h workflow limit and cancelling its siblings.
     timeout-minutes: 120
     env:
       cache-key: tests-data2
