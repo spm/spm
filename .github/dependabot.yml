@@ -1,8 +1,6 @@
 version: 2
 updates:
   # One grouped pull request per month for all action pins.
-  # The matlab-actions pins marked "kept for the older MATLAB releases" must stay
-  # on v1; Dependabot cannot express that, so reject those hunks when they appear.
   - package-ecosystem: github-actions
     directory: /
     schedule:
@@ -11,3 +9,9 @@ updates:
       actions:
         patterns:
           - "*"
+    ignore:
+      # Some jobs pin matlab-actions to v1 for the older MATLAB releases.
+      # Dependabot cannot express that, so these are excluded entirely and
+      # reviewed by hand instead, roughly once a year.
+      - dependency-name: "matlab-actions/setup-matlab"
+      - dependency-name: "matlab-actions/run-command"
