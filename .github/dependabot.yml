@@ -1,6 +1,7 @@
 version: 2
 updates:
   # One grouped pull request per month for all action pins.
+  # The ignored actions below are reviewed by hand instead, roughly once a year.
   - package-ecosystem: github-actions
     directory: /
     schedule:
@@ -10,8 +11,10 @@ updates:
         patterns:
           - "*"
     ignore:
-      # Some jobs pin matlab-actions to v1 for the older MATLAB releases.
-      # Dependabot cannot express that, so these are excluded entirely and
-      # reviewed by hand instead, roughly once a year.
+      # Pinned to v1 for the older MATLAB releases, which Dependabot cannot express.
       - dependency-name: "matlab-actions/setup-matlab"
       - dependency-name: "matlab-actions/run-command"
+      # Used only in release.yml, so no pull request exercises them and a bad
+      # version would first surface during a release.
+      - dependency-name: "peter-evans/repository-dispatch"
+      - dependency-name: "softprops/action-gh-release"
