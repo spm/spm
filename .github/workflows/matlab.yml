@@ -15,22 +15,35 @@ jobs:
       versions: ${{ steps.config.outputs.versions }}
       is-pr: ${{ steps.config.outputs.is-pr }}
       extra-os: ${{ steps.config.outputs.extra-os }}
+      tier: ${{ steps.config.outputs.tier }}
     steps:
       - name: Determine test configuration
         id: config
         shell: bash
         env:
           EVENT_NAME: ${{ github.event_name }}
+          EVENT_SCHEDULE: ${{ github.event.schedule }}
         run: |
-          # extra-os adds macos-26 (Apple Silicon) coverage for the releases that
-          # build there. Empty on PRs so they keep the reduced matrix.
+          # The quick tier is oldest supported plus newest release, the full tier is all of them.
+          # extra-os adds macos-26 (Apple Silicon) coverage for the releases that build there.
+          FULL='["R2020a","R2020b","R2021a","R2021b","R2022a","R2022b","R2023a","R2023b","R2024a","R2024b","R2025a","R2025b", "latest"]'
+          REDUCED='["R2020a","latest"]'
+
+          # is-pr gates the test data checkout, not which tests run: spm-tests-data is
+          # private and its token is unavailable to pull requests from forks.
           if [ "$EVENT_NAME" = "pull_request" ]; then
             echo "is-pr=true" >> $GITHUB_OUTPUT
-            echo 'versions=["R2020a","latest"]' >> $GITHUB_OUTPUT
-            echo 'extra-os=[]' >> $GITHUB_OUTPUT
           else
             echo "is-pr=false" >> $GITHUB_OUTPUT
-            echo 'versions=["R2020a","R2020b","R2021a","R2021b","R2022a","R2022b","R2023a","R2023b","R2024a","R2024b","R2025a","R2025b", "latest"]' >> $GITHUB_OUTPUT
+          fi
+
+          if [ "$EVENT_NAME" = "pull_request" ] || [ "$EVENT_SCHEDULE" = "15 3 * * *" ]; then
+            echo "tier=quick" >> $GITHUB_OUTPUT
+            echo "versions=$REDUCED" >> $GITHUB_OUTPUT
+            echo 'extra-os=[{"os":"macos-latest","version":"latest"}]' >> $GITHUB_OUTPUT
+          else
+            echo "tier=full" >> $GITHUB_OUTPUT
+            echo "versions=$FULL" >> $GITHUB_OUTPUT
             echo 'extra-os=[{"os":"macos-latest","version":"R2025b"},{"os":"macos-latest","version":"latest"}]' >> $GITHUB_OUTPUT
           fi
 
@@ -41,8 +54,8 @@ jobs:
       fail-fast: false
       matrix:
         version: ${{ fromJson(needs.configure.outputs.versions) }}
-        # macos-15-intel is Intel, macos-15 is Apple Silicon. Not macos-latest:
-        # its Xcode 26 linker breaks C++ MEX linking for MATLAB R2023b-R2025a.
+        # macos-15-intel is Intel, macos-15 is Apple Silicon. macos-latest is avoided
+        # because its Xcode 26 linker cannot link C++ MEX files for R2023b-R2025a.
         os: ["ubuntu-latest", "macos-15-intel", "macos-15", "windows-latest"]
         exclude:
           - os: windows-latest
@@ -71,7 +84,7 @@ jobs:
             version: "latest" # MATLAB dropped Intel Mac support starting with R2026a
         include: ${{ fromJson(needs.configure.outputs.extra-os) }}
     runs-on: ${{matrix.os}}
-    # A hung setup-matlab otherwise burns the 6h limit and cancels sibling jobs
+    # Stops a hung job exhausting the 6h workflow limit and cancelling its siblings.
     timeout-minutes: 120
     env:
       cache-key: tests-data2
@@ -148,26 +161,32 @@ jobs:
         with:
           release: ${{matrix.version}}
 
-      - name: Run regression tests with existing MEX files (legacy)
-        if: ${{github.event.schedule == '40 16 * * 3' && (matrix.version == 'R2020a' || matrix.version == 'R2020b' || matrix.version == 'R2022a' || matrix.version == 'R2022b')}}
+      - name: Select test classes
+        id: classes
+        shell: bash
+        env:
+          TIER: ${{ needs.configure.outputs.tier }}
+          OS: ${{ matrix.os }}
+        run: |
+          # Regression tests are much slower than unit tests, so the quick tier runs them on ubuntu only.
+          UNIT="u = spm_tests('class','unit','display',true);"
+          REGR="r = spm_tests('class','regression','display',true);"
+          if [ "$TIER" = "full" ] || [ "$OS" = "ubuntu-latest" ]; then
+            echo "command=addpath(pwd); $UNIT $REGR assert(all(~[u.Failed]) && all(~[r.Failed]));" >> $GITHUB_OUTPUT
+          else
+            echo "command=addpath(pwd); $UNIT assert(all(~[u.Failed]));" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run tests with existing MEX files (legacy)
+        if: ${{matrix.version == 'R2020a' || matrix.version == 'R2020b' || matrix.version == 'R2022a' || matrix.version == 'R2022b'}}
         uses: matlab-actions/run-command@v1
         with:
-          command: addpath(pwd); results = spm_tests('class','regression','display',true); assert(all(~[results.Failed]));
-      - name: Run unit tests with existing MEX files (legacy)
-        if: ${{github.event.schedule != '40 16 * * 3' && (matrix.version == 'R2020a' || matrix.version == 'R2020b' || matrix.version == 'R2022a' || matrix.version == 'R2022b')}}
-        uses: matlab-actions/run-command@v1
-        with:
-          command: addpath(pwd); results = spm_tests('class','unit','display',true); assert(all(~[results.Failed]));
-      - name: Run regression tests with existing MEX files
-        if: ${{github.event.schedule == '40 16 * * 3' && matrix.version != 'R2020a' && matrix.version != 'R2020b' && matrix.version != 'R2022a' && matrix.version != 'R2022b'}}
+          command: ${{ steps.classes.outputs.command }}
+      - name: Run tests with existing MEX files
+        if: ${{matrix.version != 'R2020a' && matrix.version != 'R2020b' && matrix.version != 'R2022a' && matrix.version != 'R2022b'}}
         uses: matlab-actions/run-command@v2
         with:
-          command: addpath(pwd); results = spm_tests('class','regression','display',true); assert(all(~[results.Failed]));
-      - name: Run unit tests with existing MEX files
-        if: ${{github.event.schedule != '40 16 * * 3' && matrix.version != 'R2020a' && matrix.version != 'R2020b' && matrix.version != 'R2022a' && matrix.version != 'R2022b'}}
-        uses: matlab-actions/run-command@v2
-        with:
-          command: addpath(pwd); results = spm_tests('class','unit','display',true); assert(all(~[results.Failed]));
+          command: ${{ steps.classes.outputs.command }}
 
       - name: Compile MEX files
         run: |
