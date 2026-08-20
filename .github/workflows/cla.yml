@@ -27,8 +27,9 @@ jobs:
         with:
           path-to-signatures: 'signatures/version1/cla.json'
           path-to-document: 'https://qualtrics.ucl.ac.uk/jfe/form/SV_3aZXxJcYr0uf5dk' # e.g. a CLA or a DCO document
-          # branch should not be protected
-          branch: 'main'
+          # Separate branch: the action writes signature commits directly, which
+          # the required status check on main would reject.
+          branch: 'cla-signatures'
           allowlist: user1,bot*
 
          # the followings are the optional inputs - If the optional inputs are not given, then default values will be taken
