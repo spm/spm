@@ -1,4 +1,8 @@
 name: Release SPM (code and MATLAB Standalone)
+
+# No pull request exercises this workflow, so repository-dispatch and
+# action-gh-release are excluded from Dependabot. Check them before a release.
+
 on:
   workflow_dispatch:
   push:
