@@ -436,7 +436,7 @@ else
 end
 
 
-%% model inversion with generlized filtering
+%% model inversion with generalised filtering
 %==========================================================================
 DEM.EFT = M.EFT;
 DEM.G   = M;                   % generative model of flow

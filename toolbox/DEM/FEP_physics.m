@@ -108,7 +108,7 @@ plot(r,squeeze(V(1,e,r)),':c'), hold on
 plot(r,squeeze(V(1,m,r)),' b'), hold off
 axis([r(1) r(end) -32 32])
 xlabel('Time','FontSize',12)
-title('Newtonian dymanics','FontSize',16)
+title('Newtonian dynamics','FontSize',16)
 
 
 % Markov blanket - self-assembly
