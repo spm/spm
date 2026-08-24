@@ -102,12 +102,12 @@ jobs:
           echo "MW_MINGW64_LOC=C:\mingw64" >> $env:GITHUB_ENV
 
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Get latest commit for tests data  # shallow fetch to get revision
         id: checkout-tests-data
         if: ${{ needs.configure.outputs.is-pr == 'false' }}
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: spm/spm-tests-data
           token: ${{ secrets.TESTS_DATA_REPO_TOKEN }}
@@ -120,7 +120,7 @@ jobs:
         run: rm -rf tests/data
       - name: Try to retrieve commit from cache
         id: cache-restore
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: tests/data
           key: ${{ env.cache-key }}-${{ steps.checkout-tests-data.outputs.commit }}
@@ -129,7 +129,7 @@ jobs:
       - name: If cache missed, pull latest commit...
         id: checkout-tests-data-lfs
         if: ${{ needs.configure.outputs.is-pr == 'false' && steps.cache-restore.outputs.cache-hit != 'true' }}
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: spm/spm-tests-data
           token: ${{ secrets.TESTS_DATA_REPO_TOKEN }}
@@ -137,7 +137,7 @@ jobs:
           lfs: true
       - name: ... and cache latest commit
         if: ${{ needs.configure.outputs.is-pr == 'false' && steps.cache-restore.outputs.cache-hit != 'true' }}
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: tests/data
           key: ${{ env.cache-key }}-${{ steps.checkout-tests-data.outputs.commit }}
@@ -152,12 +152,12 @@ jobs:
 
       - name: Set up MATLAB (legacy)
         if: ${{matrix.version == 'R2020a' || matrix.version == 'R2020b' || matrix.version == 'R2022a' || matrix.version == 'R2022b'}}
-        uses: matlab-actions/setup-matlab@v1
+        uses: matlab-actions/setup-matlab@e6b241a42928104e9e489fcc63aa2915df01565f # v1.2.5, kept for the older MATLAB releases
         with:
           release: ${{matrix.version}}
       - name: Set up MATLAB
         if: ${{matrix.version != 'R2020a' && matrix.version != 'R2020b' && matrix.version != 'R2022a' && matrix.version != 'R2022b'}}
-        uses: matlab-actions/setup-matlab@v2
+        uses: matlab-actions/setup-matlab@2323adb8243827ea460b0def4c413545aaec46a9 # v3.0.2
         with:
           release: ${{matrix.version}}
 
@@ -179,12 +179,12 @@ jobs:
 
       - name: Run tests with existing MEX files (legacy)
         if: ${{matrix.version == 'R2020a' || matrix.version == 'R2020b' || matrix.version == 'R2022a' || matrix.version == 'R2022b'}}
-        uses: matlab-actions/run-command@v1
+        uses: matlab-actions/run-command@c079d5cf746de09ffd5d8bd3cabcaf9161706e2b # v1.3.0, kept for the older MATLAB releases
         with:
           command: ${{ steps.classes.outputs.command }}
       - name: Run tests with existing MEX files
         if: ${{matrix.version != 'R2020a' && matrix.version != 'R2020b' && matrix.version != 'R2022a' && matrix.version != 'R2022b'}}
-        uses: matlab-actions/run-command@v2
+        uses: matlab-actions/run-command@75644028e1e2aa374bbfdc968a65718a178cc264 # v3.2.1
         with:
           command: ${{ steps.classes.outputs.command }}
 
@@ -203,7 +203,7 @@ jobs:
         if: runner.os == 'Windows'
         run: echo "MEXEXT=$(mexext.bat)" >> $env:GITHUB_ENV
       - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: spm-${{env.MEXEXT}}-${{runner.os}}-${{matrix.version}}
           path: ./**/*.${{env.MEXEXT}}
