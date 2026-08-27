@@ -36,7 +36,7 @@ defaults.cmdline  = 0;
 defaults.ui.monitor = NaN;
 defaults.ui.colour  = [0.58 0.77 0.57];
 defaults.ui.fs      = 14;  % unused
-defaults.ui.print   = 'ps';
+defaults.ui.print   = 'pdf';
 defaults.renderer   = 'opengl';
 
 % File format specific
