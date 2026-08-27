@@ -25,7 +25,7 @@ function spm_dcm_prior_responses(Ep)
 
 % models
 %--------------------------------------------------------------------------
-model = {'ERP','SEP','LFP','CMC','TFM','CMM','NMM','MFM'};
+model = {'ERP','SEP','LFP','CMC','TFM','CMM','NMM','MFM','NMDA','CMM_NMDA'};
 model = model(:);
 Nm    = length(model);
 

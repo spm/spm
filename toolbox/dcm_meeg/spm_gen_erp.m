@@ -23,10 +23,11 @@ if nargin < 3, U.X = sparse(1,0); end
 
 % check input u = f(t,P,M) and switch off full delay operator
 %--------------------------------------------------------------------------
-try, M.fu; catch, M.fu  = 'spm_erp_u'; end
-try, M.ns; catch, M.ns  = 128;         end
-try, M.N;  catch, M.N   = 0;           end
-try, U.dt; catch, U.dt  = 0.004;       end
+try, M.fu;         catch, M.fu  = 'spm_erp_u';         end
+try, M.ns;         catch, M.ns  = 128;                 end
+try, M.N;          catch, M.N   = 0;                   end
+try, U.dt;         catch, U.dt  = 0.004;               end
+try, M.integrator; catch, M.integrator  = 'spm_int_L'; end
 
 % peristimulus time
 %--------------------------------------------------------------------------
@@ -80,6 +81,6 @@ for  c = 1:size(X,1)
     
     % integrate DCM - for this condition
     %----------------------------------------------------------------------
-    y{c} = spm_int_L(Q,M,U);
+    y{c} = feval(M.integrator,Q,M,U);
     
 end
