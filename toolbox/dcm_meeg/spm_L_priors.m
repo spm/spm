@@ -163,6 +163,12 @@ for i = 1:numel(model)
             nx   = size(pE.A,1)/m;
             pE.J{end + 1} = ones(1,nx);                      % nx states
             pC.J{end + 1} = ones(1,nx);
+
+        case{'WENDLING'}
+            %--------------------------------------------------------------
+            pE.J{end + 1} = sparse(1,[2 3 4],[1 -1 -1],1,10);  % y1-y2-y3
+            pC.J{end + 1} = sparse(1,10);
+
         otherwise
             warndlg('Unknown neural model')
             
