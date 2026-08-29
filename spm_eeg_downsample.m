@@ -112,7 +112,7 @@ spm_progress_bar('Clear');
 
 %-Save new downsampled M/EEG dataset
 %--------------------------------------------------------------------------
-Dnew = fsample(Dnew, S.fsample_new);
+Dnew = fsample(Dnew, fsample_new);
 D    = Dnew;
 D    = D.history('spm_eeg_downsample', S);
 save(D);
