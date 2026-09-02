@@ -18,13 +18,13 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # On Linux the glibc floor of a MEX file is set by the build host, and
-          # ubuntu-22.04 (glibc 2.35) is the oldest runner available. MEX files built
-          # on it need GLIBC_2.29, which excludes RHEL 8 (glibc 2.28), a platform
+          # On Linux the glibc floor of a MEX file is set by the build host, and every
+          # available runner is too new: even ubuntu-22.04 (glibc 2.35) yields MEX
+          # files needing GLIBC_2.29, which excludes RHEL 8 (glibc 2.28), a platform
           # MATLAB supports. The compile therefore runs inside a manylinux2014
-          # container (CentOS 7, glibc 2.17). MATLAB is installed on the runner as
-          # before and bind-mounted into the container.
-          - os: ubuntu-22.04
+          # container (CentOS 7, glibc 2.17), which makes the runner image irrelevant
+          # to the result. MATLAB is installed on the runner and bind-mounted in.
+          - os: ubuntu-latest
             os_name: Linux
             mex_ext: mexa64
             matlab_release: R2020a
