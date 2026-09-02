@@ -36,8 +36,8 @@ for i = 1:length(trialind)
             find(cellfun(@ischar, {ev.value}))));
         for k = 1:numel(ev)
             [dum, chan] = intersect(chanind, selectchannels(this, ev(k).value));
-            samples     = find((trialonset(this, trialind(i))+time(this))>=ev(k).time & ...
-                (trialonset(this, trialind(i))+time(this))<=(ev(k).time+ev(k).duration));
+            samples     = find((trialonset(this, trialind(i))+(0:nsamples(this)-1)./fsample(this))>=ev(k).time & ...
+                (trialonset(this, trialind(i))+(0:nsamples(this)-1)./fsample(this))<=(ev(k).time+ev(k).duration));
             res(chan, samples, i) = true;
         end
     end
