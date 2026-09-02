@@ -96,7 +96,7 @@ G(1).U  = spm_cat(U);                      % precision (action)
 % level 2; causes
 %--------------------------------------------------------------------------
 for i = 1:A
-    a{i} = [0; 0];                         % action (fequency and volume)
+    a{i} = [0; 0];                         % action (frequency and volume)
 end
 G(2).v  = 0;                               % exogenous  cause
 G(2).a  = spm_vec(a);                      % endogenous cause (action)

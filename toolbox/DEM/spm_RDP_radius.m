@@ -44,7 +44,7 @@ g     = zeros( 1,Nh);
 R     = zeros(Nh,Nh);
 for i = 1:Nh
 
-    % contrained transitions
+    % constrained transitions
     %--------------------------------------------------------------------------
     C         = false(Nt,Ns);
     C(1,h(i)) = true;
@@ -56,7 +56,7 @@ for i = 1:Nh
         if ~any(p), break, end
     end
 
-    % contrained transitions under time reversal
+    % constrained transitions under time reversal
     %----------------------------------------------------------------------
     P         = false(Nt,Ns);
     P(1,h(i)) = true;

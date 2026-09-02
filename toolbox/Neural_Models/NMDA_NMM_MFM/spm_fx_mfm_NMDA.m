@@ -130,7 +130,7 @@ GL   = 1;                                    % leak conductance
 %%% approx curvature got NMDA entry
 
  
-% mean-field effects: the paramters of the sigmoid activation function
+% mean-field effects: the parameters of the sigmoid activation function
 %==========================================================================
 if mfm
     

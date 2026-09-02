@@ -451,7 +451,7 @@ if ~isempty(SPM.Sess.U)
         % Recompose the beta coefficients for the labels 
         % ----------------------------------------------
         % For now, betas are weighting each component of the basis set
-        % individualy. Project on the basis to construct the deconvolved
+        % individually. Project on the basis to construct the deconvolved
         % response. 
         % i.e. xY(t, i) = sum_k basis(t, k) * beta(k, i) 
         for i = 1:ne

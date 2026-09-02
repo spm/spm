@@ -296,7 +296,7 @@ else
                 if isempty(S.pairs)
                     % We are looking for sources in the mirror of the sagittal
                     % plane, which means flipping the position in the x-axis and
-                    % looking for the source which is the closest (Which isnt
+                    % looking for the source which is the closest (Which isn't
                     % itself!)
                     target  = [-pos(i,1) pos(i,2) pos(i,3)];
                     del     = bsxfun(@minus,pos,target);
@@ -335,7 +335,7 @@ else
                     
                     % allocate to corresponding locations in array
                     % count how many times a point comes up (should be twice but
-                    % could be less/more depeding on asymmetry in source space).
+                    % could be less/more depending on asymmetry in source space).
                     if ondiag
                         pow_dual(i,i) = pow_dual(i,i) + pow2_tmp;
                         count(i,i) = count(i,i) + 1;
@@ -465,7 +465,7 @@ switch lower(S.reml)
     case 'loose'
         fprintf('Using ReML: Loose hyperprior settings\n');
         % Need to add a final extra term here to allow ReML to not run into
-        % trouble, a fixed (co)variance componenent which is ~1/100 the
+        % trouble, a fixed (co)variance component which is ~1/100 the
         % magnitude of the sensor covariance.
         Q0          = exp(-5)*trace(C)*Qe{1};
         [Cy,h,~,F,Fa,Fc]= bf_reml_sc(C,[],[Qe LQpL],Nn,-4,16,Q0);

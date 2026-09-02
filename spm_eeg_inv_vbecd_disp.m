@@ -630,7 +630,7 @@ end
 % - spm_eeg_inv_vbecd_disp('Init',sdip)
 %        The routine will use the avg152T1 canonical image 
 % - spm_eeg_inv_vbecd_disp('Init',sdip,P)
-%        The routines dispays the dipoles on image P.
+%        The routines displays the dipoles on image P.
 %
 % If multiple seeds have been used, you can select the seeds to display 
 % by pressing their index. 

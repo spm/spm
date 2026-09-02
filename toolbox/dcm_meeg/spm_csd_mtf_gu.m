@@ -30,7 +30,7 @@ function [Gu,Gs,Gn,f] = spm_csd_mtf_gu(P,M)
 %--------------------------------------------------------------------------
 try, f = M.Hz(:); catch, f = M(:); end
 
-% Number of sources and fequencies
+% Number of sources and frequencies
 %--------------------------------------------------------------------------
 if isfield(P,'d')
     ns = max(size(P.a,2),size(P.d,2));

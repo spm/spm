@@ -269,8 +269,8 @@ for i = 1:Nx
     for j = 1:Ny
         k        = k + 1;
         f        = sub2ind([Nx,Ny],i,j) + Nu;
-        cid(1,k) = i;              % contrained factor
-        cid(2,k) = j;              % contrained factor
+        cid(1,k) = i;              % constrained factor
+        cid(2,k) = j;              % constrained factor
         cid(f,k) = 3;              % conditional factor
     end
 end

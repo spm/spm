@@ -131,7 +131,7 @@ switch S.method
         
         S.(S.method).isdesign = isdesign;
         
-        % catch when foi isnt' specified
+        % catch when foi isn't specified
         if ~isfield(S.(S.method),'foi')
             error('plese specify a frequency band of interest!');
         end

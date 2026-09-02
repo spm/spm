@@ -3,7 +3,7 @@ function [Dtest,modelF,allF]=spm_eeg_invertiter(Dtest,Npatchiter,funcname,patchi
 %  pseudo-randomly selected priors- in this case single cortical patches
 %
 % Npatchiter: number of iterations
-% funcname is name of MSP alogorithm: current (spm_eeg_invert) or classic (spm_eeg_invert_classic)
+% funcname is name of MSP algorithm: current (spm_eeg_invert) or classic (spm_eeg_invert_classic)
 % patchind is an optional list of indices of vertices which will be patch
 % centres. patchind will have size Npatchiter*Np (where Np is number of patches set in
 % inverse.Np )

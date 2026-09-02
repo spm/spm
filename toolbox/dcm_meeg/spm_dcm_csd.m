@@ -19,7 +19,7 @@ function DCM = spm_dcm_csd(DCM)
 %   options.spatial      - 'ECD', 'LFP' or 'IMG'     (see spm_erp_L)
 %   options.model        - 'ERP', 'SEP', 'CMC', 'LFP', 'NMM' or 'MFM'
 %
-% Esimates:
+% estimates:
 %--------------------------------------------------------------------------
 % DCM.dtf                   - directed transfer functions (source space)
 % DCM.ccf                   - cross covariance functions (source space)

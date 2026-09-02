@@ -180,7 +180,7 @@ for it=1:tS.iter
     % different subjects, so correlated between subjects part of covarince
     % prior is overlapping but not identical patches
 
-    % pay attention - it's to exclude disconected vertices from Jcov
+    % pay attention - it's to exclude disconnected vertices from Jcov
     % it seems ssQ1 = spones(sQ1) works better than simple sQ1
     % may be because in Jcov.*sQ1 there is double attenuation of tails
     

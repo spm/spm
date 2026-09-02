@@ -194,7 +194,7 @@ d     = 4;
 u     = [-1,0,1];
 for i = 1:numel(u)
 
-   % perimeter contraints on x
+   % perimeter constraints on x
     %----------------------------------------------------------------------
     BX(:,:,i) = full(spm_speye(Nx,Nx,u(i),1));
     for j = 1:Nx
@@ -206,7 +206,7 @@ for i = 1:numel(u)
         end
     end
 
-    % perimeter contraints on y
+    % perimeter constraints on y
     %----------------------------------------------------------------------
     BY(:,:,i) = full(spm_speye(Ny,Ny,u(i),2));
     for j = 1:Ny
@@ -218,7 +218,7 @@ for i = 1:numel(u)
         end
     end
 
-    % height contraints on z
+    % height constraints on z
     %----------------------------------------------------------------------
     BZ(:,:,i) = full(spm_speye(Nz,Nz,u(i),2));
     for j = 1:Nz
@@ -272,7 +272,7 @@ D{4} = full(sparse(V(4),1,1,Na,1));              % camera angles
 % priors: (cost) C
 %==========================================================================
 
-% no modality contraints at this stage
+% no modality constraints at this stage
 %--------------------------------------------------------------------------
 for g = 1:numel(A)
     C{g} = [];

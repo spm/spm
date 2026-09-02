@@ -59,7 +59,7 @@ for t = 1:T
 
 end
 
-% concatentate segements
+% concatenate segements
 %--------------------------------------------------------------------------
 wav = spm_cat(wav);
 
