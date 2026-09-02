@@ -100,7 +100,7 @@ jobs:
           docker run --rm \
             -v "$MATLAB_ROOT":"$MATLAB_ROOT":ro \
             -v "$PWD":"$PWD" -w "$PWD" \
-            -e MATLAB_ROOT \
+            -e MATLAB_ROOT="$MATLAB_ROOT" \
             ${{ matrix.container }} bash -euo pipefail -c '
               export PATH="$MATLAB_ROOT/bin:$PATH"
               gcc --version | head -n 1
