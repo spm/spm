@@ -970,28 +970,8 @@ switch headerformat
     hdr.orig        = orig;
 
   case 'eyelink_asc'
-    asc = read_eyelink_asc(filename);
-    hdr.nChans              = size(asc.dat,1);
-    hdr.nSamples            = size(asc.dat,2);
-    hdr.nSamplesPre         = 0;
-    hdr.nTrials             = 1;
-    hdr.FirstTimeStamp      = asc.dat(1,1);
-    hdr.TimeStampPerSample  = median(diff(asc.dat(1,:)));
-    hdr.Fs                  = 1000/hdr.TimeStampPerSample;  % these timestamps are in miliseconds
-    % give this warning only once
-    ft_warning('creating fake channel names');
-    for i=1:hdr.nChans
-      hdr.label{i} = sprintf('%d', i);
-    end
-
-    % remember all header and data details upon request
-    if cache
-      hdr.orig = asc;
-    else
-      % remember the original header details
-      hdr.orig = removefields(asc, 'dat');
-    end
-
+    hdr = read_eyelink_asc(filename);
+    
   case  'spmeeg_mat'
     hdr = read_spmeeg_header(filename);
 

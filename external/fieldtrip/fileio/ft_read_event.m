@@ -1183,71 +1183,8 @@ switch eventformat
     end
 
   case 'eyelink_asc'
-    if isempty(hdr)
-      hdr = ft_read_header(filename, 'headerformat', headerformat);
-    end
-    if isfield(hdr.orig, 'input')
-      % this is inefficient, since it keeps the complete data in memory
-      % but it does speed up subsequent read operations without the user
-      % having to care about it
-      asc = hdr.orig;
-    else
-      asc = read_eyelink_asc(filename);
-    end
+    [hdr, event] = read_eyelink_asc(filename); % hdr and event are both returned in FT-style
 
-    % the input events are handled differently (because they already
-    % contain a timestamp and value, as per read_eyelink_asc
-    if ~isempty(asc.input)
-      timestamp = asc.input.timestamp;
-      value     = asc.input.value;
-      sample    = (timestamp-hdr.FirstTimeStamp)/hdr.TimeStampPerSample + 1;
-
-      % note that in this dataformat the first input trigger can be before
-      % the start of the data acquisition
-      for i=1:length(timestamp)
-        event(end+1).type       = 'INPUT';
-        event(end  ).sample     = sample(i);
-        event(end  ).timestamp  = timestamp(i);
-        event(end  ).value      = value(i);
-        event(end  ).duration   = 1;
-        event(end  ).offset     = 0;
-      end
-    end
-
-    % these fields are dealt with a bit differently, the 'e' -events
-    % contain more information than the 's' -events
-    fnames = {'eblink', 'efix', 'esacc'};
-    tnames = {'BLINK',  'FIX',  'SACC'};
-    if isfield(asc, 'msg') && istable(asc.msg) && size(asc.msg,2)==2
-      fnames(end+1) = {'msg'};
-      tnames(end+1) = {'MSG'};
-    end
-    for k=1:length(fnames)
-      if isfield(asc, fnames{k}) && ~isempty(asc.(fnames{k}))
-        bfs = asc.(fnames{k});
-
-        timestamp = bfs.stime;
-        sample    = (timestamp-hdr.FirstTimeStamp)/hdr.TimeStampPerSample + 1;
-        if ~strcmp(fnames{k}, 'msg')
-          value     = bfs.eye;
-          duration  = bfs.dur;
-        else
-          value     = bfs.message;
-          duration  = nan(size(bfs,1),1);
-        end
-
-        % note that in this dataformat the first input trigger can be before
-        % the start of the data acquisition
-        for i=1:length(timestamp)
-          event(end+1).type       = tnames{k};
-          event(end  ).sample     = sample(i);
-          event(end  ).timestamp  = timestamp(i);
-          event(end  ).value      = value(i);
-          event(end  ).duration   = duration(i);
-          event(end  ).offset     = 0;
-        end
-      end
-    end
   case 'fcdc_global'
     event = event_queue;
 

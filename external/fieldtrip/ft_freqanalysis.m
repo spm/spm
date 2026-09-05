@@ -496,9 +496,9 @@ end
 if startsWith(cfg.output, 'fooof')
   % ensure that Brainstorm is on the path: if the user uses their own
   % version of the code, assume that the paths are correctly set
-  if keeprpt~=1
-    ft_error('Keeping trials and/or tapers is not allowed when using fooof');
-  end
+  % if keeprpt~=1
+  %   ft_error('Keeping trials and/or tapers is not allowed when using fooof');
+  % end
   if ~isequal(cfg.method, 'mtmfft')
     ft_error('Fooof is only supported with cfg.method = ''mtmfft''');
   end
@@ -1010,7 +1010,7 @@ if exist('toi', 'var')
   freq.time = toi;
 end
 if powflg
-  % correct the 0 Hz or Nyqist bin if present, scaling with a factor of 2 is only appropriate for ~0 Hz
+  % correct the 0 Hz or Nyquist bin if present, scaling with a factor of 2 is only appropriate for ~0 Hz
   if ~isempty(hasdc_nyq)
     if keeprpt>1
       powspctrm(:,:,hasdc_nyq,:) = powspctrm(:,:,hasdc_nyq,:)./2;
@@ -1022,17 +1022,23 @@ if powflg
   if startsWith(cfg.output, 'fooof')
     % check for brainstorm functions on the path, and add if needed
     ft_hastoolbox('brainstorm', 1);
-    
-    TF(:,1,:) = powspctrm;
-    Freqs     = freq.freq;
-    Freqs(Freqs==0) = [];
+     
     % This grabs the defaults from the brainstorm code
     opts_bst  = getfield(process_fooof('GetDescription'), 'options');
     
-    % Fetch user settings, this is a chunk of code copied over from
-    % process_fooof, to bypass the whole database etc handling.
+    % Fetch user settings, this is a chunk of code copied over from process_fooof, to bypass the whole database etc handling.
     opt                     = ft_getopt(cfg, 'fooof', []);
-    opt.freq_range          = ft_getopt(opt, 'freq_range', Freqs([1 end]));
+    
+    % Added functionality to subtract (e.g. emptyroom) baseline power spectrum
+    if isfield(opt, 'baseline')
+      powspctrm_baseline = opt.baseline;
+      opt = rmfield(opt, 'baseline'); % don't know downstream effects so better remove it
+    else
+      powspctrm_baseline = [];
+    end
+    hasbaseline = ~isempty(powspctrm_baseline) && all(size(powspctrm)==size(powspctrm_baseline));
+
+    opt.freq_range          = ft_getopt(opt, 'freq_range',        [freq.freq(find(freq.freq>0,1,'first')) freq.freq(end)]);
     opt.peak_width_limits   = ft_getopt(opt, 'peak_width_limits', opts_bst.peakwidth.Value{1});
     opt.max_peaks           = ft_getopt(opt, 'max_peaks',         opts_bst.maxpeaks.Value{1});
     opt.min_peak_height     = ft_getopt(opt, 'min_peak_height',   opts_bst.minpeakheight.Value{1}/10); % convert from dB to B
@@ -1040,12 +1046,13 @@ if powflg
     opt.peak_threshold      = ft_getopt(opt, 'peak_threshold',    2);   % 2 std dev: parameter for interface simplification
     opt.return_spectrum     = ft_getopt(opt, 'return_spectrum',   1);   % SPM/FT: set to 1
     opt.border_threshold    = ft_getopt(opt, 'border_threshold',  1);   % 1 std dev: proximity to edge of spectrum, static in Python
+    
     % Matlab-only options
     opt.power_line          = ft_getopt(opt, 'power_line',        '50'); % for some reason it should be a string, if you don't want a notch, use 'inf'. Brainstorm's default is '60'
     opt.peak_type           = ft_getopt(opt, 'peak_type',         opts_bst.peaktype.Value);
     opt.proximity_threshold = ft_getopt(opt, 'proximity_threshold', opts_bst.proxthresh.Value{1});
     opt.guess_weight        = ft_getopt(opt, 'guess_weight',      opts_bst.guessweight.Value);
-    opt.thresh_after        = ft_getopt(opt, 'thresh_after',      true);   % Threshold after fitting always selected for Matlab (mirrors the Python FOOOF closest by removing peaks that do not satisfy a user's predetermined conditions)
+    opt.thresh_after        = ft_getopt(opt, 'thresh_after',      true);   % Threshold after fitting always selected for Matlab (mirrors the Python FOOOF closest by removing peaks that do not satisfy a user's predetermined conditions)    
     
     % Output options
     opt.sort_type  = opts_bst.sorttype.Value;
@@ -1053,45 +1060,63 @@ if powflg
 	  opt.sort_bands = opts_bst.sortbands.Value;
 
     % Check input frequency bounds
-    if (any(opt.freq_range < 0) || opt.freq_range(1) >= opt.freq_range(2))
-      bst_report('error','Invalid Frequency range');
-      return
+    if (any(opt.freq_range <= 0) || opt.freq_range(1) >= opt.freq_range(2))
+      ft_error('invalid frequency range for fooof');
     end
     
-    hasOptimTools = 0;
     if exist('fmincon', 'file')
-      hasOptimTools = 1;
       disp('Using constrained optimization, Guess Weight ignored.')
     end
     
-    [fs, fg] = process_fooof('FOOOF_matlab', TF, freq.freq, opt, hasOptimTools);
+    if hasbaseline
+      ft_warning('subtracting a baseline powerspctrm estimate before fooof, this is experimental');
+      powspctrm = max(powspctrm - powspctrm_baseline, 100*eps(min(powspctrm(:))));
+    end
     
+    if keeprpt==1
+      tmppowspctrm = shiftdim(powspctrm, -1); % create phony single rpt, needed for below
+    else
+      tmppowspctrm = powspctrm;
+    end
+
+
+    % permute is needed because process_fooof expects a singleton second dimension of a 3D matrix...
+    for k = 1:size(tmppowspctrm,1)
+      ft_progress(k./size(tmppowspctrm,1), 'parametrizing spectrum, using FOOOF for trial %d\n', k);
+      [fs, fg(k,:)] = process_fooof('FOOOF_matlab', permute(tmppowspctrm(k,:,:), [2 1 3]), freq.freq, opt, exist('fmincon', 'file'));
+    end
+
     % add the options back to the cfg
     cfg.fooof = opt;
     
     switch cfg.output
       case 'fooof'
-        powspctrm_f = cat(1, fg.fooofed_spectrum);
+        powspctrm_f = reshape(cat(1, fg.fooofed_spectrum), [size(fg) numel(fg(1).power_spectrum)]);
       case 'fooof_peaks'
-        powspctrm_f = cat(1, fg.peak_fit);
+        powspctrm_f = reshape(cat(1, fg.peak_fit), [size(fg) numel(fg(1).power_spectrum)]);
       case 'fooof_aperiodic'
-        powspctrm_f = cat(1, fg.ap_fit);
+        powspctrm_f = reshape(cat(1, fg.ap_fit), [size(fg) numel(fg(1).power_spectrum)]);
     end
     fg = removefields(fg, {'fooofed_spectrum', 'peak_fit', 'ap_fit'});
     
-    for k = 1:size(powspctrm_f,1)
-      powspctrm(k,:) = interp1(fs, powspctrm_f(k,:), freq.freq, 'linear', nan);
-      fg(k).label    = freq.label{k};
+    % temporarily shift dim in case keeprpt==1
+    if keeprpt==1, powspctrm = shiftdim(powspctrm, -1); end
+    for m = 1:size(powspctrm_f,1)
+      for k = 1:size(powspctrm_f,2)
+        powspctrm(m,k,:) = interp1(fs, shiftdim(powspctrm_f(m,k,:), 1), freq.freq, 'linear', nan);
+        fg(k).label = freq.label{k};
+      end    
     end
+    if keeprpt==1, powspctrm = shiftdim(powspctrm, 1); end
     freq.powspctrm   = powspctrm;
-    freq.fooofparams = fg(:);
+    freq.fooofparams = fg;
     
   else
     freq.powspctrm = powspctrm;
   end
 end
 if fftflg
-  % correct the 0 Hz or Nyqist bin if present, scaling with a factor of 2 is only appropriate for ~0 Hz
+  % correct the 0 Hz or Nyquist bin if present, scaling with a factor of 2 is only appropriate for ~0 Hz
   if ~isempty(hasdc_nyq)
     if keeprpt>1
       fourierspctrm(:,:,hasdc_nyq,:) = fourierspctrm(:,:,hasdc_nyq,:)./sqrt(2);
@@ -1102,7 +1127,7 @@ if fftflg
   freq.fourierspctrm = fourierspctrm;
 end
 if csdflg
-  % correct the 0 Hz or Nyqist bin if present, scaling with a factor of 2 is only appropriate for ~0 Hz
+  % correct the 0 Hz or Nyquist bin if present, scaling with a factor of 2 is only appropriate for ~0 Hz
   if ~isempty(hasdc_nyq)
     if keeprpt>1
       crsspctrm(:,:,hasdc_nyq,:) = crsspctrm(:,:,hasdc_nyq,:)./2;
