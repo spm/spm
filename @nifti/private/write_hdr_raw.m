@@ -7,33 +7,43 @@ function sts = write_hdr_raw(fname,hdr,be)
 %
 % sts        - status (1=good, 0=bad)
 %__________________________________________________________________________
+% Copyright (C) 2005-2017 Wellcome Trust Centre for Neuroimaging
 
-% Copyright (C) 2005-2022 Wellcome Centre for Human Neuroimaging
+%
+% $Id: write_hdr_raw.m 7370 2018-07-09 10:44:51Z guillaume $
 
 
 [pth,nam] = fileparts(fname);
 if isempty(pth), pth = pwd; end
 
+nifti1_bytes = 348;
+nifti2_bytes = 540;
+
 if isfield(hdr,'magic')
     switch hdr.magic(1:3)
         case {'ni1'}
-            org = niftistruc('nifti1');
+            org   = niftistruc('nifti1');
             hname = fullfile(pth,[nam '.hdr']);
+            bytes = zeros(nifti1_bytes,1,'uint8');
         case {'ni2'}
-            org = niftistruc('nifti2');
+            org   = niftistruc('nifti2');
             hname = fullfile(pth,[nam '.hdr']);
+            bytes = zeros(nifti2_bytes,1,'uint8');
         case {'n+1'}
-            org = niftistruc('nifti1');
+            org   = niftistruc('nifti1');
             hname = fullfile(pth,[nam '.nii']);
+            bytes = zeros(nifti1_bytes,1,'uint8');
         case {'n+2'}
-            org = niftistruc('nifti2');
+            org   = niftistruc('nifti2');
             hname = fullfile(pth,[nam '.nii']);
+            bytes = zeros(nifti2_bytes,1,'uint8');
         otherwise
             error('Bad header.');
     end
 else
     org   = mayostruc;
     hname = fullfile(pth,[nam '.hdr']);
+    bytes = zeros(nifti1_bytes,1,'uint8');
 end
 
 if nargin >= 3
@@ -59,6 +69,8 @@ if fp == -1
     fprintf('Error: %s\n',msg);
 end
 
+pos = 0;
+
 if sts
     for i=1:length(org)
         if isfield(hdr,org(i).label)
@@ -74,13 +86,17 @@ if sts
         else
             dat = org(i).def;
         end
-        % fprintf('%s=\n',org(i).label)
-        % disp(dat)
-        len = fwrite(fp,dat,org(i).dtype.prec);
-        if len ~= org(i).len
-            sts = false;
+
+        if be
+            d = typecast(swapbytes(cast(dat,org(i).dtype.prec)),'uint8');
+        else
+            d = typecast(cast(dat,org(i).dtype.prec),'uint8');
         end
+        len = numel(d);
+        bytes((1:len) + pos) = d;
+        pos = pos + len;
     end
+    sts = sts && (fwrite(fp,bytes,'uint8') == numel(bytes));
     fclose(fp);
 end
 
@@ -88,3 +104,4 @@ if ~sts
      fprintf('There was a problem writing to the header of\n');
      fprintf('  "%s"\n', fname);
 end
+
