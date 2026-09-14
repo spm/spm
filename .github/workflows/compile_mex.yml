@@ -18,12 +18,18 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # On Linux, the OS version should be as old as possible for mex compatibility.
-          - os: ubuntu-22.04
+          # On Linux the glibc floor of a MEX file is set by the build host, and every
+          # available runner is too new: even ubuntu-22.04 (glibc 2.35) yields MEX
+          # files needing GLIBC_2.29, which excludes RHEL 8 (glibc 2.28), a platform
+          # MATLAB supports. The compile therefore runs inside a manylinux2014
+          # container (CentOS 7, glibc 2.17), which makes the runner image irrelevant
+          # to the result. MATLAB is installed on the runner and bind-mounted in.
+          - os: ubuntu-latest
             os_name: Linux
             mex_ext: mexa64
             matlab_release: R2020a
             matlab_legacy: true
+            container: quay.io/pypa/manylinux2014_x86_64
           # On Mac and Windows the Matlab version drives mex compatibility, but macos-latest
           # is avoided because its Xcode 26 linker cannot link C++ MEX files for R2023b.
           - os: macos-15-intel
@@ -74,6 +80,7 @@ jobs:
         run: Get-ChildItem -Path .\ -Recurse -Include *.mex* | Remove-Item -Force
 
       - name: Compile MEX files
+        if: ${{ !matrix.container }}
         run: |
           make -C src distclean
           make -C src
@@ -81,6 +88,47 @@ jobs:
           # make -C src external-distclean # on windows there is an issue with fieldtrip
           # make -C src external
           # make -C src external-install
+
+      - name: Compile MEX files in ${{ matrix.container }}
+        if: ${{ matrix.container }}
+        run: |
+          # `matlab -e` prints the launcher environment without starting MATLAB.
+          MATLAB_ROOT="$(matlab -e 2>/dev/null | sed -n 's/^MATLAB=//p')"
+          [ -n "$MATLAB_ROOT" ] || MATLAB_ROOT="$(dirname "$(dirname "$(readlink -f "$(command -v mex)")")")"
+          echo "MATLAB root: $MATLAB_ROOT"
+          # Both trees are mounted at their host paths so nothing needs relocating.
+          docker run --rm \
+            -v "$MATLAB_ROOT":"$MATLAB_ROOT":ro \
+            -v "$PWD":"$PWD" -w "$PWD" \
+            -e MATLAB_ROOT="$MATLAB_ROOT" \
+            ${{ matrix.container }} bash -euo pipefail -c '
+              export PATH="$MATLAB_ROOT/bin:$PATH"
+              gcc --version | head -n 1
+              make -C src distclean
+              make -C src
+              make -C src install
+            '
+          sudo chown -R "$(id -u):$(id -g)" .
+
+      - name: Check the glibc floor
+        if: ${{ matrix.container }}
+        run: |
+          # Nothing built inside the container can need more than its own glibc and
+          # libstdc++, so a higher floor means the container was bypassed.
+          versions=$(find . -name '*.${{ matrix.mex_ext }}' -not -path './external/*' \
+                       -exec objdump -T {} \; | grep -oE 'GLIBC(XX)?_[0-9.]+' | sort -uV || true)
+          glibc=$(echo "$versions" | grep '^GLIBC_' | tail -n 1 || true)
+          glibcxx=$(echo "$versions" | grep '^GLIBCXX_' | tail -n 1 || true)
+          echo "**Linux MEX floor:** \`${glibc:-none}\`, libstdc++ \`${glibcxx:-none}\`" >> "$GITHUB_STEP_SUMMARY"
+          check() {
+            [ -z "$1" ] && return 0
+            if [ "$(printf '%s\n' "$1" "$2" | sort -V | tail -n 1)" != "$2" ]; then
+              echo "::error::MEX files require $1, above the $2 floor of ${{ matrix.container }}"
+              exit 1
+            fi
+          }
+          check "$glibc" GLIBC_2.17
+          check "$glibcxx" GLIBCXX_3.4.19
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
