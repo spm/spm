@@ -47,7 +47,7 @@ switch lower(model)
 
 
     % hierarchical linear generative model - the basis for  static models
-    % These subsume: Parametric emprical Bayes (PEB) models
+    % These subsume: Parametric empirical Bayes (PEB) models
     %                Mixed effects (MFX) models
     %======================================================================
     case{'hierarchical linear model','hlm','peb','mfx'}

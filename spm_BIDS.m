@@ -750,7 +750,7 @@ if nargin == 2
         % filename, ext, and type are not BIDS entities but are part of stuct
         p = orderfields(p,{'filename','ext','type',fields{:}});
     catch e
-        disp(e); % report error so python users have someting useful to show
+        disp(e); % report error so python users have something useful to show
         warning('Ignoring file "%s" not matching template.',filename);
         p = struct([]);
     end

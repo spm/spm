@@ -34,7 +34,7 @@ function [DCM,RCM]   = spm_dcm_search_eeg(P,SAVE_DCM)
 % best DCM. The structural and function (spectral embedding) graphs are
 % based on this DCM.
 %
-% Conditional esimates (Ep, Cp and F values) in DCM_??? (specifed by P) are
+% Conditional estimates (Ep, Cp and F values) in DCM_??? (specifed by P) are
 % replaced by their reduced estimates (but only these estimates) in rDCM_???
 %
 % DCM_optimum (saved with nargout = 0) contains the fields:

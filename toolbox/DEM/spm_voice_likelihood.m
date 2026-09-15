@@ -61,7 +61,7 @@ if numel(xY) > 1
     return
 end
 
-% many contraints, one interval
+% many constraints, one interval
 %--------------------------------------------------------------------------
 if iscell(k)
     for i = 1:numel(k)

@@ -44,7 +44,7 @@ classdef ndSparse
 %
 %Many of the same manipulations common to ordinary multidimensional MATLAB full arrays
 %can be performed on the sparse 3D array A generated above. It can be permuted, summed, 
-%concatentated, and so forth e.g.,
+%concatenated, and so forth e.g.,
 %   
 %   >> B=sum( permute([A,A+10], [3,2,1]) ,2)
 %
