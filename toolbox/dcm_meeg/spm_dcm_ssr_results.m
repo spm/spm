@@ -108,12 +108,30 @@ case{lower('Coupling (A)')}
     
     % spm_dcm_ssr_results(DCM,'coupling (A)');
     %----------------------------------------------------------------------
-    str = {'Forward','Backward','Lateral'};
-    for  i = 1:3
-        
+    if ~isfield(DCM.Ep,'A'), return, end
+    m   = length(DCM.Ep.A);
+    try, model = DCM.options.model; catch, model = ''; end
+    switch upper(model)
+        case {'ERP','SEP','LFP','NMM','MFM','NMDA'}
+            str = {'Forward','Backward','Lateral'};
+        case {'CMM','CMM_NMDA'}
+            str = {'Forward','Backward'};
+        case {'CMC','TFM'}
+            str = {'Forward (i)','Forward (ii)', ...
+                   'Backward (i)','Backward (ii)'};
+        case 'MMC'
+            str = {'Forward (sp->mp)','Forward (sp->sp)', ...
+                   'Backward (dp->dp)'};
+        otherwise
+            str = {};
+    end
+    for k = numel(str)+1:m, str{k} = sprintf('A{%d}',k); end
+    str = str(1:m);
+    for  i = 1:m
+
         % images
         %------------------------------------------------------------------
-        subplot(4,3,i)
+        subplot(4,m,i)
         imagesc(exp(DCM.Ep.A{i}))
         title(str{i},'FontSize',10)
         set(gca,'YTick',[1:ns],'YTickLabel',DCM.Sname,'FontSize',8)
@@ -121,29 +139,29 @@ case{lower('Coupling (A)')}
         xlabel('from','FontSize',8)
         ylabel('to','FontSize',8)
         axis square
-    
+
         % table
         %------------------------------------------------------------------
-        subplot(4,3,i + 3)
+        subplot(4,m,i + m)
         text(0,1/2,num2str(full(exp(DCM.Ep.A{i})),' %.2f'),'FontSize',8)
         axis off,axis square
- 
-    
+
+
         % PPM
         %------------------------------------------------------------------
-        subplot(4,3,i + 6)
+        subplot(4,m,i + 2*m)
         image(64*DCM.Pp.A{i})
         set(gca,'YTick',[1:ns],'YTickLabel',DCM.Sname,'FontSize',8)
         set(gca,'XTick',[])
         title('PPM')
         axis square
-    
+
         % table
         %------------------------------------------------------------------
-        subplot(4,3,i + 9)
+        subplot(4,m,i + 3*m)
         text(0,1/2,num2str(DCM.Pp.A{i},' %.2f'),'FontSize',8)
         axis off, axis square
-        
+
     end
     
 case{lower('Coupling (C)')}
