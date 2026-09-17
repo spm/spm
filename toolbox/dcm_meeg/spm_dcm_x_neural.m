@@ -195,6 +195,17 @@ switch lower(model)
         f  = 'spm_fx_null';
         
         
+
+        % Wendling neural mass model (hippocampal CA1)
+        %======================================================================
+    case{'wendling'}
+
+        % inital states and model
+        %------------------------------------------------------------------
+        x  = spm_x_wendling(P);
+        f  = 'spm_fx_wendling';
+
+
     otherwise
         warndlg('Unknown model')
 end
