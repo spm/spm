@@ -246,7 +246,11 @@ M.x    = spm_dcm_neural_x(pE,M);
 
 % EM: inversion
 %==========================================================================
-[Qp,Qg,Cp,Cg,Ce,F,LE] = spm_nlsi_N(M,xU,xY);
+[Qp,Qg,Cp,Cg,Ce,F,LE,converged,Fhist] = spm_nlsi_N(M,xU,xY);
+
+DCM.convergence.converged = converged;
+DCM.convergence.F         = Fhist.F;
+DCM.convergence.L         = Fhist.L;
 
 
 % Data ID

@@ -1,6 +1,6 @@
-function [Ep,Cp,Eh,F,L,dFdp,dFdpp] = spm_nlsi_GN(M,U,Y)
+function [Ep,Cp,Eh,F,L,dFdp,dFdpp,converged,Fhist] = spm_nlsi_GN(M,U,Y)
 % Bayesian inversion of nonlinear models - Gauss-Newton/Variational Laplace
-% FORMAT [Ep,Cp,Eh,F,L,dFdp,dFdpp] = spm_nlsi_GN(M,U,Y)
+% FORMAT [Ep,Cp,Eh,F,L,dFdp,dFdpp,converged,Fhist] = spm_nlsi_GN(M,U,Y)
 %
 % [Dynamic] MIMO models
 %__________________________________________________________________________
@@ -49,6 +49,17 @@ function [Ep,Cp,Eh,F,L,dFdp,dFdpp] = spm_nlsi_GN(M,U,Y)
 % log evidence
 %--------------------------------------------------------------------------
 % F   - [-ve] free energy F = log evidence = p(y|f,g,pE,pC) = p(y|m)
+%
+% convergence diagnostics
+%--------------------------------------------------------------------------
+% converged - logical scalar; true iff the convergence criterion was met
+%             before M.Nmax iterations (i.e. the inner loop broke out
+%             rather than running to completion)
+% Fhist     - struct recording the accepted free energy trajectory:
+%               .F  (1 x k)         accepted F at each iteration
+%               .L  (3 x k)         accepted log-evidence components at
+%                                   each iteration
+%             where k is the number of iterations actually performed
 %
 %__________________________________________________________________________
 % Returns the moments of the posterior p.d.f. of the parameters of a
@@ -328,6 +339,7 @@ C.F   = -Inf;                                   % free energy
 v     = -4;                                     % log ascent rate
 dFdh  = zeros(nh,1);
 dFdhh = zeros(nh,nh);
+Fhist = struct('F', [], 'L', []);
 for k = 1:M.Nmax
     
     % time
@@ -626,6 +638,15 @@ for k = 1:M.Nmax
         
     end
     
+    % record per-iteration accepted state
+    %----------------------------------------------------------------------
+    Fhist.F = [Fhist.F, C.F];
+    if isempty(Fhist.L)
+        Fhist.L = C.L(:);
+    else
+        Fhist.L(:,end+1) = C.L(:);
+    end
+
     % convergence
     %----------------------------------------------------------------------
     dF  = dFdp'*dp;
@@ -653,3 +674,4 @@ Cp     = V*C.Cp(ip,ip)*V';
 Eh     = C.h;
 F      = C.F;
 L      = C.L;
+converged = all(criterion);

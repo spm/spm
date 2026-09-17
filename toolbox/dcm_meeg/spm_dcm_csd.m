@@ -176,7 +176,11 @@ DCM.xY.X0 = sparse(size(DCM.xY.Q,1),0);
 
 % Variational Laplace: model inversion
 %==========================================================================
-[Qp,Cp,Eh,F] = spm_nlsi_GN(DCM.M,DCM.xU,DCM.xY);
+[Qp,Cp,Eh,F,~,~,~,converged,Fhist] = spm_nlsi_GN(DCM.M,DCM.xU,DCM.xY);
+
+DCM.convergence.converged = converged;
+DCM.convergence.F         = Fhist.F;
+DCM.convergence.L         = Fhist.L;
 
 
 % Data ID
