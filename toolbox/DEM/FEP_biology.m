@@ -18,39 +18,36 @@ function FEP_biology
 %--------------------------------------------------------------------------
 rng(0)
 N    = 256;                         % number of (Lorenz) oscillators
-T    = 2056;                        % number of time bins
+T    = 2048;                        % number of time bins
 dt   = 1/32;                        % time interval
 
 % parameters
 %--------------------------------------------------------------------------
 for i = 1:N
 
-    if i < N/2
+    if i <= N/2
 
         % external
         %------------------------------------------------------------------
         P.p(i) = 1;                % partition
         P.r(i) = 0;                % Rayleigh parameter
         P.d(i) = 1;                % diffusion or random fluctuations
-        P.k(i) = 1;                % rate constant
 
-    elseif i < (N/2 + N/8)
+    elseif i <= (N/2 + N/8)
 
         % sensory
         %------------------------------------------------------------------
         P.p(i) = 2;                % partition
         P.r(i) = 4;                % Rayleigh parameter
         P.d(i) = 1/32;             % diffusion or random fluctuations
-        P.k(i) = 1;                % rate constant
 
-    elseif i < (N/2 + N/8 + N/4)
+    elseif i <= (N/2 + N/8 + N/4)
 
         % internal
         %------------------------------------------------------------------
         P.p(i) = 3;                % partition
         P.r(i) = 32;               % Rayleigh parameter
         P.d(i) = 1/32;             % diffusion or random fluctuations
-        P.k(i) = 1;                % rate constant
 
     else
 
@@ -59,8 +56,6 @@ for i = 1:N
         P.p(i) = 4;                % partition
         P.r(i) = 32;               % Rayleigh parameter
         P.d(i) = 1/32;             % diffusion or random fluctuations
-        P.k(i) = 1;                % rate constant
-
     end
 
 end
@@ -197,7 +192,7 @@ fprintf('Hausdorff Dimension: %.2f\n',HD)
 %% illustrate a quantum perspective (quantum mechanics)
 %==========================================================================
 % This section illustrates the quantum treatment of a single state - a
-% microstate from the first internal particle of the synthetic soup. The
+% microstate from the first external particle of the synthetic soup. The
 % aim of this example is to show how one can characterise the dynamics of
 % the state in terms of the Schrödinger potential and ensuing kinetic
 % energy. Furthermore, this example illustrates how one can eschew the
@@ -384,11 +379,11 @@ spm_figure('GetWin','stochastic mechanics'); clf
 % probability currents that, when multiplied by temperature, corresponds to
 % heat dissipation.
 %    To estimate the thermodynamic and ensemble potentials, we used a
-% sixth-order polynomial expansion of position (and appropriate least
+% fifth-order polynomial expansion of position (and appropriate least
 % squares estimators). The thermodynamic potential is that which best
 % predicts the stochastic flow of states; whereas the ensemble density best
 % predicts the sample density. To obtain more efficient estimators, we also
-% averaged over 256 time bins at 32 consecutive intervals during the
+% averaged over 512 time bins at 64 consecutive intervals during the
 % evolution of the system. We started at the first time bin to illustrate
 % the thermodynamic correlates of self-organisation during which the
 % principal Markov blanket was formed. For interest, we repeated the
@@ -397,19 +392,13 @@ spm_figure('GetWin','stochastic mechanics'); clf
 % (hot) colour scale with a dot at the position of the particles (in two
 % dimensions). The second panel shows the corresponding evolution of
 % temperature in the three ensembles as a function of time. The interesting
-% thing here is that the internal (blue) and blanket (red) states start off
+% thing here is that the internal (blue) and blanket (magenta) states start off
 % at about the same temperature. However, during the course of self
-% organisation, the internal states slowly increase their temperature to
-% become hotter than the external states (cyan). The third panel shows the
-% corresponding free energy for each of the ensembles. This is most marked
-% for the external and blanket states that could be thought of as spending
-% their free energy to organise the internal states. This is reflected in
-% the bottom panel that shows the corresponding heat dissipation, which is
-% most marked for the external states, as might be guessed from the changes
-% in the thermodynamic free energy. Although heat dissipation can fall to
+% organisation, the internal states slowly increase their temperature. The third panel shows the
+% corresponding free energy for each of the ensembles. Although heat dissipation can fall to
 % low levels - as nonequilibrium steady-state is approached - the
 % temperature of our synthetic virus remains relatively high (here, the
-% temperature reached about 300° Kelvin, which is roughly body
+% temperature reached about 30° C, which is roughly body
 % temperature). This follows from the fact that random fluctuations are
 % still in play - arising from intrinsic fluctuations of the internal
 % states of each internal particle (at the underlying hierarchical level).
@@ -420,11 +409,8 @@ spm_figure('GetWin','stochastic mechanics'); clf
 % these two processes are in balance and heat dissipation is eliminated;
 % because probability currents are zero at all points in state space. The
 % lower panel shows the corresponding entropy as a function of time. The
-% external states increase their entropy initially and then entropy falls
-% as the system finds its random dynamical attractor. Note that the entropy
-% of states (that are destined to become densely coupled internal states)
-% progressively falls; thereby, violating the second law. This is what we
-% would expect in this far from equilibrium scenario. This sort of analysis
+% internal states increase their entropy initially and then entropy falls
+% as the system finds its random dynamical attractor This sort of analysis
 % provides an intuitive characterisation of stochastic dynamics in terms of
 % constructs that underpin the first and second laws of thermodynamics.
 %--------------------------------------------------------------------------
@@ -434,24 +420,30 @@ spm_figure('GetWin','stochastic mechanics'); clf
 bi    = find(logical(ss | aa));      % blanket  particles
 ei    = find(logical(ee));           % external particles
 mi    = find(logical(ii));           % internal particles
+ai    = find(logical(aa));           % active   particles
+si    = find(logical(ss));           % sensory  particles
+
 
 % evaluate surprise (NESS potential) with distribution over states and time
 %--------------------------------------------------------------------------
-nt    = 32;                          % number of evaluations
+nt    = 64;                          % number of evaluations
 wt    = 8;                           % interval between evaluations
 lt    = 512;                         % trajectory length
 
-% Ion mobility Coefficient of Air: 0.0002
+% mechanical mobility coefficient of a water molecule : 5.59e11 s/kg
 %-------------------------------------------------------------------------
-kB    = 1.38064852e-8;               % Boltzmann constant fJ/K = pg.m.m/s/s/K
-mu    = [.4, .2, .02];               % diffusion constant s/pg
+kB    = 1.38064852e-23*1e15;         % Boltzmann constant fJ/K = pg.m.m/s/s/K
+mu    = [4.2, 1.80, .1]*1e12*1e-15;  % diffusion constant s/pg
+
+fprintf('mobility at 300K = %.2d s/Kg \n',h/(2*m*1.38064852e-23*300));
+
 
 % Stochastic dynamics of partitions
 %--------------------------------------------------------------------------
 nb    = 128;
 J0    = (linspace(-1,1,nb).^32)';
 ij    = {mi, bi, ei};
-col   = {'b','r','c'};
+col   = {'b','m','c'};
 for j = 1:numel(ij)
     
     % Stochastic dynamics of trajectories
@@ -461,8 +453,8 @@ for j = 1:numel(ij)
 
         % get trajectories (and stochastic flow)
         %------------------------------------------------------------------
-        t     = (i - 1)*wt + (1:lt);
-        q     = squeeze(X(2,ij{j},t))*1e-3;      % position (m)
+        t     = i*wt + (1:lt);
+        q     = squeeze(X(2,ij{j},t))*1e-4;      % position (m)
         p     = gradient(q,dt);                  % motion (c.f., momentum)
         
         % stochastic density
@@ -475,7 +467,7 @@ for j = 1:numel(ij)
         
         % estimate potential and amplitude of fluctuations
         %------------------------------------------------------------------
-        In    = -log(n + 1/512);                 % sample surprisal
+        In    = -log(n + 1/1024);                 % sample surprisal
         
         Vx    = @(b)[b.^0 b.^1 b.^2 b.^3 b.^4 b.^5];
         dVdx  = @(b)[0*b b.^0 2*b.^1 3*b.^2 4*b.^3 5*b.^4];
@@ -554,7 +546,7 @@ end
 
 legend({'internal','blanket','external'})
 
-% heat maps (temperature)
+%% heat maps (temperature)
 %--------------------------------------------------------------------------
 rgb   = colormap('hot');
 nk    = 5;

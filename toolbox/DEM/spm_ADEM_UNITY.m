@@ -398,7 +398,7 @@ end
 % test for breask
 %--------------------------------------------------------------------------
 if ~isfield(DEM,'break')
-    DEM.break = @() false;
+    DEM.break = 'false';
 end
  
 % Iterate DEM

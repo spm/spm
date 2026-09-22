@@ -152,12 +152,9 @@ function f = spm_lorenz_n(x,u,P)
 % u - exogenous input
 % P - parameters
 %
-% P.e  - endogenous or energy parameter (depth of potential energy well)
-%
 % P.p(i) -                % partition
 % P.r(i) -                % Rayleigh parameter
 % P.d(i) -                % diffusion or random fluctuations
-% P.k(i) -                % rate constant
 %
 % f - flow
 %__________________________________________________________________________
@@ -184,7 +181,7 @@ for i = 1:n
 end
 D     = sqrt(sum(X.^2,3));
 D     = D + eye(N,N)*exp(-8);
-X     = X./D;
+
 
 % Electrochemical dynamics
 %==========================================================================
@@ -202,7 +199,6 @@ f.q(1,ee) = f.q(1,ee) + x.q(2,ee)*exp(-D(ee,ee)*8);
 f.q(1,ee) = f.q(1,ee) + x.q(2,ss)*exp(-D(ss,ee)*8);
 f.q(1,ee) = f.q(1,ee) + x.q(2,aa)*exp(-D(aa,ee)*8);
 
-
 f.q(1,ss) = f.q(1,ss) + x.q(2,ss)*exp(-D(ss,ss)*8);
 f.q(1,ss) = f.q(1,ss) + x.q(2,aa)*exp(-D(aa,ss)*8);
 f.q(1,ss) = f.q(1,ss) + x.q(2,ee)*exp(-D(ee,ss)*8);
@@ -217,11 +213,7 @@ f.q(1,aa) = f.q(1,aa) + x.q(2,ss)*exp(-D(ss,aa)*8);
 
 % electrochemical response to motion of sensory states
 %--------------------------------------------------------------------------
-f.q(1,ss) = f.q(1,ss) + x.v(1,ss);
-
-% particle-specific rate constants
-%--------------------------------------------------------------------------
-f.q = times(f.q,P.k);
+% f.q(1,ss) = f.q(1,ss) + x.v(1,ss);
  
 % Newtonian notion
 %==========================================================================
@@ -229,7 +221,8 @@ f.q = times(f.q,P.k);
 % strong repulsive forces: spatial to spatial coupling
 %--------------------------------------------------------------------------
 F       = zeros(n,N);
-E       = 8*X.*exp(-D*2);
+X       = X./D;
+E       = X.*exp(-D*2)*8;
 
 F(:,ee) = F(:,ee) + squeeze(sum(E(ee,ee,:),2))';
 F(:,ee) = F(:,ee) + squeeze(sum(E(ee,ss,:),2))';
@@ -251,8 +244,8 @@ F(:,aa) = F(:,aa) + squeeze(sum(E(aa,ss,:),2))';
 % and weak electrochemical coupling (Q)
 %--------------------------------------------------------------------------
 d       = ones(N,1)*x.q(2,:);
-Q       = abs(d' - d)/4;
-E       = -X.*(exp(-D).*Q);
+Q       = abs(d' - d);
+E       = -X.*(exp(-D).*Q)/4;
 
 F(:,ee) = F(:,ee) + squeeze(sum(E(ee,ee,:),2))';
 F(:,ee) = F(:,ee) - squeeze(sum(E(ee,ss,:),2))';
@@ -283,7 +276,9 @@ f.v(:,aa)  = F(:,aa) - x.v(:,aa)   - Q*x.p(:,aa)/8;
 
 % plus random fluctuations
 %--------------------------------------------------------------------------
-f.v  = f.v  + randn(1,N).*P.d;
+sd   = sqrt(2*P.d);
+f.v  = f.v  + randn(2,N).*sd;
+f.q  = f.q  + randn(3,N).*sd;
 
 % vectorised flow
 %--------------------------------------------------------------------------
