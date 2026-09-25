@@ -766,15 +766,18 @@ switch dataformat
     dat = dat.data(chanindx,:);                         % select the desired channels
     
   case 'eyelink_asc'
-    if isfield(hdr.orig, 'dat')
-      % this is inefficient, since it keeps the complete data in memory
-      % but it does speed up subsequent read operations without the user
-      % having to care about it
+    if isfield(hdr, 'orig')
       asc = hdr.orig;
     else
-      asc = read_eyelink_asc(filename);
+      % for some reason the orig is not present, but needed
+      hdr = read_eyelink_asc(filename);
+      asc = hdr.orig;
     end
-    dat = asc.dat(chanindx,begsample:endsample);
+    if checkboundary && (asc.trialidx(begsample)~=asc.trialidx(endsample))
+      ft_error('requested data segment extends over a discontinuous trial boundary');
+    end
+    asc = read_eyelink_asc(filename, asc, begsample, endsample, chanindx);
+    dat = asc.dat;
     
   case 'fcdc_buffer'
     % read from a networked buffer for realtime analysis

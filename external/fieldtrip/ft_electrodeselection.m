@@ -164,7 +164,7 @@ if ~isempty(cfg.headshape)
   delete(fig);
 
   % make the final selection
-  selected = make_selection(elec, opt.selected);
+  selected = select_elec(elec, opt.selected);
   % store the selection in the output cfg
   cfg.channel = elec.label(opt.selected);
 
@@ -174,20 +174,20 @@ else
 
   % make the final selection
   [selchan, selsens] = match_str(cfg.channel, elec.label);
-  selected = make_selection(elec, selsens);
+  selected = select_elec(elec, selsens);
 end % if headshape
 
 switch convert
   case 'elec'
     % nothing to do
   case 'grad'
-    % make the final selection
+    % make the final selection in the grad structure
     [selchan, selsens] = match_str(cfg.channel, grad.label);
-    selected = make_selection(grad, selsens);
+    selected = select_grad(grad, selsens);
   case 'opto'
-    % make the final selection
+    % make the final selection in the opto structure
     [selchan, selsens] = match_str(cfg.channel, opto.label);
-    selected = make_selection(opto, selsens);
+    selected = select_opto(opto, selsens);
   otherwise
     ft_error('unsupported input data')
 end
@@ -197,26 +197,6 @@ end
 ft_postamble debug
 ft_postamble savevar selected
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% SUBFUNCTION
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function sens = make_selection(sens, selected)
-sens.label    = sens.label(selected);
-try, sens.elecpos  = sens.elecpos(selected,:);  end
-try, sens.elecori  = sens.elecori(selected,:);  end
-try, sens.chantype = sens.chantype(selected,:); end
-try, sens.chanunit = sens.chanunit(selected,:); end
-try, sens.chanpos  = sens.chanpos (selected,:); end
-try, sens.chanori  = sens.chanori (selected,:); end
-try, sens.tra      = sens.tra(selected,:);      end
-
-if isfield(sens, 'tra')
-  % remove the coils that do not contribute to any channel output
-  selcoil      = any(sens.tra~=0,1);
-  sens.tra     = sens.tra(:,selcoil);
-  try, sens.coilpos = sens.coilpos(selcoil,:); end
-  try, sens.coilori = sens.coilori(selcoil,:); end
-end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTION
