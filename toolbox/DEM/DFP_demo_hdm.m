@@ -54,7 +54,7 @@ DEM.M(1).E.xp = 128;
 DFP    = spm_DFP(DEM);
 DEM    = spm_DEM(DEM);
 
-% states and parameter esimates
+% states and parameter estimates
 %==========================================================================
 spm_DEM_qU(DEM.qU)
 

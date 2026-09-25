@@ -473,7 +473,7 @@ for invind=1:numel(invmethods),
         end;
 
     end; % for fs
-    set(gca,'xdir','reverse'); %% consisent with paper
+    set(gca,'xdir','reverse'); %% consistent with paper
 
     %% PLOTS DISTORTED ANATOMY WITH CURRENT MAG
 

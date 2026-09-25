@@ -57,7 +57,7 @@ try, options.two_state;  catch, options.two_state  = 0; end
 try, options.backwards;  catch, options.backwards  = 0; end
 try, D;                  catch, D = zeros(n,n,0);       end
 
-% connectivity priors and intitial states
+% connectivity priors and initial states
 %==========================================================================
 if options.two_state
     

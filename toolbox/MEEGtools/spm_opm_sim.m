@@ -6,7 +6,7 @@ function [D,L] = spm_opm_sim(S)
 % SENSOR LEVEL INFO
 %   S.fs            - Sampling frequency (Hz)      - Default: REQUIRED if S.meg is empty
 % SIMULATION
-%   S.wholehead     - whole head coverage flag     - Deafult: 1
+%   S.wholehead     - whole head coverage flag     - Default: 1
 %   S.space         - space between sensors(mm)    - Default: 35
 %   S.offset        - scalp to sensor distance(mm) - Default: 6.5
 %   S.nSamples      - number of samples            - Default: 1000

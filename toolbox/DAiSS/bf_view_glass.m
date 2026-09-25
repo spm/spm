@@ -1,5 +1,5 @@
 function res = bf_view_glass(BF, S)
-% Diplays glass brain plot of DAISS output results
+% Displays glass brain plot of DAISS output results
 %__________________________________________________________________________
 
 % George O'Neill

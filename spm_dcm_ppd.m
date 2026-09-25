@@ -87,8 +87,8 @@ nX    = size(X,2);               % number of explanatory variables
 bC    = var(X(:,iX))*4;
 bC    = sparse(iX,1,bC,nX,1);    % prior covariances (variables)
 M.X   = 1;                       % no between subject effects
-M.W   = PEB.Ep;                  % emprical prior expectations
-M.pC  = PEB.Ce;                  % emprical prior covariance (parameters)
+M.W   = PEB.Ep;                  % empirical prior expectations
+M.pC  = PEB.Ce;                  % empirical prior covariance (parameters)
 M.bE  = Y; M.bE(:,iX) = 0;       % prior expectation (variables)
 M.bC  = diag(bC + 1);            % prior covariances (variables)
 
