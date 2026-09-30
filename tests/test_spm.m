@@ -42,6 +42,10 @@ testCase.verifyThat(mem_total, IsOfClass('double'));
 end
 
 function test_mex(testCase)
+    testCase.assumeFalse(isdeployed, ...
+        'MEX files cannot be built in a deployed application.');
+    testCase.assumeNotEmpty(mex.getCompilerConfigurations('C','Installed'), ...
+        'No supported C compiler is installed.');
     mex -setup
 end
 
