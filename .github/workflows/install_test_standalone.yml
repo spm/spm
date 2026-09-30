@@ -188,8 +188,13 @@ jobs:
         run: choco install zip -y
         shell: bash
 
-      # Compress standalone for artifact upload (same as release.yml)
+      # Package and compress standalone for artifact upload (same as release.yml)
+      - name: Package as App on Mac
+        if: runner.os == 'macOS'
+        run: bash .github/scripts/package_macos_app.sh "dev-${GITHUB_SHA::7}" "$GITHUB_WORKSPACE/spm_standalone_${{ matrix.os_name }}.zip"
+
       - name: Compress standalone
+        if: runner.os != 'macOS'
         shell: bash
         run: |
           cd ..
