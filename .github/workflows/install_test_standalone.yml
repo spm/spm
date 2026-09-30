@@ -119,15 +119,20 @@ jobs:
       fail-fast: false
       matrix:
         os: ["ubuntu-latest", "macos-15-intel", "macos-latest", "windows-latest"]
+        # Same MATLAB releases as release.yml. MATLAB has no Intel Mac version from R2026a on.
         include:
           - os: ubuntu-latest
             os_name: Linux
+            matlab_release: R2026a
           - os: macos-15-intel
             os_name: macOS_Intel
+            matlab_release: R2025b
           - os: macos-latest
             os_name: macOS_Apple_Silicon
+            matlab_release: R2026a
           - os: windows-latest
             os_name: Windows
+            matlab_release: R2026a
 
     steps:
       - name: Checkout SPM
@@ -136,7 +141,7 @@ jobs:
       - name: Set up MATLAB
         uses: matlab-actions/setup-matlab@2323adb8243827ea460b0def4c413545aaec46a9 # v3.0.2
         with:
-          release: latest
+          release: ${{ matrix.matlab_release }}
           products: |
             MATLAB_Compiler
             Signal_Processing_Toolbox
