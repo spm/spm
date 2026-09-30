@@ -9,6 +9,11 @@
 #           mexmaci64  macOS Intel 64-bit
 #           mexw64     Windows 64-bit
 #
+# Protected: mexmaca64 files that exist only in SPM survive --delete. FieldTrip
+#           does not ship every Apple Silicon build (e.g. external/bemcp), so SPM
+#           keeps its own. Upstream copies still update them. The rule can go
+#           once FieldTrip ships bem_*.mexmaca64 (fieldtrip/fieldtrip#2496).
+#
 # Excluded: mexw32     Windows 32-bit (end-of-life)
 #           mexglx     Linux 32-bit (end-of-life)
 #           mexlx      Linux legacy (end-of-life)
@@ -17,6 +22,7 @@
 #           mexmaci    macOS Intel 32-bit (end-of-life; mexmaci64 is kept)
 #           *.mex      bare suffix — local build artifact with no platform tag
 # ─────────────────────────────────────────────────────────────────────────────
+P *.mexmaca64
 - *.mexw32
 - *.mexglx
 - *.mexlx
