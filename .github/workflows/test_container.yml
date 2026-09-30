@@ -64,10 +64,11 @@ jobs:
       - name: Checkout SPM
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
+      # Same MATLAB release as the Linux build in release.yml
       - name: Set up MATLAB
         uses: matlab-actions/setup-matlab@2323adb8243827ea460b0def4c413545aaec46a9 # v3.0.2
         with:
-          release: latest
+          release: R2026a
           products: |
             MATLAB_Compiler
             Signal_Processing_Toolbox
