@@ -180,6 +180,10 @@ jobs:
       - name: Run tests with existing MEX files (legacy)
         if: ${{matrix.version == 'R2020a' || matrix.version == 'R2020b' || matrix.version == 'R2022a' || matrix.version == 'R2022b'}}
         uses: matlab-actions/run-command@c079d5cf746de09ffd5d8bd3cabcaf9161706e2b # v1.3.0, kept for the older MATLAB releases
+        env:
+          # Newer run-command versions set this themselves; without it v1 fails with
+          # License Manager Error 4402.
+          MW_BATCH_LICENSING_ONLINE: 'true'
         with:
           command: ${{ steps.classes.outputs.command }}
       - name: Run tests with existing MEX files
