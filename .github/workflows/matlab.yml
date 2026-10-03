@@ -12,66 +12,80 @@ jobs:
     name: Configure test matrix (PR uses limited MATLAB versions)
     runs-on: ubuntu-latest
     outputs:
-      matrix: ${{ steps.config.outputs.matrix }}
+      versions: ${{ steps.config.outputs.versions }}
+      os: ${{ steps.config.outputs.os }}
       is-pr: ${{ steps.config.outputs.is-pr }}
+      extra: ${{ steps.config.outputs.extra }}
+      tier: ${{ steps.config.outputs.tier }}
     steps:
       - name: Determine test configuration
         id: config
-        shell: python
+        shell: bash
         env:
           EVENT_NAME: ${{ github.event_name }}
           EVENT_SCHEDULE: ${{ github.event.schedule }}
         run: |
-          import json, os
-
-          # Oldest release tested per OS. R2020b is the oldest that MATLAB's CI licensing
-          # supports, Windows MEX compilation needs R2022a, Apple Silicon starts at R2023b.
-          # macos-15-intel is Intel and ends at R2025b, MATLAB's last Intel Mac release.
-          FIRST = {"ubuntu-latest": "R2020b", "macos-15-intel": "R2020b",
-                   "windows-latest": "R2022a", "macos-15": "R2023b"}
-          LAST_INTEL = "R2025b"
-          RELEASES = ["R2020b", "R2021a", "R2021b", "R2022a", "R2022b", "R2023a", "R2023b",
-                      "R2024a", "R2024b", "R2025a", "R2025b", "latest"]
-
-          def job(os_name, version, regression):
-              return {"os": os_name, "version": version, "regression": regression}
-
-          def tested(os_name, version):
-              if version == "latest":
-                  return os_name != "macos-15-intel"
-              return FIRST[os_name] <= version and (os_name != "macos-15-intel" or version <= LAST_INTEL)
-
-          event = os.environ["EVENT_NAME"]
-          quick = event == "pull_request" or os.environ["EVENT_SCHEDULE"] == "15 3 * * *"
-          # macos-latest (macOS 26) only runs the newest releases, because its Xcode 26
-          # linker cannot link C++ MEX files for R2023b-R2025a.
-          if quick:
-              # Oldest and newest release on Linux and Windows. macOS jobs are the slowest
-              # and limited to 5 at a time across the organisation, so there is one Intel
-              # job with the oldest release and one Apple Silicon job with the newest.
-              # Regression tests are much slower than unit tests and run in a single job.
-              jobs = [job(o, v, o == "ubuntu-latest" and v == "latest")
-                      for o in ("ubuntu-latest", "windows-latest") for v in (FIRST[o], "latest")]
-              jobs += [job("macos-15-intel", FIRST["macos-15-intel"], False),
-                       job("macos-latest", "latest", False)]
-          else:
-              jobs = [job(o, v, True) for o in FIRST for v in RELEASES if tested(o, v)]
-              jobs += [job("macos-latest", v, True) for v in ("R2025b", "latest")]
+          # R2020b is the oldest release that MATLAB's CI licensing supports. The full tier runs
+          # all releases, the quick tier the oldest and newest. macOS jobs are slow and only five
+          # run at a time, so the quick tier has one Intel job (oldest) and one Apple Silicon job
+          # (newest, on macos-26). extra adds jobs outside the version and OS lists.
+          FULL='["R2020b","R2021a","R2021b","R2022a","R2022b","R2023a","R2023b","R2024a","R2024b","R2025a","R2025b", "latest"]'
+          REDUCED='["R2020b","latest"]'
+          FULL_OS='["ubuntu-latest","macos-15-intel","macos-15","windows-latest"]'
+          REDUCED_OS='["ubuntu-latest","macos-15-intel","windows-latest"]'
 
           # is-pr gates the test data checkout, not which tests run: spm-tests-data is
           # private and its token is unavailable to pull requests from forks.
-          with open(os.environ["GITHUB_OUTPUT"], "a") as f:
-              print("is-pr=" + ("true" if event == "pull_request" else "false"), file=f)
-              print("matrix=" + json.dumps({"include": jobs}), file=f)
-          for j in jobs:
-              print(j["os"], j["version"], "regression" if j["regression"] else "")
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            echo "is-pr=true" >> $GITHUB_OUTPUT
+          else
+            echo "is-pr=false" >> $GITHUB_OUTPUT
+          fi
+
+          if [ "$EVENT_NAME" = "pull_request" ] || [ "$EVENT_SCHEDULE" = "15 3 * * *" ]; then
+            echo "tier=quick" >> $GITHUB_OUTPUT
+            echo "versions=$REDUCED" >> $GITHUB_OUTPUT
+            echo "os=$REDUCED_OS" >> $GITHUB_OUTPUT
+            echo 'extra=[{"os":"windows-latest","version":"R2022a"},{"os":"macos-latest","version":"latest"}]' >> $GITHUB_OUTPUT
+          else
+            echo "tier=full" >> $GITHUB_OUTPUT
+            echo "versions=$FULL" >> $GITHUB_OUTPUT
+            echo "os=$FULL_OS" >> $GITHUB_OUTPUT
+            echo 'extra=[{"os":"macos-latest","version":"R2025b"},{"os":"macos-latest","version":"latest"}]' >> $GITHUB_OUTPUT
+          fi
 
   matlab-tests:
-    name: Run MATLAB Tests (${{ matrix.version }}, ${{ matrix.os }})
+    name: Run MATLAB Tests
     needs: configure
     strategy:
       fail-fast: false
-      matrix: ${{ fromJson(needs.configure.outputs.matrix) }}
+      matrix:
+        version: ${{ fromJson(needs.configure.outputs.versions) }}
+        # macos-15-intel is Intel, macos-15 is Apple Silicon. macos-latest is avoided
+        # because its Xcode 26 linker cannot link C++ MEX files for R2023b-R2025a.
+        os: ${{ fromJson(needs.configure.outputs.os) }}
+        exclude:
+          - os: windows-latest
+            version: "R2020b" # MATLAB not available
+          - os: windows-latest
+            version: "R2021a" # Compiler not available
+          - os: windows-latest
+            version: "R2021b" # Compiler not available
+          - os: macos-15
+            version: "R2020b" # Apple Silicon version not available
+          - os: macos-15
+            version: "R2021a" # Apple Silicon version not available
+          - os: macos-15
+            version: "R2021b" # Apple Silicon version not available
+          - os: macos-15
+            version: "R2022a" # Apple Silicon version not available
+          - os: macos-15
+            version: "R2022b" # Apple Silicon version not available
+          - os: macos-15
+            version: "R2023a" # Apple Silicon version not available
+          - os: macos-15-intel
+            version: "latest" # MATLAB dropped Intel Mac support starting with R2026a
+        include: ${{ fromJson(needs.configure.outputs.extra) }}
     runs-on: ${{matrix.os}}
     # Stops a hung job exhausting the 6h workflow limit and cancelling its siblings.
     timeout-minutes: 120
@@ -142,17 +156,20 @@ jobs:
       - name: Set up MATLAB
         uses: matlab-actions/setup-matlab@2323adb8243827ea460b0def4c413545aaec46a9 # v3.0.2
         with:
-          release: ${{ matrix.version }}
+          release: ${{matrix.version}}
 
       - name: Select test classes
         id: classes
         shell: bash
         env:
-          REGRESSION: ${{ matrix.regression }}
+          TIER: ${{ needs.configure.outputs.tier }}
+          OS: ${{ matrix.os }}
+          VERSION: ${{ matrix.version }}
         run: |
+          # Regression tests are much slower than unit tests, so the quick tier runs them in one job.
           UNIT="u = spm_tests('class','unit','display',true);"
           REGR="r = spm_tests('class','regression','display',true);"
-          if [ "$REGRESSION" = "true" ]; then
+          if [ "$TIER" = "full" ] || { [ "$OS" = "ubuntu-latest" ] && [ "$VERSION" = "latest" ]; }; then
             echo "command=addpath(pwd); $UNIT $REGR assert(all(~[u.Failed]) && all(~[r.Failed]));" >> $GITHUB_OUTPUT
           else
             echo "command=addpath(pwd); $UNIT assert(all(~[u.Failed]));" >> $GITHUB_OUTPUT
