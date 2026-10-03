@@ -63,7 +63,7 @@ function regions = GALA_find_localmin(lJcov,Nl,Nd,A,thresh)
         % add boundary vertices to appropriate cluster
         
         A0=Aip-eye(length(Aip));    % direct neighbors matrix
-        for i=1:length(bound)   % loop by all boudary vertices
+        for i=1:length(bound)   % loop by all boundary vertices
             
             neib = find(A0(:,bound(i)));    % direct neighbors of current verex
 

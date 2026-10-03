@@ -57,7 +57,7 @@ u   = Dy*(Du'*U.u);
 U   = spm_detrend(u(T,:))';
 
 
-% Emprical data
+% Empirical data
 %--------------------------------------------------------------------------
 DEM.M = M;
 DEM.U = U;

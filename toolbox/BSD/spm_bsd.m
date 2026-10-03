@@ -18,7 +18,7 @@ function BSD = spm_bsd(BSD)
 %   options.fitlog       - bool, fit log power spectra
 %   options.powerline    - [start end] filter with low precision
 %
-% Esimates:
+% estimates:
 %--------------------------------------------------------------------------
 % BSD.dtf                   - directed transfer functions (source space)
 % BSD.ccf                   - cross covariance functions (source space)

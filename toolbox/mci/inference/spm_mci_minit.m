@@ -1,5 +1,5 @@
 function [M] = spm_mci_minit (M)
-% Check and initialise model strucuture
+% Check and initialise model structure
 % FORMAT [M] = spm_mci_minit (M)
 %
 % eg. Pre-compute quantities for computing log-joint

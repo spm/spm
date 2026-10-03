@@ -287,7 +287,7 @@ xlabel('latent states'), ylabel('time steps'), axis square
 RDP   = spm_RDP_MI(MDP);                   % merge conserving MI 
 RDP   = spm_RDP_sort(RDP);                 % sort states by NESS density
 RDP   = spm_set_goals(RDP,[2,3],[C,-C]);   % set intended states (h/cid)
-RDP   = spm_set_costs(RDP,[2,3],[C,-C]);   % set contraints (C)
+RDP   = spm_set_costs(RDP,[2,3],[C,-C]);   % set constraints (C)
 RDP   = spm_mdp2rdp(RDP);                  % get nested model
 
 B        = RDP.B{1}*64 + 1;                % reduce prior precision

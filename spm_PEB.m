@@ -50,7 +50,7 @@ function [C,P,F] = spm_PEB(y,P,HP,OPT)
 %
 % e{n} ~ N{0,Ce{n}}
 %
-% using Parametric Emprical Bayes (PEB)
+% using Parametric Empirical Bayes (PEB)
 %
 % Ref: Dempster A.P., Rubin D.B. and Tsutakawa R.K. (1981) Estimation in
 % covariance component models.  J. Am. Stat. Assoc. 76;341-353

@@ -534,7 +534,7 @@ for iE = 1:nE
         dFdpp = dFdpp - dWdpp/2 - real(dE.dP'*iS*dE.dP);
         qp.ic = qp.ic           + real(dE.dP'*iS*dE.dP);
         
-        % and suficient statistics for M-Step
+        % and sufficient statistics for M-Step
         %------------------------------------------------------------------
         EE    = real(E*E') + EE;
         ECE   = ECE + ECEu + ECEp;

@@ -833,7 +833,7 @@ static double suffstats_missing(mwSize nf[], float mf[], float vf[], unsigned ch
         }
     }
 
-    /* Add in upper triangle second order sufficiant statistics */
+    /* Add in upper triangle second order sufficient statistics */
     for(code=1; code<((mwSize)1<<P); code++)
     {
         mwSize j, j1, k, Po;
