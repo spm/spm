@@ -40,6 +40,20 @@
 merge .github/fieldtrip-mex-excludes
 
 
+# ── Apple Silicon MEX files missing from FieldTrip's folder copies ───────────
+# FieldTrip copies each MEX file from src/ into the folders that use it, but
+# leaves out mexmaca64 in these folders while shipping mexa64, mexmaci64 and
+# mexw64 there. SPM copies FieldTrip's src/ build in; "P" keeps the copy
+# through --delete, and upstream copies would still update it. Anchored to
+# external/fieldtrip/, so other folders follow upstream, deletions included.
+# Remove a line once FieldTrip ships that file or drops its folder.
+P /connectivity/private/ft_getopt.mexmaca64
+P /fileio/private/ft_getopt.mexmaca64
+P /fileio/private/read_16bit.mexmaca64
+P /inverse/private/ft_getopt.mexmaca64
+P /utilities/ft_getopt.mexmaca64
+
+
 # ── external/: only sync packages already present in SPM ────────────────────────
 # FieldTrip ships many third-party packages in external/; The following are synced to fieldtrip/external.
 # Some are synced directly to SPM's external/ (See sync_fieldtrip.yml)
