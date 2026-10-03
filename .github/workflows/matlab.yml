@@ -36,9 +36,6 @@ jobs:
           def job(os_name, version, regression):
               return {"os": os_name, "version": version, "regression": regression}
 
-          def newest(os_name):
-              return LAST_INTEL if os_name == "macos-15-intel" else "latest"
-
           def tested(os_name, version):
               if version == "latest":
                   return os_name != "macos-15-intel"
@@ -49,11 +46,14 @@ jobs:
           # macos-latest (macOS 26) only runs the newest releases, because its Xcode 26
           # linker cannot link C++ MEX files for R2023b-R2025a.
           if quick:
-              # Oldest and newest release on every OS. Regression tests are much slower
-              # than unit tests, so they run in a single Linux job.
+              # Oldest and newest release on Linux and Windows. macOS jobs are the slowest
+              # and limited to 5 at a time across the organisation, so there is one Intel
+              # job with the oldest release and one Apple Silicon job with the newest.
+              # Regression tests are much slower than unit tests and run in a single job.
               jobs = [job(o, v, o == "ubuntu-latest" and v == "latest")
-                      for o in FIRST for v in (FIRST[o], newest(o))]
-              jobs.append(job("macos-latest", "latest", False))
+                      for o in ("ubuntu-latest", "windows-latest") for v in (FIRST[o], "latest")]
+              jobs += [job("macos-15-intel", FIRST["macos-15-intel"], False),
+                       job("macos-latest", "latest", False)]
           else:
               jobs = [job(o, v, True) for o in FIRST for v in RELEASES if tested(o, v)]
               jobs += [job("macos-latest", v, True) for v in ("R2025b", "latest")]
