@@ -27,26 +27,22 @@ jobs:
           - os: ubuntu-latest
             os_name: Linux
             mex_ext: mexa64
-            matlab_release: R2020a
-            matlab_legacy: true
+            matlab_release: R2020b
             container: quay.io/pypa/manylinux2014_x86_64
           # On Mac and Windows the Matlab version drives mex compatibility, but macos-latest
           # is avoided because its Xcode 26 linker cannot link C++ MEX files for R2023b.
           - os: macos-15-intel
             os_name: macOS_Intel
             mex_ext: mexmaci64
-            matlab_release: R2020a
-            matlab_legacy: true
+            matlab_release: R2020b
           - os: macos-15
             os_name: macOS_Apple_Silicon
             mex_ext: mexmaca64
             matlab_release: R2023b
-            matlab_legacy: false
           - os: windows-latest
             os_name: Windows
             mex_ext: mexw64
             matlab_release: R2022a
-            matlab_legacy: true
 
     steps:
     
@@ -58,13 +54,7 @@ jobs:
         run: |
           echo "MW_MINGW64_LOC=C:\mingw64" >> $env:GITHUB_ENV
     
-      - name: Set up MATLAB (legacy)
-        if: ${{ matrix.matlab_legacy }}
-        uses: matlab-actions/setup-matlab@e6b241a42928104e9e489fcc63aa2915df01565f # v1.2.5, kept for the older MATLAB releases
-        with:
-          release: ${{ matrix.matlab_release }}
       - name: Set up MATLAB
-        if: ${{ !matrix.matlab_legacy }}
         uses: matlab-actions/setup-matlab@2323adb8243827ea460b0def4c413545aaec46a9 # v3.0.2
         with:
           release: ${{ matrix.matlab_release }}
