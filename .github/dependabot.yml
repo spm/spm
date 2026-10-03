@@ -11,9 +11,6 @@ updates:
         patterns:
           - "*"
     ignore:
-      # Pinned to v1 for the older MATLAB releases, which Dependabot cannot express.
-      - dependency-name: "matlab-actions/setup-matlab"
-      - dependency-name: "matlab-actions/run-command"
       # Used only in release.yml, so no pull request exercises them and a bad
       # version would first surface during a release.
       - dependency-name: "peter-evans/repository-dispatch"
