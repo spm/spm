@@ -139,7 +139,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Set up MATLAB
-        uses: matlab-actions/setup-matlab@2323adb8243827ea460b0def4c413545aaec46a9 # v3.0.2
+        uses: matlab-actions/setup-matlab@f9e43010f1ae678f7cfa0542fe2a4f60f7d1ad8d # v3.1.0
         with:
           release: ${{ matrix.matlab_release }}
           products: |
@@ -147,7 +147,7 @@ jobs:
             Signal_Processing_Toolbox
 
       - name: Extract MATLAB version to file
-        uses: matlab-actions/run-command@75644028e1e2aa374bbfdc968a65718a178cc264 # v3.2.1
+        uses: matlab-actions/run-command@bfa857648f4895aa98a446fe41c85e0788421ed5 # v3.3.0
         with:
           command: |
             fileID = fopen('matlab_release.txt', 'w');
@@ -169,7 +169,7 @@ jobs:
       # and mcc can bundle the shims into the standalone. Remove them again
       # before either runs.
       - name: Build MATLAB standalone
-        uses: matlab-actions/run-command@75644028e1e2aa374bbfdc968a65718a178cc264 # v3.2.1
+        uses: matlab-actions/run-command@bfa857648f4895aa98a446fe41c85e0788421ed5 # v3.3.0
         with:
           command: |
             addpath(genpath('.'));

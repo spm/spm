@@ -55,7 +55,7 @@ jobs:
           echo "MW_MINGW64_LOC=C:\mingw64" >> $env:GITHUB_ENV
     
       - name: Set up MATLAB
-        uses: matlab-actions/setup-matlab@2323adb8243827ea460b0def4c413545aaec46a9 # v3.0.2
+        uses: matlab-actions/setup-matlab@f9e43010f1ae678f7cfa0542fe2a4f60f7d1ad8d # v3.1.0
         with:
           release: ${{ matrix.matlab_release }}
       - name: Checkout SPM
