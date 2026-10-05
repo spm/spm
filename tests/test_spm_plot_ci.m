@@ -5,6 +5,15 @@ classdef test_spm_plot_ci < matlab.unittest.TestCase
 
 % Copyright (C) 2016-2022 Wellcome Centre for Human Neuroimaging
 
+methods (TestClassSetup)
+    function checkEnvironment(testCase)
+
+    testCase.assumeFalse( ...
+        strcmpi(getenv('GITHUB_ACTIONS'),'true'), ...
+        'Skipping GUI tests on GitHub Actions.');
+    end
+end
+
 methods (Test)
 
 function test_barchart(testCase)
