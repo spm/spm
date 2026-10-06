@@ -32,6 +32,7 @@ if ~isfield(S, 'dir'),    S.dir    = 'twopass';     end
 if ~isfield(S, 'chunkSize'),    S.chunkSize    = 200;     end
 if ~isfield(S, 'prefix'), S.prefix = 'f';           end
 if ~isfield(S, 'order'),  S.order=5; end
+if ~isfield(S, 'save'),  S.save=true; end
 
 if ~isfield(S, 'band')
     error('A frequency band must be supplied')
@@ -73,8 +74,11 @@ fprintf('%-40s: %30s\n',...
 %==========================================================================
 
 %-Generate new meeg object with new filenames
-Dnew = copy(D, [S.prefix fname(D)]);
-
+if S.save
+  Dnew = copy(D, [S.prefix fname(D)]);
+else
+  Dnew=D;
+end
 %-Determine channels for filtering
 Fchannels = D.indchantype('Filtered');
 
