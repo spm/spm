@@ -6,13 +6,12 @@ classdef test_spm_plot_ci < matlab.unittest.TestCase
 % Copyright (C) 2016-2022 Wellcome Centre for Human Neuroimaging
 
 methods (TestClassSetup)
-    function checkEnvironment(testCase)
-
-    testCase.assumeFalse( ...
-        strcmpi(getenv('GITHUB_ACTIONS'),'true'), ...
-        'Skipping GUI tests on GitHub Actions.');
+    function setupSPM(testCase)
+        % Initialize SPM
+        spm('defaults','fmri');
+        spm_get_defaults('cmdline',true);
     end
-end
+end % methods (TestClassSetup)
 
 methods (Test)
 
@@ -69,7 +68,7 @@ end % methods (Test)
 methods (Static, Access = private)
 function do_plot(E,C,str)
 % Run spm_plot_ci within a figure
-f=figure;
+f=figure('Visible','off');
 if nargin < 3
     spm_plot_ci(E,C);
 else

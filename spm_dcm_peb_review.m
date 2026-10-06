@@ -238,7 +238,7 @@ if display_threshold
         
     % Determine if this is a BMA resulting from a custom model comparison
     % (in terms of commonalities and first group difference)
-    is_custom_model_bma = (isfield(PEB,'Pw') || isfield(PEB,'Pw')) ...
+    is_custom_model_bma = (isfield(PEB,'Pw') || isfield(PEB,'Px')) ...
                           && ~isfield(PEB,'Pp');
     
     % Display caveats
@@ -354,7 +354,14 @@ for i = 1:nc
 end
 views{VIEW_COMPONENTS}  = 'Precision components';
 views{VIEW_DIAGNOSTICS} = 'Diagnostics';
-    
+
+% Stop here if we're in headless mode (only expected for testing)
+% -------------------------------------------------------------------------
+if spm_get_defaults('cmdline') == false
+    warning('to use spm_dcm_peb_review, set spm_get_defaults(''cmdline'')=true');
+    return
+end
+
 % Create GUI
 % -------------------------------------------------------------------------
 f = spm_figure('GetWin','PEB - Review Parameters');

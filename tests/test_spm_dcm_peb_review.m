@@ -5,15 +5,13 @@ classdef test_spm_dcm_peb_review < matlab.unittest.TestCase
 
 % Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
 
-
 methods (TestClassSetup)
-    function checkEnvironment(testCase)
-
-    testCase.assumeFalse( ...
-        strcmpi(getenv('GITHUB_ACTIONS'),'true'), ...
-        'Skipping GUI tests on GitHub Actions.');
+    function setupSPM(testCase)
+        % Initialize SPM
+        spm('defaults','fmri');
+        spm_get_defaults('cmdline',true);
     end
-end
+end % methods (TestClassSetup)
 
 methods (Test)
 
