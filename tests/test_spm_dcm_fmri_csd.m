@@ -12,6 +12,13 @@ methods (TestClassSetup)
 end % methods (TestClassSetup)
 
 
+methods (TestMethodSetup)
+    function useTemporaryFolder(testCase)
+        % Each test runs in a new temporary folder, which receives the output
+        testCase.applyFixture(matlab.unittest.fixtures.WorkingFolderFixture);
+    end
+end % methods (TestMethodSetup)
+
 methods (Test)
 
 % -------------------------------------------------------------------------

@@ -6,6 +6,13 @@ classdef test_spm_eeg_merge < matlab.unittest.TestCase
 
 
 
+methods (TestMethodSetup)
+    function useTemporaryFolder(testCase)
+        % Each test runs in a new temporary folder, which receives the output
+        testCase.applyFixture(matlab.unittest.fixtures.WorkingFolderFixture);
+    end
+end % methods (TestMethodSetup)
+
 methods (Test)
 
 
