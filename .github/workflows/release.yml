@@ -56,7 +56,7 @@ jobs:
             version: "R2023a" # Apple Silicon version not available
 
     steps:
-      # A pre-release does not trigger the container build and it publishes the release with the pre-release flag
+      # A pre-release publishes the release with the pre-release flag, and its container images do not become "latest"
       # If the release has the pattern YY.MM.X, where X starts with a letter, then we assume it is a pre-release
       # E.g. 25.01.rc1 is a pre-release, 25.01 and 25.01.1 are not
       - name: Detect Pre-release
@@ -222,8 +222,10 @@ jobs:
           echo "SPM_RELEASE=${tag:0:5}" >> $GITHUB_ENV
           echo "SPM_REVISION=${tag:6}" >> $GITHUB_ENV
 
+      # For a pre-release a failed trigger must not fail the job, which would skip the standalone tests
       - name: Trigger workflow in spm-docker
-        if: env.PRERELEASE == 'false' && runner.os == 'Linux' && matrix.version == 'latest' && github.event_name != 'workflow_dispatch'
+        if: runner.os == 'Linux' && matrix.version == 'latest' && github.event_name != 'workflow_dispatch'
+        continue-on-error: ${{ env.PRERELEASE == 'true' }}
         uses: peter-evans/repository-dispatch@28959ce8df70de7be546dd1250a005dd32156697 # v4.0.1
         with:
           token: ${{ secrets.PAT_TOKEN_SPM_DOCKER }}
