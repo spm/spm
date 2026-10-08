@@ -230,7 +230,8 @@ jobs:
           fi
           trap 'docker stop spm_tests_all >/dev/null 2>&1 || true' EXIT
           set -o pipefail
-          docker run --rm --name spm_tests_all $MOUNT spm-local test \
+          # As the calling user, so that tests can write to the mounted test data
+          docker run --rm --name spm_tests_all --user "$(id -u):$(id -g)" $MOUNT spm-local test \
             | tee "${{ github.workspace }}/suite.log"
 
       # Runs when the fast phase found a problem, or when a specific test was
