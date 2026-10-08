@@ -9,16 +9,8 @@ classdef test_spm_run_dcm_bms < matlab.unittest.TestCase
 
 methods (TestMethodSetup)
     function setup(testCase)
-        % Prepare output directory
-        out_dir = test_spm_run_dcm_bms.get_output_dir();
-
-        % Delete existing files if they exist
-        if exist(fullfile(out_dir,'BMS.mat'),'file')
-            delete(fullfile(out_dir,'BMS.mat'));
-        end
-        if exist(fullfile(out_dir,'F.mat'),'file')
-            delete(fullfile(out_dir,'F.mat'));
-        end
+        % Each test runs in a new temporary folder, which receives the output
+        testCase.applyFixture(matlab.unittest.fixtures.WorkingFolderFixture);
     end
 end
 
@@ -275,11 +267,8 @@ end
 
 % -------------------------------------------------------------------------
 function out_dir = get_output_dir()
-% Returns the directory for output files and creates it if needed
-out_dir = fullfile( spm('Dir'), 'tests', 'output');
-if ~exist(out_dir,'file')
-    mkdir(out_dir);
-end
+% Returns the directory for output files
+out_dir = pwd;
 end
 
 end % methods (Static, Access = private)

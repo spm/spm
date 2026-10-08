@@ -5,6 +5,13 @@ classdef test_spm_dcm_simulate < matlab.unittest.TestCase
 % Copyright (C) 2016-2022 Wellcome Centre for Human Neuroimaging
 
 
+methods (TestMethodSetup)
+    function useTemporaryFolder(testCase)
+        % Each test runs in a new temporary folder, which receives the output
+        testCase.applyFixture(matlab.unittest.fixtures.WorkingFolderFixture);
+    end
+end % methods (TestMethodSetup)
+
 methods (Test)
 
 % -------------------------------------------------------------------------
