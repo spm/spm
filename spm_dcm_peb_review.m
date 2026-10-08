@@ -357,7 +357,7 @@ views{VIEW_DIAGNOSTICS} = 'Diagnostics';
 
 % Stop here if we're in headless mode (only expected for testing)
 % -------------------------------------------------------------------------
-if spm_get_defaults('cmdline') == false
+if spm_get_defaults('cmdline') == true
     warning('to use spm_dcm_peb_review, set spm_get_defaults(''cmdline'')=true');
     return
 end
