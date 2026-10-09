@@ -262,7 +262,11 @@ if ~DCM.options.stochastic
     
     % nonlinear system identification (Variational EM) - deterministic DCM
     %----------------------------------------------------------------------
-    [Ep,Cp,Eh,F] = spm_nlsi_GN(M,U,Y);
+    [Ep,Cp,Eh,F,~,~,~,converged,Fhist] = spm_nlsi_GN(M,U,Y);
+
+    DCM.convergence.converged = converged;
+    DCM.convergence.F         = Fhist.F;
+    DCM.convergence.L         = Fhist.L;
     
     % predicted responses (y) and residuals (R)
     %----------------------------------------------------------------------

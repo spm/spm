@@ -1,6 +1,6 @@
-function [Ep,Eg,Cp,Cg,S,F,L] = spm_nlsi_N(M,U,Y)
+function [Ep,Eg,Cp,Cg,S,F,L,converged,Fhist] = spm_nlsi_N(M,U,Y)
 % Bayesian inversion of a linear-nonlinear model of the form F(p)*G(g)'
-% FORMAT [Ep,Eg,Cp,Cg,S,F,L]= spm_nlsi_N(M,U,Y)
+% FORMAT [Ep,Eg,Cp,Cg,S,F,L,converged,Fhist]= spm_nlsi_N(M,U,Y)
 %
 % Generative model
 %__________________________________________________________________________
@@ -65,6 +65,17 @@ function [Ep,Eg,Cp,Cg,S,F,L] = spm_nlsi_N(M,U,Y)
 %     L(7) = - nq*spm_logdet(S)/2;      precision
 %     L(8) = spm_logdet(ibC*Cb)/2;      parameter complexity
 %     L(9) = spm_logdet(ihC*Ch)/2;      precision complexity
+%
+% convergence diagnostics
+%--------------------------------------------------------------------------
+% converged - logical scalar; true iff the convergence criterion was met
+%             before M.Nmax iterations (i.e. the inner loop broke out
+%             rather than running to completion)
+% Fhist     - struct recording the accepted free energy trajectory:
+%               .F  (1 x k)         accepted F at each iteration
+%               .L  (9 x k)         accepted log-evidence components at
+%                                   each iteration
+%             where k is the number of iterations actually performed
 %
 %__________________________________________________________________________
 % Returns the moments of the posterior p.d.f. of the parameters of a
@@ -317,8 +328,9 @@ dgdp  = zeros(ny,np);
 dgdg  = zeros(ny,ng);
 dFdh  = zeros(nh,1);
 dFdhh = zeros(nh,nh);
+Fhist = struct('F', [], 'L', []);
 
- 
+
 % Optimize p: parameters of f(x,u,p)
 %==========================================================================
 EP     = [];
@@ -597,6 +609,15 @@ for ip = 1:M.Nmax
         
     end
  
+    % record per-iteration accepted state
+    %----------------------------------------------------------------------
+    Fhist.F = [Fhist.F, C.F];
+    if isempty(Fhist.L)
+        Fhist.L = C.L(:);
+    else
+        Fhist.L(:,end+1) = C.L(:);
+    end
+
     % convergence
     %----------------------------------------------------------------------
     dF  = dFdp'*dp;
@@ -618,6 +639,7 @@ Cp     = Vp*C.Cb((1:np),     (1:np)     )*Vp';
 Cg     = Vg*C.Cb((1:ng) + np,(1:ng) + np)*Vg';
 F      = C.F;
 L      = C.L;
+converged = all(criterion);
 warning(sw);
 
 % diagnostic
