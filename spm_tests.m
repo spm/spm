@@ -9,7 +9,7 @@ function results = spm_tests(varargin)
 %     tag:       test tag selector [default: '', ie all tests]
 %     tap:       save a Test Anything Protocol (TAP) file [default: false]
 %     test:      name of function to test [default: '', ie all tests]
-%     class:     class of test 'regression' or 'unit'. [deault: 'unit']
+%     class:     class of test 'regression' or 'unit'. [default: 'unit']
 % results     - TestResult array containing information describing the
 %               result of running the test suite.
 %__________________________________________________________________________

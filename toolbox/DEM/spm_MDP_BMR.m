@@ -7,7 +7,7 @@ function [L] = spm_MDP_BMR(qp,rp)
 %
 % L(m)  - likelihood of model m
 %
-% This auxillary routine assumes the priors are the (model) average of
+% This auxiliary routine assumes the priors are the (model) average of
 % reduced priors.
 %__________________________________________________________________________
 

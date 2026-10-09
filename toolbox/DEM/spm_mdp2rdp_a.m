@@ -242,7 +242,7 @@ for n = 1:Nm
 
     else
 
-        % add concentration paramter
+        % add concentration parameter
         %------------------------------------------------------------------
         for g = 1:numel(MDP{n}.a)
             if ~isa(MDP{n}.a{g},'function_handle')
@@ -272,7 +272,7 @@ for n = 1:Nm
 
     else
 
-        % add concentration paramter
+        % add concentration parameter
         %------------------------------------------------------------------
         for f = 1:numel(MDP{n}.b)
             if ~isa(MDP{n}.b{f},'function_handle')
