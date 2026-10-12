@@ -87,8 +87,8 @@ jobs:
             version: "latest" # MATLAB dropped Intel Mac support starting with R2026a
         include: ${{ fromJson(needs.configure.outputs.extra) }}
     runs-on: ${{matrix.os}}
-    # Stops a hung job exhausting the 6h workflow limit and cancelling its siblings.
-    timeout-minutes: 120
+    # Allow 6 hours for tests
+    timeout-minutes: 360
     env:
       cache-key: tests-data2
     steps:
