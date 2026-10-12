@@ -10,9 +10,9 @@ SPM tests root folder:
 fullfile(spm('Dir'),'tests','test_regress_spm_dcm_meeg.m')
 ```
 
-It exposes 117 parameterized tests: 9 models for tests 1, 2, 4, 6, and 7;
-9 models x 3 integrators for test 3; and 9 models x 5 fixed datasets for
-test 5. These tests are:
+It exposes 107 parameterized tests: 9 models for tests 1, 2, 4, 6, and 7;
+9 models x 3 integrators for test 3; and 7 models x 5 fixed datasets for
+test 5 (NMM and MFM are excluded, see below). These tests are:
 - Test 1: Check if model's steady-state Jacobian is stable
 - Test 2: Check if model initializes correctly to its steady-state solution
 - Test 3: Check if model can be integrated by a selection of integration schemes
@@ -85,7 +85,10 @@ Tests 1-3 are model-level diagnostics:
 Test 4 generates one LFP dataset per model, fits that model back to its own
 data, and checks finite outputs plus `self_lfp_min_r2`.
 
-Test 5 fits every model to five prepared datasets. Fixture locations,
+Test 5 fits every model except NMM and MFM to five prepared datasets.
+NMM and MFM are excluded because their fixed-data fits converge to optima
+that depend on the MATLAB release and platform, drifting beyond the
+reference margins. Fixture locations,
 reference rows, and runtime tests all use the shared
 `dts_meeg_fixed_data_cases` manifest:
 

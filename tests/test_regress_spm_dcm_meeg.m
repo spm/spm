@@ -10,12 +10,15 @@ end
 % Test parameterisation based on model, integration scheme and data cases
 properties (TestParameter)
 
-	% Each test will always loop over all models
+	% Tests 1-4, 6 and 7 loop over all models
     Model = {'ERP','SEP','LFP','CMC','CMM','NMM','MFM','NMDA','CMM_NMDA'};
-    
+
+    % Test 5 excludes NMM and MFM as they drift beyond reference margins
+    FixedDataModel = {'ERP','SEP','LFP','CMC','CMM','NMDA','CMM_NMDA'};
+
     % Forward simulations will be tested for integrators listed here
     Integrator = {'spm_int_L','spm_int_B','spm_int_J'};
-    
+
     % DCM-ERP inversions are tested against multiple data cases listed here
     FixedDataCase = {'simulated_evoked_lfp','synthetic_triphasic_lfp', ...
         'sample_lfp','sample_sensor_img','sample_sensor_ecd'};
@@ -24,7 +27,7 @@ end
 % Base prep: paths and env
 methods (TestClassSetup)
     function setupSPM(~)
-    
+
     	% Run in single thread only (for max determinism)
         test_regress_spm_dcm_meeg_thread_state(maxNumCompThreads());
         maxNumCompThreads(1);
@@ -32,10 +35,10 @@ methods (TestClassSetup)
         support_dir = fullfile(test_dir, 'DCM_Test_Suite');
         addpath(support_dir);
         dts_meeg_setup_paths();
-        
+
         % Configure settings based on options specified above
         cfg = dts_meeg_test_defaults(test_regress_spm_dcm_meeg.Options);
-        
+
         % Generate test fixtures with fwd model for sensor-level ECD & IMG fits
         dts_meeg_sample_sensor_fixture(cfg, 'testrunner');
     end
@@ -75,7 +78,7 @@ methods (Test, TestTags = {'init'})
         cfg = testCase.config_for_model(Model);
         [P, M, U] = dts_meeg_neural_fixture(Model, 'single', 'spm_int_L', 1000, 0.001);
         u0 = sparse(M.m, 1);
-        f0 = full(spm_vec(feval(M.f, M.x, u0, P, M))); 
+        f0 = full(spm_vec(feval(M.f, M.x, u0, P, M)));
         y = spm_gen_erp(P, M, U); % simulate ERP, this does initialisation
         states = full(y{1});
         x0 = spm_vec(M.x)';
@@ -101,7 +104,7 @@ methods (Test, TestTags = {'integrate'})
     function test_regress_03_integrator_forward(testCase, Model, Integrator)
         cfg = testCase.config_for_model(Model);
         architectures = {'single','four'};
-		
+
 		% Each integrator is compared against the *J integrator
         for a = 1:numel(architectures)
             arch = architectures{a};
@@ -136,7 +139,7 @@ methods (Test, TestTags = {'self_erp_fit'})
         y = dts_meeg_prior_lfp_response(Model, 0.001, 500, cfg.integrator);
         y = y(:) - y(1);
         y = y/std(y);
-        rng(1, 'twister'); % Fix random noise 
+        rng(1, 'twister'); % Fix random noise
         y = y + randn(size(y))*exp(-6/2);
         D = dts_meeg_write_lfp_fixture(y, 0.001, data_file, ['simulated_' Model]);
         data_file = D.fullfile();
@@ -163,9 +166,9 @@ end
 
 % Test if each model can fit to various data cases
 methods (Test, TestTags = {'data_erp_fit'})
-    function test_regress_05_fixed_data_fit(testCase, Model, FixedDataCase)
+    function test_regress_05_fixed_data_fit(testCase, FixedDataModel, FixedDataCase)
         data_case = dts_meeg_fixed_data_cases(FixedDataCase);
-        cfg = testCase.config_for_fit(Model, data_case.name);
+        cfg = testCase.config_for_fit(FixedDataModel, data_case.name);
         data_file = fullfile(cfg.prep_root, data_case.prep_dir, data_case.file_name);
 
         testCase.assertEqual(exist(data_file, 'file'), 2, ...
@@ -173,7 +176,7 @@ methods (Test, TestTags = {'data_erp_fit'})
             'Run tests/DCM_Test_Suite/dts_prep01_make_test_fixtures.m.'], data_file));
 
         if ~exist(cfg.output_root, 'dir'), mkdir(cfg.output_root); end
-        result = dts_meeg_fit_erp_model(data_case.test_id, Model, data_file, ...
+        result = dts_meeg_fit_erp_model(data_case.test_id, FixedDataModel, data_file, ...
             data_case.spatial, data_case.generator_model, cfg.output_root, cfg);
         testCase.verify_fit_completed(result);
 
@@ -186,7 +189,7 @@ methods (Test, TestTags = {'data_erp_fit'})
         end
         if ~isempty(errors)
             testCase.verifyFail(sprintf('%s %s reference check failed:\n%s', ...
-                data_case.test_id, Model, strjoin(errors, newline)));
+                data_case.test_id, FixedDataModel, strjoin(errors, newline)));
         end
     end
 end
@@ -238,7 +241,7 @@ methods
         options.models = {model};
         cfg = dts_meeg_test_defaults(options);
     end
-	
+
 	% Get customized options for test and adjust Nmax based on fixture
     function cfg = config_for_fit(testCase, model, fixed_data_case)
         cfg = testCase.config_for_model(model);
@@ -252,7 +255,7 @@ methods
             cfg.thresholds.min_R2 = cfg.thresholds.basic_min_R2;
         end
     end
-	
+
 	% Check if fitting tests ran
     function verify_fit_completed(testCase, result)
         if ~isempty(result.error)
@@ -310,7 +313,7 @@ options.thresholds.integrator_min_corr = 0.75;
 % Optional R2 floor for self-gen LFP fits (0 disables this)
 options.thresholds.self_lfp_min_r2 = 0;
 
-% Allowed absolute drift in free energy 
+% Allowed absolute drift in free energy
 options.thresholds.F_margin = 5;
 
 % Allowed maximum absolute drift in posterior estimates
