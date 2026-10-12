@@ -42,29 +42,28 @@ m     = length(dfdx);
 N     = 256;
 dt    = t/N;
 
-% condition unstable eigenmodes
+% condition unstable eigenmodes: % eJdt  = expm(full(dfdx*dt));
 %--------------------------------------------------------------------------
 [v,s] = eig(full(dfdx),'nobalance');
 s     = diag(s);
 u     = pinv(v);
 s     = 1j*imag(s) + min(real(s),-4);
 eJdt  = real(v*diag(exp(s*dt))*u);
-dfdx  = real(v*diag(s*dt)*u);
+dfdx  = real(v*diag(s)*u);
 
 % flow operators
 %--------------------------------------------------------------------------
-eJt   = eJdt;
 Q     = sparse(m,m);
 R     = dfdw*dfdw'*2;
-dQ    = eJt*R*eJt';
+dQ    = eJdt*R*eJdt';
 TOL   = trace(dQ)/64;
 for i = 1:N
     
     % integrate and update exp(dfdx*t)
     %----------------------------------------------------------------------
-    Q   = Q + dQ*dt;
-    eJt = eJt*eJdt;
-    dQ  = eJt*R*eJt';
+    Q    = Q + dQ*dt;
+    eJdt = eJdt*eJdt;
+    dQ   = eJdt*R*eJdt';
     
     % convergence
     %----------------------------------------------------------------------

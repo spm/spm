@@ -13,9 +13,10 @@ function DEM_demo_DFP
 %==========================================================================
 spm_figure('GetWin','DEM');
 
+rng(0)
 M        = spm_DEM_M('convolution model');
-M(1).V   = exp(8);
-M(1).W   = exp(16);
+M(1).V   = exp(8);                             % error precision
+M(1).W   = exp(8);                             % error precision
 M(1).E.N = 32;
 
  

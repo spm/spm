@@ -607,28 +607,28 @@ title('Flow','FontSize',16), spm_axis tight
 
 %% illustrate the Lagrangian perspective (classical mechanics)
 %==========================================================================
-% (Classical Mechanics): this section illustrates a treatment under a classical (Hamiltonian or Lagrangian)
-% perspective. By taking ensemble averages over various quantities, one can
-% suppress the influence of intrinsic (random) fluctuations, thereby
-% revealing conservative, Hamiltonian dynamics mediated by solenoidal flow.
-% Here, we focus on the average position of particular states and ask
-% whether the associated motion conforms to classical predictions. The
-% picture here is of a ball rolling around in a potential well where,
-% crucially, the potential well changes with external states. In
-% particular, we considered a second order polynomial approximation to the
-% NESS potential of position, conditioned on the position of external
-% particles. By formulating this dependency as a linear mixture of external
-% positions, the gradients that produce the average motion of the particle
-% can be expressed as a polynomial expansion that is quadratic in the
-% particular positions and linear in the external positions. The polynomial
-% coefficients can then be estimated, using least squares, to best predict
-% the average motion of the particle; thereby specifying the (conditional)
-% ensemble density and Hamiltonian dynamics. Heuristically, this
-% corresponds to characterising the average behaviour of the particle as
-% the motion of a marble (or ball) in a quadratic well (or bowl) that moves
-% with the external states. The resulting behaviour can then be
-% characterised in terms of the ball's mass that corresponds to the
-% precision (i.e., inverse variance) of motion.
+% (Classical Mechanics): this section illustrates a treatment under a
+% classical (Hamiltonian or Lagrangian) perspective. By taking ensemble
+% averages over various quantities, one can suppress the influence of
+% intrinsic (random) fluctuations, thereby revealing conservative,
+% Hamiltonian dynamics mediated by solenoidal flow. Here, we focus on the
+% average position of particular states and ask whether the associated
+% motion conforms to classical predictions. The picture here is of a ball
+% rolling around in a potential well where, crucially, the potential well
+% changes with external states. In particular, we considered a second order
+% polynomial approximation to the NESS potential of position, conditioned
+% on the position of external particles. By formulating this dependency as
+% a linear mixture of external positions, the gradients that produce the
+% average motion of the particle can be expressed as a polynomial expansion
+% that is quadratic in the particular positions and linear in the external
+% positions. The polynomial coefficients can then be estimated, using least
+% squares, to best predict the average motion of the particle; thereby
+% specifying the (conditional) ensemble density and Hamiltonian dynamics.
+% Heuristically, this corresponds to characterising the average behaviour
+% of the particle as the motion of a marble (or ball) in a quadratic well
+% (or bowl) that moves with the external states. The resulting behaviour
+% can then be characterised in terms of the ball's mass that corresponds to
+% the precision (i.e., inverse variance) of motion.
 % 
 % Upper left panel: this phase portrait summarises the behaviour we are
 % trying to explain by plotting the position (state) against velocity
@@ -675,7 +675,7 @@ spm_figure('GetWin','classical mechanics');clf
 %--------------------------------------------------------------------------
 i    = 1:1024;
 t    = length(i);
-b    = find(ii);                               % internal states
+b    = find(ss | aa);                          % internal states
 e    = find(ee);                               % external states
 q    = mean(squeeze(X(1,b,i)))';               % mean position
 p    = mean(squeeze(V(1,b,i)))';               % mean velocity
@@ -859,7 +859,7 @@ end
 
 % extract states
 %--------------------------------------------------------------------------
-mi    = mi(end);
+mi    = mi(8);
 ei    = 1:ne;
 V     = rV;
 for i = 1:T
@@ -971,7 +971,7 @@ title('Synchronisation manifold','FontSize',16), spm_axis tight
 
 % show results - conditional distributions as a function of time
 %--------------------------------------------------------------------------
-subplot(6,1,3), cla
+subplot(3,1,2), cla
 spm_plot_ci(qE',qC(:)'),  hold on
 plot(xY,'c' ), hold off
 xlabel('Time', 'FontSize',12)
@@ -1011,7 +1011,7 @@ um   = spm_detrend(um(:,j));
 
 % plot onsets on conditional density
 %--------------------------------------------------------------------------
-subplot(6,1,3)
+subplot(3,1,2)
 uy    = get(gca,'Ylim'); hold on
 for i = 1:length(us),plot([1 1]*us(i),uy,':k'), end, hold off
 
@@ -1026,7 +1026,7 @@ xlabel('Time (msec)', 'FontSize',12)
 ylabel('Electrochemical response','FontSize',12)
 title('Simulated ERP','FontSize',16)
 
-% canonical correlations
+%% canonical correlations
 %--------------------------------------------------------------------------
 % subplot(3,2,6)
 % bar(CVA.r,1/2)

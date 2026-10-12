@@ -4,7 +4,8 @@ function DEM_demo_convolution
 % model (DCM) to disclose the input or causes.  It focuses on estimating the
 % causes and hidden states: The notes provide a comparative evaluation with 
 % extended Kalman filtering (see script after return).
- 
+
+rng(0)
  
 % get a simple convolution model
 %==========================================================================
@@ -15,7 +16,7 @@ M(1).W  = exp(8);                             % error precision
 % and generate data
 %==========================================================================
 N       = 32;                                 % length of data sequence
-U       = exp(-([1:N] - 12).^2/(2.^2));       % this is the Gaussian cause;
+U       = exp(-((1:N) - N/4).^2/(2*(N/32)^2));  % Gaussian cause
 DEM     = spm_DEM_generate(M,U,{},{[] 16},{16});
  
 % invert model
