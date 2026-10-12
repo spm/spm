@@ -187,7 +187,7 @@ end
 ftdir = fullfile(d,'external','fieldtrip');
 ftTempPath = ~exist('ft_getopt','file') && exist(ftdir,'dir');
 if ftTempPath
-    addpath(ftdir);
+    addpath(ftdir, fullfile(ftdir,'utilities'));
 end
 try
     ft_getopt(struct(),'dummy_field',[]);
@@ -213,7 +213,7 @@ catch ME
     end
 end
 if ftTempPath
-    rmpath(ftdir);
+    rmpath(ftdir, fullfile(ftdir,'utilities'));
 end
 
 %==========================================================================
