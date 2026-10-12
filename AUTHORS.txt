@@ -12,6 +12,7 @@
 % Barbara Dymerska
 % Korbinian Eckstein
 % Guillaume Flandin
+% Chetan Gohil
 % Karl Friston
 % Olivia Kowalczyk
 % Vladimir Litvak
