@@ -244,13 +244,23 @@ switch(lower(Action))
         %------------------------------------------------------------------
         if ~isfield(DCM.Ep,'A'), return, end
         n    = length(DCM.Ep.A);
-        if n == 2
-            str = {'Forward','Backward'};
-        elseif n == 3
-            str = {'Forward','Backward','Lateral'};
-        else
-            str = {'Forward (i)','Forward (ii)','Backward (i)','Backward (ii)'};
+        try, model = DCM.options.model; catch, model = ''; end
+        switch upper(model)
+            case {'ERP','SEP','LFP','NMM','MFM','NMDA'}
+                str = {'Forward','Backward','Lateral'};
+            case {'CMM','CMM_NMDA'}
+                str = {'Forward','Backward'};
+            case {'CMC','TFM'}
+                str = {'Forward (i)','Forward (ii)', ...
+                       'Backward (i)','Backward (ii)'};
+            case 'MMC'
+                str = {'Forward (sp->mp)','Forward (sp->sp)', ...
+                       'Backward (dp->dp)'};
+            otherwise
+                str = {};
         end
+        for k = numel(str)+1:n, str{k} = sprintf('A{%d}',k); end
+        str = str(1:n);
         
         for i = 1:n
             
