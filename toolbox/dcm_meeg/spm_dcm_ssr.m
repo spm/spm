@@ -118,8 +118,12 @@ DCM.M.U   = U*sqrt(norm(spm_vec(DCM.xY.y),Inf)/norm(spm_vec(Hc),Inf));
 
 % EM: inversion
 %--------------------------------------------------------------------------
-[Qp,Cp,Eh,F] = spm_nlsi_GN(DCM.M,DCM.xU,DCM.xY);
+[Qp,Cp,Eh,F,~,~,~,converged,Fhist] = spm_nlsi_GN(DCM.M,DCM.xU,DCM.xY);
 Ce           = exp(-Eh);
+
+DCM.convergence.converged = converged;
+DCM.convergence.F         = Fhist.F;
+DCM.convergence.L         = Fhist.L;
 
 % Data ID
 %==========================================================================

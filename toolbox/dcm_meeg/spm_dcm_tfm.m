@@ -206,8 +206,12 @@ end
 % Variational Laplace: model inversion
 %==========================================================================
 DCM.M.Nmax   = 32;
-[Qp,Cp,Eh,F] = spm_nlsi_GN(DCM.M,DCM.xU,DCM.xY);
+[Qp,Cp,Eh,F,~,~,~,converged,Fhist] = spm_nlsi_GN(DCM.M,DCM.xU,DCM.xY);
 DCM.M.ds     = 1;
+
+DCM.convergence.converged = converged;
+DCM.convergence.F         = Fhist.F;
+DCM.convergence.L         = Fhist.L;
 
 
 % Re-estimate spatial (lead field) parameters for ERP
