@@ -91,7 +91,7 @@ end
 % Generate points to sample from, adding some jitter in order to make the
 % cost function smoother.
 %--------------------------------------------------------------------------
-rand('state',0); % want the results to be consistant.
+rand('state',0); % want the results to be consistent.
 dg   = VG(1).dim(1:3);
 df   = VF(1).dim(1:3);
 

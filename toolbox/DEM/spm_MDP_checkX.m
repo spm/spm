@@ -158,7 +158,7 @@ end
 % id.g      -  Indices of selected outcome modalities              
 % id.A{g}   -  Indices of parents of outcomes
 % id.B{f}   -  Indices of parents of states
-% id.C{g}   -  Indices of parents of contraints
+% id.C{g}   -  Indices of parents of constraints
 % id.D{f}   -  Indices of parents of initial states (next level)
 % id.E{f}   -  Indices of parents of paths (next level)
 

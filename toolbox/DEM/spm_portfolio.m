@@ -6,7 +6,7 @@ function Tab = spm_portfolio(L,I,U,DEM,T,dT,Sr)
 % I   - indicator variables
 % U   - exogenous variables
 % DEM - generative model
-% T   - time of inital investment
+% T   - time of initial investment
 % dT  - time between rebalancing
 % Sr  - Shaarpe ratio
 %__________________________________________________________________________
@@ -32,15 +32,15 @@ policies = {'Buy and hold', ...
 % get sizes and times
 %--------------------------------------------------------------------------
 Ann   = 100*365/7;                % scaling for annualised % RoR
-Ti    = T;                        % time of inital investment
+Ti    = T;                        % time of initial investment
 Tf    = size(L,1);                % time of final investment
 m     = size(L,2);                % number of (aggregated) assets
 n     = size(I,2);                % number of indicator variables
 
-% inital (flat) weights (i.e., ealth allocation)
+% initial (flat) weights (i.e., ealth allocation)
 %--------------------------------------------------------------------------
 Np       = 5;                     % number of policies to simulate
-W        = ones(6,Np,dT)/m;       % inital (flat) weights
+W        = ones(6,Np,dT)/m;       % initial (flat) weights
 % W(1,:,:) = 0.1;  % 'VEA': 0.1
 % W(2,:,:) = 0.05; % 'BIL': 0.05
 % W(3,:,:) = 0.35; % 'AGG': 0.35
@@ -536,8 +536,8 @@ u    = U(T,:);
 t          = T:(T + dT);
 DEM.U      = U(t,:)';                  % future causes
 DEM.Y      = [I(1:T,:),L(1:T,:)]';     % past data
-DEM.M(1).x = x(:);                     % intial state
-DEM.M(2).v = u(:);                     % intial cause
+DEM.M(1).x = x(:);                     % initial state
+DEM.M(2).v = u(:);                     % initial cause
 [Ey,Cy]    = spm_NESS_forecast(DEM);
 
 return
@@ -584,8 +584,8 @@ M.pC = Cp;                          % and covariance of parameters
 
 % update model parameters in DEM
 %--------------------------------------------------------------------------
-DEM.M(1).pE = Ep;                   % posterior esimates from VL
-DEM.M(1).pC = Cp;                   % posterior esimates from VL
+DEM.M(1).pE = Ep;                   % posterior estimates from VL
+DEM.M(1).pC = Cp;                   % posterior estimates from VL
 DEM.G       = M;                    % generative model of flow
 
 return

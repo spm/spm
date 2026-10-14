@@ -22,7 +22,7 @@ function [DCM,PEB,M,HCM] = spm_dcm_peb_fit(GCM,M,field)
 %          'All' will invoke all fields (i.e. random effects)
 %
 %
-% DCM  - DCM structures inverted with emprical priors
+% DCM  - DCM structures inverted with empirical priors
 % PEB  - second level model structure
 % F    - ssecond level free energy over iterations
 % -------------------------------------------------------------

@@ -66,7 +66,7 @@ try, DATA     = DCM.options.DATA;     catch, DATA      = 1;           end
 try, Nmax     = DCM.M.Nmax;           catch, Nmax      = Nmax;        end
 
 
-% symmetry contraints for ECD models only
+% symmetry constraints for ECD models only
 %--------------------------------------------------------------------------
 if ~strcmp(DCM.options.spatial,'ECD'), symm = 0; end
 

@@ -211,7 +211,7 @@ xlabel('latent states'), ylabel('time steps'), axis square
 % assemble RGM
 %--------------------------------------------------------------------------
 RDP   = spm_set_goals(MDP,[2,3],[C,-C]);   % set intended states (hid/cid)
-RDP   = spm_set_costs(RDP,[2,3],[C,-C]);   % set contraints (C)
+RDP   = spm_set_costs(RDP,[2,3],[C,-C]);   % set constraints (C)
 RDP   = spm_mdp2rdp(RDP);                  % get nested model
 RDP.T = 64;
 PDP   = spm_MDP_VB_XXX(RDP);
@@ -381,7 +381,7 @@ xlabel('latent states'), ylabel('time steps'), axis square
 RDP   = spm_RDP_sort(MDP);                 % eigenreduction
 RDP   = spm_RDP_MI(RDP);                   % merge conserving MI 
 RDP   = spm_set_goals(RDP,[2,3],[C,-C]);   % set intended states (hid/cid)
-RDP   = spm_set_costs(RDP,[2,3],[C,-C]);   % set contraints (C)
+RDP   = spm_set_costs(RDP,[2,3],[C,-C]);   % set constraints (C)
 RDP   = spm_mdp2rdp(RDP,0,1/NS);           % get nested model
 
 % active inference and learning

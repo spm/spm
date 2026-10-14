@@ -99,7 +99,7 @@ eJ = complex(zeros(nFFT, nFFTChunks));
 Tapers=spm_dpss(max(nFFT,WinLength),NW);
 Tapers=Tapers(:,1:nTapers);
 
-% Vectorized alogrithm for computing tapered periodogram with FFT 
+% Vectorized algorithm for computing tapered periodogram with FFT 
 TaperingArray = repmat(Tapers, [1 1 nChannels]);
 for j=1:nFFTChunks
     Segment = x((j-1)*winstep+[1:WinLength], :);
