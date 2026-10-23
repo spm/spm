@@ -248,8 +248,8 @@ BMA       = spm_dcm_peb_bmc(PEB);
 
 % overlay true values
 %--------------------------------------------------------------------------
-Tp        = spm_vec(DCM.Ep);           % true second level paramters
-Tx        = spm_vec(DCM.Ex);           % true second level paramters
+Tp        = spm_vec(DCM.Ep);           % true second level parameters
+Tx        = spm_vec(DCM.Ex);           % true second level parameters
 
 subplot(3,3,1),hold on, bar(Tp(BMA.Pind),1/2), hold off
 subplot(3,3,4),hold on, bar(Tp(BMA.Pind),1/2), hold off

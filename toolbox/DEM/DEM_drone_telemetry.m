@@ -156,7 +156,7 @@ for s = 1:prod(Ns)
     c   = spm_index(Ns,s);
     ind = num2cell(c);                     % states at increasing depth
     if any(c > 1)
-        local(1,ind{:}) = 1;               % somthing present
+        local(1,ind{:}) = 1;               % something present
     else
         local(2,ind{:}) = 1;               % nothing present
     end
@@ -217,7 +217,7 @@ d     = 4;
 u     = [-1,0,1];
 for i = 1:numel(u)
 
-    % perimeter contraints on x
+    % perimeter constraints on x
     %----------------------------------------------------------------------
     BX(:,:,i) = full(spm_speye(Nx,Nx,u(i),1));
     for j = 1:Nx
@@ -231,7 +231,7 @@ for i = 1:numel(u)
         end
     end
 
-    % perimeter contraints on y
+    % perimeter constraints on y
     %----------------------------------------------------------------------
     BY(:,:,i) = full(spm_speye(Ny,Ny,u(i),2));
     for j = 1:Ny
@@ -293,7 +293,7 @@ D{4} = full(sparse(v(4),1,1,Na,1));              % drone angles
 
 %% priors: (cost) C
 %==========================================================================
-% no modality contraints at this stage
+% no modality constraints at this stage
 %--------------------------------------------------------------------------
 for g = 1:numel(A)
     C{g} = spm_dir_norm(ones(size(A{g},1),1));

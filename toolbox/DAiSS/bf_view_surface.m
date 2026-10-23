@@ -1,5 +1,5 @@
 function res = bf_view_surface(BF, S)
-% Diplay surface plot of DAISS output results
+% Display surface plot of DAISS output results
 %__________________________________________________________________________
 
 % George O'Neill
