@@ -26,6 +26,9 @@ function varargout = spm_julia(opt, varargin)
 % Checks for presence of packages, and installs them if necessary.
 % Prepends use of packages before cmd.
 %
+% FORMAT [sts,result] = spm_julia('update')
+% Update to latest versions of Julia packages.
+%
 % For more information about the Julia language, see https://julialang.org/
 %__________________________________________________________________________
 
@@ -41,6 +44,8 @@ function varargout = spm_julia(opt, varargin)
             varargout{1} = install(s, varargin{:});
         case 'run'
             [varargout{1:nargout}] = run(s,varargin{1},varargin(2:end));
+        case 'update'
+            varargout{1} = update(s);
         case 'settings'
             varargout{1} = s;
         otherwise
@@ -64,6 +69,10 @@ function [sts, result] = run(s, fun, pkgs)
         expr = [expr fun];
     else
         expr = fun;
+    end
+    if ispc
+        % Additional modifications for executing in Windows
+        expr = strrep(expr,'\','\\');
     end
     if nargout<2
         sts = run_julia_cmd(s,expr);
@@ -136,11 +145,7 @@ function sts = install(s,varargin)
         else
             error(['Something went wrong! Nothing suitable for ' s.comp '.']);
         end
-        spm_registry = 'https://github.com/spm/SPM-registry.jl';
-        [sts,result] = run_julia_cmd(s,['using Pkg; pkg"registry add General"; pkg"registry add ' spm_registry '"']);
-        if sts~=0
-            error('Failed to add SPM-registry!')
-        end
+        add_registry(s);
     end
 end
 
@@ -156,6 +161,13 @@ function sts = add_pkgs(s, pkg_list)
     end
 end
 
+function add_registry(s)
+    spm_registry = 'https://github.com/spm/SPM-registry.jl';
+    [sts,result] = run_julia_cmd(s,['using Pkg; pkg"registry add General"; pkg"registry add ' spm_registry '"']);
+    if sts~=0
+        error('Failed to add SPM-registry!')
+    end
+end
 
 function sts = add_pkg(s, pkg)
     [sts,result] = run_julia_cmd(s, ['import Pkg; Pkg.add(' addstr(pkg) ');']);
@@ -164,6 +176,16 @@ function sts = add_pkg(s, pkg)
         disp(result)
         fprintf(  '\n###### Installation of %s failed! ###### (see errors above)\n\n', pkg_name(pkg))
     end
+end
+
+function sts = update(s, varargin)
+     add_registry(s);
+     [sts,result] = run_julia_cmd(s, 'using Pkg; Pkg.update();');
+     if sts~=0
+         fprintf('\n\n###### Updates of Julia packages failed! ######\n\n')
+         disp(result)
+         fprintf('\n\n###### Updates of Julia packages failed! ######\n\n')
+     end
 end
 
 function [sts,result] = run_julia_cmd(s,str)

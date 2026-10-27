@@ -65,11 +65,7 @@ nit.labels = {'  10: Fastest/poorest', '  30: Fast/poor', ' 100: reasonable',' 3
 nit.val    = {100};
 nit.help   = {'Number of denoising relaxation iterations.'};
 
-% Better disable this option because SPM is supposed to not require
-% additional toolbox licenses.
-% I'm not sure what the proper way to test if a license for the Distributed
-% Computing Toolbox exists.
-if false % license('test','distrib_computing_toolbox')
+if license('test','distrib_computing_toolbox')
     device        = cfg_menu;
     device.tag    = 'device';
     device.name   = 'Device';
