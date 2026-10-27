@@ -2,7 +2,7 @@ function [e,v,c] = spm_dir_disentangle(a,n)
 % information geometry of a likelihood mapping
 % FORMAT [e,v,c] = spm_dir_disentangle(a,n)
 % a{g}    - Dirichlet tensor for modality g
-% n       - nummber of (first) latent states to plot
+% n       - number of (first) latent states to plot
 %
 % This routine illustrates the information geometry inherent in a
 % likelihood mapping. It computes a similarity matrix based upon an

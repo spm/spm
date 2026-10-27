@@ -289,7 +289,7 @@ spm_figure('GetWin','NESS (2)'); clf
 
 % covariance based upon a Laplace approximation to surprisal
 %--------------------------------------------------------------------------
-% auxillary code for numerical evaluation of moments
+% auxiliary code for numerical evaluation of moments
 %--------------------------------------------------------------------------
 % N     = 32;
 % x{1}  = linspace(-64,64,N);
