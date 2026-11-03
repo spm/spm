@@ -21,6 +21,9 @@ function [lay] = spm_get_anatomical_layout(sensor_positions, sensor_labels, head
 %     unit:             (optional) A string, e.g. 'mm', will be estimated otherwise.
 %     sensor_orientations:  (optional) An nx3 matrix of orientation vectors of n
 %                           sensors
+%     max_distance:     (optional) Head positions further than this from the
+%                       ear midpoint are removed. Default 1.2 times the
+%                       furthest sensor, inf to keep them all.
 %
 % Output:
 %     lay: A structure representing the anatomical sensor layout in the
@@ -113,6 +116,9 @@ sensor_distances = sqrt(sum((sensor_positions - origin).^2, 2));
 
 % Set a maximum distance proportional to the max distance to sensor
 max_distance = max(sensor_distances) * 1.2;
+if numel(varargin) >= 4 && ~isempty(varargin{4})
+    max_distance = varargin{4};
+end
 
 % Calculate the Euclidean distance between the origin and each position
 head_distances = sqrt(sum((head_positions - origin).^2, 2));
@@ -179,6 +185,7 @@ max_image_size = 2;
 
 %-ESTIMATE the position of the inion if not provided
 %--------------------------------------------------------------------------
+head_points = head_positions;
 if ~isfield(fiducials, 'INI') || isempty(fiducials.INI)
     % Start with the anterior vector (i.e. origin to NAS)
     a_vec = (fiducials.NAS - origin) / norm((fiducials.NAS - origin));
@@ -714,10 +721,9 @@ for sens_idx = 1:num_sens
         initial_primary_tan_vec = mean([tmp;tmp2]) / norm(mean([tmp;tmp2]));
     
         % Radial vector
-        sens_vec = (sens_pos - origin_elec) / norm(sens_pos - origin_elec);
-        radial_vec = -sens_vec;
-        radial_vec = radial_vec / norm(radial_vec);
-    
+        normal_radius = 0.015 * 10^unit_dec_adjust;
+        radial_vec = local_normal(sens_pos, head_points, origin_elec, normal_radius);
+
         % Orthonormal frame
         primary_tan_vec = initial_primary_tan_vec - dot(initial_primary_tan_vec, radial_vec) * radial_vec;
         primary_tan_vec = primary_tan_vec / norm(primary_tan_vec);  % Now orthogonal and unit length
@@ -981,7 +987,6 @@ for i = 1:length(edges(:, 1))
             intersect_pos(count, 1:3) = p;
         end
     end
-
 end
 
 intersect_pos = unique(round(intersect_pos, dec_point, 'decimals'), 'rows', 'stable');
@@ -1407,6 +1412,24 @@ cumd = [0; cumsum(d)];
 total_length = cumd(end);
 
 end
+
+%==========================================================================
+% - L O C A L   N O R M A L
+%==========================================================================
+function n = local_normal(p, points, inside, radius)
+% Unit normal of the surface through points near p
+near = points(vecnorm(points - p, 2, 2) < radius, :);
+if size(near, 1) < 6
+	[~, order] = sort(vecnorm(points - p, 2, 2));
+	near = points(order(1:min(12, end)), :);
+end
+[~, ~, V] = svd(near - mean(near, 1), 'econ');
+n = V(:, 3)';
+if dot(n, inside - p) < 0
+	n = -n;
+end
+end
+
 
 %==========================================================================
 % - G E T   S C A L P   V E C T O R S
