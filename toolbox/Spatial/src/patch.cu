@@ -142,3 +142,39 @@ __device__ void put_patch(const USIZE_t dp[], const float *fp, const int bnd[], 
         }
     }
 }
+
+
+#define MAX(a,b) ((signed)(a)>(signed)(b) ? (a) : (b))
+#define MIN(a,b) ((signed)(a)<(signed)(b) ? (a) : (b))
+
+__device__ void put_patch_fov(const USIZE_t dp[], const float *fp, const SSIZE_t o[], const USIZE_t d0[], float *f0)
+{
+    USIZE_t i, j, k;
+    USIZE_t i_start, i_stop, j_start, j_stop, k_start, k_stop;
+
+    i_start = MAX(o[0],0); i_stop  = MIN(o[0]+dp[0],d0[0])-o[0];
+    j_start = MAX(o[1],0); j_stop  = MIN(o[1]+dp[1],d0[1])-o[1];
+    k_start = MAX(o[2],0); k_stop  = MIN(o[2]+dp[2],d0[2])-o[2];
+
+    for(k=k_start; k<k_stop; k++)
+    {
+        USIZE_t tk0 = d0[1]*(k + o[2]) + o[1];
+        USIZE_t tkp = dp[1]*k;
+        for(j=j_start; j<j_stop; j++)
+        {
+            USIZE_t tj0 = d0[0]*(j + tk0) + o[0];
+            USIZE_t tjp = dp[0]*(j + tkp);
+            for(i=i_start; i<i_stop; i++, fp++)
+            {
+                float t = fp[tjp + i];
+/*
+#ifdef C
+#               pragma omp atomic
+#endif
+*/
+                atomicAdd(&(f0[tj0 + i]),t);
+            }
+        }
+    }
+}
+

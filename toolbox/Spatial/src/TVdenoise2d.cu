@@ -183,3 +183,4 @@ __global__ void TVdenoise2d_fast(float *y, const float *x)
 
     TVdenoise2d_fast_dev(i, j, y, x, d, lambda);
 }
+

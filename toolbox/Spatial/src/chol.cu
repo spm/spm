@@ -62,3 +62,4 @@ __device__ void chollsf(USIZE_t n, const float a[], const float p[],
         x[i] = t/p[i];
     }
 }
+

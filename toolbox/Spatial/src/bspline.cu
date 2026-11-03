@@ -247,3 +247,4 @@ __device__ SSIZE_t hweights(const USIZE_t d, float x, /*@OUT@*/float w[])
     }
     return i;
 }
+

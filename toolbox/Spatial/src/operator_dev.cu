@@ -7,6 +7,10 @@
 #include "patch.cu"
 #include "chol.cu"
 
+/* Flexibility comes at the expense of speed because L is often mostly zeros.
+   Dealing with padding is also likely to slow things down a lot, especially
+   as many of the loaded voxels will not be used. */
+
 __device__ float odconv(const float *lp, const float *vp, USIZE_t cp)
 {
     const float *lpend;
@@ -174,3 +178,4 @@ __device__ void convN(USIZE_t i, USIZE_t j, USIZE_t k, float *u, const float *v,
     u += m; /* shift pointer */
     for(i=0; i<d3; i++) u[nd*i] = b[i];
 }
+

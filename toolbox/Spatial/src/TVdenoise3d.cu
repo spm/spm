@@ -20,13 +20,13 @@ __global__ void TVdenoise3d(float *y, const float *x)
     USIZE_t i, j, k;
 
     /* Leaves edge voxels alone */
-    k = (blockIdx.z*blockDim.z + threadIdx.z)*3 + 1 + o[2];
+    k = (blockIdx.z*blockDim.z + threadIdx.z)*2 + 1 + o[2];
     if (k>=d[2]-1) return;
 
-    j = (blockIdx.y*blockDim.y + threadIdx.y)*3 + 1 + o[1];
+    j = (blockIdx.y*blockDim.y + threadIdx.y)*2 + 1 + o[1];
     if (j>=d[1]-1) return;
 
-    i = (blockIdx.x*blockDim.x + threadIdx.x)*3 + 1 + o[0];
+    i = (blockIdx.x*blockDim.x + threadIdx.x)*2 + 1 + o[0];
     if (i>=d[0]-1) return;
 
     TVdenoise3d_dev(i, j, k, y, x, d, vox, lambdap, lambdal);
@@ -37,14 +37,15 @@ __global__ void TVdenoise3d_fast(float *y, const float *x)
     USIZE_t i, j, k;
 
     /* Leaves edge voxels alone */
-    k = (blockIdx.z*blockDim.z + threadIdx.z)*3 + 1 + o[2];
+    k = (blockIdx.z*blockDim.z + threadIdx.z)*2 + 1 + o[2];
     if (k>=d[2]-1) return;
 
-    j = (blockIdx.y*blockDim.y + threadIdx.y)*3 + 1 + o[1];
+    j = (blockIdx.y*blockDim.y + threadIdx.y)*2 + 1 + o[1];
     if (j>=d[1]-1) return;
 
-    i = (blockIdx.x*blockDim.x + threadIdx.x)*3 + 1 + o[0];
+    i = (blockIdx.x*blockDim.x + threadIdx.x)*2 + 1 + o[0];
     if (i>=d[0]-1) return;
 
     TVdenoise3d_fast_dev(i, j, k, y, x, d, vox, lambdap, lambdal);
 }
+

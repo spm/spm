@@ -12,10 +12,15 @@
 #        include<math.h>
 #        define atomicAdd(p,v) (*p)+=(v)
 #    endif
+/*
 #    define USIZE_t size_t
 #    define SSIZE_t ptrdiff_t
+*/
+#    define USIZE_t unsigned long long int
+#    define SSIZE_t signed long long int
 /*
 #    define USIZE_t unsigned int
 #    define SSIZE_t int
 */
 #endif
+

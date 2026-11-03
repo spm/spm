@@ -47,3 +47,4 @@ __global__ void conv_element(float *u, const float *v)
 
     convN(i, j, k, u, v, d, dp, l, lc, bnd);
 }
+

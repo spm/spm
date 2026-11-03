@@ -4,6 +4,12 @@
  */
 
 #include "cuheader.h"
+/* Code based on
+   "On the use of the noncentral chi-square density function
+   for the distribution of helicopter spectral estimates."
+   Garber DP.
+   NASA, Langley Research Center (1993).
+*/
 
 /* Compute log(bessi(nu, z))
    - requires z to be reasonably small to work efficiently
@@ -107,3 +113,5 @@ __device__ float lbessif(float const nu0, float const z0)
         }
     }
 }
+
+
