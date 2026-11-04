@@ -123,6 +123,9 @@ case {'.'}
             if ~isnumeric(val1) || ndims(val1)~=2 || any(size(val1)~=[4 4]) || sum((val1(4,:)-[0 0 0 1]).^2)>1e-8
                 error('"mat" should be a 4x4 matrix, with a last row of 0,0,0,1.');
             end
+            if isfield(obj.extras,'mat') && size(obj.extras.mat,3)>=1
+                obj.extras.mat(:,:,1) = val1;
+            end
             if obj.hdr.sform_code==0, obj.hdr.sform_code=2; end
             s = double(bitand(obj.hdr.xyzt_units,7));
             if s

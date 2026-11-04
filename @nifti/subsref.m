@@ -97,7 +97,9 @@ case {'.'}
             end
 
         case 'mat'
-            if h.sform_code > 0
+            if isfield(opt.extras,'mat') && size(obj.extras.mat,3)>=1
+                t = opt.extras.mat(:,:,1);
+            elseif h.sform_code > 0
                 t = double([h.srow_x ; h.srow_y ; h.srow_z ; 0 0 0 1]);
                 t = t * [eye(4,3) [-1 -1 -1 1]'];
             else
