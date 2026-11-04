@@ -206,7 +206,7 @@ n          = nx + nu + nw + noises;       % total state vector dimension
 nPts       = 2*n;                         % number of cubature points
 CubPtArray = sqrt(n)*[eye(n) -eye(n)];    % cubature points array
  
-% augment paramter matrix by number of cubature points:
+% augment parameter matrix by number of cubature points:
 %--------------------------------------------------------------------------
 pE   = pE(:,ones(1,nPts));
  

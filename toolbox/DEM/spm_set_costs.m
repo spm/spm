@@ -51,7 +51,7 @@ for m = 1:(Nm - 1)
     %----------------------------------------------------------------------
     sf     = MDP{m}.sB == S;              % factors of stream S 
     s      = [];                          % sequences of states
-    c      = [];                          % contraints on outcomes
+    c      = [];                          % constraints on outcomes
     for si = 1:size(MDP{m}.b{sf},1)
 
         % propagate predictions under this state down hierarchy
@@ -99,18 +99,18 @@ for m = 1:(Nm - 1)
 
     end
 
-    % save contraints on the states of level m of stream S
+    % save constraints on the states of level m of stream S
     %----------------------------------------------------------------------
     C{m} = c;
 
 end
 
 
-% Place contraints in predictions (i.e., outcomes) of initial states
+% Place constraints in predictions (i.e., outcomes) of initial states
 %==========================================================================
 for n = 1:Nm
 
-    % control factors and contraints
+    % control factors and constraints
     %----------------------------------------------------------------------
     Ng    = numel(MDP{n}.a);                 % number of modalities
     Nf    = numel(MDP{n}.b);                 % number of factors
@@ -155,7 +155,7 @@ for n = 2:Nm
            end
        end
 
-       % and implement contraints on its predictions
+       % and implement constraints on its predictions
        %-------------------------------------------------------------------
        MDP{n}.C{g} = spm_softmax(C{n - 1},chi);
 

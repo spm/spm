@@ -54,7 +54,7 @@ function [pE,pC] = spm_dcm_neural_priors(A,B,C,model)
 %==========================================================================
 if isstruct(model)
     
-    % check source specificaton
+    % check source specification
     %--------------------------------------------------------------------------
     if numel(model) ~= size(A{1},1)
         error('please enure source number and DCM.option.model are consistent')

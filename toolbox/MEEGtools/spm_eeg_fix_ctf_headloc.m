@@ -699,7 +699,7 @@ elseif isfield(hdr, 'sensor') && isfield(hdr.sensor, 'info')
   end
   
 else
-  ft_error('unknown header to contruct gradiometer definition');
+  ft_error('unknown header to construct gradiometer definition');
 end
 
 % chantype and chanunit are required as of 2016, see FT_DATATYPE_SENS

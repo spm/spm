@@ -56,7 +56,7 @@ brain = gifti(fullfile(spm('dir'), 'canonical','cortex_5124.surf.gii'));
 iskull = gifti(fullfile(spm('dir'), 'canonical','iskull_2562.surf.gii'));
 oskull = gifti(fullfile(spm('dir'), 'canonical','oskull_2562.surf.gii'));
 
-%- head space --> template (6 paramater)
+%- head space --> template (6 parameter)
 %--------------------------------------------------------------------------
 
 if ~isfield(S, 'templatefid')
@@ -70,7 +70,7 @@ head2templatescalp = spm_eeg_inv_rigidreg(fid_template,S.fiducials');
 scalpTemplate6 = spm_mesh_transform(Native,head2templatescalp);
 %mesh_plot(scalpTemplate6,scalp);
 
-%- sensors --> template (6 paramater)
+%- sensors --> template (6 parameter)
 %--------------------------------------------------------------------------
 sens = S.D.sensors('MEG');
 s = sens.coilpos;
@@ -97,7 +97,7 @@ cut = (p(:,2)<ml(2)) | (p(:,2)>mr(2)) ;
 p(cut,:) =[];
 
 
-%- affine registration (12 paramater) 
+%- affine registration (12 parameter) 
 
 %--------------------------------------------------------------------------
 hmm= spm_eeg_inv_icp(double(scalp.vertices'),p',[],[],[],[],S.affine);

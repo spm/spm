@@ -120,7 +120,7 @@ if length(Sess(s).U) >= i
     axis tight
     grid on
 
-    % if a paramteric variate is specified
+    % if a parametric variate is specified
     %---------------------------------------------------------------
     for p = 1:length(Sess(s).U(i).P)
 

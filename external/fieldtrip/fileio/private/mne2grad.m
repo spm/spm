@@ -285,7 +285,7 @@ else
   % how many coils in total?
   nCoils = nPlaGrad*2 + nMag + nAxGrad*2;
   
-  % intialise grad structure
+  % initialise grad structure
   grad.coilpos  = zeros(nCoils,3);
   grad.coilori  = zeros(nCoils,3);
   grad.tra      = zeros(nSensors,nCoils);
