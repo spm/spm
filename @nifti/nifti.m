@@ -27,14 +27,6 @@ case 1
         if ~isfield(vol.hdr,'magic')
             vol.hdr = mayo2nifti1(vol.hdr);
 
-            % For SPM99 compatibility
-            if isfield(extras,'M') && ~isfield(extras,'mat')
-                 extras.mat = extras.M;
-                 if spm_flip_analyze_images
-                     extras.mat = diag([-1 1 1 1])*extras.mat;
-                 end
-            end
-
             % Over-ride sform if a .mat file exists
             if isfield(extras,'mat') && size(extras.mat,3)>=1
                 mat            = extras.mat(:,:,1);
@@ -46,11 +38,6 @@ case 1
                 vol.hdr.qform_code = 2;
                 vol.hdr = encode_qform0(mat,vol.hdr);
             end
-        end
-
-        if isfield(extras,'M'), extras = rmfield(extras,'M'); end
-        if isfield(extras,'mat') && size(extras.mat,3)<=1
-            extras = rmfield(extras,'mat');
         end
 
         dim   = double(vol.hdr.dim);
