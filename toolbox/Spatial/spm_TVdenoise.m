@@ -57,6 +57,8 @@ if isa(x,'gpuArray')
     %fprintf('\n');
 else
     loadlib('TVdenoise3d');
-    y = calllib('TVdenoise3d','TVdenoise3d', y, x, usize(d), single(vox), single(lambdap.^2), single(lambdal), uint32(nit));
+    for it=1:nit
+        y = calllib('TVdenoise3d','TVdenoise3d', y, x, usize(d), single(vox), single(lambdap.^2), single(lambdal));
+    end
     y = reshape(y,d); % Needed because callib seems to return 2D arrays only
 end
