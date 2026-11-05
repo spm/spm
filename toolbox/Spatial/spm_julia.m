@@ -32,6 +32,37 @@ function varargout = spm_julia(opt, varargin)
 % For more information about the Julia language, see https://julialang.org/
 %__________________________________________________________________________
 
+% There are a few issues, particularly on Windows.
+%     For some, a possibe fix is as follows (suggested by Copilot):
+%     If you originally ran the Julia installer or a command prompt as an Administrator,
+%     Windows may have written the cache files inside your .julia folder with ownership
+%     tied exclusively to the Admin account. Your normal user account can no longer 
+%     overwrite or execute them.
+%     1. Open your file explorer and navigate to your user directory: C:\Users\YourUsername\
+%     2. Find the folder named .julia.
+%     3. Right-click the .julia folder and select Properties.
+%     4. Go to the Security tab, then click the Advanced button at the bottom.
+%     5. At the very top, look at the Owner field. If it says SYSTEM or Administrator, click Change.
+%     6. Type your exact Windows username into the box, click Check Names, and click OK.
+%     7. Crucial: Check the box right below it that says "Replace owner on subcontainers and objects".
+%     8. At the bottom of the window, also check the box that says
+%        "Replace all child object permission entries with inheritable permission entries from this object".
+%     9. Click Apply and OK
+%
+%     Another Windows issue encountered was to do with Flux not compiling. The earliest part
+%     of the error message was "lld: error: undefined symbol: julia.gpu.debug_level", with lots
+%     of things related to SPIRVIntrinsics. This error occurred with Flux 0.16.15
+%     (where the manifest had GPUArrays 12.2.0, KernelAbstractions 0.10.4, LLVM 10.4.3,
+%     and SPIRVIntrinsics 1.6.0). The linker error explicitly references SPIR-V and Julia GPU symbols.
+%     In contrast, all was fine with Flux 0.16.10 (where the manifest had GPUArrays 11.5.3 and
+%     KernelAbstractions 0.9.41, and doesn’t include SPIRVIntrinsics). The fix was to pin
+%     Flux v0.16.10 using:
+%         spm_julia('using Pkg; Pkg.add(name="Flux", version="0.16.10")')
+%         spm_julia('using Pkg; Pkg.pin(name="Flux", version="0.16.10")')
+%
+
+% 
+
 % John Ashburner
 % Copyright (C) 2026 Functional Imaging Lab, UCL Institute of Neurology
 
