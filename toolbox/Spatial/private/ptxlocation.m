@@ -7,9 +7,10 @@ function ptx = ptxlocation(nam)
 % Copyright (C) 2023 Wellcome Centre for Human Neuroimaging
 
 
-d = fileparts(mfilename('fullpath'));
-ptx = fullfile(d,'..','lib',parallel.gpu.ptxext);
+d    = fileparts(mfilename('fullpath'));
+%ptx = fullfile(d,'..','lib',parallel.gpu.ptxext);
+ptx  = fullfile(d,'..','lib','ptx');
 
-if nargin
+if nargin >= 1
     ptx = spm_file(nam,'path',ptx,'ext','.ptx');
 end
