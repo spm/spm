@@ -1,6 +1,6 @@
 /*
  * John Ashburner
- * Copyright (C) 2023 Wellcome Centre for Human Neuroimaging
+ * Copyright (C) 2023 Department of Imaging Neuroscience, UCL
  */
 
 #define CUDA
@@ -20,14 +20,14 @@ __global__ void TVdenoise3d(float *y, const float *x)
     USIZE_t i, j, k;
 
     /* Leaves edge voxels alone */
-    k = (blockIdx.z*blockDim.z + threadIdx.z)*2 + 1 + o[2];
-    if (k>=d[2]-1) return;
+    k = (blockIdx.z*blockDim.z + threadIdx.z)*2 + o[2];
+    if (k>=d[2]) return;
 
-    j = (blockIdx.y*blockDim.y + threadIdx.y)*2 + 1 + o[1];
-    if (j>=d[1]-1) return;
+    j = (blockIdx.y*blockDim.y + threadIdx.y)*2 + o[1];
+    if (j>=d[1]) return;
 
-    i = (blockIdx.x*blockDim.x + threadIdx.x)*2 + 1 + o[0];
-    if (i>=d[0]-1) return;
+    i = (blockIdx.x*blockDim.x + threadIdx.x)*2 + o[0];
+    if (i>=d[0]) return;
 
     TVdenoise3d_dev(i, j, k, y, x, d, vox, lambdap, lambdal);
 }
@@ -37,14 +37,14 @@ __global__ void TVdenoise3d_fast(float *y, const float *x)
     USIZE_t i, j, k;
 
     /* Leaves edge voxels alone */
-    k = (blockIdx.z*blockDim.z + threadIdx.z)*2 + 1 + o[2];
-    if (k>=d[2]-1) return;
+    k = (blockIdx.z*blockDim.z + threadIdx.z)*2 + o[2];
+    if (k>=d[2]) return;
 
-    j = (blockIdx.y*blockDim.y + threadIdx.y)*2 + 1 + o[1];
-    if (j>=d[1]-1) return;
+    j = (blockIdx.y*blockDim.y + threadIdx.y)*2 + o[1];
+    if (j>=d[1]) return;
 
-    i = (blockIdx.x*blockDim.x + threadIdx.x)*2 + 1 + o[0];
-    if (i>=d[0]-1) return;
+    i = (blockIdx.x*blockDim.x + threadIdx.x)*2 + o[0];
+    if (i>=d[0]) return;
 
     TVdenoise3d_fast_dev(i, j, k, y, x, d, vox, lambdap, lambdal);
 }

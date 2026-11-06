@@ -1,22 +1,30 @@
+# The lib files can be compiled through github actions
+# but this is not done for the ptx files as it requires
+# payment. Therefore some messing about is needed in terms
+# of downloading the artifacts from github (with potential
+# problems due to security), unzipping and making ptx
+# ptx fies locally. The tar.gz file is then generated and
+# the Artifacts.toml edited to contain the appropriate SHA.
+
 include Makefile.var
 
-#PTXFILES = pushpull.ptx lbessi.ptx operator.ptx shootfun.ptx TVdenoise3d.ptx TVdenoise2d.ptx TVdenoise2d_old.ptx
-PTXFILES = pushpull.ptx lbessi.ptx operator.ptx TVdenoise3d.ptx TVdenoise2d.ptx
-LIBFILES = pushpull.$(SOSUF) TVdenoise3d.$(SOSUF)
+PTXFILES = pushpull.ptx lbessi.ptx sparse_operator.ptx TVdenoise3d.ptx TVdenoise2d.ptx blip.ptx
+LIBFILES = pushpull.$(SOSUF) TVdenoise3d.$(SOSUF) sparse_operator.$(SOSUF) blip.$(SOSUF)
+PPLIB    = ../pp_lib.tar.gz
 
-CUDA_VERSION := $(shell $(NVCC) --version 2> /dev/null)
-ifndef CUDA_VERSION
-	PTXFILES =
-	PTXDIR =
-endif
+all: $(LIBFILES)
 
-all: $(PTXFILES) $(LIBFILES)
+ptx: $(PTXFILES)
 
-install: all $(PTXDIR) $(LIBDIR)
-ifdef CUDA_VERSION
-	$(COPY) $(PTXFILES) $(PTXDIR)
-endif
+install: all $(LIBDIR)
 	$(COPY) $(LIBFILES) $(LIBDIR)
+
+install-ptx: ptx $(PTXDIR) 
+	$(COPY) $(PTXFILES) $(PTXDIR)
+
+tarfile:
+	tar -C .. -cvf - lib | gzip -v > $(PPLIB)
+	julia get_sha.jl $(PPLIB)
 
 clean:
 	$(DEL) $(PTXFILES) $(LIBFILES)
@@ -32,3 +40,6 @@ $(PTXDIR) :
 
 $(LIBDIR) :
 	$(MKDIR) $(LIBDIR)
+
+
+

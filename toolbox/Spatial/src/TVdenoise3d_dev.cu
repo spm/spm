@@ -1,6 +1,6 @@
 /*
  * John Ashburner
- * Copyright (C) 2023 Wellcome Centre for Human Neuroimaging
+ * Copyright (C) 2023 Department of Imaging Neuroscience, UCL
  */
 
 #define SQUARE(x) (_t=(x), _t*_t)
@@ -14,12 +14,33 @@ __device__ void TVdenoise3d_fast_dev(USIZE_t i, USIZE_t j, USIZE_t k, float y[],
     float   _t, ws, w0 = 0.0f, w1 = 0.0f, w2 = 0.0f, w3 = 0.0f;
     float   *yp, yb[MAXVOL][6], *ybp;
     float rv0 = 1.0f/vox[0]/vox[0], rv1 = 1.0f/vox[1]/vox[1], rv2 = 1.0f/vox[2]/vox[2];
+    SSIZE_t i1p, i1n, j1p, j1n, k1p, k1n;
+
+    i1n = (i>0)      ?  -1  : 0;
+    i1p = (i<d[0]-1) ?   1  : 0;
+    j1n = (j>0)      ? -d0  : 0;
+    j1p = (j<d[1]-1) ?  d0  : 0;
+    k1n = (k>0)      ? -d01 : 0;
+    k1p = (k<d[2]-1) ?  d01 : 0;
 
     for(m=0, yp=y+ijk; m<d[3]; m++, yp+=n)
     {
         float lambdap_m = lambdap[m];
         float yt[3][3][3];
 
+        yt[0][0][0] = yp[i1n+j1n+k1n]; yt[0][0][1] = yp[ j1n+k1n]; yt[0][0][2] = yp[i1p+j1n+k1n];
+        yt[0][1][0] = yp[i1n    +k1n]; yt[0][1][1] = yp[     k1n]; yt[0][1][2] = yp[i1p    +k1n];
+        yt[0][2][0] = yp[i1n+j1p+k1n]; yt[0][2][1] = yp[ j1p+k1n]; yt[0][2][2] = yp[i1p+j1p+k1n];
+
+        yt[1][0][0] = yp[i1n+j1n    ]; yt[1][0][1] = yp[ j1n    ]; yt[1][0][2] = yp[i1p+j1n    ];
+        yt[1][1][0] = yp[i1n        ]; yt[1][1][1] = *yp         ; yt[1][1][2] = yp[i1p        ];
+        yt[1][2][0] = yp[i1n+j1p    ]; yt[1][2][1] = yp[ j1p    ]; yt[1][2][2] = yp[i1p+j1p    ];
+
+        yt[2][0][0] = yp[i1n+j1n+k1p]; yt[2][0][1] = yp[ j1n+k1p]; yt[2][0][2] = yp[i1p+j1n+k1p];
+        yt[2][1][0] = yp[i1n    +k1p]; yt[2][1][1] = yp[     k1p]; yt[2][1][2] = yp[i1p    +k1p];
+        yt[2][2][0] = yp[i1n+j1p+k1p]; yt[2][2][1] = yp[ j1p+k1p]; yt[2][2][2] = yp[i1p+j1p+k1p];
+
+        /*
         yt[0][0][0] = yp[-1-d0-d01]; yt[0][0][1] = yp[  -d0-d01]; yt[0][0][2] = yp[ 1-d0-d01];
         yt[0][1][0] = yp[-1   -d01]; yt[0][1][1] = yp[     -d01]; yt[0][1][2] = yp[ 1   -d01];
         yt[0][2][0] = yp[-1+d0-d01]; yt[0][2][1] = yp[  +d0-d01]; yt[0][2][2] = yp[ 1+d0-d01];
@@ -31,6 +52,7 @@ __device__ void TVdenoise3d_fast_dev(USIZE_t i, USIZE_t j, USIZE_t k, float y[],
         yt[2][0][0] = yp[-1-d0+d01]; yt[2][0][1] = yp[  -d0+d01]; yt[2][0][2] = yp[ 1-d0+d01];
         yt[2][1][0] = yp[-1   +d01]; yt[2][1][1] = yp[      d01]; yt[2][1][2] = yp[ 1   +d01];
         yt[2][2][0] = yp[-1+d0+d01]; yt[2][2][1] = yp[  +d0+d01]; yt[2][2][2] = yp[ 1+d0+d01];
+        */
 
         ybp    = yb[m];
         ybp[0] = yt[0][1][1];
@@ -74,6 +96,15 @@ __device__ void TVdenoise3d_dev(USIZE_t i, USIZE_t j, USIZE_t k, float y[], cons
     float   *yp, yb[MAXVOL][6], *ybp;
     float eta[32];
     float rv0 = 1.0f/vox[0]/vox[0], rv1 = 1.0f/vox[1]/vox[1], rv2 = 1.0f/vox[2]/vox[2];
+    SSIZE_t i1p, i1n, j1p, j1n, k1p, k1n;
+
+    i1n = (i>0)      ?  -1  : 0;
+    i1p = (i<d[0]-1) ?   1  : 0;
+    j1n = (j>0)      ? -d0  : 0;
+    j1p = (j<d[1]-1) ?  d0  : 0;
+    k1n = (k>0)      ? -d01 : 0;
+    k1p = (k<d[2]-1) ?  d01 : 0;
+
     /*
         Solving the L1 regularisation problem involves minimising |y| = \frac{y^2}{2\eta} + \frac{\eta}{2}.
         This is achieved by alternating between:
@@ -97,6 +128,19 @@ __device__ void TVdenoise3d_dev(USIZE_t i, USIZE_t j, USIZE_t k, float y[], cons
         float yc, _t, t, s, t0a, t0b, t1a, t1b, t2a, t2b;
 
         /* Get the 3x3x3 patch */
+        yt[0][0][0] = yp[i1n+j1n+k1n]; yt[0][0][1] = yp[ j1n+k1n]; yt[0][0][2] = yp[i1p+j1n+k1n];
+        yt[0][1][0] = yp[i1n    +k1n]; yt[0][1][1] = yp[     k1n]; yt[0][1][2] = yp[i1p    +k1n];
+        yt[0][2][0] = yp[i1n+j1p+k1n]; yt[0][2][1] = yp[ j1p+k1n]; yt[0][2][2] = yp[i1p+j1p+k1n];
+
+        yt[1][0][0] = yp[i1n+j1n    ]; yt[1][0][1] = yp[ j1n    ]; yt[1][0][2] = yp[i1p+j1n    ];
+        yt[1][1][0] = yp[i1n        ]; yt[1][1][1] = *yp         ; yt[1][1][2] = yp[i1p        ];
+        yt[1][2][0] = yp[i1n+j1p    ]; yt[1][2][1] = yp[ j1p    ]; yt[1][2][2] = yp[i1p+j1p    ];
+
+        yt[2][0][0] = yp[i1n+j1n+k1p]; yt[2][0][1] = yp[ j1n+k1p]; yt[2][0][2] = yp[i1p+j1n+k1p];
+        yt[2][1][0] = yp[i1n    +k1p]; yt[2][1][1] = yp[     k1p]; yt[2][1][2] = yp[i1p    +k1p];
+        yt[2][2][0] = yp[i1n+j1p+k1p]; yt[2][2][1] = yp[ j1p+k1p]; yt[2][2][2] = yp[i1p+j1p+k1p];
+
+        /*
         yt[0][0][0] = yp[-1-d0-d01]; yt[0][0][1] = yp[  -d0-d01]; yt[0][0][2] = yp[ 1-d0-d01];
         yt[0][1][0] = yp[-1   -d01]; yt[0][1][1] = yp[     -d01]; yt[0][1][2] = yp[ 1   -d01];
         yt[0][2][0] = yp[-1+d0-d01]; yt[0][2][1] = yp[  +d0-d01]; yt[0][2][2] = yp[ 1+d0-d01];
@@ -108,6 +152,7 @@ __device__ void TVdenoise3d_dev(USIZE_t i, USIZE_t j, USIZE_t k, float y[], cons
         yt[2][0][0] = yp[-1-d0+d01]; yt[2][0][1] = yp[  -d0+d01]; yt[2][0][2] = yp[ 1-d0+d01];
         yt[2][1][0] = yp[-1   +d01]; yt[2][1][1] = yp[      d01]; yt[2][1][2] = yp[ 1   +d01];
         yt[2][2][0] = yp[-1+d0+d01]; yt[2][2][1] = yp[  +d0+d01]; yt[2][2][2] = yp[ 1+d0+d01];
+        */
 
         yc     = *yp;         /* Central voxel */
         ybp    = yb[m];       /* Pointer for this volume */

@@ -40,13 +40,13 @@ if isa(x,'gpuArray')
     %funchan = 'TVdenoise3d_fast';
     funchan = 'TVdenoise3d';
     kernel  = parallel.gpu.CUDAKernel(ptxfile, cproto, funchan);
-    kernel  = threadblocks(kernel,ceil((d(1:3)-2)/2));
+    kernel  = threadblocks(kernel,ceil((d(1:3))/2));
 
     setConstantMemory(kernel,'d',usize(d), 'vox',single(vox), 'lambdap',single(lambdap.^2), 'lambdal',single(lambdal));
     for it=1:nit
-        for ok=0:2
-            for oj=0:2
-                for oi=0:2
+        for ok=0:1
+            for oj=0:1
+                for oi=0:1
                     setConstantMemory(kernel,'o',usize([oi oj ok]));
                     y  = feval(kernel, y, x);
                 end

@@ -1,6 +1,6 @@
 /*
  * John Ashburner
- * Copyright (C) 2023 Wellcome Centre for Human Neuroimaging
+ * Copyright (C) 2023 Department of Imaging Neuroscience, UCL
  */
 
 #define USIZE_t unsigned long long /* Done because of problems in Windows */
