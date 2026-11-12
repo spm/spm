@@ -54,16 +54,16 @@ title('Log stability','Fontsize',16), xlabel('log(dx)')
 axis square, spm_axis tight
 
 subplot(2,2,2), imagesc(1:np,dx,log(ssd))
-title('Log stability','Fontsize',16), xlabel('Paramter mode')
+title('Log stability','Fontsize',16), xlabel('Parameter mode')
 axis square, ylabel('log(dx)')
 
 subplot(2,2,3), plot(log(ssd(j,:)))
-title(str,'Fontsize',16), xlabel('Paramter mode')
+title(str,'Fontsize',16), xlabel('Parameter mode')
 axis square, spm_axis tight
 
 if iscell(varargin{end})
     V = varargin{end};
     subplot(2,2,4), imagesc(V{1})
-    title('Paramter modes','Fontsize',16), xlabel('Paramter mode')
+    title('Parameter modes','Fontsize',16), xlabel('Parameter mode')
     axis square, ylabel('parameter')
 end

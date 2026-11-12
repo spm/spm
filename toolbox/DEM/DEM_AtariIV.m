@@ -132,7 +132,7 @@ MDP   = spm_parameter_learning(MDP,GDP,L,NT,NR,NO);
 % assemble RGM
 %--------------------------------------------------------------------------
 RDP   = spm_set_goals(MDP,[2,3],[C,-C]);    % set intended states (hid/cid)
-RDP   = spm_set_costs(RDP,[2,3],[C,-C]);    % set contraints (C)
+RDP   = spm_set_costs(RDP,[2,3],[C,-C]);    % set constraints (C)
 RDP   = spm_mdp2rdp(RDP);                   % get nested model
 RDP.T = fix(512/T);
 PDP   = spm_MDP_VB_XXX(RDP);
@@ -221,7 +221,7 @@ xlabel('latent states'), ylabel('time steps'), axis square
 %--------------------------------------------------------------------------
 RDP   = spm_RDP_MI(MDP);                   % lossless merge 
 RDP   = spm_set_goals(RDP,[2,3],[C,-C]);   % set intended states (hid/cid)
-RDP   = spm_set_costs(RDP,[2,3],[C,-C]);   % set contraints (C)
+RDP   = spm_set_costs(RDP,[2,3],[C,-C]);   % set constraints (C)
 RDP   = spm_mdp2rdp(RDP,0,1/NS);           % get nested model
 
 % active inference and learning

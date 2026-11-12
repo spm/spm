@@ -1911,7 +1911,7 @@ static void cdfbin(int *which,double *p,double *q,double *s,double *xn,
                iwhich = 4 : Calculate PR and OMPR from P,Q,S and XN
 
      P <--> The cumulation from 0 to S of the binomial distribution.
-            (Probablility of S or fewer successes in XN trials each
+            (Probability of S or fewer successes in XN trials each
             with probability of success PR.)
             Input range: [0,1].
 
@@ -4895,7 +4895,7 @@ static void cumbet(double *x,double *y,double *a,double *b,double *cum,
 
                                    References
 
-     Didonato, Armido R. and Morris, Alfred H. Jr. (1992) Algorithim
+     Didonato, Armido R. and Morris, Alfred H. Jr. (1992) Algorithm
      708 Significant Digit Computation of the Incomplete Beta Function
      Ratios. ACM ToMS, Vol.18, No. 3, Sept. 1992, 360-373.
 
@@ -5147,7 +5147,7 @@ S20:
     xnonc = *pnonc/2.0e0;
 /*
 **********************************************************************
-     The following code calcualtes the weight, chi-square, and
+     The following code calculates the weight, chi-square, and
      adjustment term for the central term in the infinite series.
      The central term is the one in which the poisson weight is
      greatest.  The adjustment term is the amount that must

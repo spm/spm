@@ -81,7 +81,7 @@ for f = 1:Nf
 
 end
 
-% numbber of outcome modalities and outcomes
+% number of outcome modalities and outcomes
 %--------------------------------------------------------------------------
 Ng    = numel(MDP.A);                      % number of outcome factors
 for g = 1:Ng

@@ -256,7 +256,7 @@ consists of a single phase and magnitude image.
 
 This creates an unwrapped field map in Hz which is stored in memory.
 The field map is also converted to a voxel displacement map (VDM) 
-using the default paramaters and is written out with the filename
+using the default parameters and is written out with the filename
 vdm_NAME-OF-FIRST-INPUT-IMAGE.img overwriting any previous copy of 
 the .img file but not the .mat file. The VDM file can be used as the
 optional input field map for Realign * Unwarping in SPM2.

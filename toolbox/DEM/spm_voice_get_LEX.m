@@ -150,7 +150,7 @@ for i = 1:4
         %------------------------------------------------------------------
         for s = 1:ns
             
-            % esimate variations in prosody from expansion point
+            % estimate variations in prosody from expansion point
             %--------------------------------------------------------------
             dP(:,s)  = Cp\(X'*iqC*xY(w,s).W(:) + ipC*pE);
             

@@ -10,7 +10,7 @@ function DEMO_DCM_PEB_FIT
 % Bayesian model comparison  (and averages) at the between subject level.
 %
 % This demo considers a single goup (e.g., of normal subjects) and the
-% differences between the group average using emprical Bayesian reduction
+% differences between the group average using empirical Bayesian reduction
 % and the Bayesian reduction of the (grand) average response.
 %
 % See also: DEMO_DCM_PEB_REC.m

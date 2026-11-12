@@ -15,7 +15,7 @@ function [P,C] = spm_immune_priors
 P.n   = -2;            % Scaling for pre-existing (cross-reactive) immunity
 P.m   =  0;            % Initial viral load
 
-% Parameters of transition probablities (log probabilities)
+% Parameters of transition probabilities (log probabilities)
 %--------------------------------------------------------------------------
 P.dAb = -6;              % Decay of antibodies over time (IgM)
 P.dAbG= -8;              % Decay of antibodies over time (IgG)

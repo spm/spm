@@ -295,7 +295,7 @@ sim.Emb    = d2;              % conditional expectation of mach band effect
 sim.Vcs    = v1;              % conditional dispersion of Cornsweet effect
 sim.Vmb    = v2;              % conditional dispersion of mach band effect
  
-% add emprical contrasts that were used
+% add empirical contrasts that were used
 %--------------------------------------------------------------------------
 sim.Con_cs = cornsweet.cornsweet;
 sim.Con_mb = mach.machContrast;

@@ -40,7 +40,7 @@ S.BF = 'path/to/BF';
 ```
 
 #### reduce_rank
-Specify how many degrees of freedom we want in our forward solutions (for a given source) for both MEG and EEG simultaneously. Typically for most use cases we specify 2 for MEG (due to the silent radial compenent) and 3 for EEG. However there are some cases where this might be different (e.g. magnetic dipole modelling with MEG).
+Specify how many degrees of freedom we want in our forward solutions (for a given source) for both MEG and EEG simultaneously. Typically for most use cases we specify 2 for MEG (due to the silent radial component) and 3 for EEG. However there are some cases where this might be different (e.g. magnetic dipole modelling with MEG).
 A two element vector is required, the first element is the MEG degrees of freedom and the second the EEG. (Both elements requied even if you are only using one modality).
 
 ```matlab
@@ -108,7 +108,7 @@ S.visualise = true;
 
 ### grid
 
-This pugin facilitates seting up a regular volumetric grid within a spefied region of the brain. Good for spatial filter methods (such as beamformers) but can be used in other cases if you want.
+This pugin facilitates seting up a regular volumetric grid within a specified region of the brain. Good for spatial filter methods (such as beamformers) but can be used in other cases if you want.
 
 #### resolution
 Select the resolution of the grid (in mm)
@@ -128,7 +128,7 @@ S.grid.resolution = 5;
 ```
 
 #### space
-Select the space which the grid is contructed before moving to the invdividual.
+Select the space which the grid is constructed before moving to the invdividual.
 
 Options
 - MNI template _(Default, recommended)._ Grid constucted in MNI space and then warped back into the space defined in the [data](01_data.md) module. 

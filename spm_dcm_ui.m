@@ -168,7 +168,7 @@ case 'estimate (cross-spectra)',
     end
 
 %==========================================================================
-% Esimate and search a model set
+% Estimate and search a model set
 %==========================================================================
 case 'search',
 
