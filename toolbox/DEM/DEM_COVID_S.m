@@ -150,15 +150,15 @@ pC.Rou = logical(Rou)/256;
 
 % complete model specification
 %--------------------------------------------------------------------------
-M.date = datestr(dn(1),'dd-mm-yyyy'); % date of first time point
-M.G    = @spm_COVID_S;                % generative function
-M.FS   = @(Y)sqrt(Y);                 % feature selection  (link function)
-M.pE   = pE;                          % prior expectations (parameters)
-M.pC   = pC;                          % prior covariances  (parameters)
-M.hE   = [0 -2];                      % prior expectation  (log-precision)
-M.hC   = 1/512;                       % prior covariances  (log-precision)
-M.T    = size(Y,1);                   % number of samples
-U      = 1:(ns + 1);                  % outputs to model
+M.date = datestr(dn(1),'dd-mmm-yyyy'); % date of first time point
+M.G    = @spm_COVID_S;                 % generative function
+M.FS   = @(Y)sqrt(Y);                  % feature selection  (link function)
+M.pE   = pE;                           % prior expectations (parameters)
+M.pC   = pC;                           % prior covariances  (parameters)
+M.hE   = [0 -2];                       % prior expectation  (log-precision)
+M.hC   = 1/512;                        % prior covariances  (log-precision)
+M.T    = size(Y,1);                    % number of samples
+U      = 1:(ns + 1);                   % outputs to model
 
 % model inversion with Variational Laplace (Gauss Newton)
 %--------------------------------------------------------------------------

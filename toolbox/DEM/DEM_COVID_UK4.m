@@ -33,6 +33,14 @@ clc
 spm_figure('GetWin','SI'); clf;
 cd('C:\Users\karl\Dropbox\Coronavirus\Dashboard')
 
+% set final date for retrospective analyses. Full analysis: '01-Dec-2023'
+%==========================================================================
+global DATE
+date = '22-Mar-2023';
+date = '01-Jul-2022';
+DATE = date;
+%--------------------------------------------------------------------------
+
 % Files to be updated by hand
 %--------------------------------------------------------------------------
 % url = 'https://www.ons.gov.uk/file?uri=/peoplepopulationandcommunity/healthandsocialcare/conditionsanddiseases/datasets/coronaviruscovid19antibodydatafortheuk/2021/20210414covid19infectionsurveydatasets.xlsx'
@@ -41,74 +49,96 @@ cd('C:\Users\karl\Dropbox\Coronavirus\Dashboard')
 % writetable(webread(url,options),'place.csv');
 
 
-%% web options
+%% web options : all deprecated in Dec 2023
 %--------------------------------------------------------------------------
-options = weboptions('ContentType','table');
-options.Timeout = 40;
+% options = weboptions('ContentType','table');
+% options.Timeout = 40;
+% 
+% % download data and write to CSV files
+% %--------------------------------------------------------------------------
+% url = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=nation&areaCode=E92000001&metric=newCasesBySpecimenDate&format=csv';
+% writetable(webread(url,options),'cases.csv');
+% url = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=nation&areaCode=E92000001&metric=newTestsByPublishDate&format=csv';
+% writetable(webread(url,options),'tests.csv');
+% url = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=nation&areaCode=E92000001&metric=newAdmissions&format=csv';
+% writetable(webread(url,options),'admissions.csv');
+% url = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=overview&metric=newOnsDeathsByRegistrationDate&format=csv';
+% writetable(webread(url,options),'certified.csv');
+% url = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=nation&areaCode=E92000001&metric=uniqueCasePositivityBySpecimenDateRollingSum&format=csv';
+% writetable(webread(url,options),'positivity.csv');
+% url = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=nation&areaCode=E92000001&metric=newLFDTestsBySpecimenDate&format=csv';
+% writetable(webread(url,options),'lateralft.csv');
+% url = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=nation&areaCode=E92000001&metric=cumVaccinesGivenByPublishDate&format=csv';
+% writetable(webread(url,options),'vaccines.csv');
+% 
+% % get cases by age (England)
+% %----------------------------------------------------------------------
+% url   = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=nation&areaCode=E92000001&metric=newCasesBySpecimenDateAgeDemographics&format=csv';
+% tab   = webread(url,options);
+% vname = tab.Properties.VariableNames;
+% aa    = find(ismember(vname,'age'));
+% ad    = find(ismember(vname,'date'));
+% an    = find(ismember(vname,'cases'));
+% age   = unique(tab(:,aa));
+% for r = 1:numel(age)
+%     j = find(ismember(tab(:,aa),age(r,1)));
+%     agecases(:,1)     = tab(j,ad);
+%     agecases(:,r + 1) = tab(j,an);
+% end
+% try
+%     agecases = renamevars(agecases,(1:numel(age)) + 1,table2array(age));
+% end
+% writetable(agecases,'agecases.csv')
+% 
+% % get (cumulative) admissions by age (England)
+% %----------------------------------------------------------------------
+% url   = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=nation&areaCode=E92000001&metric=cumAdmissionsByAge&format=csv';
+% tab   = webread(url,options);
+% vname = tab.Properties.VariableNames;
+% aa    = find(ismember(vname,'age'));
+% ad    = find(ismember(vname,'date'));
+% an    = find(ismember(vname,'value'));
+% age   = unique(tab(:,aa));
+% for r = 1:numel(age)
+%     j = find(ismember(tab(:,aa),age(r,1)));
+%     cumAdmiss(:,1)     = tab(j,ad);
+%     cumAdmiss(:,r + 1) = tab(j,an);
+% end
+% try
+%     cumAdmiss = renamevars(cumAdmiss,(1:numel(age)) + 1,table2array(age));
+% end
+% writetable(cumAdmiss,'cumAdmiss.csv')
 
-% download data and write to CSV files
+% DEPRECATED in 2022
 %--------------------------------------------------------------------------
-url = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=nation&areaCode=E92000001&metric=newCasesBySpecimenDate&format=csv';
-writetable(webread(url,options),'cases.csv');
-url = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=nation&areaCode=E92000001&metric=newDeaths28DaysByDeathDate&format=csv';
-writetable(webread(url,options),'deaths.csv');
-url = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=nation&areaCode=E92000001&metric=covidOccupiedMVBeds&format=csv';
-writetable(webread(url,options),'critical.csv');
-url = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=nation&areaCode=E92000001&metric=newTestsByPublishDate&format=csv';
-writetable(webread(url,options),'tests.csv');
-url = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=nation&areaCode=E92000001&metric=newAdmissions&format=csv';
-writetable(webread(url,options),'admissions.csv');
-url = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=overview&metric=hospitalCases&format=csv';
-writetable(webread(url,options),'occupancy.csv');
-url = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=overview&metric=newOnsDeathsByRegistrationDate&format=csv';
-writetable(webread(url,options),'certified.csv');
-url = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=nation&areaCode=E92000001&metric=uniqueCasePositivityBySpecimenDateRollingSum&format=csv';
-writetable(webread(url,options),'positivity.csv');
-url = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=nation&areaCode=E92000001&metric=newLFDTestsBySpecimenDate&format=csv';
-writetable(webread(url,options),'lateralft.csv');
-url = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=nation&areaCode=E92000001&metric=cumAntibodyTestsByPublishDate&format=csv';
-writetable(webread(url,options),'antibody.csv');
-url = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=nation&areaCode=E92000001&metric=cumVaccinesGivenByPublishDate&format=csv';
-writetable(webread(url,options),'vaccines.csv');
+% url = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=nation&areaCode=E92000001&metric=newDeaths28DaysByDeathDate&format=csv';
+% writetable(webread(url,options),'deaths.csv');
+% url = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=nation&areaCode=E92000001&metric=covidOccupiedMVBeds&format=csv';
+% writetable(webread(url,options),'critical.csv');
+% url = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=overview&metric=hospitalCases&format=csv';
+% writetable(webread(url,options),'occupancy.csv');
+% url = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=nation&areaCode=E92000001&metric=cumAntibodyTestsByPublishDate&format=csv';
+% writetable(webread(url,options),'antibody.csv');
 
 
-% get death by age (England)
+% get death by age (England) (deprecated July 23)
 %--------------------------------------------------------------------------
-url   = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=nation&areaCode=E92000001&metric=newDeaths28DaysByDeathDateAgeDemographics&format=csv';
-tab   = webread(url,options);
-vname = tab.Properties.VariableNames;
-aa    = find(ismember(vname,'age'));
-ad    = find(ismember(vname,'date'));
-an    = find(ismember(vname,'deaths'));
-age   = unique(tab(:,aa));
-for r = 1:numel(age)
-    j = find(ismember(tab(:,aa),age(r,1)));
-    agedeaths(:,1)     = tab(j,ad);
-    agedeaths(:,r + 1) = tab(j,an);
-end
-try
-    agedeaths = renamevars(agedeaths,(1:numel(age)) + 1,table2array(age));
-end
-writetable(agedeaths,'agedeaths.csv')
-
-% get cases by age (England)
-%----------------------------------------------------------------------
-url   = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=nation&areaCode=E92000001&metric=newCasesBySpecimenDateAgeDemographics&format=csv';
-tab   = webread(url,options);
-vname = tab.Properties.VariableNames;
-aa    = find(ismember(vname,'age'));
-ad    = find(ismember(vname,'date'));
-an    = find(ismember(vname,'cases'));
-age   = unique(tab(:,aa));
-for r = 1:numel(age)
-    j = find(ismember(tab(:,aa),age(r,1)));
-    agecases(:,1)     = tab(j,ad);
-    agecases(:,r + 1) = tab(j,an);
-end
-try
-    agecases = renamevars(agecases,(1:numel(age)) + 1,table2array(age));
-end
-writetable(agecases,'agecases.csv')
+% url   = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=nation&areaCode=E92000001&metric=newDeaths28DaysByDeathDateAgeDemographics&format=csv';
+% tab   = webread(url,options);
+% vname = tab.Properties.VariableNames;
+% aa    = find(ismember(vname,'age'));
+% ad    = find(ismember(vname,'date'));
+% an    = find(ismember(vname,'deaths'));
+% age   = unique(tab(:,aa));
+% for r = 1:numel(age)
+%     j = find(ismember(tab(:,aa),age(r,1)));
+%     agedeaths(:,1)     = tab(j,ad);
+%     agedeaths(:,r + 1) = tab(j,an);
+% end
+% try
+%     agedeaths = renamevars(agedeaths,(1:numel(age)) + 1,table2array(age));
+% end
+% writetable(agedeaths,'agedeaths.csv')
 
 % get vaccination by age (England)
 %----------------------------------------------------------------------
@@ -129,32 +159,11 @@ writetable(agecases,'agecases.csv')
 % end
 % writetable(agevaccine,'agevaccine.csv')
 
-% get (cumulative) admissions by age (England)
-%----------------------------------------------------------------------
-url   = 'https://api.coronavirus.data.gov.uk/v2/data?areaType=nation&areaCode=E92000001&metric=cumAdmissionsByAge&format=csv';
-tab   = webread(url,options);
-vname = tab.Properties.VariableNames;
-aa    = find(ismember(vname,'age'));
-ad    = find(ismember(vname,'date'));
-an    = find(ismember(vname,'value'));
-age   = unique(tab(:,aa));
-for r = 1:numel(age)
-    j = find(ismember(tab(:,aa),age(r,1)));
-    cumAdmiss(:,1)     = tab(j,ad);
-    cumAdmiss(:,r + 1) = tab(j,an);
-end
-try
-    cumAdmiss = renamevars(cumAdmiss,(1:numel(age)) + 1,table2array(age));
-end
-writetable(cumAdmiss,'cumAdmiss.csv')
-
-
 % mobility and transport : Deprecated April 2022
 %--------------------------------------------------------------------------
 % url  = 'https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/947572/COVID-19-transport-use-statistics.ods.ods';
 % tab  = webread(url,options);
 % writetable(tab(:,1:4),'transport.csv');
-
 
 % Google mobility : Deprecated Oct 2022
 %--------------------------------------------------------------------------
@@ -171,6 +180,10 @@ writetable(cumAdmiss,'cumAdmiss.csv')
 % tab  = readtable(url,opts);
 % i    = ismember(tab{:,1},'GB') & ismember(tab{:,2},'');
 % writetable(tab(i,[3,4,5,6,7,8,9]),'mobility.csv');
+
+
+% population and coeficients
+%==========================================================================
 
 % Country Code  K02000001   K03000001   K04000001   E92000001   W92000004   S92000003   N92000002   
 % All Persons   67,081,234  65,185,724  59,719,724  56,550,138  3,169,586   5,466,000   1,895,510   
@@ -234,7 +247,7 @@ nN  = numel(N);
 
 
 %% import data
-%--------------------------------------------------------------------------
+%==========================================================================
 cases      = importdata('cases.csv');
 deaths     = importdata('deaths.csv');
 ccu        = importdata('critical.csv');
@@ -311,7 +324,7 @@ Y(4).hold = 0;
 Y(5).type = 'Daily deaths (ONS: 28-days)'; % covid-related deaths (28 days)
 Y(5).unit = 'number/day';
 Y(5).U    = 1;
-Y(5).date = datenum(deaths.textdata(2:end,d),'yyyy-mm-dd');
+Y(5).date = datenum(deaths.textdata(2:end,d),'dd/mm/yyyy');
 Y(5).Y    = deaths.data(:,1)*EnglandUK;
 Y(5).h    = 4;
 Y(5).lag  = 1;
@@ -341,7 +354,7 @@ Y(7).hold = 0;
 Y(8).type = 'Occupancy (ONS)'; % Hospital cases (United Kingdom)
 Y(8).unit = 'number';
 Y(8).U    = 27;
-Y(8).date = datenum(occupancy.textdata(2:end,d),'yyyy-mm-dd');
+Y(8).date = datenum(occupancy.textdata(2:end,d),'dd/mm/yyyy');
 Y(8).Y    = occupancy.data(:,1);
 Y(8).h    = 0;
 Y(8).lag  = 1;
@@ -351,7 +364,7 @@ Y(8).hold = 0;
 Y(9).type = 'Ventilated patients (ONS)'; % CCU occupancy (England)
 Y(9).unit = 'number';
 Y(9).U    = 3;
-Y(9).date = datenum(ccu.textdata(2:end,d),'yyyy-mm-dd');
+Y(9).date = datenum(ccu.textdata(2:end,d),'dd/mm/yyyy');
 Y(9).Y    = ccu.data(:,1)*EnglandUK;
 Y(9).h    = 0;
 Y(9).lag  = 0;
@@ -512,7 +525,7 @@ ig4        = [17 18 19 20 21];                       % >70
 Y(23).type = 'Deaths <15(PHE)'; % deaths (English hospitals)
 Y(23).unit = 'number';
 Y(23).U    = 1;
-Y(23).date = datenum(agedeaths.textdata(2:end,1),'yyyy-mm-dd');
+Y(23).date = datenum(agedeaths.textdata(2:end,1),'dd/mm/yyyy');
 Y(23).Y    = sum(agedeaths.data(:,ig1),2)*EnglandUK;
 Y(23).h    = 2;
 Y(23).lag  = 0;
@@ -522,7 +535,7 @@ Y(23).hold = 1;
 Y(24).type = 'Deaths 15-35 (PHE)'; % deaths (English hospitals)
 Y(24).unit = 'number';
 Y(24).U    = 1;
-Y(24).date = datenum(agedeaths.textdata(2:end,1),'yyyy-mm-dd');
+Y(24).date = datenum(agedeaths.textdata(2:end,1),'dd/mm/yyyy');
 Y(24).Y    = sum(agedeaths.data(:,ig2),2)*EnglandUK;
 Y(24).h    = 2;
 Y(24).lag  = 0;
@@ -532,7 +545,7 @@ Y(24).hold = 1;
 Y(25).type = 'Deaths 35-70 (PHE)'; % deaths (English hospitals)
 Y(25).unit = 'number';
 Y(25).U    = 1;
-Y(25).date = datenum(agedeaths.textdata(2:end,1),'yyyy-mm-dd');
+Y(25).date = datenum(agedeaths.textdata(2:end,1),'dd/mm/yyyy');
 Y(25).Y    = sum(agedeaths.data(:,ig3),2)*EnglandUK;
 Y(25).h    = 2;
 Y(25).lag  = 0;
@@ -542,7 +555,7 @@ Y(25).hold = 1;
 Y(26).type = 'Deaths -15-35-70- (PHE)'; % deaths (English hospitals)
 Y(26).unit = 'number';
 Y(26).U    = 1;
-Y(26).date = datenum(agedeaths.textdata(2:end,1),'yyyy-mm-dd');
+Y(26).date = datenum(agedeaths.textdata(2:end,1),'dd/mm/yyyy');
 Y(26).Y    = sum(agedeaths.data(:,ig4),2)*EnglandUK;
 Y(26).h    = 2;
 Y(26).lag  = 0;
@@ -698,21 +711,22 @@ Y(40).hold = 0;
 %--------------------------------------------------------------------------
 % Y([13,14]) = [];
 
-% subplot(2,1,1)
-% for i = 1:numel(Y)
-%     plot(Y(i).date,Y(i).Y,'o')
-%     title(Y(i).type)
-%     datetick('x','dd-mmm','keeplimits','keepticks')
-%     xlabel('date')
-%     pause
-% end
+if false
+    subplot(2,1,1)
+    for i = 1:numel(Y)
+        plot(Y(i).date,Y(i).Y,'o')
+        title(Y(i).type)
+        datetick('x','dd-mmm','keeplimits','keepticks')
+        xlabel('date'),disp(i)
+        pause(4)
+    end
+end
 
 % remove NANs, smooth and sort by date
 %==========================================================================
-M.date  = '01-02-2020';
-[Y,S]   = spm_COVID_Y(Y,M.date,8);
-
-% for i = 1:38; plot(Y(i).date,Y(i).Y); pause, end
+M.date  = '01-Jan-2020';
+M.end   = date;
+[Y,S]   = spm_COVID_Y(Y,M.date,8,M.end);
 
 % get and set priors
 %==========================================================================
@@ -730,16 +744,14 @@ pC.wo   = ones(j,2)/8;         % prior variance
 pE.gd   = ones(j,1)*[-1 1];    % coefficients gross domestic product
 pC.gd   = ones(j,2)/8;         % prior variance
 
-% augment priors with fluctuations
+% augment priors with fluctuations: number of basis functions
 %--------------------------------------------------------------------------
-i       = ceil((datenum(date) - datenum(M.date))/48);
-j       = ceil((datenum(date) - datenum(M.date))/64);
-i       = 24;                  % number of basis functions
+i       = ceil((datenum(M.end) - datenum(M.date))/64);
 
 pE.mob  = zeros(1,i);          % mobility
 pC.mob  = ones(1,i)/1024;      % prior variance
-pE.pcr  = zeros(1,j);          % testing
-pC.pcr  = ones(1,j)/8;         % prior variance
+pE.pcr  = zeros(1,i);          % testing
+pC.pcr  = ones(1,i)/8;         % prior variance
 
 % reporting lags
 %--------------------------------------------------------------------------
@@ -760,7 +772,7 @@ hE    = spm_vec(Y.h);
 
 % model specification
 %==========================================================================
-M.Nmax = 32;                   % maximum number of iterations
+M.Nmax = 16;                   % maximum number of iterations
 M.G    = @spm_SARS_gen;        % generative function
 M.FS   = @(Y)real(sqrt(Y));    % feature selection  (link function)
 M.pE   = pE;                   % prior expectations (parameters)
@@ -776,9 +788,9 @@ A      = [Y.age];              % age bands
 %--------------------------------------------------------------------------
 if true
     
-    % loaded previous posteriors
+    % load previous posteriors
     %----------------------------------------------------------------------
-    load DCM_UK
+    load DCM_UK_tmp
     
     % initialise if previous posteriors are the right size
     %----------------------------------------------------------------------
@@ -813,6 +825,12 @@ DCM.A  = A;
 %--------------------------------------------------------------------------
 if nargout, return, end
 
+% otherwise save
+%--------------------------------------------------------------------------
+save('DCM_UK_tmp.mat','DCM')
+cd('C:\Users\karl\Dropbox\Coronavirus')
+save('DCM_UK_tmp.mat','DCM')
+
 % unpack model and posterior expectations
 %--------------------------------------------------------------------------
 M   = DCM.M;                                 % model (priors)
@@ -827,7 +845,7 @@ A   = DCM.A;                                 % age cohort
 %==========================================================================
 spm_figure('GetWin','United Kingdom'); clf;
 %--------------------------------------------------------------------------
-M.T       = 64 + datenum(date) - datenum(M.date,'dd-mm-yyyy');
+M.T       = 128 + datenum(M.end) - datenum(M.date);
 u         = [find(U == 1,1) find(U == 2,1) find(U == 3,1)];
 [H,X,~,R] = spm_SARS_gen(Ep,M,[1 2 3]);
 spm_SARS_plot(H,X,S(:,u),[1 2 3])
@@ -841,15 +859,16 @@ for i = 1:numel(Y)
     
     j = j + 1;
     subplot(4,2,j)
-    spm_SARS_ci(Ep,Cp,S(:,i),U(i),M,[],A(i));
+    spm_SARS_ci(Ep,Cp,S(:,i),U(i),M,[],A(i)); hold on
+    plot(datenum(M.end)*[1,1],get(gca,'YLim'),'-.b')
     title(Y(i).type,'FontSize',14), ylabel(Y(i).unit)
-    
+
     
     % add R = 1 and current date
     %----------------------------------------------------------------------
     if Y(i).U == 4
         plot(get(gca,'XLim'),[1,1],'-.r')
-        plot(datenum(date)*[1,1],get(gca,'YLim'),'-.b')
+        plot(datenum(M.end)*[1,1],get(gca,'YLim'),'-.b')
         set(gca,'YLim',[0 5]), ylabel('ratio')
     end
     
@@ -917,15 +936,15 @@ hold on, plot([1,1]*size(DCM.Y,1),[0,1/2],':'), box off
 legend({'<15yrs','15-35yrs','35-70yrs','>70yrs'})
 
 
-%% long-term forecasts (six months from the current data)
+%% long-term forecasts (12 months from the current data)
 %==========================================================================
 spm_figure('GetWin','outcomes (4)'); clf
 
 Ep  = DCM.Ep;
 Cp  = DCM.Cp;
 M   = DCM.M;
-M.T = 30*12 + datenum(date) - datenum(M.date,'dd-mm-yyyy');
-t   = (1:M.T) + datenum(M.date,'dd-mm-yyyy');
+M.T = 30*12 + datenum(M.end) - datenum(M.date);
+t   = (1:M.T) + datenum(M.date);
 
 % infection fatality ratios (%)
 %--------------------------------------------------------------------------
@@ -933,19 +952,19 @@ subplot(3,1,1)
 spm_SARS_ci(Ep,Cp,[],19,M); hold on
 spm_SARS_ci(Ep,Cp,[],20,M); hold on
 ylabel('cases per 100,000'), title('Incidence per 100,000','FontSize',14)
-plot(datenum(date)*[1,1],get(gca,'YLim'),':')
+plot(datenum(M.end)*[1,1],get(gca,'YLim'),':')
 legend({'CI per day','actual cases per day','CI per week','confirmed cases per week'})
 
 subplot(3,1,2)
 spm_SARS_ci(Ep,Cp,[],34,M); hold on
 spm_SARS_ci(Ep,Cp,S(:,1),2, M); hold on
 title('Actual and confirmed daily cases','FontSize',14)
-plot(datenum(date)*[1,1],get(gca,'YLim'),':')
+plot(datenum(M.end)*[1,1],get(gca,'YLim'),':')
 legend({'CI per day','actual cases','CI per day','confirmed cases'})
 
 subplot(3,1,3)
 spm_SARS_ci(Ep,Cp,[],28,M); hold on
-plot(datenum(date)*[1,1],get(gca,'YLim'),':')
+plot(datenum(M.end)*[1,1],get(gca,'YLim'),':')
 legend({'CI per day','Incidence'})
 
 
@@ -960,7 +979,7 @@ subplot(2,1,1)
 i   = find(DCM.U == 1,1);  D = DCM.Y(:,i); spm_SARS_ci(Ep,Cp,D,1,M);  hold on
 i   = find(DCM.U == 15,1); D = DCM.Y(:,i); spm_SARS_ci(Ep,Cp,D,15,M); hold on
 
-plot(datenum(date,'dd-mm-yyyy')*[1,1],get(gca,'YLim'),':k')
+plot(datenum(M.end)*[1,1],get(gca,'YLim'),':k')
 ylabel('number per day'), title('Daily deaths','FontSize',14)
 legend({'CI 28-day','PCR test within 28 days','ONS','CI certified','certified deaths'})
 legend boxoff
@@ -1043,15 +1062,15 @@ drawnow
 %--------------------------------------------------------------------------
 spm_figure('GetWin','long-term (2)'); clf
 
-M.T = 30*12 + datenum(date) - datenum(M.date,'dd-mm-yyyy');
-t   = (1:M.T) + datenum(M.date,'dd-mm-yyyy');
+M.T = 30*12   + datenum(M.end) - datenum(M.date);
+t   = (1:M.T) + datenum(M.date);
 
 subplot(2,1,1)
 i   = find(DCM.U == 4,1);
 spm_SARS_ci(Ep,Cp,[],11,M); hold on
 [~,~,q,c] = spm_SARS_ci(Ep,Cp,DCM.Y(:,i),4,M); hold on
 
-j   = find(t == datenum(date));
+j   = find(t == datenum(M.end));
 q   = q(j);
 d   = sqrt(c{1}(j,j))*1.64;
 str = sprintf('Prevalence and reproduction ratio (%s): R = %.2f (CI %.2f to %.2f)',datestr(date,'dd-mmm-yy'),q,q - d,q + d);
@@ -1083,7 +1102,7 @@ text(omicron,4,'omicron','FontSize',10,'HorizontalAlignment','center')
 % add R = 1 and current dateline
 %--------------------------------------------------------------------------
 plot(get(gca,'XLim'),[1,1],':k')
-plot(datenum(date,'dd-mm-yyyy')*[1,1],[0 max(RT)],':k')
+plot(datenum(M.end)*[1,1],[0 max(RT)],':k')
 set(gca,'YLim',[0 10]), ylabel('ratio or percent')
 title(str,'FontSize',14)
 
@@ -1104,7 +1123,7 @@ plot(t,HIT), hold on
 spm_SARS_ci(Ep,Cp,[],29,M); hold on
 
 plot(get(gca,'XLim'),[100 100],':k')
-plot(datenum(date,'dd-mm-yyyy')*[1,1],[0 100],':k')
+plot(datenum(M.end)*[1,1],[0 100],':k')
 ylabel('percent'),  title('Attack rate and immunity','FontSize',14)
 legend({' ','Attack rate',' ',...
        'Effective population immunity',...
@@ -1228,41 +1247,36 @@ disp(' ')
 %% save figures
 %--------------------------------------------------------------------------
 spm_figure('GetWin','outcomes (1)');
-savefig(gcf,'Fig1')
+savefig(gcf,'Fig1_tmp')
 
 spm_figure('GetWin','outcomes (2)');
-savefig(gcf,'Fig2')
+savefig(gcf,'Fig2_tmp')
 
 spm_figure('GetWin','outcomes (3)');
-savefig(gcf,'Fig3')
+savefig(gcf,'Fig3_tmp')
 
 spm_figure('GetWin','outcomes (4)');
-savefig(gcf,'Fig4')
+savefig(gcf,'Fig4_tmp')
 
 spm_figure('GetWin','United Kingdom');
-savefig(gcf,'Fig5')
+savefig(gcf,'Fig5_tmp')
 
 spm_figure('GetWin','long-term (2)');
-savefig(gcf,'Fig6')
+savefig(gcf,'Fig6_tmp')
 
 spm_figure('GetWin','long-term (1)');
-savefig(gcf,'Fig7')
+savefig(gcf,'Fig7_tmp')
 
 % Table
 %--------------------------------------------------------------------------
 disp(spm_COVID_table(DCM.Ep,DCM.Cp,DCM.M))
-
-save('DCM_UK.mat','DCM')
-cd('C:\Users\karl\Dropbox\Coronavirus')
-save('DCM_UK.mat','DCM')
-
 
 return
 
 
 
 %% NOTES
-% postdoc fitting of age cohort-specific parameters
+% posthoc fitting of age cohort-specific parameters
 %==========================================================================
 clear
 DCM = load('DCM_UK.mat','DCM');
@@ -1304,7 +1318,7 @@ return
 %==========================================================================
 nY    = numel(Y);
 Q     = [];
-rdate = datenum(date) - 64;
+rdate = datenum(M.end) - 64;
 for i = 1:numel(Y)
     j      = Y(i).date > rdate;
     q      = zeros(Y(i).n,nY);
@@ -1381,7 +1395,7 @@ nP    = spm_length(Ep);
 V     = spm_speye(nP,i);
 dYdP  = spm_diff(M.G,Ep,M,4,1,{V});
 
-% plot resultsall
+% plot results
 %--------------------------------------------------------------------------
 subplot(2,1,1)
 plot(dYdP)
@@ -1447,9 +1461,9 @@ A   = DCM.A;                                 % age cohort
 %==========================================================================
 spm_figure('GetWin','states'); clf;
 %--------------------------------------------------------------------------
-M.T    = datenum(date) - datenum(DCM.M.date,'dd-mm-yyyy');
-M.T    = M.T + 360;                          % forecast dates
-u      = [8];                                % empirical outcome
+T      = datenum(M.end) - datenum(DCM.M.date);
+M.T    = T + 360*2;                          % forecast dates
+u      = [1];                                % empirical outcome
 a      = 0;                                  % age cohort (0 for everyone)
 Ep.qua = DCM.Ep.qua + 0;                     % adjusted (log) parameter
 
@@ -1467,5 +1481,6 @@ catch
     spm_SARS_plot(Z,X,[],u)
 end
 subplot(3,2,1), hold on
+plot([T T]/7,[min(Z) max(Z)],'--')
 
 

@@ -1,11 +1,12 @@
-function tests = test_spm_opm_headmodel
+classdef test_spm_opm_headmodel < matlab.unittest.TestCase
 % Unit Tests for spm_opm_headmodel
 %__________________________________________________________________________
 
 % Copyright (C) 2023 Wellcome Centre for Human Neuroimaging
 
 
-tests = functiontests(localfunctions);
+
+methods (Test)
 
 
 function test_spm_opm_headmodel_1(testCase)
@@ -35,3 +36,7 @@ expected = 50;
 
 % check dimensionality > 50
 testCase.verifyTrue(observed>=expected);
+end
+end % methods (Test)
+
+end % classdef

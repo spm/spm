@@ -18,5 +18,5 @@ function y = spm_betaln(z)
 
 % log multivariate beta function
 %--------------------------------------------------------------------------
-z     = z + exp(-16);
+z     = max(z,exp(-32));
 y     = sum(gammaln(z),1) - gammaln(sum(z,1));

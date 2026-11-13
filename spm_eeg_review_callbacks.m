@@ -1155,7 +1155,7 @@ if ~strcmp(D.PSD.VIZU.modality,'source')
                 
                 for i=1:length(VIZU.visuSensors)
                     cmenu = uicontextmenu;
-                    uimenu(cmenu,'Label',['channel ',num2str(VIZU.visuSensors(i)),': ',VIZU.montage.clab{i}]);
+                    uimenu(cmenu,'Label',['channel ',num2str(VIZU.visuSensors(i)),': ',VIZU.montage.clab{i}], 'callback',@(o,ev) plotScalpData(D,i));
                     uimenu(cmenu,'Label',['type: ',char(chantype(D,VIZU.visuSensors(i)))]);
                     %                     uimenu(cmenu,'Label',['bad: ',num2str(D.channels(VIZU.visuSensors(i)).bad)],...
                     %                         'callback',@switchBC,'userdata',i,...

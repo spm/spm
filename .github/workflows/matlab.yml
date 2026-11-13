@@ -8,53 +8,122 @@ on:
     - cron: '15 3 * * *'
     - cron: '40 16 * * 3'
 jobs:
+  configure:
+    name: Configure test matrix (PR uses limited MATLAB versions)
+    runs-on: ubuntu-latest
+    outputs:
+      versions: ${{ steps.config.outputs.versions }}
+      os: ${{ steps.config.outputs.os }}
+      is-pr: ${{ steps.config.outputs.is-pr }}
+      extra: ${{ steps.config.outputs.extra }}
+      tier: ${{ steps.config.outputs.tier }}
+    steps:
+      - name: Determine test configuration
+        id: config
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          EVENT_SCHEDULE: ${{ github.event.schedule }}
+        run: |
+          # R2020b is the oldest release that MATLAB's CI licensing supports. The full tier runs
+          # all releases, the quick tier the oldest and newest. macOS jobs are slow and only five
+          # run at a time, so the quick tier has one Intel job (oldest) and one Apple Silicon job
+          # (newest, on macos-26). extra adds jobs outside the version and OS lists.
+          FULL='["R2020b","R2021a","R2021b","R2022a","R2022b","R2023a","R2023b","R2024a","R2024b","R2025a","R2025b", "latest"]'
+          REDUCED='["R2020b","latest"]'
+          FULL_OS='["ubuntu-latest","macos-15-intel","macos-15","windows-latest"]'
+          REDUCED_OS='["ubuntu-latest","macos-15-intel","windows-latest"]'
+
+          # is-pr gates the test data checkout, not which tests run: spm-tests-data is
+          # private and its token is unavailable to pull requests from forks.
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            echo "is-pr=true" >> $GITHUB_OUTPUT
+          else
+            echo "is-pr=false" >> $GITHUB_OUTPUT
+          fi
+
+          if [ "$EVENT_NAME" = "pull_request" ] || [ "$EVENT_SCHEDULE" = "15 3 * * *" ]; then
+            echo "tier=quick" >> $GITHUB_OUTPUT
+            echo "versions=$REDUCED" >> $GITHUB_OUTPUT
+            echo "os=$REDUCED_OS" >> $GITHUB_OUTPUT
+            echo 'extra=[{"os":"windows-latest","version":"R2022a"},{"os":"macos-latest","version":"latest"}]' >> $GITHUB_OUTPUT
+          else
+            echo "tier=full" >> $GITHUB_OUTPUT
+            echo "versions=$FULL" >> $GITHUB_OUTPUT
+            echo "os=$FULL_OS" >> $GITHUB_OUTPUT
+            echo 'extra=[{"os":"macos-latest","version":"R2025b"},{"os":"macos-latest","version":"latest"}]' >> $GITHUB_OUTPUT
+          fi
+
   matlab-tests:
     name: Run MATLAB Tests
+    needs: configure
     strategy:
       fail-fast: false
       matrix:
-        version: ["R2020a", "R2020b", "R2021a", "R2021b", "R2022a", "R2022b", "R2023a", "R2023b", "R2024a"]
-        os: ["ubuntu-latest", "macos-13", "macos-latest", "windows-latest"] # macos-13 has Intel architecture, macos-latest has Apple Silicon
+        version: ${{ fromJson(needs.configure.outputs.versions) }}
+        # macos-15-intel is Intel, macos-15 is Apple Silicon. macos-latest is avoided
+        # because its Xcode 26 linker cannot link C++ MEX files for R2023b-R2025a.
+        os: ${{ fromJson(needs.configure.outputs.os) }}
         exclude:
-          - os: windows-latest
-            version: "R2020a" # MATLAB not available
           - os: windows-latest
             version: "R2020b" # MATLAB not available
           - os: windows-latest
             version: "R2021a" # Compiler not available
           - os: windows-latest
             version: "R2021b" # Compiler not available
-          - os: macos-latest
-            version: "R2020a" # Apple Silicon version not available
-          - os: macos-latest
+          - os: macos-15
             version: "R2020b" # Apple Silicon version not available
-          - os: macos-latest
+          - os: macos-15
             version: "R2021a" # Apple Silicon version not available
-          - os: macos-latest
+          - os: macos-15
             version: "R2021b" # Apple Silicon version not available
-          - os: macos-latest
+          - os: macos-15
             version: "R2022a" # Apple Silicon version not available
-          - os: macos-latest
+          - os: macos-15
             version: "R2022b" # Apple Silicon version not available
-          - os: macos-latest
+          - os: macos-15
             version: "R2023a" # Apple Silicon version not available
+          - os: macos-15-intel
+            version: "latest" # MATLAB dropped Intel Mac support starting with R2026a
+        include: ${{ fromJson(needs.configure.outputs.extra) }}
     runs-on: ${{matrix.os}}
+    # Allow 6 hours for tests
+    timeout-minutes: 360
     env:
-      cache-key: tests-data
+      cache-key: tests-data2
     steps:
+      - name: Install Visual C++ 2010 Redistributable (required by FieldTrip MEX files)
+        if: runner.os == 'Windows'
+        run: choco install vcredist2010 -y
+        
+      - name: Configure MinGW
+        # GitHub Actions provides MinGW in C:\mingw64 but MATLAB on Windows
+        # does not automatically detect it. Explicitly set MW_MINGW64_LOC.      
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: |
+          echo "MW_MINGW64_LOC=C:\mingw64" >> $env:GITHUB_ENV
+
       - name: Check out repository
-        uses: actions/checkout@v4
-      
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
       - name: Get latest commit for tests data  # shallow fetch to get revision
         id: checkout-tests-data
-        uses: actions/checkout@v4.2.0 # 4.2.0 introduces checkout output
+        if: ${{ needs.configure.outputs.is-pr == 'false' }}
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: spm/spm-tests-data
           token: ${{ secrets.TESTS_DATA_REPO_TOKEN }}
           path: tests/data
-      - name: Try to retrieve commit from cache 
+          fetch-depth: 1
+          lfs: false
+      - name: Remove shallow-checked-out repo
+        if: ${{ needs.configure.outputs.is-pr == 'false' }}
+        shell: bash
+        run: rm -rf tests/data
+      - name: Try to retrieve commit from cache
         id: cache-restore
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: tests/data
           key: ${{ env.cache-key }}-${{ steps.checkout-tests-data.outputs.commit }}
@@ -62,51 +131,54 @@ jobs:
           enableCrossOsArchive: true
       - name: If cache missed, pull latest commit...
         id: checkout-tests-data-lfs
-        if: ${{ steps.cache-restore.outputs.cache-hit != 'true' }}
-        uses: actions/checkout@v4
+        if: ${{ needs.configure.outputs.is-pr == 'false' && steps.cache-restore.outputs.cache-hit != 'true' }}
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: spm/spm-tests-data
           token: ${{ secrets.TESTS_DATA_REPO_TOKEN }}
           path: tests/data
           lfs: true
-      - name: ... and cache latest commit 
-        if: ${{ steps.cache-restore.outputs.cache-hit != 'true' }}
-        uses: actions/cache/save@v4
+      - name: ... and cache latest commit
+        if: ${{ needs.configure.outputs.is-pr == 'false' && steps.cache-restore.outputs.cache-hit != 'true' }}
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: tests/data
           key: ${{ env.cache-key }}-${{ steps.checkout-tests-data.outputs.commit }}
 
-      - name: Set up MATLAB (legacy)
-        if: ${{matrix.version == 'R2020a' || matrix.version == 'R2020b' || matrix.version == 'R2022a' || matrix.version == 'R2022b'}}
-        uses: matlab-actions/setup-matlab@v1
-        with:
-          release: ${{matrix.version}}
+      - name: Verify test data available
+        shell: bash
+        run: |
+          if [ ! -d "tests/data" ] || [ -z "$(ls -A tests/data)" ]; then
+            echo "::error::Test data not available. Cache may be empty or expired."
+            exit 1
+          fi
+
       - name: Set up MATLAB
-        if: ${{matrix.version != 'R2020a' && matrix.version != 'R2020b' && matrix.version != 'R2022a' && matrix.version != 'R2022b'}}
-        uses: matlab-actions/setup-matlab@v2
+        uses: matlab-actions/setup-matlab@f9e43010f1ae678f7cfa0542fe2a4f60f7d1ad8d # v3.1.0
         with:
           release: ${{matrix.version}}
-       
-      - name: Run regression tests with existing MEX files (legacy)
-        if: ${{github.event.schedule == '40 16 * * 3' && (matrix.version == 'R2020a' || matrix.version == 'R2020b' || matrix.version == 'R2022a' || matrix.version == 'R2022b')}}
-        uses: matlab-actions/run-command@v1
+
+      - name: Select test classes
+        id: classes
+        shell: bash
+        env:
+          TIER: ${{ needs.configure.outputs.tier }}
+          OS: ${{ matrix.os }}
+          VERSION: ${{ matrix.version }}
+        run: |
+          # Regression tests are much slower than unit tests, so the quick tier runs them in one job.
+          UNIT="u = spm_tests('class','unit','display',true);"
+          REGR="r = spm_tests('class','regression','display',true);"
+          if [ "$TIER" = "full" ] || { [ "$OS" = "ubuntu-latest" ] && [ "$VERSION" = "latest" ]; }; then
+            echo "command=addpath(pwd); $UNIT $REGR assert(all(~[u.Failed]) && all(~[r.Failed]));" >> $GITHUB_OUTPUT
+          else
+            echo "command=addpath(pwd); $UNIT assert(all(~[u.Failed]));" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run tests with existing MEX files
+        uses: matlab-actions/run-command@bfa857648f4895aa98a446fe41c85e0788421ed5 # v3.3.0
         with:
-          command: addpath(pwd); results = spm_tests('class','regression','display',true); assert(all(~[results.Failed]));
-      - name: Run unit tests with existing MEX files (legacy)
-        if: ${{github.event.schedule != '40 16 * * 3' && (matrix.version == 'R2020a' || matrix.version == 'R2020b' || matrix.version == 'R2022a' || matrix.version == 'R2022b')}}
-        uses: matlab-actions/run-command@v1
-        with:
-          command: addpath(pwd); results = spm_tests('class','unit','display',true); assert(all(~[results.Failed]));
-      - name: Run regression tests with existing MEX files
-        if: ${{github.event.schedule == '40 16 * * 3' && matrix.version != 'R2020a' && matrix.version != 'R2020b' && matrix.version != 'R2022a' && matrix.version != 'R2022b'}}
-        uses: matlab-actions/run-command@v2
-        with:
-          command: addpath(pwd); results = spm_tests('class','regression','display',true); assert(all(~[results.Failed]));
-      - name: Run unit tests with existing MEX files
-        if: ${{github.event.schedule != '40 16 * * 3' && matrix.version != 'R2020a' && matrix.version != 'R2020b' && matrix.version != 'R2022a' && matrix.version != 'R2022b'}}
-        uses: matlab-actions/run-command@v2
-        with:
-          command: addpath(pwd); results = spm_tests('class','unit','display',true); assert(all(~[results.Failed]));
+          command: ${{ steps.classes.outputs.command }}
 
       - name: Compile MEX files
         run: |
@@ -123,10 +195,19 @@ jobs:
         if: runner.os == 'Windows'
         run: echo "MEXEXT=$(mexext.bat)" >> $env:GITHUB_ENV
       - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: spm-${{env.MEXEXT}}-${{runner.os}}-${{matrix.version}}
           path: ./**/*.${{env.MEXEXT}}
           retention-days: 1
-          
-  
+
+  tests-passed:
+    name: Tests passed
+    needs: matlab-tests
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail if any test job did not succeed
+        if: needs.matlab-tests.result != 'success'
+        run: exit 1
+      - run: echo "All required test jobs passed."

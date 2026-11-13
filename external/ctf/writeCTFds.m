@@ -210,11 +210,7 @@ end
 %  If it is missing, print a warning message.
 %  Sensor type indices : SQUIDs (0:7), ADCs (10), DACs(14), Clock (17), HLC (13,28,29)
 %  See Document CTF MEG File Formats (PN 900-0088), RES4 File Format/
-
-% GCO edit May 2020 - Fixes error with empty string arrays in matlab 2018+
-sensTypes = [0:7 10 13 14 17 28 29];
-available = intersect(sensTypes,unique([ds.res4.senres.sensorTypeIndex]));
-for index = available
+for index=[0:7 10 13 14 17 28 29]
   for k=find([ds.res4.senres.sensorTypeIndex]==index);
     if isempty(strfind(ds.res4.chanNames(k,:),'-'))
       fprintf(['writeCTFds: Channel %3d  %s     No sensor-file identification.',...
@@ -224,7 +220,7 @@ for index = available
       break;
     end
   end
-  if isempty(strfind(ds.res4.chanNames(k,:),'-'));break;end
+  if isempty(k)||isempty(strfind(ds.res4.chanNames(k,:),'-'));break;end
 end
 clear index k chanName;
 
@@ -314,7 +310,7 @@ else
   for chan=1:nChan           %  Convert EEGs from uV to V, SQUIDs from fT to T
     SQUIDtype=any(ds.res4.senres(chan).sensorTypeIndex==[0:7]);
     EEGtype=any(ds.res4.senres(chan).sensorTypeIndex==[8 9]);
-    if EEGtype & (strcmp(unit,'ft') | strtcmp(unit,'phi0'))
+    if EEGtype & (strcmp(unit,'ft') | strcmp(unit,'phi0'))
       alphaG=1e-6;
     elseif SQUIDtype & strcmp(unit,'ft')
       alphaG=1e-15;
@@ -402,10 +398,10 @@ ds.meg4.fileSize=4*ndata+8*(1+floor(ndata/maxPtsPerFile));
 clear data pt pt1 ndata fidMeg4 ptsPerTrial maxPtsPerFile meg4Ext;
 
 %  Add dataset names to .hist
-% if ~isfield(ds,'hist');ds.hist=char([]);end
-% ds.hist=[ds.hist char(10) char(10) datestr(now) ' :' char(10) ...
-%     '      Read into MATLAB as data set ' olddatasetname char(10) ...
-%     '      Rewritten by writeCTFds as data set ' datasetname char(10)];
+if ~isfield(ds,'hist');ds.hist=char([]);end
+ds.hist=[ds.hist char(10) char(10) datestr(now) ' :' char(10) ...
+    '      Read into MATLAB as data set ' olddatasetname char(10) ...
+    '      Rewritten by writeCTFds as data set ' datasetname char(10)];
 
 %  If infods doesn't exist or is empty create it.
 if ~isfield(ds,'infods');ds.infods=[];end

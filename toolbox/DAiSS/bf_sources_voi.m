@@ -26,7 +26,7 @@ if nargin == 0
     ori.name = 'Orientation';
     ori.strtype = 'r';
     ori.num = [1 3];
-    ori.help = {'Source orientatons (only for single points, leave zeros for unoriented)'};
+    ori.help = {'Source orientations (only for single points, leave zeros for unoriented)'};
     ori.val = {[0 0 0]};
     
     voidef = cfg_branch;

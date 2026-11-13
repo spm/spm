@@ -51,9 +51,10 @@ function  out = bf_view_run(job)
 
 outdir = spm_file(job.BF{1}, 'fpath');
 
-cd(outdir);
+% cd(outdir);
 
-BF = bf_load('BF.mat', {'data', 'sources', 'features', 'output'});
+BF = bf_load(fullfile(outdir, 'BF.mat'),...
+    {'data', 'sources', 'features', 'output'});
 
 plugin_name   = cell2mat(fieldnames(job.plugin));
 

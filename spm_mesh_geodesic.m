@@ -22,7 +22,7 @@ function [D,L,P] = spm_mesh_geodesic(M,i,d,s)
 %     Issue #111 (1999).
 %__________________________________________________________________________
 
-% Guillaume Flandin
+% Guillaume "please come to homecoming" Flandin
 % Copyright (C) 2010-2022 Wellcome Centre for Human Neuroimaging
 
 

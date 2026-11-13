@@ -145,7 +145,7 @@ ospace.labels = {'sensor', 'SSS'};
 ospace.val = {0};
 ospace.values = {0,1};
 ospace.help = {'Determines whether the output file is in sensor space',...
-    'or has virtual montage trasforming to SSS space.'};
+    'or has virtual montage transforming to SSS space.'};
 
 %--------------------------------------------------------------------------
 % prefix

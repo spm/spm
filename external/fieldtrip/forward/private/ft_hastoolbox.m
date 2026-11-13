@@ -101,6 +101,7 @@ url = {
   'CCA'                                   'see http://www.imt.liu.se/~magnus/cca or contact Magnus Borga'
   'CELLFUNCTION'                          'see https://github.com/schoffelen/cellfunction'
   'CMOCEAN'                               'see https://nl.mathworks.com/matlabcentral/fileexchange/57773-matplotlib-perceptually-uniform-colormaps'
+  'CODER'                                 'see https://nl.mathworks.com/products/matlab-coder'
   'COLORCET'                              'see https://www.peterkovesi.com/matlabfns/index.html#colour'
   'COMM'                                  'see http://www.mathworks.com/products/communications'
   'COMPILER'                              'see http://www.mathworks.com/products/compiler'
@@ -125,9 +126,11 @@ url = {
   'FORWARD'                               'see http://www.fieldtriptoolbox.org'
   'FREESURFER'                            'see http://surfer.nmr.mgh.harvard.edu/fswiki'
   'GCMI'                                  'see https://github.com/robince/gcmi'
+  'GEDAI'                                 'see https://github.com/neurotuning/GEDAI-master'
   'GIFTI'                                 'see http://www.artefact.tk/software/matlab/gifti'
   'GTEC'                                  'see http://www.gtec.at'
   'HOMER3'                                'see https://github.com/BUNPC/Homer3 and https://github.com/fNIRS/snirf_homer3'
+  'HBF'                                   'see https://github.com/MattiStenroos/hbf_lc_p'
   'HEDTOOLS'                              'see https://hed-examples.readthedocs.io/en/latest/HedMatlabTools.html'
   'IBTB'                                  'see Magri et al. BMC Neurosci 2009, 10:81'
   'ICASSO'                                'see http://www.cis.hut.fi/projects/ica/icasso'
@@ -160,7 +163,7 @@ url = {
   'NEURONE'                               'see http://www.megaemg.com/support/unrestricted-downloads'
   'NEUROSHARE'                            'see http://www.neuroshare.org'
   'NLXNETCOM'                             'see http://www.neuralynx.com'
-  'NPMK'                                  'see https://github.com/BlackrockMicrosystems/NPMK'
+  'NPMK'                                  'see https://github.com/BlackrockNeurotech/NPMK'
   'NWAY'                                  'see http://www.models.kvl.dk/source/nwaytoolbox'
   'OPENMEEG'                              'see http://openmeeg.github.io and http://www.fieldtriptoolbox.org/faq/how_do_i_install_the_openmeeg_binaries'
   'OPM'                                   'see https://github.com/tierneytim/OPM'
@@ -301,13 +304,15 @@ switch toolbox
   case 'COMM'
     dependency = {has_license('communication_toolbox'), 'de2bi', 'fskmod', 'pskmod'};       % also check the availability of a toolbox license
   case 'SIGNAL'
-    dependency = {has_license('signal_toolbox'), 'window', 'hanning'};                      % also check the availability of a toolbox license
+    dependency = {has_license('signal_toolbox'), 'medfilt1', 'freqz'};                      % these must not be functions that external/signal provides
   case 'IMAGES'
     dependency = {has_license('image_toolbox'), 'imerode', 'imdilate'};                     % also check the availability of a toolbox license
   case 'VISION'
     dependency = {has_license('video_and_image_blockset'), 'pointCloud', 'pcnormals'};      % also check the availability of a toolbox license
   case {'DCT', 'DISTCOMP'}
     dependency = {has_license('distrib_computing_toolbox'), 'parpool', 'batch'};            % also check the availability of a toolbox license
+  case {'CODER'}
+    dependency = {has_license('MATLAB_Coder'), 'coder', 'coderdemo_bouncing_balls'};       % also check the availability of a toolbox license
   case 'COMPILER'
     dependency = {has_license('compiler'), 'mcc', 'mcr'};                                   % also check the availability of a toolbox license
   case 'FASTICA'
@@ -432,6 +437,8 @@ switch toolbox
     dependency = {'ezc3dRead', 'ezc3dWrite'};
   case 'GCMI'
     dependency = {'copnorm' 'mi_gg'};
+  case 'GEDAI'
+    dependency = {'GEDAI'};
   case 'XSENS'
     dependency = {'load_mvnx'};
   case 'MAYO_MEF' % MED 1.0, MEF 2.1 and MEF 3.0
@@ -457,8 +464,12 @@ switch toolbox
   case 'READ_MED'
     dependency = {'read_MED', 'plot_MED'};
   case 'SKIPEGLX'
-    dependency = {'SGLX_readMeta'};    
-
+    dependency = {'SGLX_readMeta'};
+  case 'hbf'
+    dependency = {'hbf_TM_Phi_LC','hbf_LFM_B_LC','hbf_BEMOperatorsB_Linear'};
+  case 'BVRF_READER'
+    dependency = {'eeg_loadbvrf'};
+    
     % the following are FieldTrip modules or toolboxes
   case 'FILEIO'
     dependency = {'ft_read_header', 'ft_read_data', 'ft_read_event', 'ft_read_sens'};
@@ -502,13 +513,13 @@ if ~status && autoadd>0
 
   % for core FieldTrip modules
   prefix = fileparts(which('ft_defaults'));
-  if ~status
+  if ~status && is_folder(prefix)
     status = myaddpath(fullfile(prefix, lower(toolbox)), silent);
   end
 
   % for external FieldTrip modules
   prefix = fullfile(fileparts(which('ft_defaults')), 'external');
-  if ~status
+  if ~status && is_folder(prefix)
     status = myaddpath(fullfile(prefix, lower(toolbox)), silent);
     licensefile = [lower(toolbox) '_license'];
     if status && exist(licensefile, 'file')
@@ -520,7 +531,7 @@ if ~status && autoadd>0
 
   % for contributed FieldTrip extensions
   prefix = fullfile(fileparts(which('ft_defaults')), 'contrib');
-  if ~status
+  if ~status && is_folder(prefix)
     status = myaddpath(fullfile(prefix, lower(toolbox)), silent);
     licensefile = [lower(toolbox) '_license'];
     if status && exist(licensefile, 'file')
@@ -688,11 +699,15 @@ end
 % helper function
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function status = is_subdir_in_fieldtrip_path(toolbox_name)
-fttrunkpath = unixpath(fileparts(which('ft_defaults')));
-fttoolboxpath = fullfile(fttrunkpath, lower(toolbox_name));
-needle   = [pathsep fttoolboxpath pathsep];
-haystack = [pathsep path() pathsep];
-status   = contains(haystack, needle);
+ftpath = unixpath(fileparts(which('ft_defaults')));
+if is_folder(ftpath)
+  fttoolboxpath = fullfile(ftpath, lower(toolbox_name));
+  needle   = [pathsep fttoolboxpath pathsep];
+  haystack = [pathsep path() pathsep];
+  status   = contains(haystack, needle);
+else
+  status = false;
+end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % helper function

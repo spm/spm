@@ -19,7 +19,7 @@ try, s; catch, s = [1 2 3 7]; end
 try, N; catch, N = 256;       end
 
 
-% intial states and equations of motion
+% initial states and equations of motion
 %--------------------------------------------------------------------------
 [x,f] = spm_dcm_x_neural(P,model);
 

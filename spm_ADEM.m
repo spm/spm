@@ -1,5 +1,5 @@
 function DEM = spm_ADEM(DEM)
-% Dynamic expectation maximisation:  Active inversion
+% Dynamic expectation maximisation: Active inversion
 % FORMAT DEM = spm_ADEM(DEM)
 %
 % DEM.G  - generative process
@@ -9,19 +9,18 @@ function DEM = spm_ADEM(DEM)
 %__________________________________________________________________________
 %
 % This implementation of DEM is the same as spm_DEM but integrates both the
-% generative process and model inversion in parallel. Its functionality is 
+% generative process and model inversion in parallel. Its functionality is
 % exactly the same apart from the fact that confounds are not accommodated
-% explicitly.  The generative model is specified by DEM.G and the veridical
-% causes by DEM.C; these may or may not be used as priors on the causes for
-% the inversion model DEM.M (i.e., DEM.U = DEM.C).  Clearly, DEM.G does not
-% require any priors or precision components; it will use the values of the
-% parameters specified in the prior expectation fields.
+% explicitly.  The generative process is specified by DEM.G and the
+% veridical causes by DEM.C; these may or may not be used as priors on the
+% causes for the inversion model DEM.M (i.e., DEM.U = DEM.C).  Clearly,
+% DEM.G does not require any priors or precision components: it will use
+% the values of the parameters specified in the prior expectation fields.
 %
 % This routine is not used for model inversion per se but to simulate the
-% dynamical inversion of models.  Critically, it includes action 
-% variables a - that couple the model back to the generative process 
-% This enables active inference (c.f., action-perception) or embodied 
-% inference.
+% dynamical inversion of models.  Crucially, it includes action variables
+% (a) that couple the model back to the generative process This enables
+% active inference (c.f., action-perception) or embodied inference.
 %
 % hierarchical models M(i)
 %--------------------------------------------------------------------------
@@ -56,7 +55,7 @@ function DEM = spm_ADEM(DEM)
 %   G(i).W  = precision (state noise)
 %
 %   G(1).R  = restriction or rate matrix for action [default: 1];
-%   G(i).aP = precision (action)   [default: exp(-2)]
+%   G(i).aP = precision (action)                    [default: exp(-2)]
 %
 %   G(i).m  = number of inputs v(i + 1);
 %   G(i).n  = number of states x(i)
@@ -190,14 +189,14 @@ na   = ga;                                % number of a (action)
  
 % number of iterations
 %--------------------------------------------------------------------------
-try, nE = M(1).E.nE; catch, nE = 16; end
-try, nM = M(1).E.nM; catch, nM = 8;  end
-try, dt = M(1).E.dt; catch, dt = 1;  end
- 
- 
+try nE = M(1).E.nE; catch, nE = 16; end
+try nM = M(1).E.nM; catch, nM = 8;  end
+try dt = M(1).E.dt; catch, dt = 1;  end
+try dd = M(1).E.dd; catch, dd = 0;  end
+
 % initialise regularisation parameters
 %--------------------------------------------------------------------------
-te = 2;                                   % log integration time for E-Step
+te = 4;                                   % log integration time for E-Step
 global t
 
 
@@ -275,9 +274,11 @@ catch
     aP = exp(-2);
 end
 
-% fixed priors on states (u)
+% fixed priors on states (u = x,v)
 %--------------------------------------------------------------------------
 xP    = spm_cat(spm_diag({M.xP}));
+vP    = spm_cat(spm_diag({M(2:end).V}));
+vP    = spm_inv(vP);
 Px    = kron(iV(1:n,1:n),speye(nx,nx)*exp(-8) + xP);
 Pv    = kron(iV(1:d,1:d),speye(nv,nv)*exp(-8));
 Pa    = spm_speye(na,na)*aP;
@@ -382,16 +383,19 @@ dWduu = sparse(nu,nu);
 % preclude unnecessary iterations
 %--------------------------------------------------------------------------
 if ~np && ~nh, nE = 1; end
- 
+
+% test for time-invariant causes
+%--------------------------------------------------------------------------
+if nE ~= 1 || nl ~= 2 || any(std(U,1,2)) || d ~= 1
+    dd = false;
+end
  
 % create innovations (and add causes)
 %--------------------------------------------------------------------------
 [z,w]  = spm_DEM_z(G,nY);
 z{end} = C + z{end};
-a      = {G.a};
 Z      = spm_cat(z(:));
 W      = spm_cat(w(:));
-A      = spm_cat(a(:));
  
 % Iterate DEM
 %==========================================================================
@@ -444,7 +448,11 @@ for iE = 1:nE
         
         % pass action to pu.a (external states)
         %==================================================================
-        try, A = spm_cat({qU.a qu.a}); end
+        if iY > 1
+            A = spm_cat({qU.a qu.a});
+        else
+            A = spm_vec({G.a});
+        end
         
         % derivatives of responses and random fluctuations
         %------------------------------------------------------------------
@@ -521,7 +529,7 @@ for iE = 1:nE
         dgda  = kron(spm_speye(n,1,0),dg.da);
         dgdx  = kron(spm_speye(n,n,0),dg.dx);
         
-        % change in error w.r.t. action
+        % change in error w.r.t. actionxP
         %------------------------------------------------------------------
         Dfdx  = 0;
         for i = 1:n
@@ -536,7 +544,12 @@ for iE = 1:nE
         
         % first-order derivatives
         %------------------------------------------------------------------
-        dVdu  = -dE.du'*iS*E - Pu*spm_vec({qu.x{1:n} qu.v{1:d}}) - dWdu/2;
+        if nl < 3
+            up = spm_vec(qu.v{1:d}) - spm_vec(qu.u{1:d});
+        else
+            up = spm_vec(qu.v{1:d});
+        end
+        dVdu  = -dE.du'*iS*E - Pu*spm_vec({qu.x{1:n} up}) - dWdu/2;
         dVda  = -dE.da'*iG*E - Pa*spm_vec( qu.a{1:1});
         
         
@@ -595,7 +608,7 @@ for iE = 1:nE
 
         % Gradients and curvatures for E-Step: W = tr(C*J'*iS*J)
         %==================================================================
-        if np
+        if np && iY > d
             for i = 1:np
                 CJu(:,i)   = spm_vec(qu.c*dE.dup{i}'*iS);
                 dEdup(:,i) = spm_vec(dE.dup{i}');
@@ -607,8 +620,7 @@ for iE = 1:nE
             %--------------------------------------------------------------
             dFdp  = dFdp  - dWdp/2  - dE.dp'*iS*E;
             dFdpp = dFdpp - dWdpp/2 - dE.dp'*iS*dE.dp;
-            qp.ic = qp.ic           + dE.dp'*iS*dE.dp;
-            
+            qp.ic = qp.ic           + dE.dp'*iS*dE.dp;            
         end
  
         % accumulate SSE
@@ -621,14 +633,31 @@ for iE = 1:nE
             EE  = E*E'+ EE;
             ECE = ECE + ECEu + ECEp;
         end
-        
+
+        % evaluate objective function (F)
+        %==================================================================
         if nE == 1
-            
-            % evaluate objective function (F)
-            %======================================================================
+
             J(iY) = - trace(E'*iS*E)/2  ...            % states (u)
-                    + spm_logdet(qu.c)  ...            % entropy q(u)
-                    + spm_logdet(iS)/2;                % entropy - error
+                + spm_logdet(qu.c)  ...            % entropy q(u)
+                + spm_logdet(iS)/2;                % entropy - error
+        end
+
+        % Bayesian belief-updating for time-invariant causes
+        %==================================================================
+        if dd
+
+            % update prior expectation
+            %--------------------------------------------------------------
+            U(:,iY + 1) = qu.v{1};
+
+            % update prior covariance
+            %--------------------------------------------------------------
+            i     = (1:nv) + nx*n;
+            dv    = kron(iV(1:d,1:d),spm_inv(qu.c(i,i)));
+            Pv    = Pv*(1 - dd) + dv*dd;
+            Pu    = spm_cat(spm_diag({Px Pv}));
+
         end
         
     end % sequence (nY)

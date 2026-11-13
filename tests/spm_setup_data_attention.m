@@ -1,0 +1,238 @@
+function spm_setup_data_attention(data_path,options)
+% Sets up the Attention to Visual Motion dataset and runs analyses for use
+% in regression tests (either Matlab or Octave versions)
+%__________________________________________________________________________
+
+% Copyright (C) 2021-2025 Wellcome Centre for Human Neuroimaging
+
+% Set defaults
+try options.dcm;      catch, options.dcm=false; end
+try options.pmod;     catch, options.pmod = false; end
+try options.bf;       catch, options.bf=1; end
+try options.volterra; catch, options.volterra=false; end
+
+% Specify GLM
+specify_glm(data_path,options);
+
+% Extract timeseries and run DCM if requested
+if options.dcm == true
+    extract_timeseries(data_path);
+    run_dcm(data_path);
+end
+
+% -------------------------------------------------------------------------
+function specify_glm(data_path,options)
+% GLM SPECIFICATION, ESTIMATION & INFERENCE
+
+if nargin == 1
+    options = struct('pmod',false,'bf',1,'volterra',false);
+end
+
+spm_dir = fullfile(data_path,'GLM');
+spm_mat = fullfile(spm_dir,'SPM.mat');
+if exist(spm_dir,'file') && exist(spm_mat,'file')
+    delete(spm_mat);
+end
+
+factors = load(fullfile(data_path,'factors.mat'));
+
+f = spm_select('FPList', fullfile(data_path,'functional'), '^snf.*\.img$');
+
+clear matlabbatch
+
+% OUTPUT DIRECTORY
+matlabbatch{1}.cfg_basicio.file_dir.dir_ops.cfg_mkdir.parent = cellstr(data_path);
+matlabbatch{1}.cfg_basicio.file_dir.dir_ops.cfg_mkdir.name = 'GLM';
+
+% MODEL SPECIFICATION
+matlabbatch{2}.spm.stats.fmri_spec.dir = cellstr(fullfile(data_path,'GLM'));
+matlabbatch{2}.spm.stats.fmri_spec.timing.units = 'scans';
+matlabbatch{2}.spm.stats.fmri_spec.timing.RT    = 3.22;
+matlabbatch{2}.spm.stats.fmri_spec.sess.scans            = cellstr(f);
+matlabbatch{2}.spm.stats.fmri_spec.sess.cond(1).name     = 'Photic';
+matlabbatch{2}.spm.stats.fmri_spec.sess.cond(1).onset    = [factors.phot];
+matlabbatch{2}.spm.stats.fmri_spec.sess.cond(1).duration = 10;
+matlabbatch{2}.spm.stats.fmri_spec.sess.cond(2).name     = 'Motion';
+matlabbatch{2}.spm.stats.fmri_spec.sess.cond(2).onset    = [factors.mot];
+matlabbatch{2}.spm.stats.fmri_spec.sess.cond(2).duration = 10;
+matlabbatch{2}.spm.stats.fmri_spec.sess.cond(3).name     = 'Attention';
+matlabbatch{2}.spm.stats.fmri_spec.sess.cond(3).onset    = [factors.att];
+matlabbatch{2}.spm.stats.fmri_spec.sess.cond(3).duration = 10;
+
+if options.pmod == true
+    % Add random parametric regressor to condition 1
+    rng(1);
+    p = randn(20,1);
+    matlabbatch{2}.spm.stats.fmri_spec.sess.cond(1).pmod.name = 'pmod';
+    matlabbatch{2}.spm.stats.fmri_spec.sess.cond(1).pmod.param = p;
+    matlabbatch{2}.spm.stats.fmri_spec.sess.cond(1).pmod.poly = 1;
+end
+    
+if options.bf == 2
+    % Add time derivative
+    matlabbatch{2}.spm.stats.fmri_spec.bases.hrf.derivs = [1 0];
+end
+
+if options.volterra == true
+    % Add interaction terms for estimating volterra kernels
+    matlabbatch{2}.spm.stats.fmri_spec.volt = 2;
+end
+
+% MODEL ESTIMATION
+matlabbatch{3}.spm.stats.fmri_est.spmmat = cellstr(fullfile(data_path,'GLM','SPM.mat'));
+
+% INFERENCE
+matlabbatch{4}.spm.stats.con.spmmat = cellstr(fullfile(data_path,'GLM','SPM.mat'));
+matlabbatch{4}.spm.stats.con.consess{1}.fcon.name = 'Effects of Interest';
+matlabbatch{4}.spm.stats.con.consess{1}.fcon.weights = eye(3);
+matlabbatch{4}.spm.stats.con.consess{2}.tcon.name = 'Photic';
+matlabbatch{4}.spm.stats.con.consess{2}.tcon.weights = [1 0 0];
+matlabbatch{4}.spm.stats.con.consess{3}.tcon.name = 'Motion';
+matlabbatch{4}.spm.stats.con.consess{3}.tcon.weights = [0 1 0];
+matlabbatch{4}.spm.stats.con.consess{4}.tcon.name = 'Attention';
+matlabbatch{4}.spm.stats.con.consess{4}.tcon.weights = [0 0 1];
+
+spm_jobman('run',matlabbatch);
+
+% -------------------------------------------------------------------------
+function extract_timeseries(data_path)
+
+% EXTRACTING TIME SERIES: V5
+matlabbatch{1}.spm.util.voi.spmmat = cellstr(fullfile(data_path,'GLM','SPM.mat'));
+matlabbatch{1}.spm.util.voi.adjust = 1;  % "effects of interest" F-contrast
+matlabbatch{1}.spm.util.voi.session = 1; % session 1
+matlabbatch{1}.spm.util.voi.name = 'V5';
+matlabbatch{1}.spm.util.voi.roi{1}.spm.spmmat = {''}; % using SPM.mat above
+matlabbatch{1}.spm.util.voi.roi{1}.spm.contrast = 3;  % "Motion" T-contrast
+matlabbatch{1}.spm.util.voi.roi{1}.spm.threshdesc = 'FWE';
+matlabbatch{1}.spm.util.voi.roi{1}.spm.thresh = 0.05;
+matlabbatch{1}.spm.util.voi.roi{1}.spm.extent = 0;
+matlabbatch{1}.spm.util.voi.roi{1}.spm.mask.contrast = 4; % "Attention" T-contrast
+matlabbatch{1}.spm.util.voi.roi{1}.spm.mask.thresh = 0.05;
+matlabbatch{1}.spm.util.voi.roi{1}.spm.mask.mtype = 0; % inclusive
+matlabbatch{1}.spm.util.voi.roi{2}.sphere.centre = [-36 -87 -3];
+matlabbatch{1}.spm.util.voi.roi{2}.sphere.radius = 8;
+matlabbatch{1}.spm.util.voi.roi{2}.sphere.move.fixed = 1;
+matlabbatch{1}.spm.util.voi.expression = 'i1 & i2';
+
+% EXTRACTING TIME SERIES: V1
+matlabbatch{2}.spm.util.voi.spmmat = cellstr(fullfile(data_path,'GLM','SPM.mat'));
+matlabbatch{2}.spm.util.voi.adjust = 1;  % "effects of interest" F-contrast
+matlabbatch{2}.spm.util.voi.session = 1; % session 1
+matlabbatch{2}.spm.util.voi.name = 'V1';
+matlabbatch{2}.spm.util.voi.roi{1}.spm.spmmat = {''}; % using SPM.mat above
+matlabbatch{2}.spm.util.voi.roi{1}.spm.contrast = 2;  % "Photic" T-contrast
+matlabbatch{2}.spm.util.voi.roi{1}.spm.threshdesc = 'FWE';
+matlabbatch{2}.spm.util.voi.roi{1}.spm.thresh = 0.05;
+matlabbatch{2}.spm.util.voi.roi{1}.spm.extent = 0;
+matlabbatch{2}.spm.util.voi.roi{2}.sphere.centre = [0 -93 18];
+matlabbatch{2}.spm.util.voi.roi{2}.sphere.radius = 8;
+matlabbatch{2}.spm.util.voi.roi{2}.sphere.move.fixed = 1;
+matlabbatch{2}.spm.util.voi.expression = 'i1 & i2';
+
+% EXTRACTING TIME SERIES: SPC
+matlabbatch{3}.spm.util.voi.spmmat = cellstr(fullfile(data_path,'GLM','SPM.mat'));
+matlabbatch{3}.spm.util.voi.adjust = 1;  % "effects of interest" F-contrast
+matlabbatch{3}.spm.util.voi.session = 1; % session 1
+matlabbatch{3}.spm.util.voi.name = 'SPC';
+matlabbatch{3}.spm.util.voi.roi{1}.spm.spmmat = {''}; % using SPM.mat above
+matlabbatch{3}.spm.util.voi.roi{1}.spm.contrast = 4;  % "Attention" T-contrast
+matlabbatch{3}.spm.util.voi.roi{1}.spm.threshdesc = 'none';
+matlabbatch{3}.spm.util.voi.roi{1}.spm.thresh = 0.001;
+matlabbatch{3}.spm.util.voi.roi{1}.spm.extent = 0;
+matlabbatch{3}.spm.util.voi.roi{2}.sphere.centre = [-27 -84 36];
+matlabbatch{3}.spm.util.voi.roi{2}.sphere.radius = 8;
+matlabbatch{3}.spm.util.voi.roi{2}.sphere.move.fixed = 1;
+matlabbatch{3}.spm.util.voi.expression = 'i1 & i2';
+
+spm_jobman('run',matlabbatch);
+
+% -------------------------------------------------------------------------
+function run_dcm(data_path)
+
+% Select SPM.mat
+spm_file = fullfile(data_path,'GLM','SPM.mat');
+
+% Select VOIs
+xY = cell(3,1);
+xY{1} = fullfile(data_path,'GLM','VOI_V1_1.mat');
+xY{2} = fullfile(data_path,'GLM','VOI_V5_1.mat');
+xY{3} = fullfile(data_path,'GLM','VOI_SPC_1.mat');
+
+% Indices of the brain regions in the model
+V1  = 1; 
+V5  = 2;
+SPC = 3;
+
+% DCM settings
+n   = 3;    % number of regions
+nu  = 3;    % number of inputs (experimental conditions)
+TR  = 3.22; % volume repetition time (seconds)
+TE  = 0.04; % echo time (seconds)
+
+% Experimental conditions to include from the SPM.
+cond = struct();
+cond(1).name = 'Photic';
+cond(2).name = 'Motion';
+cond(3).name = 'Attention';
+
+% Indices of the conditions in the model
+PHOTIC = 1;
+MOTION = 2;
+ATTENTION = 3;
+
+% Connectivity matrices
+a  = ones(n,n);
+b  = zeros(n,n,nu);
+c  = zeros(n,nu);
+d  = zeros(n,n,0);
+
+% A-matrix connectivity
+a(V1,SPC) = 0; % SPC->V1
+a(SPC,V1) = 0; % V1->SPC
+
+% Modulatory input: motion on V1->V5
+b(V5,V1,MOTION) = 1;
+
+% Driving input: photic
+c(V1,PHOTIC) = 1;
+
+% DCM options
+s = struct();
+s.cond       = cond;
+s.delays     = repmat(TR/2, 1, n);
+s.TE         = TE;
+s.nonlinear  = false;
+s.two_state  = false;
+s.stochastic = false;
+s.centre     = true;
+s.induced    = 0;
+s.a          = a;
+s.b          = b;
+s.c          = c;
+s.d          = d;
+
+% Cell array to store DCMs [1 subject x 2 models]
+GCM = cell(1,2);
+
+% Specify model 1: forward model, with attention on V1->V5
+s.name = 'mod_fwd';
+s.b(V5,V1,ATTENTION) = 1;
+GCM{1,1} = spm_dcm_specify(spm_file,xY,s);
+
+% Specify model 2: backward model, with attention on SPC->V5
+s.name = 'mod_bwd';
+s.b = b;
+s.b(V5,SPC,ATTENTION);
+GCM{1,2} = spm_dcm_specify(spm_file,xY,s);
+
+% Suppress output
+spm_get_defaults('dcm.verbose',false);
+
+% Estimate the models
+GCM = spm_dcm_fit(GCM);
+
+% Bayesian model comparison
+post = spm_dcm_bmc(GCM);
+
+save(fullfile(data_path,'GCM_test.mat'),'GCM','post');

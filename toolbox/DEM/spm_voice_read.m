@@ -74,7 +74,6 @@ end
 
 %% priors, if specified (uninformative priors otherwise)
 %--------------------------------------------------------------------------
-FS  = spm_voice_FS(wfile);
 nw  = numel(VOX.LEX);
 if nargin < 2
     ns = 8;
@@ -90,14 +89,12 @@ end
 %% run through sound file and evaluate likelihoods
 %==========================================================================
 VOX.IT = 1;                                     % final index
-
 for s  = 1:ns
     
     % (deep) search
     %----------------------------------------------------------------------
-    IT        = VOX.IT;
-    j         = s:min(size(P,2),s + VOX.depth);
-    [L,I,J,F] = spm_voice_get_word(wfile,P(:,j));
+    j       = s:min(size(P,2),s + VOX.depth);
+    [L,I,J] = spm_voice_get_word(wfile,P(:,j));
  
     % break if EOF
     %----------------------------------------------------------------------

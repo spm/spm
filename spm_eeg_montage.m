@@ -375,7 +375,7 @@ switch S.mode
                     sens = ft_apply_montage(sens, sensmontage, 'keepunused', keepunused, 'warning', false);
                     
                     if isequal(sensortypes{i}, 'MEG')
-                        if isfield(sens, 'balance') && ~isequal(sens.balance.current, 'none')
+                        if isfield(sens, 'balance') && ~isempty(sens.balance.current) && ~isequal(sens.balance.current, 'none')
                             balance = ft_apply_montage(getfield(sens.balance, sens.balance.current), sensmontage, 'keepunused', keepunused);
                         else
                             balance = sensmontage;

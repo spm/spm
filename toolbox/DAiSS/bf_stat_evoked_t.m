@@ -1,5 +1,5 @@
 function BF = bf_stat_evoked_t(S)
-% Compute t-stat accross trials for evoked response
+% Compute t-stat across trials for evoked response
 % FORMAT BF = bf_stat_evoked_t(S)
 %   S               - input structure
 %  fields of S:
@@ -68,7 +68,7 @@ del       = del - repmat(sensorMu,1,size(del,2));
 sensorC   = del * del' / (ntrials-1);
 image.val = zeros(size(W,2),1);
 
-%-Source t-stat accross trials
+%-Source t-stat across trials
 %--------------------------------------------------------------------------
 for i=1:size(image.val)
 

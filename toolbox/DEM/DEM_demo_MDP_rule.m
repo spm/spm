@@ -444,7 +444,7 @@ end
 BMR.g   = 1;
 BMR.x   = 8;
 BMR.T   = 3;
-BMR.fun = @(MDP,BMR)spm_MDP_VB_rule(MDP,BMR)
+BMR.fun = @(MDP,BMR)spm_MDP_VB_rule(MDP,BMR);
 OPT.BMR = BMR;
 
 N     = 32;

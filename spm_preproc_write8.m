@@ -39,8 +39,6 @@ tpm = res.tpm;
 if ~isstruct(tpm) || ~isfield(tpm, 'bg1')
     tpm = spm_load_priors8(tpm);
 end
-d1      = size(tpm.dat{1});
-d1      = d1(1:3);
 M1      = tpm.M;
 
 % Define orientation and field of view of any "normalised" space
@@ -114,7 +112,7 @@ for n=1:N
         create(chan(n).Nc);
     end
 
-    if bf(n,1),
+    if bf(n,1)
         chan(n).Nf      = nifti;
         chan(n).Nf.dat  = file_array(fullfile(pth1,['BiasField_', nam1, '.nii']),...
                                      res.image(n).dim(1:3),...
@@ -149,7 +147,7 @@ if do_defs
         Ndef.descrip = 'Inverse Deformation';
         create(Ndef);
     end
-    if df(2) || any(any(tc(:,[2,3,4]))) || nargout>=1,
+    if df(2) || any(any(tc(:,[2,3,4]))) || nargout>=1
         y = zeros([res.image(1).dim(1:3),3],'single');
     end
 end
@@ -167,11 +165,11 @@ for z=1:length(x3)
         f          = spm_sample_vol(res.image(n),x1,x2,o*x3(z),0);
         bf         = exp(transf(chan(n).B1,chan(n).B2,chan(n).B3(z,:),chan(n).T));
         cr{n}      = bf.*f;
-        if ~isempty(chan(n).Nc),
+        if ~isempty(chan(n).Nc)
             % Write a plane of bias corrected data
             chan(n).Nc.dat(:,:,z,chan(n).ind(1),chan(n).ind(2)) = cr{n};
         end
-        if ~isempty(chan(n).Nf),
+        if ~isempty(chan(n).Nf)
             % Write a plane of bias field
             chan(n).Nf.dat(:,:,z,chan(n).ind(1),chan(n).ind(2)) = bf;
         end
@@ -286,6 +284,7 @@ else
     end
     q   = cat(3,q{:});
 
+    N = length(cr);
     for n=1:N
         tmp = round(cr{n}*res.intensity(n).interscal(2) + res.intensity(n).interscal(1));
         tmp = min(max(tmp,1),size(res.intensity(n).lik,1));
@@ -334,7 +333,7 @@ end
 
 % Write tissues if necessary
 for k1=1:Kb
-    if tc(k1),
+    if tc(k1)
         Nt      = nifti;
         Nt.dat  = file_array(fullfile(pth,['c', num2str(k1), nam, '.nii']),...
                              d, [spm_type('uint8') spm_platform('bigend')],...
@@ -393,9 +392,7 @@ for k1=1:size(tc,1)
         if tc(k1,1)
             Ni      = nifti;
             Ni.dat  = file_array(fullfile(pth,['rc', num2str(k1), nam, '.nii']),...
-                                 odim,...
-                                 [spm_type('float32') spm_platform('bigend')],...
-                                 0,1,0);
+                                 odim, 'float32', 0, 1, 0);
             Ni.mat         = mat;
             Ni.mat_intent  = 'Aligned';
             Ni.mat0        = mat0;
@@ -418,54 +415,28 @@ wc  = cell(size(cls));
 mwc = cell(size(cls));
 if ~any(tc(:)), return; end
 
-if any(any(tc(:,[1 3])))
-    C = zeros([d1,Kb],'single');
-end
-
 volsc = abs(det(M0(1:3,1:3))/det(M1(1:3,1:3)));
+sd    = spm_mb_shape('samp_dens',M1,M0);
 spm_progress_bar('init',Kb,'Warped Tissue Classes','Classes completed');
 for k1 = 1:Kb
     if ~isempty(cls{k1})
         c = single(cls{k1})/255;
-        if any(any(tc(:,[1 3])))
-            [c,w]       = spm_diffeo('push',c,y,d1(1:3));
-            vx          = sqrt(sum(M1(1:3,1:3).^2));
-            spm_field('boundary',1);
-            C(:,:,:,k1) = spm_field(w,c,[vx  1e-6 1e-4 0  2 2]);
-            c = c*volsc;
-            clear w
-        elseif any(any(tc(k1,[2 4])))
-            c      = spm_diffeo('push',c,y,d1(1:3))*volsc;
-        end
+        if any(any(tc(k1,[1 2 3 4])))
 
-        if tc(k1,4), wc{k1} = c; end
-        if tc(k1,2)
-            N      = nifti;
-            N.dat  = file_array(fullfile(pth,['mwc', num2str(k1), nam, '.nii']),...
-                                d1,...
-                                [spm_type('float32') spm_platform('bigend')],...
-                                0,1,0);
-            N.mat  = M1;
-            N.mat0 = M1;
-            N.descrip = ['Jac. sc. warped tissue class ' num2str(k1)];
-            create(N);
-            N.dat(:,:,:) = c;
-        end
-        spm_progress_bar('set',k1);
-    end
-end
-spm_progress_bar('Clear');
+            [c,w] = spm_mb_shape('push1',c, y, d1(1:3), sd);
 
-if any(any(tc(:,[1 3])))
-    Kb = size(C,4);
-    d1 = [size(C,1),size(C,2),size(C,3)];
-    C  = max(C,eps);
-    s  = sum(C,4);
-    spm_progress_bar('init',Kb,'Writing Warped Tis Cls','Classes completed');
-    for k1=1:Kb
-        if any(any(tc(k1,[1 3])))
-            c = C(:,:,:,k1)./s;
-            if tc(k1,3), mwc{k1} = c; end
+            if tc(k1,4),  wc{k1} = c./w;    end
+            if tc(k1,3), mwc{k1} = c*volsc; end
+            if tc(k1,2)
+                N      = nifti;
+                N.dat  = file_array(fullfile(pth,['mwc', num2str(k1), nam, '.nii']),...
+                                    d1, 'float32', 0, 1, 0);
+                N.mat  = M1;
+                N.mat0 = M1;
+                N.descrip = ['Jac. sc. warped tissue class ' num2str(k1)];
+                create(N);
+                N.dat(:,:,:) = c*volsc;
+            end
             if tc(k1,1)
                 N      = nifti;
                 N.dat  = file_array(fullfile(pth,['wc', num2str(k1), nam, '.nii']),...
@@ -474,15 +445,13 @@ if any(any(tc(:,[1 3])))
                 N.mat0 = M1;
                 N.descrip = ['Warped tissue class ' num2str(k1)];
                 create(N);
-                N.dat(:,:,:) = c;
+                N.dat(:,:,:) = c./w;
             end
         end
         spm_progress_bar('set',k1);
     end
-    spm_progress_bar('Clear');
 end
-
-
+spm_progress_bar('Clear');
 %==========================================================================
 % 
 %==========================================================================
@@ -565,7 +534,7 @@ return;
 %==========================================================================
 function dat = decimate(dat,fwhm)
 % Convolve the volume in memory (fwhm in voxels).
-lim = ceil(2*fwhm);
+lim = ceil(4*fwhm);
 x  = -lim(1):lim(1); x = spm_smoothkern(fwhm(1),x); x  = x/sum(x);
 y  = -lim(2):lim(2); y = spm_smoothkern(fwhm(2),y); y  = y/sum(y);
 z  = -lim(3):lim(3); z = spm_smoothkern(fwhm(3),z); z  = z/sum(z);
@@ -625,7 +594,7 @@ niter  = 32;
 niter2 = 32;
 spm_progress_bar('Init',niter+niter2,'Extracting Brain','Iterations completed');
 for j=1:niter
-    if j>2, th=th1; else th=0.6; end  % Dilate after two its of erosion
+    if j>2, th=th1; else, th=0.6; end  % Dilate after two its of erosion
     for i=1:size(b,3)
         gp       = double(P(:,:,i,1));
         wp       = double(P(:,:,i,2));

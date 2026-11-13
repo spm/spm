@@ -30,7 +30,7 @@ applyvdm.name = 'Apply VDM ';
 applyvdm.val  = @applyvdm_cfg;
 applyvdm.help = {
     'Apply VDM (voxel displacement map) to resample voxel values in selected image(s). This allows a VDM to be applied to any images which are assumed to be already realigned (e.g. including EPI fMRI time series and DTI data).'
-    'The VDM can be created from a field map acquisition using the FieldMap toolbox and comprises voxel shift values which describe geometric distortions occuring as a result of magnetic susceptbility artefacts. Distortions along any single dimension can be corrected therefore input data may have been acquired with phase encode directions in X, Y (most typical) and Z.'
+    'The VDM can be created from a field map acquisition using the FieldMap toolbox and comprises voxel shift values which describe geometric distortions occurring as a result of magnetic susceptibility artefacts. Distortions along any single dimension can be corrected therefore input data may have been acquired with phase encode directions in X, Y (most typical) and Z.'
     'The selected images are assumed to be realigned to the first in the time series (e.g. using Realign: Estimate) but do not need to be resliced. The VDM is assumed to be in alignment with the images selected for resampling (note this can be achieved via the FieldMap toolbox). The resampled images are written to the input subdirectory with the same (prefixed) filename.'
     'e.g. The typical processing steps for fMRI time series would be 1) Realign: Estimate, 2) FieldMap to create VDM, 3) Apply VDM.'
     'Note that this routine is a general alternative to using the VDM in combination with Realign & Unwarp which estimates and corrects for the combined effects of static and movement-related susceptibility induced distortions. Apply VDM can be used when dynamic distortions are not (well) modelled by Realign & Unwarp (e.g. for fMRI data acquired with R->L phase-encoding direction, high field fMRI data or DTI data).'
@@ -200,18 +200,6 @@ uflags.val     = {method fwhm pad ws };
 uflags.help    = {'Different options for phase unwrapping and field map processing'};
 
 %--------------------------------------------------------------------------
-% template Template image for brain masking
-%--------------------------------------------------------------------------
-template         = cfg_files;
-template.tag     = 'template';
-template.name    = 'Template image for brain masking';
-template.help    = {'Select template file for segmentation to create brain mask'};
-template.filter = 'nii';
-template.ufilter = '.*';
-template.num     = [1 1];
-template.def     = @(val)pm_get_defaults('MFLAGS.TEMPLATE', val{:});
-
-%--------------------------------------------------------------------------
 % fwhm FWHM
 %--------------------------------------------------------------------------
 fwhm         = cfg_entry;
@@ -256,23 +244,12 @@ thresh.num     = [1  1];
 thresh.def     = @(val)pm_get_defaults('MFLAGS.THRESH', val{:});
 
 %--------------------------------------------------------------------------
-% reg Regularization
-%--------------------------------------------------------------------------
-reg         = cfg_entry;
-reg.tag     = 'reg';
-reg.name    = 'Regularization';
-reg.help    = {'Regularization value used in the segmentation. A larger value helps the segmentation to converge.'};
-reg.strtype = 'e';
-reg.num     = [1  1];
-reg.def     = @(val)pm_get_defaults('MFLAGS.REG', val{:});
-
-%--------------------------------------------------------------------------
 % mflags mflags
 %--------------------------------------------------------------------------
 mflags         = cfg_branch;
 mflags.tag     = 'mflags';
 mflags.name    = 'mflags';
-mflags.val     = {template fwhm nerode ndilate thresh reg };
+mflags.val     = {fwhm nerode ndilate thresh};
 mflags.help    = {'Different options used for the segmentation and creation of the brain mask.'};
 
 %--------------------------------------------------------------------------

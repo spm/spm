@@ -167,7 +167,7 @@ for ccsa = 1:length(csahdr)
                 try
                     tmp = zeros(size(val,1),1);
                     for k = 1:size(val,1)
-                        tmp(k) = str2num(val(k,:));
+                        tmp(k) = str2num(deblank(val(k,:)));
                     end
                     val = tmp;
                 catch

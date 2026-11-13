@@ -3,7 +3,7 @@ function [x,f,h] = spm_dcm_x_neural(P,model)
 % FORMAT [x,f,h] = spm_dcm_x_neural(P,'model')
 %
 %  P      - parameter structure
-% 'model' - 'ERP','SEP','CMC','LFP','CMM','NNM', 'MFM' or 'CMM NMDA'
+% 'model' - 'ERP','SEP','CMC','LFP','CMM','NMM', 'MFM' or 'CMM NMDA'
 %
 % x   - initial states
 % f   - state equation dxdt = f(x,u,P,M)  - synaptic activity
@@ -44,7 +44,7 @@ switch lower(model)
     %======================================================================
     case{'erp'}
         
-        % inital states and equations of motion
+        % initial states and equations of motion
         %------------------------------------------------------------------
         n  = length(P.A{1});                          % number of sources
         m  = 9;                                       % number of states
@@ -57,7 +57,7 @@ switch lower(model)
     %======================================================================
     case{'sep'}
         
-        % inital states
+        % initial states
         %------------------------------------------------------------------
         n  = length(P.A{1});                          % number of sources
         m  = 9;                                       % number of states
@@ -69,7 +69,7 @@ switch lower(model)
     %======================================================================
     case{'cmc'}
         
-        % inital states
+        % initial states
         %------------------------------------------------------------------
         n  = length(P.A{1});                          % number of sources
         m  = 8;                                       % number of states
@@ -82,7 +82,7 @@ switch lower(model)
     %======================================================================
     case{'tfm'}
         
-        % inital states
+        % initial states
         %------------------------------------------------------------------
         n  = length(P.A{1});                          % number of sources
         m  = 8;                                       % number of states
@@ -95,7 +95,7 @@ switch lower(model)
     %======================================================================
     case{'lfp'}
         
-        % inital states
+        % initial states
         %------------------------------------------------------------------
         n  = length(P.A{1});                          % number of sources
         m  = 13;                                      % number of states
@@ -118,7 +118,7 @@ switch lower(model)
         x  = x{1};
         f  = 'spm_fx_mfm';
         
-            % Neural mass model (nonlinear in states)
+    % Neural mass model (nonlinear in states)
     %======================================================================
     case{'nmda'}
         
@@ -136,7 +136,7 @@ switch lower(model)
     %======================================================================
     case{'cmm'}
         
-        % inital states and model
+        % initial states and model
         %------------------------------------------------------------------
         x  = spm_x_cmm(P);
         f  = 'spm_fx_cmm';
@@ -145,7 +145,7 @@ switch lower(model)
     %======================================================================
     case{'cmm_nmda'}
         
-        % inital states and model
+        % initial states and model
         %------------------------------------------------------------------
         x  = spm_x_cmm_NMDA(P);
         f  = 'spm_fx_cmm_NMDA';
@@ -155,7 +155,7 @@ switch lower(model)
     %======================================================================
     case{'mfm'}
         
-        % inital states and model
+        % initial states and model
         %------------------------------------------------------------------
         x  = spm_x_mfm(P);
         f  = 'spm_fx_mfm';
@@ -165,7 +165,7 @@ switch lower(model)
     %======================================================================
     case{'bgt'}
         
-        % inital states and model
+        % initial states and model
         %------------------------------------------------------------------
         n = length(1);
         m = 10;
@@ -177,7 +177,7 @@ switch lower(model)
     %======================================================================
     case{'mmc'}
         
-        % inital states
+        % initial states
         %------------------------------------------------------------------
         n  = length(P.A{1});                          % number of sources
         m  = 8;                                       % number of states
@@ -189,7 +189,7 @@ switch lower(model)
     %======================================================================
     case{'null'}
         
-        % inital states and model
+        % initial states and model
         %------------------------------------------------------------------
         x  = sparse(size(P.A,1),1);
         f  = 'spm_fx_null';

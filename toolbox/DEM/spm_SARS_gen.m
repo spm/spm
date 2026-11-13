@@ -167,6 +167,18 @@ if (nargin < 4), NPI = [];              end         % interventions
 if (nargin < 5), age = 0*U;             end         % age bands
 try, M.T; catch, M.T = 180;             end         % over six months
 
+% start date
+%--------------------------------------------------------------------------
+if isfield(M,'date')
+    try
+        d0 = datenum(M.date);
+    catch
+        d0 = M.date;
+    end
+else
+    d0  = '01-Jan-2020';
+end
+
 % deal with data structures (asynchronous timeseries)
 %--------------------------------------------------------------------------
 if isstruct(M.T)        % predictions from multiple data types are required
@@ -175,20 +187,11 @@ if isstruct(M.T)        % predictions from multiple data types are required
     %----------------------------------------------------------------------
     D   = M.T;
     d   = spm_vec(D.date);
-    if isfield(M,'date')
-        try
-            d0 = datenum(M.date,'dd-mm-yyyy');
-        catch
-            d0 = M.date;
-        end
-    else
-        d0 = min(d);
-    end
     M.T = max(d) - d0 + 1;
     d   = d0:max(d);
     U   = [D.U];
     age = [D.age];
-    
+
 end
 
 % unpack and exponentiate parameters
@@ -290,6 +293,20 @@ end
 %--------------------------------------------------------------------------
 uN    = [1,2,3,6,9,12,15,16,17,18,24,27,28,30,34,36];
 
+% dates of changes in variants %%%% delay(j) = j*64; %%%%
+%--------------------------------------------------------------------------
+variants{1} = '04-Nov-2020';           % alpha
+variants{2} = '10-May-2021';           % alpha to delta
+variants{3} = '10-Dec-2021';           % alpha to Omicron BA.1
+variants{4} = '14-Feb-2022';           % Omicron BA.1 to Omicron BA.2
+variants{5} = '06-Jun-2022';           % Omicron BA.2 to Omicron BA.5
+variants{6} = '30-Jan-2023';           % Omicron BA.5 to Omicron XBB
+variants{7} = '04-Dec-2024';           % Omicron XBB to Other
+for j = 1:numel(R{n}.tra)
+    delay(j) = datenum(variants{j},'dd-mmm-yyyy') - d0;
+end
+
+
 % ensemble density tensor and solve over the specified number of days
 %--------------------------------------------------------------------------
 Y     = cell(nN,1);                    % outputs
@@ -370,16 +387,16 @@ for i = 1:M.T
         if isfield(R{n},'mob')
             t     = mod(i,365);
             for j = 1:numel(R{n}.mob)
-                    Rout = Rout + log(R{n}.mob(j)) * cos(j*pi*t/365);
+                Rout = Rout + log(R{n}.mob(j)) * cos(j*pi*t/365);
             end
         end
-        
-        % fluctuations in transmissibility: Growth curves
+
+        % fluctuations in pathogenicity: Growth curves
         %------------------------------------------------------------------
         Ptra  = 1;
         dt    = 64;
         for j = 1:numel(R{n}.tra)
-            Ptra  = Ptra + R{n}.tra(j) * spm_phi((i - j*dt)/(dt/2));
+            Ptra = Ptra + R{n}.tra(j) * spm_phi((i - delay(j))/(dt/2));
         end
         
         % (pillar 1, 2 and LFD) phases of testing: Growth curves
@@ -399,7 +416,7 @@ for i = 1:M.T
         Q{n}.tes = R{n}.tes*Ptra^(-R{n}.s(4)/4);   % testing bias PCR
         Q{n}.tts = R{n}.tts*Ptra^(-R{n}.s(5)/4);   % testing bias LFD
 
-        Q{n}.Tnn = R{n}.Tnn*exp(i*R{n}.s(6)/512);  % T-cell immunity
+        Q{n}.Tnn = R{n}.Tnn*log(i*R{n}.s(6)/256 + exp(1)); % T-cell immunity
 
         Q{n}.sev = R{n}.sev*Ptra^(-R{n}.lat);      % P(ARDS | infected)
         Q{n}.fat = R{n}.fat*Ptra^(-R{n}.sur);      % P(fatality | ARDS)
@@ -425,6 +442,10 @@ for i = 1:M.T
         %------------------------------------------------------------------
         S    = (1 + cos(2*pi*(i - log(Q{n}.inn)*8)/365))/2;
         Ptrn = Q{n}.trn + Q{n}.trm*S;              % seasonal risk
+
+        % variation in transmission risk due to face covering
+        %------------------------------------------------------------------
+        Ptrn = Ptrn - R{n}.msk*DEM_COVID_MASKS(d0 + i);
         Ptrn = erf(Ptrn*Ptra);                     % fluctuating risk
         
         % contact rates
@@ -484,7 +505,7 @@ for i = 1:M.T
         pcr28   = 1 - (1 - p{n}{4}(3))^28;  % probability of being positive
         pcr14   = 1 - (1 - p{n}{4}(3))^14;  % probability of being positive
         
-        % time-varying parameters and other vaiables
+        % time-varying parameters and other variables
         %------------------------------------------------------------------
         V.Ptra  = Ptra;
         V.Ptrn  = Ptrn;

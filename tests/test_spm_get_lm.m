@@ -1,11 +1,12 @@
-function tests = test_spm_get_lm
+classdef test_spm_get_lm < matlab.unittest.TestCase
 % Unit Tests for spm_get_lm
 %__________________________________________________________________________
 
 % Copyright (C) 2015-2022 Wellcome Centre for Human Neuroimaging
 
 
-tests = functiontests(localfunctions);
+
+methods (Test)
 
 
 function test_spm_get_lm_2D(testCase)
@@ -17,7 +18,7 @@ vol(3,3) = max(subvol(:)) + 0.1;
 gm      = sub2ind(size(vol),3,3);
 idx     = spm_get_lm(vol,[X(:)';Y(:)']);
 testCase.verifyTrue(any(idx == gm));
-
+end
 
 function test_spm_get_lm_3D(testCase)
 dim     = [5 5 5];
@@ -28,3 +29,7 @@ vol(3,3,3) = max(subvol(:)) + 0.1;
 gm      = sub2ind(size(vol),3,3,3);
 idx     = spm_get_lm(vol,[X(:)';Y(:)';Z(:)']);
 testCase.verifyTrue(any(idx == gm));
+end
+end % methods (Test)
+
+end % classdef

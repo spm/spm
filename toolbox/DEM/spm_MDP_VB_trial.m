@@ -1,6 +1,6 @@
 function spm_MDP_VB_trial(MDP,gf,gg)
 % auxiliary plotting routine for spm_MDP_VB - single trial
-% FORMAT spm_MDP_VB_trial(MDP,[f,g])
+% FORMAT spm_MDP_VB_trial(MDP,f,g)
 %
 % MDP.P(M,T)      - probability of emitting action 1,...,M at time 1,...,T
 % MDP.X           - conditional expectations over hidden states
@@ -8,6 +8,8 @@ function spm_MDP_VB_trial(MDP,gf,gg)
 % MDP.o           - outcomes at time 1,...,T
 % MDP.s           - states at time 1,...,T
 % MDP.u           - action at time 1,...,T
+% f               - hidden states to show [default: 1:3]
+% g               - outcomes to show [default: 1:3]
 %
 % MDP.un  = un;   - simulated neuronal encoding of hidden states
 % MDP.xn  = Xn;   - simulated neuronal encoding of policies
@@ -21,10 +23,6 @@ function spm_MDP_VB_trial(MDP,gf,gg)
 
 % Karl Friston
 % Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
-
-% graphics
-%==========================================================================
-MDP   = spm_MDP_check(MDP); clf
 
 % numbers of transitions, policies and states
 %--------------------------------------------------------------------------
@@ -46,11 +44,17 @@ end
 
 % factors and outcomes to plot
 %--------------------------------------------------------------------------
-maxg  = 3;
+maxg  = 6;
 if nargin < 2, gf = 1:min(Nf,maxg); end
 if nargin < 3, gg = 1:min(Ng,maxg); end
 nf    = numel(gf);
 ng    = numel(gg);
+
+
+% graphics
+%==========================================================================
+clf; MDP = spm_MDP_check_labels(MDP,nf,ng);
+
 
 % posterior beliefs about hidden states
 %--------------------------------------------------------------------------
@@ -92,7 +96,7 @@ for f  = 1:Np
     subplot(3*Np,2,f*2)
 
     if iscell(MDP.P)
-       P = MDP.P{f};
+       P = MDP.P{Nu(f)};
     elseif Nf > 1
             ind     = 1:Nf;
             P       = MDP.P;
@@ -113,9 +117,14 @@ for f  = 1:Np
         hold on, plot(MDP.u(Nu(f),:),'.c','MarkerSize',16), hold off
     end
     if f < 2
-        title(sprintf('Action - %s',MDP.label.factor{Nu(f)}));
+        title(sprintf('Paths - %s',MDP.label.factor{Nu(f)}));
     else
         title(MDP.label.factor{Nu(f)});
+    end
+    try
+        if any(MDP.U(:,Nu(f)))
+            title(MDP.label.factor{Nu(f)},'color','r')
+        end
     end
     set(gca,'XTickLabel',{});
     set(gca,'XTick',1:size(X{1},2));
@@ -132,19 +141,23 @@ for f  = 1:Np
     
     % policies
     %----------------------------------------------------------------------
-    subplot(3*Np,2,(Np + f - 1)*2 + 1)
-    imagesc(MDP.V(:,:,Nu(f))')
-    if f < 2
-        title(sprintf('Allowable policies - %s',MDP.label.factor{Nu(f)}));
-    else
-        title(MDP.label.factor{Nu(f)});
+    if isfield(MDP,'V')
+        if size(MDP.V,3) ==  Nu(Np)
+            subplot(3*Np,2,(Np + f - 1)*2 + 1)
+            imagesc(MDP.V(:,:,Nu(f))')
+            if f < 2
+                title(sprintf('Allowable policies - %s',MDP.label.factor{Nu(f)}));
+            else
+                title(MDP.label.factor{Nu(f)});
+            end
+            if f < Np
+                set(gca,'XTickLabel',{});
+            end
+            set(gca,'XTick',1:size(X{1},2) - 1);
+            set(gca,'YTickLabel',{});
+            ylabel('policy')
+        end
     end
-    if f < Np
-        set(gca,'XTickLabel',{});
-    end
-    set(gca,'XTick',1:size(X{1},2) - 1);
-    set(gca,'YTickLabel',{});
-    ylabel('policy')
     
 end
 
@@ -164,6 +177,10 @@ for g  = 1:ng
     
     subplot(3*ng,2,(2*ng + g - 1)*2 + 1), hold off
     c     = C{gg(g)};
+
+    if isempty(c)
+       c  = ones(size(MDP.A{gg(g)},1),1);
+    end
     if size(c,2) < size(MDP.o,2)
         c = repmat(c(:,1),1,size(MDP.o,2));
     end
@@ -173,10 +190,12 @@ for g  = 1:ng
         imagesc(1 - c),  hold on
     end
     plot(MDP.o(gg(g),:),'.c','MarkerSize',16), hold off
-    if g < 2
-        title(sprintf('Outcomes and preferences - %s',MDP.label.modality{gg(g)}));
-    else
-        title(MDP.label.modality{gg(g)});
+    try
+        if g < 2
+            title(sprintf('Outcomes and preferences - %s',MDP.label.modality{gg(g)}));
+        else
+            title(MDP.label.modality{gg(g)});
+        end
     end
     if g == ng
         xlabel('time');

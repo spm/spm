@@ -1,11 +1,12 @@
-function tests = test_spm_mesh_dist
+classdef test_spm_mesh_dist < matlab.unittest.TestCase
 % Unit Tests for spm_mesh_dist
 %__________________________________________________________________________
 
 % Copyright (C) 2023 Wellcome Centre for Human Neuroimaging
 
 
-tests = functiontests(localfunctions);
+
+methods (Test)
 
 
 function test_spm_mesh_dist_(testCase)
@@ -94,7 +95,7 @@ for x=-2:0.13:2
     for y=-2:0.13:2
         for z=-2:0.13:2
             act(i) = spm_mesh_dist(M,[x y z]);
-            exp(i) = dist_cube([x y z]);
+            exp(i) = test_spm_mesh_dist.dist_cube([x y z]);
             i = i + 1;
         end
     end
@@ -106,11 +107,14 @@ XYZ = [X(:) Y(:) Z(:)];
 act = spm_mesh_dist(M,XYZ);
 exp = zeros(size(act));
 for i=1:size(XYZ,1)
-    exp(i) = dist_cube(XYZ(i,:));
+    exp(i) = test_spm_mesh_dist.dist_cube(XYZ(i,:));
 end
 testCase.verifyEqual(act, exp, 'AbsTol',1e-10);
+end
 
+end % methods (Test)
 
+methods (Static, Access = private)
 function d = dist_cube(XYZ)
 dx = max([[-1 -1 -1] - XYZ; XYZ - [1 1 1]], [], 1);
 if max(dx) < 0
@@ -118,3 +122,8 @@ if max(dx) < 0
 else
     d = sqrt(sum(dx(dx>0).^2));
 end
+
+end
+end % methods (Static, Access = private)
+
+end % classdef

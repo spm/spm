@@ -10,6 +10,7 @@ function NESS = spm_ness_hd(M,x)
 %    M.W   - (n x n) - precision matrix of random fluctuations
 % x    - cell array of vectors specifying evaluation grid
 %
+% NESS.Ep - parameters of log NESS
 % NESS.p0 - nonequilibrium steady-state
 % NESS.X  - evaluation points of state space
 % NESS.F  - expected flow
@@ -21,13 +22,19 @@ function NESS = spm_ness_hd(M,x)
 % NESS.H2 - expected Euclidean norm of Hessian
 % NESS.J2 - expected Euclidean norm of Jacobian
 % NESS.D2 - correlation dimension
-% NESS.bS - p0 = spm_softmax(spm_dctmtx(nx,nb)*bS);
-% NESS.nb - number of basis functions
+% NESS.o  - parameter orders
+%
+% This routine returns the polynomial coefficients of a Laplace
+% approximation to nonequilibrium steady-state dynamics given some
+% equations of motion, which themselves could be based upon a Helmholtz
+% decomposition with a different polynomial expansion. In other words, it
+% converts a more or less expressive parameterisation of density dynamics
+% into a second order Laplace approximation that is suitable for solving
+% density dynamics.
 %__________________________________________________________________________
 
 % Karl Friston
 % Copyright (C) 2008-2022 Wellcome Centre for Human Neuroimaging
-
 
 % event space: get or create X - coordinates of evaluation grid
 %--------------------------------------------------------------------------
@@ -248,13 +255,13 @@ Ep.Qp = Qp;
 
 % assemble NESS structure
 %--------------------------------------------------------------------------
+NESS.Ep = Ep;                             % parameters of log NESS
 NESS.H  = spm_dot(H   ,p0);               % expected Hessian
 NESS.J  = spm_dot(J   ,p0);               % expected Jacobian
 NESS.E  = spm_dot(E   ,p0);               % Lyapunov exponents
 NESS.H2 = spm_dot(H.^2,p0);               % expected Euclidean norm of Hessian
 NESS.J2 = spm_dot(J.^2,p0);               % expected Euclidean norm of Jacobian
 NESS.D2 = 2 + abs(E(1) + E(2))/abs(E(3)); % correlation dimension
-NESS.Ep = Ep;                             % parameters of flow
 NESS.o  = o;                              % parameter orders
 NESS.nE = nE;                             % error norm
 
@@ -262,7 +269,12 @@ NESS.nE = nE;                             % error norm
 %--------------------------------------------------------------------------
 % NB: generally, p0 = spm_softmax(spm_polymtx(x,nb)*Ep.Sp);
 
-NESS.p0 = reshape(p0,U.nx);               % nonequilibrium steady-state
 NESS.X  = X;                              % evaluation points of state space
 NESS.F  = F;                              % expected flow
 NESS.f  = f';                             % original flow
+try
+    NESS.p0 = reshape(p0,U.nx);           % nonequilibrium steady-state
+catch
+    NESS.p0 = p0;                         % nonequilibrium steady-state
+end
+

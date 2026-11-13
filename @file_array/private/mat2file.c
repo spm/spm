@@ -33,7 +33,7 @@
 
 typedef struct dtype {
     int code;
-    void (*swap)();
+    void (*swap)(int n, unsigned char id[], unsigned char od[]);
     mxClassID clss;
     int bits;
     int channels;
@@ -112,7 +112,7 @@ static long len;
 #define BLEN 131072
 static unsigned char wbuf[BLEN], *dptr;
 
-static void put_bytes(int ndim, FILE *fp, int *ptr[], int idim[], unsigned char idat[], off_t indo, off_t indi, void (*swap)())
+static void put_bytes(int ndim, FILE *fp, int *ptr[], int idim[], unsigned char idat[], off_t indo, off_t indi, void (*swap)(int n, unsigned char id[], unsigned char od[]))
 {
     int i;
     off_t nb = ocumprod[ndim];
@@ -158,7 +158,7 @@ static void put_bytes(int ndim, FILE *fp, int *ptr[], int idim[], unsigned char 
 static void put(FTYPE map, int *ptr[], int idim[], void *idat)
 {
     int i, nbytes;
-    void (*swap)();
+    void (*swap)(int n, unsigned char id[], unsigned char od[]);
 
     dptr   = idat;
     nbytes = map.dtype->bits/8;

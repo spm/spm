@@ -34,20 +34,18 @@ function [asens, afiducials] = ft_average_sens(sens, varargin)
 % $Id$
 
 % get the optional input arguments
-% fileformat = ft_getopt(varargin, 'fileformat');
-weights       = ft_getopt(varargin, 'weights');
-fiducials     = ft_getopt(varargin, 'fiducials');
-fb            = ft_getopt(varargin, 'feedback');
+weights   = ft_getopt(varargin, 'weights');
+fiducials = ft_getopt(varargin, 'fiducials');
+fb        = ft_getopt(varargin, 'feedback');
 
 toplot = ~isempty(fb);
 nsens  = numel(sens);
 
 % ensure the correct representation
+tmp = sens; clear sens; 
 for i=1:nsens
-  newsens(i) = ft_datatype_sens(sens(i));
+  sens(i) = ft_datatype_sens(tmp(i));
 end
-sens = newsens;
-clear newsens;
 
 fiducials = fixpos(fiducials);
 
@@ -180,7 +178,7 @@ switch nfid
       fiducials(i).fid.pos(hs, :) = [];
 
       if i == 1
-          fidpos = zeros(size(fiducials(1).fid.pos));
+        fidpos = zeros(size(fiducials(1).fid.pos));
       end
 
       if ~isequal(fiducials(i).fid.label, fiducials(1).fid.label)
@@ -204,14 +202,14 @@ switch nfid
     % remove redundant headshape points (3 cm precision)
     tolerance = 3;
     switch afiducials.unit
-        case 'mm'
-            c = 0.1;
-        case 'cm'
-            c = 1;
-        case 'dm'
-            c = 10;
-        case 'm'
-            c = 100;
+      case 'mm'
+        c = 0.1;
+      case 'cm'
+        c = 1;
+      case 'dm'
+        c = 10;
+      case 'm'
+        c = 100;
     end
 
     [dum, ind] = unique(round(c*afiducials.pos/tolerance), 'rows');

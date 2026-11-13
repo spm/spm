@@ -299,7 +299,7 @@ static int convxyz(MAPTYPE *vol, double filtx[], double filty[], double filtz[],
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-    MAPTYPE *map, *get_maps();
+    MAPTYPE *map;
     int k, dtype = SPM_DOUBLE;
     double *offsets, *oVol = NULL;
     mxArray *wplane_args[3];

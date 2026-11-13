@@ -1,11 +1,12 @@
-function tests = test_spm_eeg_grandmean
+classdef test_spm_eeg_grandmean < matlab.unittest.TestCase
 % Unit Tests for spm_eeg_merge
 %__________________________________________________________________________
 
 % Copyright (C) 2023 Wellcome Centre for Human Neuroimaging
 
 
-tests = functiontests(localfunctions);
+
+methods (Test)
 
 
 function test_spm_eeg_grandmean_1(testCase)
@@ -37,3 +38,7 @@ D.save()
 err = abs(mu-4.5);
 
 testCase.verifyTrue(err < 1e-7);
+end
+end % methods (Test)
+
+end % classdef

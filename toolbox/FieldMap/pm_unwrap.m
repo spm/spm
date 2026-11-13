@@ -250,7 +250,7 @@ switch lower(method)
       vrima = zeros(size(opm));
       for sl=1:size(opm,3)
          %
-         % Make intial (slicewise) regions.
+         % Make initial (slicewise) regions.
          %
          [srima,cn] = pm_initial_regions(opm(:,:,sl),mask(:,:,sl),nstep);
          %

@@ -27,7 +27,7 @@ function out = spm_dartel_norm_fun(job)
 % normalised for a 2nd level analysis.
 %
 % Two "preserve" options are provided.  One of them should do the
-% equavalent of generating smoothed "modulated" spatially normalised
+% equivalent of generating smoothed "modulated" spatially normalised
 % images.  The other does the equivalent of smoothing the modulated
 % normalised fMRI/PET, and dividing by the smoothed Jacobian determinants.
 %
@@ -299,7 +299,7 @@ if ~isempty(output)
         case 'same'
             % no change to output path
         case 'allin'
-            % put everythin the same predefined folder
+            % put everything the same predefined folder
             pth = output.outDir;
         case 'subjspec'
             % keep per-subject organisation in predefined folder

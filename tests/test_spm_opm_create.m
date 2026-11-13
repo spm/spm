@@ -1,11 +1,12 @@
-function tests = test_spm_opm_create
+classdef test_spm_opm_create < matlab.unittest.TestCase
 % Unit Tests for spm_opm_hfc
 %__________________________________________________________________________
 
 % Copyright (C) 2023 Wellcome Centre for Human Neuroimaging
 
 
-tests = functiontests(localfunctions);
+
+methods (Test)
 
 
 function test_spm_opm_create_1(testCase)
@@ -23,5 +24,7 @@ test = -1.8334e4;
 act = round(D(111,5));
 
 testCase.verifyTrue((test-act)< 1e-6);
+end
+end % methods (Test)
 
-
+end % classdef

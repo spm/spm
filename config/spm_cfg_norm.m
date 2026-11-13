@@ -15,9 +15,7 @@ est.name = 'Normalise: Estimate';
 est.val  = @()[esubjs_cfg eoptions_cfg];
 est.help = {
     'Spatial normalisation performed via the segmentation routine.'
-    ''
     'The algorithm is essentially the same as that described in the Unified Segmentation paper /* \cite{ashburner05}*/, except for (i) a slightly different treatment of the mixing proportions, (ii) the use of an improved registration model, (iii) the ability to use multi-spectral data, (iv) an extended set of tissue probability maps, which allows a different treatment of voxels outside the brain.'
-    ''
     'If you encounter problems with spatial normalisation, it is advisable to use **Check Reg** to see how well aligned the original data are with the MNI-space templates released with SPM.  If misalignment is greater than about 3 cm and 15 degrees, you could try to manually re-position the images prior to attempting to align them.  This may be done using the Display button.'
     }';
 est.prog = @spm_run_norm;
@@ -45,7 +43,6 @@ estwrite.val  = @()[ewsubjs_cfg eoptions_cfg woptions_cfg];
 estwrite.help = {
     'Compute the warp that best aligns the template (atlas) to the individual''s image, invert it and write the result to the file `y_''imagename''.nii''.'
     'This option also allows the contents of the `y_''imagename''.nii'' files to be applied to a series of images.'
-    ''
     'Note that if you encounter problems with spatial normalisation, it is often advisable to use the Check reg button to see how well aligned the original data are with the MNI-space templates released with SPM.  If misalignment is greater than about 3cm and 15 degrees, you could try to manually re-position the images.  This may be done using the Display button.'
     };
 estwrite.prog = @spm_run_norm;
@@ -79,7 +76,6 @@ biasreg.tag     = 'biasreg';
 biasreg.name    = 'INU regularisation';
 biasreg.help    = {
                    'MR images are usually corrupted by a smooth, spatially varying artifact that modulates the intensity of the image (intensity nonuniformity - INU). These artifacts, although not usually a problem for visual inspection, can impede automated processing of the images.'
-                   ''
                    'An important issue relates to the distinction between intensity variations that arise because of INU due to the physics of MR scanning, and those that arise due to different tissue properties.  The objective is to model the latter by different tissue classes, while modelling the former with an INU field. We know a priori that intensity variations due to MR physics tend to be spatially smooth, whereas those due to different tissue types tend to contain more high frequency information. A more accurate estimate of an INU field can be obtained by including prior knowledge about the distribution of the fields likely to be encountered by the correction algorithm. For example, if it is known that there is little or no intensity non-uniformity, then it would be wise to penalise large values for the intensity non-uniformity parameters. This regularisation can be placed within a Bayesian context, whereby the penalty incurred is the negative logarithm of a prior probability for any particular pattern of non-uniformity.'
                    'Knowing what works best should be a matter of empirical exploration.  For example, if your data has very little intensity non-uniformity artifact, then the INU regularisation should be increased.  This effectively tells the algorithm that there is very little INU in your data, so it does not try to model it.'
                    }';
@@ -197,7 +193,6 @@ affreg.tag    = 'affreg';
 affreg.name   = 'Affine Regularisation';
 affreg.help   = {
                   'The procedure is a local optimisation, so it needs reasonable initial starting estimates. Images should be placed in approximate alignment using the Display function of SPM before beginning. A Mutual Information affine registration with the tissue probability maps (D''Agostino et al, 2004) is used to achieve approximate alignment. Note that this step does not include any model for intensity non-uniformity. This means that if the procedure is to be initialised with the affine registration, then the data should not be too corrupted with this artifact.If there is a lot of intensity non-uniformity, then manually position your image in order to achieve closer starting estimates, and turn off the affine registration.'
-                  ''
                   'Affine registration into a standard space can be made more robust by regularisation (penalising excessive stretching or shrinking).  The best solutions can be obtained by knowing the approximate amount of stretching that is needed (e.g. ICBM templates are slightly bigger than typical brains, so greater zooms are likely to be needed). For example, if registering to an image in ICBM/MNI space, then choose this option.  If registering to a template that is close in size, then select the appropriate option for this.'
                   }';
 affreg.labels = {
@@ -310,12 +305,9 @@ interp.help    = {
                   'being written in a different space. ' ...
                   '(Note that Inf or NaN values are treated as zero, ' ...
                   'rather than as missing data)']
-                  '    Nearest Neighbour:'
-                  '      - Fastest, but not normally recommended.'
-                  '    Trilinear Interpolation:'
-                  '      - OK for PET, realigned fMRI, or segmentations'
-                  '    B-spline Interpolation:'
-                  ['      - Better quality (but slower) interpolation' ...
+                  '    - Nearest Neighbour       - Fastest, but not normally recommended.'
+                  '    - Trilinear Interpolation - OK for PET, realigned fMRI, or segmentations'
+                 ['    - B-spline Interpolation  - Better quality (but slower) interpolation' ...
                   '/* \cite{thevenaz00a}*/, especially with higher ' ...
                   'degree splines. Can produce values outside the ' ...
                   'original range (e.g. small negative values from an ' ...
@@ -340,7 +332,7 @@ interp.def    = @(val)spm_get_defaults('normalise.write.interp', val{:});
 prefix         = cfg_entry;
 prefix.tag     = 'prefix';
 prefix.name    = 'Filename Prefix';
-prefix.help    = {'Specify the string to be prepended to the filenames of the normalised image file(s). Default prefix is ''w''.'};
+prefix.help    = {'Specify the string to be prepended to the filenames of the normalised image file(s). Default prefix is ``w``.'};
 prefix.strtype = 's';
 prefix.num     = [1 Inf];
 prefix.def     = @(val)spm_get_defaults('normalise.write.prefix', val{:});

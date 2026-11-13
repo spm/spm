@@ -43,7 +43,6 @@ pm_def.WS = 1;                        % Weighted or normal smoothing.
 
 % Flags for brain extraction
 %=======================================================================
-pm_def.MFLAGS.TEMPLATE = fullfile(spm('Dir'),'toolbox','FieldMap','T1.nii');
 pm_def.MFLAGS.FWHM = 5;     % In mm
 pm_def.MFLAGS.NERODE = 2;   % In voxels
 pm_def.MFLAGS.NDILATE = 4;  % In voxels

@@ -69,7 +69,7 @@ normalise_lf.val = {false};
 visualise = cfg_menu;
 visualise.tag = 'visualise';
 visualise.name = 'Visualise head model and sources';
-visualise.help = {'Visualise head model and sourses to verify that everythin was done correctly'};
+visualise.help = {'Visualise head model and sources to verify that everything was done correctly'};
 visualise.labels = {'yes', 'no'};
 visualise.values = {true, false};
 visualise.val = {true};
@@ -145,7 +145,7 @@ for m = 1:numel(modalities)
         end
         
         if ischar(BF.data.(modalities{m}).vol)
-            BF.data.(modalities{m}).vol = ft_read_vol(BF.data.(modalities{m}).vol);
+            BF.data.(modalities{m}).vol = ft_read_headmodel(BF.data.(modalities{m}).vol);
         end
         
         chanunits = units(BF.data.D, chanind);
@@ -179,7 +179,7 @@ for m = 1:numel(modalities)
             hold on
             
             try
-                ft_plot_sens(sens, 'style', '*b', 'coil',  ft_senstype(sens, 'eeg'));
+                ft_plot_sens(sens, 'style', '*b', 'elecsize', 20, 'coil',  ft_senstype(sens, 'eeg'));
             catch
                 ft_plot_sens(sens, 'style', '*b', 'coilshape', 'point', 'coil', ft_senstype(sens, 'eeg'));
             end

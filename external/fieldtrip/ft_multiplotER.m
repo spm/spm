@@ -23,10 +23,10 @@ function [cfg] = ft_multiplotER(cfg, varargin)
 %   cfg.maskfacealpha = mask transparency value between 0 and 1
 %   cfg.xlim          = 'maxmin', 'maxabs', 'zeromax', 'minzero', or [xmin xmax] (default = 'maxmin')
 %   cfg.ylim          = 'maxmin', 'maxabs', 'zeromax', 'minzero', or [ymin ymax] (default = 'maxmin')
-%   cfg.gradscale     = number, scaling to apply to the MEG gradiometer channels prior to display
-%   cfg.magscale      = number, scaling to apply to the MEG magnetometer channels prior to display
 %   cfg.channel       = Nx1 cell-array with selection of channels (default = 'all'), see FT_CHANNELSELECTION for details
 %   cfg.refchannel    = name of reference channel for visualising connectivity, can be 'gui'
+%   cfg.magscale      = number, scaling to apply to the MEG magnetometer channels prior to display
+%   cfg.gradscale     = number, scaling to apply to the MEG gradiometer channels prior to display
 %   cfg.baseline      = 'yes', 'no' or [time1 time2] (default = 'no'), see FT_TIMELOCKBASELINE or FT_FREQBASELINE
 %   cfg.trials        = 'all' or a selection given as a 1xN vector (default = 'all')
 %   cfg.axes          = string, 'yes' or 'no' whether to draw x- and y-axes for each graph (default = 'yes')
@@ -44,6 +44,7 @@ function [cfg] = ft_multiplotER(cfg, varargin)
 %                       interactive plot when a selected area is clicked. Multiple areas
 %                       can be selected by holding down the SHIFT key.
 %   cfg.figure        = 'yes' or 'no', whether to open a new figure. You can also specify a figure handle from FIGURE, GCF or SUBPLOT. (default = 'yes')
+%   cfg.figurename    = string, title of the figure window
 %   cfg.position      = location and size of the figure, specified as [left bottom width height] (default is automatic)
 %   cfg.renderer      = string, 'opengl', 'zbuffer', 'painters', see RENDERERINFO (default is automatic, try 'painters' when it crashes)
 %   cfg.colorgroups   = 'sequential', 'allblack', 'labelcharN' (N = Nth character in label), 'chantype' or a vector
@@ -208,6 +209,9 @@ cfg.fontsize       = ft_getopt(cfg, 'fontsize',       8);
 cfg.fontweight     = ft_getopt(cfg, 'fontweight');
 cfg.interpreter    = ft_getopt(cfg, 'interpreter',    'none');  % none, tex or latex
 cfg.interactive    = ft_getopt(cfg, 'interactive',    'yes');
+cfg.interactivecolor = ft_getopt(cfg, 'interactivecolor', [0 0 0]); % linecolor of selection rectangle
+cfg.interactivestyle = ft_getopt(cfg, 'interactivestyle', '--');    % linestyle of selection rectangle
+cfg.interactivewidth = ft_getopt(cfg, 'interactivewidth', 1.5);     % linewidth of selection rectangle
 cfg.orient         = ft_getopt(cfg, 'orient',         'landscape');
 cfg.maskparameter  = ft_getopt(cfg, 'maskparameter');
 cfg.linecolor      = ft_getopt(cfg, 'linecolor',      []); % the default is handled somewhere else
@@ -248,10 +252,10 @@ end
 if ischar(cfg.linestyle)
   cfg.linestyle = repmat({cfg.linestyle}, 1, Ndata);
 end
-% check it's length, and lengthen it if does not have enough styles in it
-if (length(cfg.linestyle) > 1) && (length(cfg.linestyle) < Ndata )
+% check its length, and lengthen it if does not have enough styles in it
+if ~isscalar(cfg.linestyle) && length(cfg.linestyle) < Ndata
   ft_error('either specify cfg.linestyle as a cell-array with one cell for each dataset, or only specify one linestyle')
-elseif (length(cfg.linestyle) == 1)
+elseif isscalar(cfg.linestyle)
   cfg.linestyle = repmat(cfg.linestyle, 1, Ndata);
 end
 
@@ -264,6 +268,15 @@ elseif nargin>1
   dataname = arrayfun(@inputname, 2:nargin, 'UniformOutput', false);
 else
   dataname = {};
+end
+
+% set the figure window title, if not defined by user
+if isempty(cfg.figurename)
+  if ~isempty(dataname)
+    cfg.figurename = sprintf('%s: %s', mfilename, join_str(', ', dataname));
+  else
+    cfg.figurename = sprintf('%s:', mfilename);
+  end
 end
 
 %% Section 2: data handling, this also includes converting bivariate (chan_chan and chancmb) into univariate data
@@ -428,6 +441,8 @@ end
 % Read or create the layout that will be used for plotting
 tmpcfg = keepfields(cfg, {'layout', 'channel', 'rows', 'columns', 'commentpos', 'skipcomnt', 'scalepos', 'skipscale', 'projection', 'viewpoint', 'rotate', 'width', 'height', 'elec', 'grad', 'opto', 'showcallinfo', 'trackcallinfo', 'trackusage', 'trackdatainfo', 'trackmeminfo', 'tracktimeinfo', 'checksize'});
 if isequal(cfg.viewmode, 'butterfly')
+  cfg.fontsize = max(cfg.fontsize, 15);
+
   % default is to use channel colors matching the spatial locations
   tmpcfg.color = ft_getopt(cfg, 'linecolor', 'spatial');
   % create two layouts, one for butterfly and another for topographic
@@ -625,7 +640,20 @@ if istrue(cfg.showscale)
   if ~isempty(l)
     x = cfg.layout.pos(l,1);
     y = cfg.layout.pos(l,2);
-    plotScales([xmin xmax], [ymin ymax], x, y, chanWidth(1), chanHeight(1), cfg)
+    if strcmp(cfg.viewmode, 'butterfly')
+      xticks = zeros(1,0);
+      xrange = xmax;
+      xstep  = round(100*(xrange./5))./100;
+      if xmin<0
+        xticks = flip(-(0:xstep:-xmin), 2);
+      end
+      if xmax>0
+        xticks = [xticks(1:end-1) (0:xstep:xmax)];
+      end
+      plotScales([xmin xmax], [ymin ymax], x, y, chanWidth(1), chanHeight(1), cfg.fontsize, xticks);
+    else
+      plotScales([xmin xmax], [ymin ymax], x, y, chanWidth(1), chanHeight(1), cfg.fontsize);
+    end
   end
 end
 
@@ -643,14 +671,6 @@ if ~isempty(cfg.orient)
   orient(gcf, cfg.orient);
 end
 
-% set the figure window title
-if ~isempty(dataname)
-  set(gcf, 'Name', sprintf('%d: %s: %s', double(gcf), mfilename, join_str(', ', dataname)));
-else
-  set(gcf, 'Name', sprintf('%d: %s', double(gcf), mfilename));
-end
-set(gcf, 'NumberTitle', 'off');
-
 % Make the figure interactive
 if strcmp(cfg.interactive, 'yes')
   % add the cfg/data/channel information to the figure under identifier linked to this axis
@@ -667,13 +687,15 @@ if strcmp(cfg.interactive, 'yes')
   guidata(gcf, info);
   
   if isequal(cfg.viewmode, 'butterfly')
-    set(gcf, 'windowbuttonupfcn',     {@ft_select_range, 'multiple', false, 'yrange', false, 'callback', {@select_topoplotER}, 'event', 'windowbuttonupfcn'});
-    set(gcf, 'windowbuttondownfcn',   {@ft_select_range, 'multiple', false, 'yrange', false, 'callback', {@select_topoplotER}, 'event', 'windowbuttondownfcn'});
-    set(gcf, 'windowbuttonmotionfcn', {@ft_select_range, 'multiple', false, 'yrange', false, 'callback', {@select_topoplotER}, 'event', 'windowbuttonmotionfcn'});
+    cb_options = {'multiple', false, 'yrange', false, 'callback', {@select_topoplotER}, 'linecolor', cfg.interactivecolor, 'linestyle', cfg.interactivestyle, 'linewidth', cfg.interactivewidth};
+    set(gcf, 'WindowButtonUpFcn',     [{@ft_select_range, 'event', 'WindowButtonUpFcn'}      cb_options]);
+    set(gcf, 'WindowButtonDownFcn',   [{@ft_select_range, 'event', 'WindowButtonDownFcn'},   cb_options]);
+    set(gcf, 'WindowButtonMotionFcn', [{@ft_select_range, 'event', 'WindowButtonMotionFcn'}, cb_options]);
   else
-    set(gcf, 'WindowButtonUpFcn',     {@ft_select_channel, 'multiple', true, 'callback', {@select_singleplotER}, 'event', 'WindowButtonUpFcn'});
-    set(gcf, 'WindowButtonDownFcn',   {@ft_select_channel, 'multiple', true, 'callback', {@select_singleplotER}, 'event', 'WindowButtonDownFcn'});
-    set(gcf, 'WindowButtonMotionFcn', {@ft_select_channel, 'multiple', true, 'callback', {@select_singleplotER}, 'event', 'WindowButtonMotionFcn'});
+    cb_options = {'multiple', true, 'callback', {@select_singleplotER}, 'linecolor', cfg.interactivecolor, 'linestyle', cfg.interactivestyle, 'linewidth', cfg.interactivewidth};
+    set(gcf, 'WindowButtonUpFcn',     [{@ft_select_channel, 'event', 'WindowButtonUpFcn'}      cb_options]);
+    set(gcf, 'WindowButtonDownFcn',   [{@ft_select_channel, 'event', 'WindowButtonDownFcn'},   cb_options]);
+    set(gcf, 'WindowButtonMotionFcn', [{@ft_select_channel, 'event', 'WindowButtonMotionFcn'}, cb_options]);
   end
 end
 % do the general cleanup and bookkeeping at the end of the function
@@ -694,7 +716,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTION
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function plotScales(hlim, vlim, hpos, vpos, width, height, cfg)
+function plotScales(hlim, vlim, hpos, vpos, width, height, fontsize, hticks)
 
 % the placement of all elements is identical
 placement = {'hpos', hpos, 'vpos', vpos, 'width', width, 'height', height, 'hlim', hlim, 'vlim', vlim};
@@ -703,18 +725,29 @@ ft_plot_box([hlim vlim], placement{:}, 'edgecolor', 'k');
 
 if hlim(1)<=0 && hlim(2)>=0
   ft_plot_line([0 0], vlim, placement{:}, 'color', 'k');
-  ft_plot_text(0, vlim(1), '0  ', placement{:}, 'rotation', 90, 'HorizontalAlignment', 'right', 'VerticalAlignment', 'middle', 'FontSize', cfg.fontsize);
+  if nargin<8
+    ft_plot_text(0, vlim(1), '0  ', placement{:}, 'rotation', 90, 'HorizontalAlignment', 'right', 'VerticalAlignment', 'middle', 'FontSize', fontsize);
+  end
 end
 
 if vlim(1)<=0 && vlim(2)>=0
   ft_plot_line(hlim, [0 0], placement{:}, 'color', 'k');
-  ft_plot_text(hlim(1), 0, '0  ', placement{:}, 'HorizontalAlignment', 'Right', 'VerticalAlignment', 'middle', 'FontSize', cfg.fontsize);
+  ft_plot_text(hlim(1), 0, '0  ', placement{:}, 'HorizontalAlignment', 'Right', 'VerticalAlignment', 'middle', 'FontSize', fontsize);
 end
 
-ft_plot_text(hlim(1), vlim(1), [num2str(hlim(1), 3) ' '], placement{:}, 'rotation', 90, 'HorizontalAlignment', 'right', 'VerticalAlignment', 'top',    'FontSize', cfg.fontsize);
-ft_plot_text(hlim(2), vlim(1), [num2str(hlim(2), 3) ' '], placement{:}, 'rotation', 90, 'HorizontalAlignment', 'right', 'VerticalAlignment', 'bottom', 'FontSize', cfg.fontsize);
-ft_plot_text(hlim(1), vlim(1), [num2str(vlim(1), 3) ' '], placement{:}, 'HorizontalAlignment', 'Right', 'VerticalAlignment', 'bottom', 'FontSize', cfg.fontsize);
-ft_plot_text(hlim(1), vlim(2), [num2str(vlim(2), 3) ' '], placement{:}, 'HorizontalAlignment', 'Right', 'VerticalAlignment', 'top',    'FontSize', cfg.fontsize);
+if nargin>7
+  for i = 1:numel(hticks)
+    ft_plot_text(hticks(i), vlim(1), [num2str(hticks(i), 3) ' '], placement{:}, 'rotation', 0, 'HorizontalAlignment', 'center', 'VerticalAlignment', 'top', 'FontSize', fontsize);
+  end
+  ft_plot_text(hlim(1), vlim(1), [num2str(vlim(1), 3) ' '], placement{:}, 'HorizontalAlignment', 'Right', 'VerticalAlignment', 'bottom', 'FontSize', fontsize);
+  ft_plot_text(hlim(1), vlim(2), [num2str(vlim(2), 3) ' '], placement{:}, 'HorizontalAlignment', 'Right', 'VerticalAlignment', 'top',    'FontSize', fontsize);
+else
+  ft_plot_text(hlim(1), vlim(1), [num2str(hlim(1), 3) ' '], placement{:}, 'rotation', 90, 'HorizontalAlignment', 'right', 'VerticalAlignment', 'bottom', 'FontSize', fontsize);
+  ft_plot_text(hlim(2), vlim(1), [num2str(hlim(2), 3) ' '], placement{:}, 'rotation', 90, 'HorizontalAlignment', 'right',  'VerticalAlignment', 'top', 'FontSize', fontsize);
+  ft_plot_text(hlim(1), vlim(1), [num2str(vlim(1), 3) ' '],   placement{:}, 'HorizontalAlignment', 'Right', 'VerticalAlignment', 'top', 'FontSize', fontsize);
+  ft_plot_text(hlim(1), vlim(2), [num2str(vlim(2), 3) ' '],   placement{:}, 'HorizontalAlignment', 'Right', 'VerticalAlignment', 'bottom',    'FontSize', fontsize);
+end
+
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -758,7 +791,11 @@ if ~isempty(range)
   % the range is not what it appears, since the figure was constructed with FT_PLOT_VECTOR
   % this critically depends on AXIS TIGHT being done earlier
   xlim_plot = get(gca, 'xlim');
-  xlim_real = varargin{1}.time([1 end]);
+  if isfield(varargin{1}, 'time')
+    xlim_real = varargin{1}.time([1 end]);
+  elseif isfield(varargin{1}, 'freq')
+    xlim_real = varargin{1}.freq([1 end]);
+  end
   % map the range that was selected in the plot onto the real range of the data
   p = polyfit(xlim_plot, xlim_real, 1);
   range([1 2]) = polyval(p, range([1 2]));
@@ -782,6 +819,8 @@ if ~isempty(range)
   cfg.figure = 'yes';
   cfg.position = get(gcf, 'Position');
   cfg.layout = cfg.topolayout; % use the topographic layout, not the butterfly layout
-
+  if isfield(cfg, 'linecolor') && isequal(cfg.linecolor, 'spatial')
+    cfg = rmfield(cfg, 'linecolor');
+  end
   ft_topoplotER(cfg, varargin{:});
 end

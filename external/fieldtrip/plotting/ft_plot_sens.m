@@ -8,20 +8,22 @@ function hs = ft_plot_sens(sens, varargin)
 % by FT_PREPARE_VOL_SENS.
 %
 % Optional input arguments should come in key-value pairs and can include
-%   'label'           = show the label, can be 'off', 'label', 'number' (default = 'off')
-%   'chantype'        = string or cell-array with strings, for example 'meg' (default = 'all')
+%   'chantype'        = string or cell-array with strings, for example 'megmag' (default = 'all')
+%   'chanindx'        = logical vector or vector of indices with the channels to plot (default is all)
+%   'label'           = whether to show the channel label, can be 'off', 'label', 'number' (default = 'off')
+%   'labeloffset'     = number, how much to shift the label away from the actual sensor location (default is automatic)
+%   'axes'            = true/false, whether to plot the axes of the 3D coordinate system (default = false)
 %   'unit'            = string, convert the sensor array to the specified geometrical units (default = [])
-%   'axes'            = boolean, whether to plot the axes of the 3D coordinate system (default = false)
 %   'fontcolor'       = string, color specification (default = 'k')
 %   'fontsize'        = number, sets the size of the text (default = 10)
-%   'fontunits'       =
-%   'fontname'        =
-%   'fontweight'      =
+%   'fontunits'       = 'inches', 'centimeters', 'normalized', 'points' or 'pixels'
+%   'fontweight'      = 'normal' or 'bold'
+%   'fontname'        = string
 %
 % The following options apply to MEG magnetometers and/or gradiometers
 %   'coil'            = true/false, plot each individual coil (default = false)
 %   'orientation'     = true/false, plot a line for the orientation of each coil (default = false)
-%   'coilshape'       = 'point', 'circle', 'square', 'sphere', or 'disc' (default is automatic)
+%   'coilshape'       = 'point', 'circle', 'square', 'sphere' or 'disc' (default is automatic)
 %   'coilsize'        = diameter or edge length of the coils (default is automatic)
 % The following options apply to EEG electrodes
 %   'elec'            = true/false, plot each individual electrode (default = false)
@@ -40,13 +42,19 @@ function hs = ft_plot_sens(sens, varargin)
 %   'style'           = plotting style for the points representing the channels, see plot3 (default = [])
 %   'marker'          = marker type representing the channels, see plot3 (default = '.')
 % The following options apply when electrodes/coils/optodes are plotted individually
-%   'facecolor'       = [r g b] values or string, for example 'brain', 'cortex', 'skin', 'black', 'red', 'r', or an Nx3 or Nx1 array where N is the number of faces (default is automatic)
-%   'edgecolor'       = [r g b] values or string, for example 'brain', 'cortex', 'skin', 'black', 'red', 'r', color of channels or coils (default is automatic)
+%   'facecolor'       = [r g b] values or string, for example 'black', 'red', 'r', or an Nx3 or Nx1 array where N is the number of faces (default is automatic)
+%   'edgecolor'       = [r g b] values or string, for example 'black', 'red', 'r', color of channels or coils (default is automatic)
 %   'facealpha'       = transparency, between 0 and 1 (default = 1)
 %   'edgealpha'       = transparency, between 0 and 1 (default = 1)
 %
+% The following options apply when the orientation is plotted as a line segment per channel
+%   'linecolor'       = [r g b] values or string, or Nx3 matrix for color of orientation line,
+%                       default is the default matlab colororder
+%   'linewidth'       = scalar, width of the orientation line (default = 1)
+%   'linelength'      = scalar, length of the orientation line in mm (default = 20)
+%
 % The sensor array can include an optional fid field with fiducials, which will also be plotted.
-%   'fiducial'        = rue/false, plot the fiducials (default = true)
+%   'fiducial'        = true/false, plot the fiducials (default = true)
 %   'fidcolor'        = [r g b] values or string, for example 'red', 'r', or an Nx3 or Nx1 array where N is the number of fiducials
 %   'fidmarker'       = ['.', '*', '+',  ...]
 %   'fidlabel'        = ['yes', 'no', 1, 0, 'true', 'false']
@@ -62,6 +70,7 @@ function hs = ft_plot_sens(sens, varargin)
 % FT_PLOT_TOPO3D
 
 % Copyright (C) 2009-2024, Robert Oostenveld, Arjen Stolk
+% Copyright (C) 2025-2026, Robert Oostenveld, Arjen Stolk, Jan-Mathijs Schoffelen
 %
 % This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
@@ -86,7 +95,9 @@ sens = ft_datatype_sens(sens);
 
 % get the optional input arguments
 label           = ft_getopt(varargin, 'label', 'off');
+labeloffset     = ft_getopt(varargin, 'labeloffset', []);
 chantype        = ft_getopt(varargin, 'chantype');
+chanindx        = ft_getopt(varargin, 'chanindx');
 unit            = ft_getopt(varargin, 'unit');
 axes_           = ft_getopt(varargin, 'axes', false);     % do not confuse with built-in function
 orientation     = ft_getopt(varargin, 'orientation', false);
@@ -122,16 +133,16 @@ isnirs = ft_senstype(sens, 'nirs');
 
 % make sure that the options are consistent with the data
 if iseeg
-  individual = elec;
+  individual = istrue(elec);
   sensshape  = elecshape;
   senssize   = elecsize;
 elseif ismeg
-  individual = coil;
+  individual = istrue(coil);
   sensshape  = coilshape;
   senssize   = coilsize;
 elseif isnirs
   % this has not been tested
-  individual = opto;
+  individual = istrue(opto);
   sensshape  = optoshape;
   senssize   = optosize;
 else
@@ -154,6 +165,16 @@ end
 facecolor       = ft_getopt(varargin, 'facecolor');  % default depends on the input, see below
 facealpha       = ft_getopt(varargin, 'facealpha',   1);
 edgealpha       = ft_getopt(varargin, 'edgealpha',   1);
+
+% this is needed when plotting orientation
+linecolor       = ft_getopt(varargin, 'linecolor');
+linewidth       = ft_getopt(varargin, 'linewidth', 1);
+linelength      = ft_getopt(varargin, 'linelength', 20);
+
+if islogical(chanindx)
+  % this should be a list of indices
+  chanindx = find(chanindx);
+end
 
 if ischar(chantype)
   % this should be a cell-array
@@ -180,7 +201,7 @@ end
 
 if isempty(sensshape)
   if ft_senstype(sens, 'neuromag')
-    if strcmp(chantype, 'megmag')
+    if any(strcmp(chantype, 'megmag'))
       sensshape = 'point'; % these cannot be plotted as squares
     else
       sensshape = 'square';
@@ -199,6 +220,8 @@ if isempty(senssize)
       senssize = 30; % FIXME this is only an estimate
     case 'neuromag122'
       senssize = 35; % FIXME this is only an estimate
+    case 'ctf64'
+      senssize = 20; % Vrba et al (1993) "Whole cortex, 64 channel SQUID biomagnetometer system"
     case 'ctf151'
       senssize = 20;
     case 'ctf275'
@@ -213,7 +236,7 @@ if isempty(senssize)
       end
   end
   % convert from mm to the units of the sensor array
-  senssize = senssize/ft_scalingfactor(sens.unit, 'mm');
+  senssize = senssize / ft_scalingfactor(sens.unit, 'mm');
 end
 
 % color management
@@ -226,48 +249,33 @@ if isempty(facecolor) % set default color depending on shape
     facecolor = 'b';
   end
 end
-if ischar(facecolor) && exist([facecolor '.m'], 'file')
-  facecolor = feval(facecolor);
-end
-if ischar(edgecolor) && exist([edgecolor '.m'], 'file')
-  edgecolor = feval(edgecolor);
-end
+if ischar(facecolor), facecolor = colorspec2rgb(facecolor); end
+if ischar(edgecolor), edgecolor = colorspec2rgb(edgecolor); end
 
-% select a subset of channels and coils to be plotted
-if ~isempty(chantype)
+% select a subset of channels to be plotted
+if ~isempty(chantype) || ~isempty(chanindx)
   % remove the balancing from the sensor definition, e.g. 3rd order gradients, PCA-cleaned data or ICA projections
   sens = undobalancing(sens);
-  
-  chansel = match_str(sens.chantype, chantype);
-  
-  % remove the channels that are not selected
-  sens.label    = sens.label(chansel);
-  sens.chanpos  = sens.chanpos(chansel,:);
-  sens.chantype = sens.chantype(chansel);
-  sens.chanunit = sens.chanunit(chansel);
-  if isfield(sens, 'chanori')
-    % this is only present for MEG sensor descriptions
-    sens.chanori  = sens.chanori(chansel,:);
+
+  if ~isempty(chantype)
+    chansel = match_str(sens.chantype, chantype);
+  elseif ~isempty(chanindx)
+    chansel = chanindx;
+  else
+    chansel1 = match_str(sens.chantype, chantype);
+    chansel2 = find(chanindx); % ensure it is a list of indices
+    chansel = intersect(chansel1, chansel2);
   end
-  
-  % remove the magnetometer and gradiometer coils that are not in one of the selected channels
-  if isfield(sens, 'tra') && isfield(sens, 'coilpos')
-    sens.tra     = sens.tra(chansel,:);
-    coilsel      = any(sens.tra~=0,1);
-    sens.coilpos = sens.coilpos(coilsel,:);
-    sens.coilori = sens.coilori(coilsel,:);
-    sens.tra     = sens.tra(:,coilsel);
+
+  % make the selection using a helper function
+  if iseeg
+    sens = select_elec(sens, chansel);
+  elseif ismeg
+    sens = select_grad(sens, chansel);
+  elseif isnirs
+    sens = select_opto(sens, chansel);
   end
-  
-  % FIXME note that I have not tested this on any complicated electrode definitions
-  % remove the electrodes that are not in one of the selected channels
-  if isfield(sens, 'tra') && isfield(sens, 'elecpos')
-    sens.tra     = sens.tra(chansel,:);
-    elecsel      = any(sens.tra~=0,1);
-    sens.elecpos = sens.elecpos(elecsel,:);
-    sens.tra     = sens.tra(:,elecsel);
-  end
-  
+
 end % selecting channels and coils
 
 % start with empty return values
@@ -288,6 +296,8 @@ if istrue(individual)
   elseif isfield(sens, 'optopos')
     pos = sens.optopos;
   end
+  % get the orientation of all individual coils, electrodes or optodes
+  % this is used for displacing the label in 3D
   if isfield(sens, 'coilori')
     ori = sens.coilori;
   elseif isfield(sens, 'elecori')
@@ -297,7 +307,7 @@ if istrue(individual)
   else
     ori = [];
   end
-  
+
 else
   % determine the position of each channel, which is for example the mean of
   % two bipolar electrodes, or the bottom coil of a axial gradiometer, or
@@ -312,55 +322,69 @@ else
   else
     ori = [];
   end
-  
+
 end % if istrue(individual)
 
 if isempty(ori)
-  if ~isempty(headshape)
-    % the following code uses PCNORMALS from the computer vision toolbox
-    % ft_hastoolbox('vision', -1);
-    
-    % how many local points on the headshape are used for estimating the local norm
-    npoints = 25;
-    
-    % calculate local norm vectors
-    for i=1:size(pos,1)
-      % compute the distance to all headshape points
-      d = sqrt( (pos(i,1)-headshape.pos(:,1)).^2 + (pos(i,2)-headshape.pos(:,2)).^2 + (pos(i,3)-headshape.pos(:,3)).^2 );
-      [dum, idx] = sort(d);
-      x = headshape.pos(idx(1:npoints),1);
-      y = headshape.pos(idx(1:npoints),2);
-      z = headshape.pos(idx(1:npoints),3);
-      ptCloud = pointCloud([x y z]);
-      nrm = pcnormals(ptCloud);
-      u = nrm(:,1);
-      v = nrm(:,2);
-      w = nrm(:,3);
-      
-      % compute the headshape center
-      C = mean(headshape.pos,1);
-      % the vector should be pointing away from the center, otherwise flip it
-      for k = 1:numel(x)
-        p1 = C - [x(k) y(k) z(k)];
-        p2 =     [u(k) v(k) w(k)];
-        angle = atan2(norm(cross(p1,p2)),p1*p2');
-        if ~(angle > pi/2 || angle < -pi/2)
-          u(k) = -u(k);
-          v(k) = -v(k);
-          w(k) = -w(k);
-        end
-      end
-      Fn = nanmean([u v w],1);
-      Fn = Fn * (1/sqrt(sum(Fn.^2,2))); % normalize
-      ori(i,:) = Fn;
-    end % for
+  if isfield(sens, 'coilori') && (~isfield(sens, 'tra') || isequal(sens.tra, eye(length(sens.label))))
+    % one-to-one mapping between coils and channels
+    ori = sens.coilori;
+
+  elseif isfield(sens, 'elecori') && (~isfield(sens, 'tra') || isequal(sens.tra, eye(length(sens.label))))
+    % one-to-one mapping between electrodes and channels
+    ori = sens.elecori;
+
+  elseif isfield(sens, 'optoori') && (~isfield(sens, 'tra') || isequal(sens.tra, eye(length(sens.label))))
+    % one-to-one mapping between optodes and channels
+    ori = sens.optoori;
+
+  elseif isfield(sens, 'coilori') % and there is a non-trivial "tra"
+    ori = nan(size(pos));
+    % calculate the channel direction as a weighted sum
+    for i=1:length(sens.label)
+      orix = abs(sens.tra(i,:)) * sens.coilori(:,1);
+      oriy = abs(sens.tra(i,:)) * sens.coilori(:,2);
+      oriz = abs(sens.tra(i,:)) * sens.coilori(:,3);
+
+      ori(i,:) = [orix oriy oriz];
+      ori(i,:) = ori(i,:)/norm(ori(i,:));
+    end
+
+  elseif isfield(sens, 'elecori') % and there is a non-trivial "tra"
+    ori = nan(size(pos));
+    % calculate the channel direction as a weighted sum
+    for i=1:length(sens.label)
+      orix = abs(sens.tra(i,:)) * sens.elecori(:,1);
+      oriy = abs(sens.tra(i,:)) * sens.elecori(:,2);
+      oriz = abs(sens.tra(i,:)) * sens.elecori(:,3);
+
+      ori(i,:) = [orix oriy oriz];
+      ori(i,:) = ori(i,:)/norm(ori(i,:));
+    end
+
+  elseif isfield(sens, 'optoori') % and there is a non-trivial "tra"
+    ori = nan(size(pos));
+    % calculate the channel direction as a weighted sum
+    for i=1:length(sens.label)
+      orix = abs(sens.tra(i,:)) * sens.optoori(:,1);
+      oriy = abs(sens.tra(i,:)) * sens.optoori(:,2);
+      oriz = abs(sens.tra(i,:)) * sens.optoori(:,3);
+
+      ori(i,:) = [orix oriy oriz];
+      ori(i,:) = ori(i,:)/norm(ori(i,:));
+    end
+
+  elseif ~isempty(headshape)
+    % determine the orientations based on the headshape
+    % this only works if all positions are defined and if the headshape is reasonably well defined
+    ori = normals_elec(pos, headshape.pos, headshape.tri);
 
   elseif ~any(isnan(pos(:))) && size(pos,1)>2
     % determine orientations based on a surface triangulation of the sensors
     % this only works if all positions are defined
     tri = projecttri(pos, 'delaunay');
     ori = surface_normals(pos, tri);
-    
+
   elseif size(pos,1)>4
     % determine orientations by fitting a sphere to the sensors
     try
@@ -373,10 +397,11 @@ if isempty(ori)
       ori(i,:) = pos(i,:) - center;
       ori(i,:) = ori(i,:)/norm(ori(i,:));
     end
+
   else
     ori = nan(size(pos));
   end
-  
+
 end % if empty(ori)
 
 if mean(isnan(ori(:)))>0.25
@@ -408,12 +433,20 @@ elseif any(isnan(ori(:)))
 end
 
 if istrue(orientation)
-  scale = ft_scalingfactor('mm', sens.unit)*20; % draw a line segment of 20 mm
+  scale = ft_scalingfactor('mm', sens.unit)*linelength; % treat linelength in mm
+
+  if isempty(linecolor)
+    linecolor = lines(size(pos,1));
+  end
+  if ischar(linecolor)
+    linecolor = colorspec2rgb(linecolor, size(pos,1));
+  end
+
   for i=1:size(pos,1)
     x = [pos(i,1) pos(i,1)+ori(i,1)*scale];
     y = [pos(i,2) pos(i,2)+ori(i,2)*scale];
     z = [pos(i,3) pos(i,3)+ori(i,3)*scale];
-    line(x, y, z)
+    line(x, y, z, 'color', linecolor(i,:), 'linewidth', linewidth);
   end
 end
 
@@ -441,16 +474,16 @@ switch sensshape
       % if the marker is '.' it will show points that do not depend on the size, in all other cases (e.g. 'o') the size is relevant
       hs = scatter3(pos(:,1), pos(:,2), pos(:,3), senssize.^2, facecolor, marker);
     end
-    
+
   case 'sphere'
     plotsens(pos, ori, [], senssize, sensshape, 'edgecolor', edgecolor, 'facecolor', facecolor, 'edgealpha', edgealpha, 'facealpha', facealpha);
-    
+
   case 'disc'
     plotsens(pos, ori, [], senssize, sensshape, 'edgecolor', edgecolor, 'facecolor', facecolor, 'edgealpha', edgealpha, 'facealpha', facealpha);
-    
+
   case 'circle'
     plotsens(pos, ori, [], senssize, sensshape, 'edgecolor', edgecolor, 'facecolor', facecolor, 'edgealpha', edgealpha, 'facealpha', facealpha);
-    
+
   case 'square'
     % determine the rotation-around-the-axis of each sensor
     % this is only applicable for neuromag planar gradiometers
@@ -460,7 +493,7 @@ switch sensshape
       for i=1:nchan
         poscoil = find(sens.tra(i,:)>0);
         negcoil = find(sens.tra(i,:)<0);
-        if numel(poscoil)==1 && numel(negcoil)==1
+        if isscalar(poscoil) && isscalar(negcoil)
           % planar gradiometer
           direction = sens.coilpos(poscoil,:)-sens.coilpos(negcoil,:);
           direction = direction/norm(direction);
@@ -474,36 +507,36 @@ switch sensshape
     else
       chandir = [];
     end
-    
+
     plotsens(pos, ori, chandir, senssize, sensshape, 'edgecolor', edgecolor, 'facecolor', facecolor, 'edgealpha', edgealpha, 'facealpha', facealpha);
-    
+
   otherwise
     ft_error('incorrect shape');
 end % switch
 
 if ~isempty(label) && ~any(strcmp(label, {'off', 'no'}))
-  
-  % determine the offset for the labels
-  if strcmp(sensshape, 'point')
-    % determine the median of the distance to the nearest neighbour
-    sensdist = triu(dist(sens.chanpos'),1);
-    sensdist(sensdist==0) = Inf;
-    sensdist = min(sensdist,[], 2);
-    sensdist = median(sensdist);
-    % the offset is based on distance between sensors
-    offset = 0.5 * sensdist;
-    % it should not be larger than 20 mm
-    offset = min(offset, 20*ft_scalingfactor('mm', sens.unit));
-  else
-    % the offset is based on size of the sensors
-    offset = 1.5 * senssize;
-  end
-  
-  if isinf(offset)
-    % this happens in case there is only one sensor and the size has not been specified
-    offset = 10*ft_scalingfactor('mm', sens.unit); % displace the label by 10 mm
-  end
-  
+
+  if isempty(labeloffset)
+    % determine the offset for the labels
+    if strcmp(sensshape, 'point') && size(sens.chanpos,1)>1
+      % determine the median of the distance to the nearest neighbour
+      sensdist = triu(dist(sens.chanpos'),1);
+      sensdist(sensdist==0) = Inf;
+      sensdist = min(sensdist,[], 2);
+      sensdist = median(sensdist);
+      % the offset is based on distance between sensors
+      labeloffset = 0.5 * sensdist;
+      % it should not be larger than 20 mm
+      labeloffset = min(labeloffset, 20 * ft_scalingfactor('mm', sens.unit));
+    elseif strcmp(sensshape, 'point') && size(sens.chanpos,1)==1
+      % the offset cannot be determined from the distance between sensors, displace it by 10 mm
+      labeloffset = 10 * ft_scalingfactor('mm', sens.unit);
+    else
+      % the offset is based on size of the sensors
+      labeloffset = 1.5 * senssize;
+    end
+  end % if empty
+
   for i=1:size(pos,1)
     switch label
       case {'on', 'yes', 'label', 'labels'}
@@ -530,9 +563,9 @@ if ~isempty(label) && ~any(strcmp(label, {'off', 'no'}))
         ft_error('unsupported value for option ''label''');
     end % switch
     % shift the label with a certain offset
-    x = pos(i,1) + offset * ori(i,1);
-    y = pos(i,2) + offset * ori(i,2);
-    z = pos(i,3) + offset * ori(i,3);
+    x = pos(i,1) + labeloffset * ori(i,1);
+    y = pos(i,2) + labeloffset * ori(i,2);
+    z = pos(i,3) + labeloffset * ori(i,3);
     text(x, y, z, str, 'color', fontcolor, 'fontunits', fontunits, 'fontsize', fontsize, 'fontname', fontname, 'fontweight', fontweight, 'horizontalalignment', 'center', 'verticalalignment', 'middle', 'interpreter', 'none');
   end % for each channel
 end % if label
@@ -562,7 +595,7 @@ if istrue(axes_)
   ft_plot_axes(sens);
 end
 
-if isfield(sens, 'coordsys')
+if isfield(sens, 'coordsys') && ~isempty(sens.coordsys) && ~strcmp(sens.coordsys, 'unknown')
   % add a context sensitive menu to change the 3d viewpoint to top|bottom|left|right|front|back
   menu_viewpoint(gca, sens.coordsys)
 end
@@ -621,7 +654,7 @@ for i=1:nsens
   r1 = rotate([0 th 0]);
   r2 = rotate([0 0 ph]);
   t  = translate(senspos(i,:));
-  
+
   % determine the initial rotation of the coil as homogenous transformation matrix
   if isempty(sensdir)
     % none of the coils needs to be rotated around their axis, this applies to circular coils
@@ -638,7 +671,7 @@ for i=1:nsens
     rh = atan2(y, x)*180/pi;
     r0 = rotate([0 0 rh]);
   end
-  
+
   switch sensshape
     case {'sphere' 'disc'}
       % construct a single mesh with separate triangles for all sensors
@@ -653,7 +686,7 @@ for i=1:nsens
       mesh.poly(i,:)  = sel;                              % this is a polygon connecting all edge points
       mesh.tri        = [];
   end
-  
+
 end % for each sensor
 
 % use either poly or tri for plotting

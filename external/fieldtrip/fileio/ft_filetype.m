@@ -610,6 +610,18 @@ elseif filetype_check_extension(filename, '.marker')
   type = 'brainvision_marker';
   manufacturer = 'BrainProducts';
   content = 'rejection markers';
+elseif filetype_check_extension(filename, '.bvrd')
+  type = 'brainvision_bvrd';
+  manufacturer = 'BrainProducts';
+  content = 'continuous EEG data';
+elseif filetype_check_extension(filename, '.bvrh')
+  type = 'brainvision_bvrh';
+  manufacturer = 'BrainProducts';
+  content = 'EEG header';
+elseif filetype_check_extension(filename, '.bvrm')
+  type = 'brainvision_bvrm';
+  manufacturer = 'BrainProducts';
+  content = 'EEG markers';
 
   % known Polhemus file types
 elseif filetype_check_extension(filename, '.pos')
@@ -1637,7 +1649,7 @@ elseif filetype_check_extension(filename, '.msh') && filetype_check_header(filen
   content = 'geometrical meshes';
 elseif filetype_check_extension(filename, '.vtk') && filetype_check_header(filename, '# vtk') && filetype_check_ascii(filename, inf)
   type = 'vtk';
-  manufacturer = 'ParaView';
+  manufacturer = 'Visualization Toolkit';
   content = 'geometrical meshes';
 elseif filetype_check_extension(filename, '.bin') && exist(fullfile(p, [f '.meta']), 'file') 
   type = 'spikeglx_bin';
@@ -1647,6 +1659,25 @@ elseif filetype_check_extension(filename, '.meta') && exist(fullfile(p, [f '.bin
   type = 'spikeglx_bin';
   manufacturer = 'SpikeGLX';
   content = 'neuropixel data';
+elseif filetype_check_extension(filename, '.lvm') && filetype_check_header(filename, 'LabVIEW')
+  type = 'quspin_lvm'; % technically it is a https://www.ni.com/docs/en-US/bundle/labview/page/labview-measurement-files.html
+  manufacturer = 'QuSpin';
+  content = 'OPM MEG data';
+elseif (filetype_check_extension(filename, '.bin') && exist(fullfile(p, [f '.json']), 'file')) || ...
+    (filetype_check_extension(filename, '.json') && exist(fullfile(p, [f '.bin']), 'file'))
+  % this could be a opm_fil dataset, in BIDS-like folder organisation, with also a channel tsv file. 
+  % If of a later date, the channels.tsv has the same f-stem as the datafile, but this is not a guarantee,
+  % so FIXME this is a bit of a HACK here
+  if exist(fullfile(p, [strrep(f, '_meg', '_channels') '.tsv']), 'file')
+    type = 'opm_fil';
+    manufacturer = 'QuSpin';
+    content = 'OPM MEG data';
+  elseif ~isempty(dir(fullfile(p, '*channels.tsv')))
+    % old style representation, e.g. as per the getting started opm_fil data on the fieldtrip website
+    type = 'opm_fil';
+    manufacturer = 'QuSpin';
+    content = 'OPM MEG data';
+  end  
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

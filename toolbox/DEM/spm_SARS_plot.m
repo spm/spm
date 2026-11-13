@@ -29,6 +29,8 @@ function spm_SARS_plot(Y,X,Z,U)
 % https://www.telegraph.co.uk/global-health/science-and-disease/huge-regional-differences-intensive-care-bed-numbers-threaten/
 %--------------------------------------------------------------------------
 global CHOLD, if isempty(CHOLD); CHOLD = 1; end
+global GHOLD, if isempty(GHOLD); GHOLD = 0; end
+global DATE,  if isempty(DATE); DATE = date; end
 
 % plot prior responses
 %==========================================================================
@@ -46,7 +48,7 @@ if nargin < 2
     %----------------------------------------------------------------------
     nN      = 4;
     pE      = spm_SARS_priors(nN);
-    M.T     = datenum(date) - datenum('01-01-2020','dd-mm-yyyy');
+    M.T     = datenum(DATE) - datenum('01-01-2020','dd-mm-yyyy');
     [Y,X,Z] = spm_SARS_gen(pE,M,U);
     spm_SARS_plot(Y,X,Z,U)
     
@@ -90,7 +92,7 @@ end
 
 % factors and names
 %--------------------------------------------------------------------------
-[pE,pC,str] = spm_SARS_priors;
+[~,~,str] = spm_SARS_priors;
 
 % graphics
 %--------------------------------------------------------------------------
@@ -104,11 +106,13 @@ xlabel('time (weeks)'),ylabel('number per day')
 title('Rates (per day)','FontSize',16)
 axis square, box off, set(gca,'XLim',[0, t(end)])
 legend('off'), legend(p(1:nu),un), legend('boxoff')
+if GHOLD, hold on, end
 
 subplot(3,2,2), set(gca,'ColorOrderIndex',1);
 plot(t,cumsum(Y));
 xlabel('time (weeks)'),ylabel('number of cases'), set(gca,'XLim',[0, t(end)])
 title('Cumulative cases','FontSize',16), axis square, box off
+if GHOLD, hold on, end
 
 % marginal densities
 %--------------------------------------------------------------------------
@@ -117,7 +121,7 @@ for i = 1:numel(X)
     
     k = k + 1;
     subplot(6,2,k), set(gca,'ColorOrderIndex',1);
-    [d,j] = sort(max(X{i}));
+    [~,j] = sort(max(X{i}));
     
     % remove redundant states
     %----------------------------------------------------------------------
@@ -131,7 +135,8 @@ for i = 1:numel(X)
         ylabel('percent')
         title(str.factors{i},'FontSize',12), set(gca,'XLim',[0, t(end)])
         box off, legend(str.factor{i}(j(1:2))), legend('boxoff'), box off
-        
+        if GHOLD, hold on, end
+
         k = k + 1;
         subplot(6,2,k), set(gca,'ColorOrderIndex',1);
         j(1:2) = [];
@@ -139,14 +144,16 @@ for i = 1:numel(X)
         ylabel('percent')
         title(str.factors{i},'FontSize',12), set(gca,'XLim',[0, t(end)])
         box off, legend(str.factor{i}(j)), legend('boxoff'), box off
-        
+        if GHOLD, hold on, end
+
     elseif i == 2
         
         plot(t,X{i}(:,j(1:4))*100)
         ylabel('percent')
         title(str.factors{i},'FontSize',12), set(gca,'XLim',[0, t(end)])
         box off, legend(str.factor{i}(j(1:4))), legend('boxoff'), box off
-        
+        if GHOLD, hold on, end
+
         k = k + 1;
         subplot(6,2,k), set(gca,'ColorOrderIndex',1);
         j(1:4) = [];
@@ -154,14 +161,16 @@ for i = 1:numel(X)
         ylabel('percent')
         title(str.factors{i},'FontSize',12), set(gca,'XLim',[0, t(end)])
         box off, legend(str.factor{i}(j)), legend('boxoff'), box off
-        
+        if GHOLD, hold on, end
+
     else  
         
         plot(t,X{i}(:,j)*100)
         ylabel('percent')
         title(str.factors{i},'FontSize',12), set(gca,'XLim',[0, t(end)])
         box off, legend(str.factor{i}(j)), legend('boxoff'), box off
-        
+        if GHOLD, hold on, end
+
     end
     
 end
@@ -175,8 +184,11 @@ try
     j   = (T - 7):T;
     subplot(3,2,2), set(gca,'ColorOrderIndex',1); hold on
     plot(t,cumsum(Z),'.'), hold off
+    if GHOLD, hold on, end
     subplot(3,2,1), set(gca,'ColorOrderIndex',1); hold on
     plot(t(i),Z(i,:),'.'), plot(t(j),Z(j,:),'.c'), hold off
     legend('off'), legend(p(1:nu),un), legend('boxoff')
+    if GHOLD, hold on, end
+
 end
 drawnow

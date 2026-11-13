@@ -398,8 +398,6 @@ end
 
 % Show full and reduced conditional estimates (for Bayesian average)
 %--------------------------------------------------------------------------
-spm_figure('Getwin','BMR - all');
-
 if isstruct(DCM.Ep)
     i  = spm_find_pC(pC,DCM.Ep,field);
 else
@@ -430,6 +428,8 @@ if nargout > 1
     BMR.k    = k;
     
     if ~noplot
+        spm_figure('Getwin','BMR - all');
+        
         subplot(3,2,3), spm_plot_ci(qE(i),qC(i,i))
         title('MAP (full)','FontSize',16)
         axis square, a = axis;
@@ -460,8 +460,9 @@ if isstruct(DCM.Ep)
     end
     Pp    = spm_unvec(Pp,DCM.Ep);
     Ep    = spm_unvec(Ep,DCM.Ep);
-end
+    rE    = spm_unvec(rE,DCM.Ep);
 
+end
 DCM.M.pE  = rE;        % reduced prior expectation
 DCM.M.pC  = rC;        % reduced prior covariance
 DCM.Ep    = Ep;        % Bayesian model averages

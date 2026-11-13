@@ -55,9 +55,11 @@ function [elec] = ft_electrodeplacement(cfg, varargin)
 %                        'volume'          interactively locate electrodes on three orthogonal slices of a volumetric MRI or CT scan
 %                        'headshape'       interactively locate electrodes on a head surface
 %                        '1020'            automatically locate electrodes on a head surface according to the 10-20 system
+%                        'equidistant'     automatically locate electrodes on a head surface according to an equidistant dsitribution
 %                        'shaft'           automatically locate electrodes along a linear sEEG shaft
 %                        'grid'            automatically locate electrodes on a MxN ECoG grid
 %   cfg.figure         = 'yes' or 'no', whether to open a new figure. You can also specify a figure handle from FIGURE, GCF or SUBPLOT. (default = 'yes')
+%   cfg.figurename     = string, title of the figure window
 %   cfg.position       = location and size of the figure, specified as [left bottom width height] (default is automatic)
 %   cfg.renderer       = string, 'opengl', 'zbuffer', 'painters', see RENDERERINFO (default = 'opengl')
 %
@@ -74,12 +76,19 @@ function [elec] = ft_electrodeplacement(cfg, varargin)
 %                        'weighted'        place electrodes at center-of-mass
 %   cfg.magradius      = number representing the radius for the cfg.magtype based search (default = 3)
 %
-% The following options apply to the '1020' method
+% The following options apply to the '1020' and 'equidistant' method
 %   cfg.fiducial.nas   = 1x3 vector with coordinates
 %   cfg.fiducial.ini   = 1x3 vector with coordinates
 %   cfg.fiducial.lpa   = 1x3 vector with coordinates
 %   cfg.fiducial.rpa   = 1x3 vector with coordinates
 %   cfg.feedback       = string, can be 'yes' or 'no' for detailed feedback (default = 'yes')
+%
+% The following additional options apply to the 'equidistant' method
+%   cfg.numelec        = scalar, how many electrodes to place (default = 64)
+%   cfg.nummidline     = scalar, how many electrodes along the midline over the vertex
+%   cfg.numsideline    = scalar, how many electrodes along the midline over the sideline above the ear
+%   cfg.maxiter        = scalar, maximum number of iterations at which to stop
+%   cfg.minchange      = scalar, minimum change at which to stop
 %
 % The following options apply to the 'shaft' method
 %   cfg.shaft.tip      = 1x3 position of the electrode at the tip of the shaft
@@ -145,13 +154,20 @@ cfg = ft_checkconfig(cfg, 'renamedval', {'method', 'mri', 'volume'});
 cfg = ft_checkconfig(cfg, 'renamed',    {'newfigure', 'figure'});
 
 % set the defaults
-cfg.method        = ft_getopt(cfg, 'method',              []); % volume, headshape, 1020, shaft
+cfg.method        = ft_getopt(cfg, 'method',              []); % volume, headshape, equidistant, 1020, shaft
 cfg.feedback      = ft_getopt(cfg, 'feedback',         'yes');
 cfg.parameter     = ft_getopt(cfg, 'parameter',    'anatomy');
 cfg.channel       = ft_getopt(cfg, 'channel',             []); % default will be determined further down {'1', '2', ...}
 cfg.elec          = ft_getopt(cfg, 'elec',                []); % use previously placed electrodes
 cfg.flip          = ft_getopt(cfg, 'flip',                []); % the default is set below
 cfg.renderer      = ft_getopt(cfg, 'renderer',      'opengl');
+cfg.figurename    = ft_getopt(cfg, 'figurename',    mfilename);
+% equidistant options
+cfg.numelec       = ft_getopt(cfg, 'numelec',             64);
+cfg.nummidline    = ft_getopt(cfg, 'nummidline');
+cfg.numsideline   = ft_getopt(cfg, 'numsideline');
+cfg.maxiter       = ft_getopt(cfg, 'maxiter');
+cfg.minchange     = ft_getopt(cfg, 'minchange');
 % view options
 cfg.clim          = ft_getopt(cfg, 'clim',             [0 1]); % initial volume intensity limit voxels
 cfg.markerdist    = ft_getopt(cfg, 'markerdist',           5); % marker-slice distance view when ~global
@@ -187,7 +203,7 @@ switch cfg.method
     for v = 1:numel(varargin)
       mri{v} = ft_checkdata(varargin{v}, 'datatype', 'volume', 'feedback', 'yes', 'hascoordsys', 'yes', 'hasunit', 'yes');
     end
-  case  {'headshape', '1020'}
+  case  {'headshape', 'equidistant', '1020'}
     headshape = fixpos(varargin{1});
     headshape = ft_checkdata(headshape, 'hascoordsys', 'yes', 'hasunit', 'yes');
 end
@@ -211,11 +227,15 @@ chanlabel = {};
 chanstring = {};
 markerlab = {}; 
 markerpos = {};
+use_html = ~ft_platform_supports('matlabversion', '2025a', inf); % version 2025a and newer no longer support html
 if ~isempty(cfg.elec) % re-use previously placed (cfg.elec) electrodes
   for e = 1:numel(cfg.elec.label)
     chanlabel{end+1,1} = cfg.elec.label{e};
-    chanstring{end+1} = ['<HTML><FONT color="black">' cfg.elec.label{e} '</FONT></HTML>']; % hmtl'ize
-
+    if use_html
+      chanstring{end+1} = ['<HTML><FONT color="black">' cfg.elec.label{e} '</FONT></HTML>']; % hmtl'ize
+    else
+      chanstring{end+1} = ['● ' cfg.elec.label{e}];
+    end
     markerlab{end+1,1} = cfg.elec.label{e};
     markerpos{end+1,1} = cfg.elec.elecpos(e,:);
   end
@@ -224,8 +244,11 @@ if ~isempty(cfg.channel) % use prespecified (cfg.channel) electrode labels
   for c = 1:numel(cfg.channel)
     if ~ismember(cfg.channel{c}, chanlabel) % avoid overlap between cfg.channel and elec.label
       chanlabel{end+1,1} = cfg.channel{c};
-      chanstring{end+1} = ['<HTML><FONT color="silver">' cfg.channel{c} '</FONT></HTML>']; % hmtl'ize
-
+      if use_html
+        chanstring{end+1} = ['<HTML><FONT color="silver">' cfg.channel{c} '</FONT></HTML>']; % hmtl'ize
+      else
+        chanstring{end+1} = ['○ ' cfg.channel{c}];
+      end
       markerlab{end+1,1} = [];
       markerpos{end+1,1} = zeros(0,3);
     end
@@ -234,8 +257,11 @@ end
 if isempty(cfg.elec) && isempty(cfg.channel) % create electrode labels on-the-fly
   for c = 1:300
     chanlabel{end+1,1} = sprintf('%d', c);
-    chanstring{end+1} = ['<HTML><FONT color="silver">' sprintf('%d', c) '</FONT></HTML>']; % hmtl'ize
-
+    if use_html
+      chanstring{end+1} = ['<HTML><FONT color="silver">' sprintf('%d', c) '</FONT></HTML>']; % hmtl'ize
+    else
+      chanstring{end+1} = ['○ ' sprintf('%d', c)];
+    end
     markerlab{end+1,1} = {};
     markerpos{end+1,1} = zeros(0,3);
   end
@@ -249,7 +275,6 @@ switch cfg.method
     % this is an interactive method, start building the figure
 
     h = open_figure(keepfields(cfg, {'figure', 'position', 'visible', 'renderer', 'figurename', 'title'}));
-    set(h, 'Name', mfilename);
     set(h, 'Units', 'normalized');
     set(h, 'Color', [1 1 1]);
     set(h, 'MenuBar', 'none');
@@ -325,11 +350,44 @@ switch cfg.method
       clear dat dmin dmax
     end
 
+    % electrode listbox
+    listpos = [mri{1}.h1size(1)+0.07 0.08 mri{1}.h2size(1)/2.5 mri{1}.h3size(2)*0.88];
+    h6 = uicontrol('Style', 'listbox', ...
+      'Parent', h, ...
+      'Value', [], 'Min', 0, 'Max', numel(chanstring), ...
+      'Units', 'normalized', ...
+      'FontSize', 12, ...
+      'Position', listpos, ...
+      'Callback', @cb_eleclistbox, ...
+      'String', chanstring);
+
+    % controls to the right of listbox
+    x0 = listpos(1) + listpos(3) + 0.035;
+    y0 = listpos(2);
+    ctrlh = listpos(4);
+
+    sliderW = 0.035;
+    sliderH = ctrlh * 0.35;
+    sliderY = y0 + ctrlh * 0.55;
+    labelY  = sliderY + sliderH;
+
+    zoomX = x0;
+    intX1 = x0 + 0.09;
+    intX2 = x0 + 0.13;
+
+    magnetY = y0 + ctrlh * 0.35;
+
+    checkX = x0;
+    checkY = y0 + ctrlh * 0.25;
+    checkW = 0.13;
+    checkH = 0.035;
+    checkGap = 0.04;
+
     % intensity range sliders
     h45text = uicontrol('Style', 'text',...
       'String', 'Intensity',...
       'Units', 'normalized', ...
-      'Position', [2*mri{1}.h1size(1)-0.02 mri{1}.h3size(2)-0.02 mri{1}.h1size(1)/4 0.04],...
+      'Position', [intX1-0.025 labelY 0.12 0.04],...
       'BackgroundColor', [1 1 1], ...
       'HandleVisibility', 'on');
 
@@ -338,7 +396,7 @@ switch cfg.method
       'Min', 0, 'Max', 1, ...
       'Value', cfg.clim(1), ...
       'Units', 'normalized', ...
-      'Position', [2*mri{1}.h1size(1)-0.03 0.10+mri{1}.h3size(2)/3 0.05 mri{1}.h3size(2)/2-0.05], ...
+      'Position', [intX1 sliderY sliderW sliderH], ...
       'Callback', @cb_minslider);
 
     h5 = uicontrol('Style', 'slider', ...
@@ -346,32 +404,14 @@ switch cfg.method
       'Min', 0, 'Max', 1, ...
       'Value', cfg.clim(2), ...
       'Units', 'normalized', ...
-      'Position', [2*mri{1}.h1size(1)+0.02 0.10+mri{1}.h3size(2)/3 0.05 mri{1}.h3size(2)/2-0.05], ...
+      'Position', [intX2 sliderY sliderW sliderH], ...
       'Callback', @cb_maxslider);
-
-    % java intensity range slider (dual-knob slider): the java component gives issues when wanting to
-    % access the opt structure
-    % [jRangeSlider] = com.jidesoft.swing.RangeSlider(0,1,cfg.clim(1),cfg.clim(2));  % min,max,low,high
-    % [jRangeSlider, h4] = javacomponent(jRangeSlider, [], h);
-    % set(h4, 'Units', 'normalized', 'Position', [0.05+h1size(1) 0.07 0.07 h3size(2)], 'Parent', h);
-    % set(jRangeSlider, 'Orientation', 1, 'PaintTicks', true, 'PaintLabels', true, ...
-    %     'Background', java.awt.Color.white, 'StateChangedCallback', @cb_intensityslider);
-
-    % electrode listbox
-    h6 = uicontrol('Style', 'listbox', ...
-      'Parent', h, ...
-      'Value', [], 'Min', 0, 'Max', numel(chanstring), ...
-      'Units', 'normalized', ...
-      'FontSize', 12, ...
-      'Position', [mri{1}.h1size(1)+0.07 0.02 mri{1}.h2size(1)/2.5 mri{1}.h3size(2)], ...
-      'Callback', @cb_eleclistbox, ...
-      'String', chanstring);
 
     % switches / radio buttons
     h7text = uicontrol('Style', 'text',...
       'String', 'Magnet',...
       'Units', 'normalized', ...
-      'Position', [2*mri{1}.h1size(1)-0.047 0.18 mri{1}.h1size(1)/3 0.04],...
+      'Position', [checkX+0.11 magnetY-0.002 0.08 0.035], ...
       'BackgroundColor', [1 1 1], ...
       'HandleVisibility', 'on');
 
@@ -380,7 +420,7 @@ switch cfg.method
       'Value', 4, ... % corresponding to magradius = 3 (see String)
       'String', {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'}, ...
       'Units', 'normalized', ...
-      'Position', [2*mri{1}.h1size(1)-0.103 0.18 mri{1}.h1size(1)/4.25 0.04],...
+      'Position', [checkX magnetY 0.12 0.035], ...
       'BackgroundColor', [1 1 1], ...
       'HandleVisibility', 'on', ...
       'Callback', @cb_magnetbutton);
@@ -395,7 +435,7 @@ switch cfg.method
       'Value', 0, ...
       'String', 'Labels',...
       'Units', 'normalized', ...
-      'Position', [2*mri{1}.h1size(1)-0.05 0.14 mri{1}.h1size(1)/3 0.04],...
+      'Position', [checkX checkY checkW checkH], ...
       'BackgroundColor', [1 1 1], ...
       'HandleVisibility', 'on', ...
       'Callback', @cb_labelsbutton);
@@ -405,7 +445,7 @@ switch cfg.method
       'Value', 0, ...
       'String', 'Global',...
       'Units', 'normalized', ...
-      'Position', [2*mri{1}.h1size(1)-0.05 0.10 mri{1}.h1size(1)/3 0.04],...
+      'Position', [checkX checkY-checkGap checkW checkH],...
       'BackgroundColor', [1 1 1], ...
       'HandleVisibility', 'on', ...
       'Callback', @cb_globalbutton);
@@ -415,7 +455,7 @@ switch cfg.method
       'Value', 0, ...
       'String', 'Scatter',...
       'Units', 'normalized', ...
-      'Position', [2*mri{1}.h1size(1)-0.05 0.06 mri{1}.h1size(1)/3 0.04],...
+      'Position', [checkX checkY-2*checkGap checkW checkH],...
       'BackgroundColor', [1 1 1], ...
       'HandleVisibility', 'on', ...
       'Callback', @cb_scatterbutton);
@@ -425,7 +465,7 @@ switch cfg.method
       'Value', 0, ...
       'String', 'CT/MRI',...
       'Units', 'normalized', ...
-      'Position', [2*mri{1}.h1size(1)-0.05 0.02 mri{1}.h1size(1)/3 0.04],...
+      'Position', [checkX checkY-3*checkGap checkW checkH],...
       'BackgroundColor', [1 1 1], ...
       'HandleVisibility', 'on', ...
       'Visible', 'off', ...
@@ -436,7 +476,7 @@ switch cfg.method
     h10text = uicontrol('Style', 'text',...
       'String', 'Zoom',...
       'Units', 'normalized', ...
-      'Position', [1.8*mri{1}.h1size(1)-0.04 mri{1}.h3size(2)-0.02 mri{1}.h1size(1)/4 0.04],...
+      'Position', [zoomX-0.015 labelY 0.07 0.04],...
       'BackgroundColor', [1 1 1], ...
       'HandleVisibility', 'on');
 
@@ -445,7 +485,7 @@ switch cfg.method
       'Min', 0, 'Max', 0.9, ...
       'Value', 0, ...
       'Units', 'normalized', ...
-      'Position', [1.8*mri{1}.h1size(1)-0.03 0.10+mri{1}.h3size(2)/3 0.05 mri{1}.h3size(2)/2-0.05], ...
+      'Position', [zoomX sliderY sliderW sliderH], ...
       'SliderStep', [.1 .1], ...
       'Callback', @cb_zoomslider);
 
@@ -628,35 +668,58 @@ switch cfg.method
     elec.chanpos = elec.elecpos;
     elec.tra = eye(size(elec.elecpos,1));
 
+  case 'equidistant'
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % the equidistant distribution requires some fixed reference points
+    % which we get from the 1020 placement
+    tmpcfg = cfg;
+    tmpcfg.method = '1020';
+    tmpcfg.feedback = 'no';
+    elec1020 = ft_electrodeplacement(tmpcfg, headshape);
+
+    front  = elec1020.elecpos(strcmp(elec1020.label, 'Fpz'),:);
+    back   = elec1020.elecpos(strcmp(elec1020.label, 'Oz'),:);
+    left   = elec1020.elecpos(strcmp(elec1020.label, 'T7'),:);  % optional, can be []
+    right  = elec1020.elecpos(strcmp(elec1020.label, 'T8'),:);  % optional, can be []
+    vertex = elec1020.elecpos(strcmp(elec1020.label, 'Cz'),:);  % optional, can be []
+    
+    % distribute the electrodes automatically on the headshape 
+    [pos, lab] = equidistant_locate(headshape.pos, headshape.tri, front, back, left, right, vertex, cfg.numelec, cfg.nummidline, cfg.numsideline, cfg.maxiter, cfg.minchange, istrue(cfg.feedback));
+
+    % construct the output
+    elec = keepfields(headshape, {'unit', 'coordsys'});
+    elec.elecpos = pos;
+    elec.label   = lab(:);
+
   case '1020'
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % this is an automatic method without figure
 
-    % the placement procedure fails if the fiducials coincide with vertices
-    dist = @(x, y) sqrt(sum(bsxfun(@minus, x, y).^2,2));
-    tolerance = 0.1 * ft_scalingfactor('mm', headshape.unit);  % 0.1 mm
+    % try to ensure the mesh to be simple and topologically correct
+    % this is needed for meshes generated in Fusion, which have npos=3*ntri
+    [headshape.pos, headshape.tri] = remove_double_vertices(headshape.pos, headshape.tri);
+    [headshape.pos, headshape.tri] = remove_unused_vertices(headshape.pos, headshape.tri);
+    orientation = surface_orientation(headshape.pos, headshape.tri);
+
+    if strcmp(orientation, 'inward')
+      ft_info('flipping the headshape mesh inside-out');
+      headshape.tri = fliplr(headshape.tri);
+    elseif strcmp(orientation, 'unknown')
+      ft_warning('the headshape is not topologically equivalent to a sphere');
+    end
+
+    npos = size(headshape.pos,1);
+    ntri = size(headshape.tri,1);
+    if ntri~=2*(npos-2)
+      ft_warning('the headshape is not topologically equivalent to a sphere');
+    end
+
     nas = cfg.fiducial.nas;
     ini = cfg.fiducial.ini;
     lpa = cfg.fiducial.lpa;
     rpa = cfg.fiducial.rpa;
-    if any(dist(headshape.pos, nas)<tolerance)
-      ft_warning('Nasion coincides with headshape vertex, addding random displacement of about %f %s', tolerance, headshape.unit);
-      nas = nas + tolerance*randn(1,3);
-    end
-    if any(dist(headshape.pos, ini)<tolerance)
-      ft_warning('Inion coincides with headshape vertex, addding random displacement of about %f %s', tolerance, headshape.unit);
-      ini = ini + tolerance*randn(1,3);
-    end
-    if any(dist(headshape.pos, lpa)<tolerance)
-      ft_warning('LPA coincides with headshape vertex, addding random displacement of about %f %s', tolerance, headshape.unit);
-      lpa = lpa + tolerance*randn(1,3);
-    end
-    if any(dist(headshape.pos, rpa)<tolerance)
-      ft_warning('RPA coincides with headshape vertex, addding random displacement of about %f %s', tolerance, headshape.unit);
-      rpa = rpa + tolerance*randn(1,3);
-    end
 
-    % place the electrodes automatically according to the fiducials
+    % place the electrodes automatically on the headshape according to the fiducials
     [pos, lab] = elec1020_locate(headshape.pos, headshape.tri, nas, ini, lpa, rpa, istrue(cfg.feedback));
     % construct the output
     elec = keepfields(headshape, {'unit', 'coordsys'});
@@ -1131,7 +1194,7 @@ if ~isfield(opt, 'scatterfig') % initiate in case the figure does not yet exist
     'Min', 0, 'Max', 1, ...
     'Value', opt.slim(1), ...
     'Units', 'normalized', ...
-    'Position', [.85+.02 .06 .05 .2], ...
+    'Position', [.85+.02 .03 .05 .2], ...
     'Callback', @cb_scatterminslider);
 
   opt.scatterfig_h3 = uicontrol('Style', 'slider', ...
@@ -1139,7 +1202,7 @@ if ~isfield(opt, 'scatterfig') % initiate in case the figure does not yet exist
     'Min', 0, 'Max', 1, ...
     'Value', opt.slim(2), ...
     'Units', 'normalized', ...
-    'Position', [.85+.07 .06 .05 .2], ...
+    'Position', [.85+.07 .03 .05 .2], ...
     'Callback', @cb_scattermaxslider);
 
   hskullstrip = uicontrol('Style', 'togglebutton', ...
@@ -1147,7 +1210,7 @@ if ~isfield(opt, 'scatterfig') % initiate in case the figure does not yet exist
     'String', 'Skullstrip', ...
     'Value', 0, ...
     'Units', 'normalized', ...
-    'Position', [.88 .88 .1 .1], ...
+    'Position', [.02 .03 .1 .1], ...
     'HandleVisibility', 'on', ...
     'Callback', @cb_skullstrip);
 
@@ -1697,14 +1760,18 @@ if ~isempty(elecidx)
   eleclab = eleclis{elecidx}; % this elec's label
 
   % toggle electrode status and assign markers
-  if contains(eleclab, 'silver') % not yet, check
+  if contains(eleclab, 'silver') || contains(eleclab, '○') % not yet, check
     fprintf('==================================================================================\n');
     fprintf(' assigning marker %s\n', opt.label{elecidx,1});
-    eleclab = regexprep(eleclab, '"silver"', '"black"'); % replace font color
+    if contains(eleclab, 'silver')
+      eleclab = regexprep(eleclab, 'silver', 'black'); % replace font color
+    else
+      eleclab = strrep(eleclab, '○', '●');
+    end
     opt.markerlab{elecidx,1} = opt.label{elecidx,1}; % assign marker label
     opt.markerpos{elecidx,1} = opt.pos; % assign marker position
     opt.redrawmarkers = true; % draw markers
-  elseif contains(eleclab, 'black') % already chosen before, move cursor to marker or uncheck
+  elseif contains(eleclab, 'black') || contains(eleclab, '●') % already chosen before, move cursor to marker or uncheck
     if strcmp(get(h, 'SelectionType'), 'normal') % single click to move cursor to
       fprintf('==================================================================================\n');
       fprintf(' moving cursor to marker %s\n', opt.label{elecidx,1});
@@ -1713,13 +1780,17 @@ if ~isempty(elecidx)
     elseif strcmp(get(h, 'SelectionType'), 'open') % double click to uncheck
       fprintf('==================================================================================\n');
       fprintf(' removing marker %s\n', opt.label{elecidx,1});
-      eleclab = regexprep(eleclab, '"black"', '"silver"'); % replace font color
+      if contains(eleclab, 'black')
+        eleclab = regexprep(eleclab, 'black', 'silver'); % replace font color
+      else
+        eleclab = strrep(eleclab, '●', '○');
+      end
       opt.markerlab{elecidx,1} = []; % assign marker label
       opt.markerpos{elecidx,1} = []; % assign marker position
       opt.redrawmarkers = true; % remove markers
     end
   end
-
+  
   % update plot
   eleclis{elecidx} = eleclab;
   set(h6, 'String', eleclis);

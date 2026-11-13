@@ -8,4 +8,4 @@ function J = spm_ness_J(P,M,X)
 
 % numerical evaluation of Jacobian
 %--------------------------------------------------------------------------
-J = full(spm_diff('spm_NESS_gen',P,M,X,3));
+J = full(spm_diff(@spm_NESS_gen,P,M,X,3));

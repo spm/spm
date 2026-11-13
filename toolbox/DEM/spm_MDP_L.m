@@ -30,7 +30,7 @@ n            = numel(U);
 %--------------------------------------------------------------------------
 MDP   = spm_MDP_VB_X(MDP);
 L     = 0;
-for i = 1:n;
+for i = 1:n
     for t = 1:size(Y{i},2)
         sub = num2cell(Y{i}(:,t));
         L   = L + log(MDP(i).P(sub{:},t));
@@ -39,4 +39,4 @@ end
 
 % cheat scaling to mimic multiple trials
 %--------------------------------------------------------------------------
-L = L*32;
+L = L*32; %%%%

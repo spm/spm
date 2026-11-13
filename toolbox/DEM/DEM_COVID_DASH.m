@@ -197,7 +197,7 @@ for r = 1:numel(DR)
     
     % complete model specification
     %----------------------------------------------------------------------
-    M.date = datestr(dn(1),'dd-mm-yyyy'); % date of first time point
+    M.date = datestr(dn(1),'dd-mmm-yyyy');% date of first time point
     M.G    = @spm_SARS_gen;               % generative function
     M.FS   = @(Y)sqrt(Y);                 % feature selection  (link function)
     M.pE   = pE;                          % prior expectations (parameters)

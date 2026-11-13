@@ -338,6 +338,12 @@ end % switch
 if ~any(info.chansel) || ~any(info.trlsel)
   % don't try to rescale the axes if they are empty
 else
+  if isinf(ymin) || isnan(ymin)
+    ymin = 0;
+  end
+  if isinf(ymax) || isnan(ymax)
+    ymax = 0;
+  end
   if ymin>0 && ymax>0
     ymin = 0.8*ymin; % closest to zero
     ymax = 1.2*ymax; % furthest from zero
@@ -345,6 +351,10 @@ else
   if ymin<0 && ymax<0
     ymin = 1.2*ymin; % furthest from zero
     ymax = 0.8*ymax; % closest to zero
+  end
+  if ymin==ymax
+    ymin = ymin-0.5;
+    ymax = ymax+0.5;
   end
   % ensure that the horizontal and vertical range increase, also when negative
   % see https://github.com/fieldtrip/fieldtrip/issues/1150
@@ -644,6 +654,10 @@ cfg_mp.layout   = info.cfg.layout;
 cfg_mp.channel  = info.data.label(info.chansel);
 cfg_mp.dataname = info.cfg.dataname;
 cfg_mp.ylim     = info.cfg.ylim;
+cfg_mp.interactive = 'yes';
+cfg_mp.viewmode = 'butterfly';
+cfg_mp.linecolor = 'spatial'; 
+
 currfig = gcf;
 for n = 1:length(trls)
   % ft_multiplotER should be able to make the selection, but fails due to http://bugzilla.fieldtriptoolbox.org/show_bug.cgi?id=2978
@@ -651,9 +665,9 @@ for n = 1:length(trls)
   cfg_sd = [];
   cfg_sd.trials = trls(n);
   tmpdata = ft_selectdata(cfg_sd, info.data);
+  tmpdata.trial{1} = ft_preproc_baselinecorrect(tmpdata.trial{1});
 
   figure()
-  cfg_mp.interactive = 'yes';
   ft_multiplotER(cfg_mp, tmpdata);
   title(sprintf('Trial %i', trls(n)));
 end

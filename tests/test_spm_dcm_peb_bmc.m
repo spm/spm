@@ -1,16 +1,16 @@
-function tests = test_spm_dcm_peb_bmc
+classdef test_spm_dcm_peb_bmc < matlab.unittest.TestCase
 % Unit Tests for test_spm_dcm_peb_bmc
 %__________________________________________________________________________
 
 % Copyright (C) 2016-2022 Wellcome Centre for Human Neuroimaging
 
 
-tests = functiontests(localfunctions);
+methods (Test)
 
 % -------------------------------------------------------------------------
 function test_model_search(testCase)
 
-data_path = get_data_path();
+data_path = test_spm_dcm_peb_bmc.get_data_path();
 
 PEB = load(fullfile(data_path,'PEB_test.mat'));
 PEB = PEB.PEB;
@@ -35,11 +35,12 @@ Pp_others(connection,:) = [];
 testCase.assertTrue(all(Pp_others(connection,effect) < 0.95));
 
 close all;
+end
 
 % -------------------------------------------------------------------------
 function test_specific_model_comparison(testCase)
 
-data_path = get_data_path();
+data_path = test_spm_dcm_peb_bmc.get_data_path();
 
 % Get PEB full model
 PEB = load(fullfile(data_path,'PEB_test.mat'));
@@ -69,12 +70,13 @@ testCase.assertTrue(BMA.Px(1) > 0.95);
 testCase.assertTrue(BMA.Px(2) < 0.95);
 
 close all;
+end
 
 % -------------------------------------------------------------------------
 function test_self_connection_onoff(testCase)
 % Implemented to confirm that self-connections on A in DCM for fMRI models
 % can be varied across models.
-data_path = get_data_path();
+data_path = test_spm_dcm_peb_bmc.get_data_path();
 
 % Get PEB full model
 PEB = load(fullfile(data_path,'PEB_test.mat'));
@@ -98,12 +100,13 @@ GCM_templates{2}.b(2,1,2) = 0;
 testCase.assertTrue(length(BMA.Kname) == 2);
 
 close all;
+end
 
 % -------------------------------------------------------------------------
 function test_bmc_peb_of_pebs(testCase)
 % Tests model comparison with hierarchical models
 
-data_path = get_data_path();
+data_path = test_spm_dcm_peb_bmc.get_data_path();
 
 % Load first level DCMs
 GCM = load(fullfile(data_path,'models','GCM_simulated.mat'));
@@ -157,9 +160,17 @@ GCM_templates{2}.b(2,1,2) = 0;
 assert(length(BMA.Kname) == 1);
 
 close all
+end
 
+end % methods (Test)
+
+methods (Static, Access = private)
 % -------------------------------------------------------------------------
 function data_path = get_data_path()
 
 data_path = fullfile( spm('Dir'), 'tests', ...
     'data', 'fMRI', 'simulated_2region');
+end
+end % methods (Static, Access = private)
+
+end % classdef

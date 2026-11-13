@@ -1,10 +1,12 @@
 function [C] = spm_wft(s,k,n)
 % Windowed fourier wavelet transform (time-frequency analysis)
 % FORMAT [C] = spm_wft(s,k,n)
-% s      - (t X n) time-series
+% s      - (T X N) time-series
 % k      - Frequencies (cycles per window)
 % n      - window length
-% C      - (w X t X n) coefficients (complex)
+% C      - (w X T X N) coefficients (complex)
+%
+% see also: spm_iwft
 %__________________________________________________________________________
 
 % Karl Friston
@@ -26,6 +28,8 @@ for i = 1:length(k)
     W     = exp(-1j*(2*pi*k(i)*(0:(T - 1))/n))';
     for j = 1:N
         w        = conv(full(s(:,j)).*W,h);
-        C(i,:,j) = w((1:T) + n/2);
+        C(i,:,j) = w((1:T) + fix(n/2));
     end
 end
+
+return

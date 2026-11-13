@@ -1,5 +1,5 @@
 function [E,  PST] = spm_voice_segmentation(wfile,SEG)
-% Plot the results of a segmented sound fileor audio stream
+% Plot the results of a segmented sound file or audio stream
 % FORMAT [EEG,PST] = spm_voice_segmentation(wfile,SEG)
 %
 % wfile      - (double) timeseries, .wav file or audiorecorder object

@@ -1,11 +1,12 @@
-function tests = test_spm_mesh_geodesic
+classdef test_spm_mesh_geodesic < matlab.unittest.TestCase
 % Unit Tests for spm_mesh_geodesic
 %__________________________________________________________________________
 
 % Copyright (C) 2020-2022 Wellcome Centre for Human Neuroimaging
 
 
-tests = functiontests(localfunctions);
+
+methods (Test)
 
 
 function test_spm_mesh_geodesic_(testCase)
@@ -26,3 +27,7 @@ testCase.verifyTrue(iscell(P));
 [D,L] = spm_mesh_geodesic(M,1:100:size(M.vertices,1));
 testCase.verifyTrue(max(D) < pi);
 testCase.verifyTrue(numel(unique(L)) > 1);
+end
+end % methods (Test)
+
+end % classdef

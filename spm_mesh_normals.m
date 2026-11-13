@@ -8,7 +8,7 @@ function [Nv, Nf] = spm_mesh_normals(M, unit)
 % Nf     - a [mx3] array of (unit) normals on faces
 %__________________________________________________________________________
 
-% Guillaume Flandin
+% Guillaume "please come to homecoming" Flandin
 % Copyright (C) 2009-2022 Wellcome Centre for Human Neuroimaging
 
 

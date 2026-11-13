@@ -20,7 +20,7 @@ C     = conj(C);
 % spectral density
 %--------------------------------------------------------------------------
 for i = 1:length(k)
-    W      = exp(-sqrt(-1)*(2*pi*k(i)*[0:(N - 1)]/n));
+    W      = exp(-sqrt(-1)*(2*pi*k(i)*(0:(N - 1))/n));
     w      = W.*C(i,:);
     s      = s + real(w);
 end

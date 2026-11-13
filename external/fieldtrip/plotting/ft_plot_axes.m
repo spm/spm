@@ -58,9 +58,7 @@ fontweight  = ft_getopt(varargin, 'fontweight', get(0, 'defaulttextfontweight'))
 fontunits   = ft_getopt(varargin, 'fontunits',  get(0, 'defaulttextfontunits'));
 
 % color management
-if ischar(fontcolor) && exist([fontcolor '.m'], 'file')
-  fontcolor = eval(fontcolor);
-end
+if ischar(fontcolor), fontcolor = colorspec2rgb(fontcolor); end
 
 if ~isempty(object) && ~isempty(unit)
   % convert the object to the specified units
@@ -184,7 +182,7 @@ if ~holdflag
   hold off
 end
 
-if isfield(object, 'coordsys')
+if isfield(object, 'coordsys') && ~isempty(object.coordsys) && ~strcmp(object.coordsys, 'unknown')
   % add a context sensitive menu to change the 3d viewpoint to top|bottom|left|right|front|back
   menu_viewpoint(gca, object.coordsys)
 end

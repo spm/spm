@@ -1,11 +1,12 @@
-function tests = test_spm_gamrnd
+classdef test_spm_gamrnd < matlab.unittest.TestCase
 % Unit Tests for spm_gamrnd
 %__________________________________________________________________________
 
 % Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
 
 
-tests = functiontests(localfunctions);
+
+methods (Test)
 
 
 function test_spm_gamrnd_1(testCase)
@@ -27,3 +28,7 @@ testCase.verifyThat(g, IsGreaterThan(0));
 g = spm_gamrnd(2,5,[3,5]);
 %testCase.verifyThat(g, HasSize([3 5]));
 testCase.verifyThat(g, IsGreaterThan(0));
+end
+end % methods (Test)
+
+end % classdef

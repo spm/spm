@@ -135,10 +135,10 @@ endtrial        = ft_getopt(varargin, 'endtrial');
 chanindx        = ft_getopt(varargin, 'chanindx');
 checkboundary   = ft_getopt(varargin, 'checkboundary');
 checkmaxfilter  = ft_getopt(varargin, 'checkmaxfilter', 'yes'); % this is only passed as varargin to FT_READ_HEADER
-headerformat    = ft_getopt(varargin, 'headerformat');
+dataformat      = ft_getopt(varargin, 'dataformat');
+headerformat    = ft_getopt(varargin, 'headerformat', dataformat);  % by default the same
 fallback        = ft_getopt(varargin, 'fallback');
 cache           = ft_getopt(varargin, 'cache', false);
-dataformat      = ft_getopt(varargin, 'dataformat');
 chanunit        = ft_getopt(varargin, 'chanunit');
 timestamp       = ft_getopt(varargin, 'timestamp', false); % return Neuralynx NSC timestamps instead of actual data
 password        = ft_getopt(varargin, 'password', struct([]));
@@ -228,7 +228,7 @@ if isempty(chanindx)
   chanindx = 1:hdr.nChans;
 end
 
-% test whether the requested channels can be accomodated
+% test whether the requested channels can be accommodated
 if min(chanindx)<1 || max(chanindx)>hdr.nChans
   ft_error('FILEIO:InvalidChanIndx', 'selected channels are not present in the data');
 end
@@ -424,12 +424,16 @@ switch dataformat
     % neuromag headposition file created with maxfilter, the position varies over time
     orig = read_neuromag_headpos(filename);
     dat  = orig.data(chanindx, begsample:endsample);
-    
-  case {'biosemi_bdf', 'bham_bdf'}
+
+  case {'biosemi_v3'}
+    % this does not use a mex file for reading the 24 bit data
+    [dat, hdr.orig] = read_bdf(filename, 'Channels', hdr.label(chanindx), 'TimeRange', [begsample-1, endsample-1]/hdr.Fs, 'Verbose', false);
+
+  case {'biosemi_v2', 'biosemi_bdf'}
     % this uses a mex file for reading the 24 bit data
     dat = read_biosemi_bdf(filename, hdr, begsample, endsample, chanindx);
-    
-  case 'biosemi_old'
+
+  case {'biosemi_v1', 'biosemi_old'}
     % this uses the openbdf and readbdf functions that I copied from the EEGLAB toolbox
     epochlength = hdr.orig.Head.SampleRate(1);
     % it has already been checked in ft_read_header that all channels have the same sampling rate
@@ -490,6 +494,11 @@ switch dataformat
   case {'brainvision_eeg', 'brainvision_dat', 'brainvision_seg'}
     dat = read_brainvision_eeg(filename, hdr.orig, begsample, endsample, chanindx);
     
+  case 'brainvision_bvrd'
+    [p, f, e] = fileparts(filename);
+    [h, orig] = eeg_loadbvrf(p, [f, '.bvrh'], 'channelIndx', chanindx, 'sampleInterval', [begsample-1 endsample]); % begsample should be 0-based
+    dat = orig{1}.data;
+
   case 'bucn_nirs'
     dat = read_bucn_nirsdata(filename, hdr, begsample, endsample, chanindx);
     
@@ -757,15 +766,18 @@ switch dataformat
     dat = dat.data(chanindx,:);                         % select the desired channels
     
   case 'eyelink_asc'
-    if isfield(hdr.orig, 'dat')
-      % this is inefficient, since it keeps the complete data in memory
-      % but it does speed up subsequent read operations without the user
-      % having to care about it
+    if isfield(hdr, 'orig')
       asc = hdr.orig;
     else
-      asc = read_eyelink_asc(filename);
+      % for some reason the orig is not present, but needed
+      hdr = read_eyelink_asc(filename);
+      asc = hdr.orig;
     end
-    dat = asc.dat(chanindx,begsample:endsample);
+    if checkboundary && (asc.trialidx(begsample)~=asc.trialidx(endsample))
+      ft_error('requested data segment extends over a discontinuous trial boundary');
+    end
+    asc = read_eyelink_asc(filename, asc, begsample, endsample, chanindx);
+    dat = asc.dat;
     
   case 'fcdc_buffer'
     % read from a networked buffer for realtime analysis
@@ -1740,7 +1752,10 @@ elseif requestsamples && strcmp(dimord, 'chans_samples_trials')
   % determine the selection w.r.t. the data that has been read in
   begselection2 = begsample - begselection + 1;
   endselection2 = endsample - begselection + 1;
-  dat = dat(:,begselection2:endselection2);
+  if begselection2~=1 || endselection2~=size(dat,2)
+    % only do this selection if needed
+    dat = dat(:,begselection2:endselection2);
+  end
 end
 
 if inflated

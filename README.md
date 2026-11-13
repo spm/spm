@@ -17,20 +17,15 @@ See also `Contents.m`, `AUTHORS.txt` and `LICENCE`.
   
 # SPM
  
-Statistical Parametric Mapping refers to the construction and assessment
-of spatially extended statistical process used to test hypotheses about
-functional imaging data. These ideas have been instantiated in software
-that is called SPM.  The SPM software package has been designed for the
-analysis of brain imaging data sequences.  The sequences can be a series
-of images from different cohorts, or time-series from the same subject.
-The current release is designed for the analysis of fMRI, PET, SPECT, EEG
-and MEG.
+Statistical Parametric Mapping is the construction and assessment of 
+spatially extended statistical processes used to test hypotheses about 
+functional imaging data. These ideas have been instantiated in a 
+free and open source software that is called SPM.
 
-Please refer to this version as "**SPM12**" in papers and communications.
-
-SPM was written to organise and interpret our data (at The Wellcome Centre
-for Human Neuroimaging).  The distributed version is the same as that we
-use ourselves.
+The SPM software package has been designed for the analysis of brain 
+imaging data sequences. The sequences can be a series of images from 
+different cohorts, or time-series from the same subject. The current 
+release is designed for the analysis of fMRI, PET, SPECT, EEG and MEG.
 
 SPM is made freely available to the [neuro]imaging community, to promote
 collaboration and a common analysis scheme across laboratories.
@@ -39,54 +34,45 @@ collaboration and a common analysis scheme across laboratories.
 
 The SPM software is a suite of MATLAB functions, scripts and data files,
 with some externally compiled C routines, implementing Statistical
-Parametric Mapping.  MATLAB, a commercial engineering mathematics package,
-is required to use SPM.  MATLAB is produced by [MathWorks, Natick, MA,
-USA](https://www.mathworks.com/).
+Parametric Mapping.  For the best experience, we recommend running 
+SPM using MATLAB, a commercial engineering mathematics package. 
+MATLAB is produced by [MathWorks, Natick, MA,
+USA](https://www.mathworks.com/). Standalone versions of SPM that 
+do not require MATLAB are also available.
 
 SPM requires only core MATLAB to run (no special toolboxes are required).
 
-SPM12 is written for MATLAB version 7.4 (R2007a) onwards under Windows,
-Linux and Mac (SPM12 will not work with versions of MATLAB prior to 7.4).
+SPM is tested using the versions of MATLAB from the last 4-5 years. 
 Binaries of the external C-MEX routines are provided for Windows, Linux
 and Mac.  The source code is supplied and can be compiled with a C
-compiler (Makefile provided).
+compiler (Makefile provided). See [https://www.fil.ion.ucl.ac.uk/spm/software/spm12/](https://www.fil.ion.ucl.ac.uk/spm/docs/development/compilation/) for details.
 
-See https://www.fil.ion.ucl.ac.uk/spm/software/spm12/ for details.
-
-Later versions of MATLAB (released after SPM12), will probably need
-additional patches in order to run.  Once developed, these will be made
-available from:
-https://www.fil.ion.ucl.ac.uk/spm/download/spm12_updates/
-
-Although SPM12 will read image files from previous versions of SPM, there
+Although SPM will read image files from previous versions of SPM, there
 are differences in the algorithms, templates and models used.  Therefore,
 we recommend you use a single SPM version for any given project.
 
-The SPM12 Release Notes can be found online: 
-https://www.fil.ion.ucl.ac.uk/spm/software/spm12/
-
 # File format
 
-SPM12 uses the NIFTI-1 data format as standard.  Take a look at
+SPM uses the NIFTI-1 data format as standard.  Take a look at
 https://nifti.nimh.nih.gov/ for more information on the NIFTI-1 file
 format.
 
-The old SPM2 version of Analyze format can be read straight into SPM12,
+The old SPM2 version of Analyze format can be read straight into SPM,
 but results will be written out as NIFTI-1.  If you still use this format,
 then it is important that you ensure that `spm_flip_analyze_images` has
 been set appropriately for your data.
 
-The MINC and ECAT7 formats can not be read straight into SPM12, although
+The MINC and ECAT7 formats can not be read straight into SPM, although
 conversion utilities have been provided.  Similarly, a number of DICOM
-flavours can also be converted to NIFTI-1 using tools in SPM12.
+flavours can also be converted to NIFTI-1 using tools in SPM.
 
 # Resources
 
-The SPM website is the central repository for SPM resources:
-https://www.fil.ion.ucl.ac.uk/spm/
+The SPM documentation website is the central repository for SPM resources:
+[https://www.fil.ion.ucl.ac.uk/spm/docs/](https://www.fil.ion.ucl.ac.uk/spm/docs/)
 
-Introductory material, installation details, documentation, course details
-and patches are published on the site.
+Introductory material, installation details, documentation and course details
+are published on the site.
 
 There is an SPM email discussion list, hosted at <spm@jiscmail.ac.uk>.
 The list is monitored by the authors, and discusses theoretical,
@@ -94,16 +80,14 @@ methodological and practical issues of Statistical Parametric Mapping and
 SPM.  The SPM website has further details:
 https://www.fil.ion.ucl.ac.uk/spm/support/
 
-Please report bugs to the authors at <fil.spm@ucl.ac.uk>.
-
-Peculiarities may actually be features, and should be raised on the SPM
-email discussion list, <spm@jiscmail.ac.uk>.
+Please report bugs via the [Issues page](https://github.com/spm/spm/issues) 
+on SPM's Github repository.
 
 # Authors
 
-SPM is developed under the auspices of Functional Imaging Laboratory
-(FIL), The Wellcome Centre for Human NeuroImaging, in the Queen Square
-Institute of Neurology at University College London (UCL), UK.
+SPM is developed under the auspices of the Methods Group at the Functional 
+Imaging Laboratory (FIL), within the Department of Imaging Neuroscience, 
+UCL Queen Square Institute of Neurology, University College London (UCL), UK.
 
 SPM94 was written primarily by Karl Friston in the first half of 1994,
 with assistance from John Ashburner (MRC-CU), Jon Heather (WDoIN), and
@@ -140,5 +124,5 @@ SPM is supplied as is: No formal support or maintenance is provided or
 implied.
 
 ```
-Copyright (C) 1991,1994-2023 Wellcome Centre for Human Neuroimaging
+Copyright (C) 1991,1994-2025 Functional Imaging Laboratory
 ```

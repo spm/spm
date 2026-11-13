@@ -1,11 +1,12 @@
-function tests = test_spm_mesh_borders
+classdef test_spm_mesh_borders < matlab.unittest.TestCase
 % Unit Tests for spm_mesh_borders
 %__________________________________________________________________________
 
 % Copyright (C) 2018-2022 Wellcome Centre for Human Neuroimaging
 
 
-tests = functiontests(localfunctions);
+
+methods (Test)
 
 
 function test_spm_mesh_borders_sphere(testCase)
@@ -21,6 +22,7 @@ M.faces(end,:) = [];
 [act,C] = spm_mesh_borders(M);
 testCase.verifyEqual(act, exp);
 testCase.verifyEqual(numel(C), 1);
+end
 
 function test_spm_mesh_borders_sphere_4(testCase)
 M = spm_mesh_sphere(4);
@@ -35,6 +37,7 @@ exp = 94;
 act = numel(B);
 testCase.verifyEqual(act, exp);
 testCase.verifyEqual(numel(C), 1);
+end
 
 function test_spm_mesh_borders_sphere_5(testCase)
 M = spm_mesh_sphere(5);
@@ -46,6 +49,7 @@ exp = 190;
 act = numel(B);
 testCase.verifyEqual(act, exp);
 testCase.verifyEqual(numel(C), 1);
+end
 
 function test_spm_mesh_borders_two_spheres(testCase)
 M1 = spm_mesh_sphere(4);
@@ -62,3 +66,7 @@ act = numel(B);
 testCase.verifyEqual(act, exp);
 testCase.verifyEqual(numel(C), 2);
 testCase.verifyEqual(sort(cellfun(@numel,C)), [94 190]);
+end
+end % methods (Test)
+
+end % classdef

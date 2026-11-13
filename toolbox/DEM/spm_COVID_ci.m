@@ -80,7 +80,7 @@ CS    = dSdP*Cp*dSdP';
 %==========================================================================
 outcome  = str.outcome(U);
 if isfield(M,'date')
-    t  = (1:M.T) + datenum(M.date,'dd-mm-yyyy');
+    t  = (1:M.T) + datenum(M.date);
 else
     t  = (1:M.T)/7;
 end

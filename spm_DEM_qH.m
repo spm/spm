@@ -102,7 +102,7 @@ subplot(2,2,3)
 imagesc(qH.C)
 title({'covariances among','hyperparameters'},'FontSize',16)
 axis square
-set(gca,'YTickLabel',{hlabel{:} glabel{:}},'YTick',[1:length(qH.C)])
+set(gca,'YTickLabel',[hlabel(:)' glabel(:)'],'YTick',1:length(qH.C))
  
 % plot evolution of hyperparameters if supplied
 %==========================================================================

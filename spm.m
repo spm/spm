@@ -275,6 +275,18 @@ function varargout=spm(varargin)
 %_______________________________________________________________________
 
 
+
+%=======================================================================
+%-macOS Quarantine Self-Repair
+%=======================================================================
+if ismac && ~isdeployed
+    persistent hasCheckedQuarantine
+    if isempty(hasCheckedQuarantine)
+        hasCheckedQuarantine = true;
+        spm_mac_permissions();
+    end
+end
+
 %-Parameters
 %-----------------------------------------------------------------------
 Modalities = {'PET','FMRI','EEG'};
@@ -538,7 +550,8 @@ Finter = figure('IntegerHandle','off',...
     'DefaultUicontrolInterruptible','on',...
     'Renderer','painters',...
     'Visible',Vis);
-if spm_check_version('matlab','8.3') < 0
+is_octave = strcmp(spm_check_version,'octave');
+if ~is_octave && spm_check_version('matlab','8.3') < 0
     set(Finter,'DoubleBuffer','on');
 end
 varargout = {Finter};

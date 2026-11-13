@@ -21,12 +21,13 @@ function [V,X,Z,W] = spm_DEM_int(M,z,w,c)
 
 % set model indices and missing fields
 %--------------------------------------------------------------------------
-M      = spm_DEM_M_set(M);
+M    = spm_DEM_M_set(M);
+tol  = 128;
 
 % innovations
 %--------------------------------------------------------------------------
-z = spm_cat(z(:)) + spm_cat(c(:));
-w = spm_cat(w(:));
+z    = spm_cat(z(:)) + spm_cat(c(:));
+w    = spm_cat(w(:));
 
 % number of states and parameters
 %--------------------------------------------------------------------------
@@ -176,7 +177,9 @@ for t  = 1:nt
 
         % and unpack
         %------------------------------------------------------------------
-        u      = spm_unvec(spm_vec(u) + du,u);
+        v      = spm_vec(u);
+        %%% v  = tol*tanh(v/tol);
+        u      = spm_unvec(v + du,u);
 
     end % iterations over iD
 

@@ -109,7 +109,7 @@ switch type
         catch
             n = m;
         end
-        L     = sparse(1:m,1:m,P.L,m,n);
+        L     = sparse(1:m,1:n,P.L,m,n);
         
         % assume common sources contribute to the last channel
         %------------------------------------------------------------------

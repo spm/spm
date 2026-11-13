@@ -4,7 +4,7 @@ function [f] = spm_opm_plotScalpData(S)
 %   S               - input structure
 %  fields of S:
 %   S.D             - SPM MEEG object                                - Default: no Default
-%   S.T             - time point to initalise to                    - Default: first sample  
+%   S.T             - time point to initialise to                    - Default: first sample  
 %   S.display       - string to deermine what is plotted   -Default: 'RADIAL'
 % OUTPUT:
 %   f          - the handle of the figure which displays the interpolated

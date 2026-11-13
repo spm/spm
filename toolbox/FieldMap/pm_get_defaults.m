@@ -30,12 +30,6 @@ end
 
 [default_file_path, tmpname] = fileparts(mfilename('fullpath'));
 pm_def.defaultsfilename{1} = sprintf('%s%s%s',default_file_path,filesep,'pm_defaults.m');
-if ischar(pm_def.MFLAGS.TEMPLATE)
-    pm_def.MFLAGS.TEMPLATE = {pm_def.MFLAGS.TEMPLATE};
-end
-% tmpTEMPLATE = pm_def.MFLAGS.TEMPLATE;
-% pm_def.MFLAGS.TEMPLATE=[];
-% pm_def.MFLAGS.TEMPLATE{1}=tmpTEMPLATE;
 
 % construct subscript reference struct from dot delimited tag string
 tags = textscan(defstr,'%s', 'delimiter','.');

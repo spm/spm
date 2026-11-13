@@ -158,7 +158,7 @@ datetick('x','mmm-yy')
 spm_figure('GetWin','reproduction ratio'); clf;
 spm_COVID_ci(DCM{I}.Ep,DCM{I}.Cp,[],4,M);
 subplot(2,1,1), hold on
-plot([datenum('01-Feb-2020'), datenum('01-Aug-2021')],[1,1],'r-.')
+plot([datenum('01-02-2020','dd-mm-yyyy'), datenum('01-Aug-2021')],[1,1],'r-.')
 
 
 % and plot latent or hidden states

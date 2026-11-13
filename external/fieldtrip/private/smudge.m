@@ -4,7 +4,7 @@ function [datout, S] = smudge(datin, tri, niter, threshold)
 % given a triangulation tri. The algorithm is according to what is in
 % MNE-Suite, documented in chapter 8.3
 
-if nargin<3 || isempty(niter),
+if nargin<3 || isempty(niter)
   niter = 1;
 end
 
@@ -14,7 +14,7 @@ end
 
 for k = 1:niter
   [tmp, Stmp] = do_smudge(datin, tri, threshold);
-  if k==1,
+  if k==1
     S      = Stmp;
   else
     S      = Stmp*S;
@@ -75,5 +75,9 @@ val  = 1./nix(i2);
 
 S = sparse(vecx(:,2),vecx(:,1),val,npnt,npnt);
 S = S + spdiags(datin(:)>threshold, 0, npnt, npnt);
+
+% ensure that the weights sum to 1
+sumS = sum(S,2);
+S(sumS>0,:) = S(sumS>0,:)./sumS(sumS>0);
 
 datout = S*datin(:);

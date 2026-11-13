@@ -35,6 +35,8 @@ function [xY,Y] = spm_voice_speak(q,p,r)
 % check for empty indices (that will invoke average lexical or prosody)
 %--------------------------------------------------------------------------
 global VOX
+global PlayerObj
+
 LEX = VOX.LEX;
 PRO = VOX.PRO;
 WHO = VOX.WHO;
@@ -113,4 +115,9 @@ Y     = Y(1:ii(end));
 
 % send to speaker (at an accelerated sampling rate, depending upon F1)
 %--------------------------------------------------------------------------
-if ~nargout, sound(full(Y),FS); end
+if ~nargout
+    PlayerObj = audioplayer(full(Y),FS);
+    play(PlayerObj);
+end
+
+return

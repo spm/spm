@@ -667,6 +667,8 @@ if CHECKSMOOTH
             [val,ind]=max(q);
             
             order=1; %1 distance in mm, 0 distance in edges
+            M.faces=double(M.faces);
+            M.vertices=double(M.vertices);
             dist = spm_mesh_geodesic(M,ind-1,order);
             distind=intersect(find(dist<0.020),find(q>0)); % less than 2cm away
             

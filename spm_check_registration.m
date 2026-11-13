@@ -104,3 +104,4 @@ if nargin > 1 && iscellstr(varargin{2})
     %    spm_orthviews('Caption', ij, varargin{2}{ij}, varargin{3:end});
     %end
 end
+

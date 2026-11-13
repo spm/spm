@@ -121,7 +121,7 @@ if nargin < 2
     VF = spm_vol(spm_select(Inf,'image','Select moved image(s)'));
 else
     VF = varargin{2};
-    if ischar(VF) || iscellstr(VF), VF = spm_vol(char(VF)); end;
+    if ischar(VF) || iscellstr(VF), VF = spm_vol(char(VF)); end
 end
 VF = VF(1); % In case multiple volumes are selected
 
@@ -326,7 +326,7 @@ spm_conv_vol(V.uint8,V.uint8,x,y,z,-[i j k]);
 %==========================================================================
 function display_results(VG,VF,x,flags)
 fig = spm_figure('FindWin','Graphics');
-if isempty(fig), return; end;
+if isempty(fig), return; end
 set(0,'CurrentFigure',fig);
 spm_figure('Clear','Graphics');
 

@@ -1,11 +1,12 @@
-function tests = test_spm
+classdef test_spm < matlab.unittest.TestCase
 % Unit Tests for spm
 %__________________________________________________________________________
 
 % Copyright (C) 2021-2022 Wellcome Centre for Human Neuroimaging
 
 
-tests = functiontests(localfunctions);
+
+methods (Test)
 
 
 function test_spm_multi(testCase)
@@ -37,3 +38,17 @@ mem_avail = spm('Memory','available');
 testCase.verifyThat(mem_avail, IsOfClass('double'));
 mem_total = spm('Memory','total');
 testCase.verifyThat(mem_total, IsOfClass('double'));
+
+end
+
+function test_mex(testCase)
+    testCase.assumeFalse(isdeployed, ...
+        'MEX files cannot be built in a deployed application.');
+    testCase.assumeNotEmpty(mex.getCompilerConfigurations('C','Installed'), ...
+        'No supported C compiler is installed.');
+    mex -setup
+end
+
+end % methods (Test)
+
+end % classdef

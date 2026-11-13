@@ -61,6 +61,7 @@ switch lower(action)
             '    script         Execute a script\n',...
             '    function       Execute a function\n',...
             '    eval           Evaluate a MATLAB expression\n',...
+            '    test           Run the SPM test suite\n',...
             '    [NODE]         Run a specified batch node\n',...
             '\n',...
             'Options:\n',...
@@ -160,6 +161,38 @@ switch lower(action)
             eval(expr);
         catch
             exit_code = 1;
+        end
+        
+    case 'test'
+    %----------------------------------------------------------------------
+        spm_banner;
+        try
+            fprintf('Running SPM test suite...\n');
+            results = spm_tests();
+            
+            % Display summary
+            fprintf('\n=== Test Summary ===\n');
+            fprintf('Total tests: %d\n', numel(results));
+            fprintf('Passed: %d\n', sum([results.Passed]));
+            fprintf('Failed: %d\n', sum([results.Failed]));
+            fprintf('Incomplete: %d\n', sum([results.Incomplete]));
+            fprintf('Duration: %.2f seconds\n', sum([results.Duration]));
+            
+            % Set exit code based on actual failures (not incomplete tests)
+            num_failed = sum([results.Failed]);
+            if num_failed > 0
+                fprintf('\n=== Tests FAILED ===\n');
+                exit(1);
+            else
+                fprintf('\n=== All tests PASSED ===\n');
+                if sum([results.Incomplete]) > 0
+                    fprintf('(Incomplete/skipped tests are acceptable)\n');
+                end
+                exit(0);
+            end
+        catch ME
+            fprintf('Error running tests: %s\n', ME.message);
+            exit(1);
         end
         
     otherwise % cli

@@ -1,5 +1,5 @@
 
-% This file contains the list of people involved in the development of SPM
+% This file contains many of the people involved in the development of SPM
 % along its history.
 %
 % Nicholas Alexander
@@ -7,17 +7,23 @@
 % Nicole Labra Avila
 % Yaël Balbastre
 % Gareth Barnes
+% Yulia Bezsudnova
+% James Bonaiuto
+% Barbara Dymerska
 % Korbinian Eckstein
 % Guillaume Flandin
+% Chetan Gohil
 % Karl Friston
 % Olivia Kowalczyk
 % Vladimir Litvak
+% Alberto Mariola
 % Johan Medrano
 % Stephanie Mellor
 % George O'Neill
 % Thomas Parr
 % Tim Tierney
 % Ryan Timms
+% Pranay Yadav
 % Peter Zeidman
 % 
 % Jesper Andersson
@@ -69,3 +75,5 @@
 % Bernadette van Wijk
 % Mark Woolrich
 % Keith Worsley
+
+% And many other contributors who have given their time and expertise, including those who have committed Pull Requests via Github. Pleas see https://github.com/spm/spm/pulls .

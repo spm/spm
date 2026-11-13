@@ -70,7 +70,7 @@ try
     D = spm_eeg_load(Dfile);
 catch
     try
-        [dum,f]      = fileparts(Dfile);
+        [~,f]      = fileparts(Dfile);
         D            = spm_eeg_load(f);
         DCM.xY.Dfile = fullfile(pwd,f);
     catch
@@ -122,12 +122,28 @@ end
  
 % good channels
 %--------------------------------------------------------------------------
+
 Ic = D.indchantype(DCM.xY.modality,'GOOD');
 if isempty(Ic)
     warndlg('No good channels in these data');
     return
 end
- 
+
+if isfield(DCM.xY, 'Ic')
+    Ic = intersect(Ic, DCM.xY.Ic); 
+    if length(DCM.xY.Ic) ~= length(Ic)
+        warndlg('Some indexed channels are not good.');
+        return
+    end
+elseif isfield(DCM.xY, 'name')
+    DCM.xY.name = cellstr(DCM.xY.name); 
+    Ic = intersect(Ic, D.indchannel(cellstr(DCM.xY.name))); 
+    if length(DCM.xY.name) ~= length(Ic)
+        warndlg('Some indexed channels are not good.');
+        return
+    end
+end
+
 Nc            = length(Ic);               % number of channels
 DCM.xY.name   = D.chanlabels(Ic);         % channel names
 DCM.xY.Ic     = Ic;                       % channel indices

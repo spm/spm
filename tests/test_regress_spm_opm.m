@@ -1,15 +1,19 @@
-function tests = test_regress_spm_opm
+classdef test_regress_spm_opm < matlab.unittest.TestCase
 % regresion test for OPM functions
 %__________________________________________________________________________
 
 % Copyright (C) 2023 Wellcome Centre for Human Neuroimaging
 
+methods (TestClassSetup)
+    function setupSPM(testCase)
+        spm('defaults','eeg');
+    end
+end % methods (TestClassSetup)
 
-tests = functiontests(localfunctions);
+methods (Test)
 
 
 function test_regress_spm_opm_1(testCase)
-spm('defaults','eeg');
 
 data = fullfile(spm('Dir'),'tests','data','OPM','OPM_meg_001.cMEG');
 positions = fullfile(spm('Dir'),'tests','data','OPM','OPM_HelmConfig.tsv');
@@ -77,3 +81,8 @@ delete(muD);
 peakValInRange = max(abs(pl(:))) < 154.6222 &  max(abs(pl(:))) > 154.3132;
 
 testCase.verifyTrue(peakValInRange);
+end
+
+end % methods (Test)
+
+end % classdef

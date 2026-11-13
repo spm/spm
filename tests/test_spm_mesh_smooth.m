@@ -1,11 +1,12 @@
-function tests = test_spm_mesh_smooth
+classdef test_spm_mesh_smooth < matlab.unittest.TestCase
 % Unit Tests for spm_mesh_smooth
 %__________________________________________________________________________
 
 % Copyright (C) 2020-2022 Wellcome Centre for Human Neuroimaging
 
 
-tests = functiontests(localfunctions);
+
+methods (Test)
 
 
 function test_spm_mesh_smooth_1(testCase)
@@ -19,7 +20,7 @@ testCase.verifyEqual(act, exp);
 exp = K;
 act = spm_mesh_smooth(K);
 testCase.verifyEqual(act, exp);
-
+end
 
 function test_spm_mesh_smooth_2(testCase)
 
@@ -29,3 +30,7 @@ T = rand(size(M.vertices,1),1);
 T = spm_mesh_smooth(K,T,10);
 testCase.verifyTrue(min(T)>=0);
 testCase.verifyTrue(max(T)<=1);
+end
+end % methods (Test)
+
+end % classdef

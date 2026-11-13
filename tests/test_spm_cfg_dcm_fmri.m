@@ -1,34 +1,34 @@
-function tests = test_spm_cfg_dcm_fmri
+classdef test_spm_cfg_dcm_fmri < matlab.unittest.TestCase
 % Unit Tests for spm_cfg_dcm_fmri (DCM fMRI spec batch)
 %__________________________________________________________________________
 
 % Copyright (C) 2016-2022 Wellcome Centre for Human Neuroimaging
 
+methods (TestClassSetup)
+    function setupSPM(testCase)
+        % Delete artefacts before each test
 
-tests = functiontests(localfunctions);
+        % Delete GCM from the tmp directory
+        outpath = fullfile(test_spm_cfg_dcm_fmri.get_data_path(), 'tmp');
+        if exist(outpath,'file')
+            delete(fullfile(outpath,'*.mat'));
+        end
 
+        % Delete DCMs from the GLM directory
+        glmdir = fullfile(test_spm_cfg_dcm_fmri.get_data_path(), 'GLM');
+        dcms   = cellstr(spm_select('FPListRec',glmdir,'^DCM_.*mat$'));
+        for i = 1:length(dcms)
+            spm_unlink(dcms{i});
+        end
+    end
+end % methods (TestClassSetup)
 
-% -------------------------------------------------------------------------
-function setup(testCase)
-% Delete artefacts before each test
-
-% Delete GCM from the tmp directory
-outpath = fullfile(get_data_path(), 'tmp');
-if exist(outpath,'file')
-    delete(fullfile(outpath,'*.mat'));
-end
-
-% Delete DCMs from the GLM directory
-glmdir = fullfile(get_data_path(), 'GLM');
-dcms   = cellstr(spm_select('FPListRec',glmdir,'^DCM_.*mat$'));
-for i = 1:length(dcms)
-    spm_unlink(dcms{i});
-end
+methods (Test)
 
 % -------------------------------------------------------------------------
 function test_specify_group(testCase)
 
-data_path = get_data_path();
+data_path = test_spm_cfg_dcm_fmri.get_data_path();
 
 % Output path & directory
 outpath = fullfile(data_path, 'tmp');
@@ -80,9 +80,17 @@ for s = 1:size(GCM,1)
             sprintf('Timeseries for subject %d model %m wrong',s,m));
     end
 end
+end
 
+end % methods (Test)
+
+methods (Static, Access = private)
 % -------------------------------------------------------------------------
 function data_path = get_data_path()
 
 data_path = fullfile( spm('Dir'), 'tests', ...
     'data', 'fMRI', 'simulated_2region');
+end
+end % methods (Static, Access = private)
+
+end % classdef

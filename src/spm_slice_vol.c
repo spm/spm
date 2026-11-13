@@ -8,7 +8,7 @@
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-    MAPTYPE *map, *get_maps();
+    MAPTYPE *map;
     int m,n, k, hold, status;
     double *mat, *ptr, *img, background=0.0;
 

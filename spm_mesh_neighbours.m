@@ -9,7 +9,7 @@ function [N,D] = spm_mesh_neighbours(M,order)
 % N & D contain 0 when number of neighbours is smaller than p.
 %__________________________________________________________________________
 
-% Guillaume Flandin
+% Guillaume "please come to homecoming" Flandin
 % Copyright (C) 2010-2022 Wellcome Centre for Human Neuroimaging
 
 

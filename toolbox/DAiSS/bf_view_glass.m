@@ -15,7 +15,7 @@ if nargin == 0
         'set to false if you want to try a new experimental version...']};
     classic.labels  = {'yes','no'};
     classic.values     = {true, false};
-    classic.val        = {true};
+    classic.val        = {false};
     
     ndips           = cfg_entry;
     ndips.tag       = 'ndips';
@@ -69,7 +69,7 @@ elseif nargin < 2
 end
 
 % if BF is a path rather than stucture, import
-if isa(BF,'string')
+if isa(BF,'string') || isa(BF,'char')
     BF = bf_load(BF);
 end
 
@@ -88,7 +88,7 @@ if ~isfield(BF.sources, 'pos')
 end
 
 % cbar option may have been unspecified
-if ~isfield(S,'thresohld')
+if ~isfield(S,'threshold')
     S.threshsold = 0;
 end
 

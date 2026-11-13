@@ -58,7 +58,7 @@ mask.name    = 'Explicit mask';
 mask.val     = {{''}};
 mask.help    = {
     'Specify an image for explicitly masking the analysis.'
-    'A sensible option here is to use a segmention of structural images to specify a within-brain mask. If you select that image as an explicit mask then only those voxels in the brain will be analysed. This both speeds the estimation and restricts SPMs/PPMs to within-brain voxels. Alternatively, if such structural images are unavailable or no masking is required, then leave this field empty.'
+    'A sensible option here is to use a segmentation of structural images to specify a within-brain mask. If you select that image as an explicit mask then only those voxels in the brain will be analysed. This both speeds the estimation and restricts SPMs/PPMs to within-brain voxels. Alternatively, if such structural images are unavailable or no masking is required, then leave this field empty.'
     }';
 mask.filter  = {'image','mesh'};
 mask.ufilter = '.*';

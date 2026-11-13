@@ -2,7 +2,7 @@ function [lf] = ft_compute_leadfield(dippos, sens, headmodel, varargin)
 
 % FT_COMPUTE_LEADFIELD computes a forward solution for a dipole in a a volume
 % conductor model. The forward solution is expressed as the leadfield matrix
-% (Nchan*3), where each column corresponds with the potential or field distributions
+% with size Nchan*3, where each column corresponds with the potential or field distributions
 % on all sensors for one of the x,y,z-orientations of the dipole.
 %
 % Use as
@@ -125,13 +125,13 @@ end
 iseeg = ft_senstype(sens, 'eeg');
 ismeg = ft_senstype(sens, 'meg');
 
-% determine the default for this option
+% set the default for reducing the rank of the leadfields
 if isempty(reducerank)
   if iseeg
     reducerank = 'no';    % for EEG
-  elseif ismeg && ft_headmodeltype(headmodel, 'infinite')
+  elseif ismeg && ismember(ft_headmodeltype(headmodel), {'magneticdipole', 'infinite_magneticdipole', 'infinite', 'circularcoil'})
     reducerank = 'no';    % for MEG with a magnetic dipole, e.g. a HPI coil
-  else
+  elseif ismeg
     reducerank = 'yes';   % for MEG with a current dipole in a volume conductor
   end
 end
@@ -148,7 +148,7 @@ if isscalar(weight)
 end
 
 if isfield(headmodel, 'unit') && isfield(sens, 'unit') && ~strcmp(headmodel.unit, sens.unit)
-  ft_error('inconsistency in the units of the volume conductor and the sensor array');
+  ft_error('inconsistency in the units of the volume conductor ("%s") and the sensor array ("%s")', headmodel.unit, sens.unit);
 end
 
 if ismeg && iseeg
@@ -284,7 +284,7 @@ elseif ismeg
         lf = sens.tra * lf;
       end
 
-    case {'infinite_magneticdipole', 'infinite'}
+    case {'magneticdipole', 'infinite_magneticdipole', 'infinite'}
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       % magnetic dipole instead of electric (current) dipole in an infinite vacuum
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -308,7 +308,7 @@ elseif ismeg
         lf = sens.tra * lf;
       end
 
-    case {'infinite_currentdipole'}
+    case {'currentdipole', 'infinite_currentdipole'}
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       % current dipole in an infinite homogenous conducting medium
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -332,6 +332,43 @@ elseif ismeg
         lf = sens.tra * lf;
       end
 
+    case {'circularcoil'}
+      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+      % magnetic field due to triplet of large circular coils
+      % to get the same behavior as for a magnetic dipole, three large coils are assumed to be oriented in the x, y, and z-direction
+      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+      % "dippos" is in this case the position of the center of the large circular coil
+      % similar to the position of the dipolar source
+
+      coilpos = sens.coilpos; % position of each sensor coil
+      coilori = sens.coilori; % orientation of each sensor coil
+
+      lf = zeros(size(coilpos, 1), 3*Ndipoles);
+
+      % the large circular coil is the source, like the dipole
+      for i=1:Ndipoles
+        % use a translation to make the large circular coil centered at (0,0,0)
+        x = coilpos(:,1) - dippos(i,1);
+        y = coilpos(:,2) - dippos(i,2);
+        z = coilpos(:,3) - dippos(i,3);
+
+        % use three rotations to compute the field for large circular coils oriented in the x, y, and z-direction
+        [Bx, By, Bz] = circularcoil(z, y, x, headmodel.diameter, 1);
+        lfx = diag([Bz, By, Bx] * (coilori'));
+        [Bx, By, Bz] = circularcoil(x, z, y, headmodel.diameter, 1);
+        lfy = diag([Bx, Bz, By] * (coilori'));
+        [Bx, By, Bz] = circularcoil(x, y, z, headmodel.diameter, 1);
+        lfz = diag([Bx, By, Bz] * (coilori'));
+
+        lf(:,(3*i-2):(3*i)) = [lfx lfy lfz];
+      end
+
+      if isfield(sens, 'tra')
+        % construct the channels from a linear combination of all magnetometer coils
+        lf = sens.tra * lf;
+      end
+
     case {'duneuro'}
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       % finite element method as implemented in software duneuro
@@ -340,19 +377,7 @@ elseif ismeg
       %TODO: involve unit checking -> not at this level
 
       % compute secondary leadfield numerically
-      lf = leadfield_duneuro(dippos, headmodel, 'meg');
-
-      % compute primary B-field analytically
-      % permeability constant mu in si units
-      mu = 4*pi*1e-7; %unit: Tm/A
-      
-      index = repmat(1:size(dippos,1),3,1);
-      index = index(:);
-      dipoles = [dippos(index,:) repmat(eye(3),size(dippos,1),1)];
-      Bp = compute_B_primary(sens.coilpos, dipoles, sens.coilori);
-
-      % compute full B-field
-      lf = mu/(4*pi) * (Bp - lf);
+      lf = leadfield_duneuro(dippos, headmodel, sens, 'meg');
 
       if isfield(sens, 'tra')
         % construct the channels from a linear combination of all magnetometer coils
@@ -366,6 +391,16 @@ elseif ismeg
       % channel values rather than the electrode values. Prevent that the
       % referencing is done once more.
       sens.tra = speye(length(headmodel.filename));
+
+    case 'hbf'
+      % lf =  hbf_LFM_B_LC(headmodel.bmeshes,headmodel.coils,headmodel.sol,dippos);
+      % The above generates a lot in the command line output, so running
+      % with evalc to silence it
+      evalc('lf =  hbf_LFM_B_LC(headmodel.bmeshes,headmodel.coils,headmodel.sol,dippos);');
+      if isfield(sens, 'tra')
+        % construct the channels from a linear combination of all magnetometer coils
+        lf = sens.tra * lf;
+      end 
 
     otherwise
       ft_error('unsupported volume conductor model for MEG');
@@ -484,7 +519,7 @@ elseif iseeg
       end
       lf               = ds2sens + h2sens*headmodel.mat*dsm;
 
-    case {'infinite_currentdipole' 'infinite'}
+    case {'currentdipole', 'infinite_currentdipole' 'infinite'}
       lf = eeg_infinite_dipole(dippos, sens.elecpos, headmodel);
 
     case 'halfspace'
@@ -504,12 +539,11 @@ elseif iseeg
       % note that the electrode information is contained in the headmodel (thanks to ft_prepare_vol_sens)
       lf = leadfield_simbio(dippos, headmodel);
 
-
     case 'duneuro'
       ft_hastoolbox('duneuro', 1);
 
       % note that the electrode information is contained in the headmodel
-      lf = leadfield_duneuro(dippos, headmodel, 'eeg');
+      lf = leadfield_duneuro(dippos, headmodel, sens, 'eeg');
 
     case 'metufem'
       p3 = zeros(Ndipoles * 3, 6);
@@ -540,6 +574,12 @@ elseif iseeg
       % channel values rather than the electrode values. Prevent that the
       % referencing is done once more.
       sens.tra = speye(length(headmodel.filename));
+    
+    case 'hbf'
+       % lf = hbf_LFM_Phi_LC(headmodel.bmeshes,headmodel.sol,dippos);
+       % The above generates a lot in the command line output, so running
+       % with evalc to silence it
+       evalc('lf = hbf_LFM_Phi_LC(headmodel.bmeshes,headmodel.sol,dippos);');
 
     otherwise
       ft_error('unsupported volume conductor model for EEG');

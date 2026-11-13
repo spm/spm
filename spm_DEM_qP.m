@@ -77,7 +77,8 @@ for i = 1:g
         % prior or true means
         %------------------------------------------------------------------
         try
-            hold on, bar(1:length(qi),pi,1/3), hold off
+            hold on
+            plot(1:k,pi,'.r','MarkerSize',16);
         end
 
         % labels
@@ -92,7 +93,7 @@ end
 % conditional (or prior) covariance 
 %--------------------------------------------------------------------------
 try
-    if length(qP.C) == 1;
+    if length(qP.C) == 1
         return
     else
         i  = find(diag(qP.C));
@@ -110,7 +111,7 @@ else
     title({'conditional covariances','among parameters'},'FontSize',16)
 end
 if ~isempty(Label)
-    set(gca,'YTickLabel',Label,'YTick',[1:length(Label)])
+    set(gca,'YTickLabel',Label,'YTick',1:length(Label))
 end
 axis square
 

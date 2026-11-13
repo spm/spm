@@ -49,7 +49,7 @@ for k = 1:length(P)
     Pk    = [10; -8/3; P(k)];
     t     = spm_int_L(Pk,G,U);
     
-    % remove intial transients
+    % remove initial transients
     %----------------------------------------------------------------------
     t     = t(256:end,:);
     t     = t(1:T,:);

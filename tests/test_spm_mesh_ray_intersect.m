@@ -1,11 +1,12 @@
-function tests = test_spm_mesh_ray_intersect
+classdef test_spm_mesh_ray_intersect < matlab.unittest.TestCase
 % Unit Tests for spm_mesh_ray_intersect
 %__________________________________________________________________________
 
 % Copyright (C) 2020-2022 Wellcome Centre for Human Neuroimaging
 
 
-tests = functiontests(localfunctions);
+
+methods (Test)
 
 
 function test_spm_mesh_ray(testCase)
@@ -32,3 +33,7 @@ testCase.verifyEqual(act, exp);
 exp = [0 3];
 act = size(P);
 testCase.verifyEqual(act, exp);
+end
+end % methods (Test)
+
+end % classdef

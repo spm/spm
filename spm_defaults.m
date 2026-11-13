@@ -36,7 +36,7 @@ defaults.cmdline  = 0;
 defaults.ui.monitor = NaN;
 defaults.ui.colour  = [0.58 0.77 0.57];
 defaults.ui.fs      = 14;  % unused
-defaults.ui.print   = 'ps';
+defaults.ui.print   = 'pdf';
 defaults.renderer   = 'opengl';
 
 % File format specific
@@ -123,7 +123,7 @@ defaults.unwarp.estimate.noi      = 5;
 defaults.unwarp.estimate.expround = 'Average';
 
 % Unwarp mostly uses defaults.realign.write defaults for writing.
-defaults.unwarp.write.jm          = 1;
+defaults.unwarp.write.jm          = 0;
 
 % Coregistration defaults
 %==========================================================================
@@ -221,8 +221,12 @@ if exist(user_defaults,'file')
             warning(lr.message);
         end
     end
-    if spm_check_version('matlab','8.0') >= 0, my_isequaln = @isequaln;
-    else my_isequaln = @isequalwithequalnans; end
+    is_octave = strcmp(spm_check_version,'octave');
+    if is_octave || spm_check_version('matlab','8.0') >= 0
+        my_isequaln = @isequaln;
+    else
+        my_isequaln = @isequalwithequalnans; 
+    end
     if ~my_isequaln(def,defaults)
         fprintf('Defaults settings have been modified by file(s):\n');
         for i=1:numel(user_defaults_file)

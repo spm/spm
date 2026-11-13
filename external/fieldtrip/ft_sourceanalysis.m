@@ -294,6 +294,18 @@ if ~isempty(cfg.supchan)
   assert(numel(cfg.supchan)>0, 'cfg.supchan is not present in the data');
 end
 
+% also do some checks which are conditional on the presence of spatial filters or precomputed leadfields
+if isfield(cfg.sourcemodel, 'leadfield') && isempty(cfg.refdip) && isempty(cfg.supdip)
+  cfg = ft_checkconfig(cfg, 'unused', {'reducerank' 'backproject' 'normalize' 'normalizeparam' 'weight'});
+end
+if isfield(cfg.sourcemodel, 'filter') && isempty(cfg.refdip) && isempty(cfg.supdip)
+  % these are options for forward computation
+  cfg = ft_checkconfig(cfg, 'unused', {'reducerank' 'backproject' 'normalize' 'normalizeparam' 'weight'});
+
+  % these are options for inverse computation
+  cfg.(cfg.method) = ft_checkconfig(cfg.(cfg.method), 'unused', {'lambda' 'kappa' 'tol' 'invmethod' 'fixedori' 'weightnorm' 'subspace'});
+end
+
 % spectrally decomposed data can have label and/or labelcmb
 if ~isfield(data, 'label') && isfield(data, 'labelcmb')
   % the code further down assumes that data.label is present
@@ -477,6 +489,10 @@ elseif istrue(cfg.keepleadfield) || istrue(cfg.permutation) || istrue(cfg.random
   end
   sourcemodel = ft_prepare_leadfield(tmpcfg);
   
+  % these need to be removed from the cfg, otherwise the low-level inverse
+  % function may throw an error, see https://github.com/fieldtrip/fieldtrip/pull/2468
+  cfg = ft_checkconfig(cfg, 'unused', {'reducerank' 'backproject' 'normalize' 'normalizeparam' 'weight'});
+
   % no further forward computations are needed, but keep them in the cfg
   needheadmodel = false;
   headmodel = [];
@@ -550,6 +566,10 @@ if isfreq && any(strcmp(cfg.method, {'dics', 'pcc', 'eloreta', 'mne','harmony', 
       % if the input data has a complete Fourier spectrum, it can be projected through the filters
       if isfield(data, 'fourierspctrm')
         [dum, datchanindx] = match_str(tmpcfg.channel, data.label);
+
+        % FIXME: the below code, as opposed to the next section only works
+        % with scalar inputs to nearest (i.e. a scalar cfg.frequency or/and
+        % cfg.latency
         fbin = nearest(data.freq, cfg.frequency);
         if strcmp(data.dimord, 'chan_freq')
           avg = data.fourierspctrm(datchanindx, fbin);
@@ -574,20 +594,30 @@ if isfreq && any(strcmp(cfg.method, {'dics', 'pcc', 'eloreta', 'mne','harmony', 
       % if the input data has a complete fourier spectrum, it can be projected through the filters
       if isfield(data, 'fourierspctrm')
         [dum, datchanindx] = match_str(tmpcfg.channel, data.label);
-        fbin = nearest(data.freq, cfg.frequency);
-        if numel(fbin)==1, fbin = fbin.*[1 1]; end
+        
+        % select the frequency (and time)  bins
+        if isscalar(cfg.frequency)
+          fbin = nearest(data.freq, cfg.frequency);
+        else
+          fbin = (nearest(data.freq, cfg.frequency(1)):nearest(data.freq, cfg.frequency(2)));
+        end
+        if contains(data.dimord, 'time')
+          if isscalar(cfg.latency)
+            tbin = nearest(data.time, cfg.latency);
+          else
+            tbin = (nearest(data.time, cfg.latency(1)):nearest(data.time, cfg.latency(2)));
+          end
+        end
+
+        % select the data
         if strcmp(data.dimord, 'chan_freq')
           avg = data.fourierspctrm(datchanindx, fbin);
         elseif strcmp(data.dimord, 'rpt_chan_freq') || strcmp(data.dimord, 'rpttap_chan_freq')
-          avg = permute(data.fourierspctrm(:, datchanindx, fbin(1):fbin(2)), [2 1 3]);
+          avg = permute(data.fourierspctrm(:, datchanindx, fbin), [2 1 3]);
         elseif strcmp(data.dimord, 'chan_freq_time')
-          tbin = nearest(data.time, cfg.latency);
-          if numel(tbin)==1, tbin = tbin.*[1 1]; end
-          avg = data.fourierspctrm(datchanindx, fbin(1):fbin(2), tbin(1):tbin(2));
+          avg = data.fourierspctrm(datchanindx, fbin, tbin);
         elseif strcmp(data.dimord, 'rpt_chan_freq_time') || strcmp(data.dimord, 'rpttap_chan_freq_time')
-          tbin = nearest(data.time, cfg.latency);
-          if numel(tbin)==1, tbin = tbin.*[1 1]; end
-          avg  = permute(data.fourierspctrm(:, datchanindx, fbin(1):fbin(2), tbin(1):tbin(2)), [2 1 3 4]);
+          avg  = permute(data.fourierspctrm(:, datchanindx, fbin, tbin), [2 1 3 4]);
         end
       else % The input data is a CSD matrix, this is enough for computing source power, coherence and residual power.
         ft_warning('no fourierspctra in the input data, so the frequency domain dipole moments cannot be computed');
@@ -1122,10 +1152,13 @@ elseif istimelock && any(strcmp(cfg.method, {'lcmv', 'sam', 'mne', 'harmony', 'r
     for i=1:Nrepetitions
       fprintf('estimating current density distribution for repetition %d\n', i);
       squeeze_avg = reshape(avg(i,:,:),[size_avg(2) size_avg(3)]);
-      if hascovariance
+      if hascovariance && ~isfield(sourcemodel, 'filter')
         squeeze_Cy  = reshape(Cy(i,:,:), [size_Cy(2)  size_Cy(3)]);
         dip(i) = ft_inverse_mne(sourcemodel, sens, headmodel, squeeze_avg, methodopt{:}, leadfieldopt{:}, 'noisecov', squeeze_Cy);
       else
+        if isfield(sourcemodel, 'filter') && hascovariance
+          ft_warning('spatial filter has been provided, not using the noise covariance matrix for the computations');
+        end
         dip(i) = ft_inverse_mne(sourcemodel, sens, headmodel, squeeze_avg, methodopt{:}, leadfieldopt{:});
       end
     end
@@ -1208,7 +1241,7 @@ elseif iscomp && any(strcmp(cfg.method, {'rv'}))
       dip(i) = ft_inverse_eloreta(sourcemodel, sens, headmodel, data.topo(:,i), [], methodopt{:}, leadfieldopt{:});
     end
   else
-    ft_error('method ''%s'' is unsupported for source reconstruction in the time domain', cfg.method);
+    ft_error('method ''%s'' is unsupported for source reconstruction of component topographies', cfg.method);
   end
   
 else

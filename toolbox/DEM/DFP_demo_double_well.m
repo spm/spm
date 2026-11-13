@@ -32,12 +32,11 @@ title('double well','FontSize',14)
 spm_figure('GetWin','DEM');
 M        = spm_DEM_M('ssm');
  
- 
 % generate data (output) and graph
 %--------------------------------------------------------------------------
-M(1).E.N = 32;                                        % number of particles
+M(1).E.N = 64;                                        % number of particles
 T        = 32;                                        % number of time bins
-U        = 8*sin(pi*[1:T]/16);
+U        = 8*sin(pi*(1:T)/16);
 DEM      = spm_DEM_generate(M,U);
  
 spm_DEM_qU(DEM.pU);

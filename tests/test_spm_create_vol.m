@@ -1,11 +1,11 @@
-function tests = test_spm_create_vol
+classdef test_spm_create_vol < matlab.unittest.TestCase
 % Unit Tests for spm_create_vol
 %__________________________________________________________________________
 
 % Copyright (C) 2016-2022 Wellcome Centre for Human Neuroimaging
 
 
-tests = functiontests(localfunctions);
+methods (Test)
 
 
 function test_spm_create_vol_hdr(testCase)
@@ -21,6 +21,7 @@ V = spm_create_vol(V);
 hdrfile = spm_file(V.fname,'ext','.hdr');
 testCase.verifyEqual(exist(hdrfile,'file'),2);
 spm_unlink(hdrfile);
+end
 
 function test_spm_create_vol_nii(testCase)
 V = struct(...
@@ -34,6 +35,7 @@ V = struct(...
 V = spm_create_vol(V);
 testCase.verifyEqual(exist(V.fname,'file'),2);
 spm_unlink(V.fname);
+end
 
 function test_spm_create_vol_nii_min(testCase)
 V = struct(...
@@ -44,6 +46,7 @@ V = struct(...
 V = spm_create_vol(V);
 testCase.verifyEqual(exist(V.fname,'file'),2);
 spm_unlink(V.fname);
+end
 
 function test_spm_create_vol_nii_multi(testCase)
 V(1:4) = deal(struct(...
@@ -57,3 +60,8 @@ for i=1:numel(V)
     testCase.verifyEqual(exist(V(i).fname,'file'),2);
     spm_unlink(V(i).fname);
 end
+end
+
+end % methods (Test)
+
+end % classdef

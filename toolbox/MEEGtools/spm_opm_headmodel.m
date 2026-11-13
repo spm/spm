@@ -78,7 +78,7 @@ end
 
 % deal with the nothing job
 if do.nothing
-    warning('No files for coregistration supplied, skipping\n')
+    warning('No files for coregistration supplied, skipping')
 end
 
 %- MRI and meshes.

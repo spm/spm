@@ -1,11 +1,12 @@
-function tests = test_spm_jsonwrite
+classdef test_spm_jsonwrite < matlab.unittest.TestCase
 % Unit Tests for spm_jsonwrite
 %__________________________________________________________________________
 
 % Copyright (C) 2016-2022 Wellcome Centre for Human Neuroimaging
 
 
-tests = functiontests(localfunctions);
+
+methods (Test)
 
 
 function test_jsonwrite_array(testCase)
@@ -16,11 +17,13 @@ testCase.verifyTrue(isequal(exp, act));
 exp = 2;
 act = nnz(spm_jsonwrite(1:3) == ',');
 testCase.verifyTrue(isequal(exp, act));
+end
 
 function test_jsonwrite_object(testCase)
 exp = struct('Width',800,'Height',600,'Title','View from the 15th Floor','Animated',false,'IDs',[116;943;234;38793]);
 act = spm_jsonread(spm_jsonwrite(exp));
 testCase.verifyTrue(isequal(exp, act));
+end
 
 function test_jsonwrite_all_types(testCase)
 exp = [];
@@ -50,6 +53,7 @@ testCase.verifyTrue(isequaln(act, exp));
 %exp = {'one  ';'two  ';'three'};
 %act = spm_jsonread(spm_jsonwrite(str));
 %testCase.verifyTrue(isequal(exp, act));
+end
 
 function test_options(testCase)
 exp = struct('Width',800,'Height',NaN,'Title','View','Bool',true);
@@ -67,3 +71,7 @@ spm_jsonwrite(exp,struct('indent','\t','convertInfAndNaN',false));
 spm_jsonwrite(exp,'prettyPrint',true,'replacementStyle','hex','convertInfAndNaN',false);
 spm_jsonwrite(exp,struct('prettyPrint',true));
 spm_jsonwrite(exp,struct('prettyPrint',true,'convertInfAndNaN',false));
+end
+end % methods (Test)
+
+end % classdef

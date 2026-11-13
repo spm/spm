@@ -50,8 +50,9 @@ fprintf('Checking leadfields');
 
 
 if isempty(patchind)
-    disp('Reseting random number seed ! and then generating random patch centres ');
-    rand('state',0);
+    %fprintf('\nNot reseting random number seed !');
+    %rand('state',0);
+    % rng(0,'twister')
     
     %% make random patch centers, except on the first iteration when we keep to a fixed stepsize
     for f=1:Npatchiter
@@ -141,4 +142,9 @@ if Npatchiter>1 %% keep iterations if more than 1
     
 end
 
-spm_eeg_invert_display(Dtest{1});
+if ~spm_get_defaults('cmdline'), %% if not in commandline mode
+    
+    spm_eeg_invert_display(Dtest{1});
+    
+end;
+

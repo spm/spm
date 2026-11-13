@@ -1,16 +1,16 @@
-function tests = test_spm_dcm_bma
+classdef test_spm_dcm_bma < matlab.unittest.TestCase
 % Unit Tests for spm_dcm_bma
 %__________________________________________________________________________
 
 % Copyright (C) 2016-2024 Wellcome Centre for Human Neuroimaging
 
 
-tests = functiontests(localfunctions);
+methods (Test)
 
 % -------------------------------------------------------------------------
 function test_bma(testCase)
 
-data_path = get_data_path();
+data_path = test_spm_dcm_bma.get_data_path();
 
 % Load DCMs
 GCM = load(fullfile(data_path,'models','GCM_simulated.mat'));
@@ -42,8 +42,17 @@ expected = mean(Ep);
 % Compute probability of difference from arithmetic mean
 Pp = 1 - spm_Ncdf(expected,abs(ep_actual),vp_actual);
 testCase.assertTrue(Pp < 0.7);
+end
+
+end % methods (Test)
+
+methods (Static, Access = private)
 % -------------------------------------------------------------------------
 function data_path = get_data_path()
 
 data_path = fullfile( spm('Dir'), 'tests', ...
     'data', 'fMRI', 'simulated_2region');
+end
+end % methods (Static, Access = private)
+
+end % classdef

@@ -9,6 +9,7 @@ function varargout = spm_check_installation(action)
 % FORMAT rev = spm_check_installation('rev')
 % Return a lower bound of SPM SVN Revision number.
 % 
+%
 % FORMAT spm_check_installation('build')
 % Build signature of SPM distribution as used by 'full' option.
 % (for developers)
@@ -43,7 +44,7 @@ function check_basic
 
 %-Platform: MATLAB, GNU Octave
 %--------------------------------------------------------------------------
-if exist('OCTAVE_VERSION','builtin')
+if strcmp(spm_check_version,'octave');
     platform = 'Octave';
 else
     platform = 'MATLAB';
@@ -69,16 +70,19 @@ end
 
 %-Minimal MATLAB version required
 %--------------------------------------------------------------------------
-minVer = '7.4';
-try
-    v = spm_check_version('matlab',minVer);
-catch
-    error('A problem occurred with spm_check_version.m.');
-end
-if v < 0
-    error([...
-        'SPM requires MATLAB %s onwards in order to run.\n'...
-        'This MATLAB version is %s.'], minVer, version);
+is_octave = strcmp(spm_check_version,'octave');
+if is_octave == false
+  minVer = '7.4';
+  try
+      v = spm_check_version('matlab',minVer);
+  catch
+      error('A problem occurred with spm_check_version.m.');
+  end
+  if v < 0
+      error([...
+          'SPM requires MATLAB %s onwards in order to run.\n'...
+          'This MATLAB version is %s.'], minVer, version);
+  end
 end
 
 %-Check installation
@@ -156,13 +160,13 @@ try
     feval(@spm_bsplinc,1,ones(1,6));
 catch
     if ismac
-        url = 'https://www.fil.ion.ucl.ac.uk/spm/docs/development/compilation/macos/';
+        url = 'https://www.fil.ion.ucl.ac.uk/spm/docs/installation/#macos';
     elseif isunix
-        url = 'https://www.fil.ion.ucl.ac.uk/spm/docs/development/compilation/linux/';
+        url = 'https://www.fil.ion.ucl.ac.uk/spm/docs/installation/#linux';
     elseif ispc
-        url = 'https://www.fil.ion.ucl.ac.uk/spm/docs/development/compilation/windows/';
+        url = 'https://www.fil.ion.ucl.ac.uk/spm/docs/installation/#windows';
     else
-        url = 'https://www.fil.ion.ucl.ac.uk/spm/docs/development/compilation/';
+        url = 'https://www.fil.ion.ucl.ac.uk/spm/docs/installation/';
     end
     if strcmpi(platform,'octave')
         url = 'https://www.fil.ion.ucl.ac.uk/spm/docs/installation/octave/';
@@ -176,6 +180,40 @@ catch
         'for information about how to compile MEX files for %s\n'...
         'in %s %s.'],...
         url,computer,platform,version);
+end
+
+%-Check FieldTrip MEX files (warn rather than error, as FieldTrip is optional)
+%--------------------------------------------------------------------------
+ftdir = fullfile(d,'external','fieldtrip');
+ftTempPath = ~exist('ft_getopt','file') && exist(ftdir,'dir');
+if ftTempPath
+    addpath(ftdir, fullfile(ftdir,'utilities'));
+end
+try
+    ft_getopt(struct(),'dummy_field',[]);
+catch ME
+    %-missing VC++ runtime DLL (msvcr100.dll, i.e. VC++ 2010).
+    if ispc
+        warning('SPM:installation:mexRuntime',...
+            ['FieldTrip MEX files are not compatible with your system.\n'...
+            'EEG/MEG functions that rely on FieldTrip may crash.\n'...
+            'The error reported was:\n'...
+            '   %s\n'...
+            'On Windows this is typically caused by a missing Visual C++ 2010 runtime (msvcr100.dll).\n'...
+            'Install the "Microsoft Visual C++ 2010 Redistributable" (vcredist_x64.exe) from:\n'...
+            '   https://www.microsoft.com/en-us/download/details.aspx?id=26999\n'],...
+            ME.message);
+    else
+        warning('SPM:installation:mexRuntime',...
+            ['FieldTrip MEX files are not compatible with your system.\n'...
+            'EEG/MEG functions that rely on FieldTrip may crash.\n'...
+            'The error reported was:\n'...
+            '   %s\n'],...
+            ME.message);
+    end
+end
+if ftTempPath
+    rmpath(ftdir, fullfile(ftdir,'utilities'));
 end
 
 %==========================================================================
@@ -194,7 +232,7 @@ fprintf('\n');
 
 %-
 %-------------------------------------------------------------------------------
-if exist('OCTAVE_VERSION','builtin')
+if strcmp(spm_check_version,'octave')
     software = 'Octave';
 else
     software = 'MATLAB';
@@ -342,7 +380,7 @@ end
 %--------------------------------------------------------------------------
 fprintf('MEX extension: %s\n',mexext);
 try
-    if ~exist('OCTAVE_VERSION','builtin')
+    if ~strcmp(spm_check_version,'octave')
         cc = mex.getCompilerConfigurations('C','Selected');
         if ~isempty(cc)
             cc = cc(1); % can be C or C++
@@ -626,7 +664,7 @@ str = native2unicode(str(:)','iso-8859-1');
 
 r = regexp(str,['\$Id: (?<file>\S+) (?<id>[0-9]+) (?<date>\S+) ' ...
                 '(\S+Z) (?<author>\S+) \$'],'names');
-                
+
 if isempty(r) || isempty(r(1).file)
     %sts = false;
     %fprintf('\n%s has no SVN Id.\n',f);

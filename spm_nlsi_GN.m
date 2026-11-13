@@ -218,7 +218,9 @@ end
 %--------------------------------------------------------------------------
 try
     spm_vec(M.P) - spm_vec(M.pE);
-    fprintf('\nParameter initialisation successful\n')
+    if ~M.noprint
+        fprintf('\nParameter initialisation successful\n')
+    end
 catch
     M.P = M.pE;
 end
@@ -233,15 +235,18 @@ end
 
 % precision components Q
 %--------------------------------------------------------------------------
-try
+if isfield(Y,'Q')
     Q = Y.Q;
-    if isnumeric(Q), Q = {Q}; end
-catch
+elseif isfield(M,'Q')
+    Q = M.Q;
+else
     Q = spm_Ce(ns*ones(1,nr));
+end
+if isnumeric(Q)
+    Q = {Q};
 end
 nh    = length(Q);                  % number of precision components
 nq    = ny/length(Q{1});            % for compact Kronecker form of M-step
-
 
 % prior moments (assume uninformative priors if not specified)
 %--------------------------------------------------------------------------
@@ -342,8 +347,11 @@ for k = 1:M.Nmax
         %------------------------------------------------------------------
         normdfdp = norm(dfdp,'inf');
         revert   = isnan(normdfdp) || normdfdp > 1e32;
-        
-    catch
+            
+    catch E
+        disp(E.message)
+        disp(E.stack(1).file)
+        disp(E.stack(1).line)
         revert   = true;
     end
     
@@ -381,10 +389,10 @@ for k = 1:M.Nmax
         end
     end
     
-    % convergence failure
+    % convergence failure: try IS(Ep,M,U)
     %----------------------------------------------------------------------
     if revert
-        error('SPM:spm_nlsi_GN','Convergence failure.');
+        error('SPM:spm_nlsi_GN','Convergence failure');
     end
     
     
@@ -404,13 +412,12 @@ for k = 1:M.Nmax
         for i = 1:nh
             iS = iS + Q{i}*(exp(-32) + exp(h(i)));
         end
-        
-        if nh > 1 
-            % Invert only if more than one ReML component
-            % -------------------------------------------------------------
+
+        % Invert only if more than one ReML component
+        % -------------------------------------------------------------
+        if nh > 1
             S     = spm_inv(iS);
         end
-        
         iS    = kron(speye(nq),iS);
         Pp    = real(J'*iS*J);
         Cp    = spm_inv(Pp + ipC);
@@ -545,7 +552,7 @@ for k = 1:M.Nmax
     
     % E-Step: update
     %======================================================================
-    dp    = spm_dx(dFdpp,dFdp,{v},'Q');
+    dp    = spm_dx(dFdpp,dFdp,{v});
     p     = p + dp;
     Ep    = spm_unvec(spm_vec(pE) + V*p(ip),pE);
     
@@ -582,24 +589,24 @@ for k = 1:M.Nmax
         tstr = sprintf('%s: %i','prediction and response: E-Step',k);
         if isreal(spm_vec(y))
             
-            subplot(2,1,1)
-            plot(x,real(f)), hold on
+            subplot(2,1,1), set(gca,'ColorOrderIndex',1)
+            plot(x,real(f)), hold on, set(gca,'ColorOrderIndex',1)
             plot(x,real(f + e),':'), hold off
             xlabel(xLab)
             title(tstr,'FontSize',16)
             grid on
             
         else
-            subplot(2,2,1)
-            plot(x,real(f)), hold on
+            subplot(2,2,1), set(gca,'ColorOrderIndex',1)
+            plot(x,real(f)), hold on, set(gca,'ColorOrderIndex',1)
             plot(x,real(f + e),':'), hold off
             xlabel(xLab)
             ylabel('real')
             title(tstr,'FontSize',16)
             grid on
             
-            subplot(2,2,2)
-            plot(x,imag(f)), hold on
+            subplot(2,2,2), set(gca,'ColorOrderIndex',1)
+            plot(x,imag(f)), hold on, set(gca,'ColorOrderIndex',1)
             plot(x,imag(f + e),':'), hold off
             xlabel(xLab)
             ylabel('imaginary')

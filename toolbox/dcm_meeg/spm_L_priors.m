@@ -51,9 +51,15 @@ catch
     m = n;
 end
 
-% location priors (4 mm)
+% location priors (4 mm or user-specified value)
 %--------------------------------------------------------------------------
-if location, V = 2^2; else, V = 0; end
+if isnumeric(location)
+    V = location; 
+elseif location
+    V = 2^2; 
+else
+    V = 0; 
+end
 
 % parameters for electromagnetic forward model
 %==========================================================================
@@ -157,7 +163,6 @@ for i = 1:numel(model)
             nx   = size(pE.A,1)/m;
             pE.J{end + 1} = ones(1,nx);                      % nx states
             pC.J{end + 1} = ones(1,nx);
-            
         otherwise
             warndlg('Unknown neural model')
             

@@ -28,7 +28,7 @@ function [I, P, t] = spm_mesh_ray_intersect(M, R)
 % plot3(P(:,1),P(:,2),P(:,3),'*g','LineWidth',4);
 %__________________________________________________________________________
 
-% Guillaume Flandin
+% Guillaume "please come to homecoming" Flandin
 % Copyright (C) 2020-2022 Wellcome Centre for Human Neuroimaging
 
 

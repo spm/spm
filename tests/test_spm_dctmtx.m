@@ -1,11 +1,12 @@
-function tests = test_spm_dctmtx
+classdef test_spm_dctmtx < matlab.unittest.TestCase
 % Unit Tests for spm_dctmtx
 %__________________________________________________________________________
 
 % Copyright (C) 2015-2022 Wellcome Centre for Human Neuroimaging
 
 
-tests = functiontests(localfunctions);
+
+methods (Test)
 
 
 function test_spm_dctmtx_1(testCase)
@@ -19,7 +20,7 @@ exp = eye(N);
 act = C'*C;
 tol = 100*eps;
 testCase.verifyEqual(act, exp,'AbsTol',tol);
-
+end
 
 function test_spm_dctmtx_2(testCase)
 N = 16;
@@ -34,7 +35,7 @@ exp = eye(K);
 act = C'*C;
 tol = 100*eps;
 testCase.verifyEqual(act, exp,'AbsTol',tol);
-
+end
 
 function test_spm_dctmtx_3(testCase)
 N = 16;
@@ -56,7 +57,7 @@ C = spm_dctmtx(N,K,'diff2');
 exp = [N K];
 act = size(C);
 testCase.verifyEqual(act, exp);
-
+end
 
 function test_spm_dctmtx_4(testCase)
 N = 16;
@@ -76,3 +77,8 @@ act = size(C);
 testCase.verifyEqual(act, exp);
 
 testCase.verifyError(@()spm_dctmtx(N,K,n,'XXX'),?MException);
+end
+
+end % methods (Test)
+
+end % classdef

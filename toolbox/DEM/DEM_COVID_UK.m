@@ -512,8 +512,7 @@ Y(31).hold = 0;
 
 % remove NANs, smooth and sort by date
 %==========================================================================
-M.date  = datestr(min(spm_vec(Y.date)),'dd-mm-yyyy');
-M.date  = '01-02-2020';
+M.date  = '01-Jan-2020';
 [Y,YS]  = spm_COVID_Y(Y,M.date,16);
 
 % data structure with vectorised data and covariance components
@@ -603,7 +602,7 @@ if nargout, return, end
 %==========================================================================
 spm_figure('GetWin','United Kingdom'); clf;
 %--------------------------------------------------------------------------
-M.T       = 28 + datenum(date) - datenum(M.date,'dd-mm-yyyy');
+M.T       = 28 + datenum(date) - datenum(M.date);
 u         = [find(U == 1,1) find(U == 2,1) find(U == 3,1)];
 [H,X,~,R] = spm_SARS_gen(Ep,M,[1 2 3]);
 spm_SARS_plot(H,X,YS(:,u),[1 2 3])
@@ -701,8 +700,8 @@ spm_figure('GetWin','outcomes (4)');
 Ep  = DCM.Ep;
 Cp  = DCM.Cp;
 M   = DCM.M;
-M.T = 30*6 + datenum(date) - datenum(M.date,'dd-mm-yyyy');
-t   = (1:M.T) + datenum(M.date,'dd-mm-yyyy');
+M.T = 30*6 + datenum(date) - datenum(M.date);
+t   = (1:M.T) + datenum(M.date);
 
 % infection fatality ratios (%)
 %--------------------------------------------------------------------------

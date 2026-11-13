@@ -14,6 +14,10 @@ function [estimate] = ft_inverse_sam(sourcemodel, sens, headmodel, dat, C, varar
 % and
 %   estimate    contains the estimated source parameters
 %
+% If the input data "dat" is in V, "cov" is in V^2, and the leadfield is in V/Am,
+% then the estimated output "mom" is in Am, the output "pow" is (Am)^2, and the
+% output "filter" is in Am/V.
+%
 % Additional input arguments should be specified as key-value pairs and can include
 %   'feedback'
 %   'fixedori'          deprecated, control behaviour via 'reducerank' instead
@@ -33,12 +37,34 @@ function [estimate] = ft_inverse_sam(sourcemodel, sens, headmodel, dat, C, varar
 %   'normalizeparam'  = parameter for depth normalization (default = 0.5)
 %   'weight'          = number or Nx1 vector, weight for each dipole position to compensate for the size of the corresponding patch (default = 1)
 %
+% These options influence the mathematical inversion of the covariance matrix
+%  'lambda'           = regularisation parameter
+%  'kappa'            = parameter for covariance matrix inversion
+%  'tol'              = parameter for covariance matrix inversion
+%  'invmethod'        = method for covariance matrix inversion
+%
 % See also FT_SOURCEANALYSIS, FT_PREPARE_HEADMODEL, FT_PREPARE_SOURCEMODEL
 
 % Copyright (C) 2023,      Malte Hoeltershinken
 % Copyright (C) 2009,      Robert Oostenveld
 % Copyright (C) 2005-2009, Arjan Hillebrand
 % Copyright (C) 2005-2009, Gareth Barnes
+%
+% This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
+% for the documentation and details.
+%
+%    FieldTrip is free software: you can redistribute it and/or modify
+%    it under the terms of the GNU General Public License as published by
+%    the Free Software Foundation, either version 3 of the License, or
+%    (at your option) any later version.
+%
+%    FieldTrip is distributed in the hope that it will be useful,
+%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%    GNU General Public License for more details.
+%
+%    You should have received a copy of the GNU General Public License
+%    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
 % $Id$
 
@@ -59,6 +85,12 @@ invopt = ft_setopt(invopt, 'lambda',    ft_getopt(varargin, 'lambda', 0));
 invopt = ft_setopt(invopt, 'kappa',     ft_getopt(varargin, 'kappa'));
 invopt = ft_setopt(invopt, 'tolerance', ft_getopt(varargin, 'tol'));
 invopt = ft_setopt(invopt, 'method',    ft_getopt(varargin, 'invmethod'));
+
+% construct the low-level options for the leadfield computation as key-value pairs, these are passed to FT_COMPUTE_LEADFIELD
+leadfieldopt = {};
+leadfieldopt = ft_setopt(leadfieldopt, 'normalize',      ft_getopt(varargin, 'normalize'));
+leadfieldopt = ft_setopt(leadfieldopt, 'normalizeparam', ft_getopt(varargin, 'normalizeparam'));
+leadfieldopt = ft_setopt(leadfieldopt, 'weight',         ft_getopt(varargin, 'weight'));
 
 % backwards compatibility information
 if ~isempty(fixedori)
@@ -108,9 +140,15 @@ if hasmom
 end
 
 if hasfilter
+  % check that the options normalize/reducerank/etc are not specified
+  assert(all(cellfun(@isempty, leadfieldopt(2:2:end))), 'the options for computing the leadfield must all be empty/default');
+  % check that the options for the inversion are not specified
+  assert(all(cellfun(@isempty, invopt(4:2:end))) && invopt{2}==0, 'the options for computing the inverse solution must all be empty/default');
   ft_info('using precomputed filters\n');
   sourcemodel.filter = sourcemodel.filter(sourcemodel.inside);
 elseif hasleadfield
+  % check that the options normalize/reducerank/etc are not specified
+  assert(all(cellfun(@isempty, leadfieldopt(2:2:end))), 'the options for computing the leadfield must all be empty/default');
   ft_info('using precomputed leadfields\n');
   sourcemodel.leadfield = sourcemodel.leadfield(sourcemodel.inside);
   
@@ -127,12 +165,6 @@ elseif hasleadfield
 else
   ft_info('computing forward model on the fly\n');
 
-   % construct the low-level options for the leadfield computation as key-value pairs, these are passed to FT_COMPUTE_LEADFIELD
-  leadfieldopt = {};
-  leadfieldopt = ft_setopt(leadfieldopt, 'normalize',      ft_getopt(varargin, 'normalize'));
-  leadfieldopt = ft_setopt(leadfieldopt, 'normalizeparam', ft_getopt(varargin, 'normalizeparam'));
-  leadfieldopt = ft_setopt(leadfieldopt, 'weight',         ft_getopt(varargin, 'weight'));
-  
   % check if a tangential orientation estimation is performed, i.e. if only orientations in the tangential plane are considered.
   % if this is the case, we perform the lead field rank reduction directly in  this script, since otherwise we would not
   % have access to the tangential plane defined by the full leadfield
@@ -195,7 +227,7 @@ invC = ft_inv(C, invopt{:});
 % 1): pseudo-Z = projected_signal_power / projected_noise_power = (w' C w) / (w' N w),
 % 2): event-related pseudo-Z = projected_evoked_activity_power / projected_noise_power = (w' Cavg w) / (w' N w), 
 % where w is the spatial filter, C is the covariance matrix, N is the noise covarianc matrix, and Cavg is the
-% second moment matrix of the averaged data over some time interval. For a detailled discussion
+% second moment matrix of the averaged data over some time interval. For a detailed discussion
 % regarding these approaches, we refer to 
 % Moiseev et al., Application of multi-source minimum variance beamformers for reconstruction of correlated neural activity,
 % NeuroImage, Volume 58, Issue 2, 15 September 2011, Pages 481-496.

@@ -25,9 +25,11 @@ function [stat] = ft_freqstatistics(cfg, varargin)
 % Furthermore, the configuration should contain
 %   cfg.method       = different methods for calculating the significance probability and/or critical value
 %                    'montecarlo'    get Monte-Carlo estimates of the significance probabilities and/or critical values from the permutation distribution,
-%                    'analytic'      get significance probabilities and/or critical values from the analytic reference distribution (typically, the sampling distribution under the null hypothesis),
+%                    'analytic'      get significance probabilities and/or critical values from the analytic reference distribution
+%                                     (typically, the sampling distribution under the null hypothesis),
 %                    'stats'         use a parametric test from the MATLAB statistics toolbox,
 %                    'crossvalidate' use crossvalidation to compute predictive performance
+%                    'mvpa'          use functionality from the MVPA-light toolbox for classification or multivariate regression
 %
 %   cfg.design       = Nxnumobservations: design matrix (for examples/advice, please see the Fieldtrip wiki,
 %                      especially cluster-permutation tutorial and the 'walkthrough' design-matrix section)
@@ -128,6 +130,13 @@ if strcmp(cfg.correctm, 'cluster') && length(varargin{1}.label)>1
   cfg.neighbours = ft_prepare_neighbours(tmpcfg);
 end
 
+if isequal(cfg.method,'mvpa')
+  if isfield(varargin{1}, 'time')
+    cfg.time = varargin{1}.time;
+  end
+  cfg.freq = varargin{1}.freq;
+end
+
 dimord = getdimord(varargin{1}, cfg.parameter);
 dimtok = tokenize(dimord, '_');
 dimsiz = getdimsiz(varargin{1}, cfg.parameter, numel(dimtok));
@@ -215,8 +224,14 @@ end
 % describe the dimensions of the output data
 stat.dimord = cfg.dimord;
 
-% copy the descripive fields into the output
-stat = copyfields(varargin{1}, stat, {'freq', 'time', 'label', 'elec', 'grad', 'opto'});
+% copy the descriptive fields into the output, but only if these are not
+% present (and possibly updated by the statmethod-function
+fieldstobecopied = {'freq' 'time' 'label' 'elec', 'grad', 'opto'};
+if isfield(stat, 'freq'),  fieldstobecopied = fieldstobecopied(~ismember(fieldstobecopied, 'freq'));  end
+if isfield(stat, 'time'),  fieldstobecopied = fieldstobecopied(~ismember(fieldstobecopied, 'time'));  end
+if isfield(stat, 'label'), fieldstobecopied = fieldstobecopied(~ismember(fieldstobecopied, 'label')); end
+
+stat = copyfields(varargin{1}, stat, fieldstobecopied);
 
 % these were only present to inform the low-level functions
 cfg = removefields(cfg, {'dim', 'dimord'});

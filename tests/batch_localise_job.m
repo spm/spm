@@ -1,0 +1,61 @@
+%-----------------------------------------------------------------------
+% Job saved on 29-Jan-2026 11:25:18 by cfg_util (rev $Rev: 8183 $)
+% spm SPM - SPM25 (00.00)
+% cfg_basicio BasicIO - Unknown
+%-----------------------------------------------------------------------
+matlabbatch{1}.spm.meeg.source.headmodel.D = '<UNDEFINED>';
+matlabbatch{1}.spm.meeg.source.headmodel.val = 1;
+matlabbatch{1}.spm.meeg.source.headmodel.comment = '';
+matlabbatch{1}.spm.meeg.source.headmodel.meshing.meshes.mri = '<UNDEFINED>';
+matlabbatch{1}.spm.meeg.source.headmodel.meshing.meshres = 2;
+matlabbatch{1}.spm.meeg.source.headmodel.coregistration.coregspecify.fiducial(1).fidname = 'Nasion';
+matlabbatch{1}.spm.meeg.source.headmodel.coregistration.coregspecify.fiducial(1).specification.type = '<UNDEFINED>';
+matlabbatch{1}.spm.meeg.source.headmodel.coregistration.coregspecify.fiducial(2).fidname = 'LPA';
+matlabbatch{1}.spm.meeg.source.headmodel.coregistration.coregspecify.fiducial(2).specification.type = '<UNDEFINED>';
+matlabbatch{1}.spm.meeg.source.headmodel.coregistration.coregspecify.fiducial(3).fidname = 'RPA';
+matlabbatch{1}.spm.meeg.source.headmodel.coregistration.coregspecify.fiducial(3).specification.type = '<UNDEFINED>';
+matlabbatch{1}.spm.meeg.source.headmodel.coregistration.coregspecify.useheadshape = 0;
+matlabbatch{1}.spm.meeg.source.headmodel.forward.eeg = 'EEG BEM';
+matlabbatch{1}.spm.meeg.source.headmodel.forward.meg = 'Single Shell';
+matlabbatch{2}.spm.meeg.source.invert.D(1) = cfg_dep('Head model specification: M/EEG dataset(s) with a forward model', substruct('.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('.','D'));
+matlabbatch{2}.spm.meeg.source.invert.val = 2;
+matlabbatch{2}.spm.meeg.source.invert.whatconditions.all = 1;
+matlabbatch{2}.spm.meeg.source.invert.isstandard.custom.invtype = 'IID';
+matlabbatch{2}.spm.meeg.source.invert.isstandard.custom.woi = [-100 800];
+matlabbatch{2}.spm.meeg.source.invert.isstandard.custom.foi = [0 256];
+matlabbatch{2}.spm.meeg.source.invert.isstandard.custom.hanning = 1;
+matlabbatch{2}.spm.meeg.source.invert.isstandard.custom.priors.priorsmask = {''};
+matlabbatch{2}.spm.meeg.source.invert.isstandard.custom.priors.space = 1;
+matlabbatch{2}.spm.meeg.source.invert.isstandard.custom.restrict.locs = zeros(0, 3);
+matlabbatch{2}.spm.meeg.source.invert.isstandard.custom.restrict.radius = 32;
+matlabbatch{2}.spm.meeg.source.invert.isstandard.custom.restrict.mask = {''};
+matlabbatch{2}.spm.meeg.source.invert.modality = {'All'};
+matlabbatch{3}.spm.meeg.source.invert.D(1) = cfg_dep('Head model specification: M/EEG dataset(s) with a forward model', substruct('.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('.','D'));
+matlabbatch{3}.spm.meeg.source.invert.val = 1;
+matlabbatch{3}.spm.meeg.source.invert.whatconditions.all = 1;
+matlabbatch{3}.spm.meeg.source.invert.isstandard.custom.invtype = 'GS';
+matlabbatch{3}.spm.meeg.source.invert.isstandard.custom.woi = [-100 800];
+matlabbatch{3}.spm.meeg.source.invert.isstandard.custom.foi = [0 256];
+matlabbatch{3}.spm.meeg.source.invert.isstandard.custom.hanning = 1;
+matlabbatch{3}.spm.meeg.source.invert.isstandard.custom.priors.priorsmask = {''};
+matlabbatch{3}.spm.meeg.source.invert.isstandard.custom.priors.space = 1;
+matlabbatch{3}.spm.meeg.source.invert.isstandard.custom.restrict.locs = zeros(0, 3);
+matlabbatch{3}.spm.meeg.source.invert.isstandard.custom.restrict.radius = 32;
+matlabbatch{3}.spm.meeg.source.invert.isstandard.custom.restrict.mask = {''};
+matlabbatch{3}.spm.meeg.source.invert.modality = {'All'};
+matlabbatch{4}.spm.meeg.source.results.D(1) = cfg_dep('Source inversion: M/EEG dataset(s) after imaging source reconstruction', substruct('.','val', '{}',{3}, '.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('.','D'));
+matlabbatch{4}.spm.meeg.source.results.val = 1;
+matlabbatch{4}.spm.meeg.source.results.woi = [100 250];
+matlabbatch{4}.spm.meeg.source.results.foi = [10 20];
+matlabbatch{4}.spm.meeg.source.results.ctype = 'induced';
+matlabbatch{4}.spm.meeg.source.results.space = 1;
+matlabbatch{4}.spm.meeg.source.results.format = 'image';
+matlabbatch{4}.spm.meeg.source.results.smoothing = 8;
+matlabbatch{5}.spm.meeg.source.results.D(1) = cfg_dep('Source inversion: M/EEG dataset(s) after imaging source reconstruction', substruct('.','val', '{}',{3}, '.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('.','D'));
+matlabbatch{5}.spm.meeg.source.results.val = 2;
+matlabbatch{5}.spm.meeg.source.results.woi = [100 250];
+matlabbatch{5}.spm.meeg.source.results.foi = [10 20];
+matlabbatch{5}.spm.meeg.source.results.ctype = 'induced';
+matlabbatch{5}.spm.meeg.source.results.space = 1;
+matlabbatch{5}.spm.meeg.source.results.format = 'image';
+matlabbatch{5}.spm.meeg.source.results.smoothing = 8;

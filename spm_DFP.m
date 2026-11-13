@@ -108,17 +108,15 @@ end
 %--------------------------------------------------------------------------
 nY   = size(Y,2);                      % number of samples
 nl   = size(M,2);                      % number of levels
-ne   = sum(cat(1,M.l));                % number of e (errors)
 nv   = sum(cat(1,M.m));                % number of v (casual states)
 nx   = sum(cat(1,M.n));                % number of x (hidden states)
 ny   = M(1).l;                         % number of y (inputs)
 nc   = M(end).l;                       % number of c (prior causes)
 nu   = nv*d + nx*n;                    % number of generalised states
-kt   = 1;                              % rate constant for D-Step
 
 % number of iterations
 %--------------------------------------------------------------------------
-if nx, nD = 1;       else   nD = 8; end
+if nx, nD = 1;       else,  nD = 8; end
 try, nE = M(1).E.nE; catch, nE = 1; end
 try, nM = M(1).E.nM; catch, nM = 8; end
 try, nN = M(1).E.nN; catch, nN = 8; end
@@ -170,7 +168,7 @@ nh    = length(Q);                         % number of hyperparameters
 % hyperpriors
 %--------------------------------------------------------------------------
 ph.h  = spm_vec({M.hE; M.gE});             % prior expectation of h
-ph.c  = spm_cat(spm_diag({M.hC M.gC}));        % prior covariances of h
+ph.c  = spm_cat(spm_diag({M.hC M.gC}));    % prior covariances of h
 ph.ic = spm_pinv(ph.c);                    % prior precision
 qh.h  = ph.h;                              % conditional expectation
 qh.c  = ph.c;                              % conditional covariance
@@ -198,8 +196,8 @@ np    = sum(cat(1,M.p));                    % number of model parameters
 nb    = size(X,1);                          % number of confounds
 nn    = nb*ny;                              % number of nuisance parameters
 nf    = np + nn;                            % number of free parameters
-ip    = [1:np];
-ib    = [1:nn] + np;
+ip    = 1:np;
+ib    = (1:nn) + np;
 pp.c  = spm_cat(pp.c);
 pp.ic = spm_pinv(pp.c);
  
@@ -310,7 +308,7 @@ if ~nf && ~nh, nN = 1; end
 %==========================================================================
 for iN = 1:nN
     
-    % get time and celar persistent variables in evaluation routines
+    % get time and clear persistent variables in evaluation routines
     %----------------------------------------------------------------------
     tic; clear spm_DEM_eval
  

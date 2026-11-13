@@ -207,7 +207,7 @@ if flags.mask || flags.mean
         if isfield(ds(s), 'sfP') && ~isempty(ds(s).sfP)
             T    = ds(s).sfP.mat \ ds(s).P(1).mat;
             txyz = xyz * T';
-            msk  = maskfun(msk, txyz, ds(s).P(i).dim, flags.wrap);
+            msk  = maskfun(msk, txyz, ds(s).sfP.dim, flags.wrap);
         end
         if isfield(ds(s), 'sfield') && ~isempty(ds(s).sfield)
             ds(s).sfield = [];

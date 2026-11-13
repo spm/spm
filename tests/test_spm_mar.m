@@ -1,10 +1,11 @@
-function tests = test_spm_mar
+classdef test_spm_mar < matlab.unittest.TestCase
 % Unit Tests for spm_mar
 %__________________________________________________________________________
 
 % Copyright (C) 2016-2022 Wellcome Centre for Human Neuroimaging
 
-tests = functiontests(localfunctions);
+
+methods (Test)
 
 % -------------------------------------------------------------------------
 function test_estimation(testCase)
@@ -62,3 +63,7 @@ testCase.verifyEqual(A2(:),-mar{p}.lag(2).a(:),'AbsTol',0.2);
 
 % Test noise covariance
 testCase.verifyEqual(C(:),mar{p}.noise_cov(:),'AbsTol',0.2);
+end
+end % methods (Test)
+
+end % classdef

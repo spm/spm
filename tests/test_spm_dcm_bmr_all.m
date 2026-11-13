@@ -1,16 +1,26 @@
-function tests = test_spm_dcm_bmr_all
+classdef test_spm_dcm_bmr_all < matlab.unittest.TestCase
 % Unit Tests for test_spm_dcm_bmr_all
 %__________________________________________________________________________
 
 % Copyright (C) 2016-2022 Wellcome Centre for Human Neuroimaging
 
 
-tests = functiontests(localfunctions);
+methods (TestClassSetup)
+    function setupSPM(testCase)
+        % Initialize SPM
+        spm('defaults','fmri');
+        spm_jobman('initcfg');
+        spm_get_defaults('cmdline',true);
+        spm_get_defaults('dcm.verbose',false);
+    end
+end
+
+methods (Test)
 
 % -------------------------------------------------------------------------
 function test_bmr_all(testCase)
 
-data_path = get_data_path();
+data_path = test_spm_dcm_bmr_all.get_data_path();
 
 % Load PEB of full DCM
 PEB = load(fullfile(data_path,'PEB_test.mat'));
@@ -32,6 +42,7 @@ testCase.assertTrue(all(b_reduced(expected) > 1e-4));
 
 Pp = full(spm_unvec(rPEB.Pp,PEB.Ep));
 testCase.assertTrue(Pp(5,2) > 0.9);
+end
 
 % -------------------------------------------------------------------------
 % function test_divide(testCase)
@@ -44,9 +55,17 @@ testCase.assertTrue(Pp(5,2) > 0.9);
 % disp(Pk);
 % 
 % testCase.assertTrue(~all(abs(Pk) < 0.001));
+% end
 
+end % methods (Test)
+
+methods (Static, Access = private)
 % -------------------------------------------------------------------------
 function data_path = get_data_path()
 
 data_path = fullfile( spm('Dir'), 'tests', ...
     'data', 'fMRI', 'simulated_2region');
+end
+end % methods (Static, Access = private)
+
+end % classdef

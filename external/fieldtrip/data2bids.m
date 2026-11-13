@@ -58,7 +58,7 @@ function [cfg] = data2bids(cfg, varargin)
 %   cfg.ses                     = string, optional session name
 %   cfg.run                     = number, optional
 %   cfg.task                    = string, task name is required for functional data
-%   cfg.suffix                  = string, can be any of 'FLAIR', 'FLASH', 'PD', 'PDT2', 'PDmap', 'T1map', 'T1rho', 'T1w', 'T2map', 'T2star', 'T2w', 'angio', 'audio', 'bold', 'bval', 'bvec', 'channels', 'coordsystem', 'defacemask', 'dwi', 'eeg', 'emg', 'epi', 'events', 'eyetracker', 'fieldmap', 'headshape', 'ieeg', 'inplaneT1', 'inplaneT2', 'magnitude', 'magnitude1', 'magnitude2', 'meg', 'motion', 'nirs', 'phase1', 'phase2', 'phasediff', 'photo', 'physio', 'sbref', 'stim', 'video'
+%   cfg.suffix                  = string, can be any of 'FLAIR', 'FLASH', 'PD', 'PDT2', 'PDmap', 'T1map', 'T1rho', 'T1w', 'T2map', 'T2star', 'T2w', 'angio', 'audio', 'bold', 'bval', 'bvec', 'channels', 'coordsystem', 'defacemask', 'dwi', 'eeg', 'emg', 'epi', 'events', 'fieldmap', 'headshape', 'ieeg', 'inplaneT1', 'inplaneT2', 'magnitude', 'magnitude1', 'magnitude2', 'meg', 'motion', 'nirs', 'phase1', 'phase2', 'phasediff', 'photo', 'physio', 'sbref', 'stim', 'video'
 %   cfg.acq                     = string
 %   cfg.ce                      = string
 %   cfg.rec                     = string
@@ -183,7 +183,6 @@ function [cfg] = data2bids(cfg, varargin)
 % - emg
 % - audio
 % - video
-% - eyetracking
 % - physio
 % - stim
 %
@@ -192,7 +191,7 @@ function [cfg] = data2bids(cfg, varargin)
 % officially supported data types.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% Copyright (C) 2018-2024, Robert Oostenveld
+% Copyright (C) 2018-2025, Robert Oostenveld
 %
 % This file is part of FieldTrip, see http://www.fieldtriptoolbox.org
 % for the documentation and details.
@@ -292,7 +291,7 @@ for i=1:numel(fn)
 end
 
 if isempty(cfg.suffix)
-  modality = {'meg', 'eeg', 'ieeg', 'emg', 'motion', 'audio', 'video', 'eyetracker', 'physio', 'stim', 'motion', 'nirs'};
+  modality = {'meg', 'eeg', 'ieeg', 'emg', 'audio', 'video', 'physio', 'stim', 'motion', 'nirs'};
   for i=1:numel(modality)
     if isfield(cfg, modality{i}) && ~isempty(cfg.(modality{i}))
       % the user specified modality-specific options, assume that the datatype matches
@@ -316,7 +315,6 @@ cfg.emg           = ft_getopt(cfg, 'emg');
 cfg.nirs          = ft_getopt(cfg, 'nirs');
 cfg.audio         = ft_getopt(cfg, 'audio');
 cfg.video         = ft_getopt(cfg, 'video');
-cfg.eyetracker    = ft_getopt(cfg, 'eyetracker');
 cfg.physio        = ft_getopt(cfg, 'physio');
 cfg.stim          = ft_getopt(cfg, 'stim');
 cfg.motion        = ft_getopt(cfg, 'motion');
@@ -596,17 +594,12 @@ cfg.video.AudioChannelCount               = ft_getopt(cfg.video, 'AudioChannelCo
 cfg.physio.Columns                        = ft_getopt(cfg.physio, 'Columns'            );
 cfg.physio.StartTime                      = ft_getopt(cfg.physio, 'StartTime'          );
 cfg.physio.SamplingFrequency              = ft_getopt(cfg.physio, 'SamplingFrequency'  );
+cfg.physio.PhysioType                     = ft_getopt(cfg.physio, 'PhysioType'         ); % generic, eyetrack
 
 %% stim is part of the official BIDS specification and goes into 'beh' or in 'func'
 cfg.stim.Columns                          = ft_getopt(cfg.stim, 'Columns'              );
 cfg.stim.StartTime                        = ft_getopt(cfg.stim, 'StartTime'            );
 cfg.stim.SamplingFrequency                = ft_getopt(cfg.stim, 'SamplingFrequency'    );
-
-%% eyetracker is not part of the official BIDS specification
-% this follows https://bids-specification.readthedocs.io/en/stable/04-modality-specific-files/06-physiological-and-other-continuous-recordings.html
-cfg.eyetracker.Columns                    = ft_getopt(cfg.eyetracker, 'Columns'               );
-cfg.eyetracker.StartTime                  = ft_getopt(cfg.eyetracker, 'StartTime'             );
-cfg.eyetracker.SamplingFrequency          = ft_getopt(cfg.eyetracker, 'SamplingFrequency'     );
 
 %% motion is not part of the official BIDS specification
 % this follows extension proposal 029 https://bids.neuroimaging.io/bep029
@@ -830,7 +823,6 @@ need_audio_json         = false;
 need_video_json         = false;
 need_physio_json        = false;
 need_stim_json          = false;
-need_eyetracker_json    = false;
 need_motion_json        = false;
 need_coordsystem_json   = false;
 % determine the tsv files that are required
@@ -947,8 +939,6 @@ switch typ
       need_physio_json = true;
     elseif isequal(cfg.suffix, 'stim')
       need_stim_json = true;
-    elseif isequal(cfg.suffix, 'eyetracker')
-      need_eyetracker_json = true;
     elseif isequal(cfg.suffix, 'motion')
       need_motion_json = true;
     else
@@ -984,8 +974,6 @@ switch typ
       need_physio_json = true;
     elseif isequal(cfg.suffix, 'stim')
       need_stim_json = true;
-    elseif isequal(cfg.suffix, 'eyetracker')
-      need_eyetracker_json = true;
     elseif isequal(cfg.suffix, 'motion')
       need_motion_json = true;
     elseif isequal(cfg.suffix, 'events')
@@ -1046,7 +1034,7 @@ if need_nirs_json
   end
 end
 
-need_events_tsv       = need_events_tsv       || need_meg_json || need_eeg_json || need_ieeg_json || need_emg_json || need_nirs_json || need_eyetracker_json || need_motion_json || (contains(cfg.outputfile, 'task') || ~isempty(cfg.TaskName) || ~isempty(cfg.task)) || ~isempty(cfg.events);
+need_events_tsv       = need_events_tsv       || need_meg_json || need_eeg_json || need_ieeg_json || need_emg_json || need_nirs_json || need_motion_json || (contains(cfg.outputfile, 'task') || ~isempty(cfg.TaskName) || ~isempty(cfg.task)) || ~isempty(cfg.events);
 need_channels_tsv     = need_channels_tsv     || need_meg_json || need_eeg_json || need_ieeg_json || need_emg_json || need_nirs_json || need_motion_json ;
 need_coordsystem_json = need_coordsystem_json || need_meg_json || need_electrodes_tsv || need_nirs_json ;
 
@@ -1058,9 +1046,6 @@ elseif need_audio_json
   cfg.dataset_description.BIDSVersion = 'n/a';
 elseif need_video_json
   ft_warning('video data is not yet part of the official BIDS specification');
-  cfg.dataset_description.BIDSVersion = 'n/a';
-elseif need_eyetracker_json
-  ft_warning('eyetracker data is not yet part of the official BIDS specification');
   cfg.dataset_description.BIDSVersion = 'n/a';
 elseif need_motion_json
   ft_warning('motion data is not yet part of the official BIDS specification');
@@ -1080,6 +1065,7 @@ dataset_description_settings = keepfields(cfg.dataset_description, fn);
 fn = fieldnames(cfg);
 fn = fn(~cellfun(@isempty, regexp(fn, '^[A-Z].*')));
 generic_settings = keepfields(cfg, fn);
+generic_settings = removefields(generic_settings, {'README', 'LICENSE', 'CHANGES'});
 
 % make the relevant selection, all json fields start with a capital letter
 fn = fieldnames(cfg.mri);
@@ -1132,11 +1118,6 @@ fn = fn(~cellfun(@isempty, regexp(fn, '^[A-Z].*')));
 stim_settings = keepfields(cfg.stim, fn);
 
 % make the relevant selection, all json fields start with a capital letter
-fn = fieldnames(cfg.eyetracker);
-fn = fn(~cellfun(@isempty, regexp(fn, '^[A-Z].*')));
-eyetracker_settings = keepfields(cfg.eyetracker, fn);
-
-% make the relevant selection, all json fields start with a capital letter
 fn = fieldnames(cfg.motion);
 fn = fn(~cellfun(@isempty, regexp(fn, '^[A-Z].*')));
 motion_settings = keepfields(cfg.motion, fn);
@@ -1176,6 +1157,8 @@ if need_channels_tsv
   % columns should appear in a specific order
   if need_nirs_json
     required = {'name', 'type', 'source', 'detector', 'wavelength_nominal', 'units'};
+  elseif need_motion_json
+    required = {'name', 'component', 'type', 'tracked_point', 'units'};
   else
     required = {'name', 'type', 'units', 'low_cutoff', 'high_cutoff'};
   end
@@ -1395,18 +1378,6 @@ if need_stim_json
   stim_json = mergestruct(generic_settings, stim_json, false);
 end
 
-%% need_eyetracker_json
-if need_eyetracker_json
-  eyetracker_json.SamplingFrequency = hdr.Fs;
-  eyetracker_json.StartTime = nan;
-  eyetracker_json.Columns = hdr.label;
-
-  % merge the information specified by the user with that from the data
-  % in case fields appear in both, the first input overrules the second
-  eyetracker_json = mergestruct(eyetracker_settings,  eyetracker_json, false);
-  eyetracker_json = mergestruct(generic_settings,     eyetracker_json, false);
-end
-
 %% need_motion_json
 if need_motion_json
   motion_json.SamplingFrequency     = hdr.Fs;
@@ -1612,7 +1583,7 @@ if need_coordsystem_json
       end
     end % if emptyroom
 
-  elseif isfield(hdr, 'grad') && ft_senstype(hdr.grad, 'neuromag')
+  elseif isfield(hdr, 'grad') && (ft_senstype(hdr.grad, 'neuromag') || ft_senstype(hdr.grad, 'fieldline_v3'))
 
     if ~issubfield(hdr, 'orig.dig')
       % the data was not read using the default Neuromag import function
@@ -1623,17 +1594,17 @@ if need_coordsystem_json
       ft_notice('this seems to be an empty room recording')
       coordsystem_json.MEGCoordinateSystem                 = 'Other';
       coordsystem_json.MEGCoordinateUnits                  = 'm';
-      coordsystem_json.MEGCoordinateSystemDescription      = 'ElektaNeuromag dewar coordinates, orientation RAS';
+      coordsystem_json.MEGCoordinateSystemDescription      = 'NeuromagElekta dewar coordinates, orientation RAS';
     else
       % coordinate system for MEG sensors
-      coordsystem_json.MEGCoordinateSystem                 = 'ElektaNeuromag';
+      coordsystem_json.MEGCoordinateSystem                 = 'NeuromagElektaMEGIN';
       coordsystem_json.MEGCoordinateUnits                  = 'm';
-      coordsystem_json.MEGCoordinateSystemDescription      = 'ElektaNeuromag head coordinates, orientation RAS, origin between the ears';
+      coordsystem_json.MEGCoordinateSystemDescription      = 'NeuromagElekta head coordinates, orientation RAS, origin between the ears';
       % coordinate system for head localization coils
       coordsystem_json.HeadCoilCoordinates                 = []; % see below
-      coordsystem_json.HeadCoilCoordinateSystem            = 'ElektaNeuromag';
+      coordsystem_json.HeadCoilCoordinateSystem            = 'NeuromagElektaMEGIN';
       coordsystem_json.HeadCoilCoordinateUnits             = 'm';
-      coordsystem_json.HeadCoilCoordinateSystemDescription = 'ElektaNeuromag head coordinates, orientation RAS, origin between the ears';
+      coordsystem_json.HeadCoilCoordinateSystemDescription = 'NeuromagElekta head coordinates, orientation RAS, origin between the ears';
       if isempty(coordsystem_json.HeadCoilCoordinates)
         idxHPI = find([hdr.orig.dig.kind] == 2); % count the kind==2 (HLU in the Elekta/Megin system), usually 4 or 5
         for i=1:length(idxHPI)
@@ -1643,9 +1614,9 @@ if need_coordsystem_json
       end
       % coordinates of the anatomical landmarks (LPA/RPA/NAS)
       coordsystem_json.AnatomicalLandmarkCoordinates                 = []; % see below
-      coordsystem_json.AnatomicalLandmarkCoordinateSystem            = 'ElektaNeuromag';
+      coordsystem_json.AnatomicalLandmarkCoordinateSystem            = 'NeuromagElektaMEGIN';
       coordsystem_json.AnatomicalLandmarkCoordinateUnits             = 'm';
-      coordsystem_json.AnatomicalLandmarkCoordinateSystemDescription = 'ElektaNeuromag head coordinates, orientation RAS, origin between the ears';
+      coordsystem_json.AnatomicalLandmarkCoordinateSystemDescription = 'NeuromagElekta head coordinates, orientation RAS, origin between the ears';
       if isempty(coordsystem_json.AnatomicalLandmarkCoordinates)
         coordsystem_json = rmfield(coordsystem_json, 'AnatomicalLandmarkCoordinates'); % needed to set the names afterwards
         coordsystem_json.AnatomicalLandmarkCoordinates.lpa = hdr.orig.dig(1).r';
@@ -1898,7 +1869,7 @@ switch cfg.method
             ft_info('writing ''%s''\n', cfg.outputfile);
             ft_write_data(cfg.outputfile, dat, 'dataformat', 'snirf', 'header', hdr, 'event', trigger);
 
-          case {'physio', 'stim', 'eyetracker', 'motion'}
+          case {'physio', 'stim', 'motion'}
             % write the data according to the Stim and Physio format as specified at
             % https://bids-specification.readthedocs.io/en/stable/04-modality-specific-files/06-physiological-and-other-continuous-recordings.html
             [p, f, x] = fileparts(cfg.outputfile);
@@ -1962,8 +1933,10 @@ end % switch method
 %% write the metadata to the json files
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+% FIXME the _events.json and _physioevents.json file are not dealt with
+
 % each of these has a corresponding json file
-modality = {'mri', 'meg', 'eeg', 'ieeg', 'nirs', 'physio', 'stim', 'emg', 'audio', 'video', 'eyetracker', 'motion', 'coordsystem'};
+modality = {'mri', 'meg', 'eeg', 'ieeg', 'nirs', 'physio', 'emg', 'audio', 'video', 'motion', 'stim', 'coordsystem'};
 for i=1:numel(modality)
   if eval(sprintf('need_%s_json', modality{i}))
     modality_json = eval(sprintf('%s_json', modality{i}));
@@ -2022,8 +1995,18 @@ end % for each modality
 %% write the metadata to the tsv files
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+if strcmp(cfg.suffix, 'physio') && need_events_tsv
+  % the events associated with a physio file should go in the physioevents rather than events 
+  need_events_tsv        = false;
+  need_physioevents_tsv  = true;
+  physioevents_tsv       = events_tsv;
+  clear events_tsv
+else
+  need_physioevents_tsv  = false;
+end
+
 % each of these has a corresponding tsv file
-modality = {'channels', 'electrodes', 'optodes', 'events'};
+modality = {'channels', 'electrodes', 'optodes', 'events', 'physioevents'};
 for i=1:numel(modality)
   if eval(sprintf('need_%s_tsv', modality{i}))
     modality_tsv = eval(sprintf('%s_tsv', modality{i}));
@@ -2088,7 +2071,7 @@ for i=1:numel(modality)
         ft_error('incorrect option for cfg.writetsv');
     end % switch
   end % if needd_xxx_tsv
-end % for each modality
+end % for each suffix
 
 
 if ~isempty(cfg.bidsroot)
@@ -2308,7 +2291,7 @@ function f = add_datatype(f, typ)
 f = [f '_' typ];
 
 function f = remove_datatype(f)
-typ = {'FLAIR', 'FLASH', 'PD', 'PDT2', 'PDmap', 'T1map', 'T1rho', 'T1w', 'T2map', 'T2star', 'T2w', 'angio', 'audio', 'bold', 'bval', 'bvec', 'channels', 'coordsystem', 'defacemask', 'dwi', 'eeg', 'emg', 'epi', 'events', 'eyetracker', 'fieldmap', 'headshape', 'ieeg', 'inplaneT1', 'inplaneT2', 'magnitude', 'magnitude1', 'magnitude2', 'meg', 'motion', 'nirs', 'phase1', 'phase2', 'phasediff', 'photo', 'physio', 'sbref', 'stim', 'video'};
+typ = {'FLAIR', 'FLASH', 'PD', 'PDT2', 'PDmap', 'T1map', 'T1rho', 'T1w', 'T2map', 'T2star', 'T2w', 'angio', 'audio', 'bold', 'bval', 'bvec', 'channels', 'coordsystem', 'defacemask', 'dwi', 'eeg', 'emg', 'epi', 'events', 'fieldmap', 'headshape', 'ieeg', 'inplaneT1', 'inplaneT2', 'magnitude', 'magnitude1', 'magnitude2', 'meg', 'motion', 'nirs', 'phase1', 'phase2', 'phasediff', 'photo', 'physio', 'sbref', 'stim', 'video'};
 for i=1:numel(typ)
   if endsWith(f, ['_' typ{i}])
     f = f(1:end-length(typ{i})-1); % also the '_'
@@ -2627,7 +2610,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function dir = datatype2dirname(typ)
 % see https://bids-specification.readthedocs.io/en/stable/99-appendices/04-entity-table.html
-% motion, emg, eyetracker, audio, and video are not part of the official specification
+% motion, emg, audio, and video are not yet part of the official specification
 switch typ
   case {'T1w' 'T2w' 'T1rho' 'T1map' 'T2map' 'T2star' 'FLAIR' 'FLASH' 'PD' 'PDmap' 'PDT2' 'inplaneT1' 'inplaneT2' 'angio' 'defacemask'}
     dir = 'anat';
@@ -2637,7 +2620,7 @@ switch typ
     dir = 'dwi';
   case {'phasediff' 'phase1' 'phase2' 'magnitude1' 'magnitude2' 'magnitude' 'fieldmap' 'epi'}
     dir = 'fmap';
-  case {'events' 'stim' 'physio' 'eyetracker' 'audio' 'video'} % these could also all be stored in 'func' or one of the other directories with brain data
+  case {'events' 'stim' 'physio' 'audio' 'video'} % these could also all be stored in 'func' or one of the other directories with brain data
     dir = 'beh';
   case {'meg'} % this could also include 'events' or other non-brain data
     dir = 'meg';

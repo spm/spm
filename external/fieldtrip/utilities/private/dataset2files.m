@@ -137,6 +137,15 @@ switch format
     [path, file, ext] = fileparts(filename);
     headerfile = fullfile(path, [file '.vhdr']);
     datafile   = fullfile(path, [file '.dat']);
+  case 'brainvision_bvrh'
+    % this pertains to the newer brainvision fileformat
+    [path, file, ext] = fileparts(filename);
+    headerfile = fullfile(path, [file '.bvrh']);
+    datafile   = fullfile(path, [file '.bnrd']);
+  case 'brainvision_bvrd'
+    [path, file, ext] = fileparts(filename);
+    headerfile = fullfile(path, [file '.bvrh']);
+    datafile   = fullfile(path, [file '.bvrd']);
   case 'itab_raw'
     [path, file, ext] = fileparts(filename);
     headerfile = fullfile(path, [file '.raw.mhd']);
@@ -194,9 +203,13 @@ switch format
       headerfile = filename;
       datafile = filename;
     end
-  case {'spikeglx_bin'}
+  case 'spikeglx_bin'
     [p, f, x] = fileparts(filename);
     headerfile = fullfile(p, [f '.meta']);
+    datafile   = fullfile(p, [f '.bin']);
+  case 'opm_fil'
+    [p, f, x] = fileparts(filename);
+    headerfile = fullfile(p, [f '.json']);
     datafile   = fullfile(p, [f '.bin']);
   otherwise
     % convert filename into filenames, assume that the header and data are the same

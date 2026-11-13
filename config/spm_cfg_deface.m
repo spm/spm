@@ -26,7 +26,7 @@ job.name  = 'De-face Images';
 job.val   = {images};
 job.help  = {
     'Strip the face from images, so individuals are more difficult to identify from surface renderings.'
-    'De-faced images are prefixed by ``anon_``.'
+    'De-faced images are prefixed by ``anon_``. Please note that this face-stripping may not always be reliable, so you are urged to visually inspect the end results prior to making data available to others.'
     }';
 job.prog  = @spm_deface;
 job.vout  = @vout;
@@ -38,4 +38,4 @@ function dep = vout(varargin)
 dep(1)            = cfg_dep;
 dep(1).sname      = 'De-faced images';
 dep(1).src_output = substruct('()',{':'});
-dep(1).tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});
+dep(1).tgt_spec   = cfg_findspec({{'filter','nifti','strtype','e'}});

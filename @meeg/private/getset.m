@@ -20,9 +20,13 @@ end
 
 % Get
 if nargin <= 4
-    res = cell(1, length(ind));
-    for i = 1:length(ind)
-        res{i} = getfield(this, parent, {ind(i)}, fieldname);
+    try
+        res = {this.(parent)(ind).(fieldname)};
+    catch
+        res = cell(1, length(ind));
+        for i = 1:length(ind)
+            res{i} = getfield(this, parent, {ind(i)}, fieldname);
+        end
     end
 
     if isempty(res) || (all(cellfun('isclass', res, 'double') & (cellfun(@numel, res) == 1)))
@@ -49,13 +53,20 @@ if nargin == 5
         error('Illegal assignment: cannot match values and indices.');
     end        
         
-    for i = 1:length(ind)
-        if iscell(values)
+    if iscell(values)
+        try 
+            [this.(parent)(ind).(fieldname)] = values{:};  
+        catch 
             this = setfield(this, parent, {ind(i)}, fieldname, values{i});
-        else
+        end
+    else 
+        try 
+            [this.(parent)(ind).(fieldname)] = deal(values);  
+        catch 
             this = setfield(this, parent, {ind(i)}, fieldname, values);
         end
     end
+    
     % getset is sometimes used on subfields of meeg then checkmeeg should
     % not be used
     if all(isfield(this, {'type', 'Nsamples', 'Fsample', 'timeOnset'}))

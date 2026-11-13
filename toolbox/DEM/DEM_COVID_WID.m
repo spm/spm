@@ -294,7 +294,7 @@ for k = 1:numel(ri)
     % model specification
     %======================================================================
     M.Nmax = 16;                   % maximum number of iterations
-    M.date = '01-02-2020';         % start date
+    M.date = '01-Jan-2020';        % start date
     M.G    = @spm_SARS_gen;        % generative function
     M.FS   = @(Y)real(sqrt(Y));    % feature selection  (link function)
     M.pE   = pE;                   % prior expectations (parameters)

@@ -56,7 +56,7 @@ if nargin == 0
  
     distratio1 = cfg_entry;
     distratio1.tag = 'distratio1';
-    distratio1.name = 'First ratio between correlation and geodesic based ditances';
+    distratio1.name = 'First ratio between correlation and geodesic based distances';
     distratio1.strtype = 'r';
     distratio1.num = [1 1];
     distratio1.val = {4};
@@ -64,7 +64,7 @@ if nargin == 0
     
     distratio2 = cfg_entry;
     distratio2.tag = 'distratio2';
-    distratio2.name = 'Second ratio between correlation and geodesic based ditances';
+    distratio2.name = 'Second ratio between correlation and geodesic based distances';
     distratio2.strtype = 'r';
     distratio2.num = [1 1];
     distratio2.val = {2};
