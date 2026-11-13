@@ -1,5 +1,5 @@
 ---
-title: 'SPM 25: open source neuroimaging analysis software'
+title: 'SPM 26: Advances in neuroimaging analysis and computational modelling'
 tags:
   - neuroimaging
   - neuroscience
@@ -8,189 +8,161 @@ tags:
   - MEG
   - EEG
   - PET
+  - OPM
+  - active inference
+  - MATLAB
 authors:
-  - name: Tim M. Tierney
-    orcid: 0009-0008-7575-679X
-    affiliation: 1	
+  - name: Pranay S. Yadav
+    orcid: 0000-0003-4692-6506
+    affiliation: 1
   - name: Nicholas A. Alexander
     orcid: 0000-0001-5161-684X
-    affiliation: 1	
+    affiliation: 1
   - name: John Ashburner
     orcid: 0000-0001-7605-2518
-    affiliation: 1	
-  - name: Nicole Labra Avila
-    affiliation: 1	
+    affiliation: 1
   - name: Yaël Balbastre
     orcid: 0000-0001-8758-9978
-    affiliation: 1	
+    affiliation: 2
   - name: Gareth Barnes
     orcid: 0000-0002-5396-7712
-    affiliation: 1	
+    affiliation: 1
   - name: Yulia Bezsudnova
     orcid: 0000-0003-2443-7082
-    affiliation: 1	
-  - name: Mikael Brudfors
-    orcid: 0000-0002-2884-2336
-    affiliation: 1	
+    affiliation: 1
+  - name: Martina Callaghan
+    orcid: 0000-0003-0374-1659
+    affiliation: 1
+  - name: Barbara Dymerska
+    orcid: 0000-0001-6339-2169
+    affiliation: 1
   - name: Korbinian Eckstein
     orcid: 0000-0002-4538-7072
-    affiliation: 1	
-  - name: Guillaume Flandin
-    orcid: 0000-0003-0077-7859
-    affiliation: 1	
+    affiliation: 1
   - name: Karl Friston
     orcid: 0000-0001-7984-8909
-    affiliation: 1	
-  - name: Amirhossein Jafarian
-    orcid: 0000-0001-9547-7941
-    affiliation: 1		
+    affiliation: 1
+  - name: Chetan Gohil
+    orcid: 0000-0002-0888-1207
+    affiliation: 1
   - name: Olivia S. Kowalczyk
     orcid: 0000-0002-6543-290X
-    affiliation: "1, 4"	
+    affiliation: "1, 3"
   - name: Vladimir Litvak
     orcid: 0000-0001-8535-7452
-    affiliation: 1	
+    affiliation: 1
+  - name: Alberto Mariola
+    orcid: 0000-0003-4660-1306
+    affiliation: 1
   - name: Johan Medrano
     orcid: 0000-0002-7558-2071
-    affiliation: 1	
-  - name: Stephanie Mellor
-    orcid: 0000-0001-8164-645X
-    affiliation: "5, 6"	
+    affiliation: "1, 4"
   - name: George O'Neill
     orcid: 0000-0002-0035-3768
-    affiliation: 1	
-  - name: Thomas Parr
-    orcid: 0000-0001-5108-5743
-    affiliation: "1, 3"	
-  - name: Adeel Razi
-    orcid: 0000-0002-0779-9439
-    affiliation: "1, 2"	
-  - name: Ryan Timms
-    affiliation: 1	
+    affiliation: "5, 6"
+  - name: Tim M. Tierney
+    orcid: 0009-0008-7575-679X
+    affiliation: 1
   - name: Peter Zeidman
     orcid: 0000-0003-3610-6619
-    corresponding: true
     affiliation: 1
+    corresponding: true
 affiliations:
- - name: Department of Imaging Neuroscience, University College London, UK
-   index: 1
-   ror: 02jx3x895
- - name: School of Psychological Sciences and Turner Institute for Brain and Mental Health, Monash University, Clayton 3180, Australia
-   index: 2
-   ror: 02bfwt286
- - name: Nuffield Department of Clinical Neurosciences, University of Oxford
-   index: 3
-   ror: 052gg0110
- - name: Department of Neuroimaging, Institute of Psychiatry, Psychology & Neuroscience, King’s College London
-   index: 4
-   ror: 0220mzb33
- - name: Spinal Cord Injury Center, Balgrist University Hospital, University of Zurich, Zurich, Switzerland
-   index: 5
-   ror: 02crff812
- - name: Translational Neuromodeling Unit, Institute for Biomedical Engineering, University of Zurich & ETH Zurich, Zurich, Switzerland
-   index: 6
-   ror: 02crff812
- 
-date: 16 January 2025
+  - name: Department of Imaging Neuroscience, UCL Queen Square Institute of Neurology, University College London, London WC1N 3AR, United Kingdom
+    index: 1
+    ror: 02jx3x895
+  - name: Department of Experimental Psychology, Division of Psychology and Language Sciences, University College London, London WC1H 0AP, United Kingdom
+    index: 2
+    ror: 02jx3x895
+  - name: Department of Neuroimaging, Institute of Psychiatry, Psychology & Neuroscience, King’s College London
+    index: 3
+    ror: 0220mzb33
+  - name: Department of Biological Engineering, Massachusetts Institute of Technology, Cambridge, MA, USA
+    index: 4
+    ror: 042nb2s44
+  - name: Department of Neuroscience, Physiology and Pharmacology, University College London, London, United Kingdom
+    index: 5
+    ror: 02jx3x895
+  - name: FieldLine Medical, Louisville, CO, United States
+    index: 6
+date: 13 November 2026
 bibliography: paper.bib
-
 ---
 
 # Summary
 
-Statistical Parametric Mapping (SPM) is an integrated set of methods for testing hypotheses about the brain's structure and function, using data from imaging devices. These methods are implemented in an open source software package, `SPM`, which has been in continuous development for more than 30 years by an international community of developers. This paper reports the release of `SPM 25.01`, a major new version of the software that incorporates novel analysis methods, optimisations of existing methods, as well as improved practices for open science and software development.
+Statistical Parametric Mapping (SPM) is an open-source software package for analysing neuroimaging data and testing hypotheses about central nervous system structure and function. Developed over more than 30 years [@zeidman2025spm], `SPM` supports magnetic resonance imaging (MRI), positron emission tomography (PET), electroencephalography (EEG) and magnetoencephalography (MEG), including recordings from optically pumped magnetometers (OPMs). It also provides methods for Bayesian inference and generative modelling of neuronal dynamics and behaviour.
+
+This paper describes `SPM 26`, released in October 2026. Advances since `SPM 25` [@tierney2025spm] include improvements in MRI distortion correction, calibration and interference reduction for OP-MEG, and further developments in M/EEG analysis. Extensions to dynamic causal modelling (DCM) and the dynamic expectation maximisation (DEM) toolbox provide new methods for inference using generative models of brain dynamics, learning and behaviour. We have also expanded numerical regression testing, introduced interoperability with Julia, and improved automated testing of compiled and containerised distributions. Together, these developments extend SPM's analysis and modelling capabilities while helping to maintain the reliability of existing workflows.
 
 # Statement of need
 
-`SPM` introduced many of the statistical foundations that underpin cognitive and clinical neuroimaging research today, including:
+SPM has played a foundational role in the development of statistical methods for cognitive and clinical neuroimaging, including voxel-wise general linear models [@friston1994statistical], topological inference using random field theory [@worsley1996unified], and DCM of interactions between brain regions [@friston2003dynamic]. Building on `SPM 25` [@tierney2025spm], there is a continuing need to extend these capabilities as neuroimaging technologies and computational approaches evolve, while maintaining the reproducibility of existing analyses.
 
-- The voxel-wise application of General Linear Models (GLMs) to neuroimaging data [@friston1994statistical].
-- Convolution modelling of functional MRI (fMRI) signals using haemodynamic response functions [@friston1994analysis].
-- Correction for multiple comparisons using topological inference (Random Field Theory, RFT) [@worsley1996unified].
-- Event-related fMRI [@josephs1997event].
-- Voxel-Based morphometry (VBM) for detecting changes in anatomy [@ashburner2000voxel].
-- Dynamic Causal Modelling (DCM) for state-space modelling using variational Bayesian methods [@friston2003dynamic].
-- Source localisation for M/EEG data using variational Bayesian methods [@phillips2005empirical].
+For researchers studying the central nervous system, `SPM 26` addresses three areas of need. First, new neuroimaging technologies and experimental paradigms require improved methods for data preprocessing and analysis. For example, OPMs enable MEG recordings during movement [@boto2018moving; @mellor2023real], creating a need for accurate sensor calibration and interference reduction. Second, developments in computational neuroscience call for more expressive generative models and inference methods to investigate neural dynamics, learning and behaviour. Third, increasingly complex analytical workflows require rigorous numerical validation, reproducible software distributions and interoperability with other programming languages.
 
-These methods share certain key principles: the use of generative models, the application of well-motivated parametric statistics and a commitment to open science practices. They are included in a major new release of `SPM`, which addresses a series of needs in the neuroimaging community, set out below.
+# State of the field
 
-## Open development
+Several open-source packages support neuroimaging research, including FSL [@jenkinson2012fsl], AFNI [@cox1996afni] and FreeSurfer [@fischl2012freesurfer] for MRI, and FieldTrip [@oostenveld2011fieldtrip], MNE-Python [@gramfort2013meg], Brainstorm [@tadel2011brainstorm] and EEGLAB [@delorme2004eeglab] for M/EEG. Related packages for computational modelling include TAPAS [@frassle2021tapas] and pymdp [@heins2022pymdp].
 
-`SPM` was previously developed and tested using a private Subversion server within University College London. To enable community engagement in the future development of `SPM` and to increase transparency, development has recently moved to a public [GitHub repository](https://github.com/spm/spm). `SPM 25.01` is the first release of the software following the move to GitHub. The key advantages of using GitHub thus far have been:
+SPM differs in its longstanding emphasis on testing hypotheses about the processes underlying observed brain activity through generative modelling and principled statistical inference [@zeidman2025spm]. To this end, it brings together methods for analysing MRI, PET, EEG and MEG data within an extensible framework for Bayesian inference and computational modelling. Continued development within SPM allows new methods to build on these established foundations and become part of existing neuroimaging workflows.
 
-- Introducing automated unit and regression tests across platforms.
-- Automating the build process to conveniently generate and release source code and compiled versions.
-- Issue tracking and distributing tasks among developers.
+# Software design
 
-## Documentation and training
+SPM is written primarily in MATLAB (81% of source code lines, excluding external dependencies), with computationally intensive operations implemented in C. In `SPM 26`, we have extended its modular system of toolboxes and analysis routines, improved access to scientific software written in other languages, and expanded our testing framework to detect unintended numerical changes between releases.
 
-The documentation for `SPM` was previously spread across multiple locations, most of which could not be edited by the community. `SPM 25.01` is accompanied by a new [documentation website](https://www.fil.ion.ucl.ac.uk/spm/docs/), the source code for which is hosted in a public [GitHub repository](https://github.com/spm/spm-docs). The new website has step-by-step tutorials on all of SPM's main features, as well as freely available video recordings of lectures from previous SPM courses covering the mathematical theory.
+## Modular extensions
 
-## Major new features 
+**MRI and statistical inference.** The SCOPE toolbox, introduced in `SPM 25` [@tierney2025spm], corrects geometric distortions in MRI using images acquired with opposite phase-encoding directions [@andersson2003correct]. In `SPM 26`, we extended SCOPE to incorporate an initial displacement map, either supplied by the user or estimated from phase images using ROMEO phase unwrapping [@dymerska2021romeo]. Distortion correction during fMRI preprocessing can also be performed using a static field map, without modelling motion-related changes in the field.
 
-`SPM 25` includes 10 years of new developments since the last major release (`SPM 12`, dated 1st October 2014). This section highlights some of the most significant new features for different neuroimaging modalities.
+The DICOM conversion utility now supports three-dimensional MR Spectroscopic Imaging (MRSI) data, preserving spatial orientation in five-dimensional NIfTI images. For statistical inference using random-field theory, we added a function to compute Euler characteristic densities for Z, T, F and chi-squared random fields in arbitrary dimensions [@worsley2004unified].
 
-### MRI
+**M/EEG.** `SPM 26` includes a template-based method for removing deep brain stimulation artefacts from EEG evoked responses [@peeters2023electrophysiologic]. For source-space analysis, we added example pipelines to the DAiSS toolbox for studying heartbeat-evoked potentials [@virjee2026heartbeat] using beamformers [@westner2022unified]. Bayesian spectral decomposition (BSD), previously described in the `SPM 25` paper, is now included as a toolbox [@medrano2025bsd]. BSD estimates parametric models of neural power spectra and uses Bayesian model comparison to assess whether particular oscillatory peaks are supported by the data.
 
-- Multi-Brain Toolbox [@brudfors2020flexible]. Generates population average-shaped brains, enabling more precise spatial normalisation with the option to automatically label brain structures [@yan2022factorisation].
+**OP-MEG.** Accurate analysis of OPM recordings depends on knowledge of sensor positions, orientations and gains, as well as effective suppression of environmental interference. In `SPM 26`, we introduced coil-based calibration, in which known magnetic fields generated by external coils are used to estimate sensor geometry and sensitivity [@hill2025determining]. We also added an implementation of signal-space projection [@uusitalo1997signal] that supports arrays with unequal noise variance across channels, as can occur in multi-axis OPM systems. Anatomically derived two-dimensional sensor layouts have also been extended to represent tangential channels [@alexander2025anatomically].
 
-- SCOPE Toolbox. Generates voxel displacement maps (VDMs) using phase-encode-reversed pairs of MRI images (blip-up and blip-down images) to correct geometrical distortion in MRI [@andersson2003correct]. This is similar to the Topup toolbox in FSL.
+**Dynamic causal modelling.** Conventional DCMs describe effective connectivity through parameters that are typically assumed to remain constant over the period being modelled. `SPM 26` adds demonstrations of time-varying effective connectivity for event-related potentials and cross-spectral densities, using temporal basis functions to represent slow changes in synaptic efficacy [@medrano2024dynamic]. For DCM of event-related potentials, users can now select from SPM's built-in exponential integrators or provide their own integration routines.
 
-### M/EEG
+**Active inference and behavioural modelling.** We substantially expanded the DEM toolbox [@friston2008dem] with new methods and demonstrations for generative modelling, learning, inference and decision-making. New renormalising generative models and structure-learning methods explore how hierarchical representations can be learned from sensory data, with examples involving images, video and sound [@friston2025pixels]. New methods allow agents to consider sequences of future actions and their expected outcomes when selecting policies for planning problems such as maze navigation and the Tower of Hanoi [@friston2021sophisticated]. Other developments include non-equilibrium steady-state models and methods based on Helmholtz–Hodge decompositions for studying dynamical systems, forecasting and self-organisation [@friston2026free]. We also revised core active inference routines [@friston2017active], including policy representations, hierarchical model specification and Bayesian model reduction [@friston2017curiosity].
 
-- Methods for spectral decomposition - `SPM 25.01` offers an implementation of an existing approach called FOOOF (Specparam) in the MEEGtools toolbox, based on code from Brainstorm [@donoghue2020parameterizing], as well as a new Bayesian implementation that introduces formal statistical testing, called Bayesian Spectral Decomposition (BSD) [@medrano2024bsd].
+## Interoperability and reuse
 
-- Support for fusion of different MEG sensor types and EEG sensors in beamforming with pre-whitening [@westner2022unified].
+We have extended SPM's interfaces to other programming languages, allowing researchers to use specialised and computationally optimised methods developed outside MATLAB. In `SPM 26`, we introduced `spm_julia`, which enables MATLAB-based workflows to execute code written in Julia [@bezanson2017julia]. The interface manages a local Julia installation and its package dependencies, providing access to Julia methods without requiring users to configure a separate environment. Its first application is ROMEO [@dymerska2021romeo], a fast and accurate phase-unwrapping method used for field-map estimation in SCOPE, suitable for large-scale fMRI studies. The `spm-python` interface, introduced in `SPM 25` [@tierney2025spm], is now available through PyPI, allowing SPM to be used from Python-based workflows.
 
-- Support for MEG BIDS for specification of events, channels and fiducials [@westner2022unified].
+SPM has long used components of FieldTrip for M/EEG data input and forward modelling, drawing on established implementations maintained by the wider research community. In `SPM 26`, we introduced a continuous integration workflow that tracks FieldTrip's upstream release branch and incorporates updates once tests succeed. This allows SPM to benefit from ongoing improvements to FieldTrip while checking that updates remain compatible with existing SPM functionality.
 
-- Proof-of-concept routines for fusing M/EEG and fMRI data under a unified physiological model, to investigate neurovascular coupling [@friston2019dynamic; @jafarian2020comparing].
+## Numerical validation and reproducibility
 
-### OPMs
+Automated testing has expanded in `SPM 26`, with the number of test cases increasing from 211 to 337. Because changes to numerical routines can alter model predictions and parameter estimates without causing software failures, new regression tests compare numerical outputs against stored reference values to detect unintended changes.
 
-A major recent innovation in neuroimaging is MEG using Optically Pumped Magnetometers (OPMs), which enable free movement of the head and body during neural recordings [@boto2018moving]. This makes MEG available to new experimental paradigms (e.g., experiments involving free movement [@mellor2023real]), new study populations who may not be amenable to traditional MEG (e.g., people with epilepsy [@mellor2024detection]) and recording of other biomagnetic fields (e.g., from the spinal cord [@spedden2024towards]). Developing analysis tools for OPM data is a major focus for SPM, with recently added features including:
+A new DCM test suite includes parameterised tests spanning nine neural mass models and three numerical integration schemes. These tests check each model's stability and steady-state initialisation. They also assess whether models reproduce simulated responses and whether inversion of models from fixed datasets yields estimates that agree with stored reference values within specified tolerances.
 
-- File IO for all major OPM manufacturers (Quspin, Cerca, Mag4Health, Fieldline).
-- Methods to simulate arbitrary OPM arrays of differing densities and vector measurements.
-- OPM interference cancellation algorithms for low channel systems: Homogeneous Field Correction [@tierney2021modelling].
-- OPM interference cancellation algorithms for large channel systems: Adaptive Multipole Models [@tierney2024adaptive].
+Additional regression tests evaluate M/EEG analysis workflows, including a pipeline using the Wakeman and Henson dataset [@wakeman2015multi] that covers preprocessing through source reconstruction. Automated workflows run tests across supported configurations of Linux, macOS and Windows, using MATLAB releases from R2020b onwards. Changes to numerical behaviour and processing defaults that may affect reproducibility are documented in the release notes.
 
-### Bayesian statistics
+## Build and distribution
 
-- Parametric Empirical Bayes (PEB) [@friston2016bayesian] extends the Dynamic Causal Modelling (DCM) framework to include random effects modelling of neural connectivity parameters, enabling people to test hypotheses about the similarities and differences among research participants.
+As in `SPM 25`, we test and distribute `SPM 26` in three forms, each supporting GUI and command-line use. The standard MATLAB package runs on personal computers and high-performance computing (HPC) systems but requires a MATLAB licence. Standalone packages provide compiled versions of SPM for Linux, Windows and macOS, including Intel and Apple Silicon architectures, without requiring a MATLAB licence. Container images for Docker, Podman and Singularity provide a further licence-free option for deployment across computing environments. Maintaining these distributions increases build and testing requirements but makes SPM accessible to users with different software and computing resources.
 
-- Bayesian model reduction (BMR) [@friston2018bayesian] enables statistical evidence to be rapidly scored for large numbers of competing models, where models differ only in their priors.
+Development takes place publicly on GitHub. Between releases `25.01.02` and `26.10.01`, 24 people contributed about 350 commits, including seven from outside the SPM organisation. SPM is distributed under the GNU General Public License (version 2 or later), with documentation available at https://www.fil.ion.ucl.ac.uk/spm/docs/.
 
-### Behavioural modelling
+# Research impact statement
 
-In addition to neuroimaging analysis, SPM includes a suite of tools for behavioural modelling, including a comprehensive repository for computational neuroscience using the Active Inference framework. The code in `SPM 25.01` has undergone significant development, offering a range of demonstrations accessible via the SPM DEM toolbox and associated GUI, and detailed in an accompanying textbook [@parr2022active]. The key features are:
+SPM is widely used in cognitive, clinical and computational neuroscience. To assess the research community served by the software, we examined publications reporting use of `SPM 25` since its release in January 2025. We identified 76 publications and software records, including 41 journal articles, 67 of them with no authors in common with the SPM development team or the `SPM 25` paper (full list available in the [research impact bibliography](https://github.com/spm/spm/blob/spm-release-paper/paper/research_impact_bibliography.md)). These studies illustrate the breadth of SPM's applications, spanning task fMRI [@knobloch2026resolving; @memis2026object], resting-state fMRI [@chuda2026early], structural MRI [@jiskoot2026automated], PET [@chiaravalloti2026plasma; @li2026total], DCM [@taniguchi2026task; @kvistad2026effects] and functional near-infrared spectroscopy [@levy2026shedding].
 
-- A series of inversion schemes for generative models based upon Partially Observable Markov Decision Processes (POMDPs) that can be used to simulate sequential choices, decision making, and planning [@friston2017active]. 
-- An active (generalised) filtering scheme for numerical simulation of continuous movement behaviour and responses to continuous sensory signals, e.g., [@friston2015duet].
-- Options for hierarchical composition of the above models [@friston2017graphical] and composition with a range of other models (e.g., speech recognition [@friston2021active]).
-- Routines to fit the above models to behavioural data [@schwartenbeck2016computational].
+`SPM 26` builds on this established research use while extending support for emerging applications. In naturalistic neuroimaging, its OP-MEG developments support studies of brain activity during movement and in participants for whom conventional MEG may be difficult [@hill2019tool; @vivekananda2020optically]. At the same time, its developments in DCM and the DEM toolbox aim to improve inference using generative models across a range of applications.
 
+# AI usage disclosure
 
-### SPM without MATLAB
+We used generative AI in two areas. First, Claude (Anthropic; models Opus 4.7, 4.8, 5 and 5.5) assisted with writing code and commit messages for the build, testing and continuous integration infrastructure. All AI-assisted code was reviewed and verified by an SPM developer. Second, we used Claude (Opus 5.5) to help draft the `SPM 26` release notes, which were extensively reviewed, edited and verified by the SPM development team before publication.
 
-Approximately 90% of the `SPM 25.01` source code is written in MATLAB and the remainder is written in C. This code has been highly optimised and thoroughly tested over 30 years of development. We have therefore carefully considered how to capitalise on the stability of the `SPM` software, while making it more  accessible for people who do not have access to a MATLAB license, or who prefer to write their analysis code in other languages. 
+# Conflict of interest
 
-Our strategy is as follows:
-
-- `SPM 25` will be the first version of SPM to be fully accessible from the Python programming language, without requiring MATLAB, using a new Python wrapper called [spm-python](https://github.com/spm/spm-python). This is in the final stages of development and will be released in the first quarter of 2025.
-
-- [SPM Standalone](https://www.fil.ion.ucl.ac.uk/spm/docs/installation/standalone/) is the compiled version of `SPM` that can be run from the command line without a MATLAB license. This enables people to run neuroimaging analyses from command line scripts written in any language, or using the GUI. It is now generated automatically with each new release, as part of the GitHub-based build process. 
-
-- [Docker and Singularity containers](https://www.fil.ion.ucl.ac.uk/spm/docs/installation/containers/) are additionally provided and are now generated automatically as part of SPM's GitHub build process.
-
-# Software versions
-
-`SPM 25.01` is the first release of `SPM` to use calendar versioning, thus `SPM 25.01` is the version issued in January 2025. All releases are available via [https://github.com/spm/spm/releases](https://github.com/spm/spm/releases). 
+GCO is employed by FieldLine Medical (FLM), a company commercialising OP-MEG technology. FLM had no editorial control over the content of this publication.
 
 # Acknowledgements
 
-A full list of authors of `SPM` can be found in the file `AUTHORS.txt` supplied with the software. We are also grateful to the IT Team at the UCL Department of Imaging Neuroscience for their ongoing support.
+A comprehensive list of `SPM` authors is in the file `AUTHORS.txt` supplied with the software. We are also grateful to the IT Team at the UCL Department of Imaging Neuroscience for their ongoing support.
 
-Yael Balbastre is funded by a Royal Society Newton International Fellowship (NIF\\R1\\232460). Olivia S. Kowalczyk is supported by the King’s Prize Fellowship. Nicholas A Alexander and Johan Medrano are supported by the Discovery Research Platform for Naturalistic Neuroimaging funded by Wellcome [226793/Z/22/Z]. Stephanie Mellor was funded by an Engineering and Physical Sciences Research Council (EPSRC) Healthcare Impact Partnership Grant (EP/V047264/1). Tim M. Tierney is funded by an Epilepsy Research UK fellowship (FY2101). Thomas Parr is supported by NIHR Academic Clinical Fellowship (ref: ACF-2023-13-013). Peter Zeidman is funded by an MRC Career Development Award [MR/X020274/1]. 
+Yael Balbastre is funded by a Royal Society Newton International Fellowship (NIF\\R1\\232460). Olivia S. Kowalczyk is supported by the King's Prize Fellowship. Nicholas A. Alexander, Barbara Dymerska, Alberto Mariola and Johan Medrano are supported by the Discovery Research Platform for Naturalistic Neuroimaging funded by Wellcome \[226793/Z/22/Z\]. Barbara Dymerska is also partially funded by the Medical Research Council \[UKRI226\]. Tim M. Tierney is funded by an Epilepsy Research UK fellowship (FY2101). Peter Zeidman is funded by an MRC Career Development Award \[MR/X020274/1\].
 
 # References
