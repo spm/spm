@@ -60,7 +60,7 @@ if isfield(SPM,'Sess')
         block = [];
         for cc=1:conds
             block = [block,con(c).c(:,col:col+nbases-1)];
-            block = [block,zeros(nr,sum([SPM.Sess(1).U(cc).P.h]))];
+            block = [block,zeros(nr,sum([SPM.Sess(1).U(cc).P.h])*nbases)];
             col   = col + nbases;
         end
         con(c).c  = block;
